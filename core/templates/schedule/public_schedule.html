@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+  <h1 style="margin-bottom: 20px;">Project Schedule</h1>
+
+  {% if schedules %}
+    <ul style="list-style: none; padding: 0;">
+      {% for s in schedules %}
+        <li style="margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; padding: 15px;">
+          <h3>{{ s.title }}</h3>
+          <p><strong>Project:</strong> {{ s.project.name }}</p>
+          <p><strong>From:</strong> {{ s.start_datetime|date:"M d, Y H:i" }}</p>
+          <p><strong>To:</strong> {{ s.end_datetime|date:"M d, Y H:i" }}</p>
+          {% if s.description %}
+            <p><strong>Description:</strong> {{ s.description }}</p>
+          {% endif %}
+          {% if s.photo %}
+            <p><img src="{{ s.photo.url }}" alt="Photo" style="max-width: 200px;"></p>
+          {% endif %}
+          {% if s.stage %}<p><strong>Stage:</strong> {{ s.stage }}</p>{% endif %}
+          {% if s.completion_percentage %}<p><strong>Progress:</strong> {{ s.completion_percentage }}%</p>{% endif %}
+          {% if s.delay_reason %}<p><strong>Delay Reason:</strong> {{ s.delay_reason }}</p>{% endif %}
+          {% if s.advance_reason %}<p><strong>Advance Reason:</strong> {{ s.advance_reason }}</p>{% endif %}
+          <p><strong>Status:</strong> {% if s.is_complete %}✅ Completed{% else %}⏳ In Progress{% endif %}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No schedule available.</p>
+  {% endif %}
+{% endblock %}
