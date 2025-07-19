@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-nvh!d_lkeyq$*bk($53a2!gh&=5i351r6w2w_g052fgld-=w%6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+import os
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")
+
 
 
 # Application definition
@@ -122,3 +124,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+ALLOWED_HOSTS = ['kibray-backend.onrender.com']
