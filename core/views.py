@@ -1,5 +1,10 @@
 from django.shortcuts import render
-from .models import Project
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from .models import Project, Schedule
+
+def home(request):
+    return HttpResponse("Welcome to Kibray Dashboard!")
 
 def resumen_proyectos(request):
     projects = Project.objects.all()
@@ -14,14 +19,11 @@ def resumen_proyectos(request):
         'mayor': mayor,
         'menor': menor,
     })
-from django.contrib.auth.decorators import login_required
-from .models import Schedule
 
 @login_required
 def public_schedule_view(request):
     user = request.user
 
-    # Si no es superusuario, solo ve sus eventos o los asignados
     if not user.is_superuser:
         schedules = Schedule.objects.filter(is_personal=False).filter(
             assigned_to=user
@@ -29,7 +31,6 @@ def public_schedule_view(request):
             project__in=user.project_set.all()
         )
     else:
-        # El superusuario ve todo
         schedules = Schedule.objects.all()
 
     context = {
