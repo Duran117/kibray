@@ -1,11 +1,13 @@
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
-from datetime import datetime, timedelta
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from datetime import datetime
 
-
+# ---------------------
 # Modelo de Empleado
+# ---------------------
 class Employee(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -25,8 +27,38 @@ class Employee(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 
-# Modelo de Ingresos
+# ---------------------
+# Modelo de Proyecto
+# ---------------------
+class Project(models.Model):
+    name = models.CharField(max_length=100)
+    client = models.CharField(max_length=100, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    paint_colors = models.TextField(blank=True, help_text="Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black")
+    paint_codes = models.TextField(blank=True, help_text="Códigos de pintura si son diferentes de los colores comunes")
+    stains_or_finishes = models.TextField(blank=True, help_text="Ejemplo: Milesi Butternut 072 - 2 coats")
+    number_of_rooms_or_areas = models.IntegerField(blank=True, null=True)
+    number_of_paint_defects = models.IntegerField(blank=True, null=True, help_text="Número de manchas o imperfecciones detectadas")
+    total_income = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    reflection_notes = models.TextField(blank=True, help_text="Notas sobre aprendizajes, errores o mejoras para próximos proyectos")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def profit(self):
+        return round(self.total_income - self.total_expenses, 2)
+
+    def __str__(self):
+        return self.name
+
+
+# ---------------------
+# Modelo de Ingreso
+# ---------------------
 class Income(models.Model):
+    project = models.ForeignKey(Project, related_name="incomes", on_delete=models.CASCADE)
     project_name = models.CharField(max_length=255, verbose_name="Nombre del proyecto o factura")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cantidad recibida")
     date_received = models.DateField(verbose_name="Fecha de ingreso")
@@ -48,21 +80,25 @@ class Income(models.Model):
         return f"{self.project_name} - ${self.amount}"
 
 
-# Modelo de Gastos
+# ---------------------
+# Modelo de Gasto
+# ---------------------
 class Expense(models.Model):
-    CATEGORIES = [
-        ("MATERIALES", "Materiales"),
-        ("COMIDA", "Comida"),
-        ("SEGURO", "Seguro"),
-        ("ALMACÉN", "Storage"),
-        ("MANO_OBRA", "Mano de obra"),
-        ("OTRO", "Otro"),
-    ]
-
+    project = models.ForeignKey(Project, related_name="expenses", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     project_name = models.CharField(max_length=255)
     date = models.DateField()
-    category = models.CharField(max_length=50, choices=CATEGORIES)
+    category = models.CharField(
+        max_length=50,
+        choices=[
+            ("MATERIALES", "Materiales"),
+            ("COMIDA", "Comida"),
+            ("SEGURO", "Seguro"),
+            ("ALMACÉN", "Storage"),
+            ("MANO_OBRA", "Mano de obra"),
+            ("OTRO", "Otro"),
+        ]
+    )
     description = models.TextField(blank=True, null=True)
     attachment = models.FileField(upload_to="expenses/", blank=True, null=True)
 
@@ -70,47 +106,9 @@ class Expense(models.Model):
         return f"{self.project_name} - {self.category} - ${self.amount}"
 
 
-# Modelo de Proyectos
-class Project(models.Model):
-    name = models.CharField(max_length=100)
-    client = models.CharField(max_length=100, blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
-    start_date = models.DateField()
-    end_date = models.DateField(blank=True, null=True)
-
-    description = models.TextField(blank=True, null=True)
-    paint_colors = models.TextField(
-        blank=True, help_text="Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black"
-    )
-    paint_codes = models.TextField(
-        blank=True, help_text="Códigos de pintura si son diferentes de los colores comunes"
-    )
-    stains_or_finishes = models.TextField(
-        blank=True, help_text="Ejemplo: Milesi Butternut 072 - 2 coats"
-    )
-    number_of_rooms_or_areas = models.IntegerField(blank=True, null=True)
-    number_of_paint_defects = models.IntegerField(
-        blank=True, null=True, help_text="Número de manchas o imperfecciones detectadas"
-    )
-
-    total_income = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-
-    def profit(self):
-        return self.total_income - self.total_expenses
-
-    reflection_notes = models.TextField(
-        blank=True,
-        help_text="Notas sobre aprendizajes, errores o mejoras para próximos proyectos"
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
-
+# ---------------------
 # Modelo de Registro de Horas
+# ---------------------
 class TimeEntry(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -124,7 +122,7 @@ class TimeEntry(models.Model):
         start = datetime.combine(self.date, self.start_time)
         end = datetime.combine(self.date, self.end_time)
         total_hours = (end - start).total_seconds() / 3600.0
-        return max(total_hours - 0.5, 0)  # Se descuenta 30 min (media hora para almuerzo)
+        return max(total_hours - 0.5, 0)  # Se descuenta 30 min para almuerzo
 
     @property
     def labor_cost(self):
@@ -133,15 +131,20 @@ class TimeEntry(models.Model):
     def __str__(self):
         return f"{self.employee.first_name} | {self.date} | {self.project.name}"
 
+    class Meta:
+        ordering = ['-date']
 
+
+# ---------------------
 # Modelo de Cronograma
+# ---------------------
 class Schedule(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()
-    is_personal = models.BooleanField(default=False)  # Solo visible para el superusuario
+    is_personal = models.BooleanField(default=False)
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     is_complete = models.BooleanField(default=False)
     completion_percentage = models.IntegerField(default=0)
@@ -166,3 +169,33 @@ class Schedule(models.Model):
 
     def __str__(self):
         return f"{self.project.name} - {self.title}"
+
+    class Meta:
+        ordering = ['start_datetime']
+
+
+# ---------------------
+# Modelo de Perfil de Usuario
+# ---------------------
+ROLE_CHOICES = [
+    ('employee', 'Employee'),
+    ('project_manager', 'Project Manager'),
+    ('client', 'Client'),
+]
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"
+
+
+# Crear perfil automáticamente al crear usuario
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance, role='employee')
+    else:
+        if hasattr(instance, 'profile'):
+            instance.profile.save()

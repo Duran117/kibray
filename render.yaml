@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: kibray-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn kibray_backend.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: kibray_backend.settings
+      - key: PYTHON_VERSION
+        value: 3.12
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: kibray-backend.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kibray-db
+          property: connectionString
+    staticPublishPath: staticfiles
+
+databases:
+  - name: kibray-db
+    databaseName: kibray
+    user: kibray_user
