@@ -47,8 +47,18 @@ class Project(models.Model):
     reflection_notes = models.TextField(blank=True, help_text="Notas sobre aprendizajes, errores o mejoras para próximos proyectos")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Presupuesto
+    budget_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto total asignado al proyecto")
+    budget_labor = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto para mano de obra")
+    budget_materials = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto para materiales")
+    budget_other = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto para otros gastos (seguros, almacenamiento, etc.)")
+
     def profit(self):
         return round(self.total_income - self.total_expenses, 2)
+
+    @property
+    def budget_remaining(self):
+        return round(self.budget_total - self.total_expenses, 2)
 
     def __str__(self):
         return self.name

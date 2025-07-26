@@ -33,7 +33,11 @@ class ExpenseAdmin(admin.ModelAdmin):
 # Proyecto
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'client', 'start_date', 'end_date', 'total_income', 'total_expenses')
+    list_display = (
+        'name', 'client', 'start_date', 'end_date',
+        'budget_labor', 'budget_materials', 'budget_other', 'budget_total',
+        'total_income', 'total_expenses', 'profit'
+    )
     search_fields = ('name', 'client')
     list_filter = ('start_date', 'end_date')
     ordering = ('-start_date',)

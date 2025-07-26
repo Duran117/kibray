@@ -3,177 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <title>Kibray Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: sans-serif;
+            background: #f4f6f8;
             margin: 0;
             padding: 0;
-            background-color: #f4f6f8;
-            color: #2c3e50;
         }
-
-        header {
-            background-color: #1f2937;
+        .header {
+            background-color: #1e3a8a;
             color: white;
             padding: 20px;
             text-align: center;
         }
-
         .container {
             padding: 30px;
-            max-width: 1200px;
-            margin: auto;
         }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
         .card {
             background: white;
             padding: 20px;
+            margin-bottom: 20px;
             border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-
         h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
+            margin-top: 0;
+            color: #1e3a8a;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
         }
-
         th, td {
             padding: 10px;
             text-align: left;
-            font-size: 14px;
+            border-bottom: 1px solid #eee;
         }
-
-        th {
-            background-color: #f0f0f0;
+        .metrics {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
         }
-
-        tr:nth-child(even) {
-            background-color: #fafafa;
+        .metric-box {
+            flex: 1;
+            background: #e0e7ff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
         }
-
         canvas {
             max-width: 100%;
+        }
+        .btn-pdf {
+            background: #1e3a8a;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .btn-pdf:hover {
+            background: #3749b4;
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>Welcome, {{ user.username }}</h1>
+    </div>
 
-<header>
-    <h1>Welcome, {{ request.user.username }}</h1>
-    <p style="margin-top: 5px;">Role: {{ role|capfirst }}</p>
-</header>
+    <div class="container">
 
-<div class="container">
+        <!-- Métricas -->
+        <div class="metrics">
+            <div class="metric-box">
+                <h3>Total Income</h3>
+                <p>${{ total_income }}</p>
+            </div>
+            <div class="metric-box">
+                <h3>Total Expenses</h3>
+                <p>${{ total_expense }}</p>
+            </div>
+            <div class="metric-box">
+                <h3>Net Profit</h3>
+                <p>${{ net_profit }}</p>
+            </div>
+            <div class="metric-box">
+                <h3>Employees</h3>
+                <p>{{ employee_count }}</p>
+            </div>
+            <div class="metric-box">
+                <h3>Active Projects</h3>
+                <p>{{ active_projects }}</p>
+            </div>
+        </div>
 
-    <div class="grid">
+        <!-- Lista de Proyectos -->
         <div class="card">
-            <h2>General Metrics</h2>
-            <ul>
-                <li><strong>Total Income:</strong> ${{ total_income }}</li>
-                <li><strong>Total Expenses:</strong> ${{ total_expense }}</li>
-                <li><strong>Net Profit:</strong> ${{ net_profit }}</li>
-                <li><strong>Employees:</strong> {{ employee_count }}</li>
-                <li><strong>Active Projects:</strong> {{ active_projects }}</li>
-            </ul>
-        </div>
-
-        <div class="card">
-            <h2>Work Hours Summary</h2>
-            <ul>
-                <li>This Week: {{ hours_week }} hrs</li>
-                <li>This Month: {{ hours_month }} hrs</li>
-                <li>Total: {{ total_hours }} hrs</li>
-                <li>Total Labor Cost: ${{ labor_cost }}</li>
-            </ul>
-        </div>
-
-        <div class="card" style="grid-column: 1 / -1;">
-            <h2>Upcoming Events (Next 30 Days)</h2>
-            <ul>
-                {% for e in schedules %}
-                    <li><strong>{{ e.project.name }}:</strong> {{ e.title }} – {{ e.start_datetime }}</li>
-                {% empty %}
-                    <li>No upcoming events.</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="card" style="grid-column: 1 / -1;">
-            <h2>Active Projects</h2>
+            <h2>Projects Overview</h2>
             <table>
-                <tr>
-                    <th>Name</th>
-                    <th>Client</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Income</th>
-                    <th>Expenses</th>
-                    <th>Profit</th>
-                </tr>
-                {% for p in projects %}
-                <tr>
-                    <td>{{ p.name }}</td>
-                    <td>{{ p.client }}</td>
-                    <td>{{ p.start_date }}</td>
-                    <td>{{ p.end_date|default:"-" }}</td>
-                    <td>${{ p.project_income|default:0 }}</td>
-                    <td>${{ p.project_expense|default:0 }}</td>
-                    <td>${{ p.project_income|default:0|floatformat:2|add:"-"|add:p.project_expense|default:0 }}</td>
-                </tr>
-                {% endfor %}
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Client</th>
+                        <th>Income</th>
+                        <th>Expense</th>
+                        <th>Profit</th>
+                        <th>Labor $</th>
+                        <th>Materials $</th>
+                        <th>Other $</th>
+                        <th>Total Budget</th>
+                        <th>PDF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                    <tr>
+                        <td>{{ project.name }}</td>
+                        <td>{{ project.client }}</td>
+                        <td>${{ project.project_income|default:"0.00" }}</td>
+                        <td>${{ project.project_expense|default:"0.00" }}</td>
+                        <td>
+                            {% with income=project.project_income|default:0 expense=project.project_expense|default:0 %}
+                                {% if income|floatformat:2|floatformat - expense|floatformat:2|floatformat < 0 %}
+                                    <span style="color:red;">${{ income|floatformat:2|add:"-{}"|format:expense|floatformat:2 }}</span>
+                                {% else %}
+                                    ${{ income|floatformat:2|add:"-{}"|format:expense|floatformat:2 }}
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>${{ project.budget_labor|default:"0.00" }}</td>
+                        <td>${{ project.budget_materials|default:"0.00" }}</td>
+                        <td>${{ project.budget_other|default:"0.00" }}</td>
+                        <td>${{ project.budget_total|default:"0.00" }}</td>
+                        <td><a class="btn-pdf" href="{% url 'project_pdf' project.id %}" target="_blank">PDF</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="10">No projects found.</td></tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
 
-        <div class="card" style="grid-column: 1 / -1;">
-            <h2>Income vs Expenses by Project</h2>
-            <canvas id="projectChart"></canvas>
+        <!-- Eventos Próximos -->
+        <div class="card">
+            <h2>Upcoming Events (Next 30 Days)</h2>
+            <ul>
+                {% for event in schedules %}
+                    <li><strong>{{ event.project.name }}</strong> - {{ event.title }}: {{ event.start_datetime }}</li>
+                {% empty %}
+                    <li>No upcoming events</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Resumen de Horas -->
+        <div class="card">
+            <h2>Hours Worked Summary</h2>
+            <p>This week: {{ hours_week }} hrs</p>
+            <p>This month: {{ hours_month }} hrs</p>
+            <p>Total: {{ total_hours }} hrs</p>
+            <p>Labor Cost: ${{ labor_cost }}</p>
+        </div>
+
+        <!-- Gráfico de Ingresos vs Gastos -->
+        <div class="card">
+            <h2>Income vs Expense Chart</h2>
+            <canvas id="incomeExpenseChart"></canvas>
+        </div>
+
+        <!-- Gráfico de Presupuesto -->
+        <div class="card">
+            <h2>Budget Allocation per Project</h2>
+            <canvas id="budgetChart"></canvas>
+        </div>
+
+        <!-- Gráfico de Ganancia Neta -->
+        <div class="card">
+            <h2>Net Profit per Project</h2>
+            <canvas id="netProfitChart"></canvas>
         </div>
     </div>
-</div>
 
-<script>
-    const labels = {{ chart_labels|safe }};
-    const incomeData = {{ chart_income|safe }};
-    const expenseData = {{ chart_expense|safe }};
-
-    const ctx = document.getElementById('projectChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                { label: 'Income', backgroundColor: '#2ecc71', data: incomeData },
-                { label: 'Expenses', backgroundColor: '#e74c3c', data: expenseData }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'top' },
-                title: { display: false }
+    <script>
+        const ctx1 = document.getElementById('incomeExpenseChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Income',
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        data: {{ chart_income|safe }}
+                    },
+                    {
+                        label: 'Expense',
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        data: {{ chart_expense|safe }}
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
             }
-        }
-    });
-</script>
+        });
 
+        const ctx2 = document.getElementById('budgetChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_budget_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Labor',
+                        data: {{ chart_budget_labor|safe }},
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                    },
+                    {
+                        label: 'Materials',
+                        data: {{ chart_budget_materials|safe }},
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)'
+                    },
+                    {
+                        label: 'Other',
+                        data: {{ chart_budget_other|safe }},
+                        backgroundColor: 'rgba(255, 205, 86, 0.6)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { tooltip: { mode: 'index', intersect: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        const netProfitValues = {{ chart_net_profit|safe }};
+        const netProfitColors = netProfitValues.map(value => value >= 0 ? 'rgba(0, 200, 83, 0.6)' : 'rgba(255, 99, 132, 0.6)');
+
+        const ctx3 = document.getElementById('netProfitChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Net Profit',
+                    data: netProfitValues,
+                    backgroundColor: netProfitColors
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    </script>
 </body>
 </html>
-
 
