@@ -1,4 +1,4 @@
-name: Django Deploy to Render
+name: Django CI
 
 on:
   push:
@@ -29,11 +29,6 @@ jobs:
         DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
         DEBUG: 'False'
       run: |
-        python manage.py migrate
-        python manage.py collectstatic --noinput || echo "Static files skipped"
+        python manage.py migrate --check
+        python manage.py check
 
-    - name: Deploy to Render
-      uses: renderinc/render-action@v1
-      with:
-        service-id: ${{ secrets.RENDER_SERVICE_ID }}
-        api-key: ${{ secrets.RENDER_API_KEY }}
