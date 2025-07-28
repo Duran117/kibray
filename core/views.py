@@ -14,12 +14,14 @@ def dashboard_view(request):
     user = request.user
     role = getattr(user.profile, "role", "employee")
 
+    # Métricas generales
     total_income = Income.objects.aggregate(t=Sum("amount"))["t"] or 0
     total_expense = Expense.objects.aggregate(t=Sum("amount"))["t"] or 0
     net_profit = total_income - total_expense
     employee_count = user.profile.user.__class__.objects.count()
     active_projects = Project.objects.filter(end_date__isnull=True).count()
 
+    # Proyectos por rol
     if role == "client":
         projects = Project.objects.filter(client=user.username)
     elif role == "project_manager":
@@ -32,7 +34,7 @@ def dashboard_view(request):
         project_expense=Sum("expenses__amount")
     )
 
-    # Upcoming Events
+    # Eventos próximos (30 días)
     future = date.today() + timedelta(days=30)
     if role == "employee":
         schedules = Schedule.objects.filter(assigned_to=user, start_datetime__date__lte=future)
@@ -42,7 +44,7 @@ def dashboard_view(request):
         schedules = Schedule.objects.filter(start_datetime__date__lte=future)
     schedules = schedules.order_by("start_datetime")[:10]
 
-    # Time Tracking
+    # Entradas de tiempo y cálculo de horas/costos
     week_ago = date.today() - timedelta(days=7)
     month_ago = date.today() - timedelta(days=30)
     time_entries = TimeEntry.objects.all()
@@ -64,7 +66,7 @@ def dashboard_view(request):
 
     hours_week, hours_month, total_hours, labor_cost = calculate_hours_and_cost(time_entries)
 
-    # Charts
+    # Gráficas
     chart_labels = []
     chart_income = []
     chart_expense = []
@@ -113,7 +115,9 @@ def dashboard_view(request):
         "chart_budget_other": chart_budget_other,
     }
 
+    # Carga del dashboard visual
     return render(request, "core/dashboard.html", context)
+
 
 @login_required
 def project_pdf_view(request, project_id):
