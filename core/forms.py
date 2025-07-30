@@ -19,7 +19,16 @@ class IncomeForm(forms.ModelForm):
 class TimeEntryForm(forms.ModelForm):
     class Meta:
         model = TimeEntry
-        fields = ['employee', 'project', 'date', 'start_time', 'end_time', 'hours_worked', 'labor_cost', 'touch_ups', 'po_reference', 'notes']
+        fields = [
+            'employee',
+            'project',
+            'date',
+            'start_time',
+            'end_time',
+            'hours_worked',
+            'touch_ups',
+            'notes'
+        ]
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
