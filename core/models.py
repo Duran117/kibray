@@ -3,7 +3,6 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from datetime import datetime
 
 # ---------------------
 # Modelo de Empleado
@@ -26,7 +25,6 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-
 # ---------------------
 # Modelo de Proyecto
 # ---------------------
@@ -46,7 +44,6 @@ class Project(models.Model):
     total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     reflection_notes = models.TextField(blank=True, help_text="Notas sobre aprendizajes, errores o mejoras para próximos proyectos")
     created_at = models.DateTimeField(auto_now_add=True)
-
     # Presupuesto
     budget_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto total asignado al proyecto")
     budget_labor = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto para mano de obra")
@@ -63,7 +60,6 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
-
 # ---------------------
 # Modelo de Ingreso
 # ---------------------
@@ -71,7 +67,7 @@ class Income(models.Model):
     project = models.ForeignKey(Project, related_name="incomes", on_delete=models.CASCADE)
     project_name = models.CharField(max_length=255, verbose_name="Nombre del proyecto o factura")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cantidad recibida")
-    date_received = models.DateField(verbose_name="Fecha de ingreso")
+    date = models.DateField(verbose_name="Fecha de ingreso")
     payment_method = models.CharField(
         max_length=50,
         choices=[
@@ -83,12 +79,13 @@ class Income(models.Model):
         ],
         verbose_name="Método de pago"
     )
+    category = models.CharField(max_length=100, blank=True, null=True, verbose_name="Categoría (opcional)")
+    description = models.TextField(blank=True, null=True, verbose_name="Descripción (opcional)")
+    invoice = models.FileField(upload_to="incomes/", blank=True, null=True, verbose_name="Factura o comprobante")
     notes = models.TextField(blank=True, null=True, verbose_name="Notas (opcional)")
-    attachment = models.FileField(upload_to="incomes/", blank=True, null=True, verbose_name="Archivo adjunto (PDF o imagen)")
 
     def __str__(self):
         return f"{self.project_name} - ${self.amount}"
-
 
 # ---------------------
 # Modelo de Gasto
@@ -106,15 +103,16 @@ class Expense(models.Model):
             ("SEGURO", "Seguro"),
             ("ALMACÉN", "Storage"),
             ("MANO_OBRA", "Mano de obra"),
+            ("OFICINA", "Oficina"),
             ("OTRO", "Otro"),
         ]
     )
     description = models.TextField(blank=True, null=True)
-    attachment = models.FileField(upload_to="expenses/", blank=True, null=True)
+    receipt = models.FileField(upload_to="expenses/receipts/", blank=True, null=True)
+    invoice = models.FileField(upload_to="expenses/invoices/", blank=True, null=True)
 
     def __str__(self):
         return f"{self.project_name} - {self.category} - ${self.amount}"
-
 
 # ---------------------
 # Modelo de Registro de Horas
@@ -126,13 +124,7 @@ class TimeEntry(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     notes = models.TextField(blank=True, null=True)
-
-    @property
-    def hours_worked(self):
-        start = datetime.combine(self.date, self.start_time)
-        end = datetime.combine(self.date, self.end_time)
-        total_hours = (end - start).total_seconds() / 3600.0
-        return max(total_hours - 0.5, 0)  # Se descuenta 30 min para almuerzo
+    hours_worked = models.DecimalField(max_digits=5, decimal_places=2)
 
     @property
     def labor_cost(self):
@@ -143,7 +135,6 @@ class TimeEntry(models.Model):
 
     class Meta:
         ordering = ['-date']
-
 
 # ---------------------
 # Modelo de Cronograma
@@ -158,7 +149,6 @@ class Schedule(models.Model):
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     is_complete = models.BooleanField(default=False)
     completion_percentage = models.IntegerField(default=0)
-
     stage = models.CharField(max_length=100, choices=[
         ("Site cleaning", "Site cleaning"),
         ("Preparation", "Preparation"),
@@ -172,7 +162,6 @@ class Schedule(models.Model):
         ("Cleaning", "Cleaning"),
         ("Touch up", "Touch up"),
     ], blank=True)
-
     delay_reason = models.TextField(blank=True)
     advance_reason = models.TextField(blank=True)
     photo = models.ImageField(upload_to='schedule_photos/', blank=True, null=True)
@@ -183,6 +172,30 @@ class Schedule(models.Model):
     class Meta:
         ordering = ['start_datetime']
 
+# ---------------------
+# Modelo de Tarea
+# ---------------------
+class Task(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=50, default="Pendiente")
+
+    def __str__(self):
+        return f"{self.title} - {self.status}"
+
+# ---------------------
+# Modelo de Comentario
+# ---------------------
+class Comment(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    text = models.TextField()
+    image = models.ImageField(upload_to="comments/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.project.name}"
 
 # ---------------------
 # Modelo de Perfil de Usuario
@@ -200,7 +213,6 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.role}"
 
-
 # Crear perfil automáticamente al crear usuario
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
@@ -209,3 +221,34 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     else:
         if hasattr(instance, 'profile'):
             instance.profile.save()
+
+# ---------------------
+# Modelo de Nómina y Detalle de Nómina
+# ---------------------
+class Payroll(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    week_start = models.DateField()
+    week_end = models.DateField()
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    is_paid = models.BooleanField(default=False)
+    payment_reference = models.CharField(max_length=100, blank=True, help_text="Cheque o referencia de pago")
+
+    def __str__(self):
+        return f"{self.project.name} - {self.week_start} to {self.week_end}"
+
+class PayrollEntry(models.Model):
+    payroll = models.ForeignKey(Payroll, related_name="entries", on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    hours_worked = models.DecimalField(max_digits=5, decimal_places=2)
+    hourly_rate = models.DecimalField(max_digits=7, decimal_places=2)
+    total_pay = models.DecimalField(max_digits=10, decimal_places=2)
+    notes = models.TextField(blank=True)
+    payment_reference = models.CharField(max_length=100, blank=True, help_text="Cheque o referencia de pago individual")
+
+    def save(self, *args, **kwargs):
+        self.total_pay = round(self.hours_worked * self.hourly_rate, 2)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.employee} - {self.hours_worked} hrs"
+

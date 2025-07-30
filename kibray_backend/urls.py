@@ -4,26 +4,50 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from core import views
+from django.shortcuts import redirect
+
+def root_redirect(request):
+    return redirect('dashboard')
 
 urlpatterns = [
-    # Página principal redirige al dashboard
-    path('', views.dashboard_view, name='home'),
+    # Home redirects to dashboard
+    path('', root_redirect, name='home'),
 
-    # Vista del dashboard
+    # Dashboard view
     path('dashboard/', views.dashboard_view, name='dashboard'),
 
-    # Autenticación
+    # Authentication
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 
     # Django admin
     path('admin/', admin.site.urls),
 
-    # Reporte PDF por proyecto
+    # Project PDF report
     path('project/<int:project_id>/pdf/', views.project_pdf_view, name='project_pdf'),
+
+    # Add Event (Schedule)
+    path('schedule/add/', views.schedule_create_view, name='schedule_create'),
+
+    # Add Expense
+    path('expense/add/', views.expense_create_view, name='expense_create'),
+
+    # Add Income
+    path('income/add/', views.income_create_view, name='income_create'),
+
+    # Add Time Entry (registro de horas)
+    path('timeentry/add/', views.timeentry_create_view, name='timeentry_create'),
+
+    # Add Payroll (nómina)
+    path('payroll/add/', views.payroll_create_view, name='payroll_create'),
+
+    # ----------- CLIENTE: Vista de proyecto y formularios -----------
+    path('proyecto/<int:project_id>/', views.client_project_view, name='client_project_view'),
+    path('proyecto/<int:project_id>/agregar_tarea/', views.agregar_tarea, name='agregar_tarea'),
+    path('proyecto/<int:project_id>/agregar_comentario/', views.agregar_comentario, name='agregar_comentario'),
 ]
 
-# Archivos en modo desarrollo
+# Static and media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

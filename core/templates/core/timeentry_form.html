@@ -1,0 +1,12 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Register Hours</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-pdf">Save</button>
+        <a href="{% url 'dashboard' %}" class="btn-pdf">Cancel</a>
+    </form>
+</div>
+{% endblock %}

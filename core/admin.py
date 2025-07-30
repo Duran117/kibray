@@ -9,16 +9,14 @@ class EmployeeAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'position')
     ordering = ('-hire_date',)
 
-
 # Ingreso
 @admin.register(Income)
 class IncomeAdmin(admin.ModelAdmin):
-    list_display = ('project_name', 'amount', 'date_received', 'payment_method')
+    list_display = ('project_name', 'amount', 'date', 'payment_method')
     search_fields = ('project_name', 'payment_method')
-    list_filter = ('payment_method', 'date_received')
-    date_hierarchy = 'date_received'
-    ordering = ('-date_received',)
-
+    list_filter = ('payment_method', 'date')
+    date_hierarchy = 'date'
+    ordering = ('-date',)
 
 # Gasto
 @admin.register(Expense)
@@ -28,7 +26,6 @@ class ExpenseAdmin(admin.ModelAdmin):
     search_fields = ('project_name', 'description')
     date_hierarchy = 'date'
     ordering = ('-date',)
-
 
 # Proyecto
 @admin.register(Project)
@@ -42,7 +39,6 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = ('start_date', 'end_date')
     ordering = ('-start_date',)
 
-
 # Registro de Horas
 @admin.register(TimeEntry)
 class TimeEntryAdmin(admin.ModelAdmin):
@@ -53,7 +49,6 @@ class TimeEntryAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     ordering = ('-date',)
 
-
 # Cronograma
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
@@ -62,7 +57,6 @@ class ScheduleAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description', 'delay_reason', 'advance_reason')
     date_hierarchy = 'start_datetime'
     ordering = ('-start_datetime',)
-
 
 # Perfil de Usuario
 @admin.register(Profile)

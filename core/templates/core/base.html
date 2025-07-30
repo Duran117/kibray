@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kibray</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    {% block content %}
+    {% endblock %}
+
+    {% if user.is_authenticated %}
+        {% if user.profile.role == 'client' %}
+            <!-- Menú para cliente -->
+            <a href="{% url 'client_project_view' project_id=1 %}">Mi Proyecto</a>
+        {% elif user.profile.role == 'employee' %}
+            <!-- Menú para empleado -->
+            <a href="{% url 'dashboard' %}">Dashboard Empleado</a>
+        {% elif user.profile.role == 'project_manager' %}
+            <!-- Menú para project manager -->
+            <a href="{% url 'dashboard' %}">Dashboard Manager</a>
+            <a href="{% url 'admin:index' %}">Admin</a>
+        {% endif %}
+        <a href="{% url 'logout' %}">Cerrar sesión</a>
+    {% else %}
+        <a href="{% url 'login' %}">Iniciar sesión</a>
+    {% endif %}
+</body>
+</html>

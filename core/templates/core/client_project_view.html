@@ -1,0 +1,160 @@
+{% extends "core/base.html" %}
+{% block content %}
+<style>
+    .client-container {
+        background: #f8f9fa;
+        padding: 32px 24px;
+        border-radius: 12px;
+        max-width: 900px;
+        margin: 32px auto;
+        box-shadow: 0 2px 12px rgba(44,62,80,0.08);
+    }
+    .client-container h2 {
+        color: #2c3e50;
+        margin-bottom: 18px;
+    }
+    .client-container h3 {
+        color: #2980b9;
+        margin-top: 30px;
+    }
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 18px;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(44,62,80,0.06);
+    }
+    .schedule-table th, .schedule-table td {
+        padding: 10px 8px;
+        text-align: left;
+    }
+    .schedule-table th {
+        background: #2980b9;
+        color: #fff;
+        font-weight: 600;
+        border-bottom: 2px solid #21618c;
+    }
+    .schedule-table tr:nth-child(even) {
+        background: #f2f6fa;
+    }
+    .schedule-table tr:hover {
+        background: #eaf2fb;
+    }
+    .comment-img {
+        max-width: 180px;
+        border-radius: 6px;
+        margin-top: 6px;
+    }
+    .comment-box {
+        background: #fff;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 4px rgba(44,62,80,0.04);
+    }
+</style>
+<div class="client-container">
+    <h2>{{ project.name }}</h2>
+    <p><strong>Cliente:</strong> {{ project.client }}</p>
+    <p><strong>Descripción:</strong> {{ project.description }}</p>
+    <p><strong>Fechas:</strong> {{ project.start_date }} - {{ project.end_date }}</p>
+
+    <h3>Cronograma</h3>
+    <table class="schedule-table">
+        <tr>
+            <th>Tarea</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+        </tr>
+        {% for schedule in schedules %}
+        <tr>
+            <td>{{ schedule.title }}</td>
+            <td>{{ schedule.start_datetime }}</td>
+            <td>{{ schedule.end_datetime }}</td>
+            <td>
+                {% if schedule.is_complete %}
+                    <span style="color:green;">Completado</span>
+                {% else %}
+                    <span style="color:orange;">Pendiente</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No hay tareas en el cronograma.</td></tr>
+        {% endfor %}
+    </table>
+
+    <h3>Tareas</h3>
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <strong>{{ task.title }}</strong> - {{ task.status }}<br>
+                {{ task.description }}
+            </li>
+        {% empty %}
+            <li>No hay tareas registradas.</li>
+        {% endfor %}
+    </ul>
+    <form method="post" action="{% url 'agregar_tarea' project.id %}">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Nueva tarea" required>
+        <input type="text" name="description" placeholder="Descripción">
+        <button type="submit">Agregar tarea</button>
+    </form>
+
+    <h3>Comentarios y Fotos</h3>
+    {% for comment in comments %}
+        <div class="comment-box">
+            <strong>{{ comment.user }}:</strong> {{ comment.text }}<br>
+            {% if comment.image %}
+                <img src="{{ comment.image.url }}" class="comment-img" alt="foto">
+            {% endif %}
+            <small>{{ comment.created_at }}</small>
+        </div>
+    {% empty %}
+        <p>No hay comentarios aún.</p>
+    {% endfor %}
+    <form method="post" enctype="multipart/form-data" action="{% url 'agregar_comentario' project.id %}">
+        {% csrf_token %}
+        <textarea name="text" placeholder="Agregar comentario..." required></textarea>
+        <input type="file" name="image">
+        <button type="submit">Comentar</button>
+    </form>
+
+    <!-- Incluye FullCalendar desde CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js"></script>
+
+    <div id="calendar"></div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var calendarEl = document.getElementById('calendar');
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        height: 600,
+        events: [
+          {% for schedule in schedules %}
+          {
+            title: "{{ schedule.title|escapejs }}",
+            start: "{{ schedule.start_datetime|date:'Y-m-d' }}",
+            end: "{{ schedule.end_datetime|date:'Y-m-d' }}",
+            color: "{% if schedule.is_complete %}#27ae60{% else %}#f39c12{% endif %}",
+            description: "{{ schedule.description|escapejs }}"
+          },
+          {% endfor %}
+        ],
+        eventDidMount: function(info) {
+          if (info.event.extendedProps.description) {
+            info.el.title = info.event.extendedProps.description;
+          }
+        }
+      });
+      calendar.render();
+    });
+    </script>
+</div>
+{% endblock %}
