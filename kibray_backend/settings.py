@@ -1,11 +1,15 @@
 import os
 from pathlib import Path
 import dj_database_url
+from django.conf import settings
+from django.conf.urls.static import static
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad: usar variable en producción
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-nvh!d_lkeyq$*bk($53a2!gh&=5i351r6w2w_g052fgld-=w%6')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    raise Exception("SECRET_KEY environment variable not set!")
 
 # 🔁 Modo debug (False en producción)
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
@@ -43,7 +47,7 @@ ROOT_URLCONF = 'kibray_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'core', 'templates')],
+        'DIRS': [BASE_DIR / "core" / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -106,3 +110,15 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
+
+# +-------------------+
+# | URL configuraciones |
+# +-------------------+
+urlpatterns = [
+    # ... tus patrones de URL existentes ...
+]
+
+# Servir archivos estáticos y de medios durante el desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
