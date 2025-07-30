@@ -23,7 +23,10 @@
             <a href="{% url 'dashboard' %}">Dashboard Manager</a>
             <a href="{% url 'admin:index' %}">Admin</a>
         {% endif %}
-        <a href="{% url 'logout' %}">Cerrar sesión</a>
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-pdf">Logout</button>
+        </form>
     {% else %}
         <a href="{% url 'login' %}">Iniciar sesión</a>
     {% endif %}
