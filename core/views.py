@@ -12,21 +12,22 @@ from .forms import ScheduleForm, ExpenseForm, IncomeForm, TimeEntryForm, Payroll
 from django.forms import modelformset_factory
 import json
 from collections import defaultdict
-from .models import TimeEntry
 
 @login_required
 def dashboard_view(request):
-    if not hasattr(request.user, 'profile') or request.user.profile.role != 'employee':
-        return redirect('home')  # O muestra un error 403
-
     user = request.user
-    role = getattr(user.profile, "role", "employee")
+
+    # Verifica que el usuario tenga perfil y rol
+    profile = getattr(user, 'profile', None)
+    role = getattr(profile, 'role', None)
+    if not profile or not role:
+        return redirect('home')  # O muestra un error 403
 
     # Métricas generales
     total_income = Income.objects.aggregate(t=Sum("amount"))["t"] or 0
     total_expense = Expense.objects.aggregate(t=Sum("amount"))["t"] or 0
     net_profit = total_income - total_expense
-    employee_count = user.profile.user.__class__.objects.count()
+    employee_count = Employee.objects.count()
     active_projects = Project.objects.filter(end_date__isnull=True).count()
 
     # Proyectos por rol
@@ -96,9 +97,9 @@ def dashboard_view(request):
         chart_net_profit.append(profit)
 
         chart_budget_labels.append(proj.name)
-        chart_budget_labor.append(proj.budget_labor or 0)
-        chart_budget_materials.append(proj.budget_materials or 0)
-        chart_budget_other.append(proj.budget_other or 0)
+        chart_budget_labor.append(getattr(proj, 'budget_labor', 0) or 0)
+        chart_budget_materials.append(getattr(proj, 'budget_materials', 0) or 0)
+        chart_budget_other.append(getattr(proj, 'budget_other', 0) or 0)
 
     # Convierte Decimals a float
     chart_income = [float(x) for x in chart_income]
@@ -112,8 +113,7 @@ def dashboard_view(request):
     empleados = Employee.objects.filter(is_active=True)
     project_hours_summary_dict = {}
     for employee in empleados:
-        # Ejemplo: {'Proyecto A': 5, 'Proyecto B': 10}
-        project_hours = obtener_horas_por_proyecto(employee)  # Debes implementar esto
+        project_hours = obtener_horas_por_proyecto(employee)
         summary = ', '.join([f"{hours}h - {project}" for project, hours in project_hours.items()])
         project_hours_summary_dict[employee.id] = summary
 
@@ -156,7 +156,6 @@ def project_pdf_view(request, project_id):
     total_expense = expenses.aggregate(total=Sum("amount"))["total"] or 0
     profit = total_income - total_expense
 
-    # CORREGIDO: sumar horas y labor_cost en Python, no en la base de datos
     total_hours = sum([te.hours_worked for te in time_entries])
     labor_cost = sum([te.labor_cost for te in time_entries])
 
@@ -185,8 +184,8 @@ def project_pdf_view(request, project_id):
 
 @login_required
 def schedule_create_view(request):
-    # Only allow admin, superuser, or project_manager
-    role = getattr(request.user.profile, "role", "employee")
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
         return redirect('dashboard')
 
@@ -201,8 +200,8 @@ def schedule_create_view(request):
 
 @login_required
 def expense_create_view(request):
-    # Only allow admin, superuser, or project_manager
-    role = getattr(request.user.profile, "role", "employee")
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
         return redirect('dashboard')
 
@@ -217,8 +216,8 @@ def expense_create_view(request):
 
 @login_required
 def income_create_view(request):
-    # Only allow admin, superuser, or project_manager
-    role = getattr(request.user.profile, "role", "employee")
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
         return redirect('dashboard')
 
@@ -237,13 +236,12 @@ def timeentry_create_view(request):
         form = TimeEntryForm(request.POST)
         if form.is_valid():
             time_entry = form.save(commit=False)
-            # Si es touch ups, guarda la info en notes
             if form.cleaned_data.get('touch_ups'):
                 po = form.cleaned_data.get('po_reference', '')
                 note = form.cleaned_data.get('notes', '')
                 time_entry.notes = f"TOUCH UPS - PO: {po}. {note}"
-                time_entry.project = None  # No proyecto asignado
-            time_entry.employee = request.user.employee  # Ajusta si tu relación es diferente
+                time_entry.project = None
+            time_entry.employee = getattr(request.user, 'employee', None)
             time_entry.save()
             return redirect('dashboard')
     else:
@@ -252,7 +250,8 @@ def timeentry_create_view(request):
 
 @login_required
 def payroll_create_view(request):
-    role = getattr(request.user.profile, "role", "employee")
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
         return redirect('dashboard')
 
@@ -276,7 +275,6 @@ def payroll_create_view(request):
         initial_data = [{'employee': emp} for emp in employees]
         formset = PayrollEntryFormSet(queryset=PayrollEntry.objects.none(), initial=initial_data)
 
-    # Agrega este bloque antes del return render
     employees = Employee.objects.filter(is_active=True)
     project_hours_summary_dict = {}
     for employee in employees:
@@ -287,7 +285,7 @@ def payroll_create_view(request):
     return render(request, "core/payroll_form.html", {
         "payroll_form": payroll_form,
         "formset": formset,
-        "project_hours_summary_dict": project_hours_summary_dict,  # <-- agrega esto
+        "project_hours_summary_dict": project_hours_summary_dict,
     })
 
 def obtener_horas_por_proyecto(employee):
@@ -297,9 +295,6 @@ def obtener_horas_por_proyecto(employee):
         if entry.project:
             resumen[entry.project.name] += float(entry.hours_worked)
     return resumen
-
-from django.shortcuts import render, get_object_or_404
-from .models import Project, Schedule, Task, Comment
 
 def client_project_view(request, project_id):
     project = get_object_or_404(Project, id=project_id)
