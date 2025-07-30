@@ -119,19 +119,20 @@ class Expense(models.Model):
 # ---------------------
 class TimeEntry(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)  # <-- hazlo opcional
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
     notes = models.TextField(blank=True, null=True)
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2)
+    touch_ups = models.BooleanField(default=False)  # <-- agrega este campo
 
     @property
     def labor_cost(self):
         return round(self.hours_worked * self.employee.hourly_rate, 2)
 
     def __str__(self):
-        return f"{self.employee.first_name} | {self.date} | {self.project.name}"
+        return f"{self.employee.first_name} | {self.date} | {self.project.name if self.project else 'No Project'}"
 
     class Meta:
         ordering = ['-date']

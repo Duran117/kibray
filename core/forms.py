@@ -17,20 +17,9 @@ class IncomeForm(forms.ModelForm):
         fields = ['project', 'project_name', 'amount', 'date', 'payment_method', 'category', 'description', 'invoice', 'notes']
 
 class TimeEntryForm(forms.ModelForm):
-    touch_ups = forms.BooleanField(
-        required=False,
-        label="¿Es Touch Ups?",
-        help_text="Marca si es un trabajo de touch ups para un proyecto antiguo o externo."
-    )
-    po_reference = forms.CharField(
-        required=False,
-        label="PO o referencia de proyecto",
-        help_text="Si es Touch Ups, escribe el PO o referencia"
-    )
-
     class Meta:
         model = TimeEntry
-        fields = ['date', 'start_time', 'end_time', 'project', 'touch_ups', 'po_reference', 'notes']
+        fields = ['employee', 'project', 'date', 'start_time', 'end_time', 'hours_worked', 'labor_cost', 'touch_ups', 'po_reference', 'notes']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
@@ -42,6 +31,14 @@ class TimeEntryForm(forms.ModelForm):
         self.fields['project'].queryset = Project.objects.filter(end_date__isnull=True)
         self.fields['project'].required = False
         self.fields['notes'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        touch_ups = cleaned_data.get('touch_ups')
+        project = cleaned_data.get('project')
+        if not touch_ups and not project:
+            self.add_error('project', "You must select a project unless this is a touch up.")
+        return cleaned_data
 
 class PayrollForm(forms.ModelForm):
     class Meta:
