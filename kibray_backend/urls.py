@@ -46,6 +46,9 @@ urlpatterns = [
     path('proyecto/<int:project_id>/', views.client_project_view, name='client_project_view'),
     path('proyecto/<int:project_id>/agregar_tarea/', views.agregar_tarea, name='agregar_tarea'),
     path('proyecto/<int:project_id>/agregar_comentario/', views.agregar_comentario, name='agregar_comentario'),
+
+    # Change Order Detail
+    path('changeorder/<int:changeorder_id>/', views.changeorder_detail_view, name='changeorder_detail'),
 ]
 
 # Static and media files in development

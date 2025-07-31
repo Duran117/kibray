@@ -1,0 +1,24 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>Detalle de Orden de Cambio: {{ changeorder.description }}</h2>
+<p>Proyecto: {{ changeorder.project.name }}</p>
+<p>Estado: {{ changeorder.get_status_display }}</p>
+<p>Notas: {{ changeorder.notes }}</p>
+
+<h3>Gastos asociados</h3>
+<ul>
+    {% for expense in changeorder.expenses.all %}
+        <li>
+            {{ expense.date }} - ${{ expense.amount }} - {{ expense.description }}
+            {% if expense.receipt %}
+                | <a href="{{ expense.receipt.url }}" target="_blank">Ver recibo</a>
+            {% endif %}
+            {% if expense.invoice %}
+                | <a href="{{ expense.invoice.url }}" target="_blank">Ver factura</a>
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>No hay gastos asociados.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

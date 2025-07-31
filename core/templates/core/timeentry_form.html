@@ -4,9 +4,47 @@
     <h2>Register Hours</h2>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% for field in form %}
+            {% if field.name != 'hours_worked' %}
+                <div class="form-group">
+                    {{ field.label_tag }} {{ field }}
+                    {% if field.help_text %}
+                        <small>{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+        <input type="hidden" id="id_hours_worked" name="hours_worked" value="">
+        <label for="id_hours_worked_display"><strong>Total Hours Worked:</strong></label>
+        <input type="text" id="id_hours_worked_display" value="" readonly style="background:#eee;">
         <button type="submit" class="btn-pdf">Save</button>
+        <button type="submit" name="save_and_add_another" class="btn-pdf">Save and Add Another</button>
         <a href="{% url 'dashboard' %}" class="btn-pdf">Cancel</a>
     </form>
 </div>
+<script>
+function calculateHours() {
+    const start = document.getElementById('id_start_time').value;
+    const end = document.getElementById('id_end_time').value;
+    if (start && end) {
+        const [sh, sm] = start.split(':').map(Number);
+        const [eh, em] = end.split(':').map(Number);
+        let startMinutes = sh * 60 + sm;
+        let endMinutes = eh * 60 + em;
+        let diff = endMinutes - startMinutes;
+        let hours = (diff / 60) - 0.5; // Resta 30 minutos
+        if (hours < 0) hours += 24; // Por si cruza medianoche
+        document.getElementById('id_hours_worked_display').value = hours.toFixed(2);
+        document.getElementById('id_hours_worked').value = hours.toFixed(2); // <-- ESTA LÍNEA
+    } else {
+        document.getElementById('id_hours_worked_display').value = '';
+        document.getElementById('id_hours_worked').value = '';
+    }
+}
+document.getElementById('id_start_time').addEventListener('change', calculateHours);
+document.getElementById('id_end_time').addEventListener('change', calculateHours);
+</script>
 {% endblock %}

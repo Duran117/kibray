@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from datetime import datetime
 
 # ---------------------
 # Modelo de Empleado
@@ -110,6 +111,7 @@ class Expense(models.Model):
     description = models.TextField(blank=True, null=True)
     receipt = models.FileField(upload_to="expenses/receipts/", blank=True, null=True)
     invoice = models.FileField(upload_to="expenses/invoices/", blank=True, null=True)
+    change_order = models.ForeignKey('ChangeOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses')
 
     def __str__(self):
         return f"{self.project_name} - {self.category} - ${self.amount}"
@@ -123,13 +125,25 @@ class TimeEntry(models.Model):
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
+    hours_worked = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
-    hours_worked = models.DecimalField(max_digits=5, decimal_places=2)
     touch_ups = models.BooleanField(default=False)  # <-- agrega este campo
+    change_order = models.ForeignKey('ChangeOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='time_entries')
 
     @property
     def labor_cost(self):
         return round(self.hours_worked * self.employee.hourly_rate, 2)
+
+    def save(self, *args, **kwargs):
+        if self.start_time and self.end_time and self.date:
+            start = datetime.combine(self.date, self.start_time)
+            end = datetime.combine(self.date, self.end_time)
+            delta = end - start
+            hours = (delta.total_seconds() / 3600) - 0.5  # Resta 30 minutos
+            if hours < 0:
+                hours += 24  # Por si el registro abarca más de un día
+            self.hours_worked = round(hours, 2)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.employee.first_name} | {self.date} | {self.project.name if self.project else 'No Project'}"
@@ -252,4 +266,23 @@ class PayrollEntry(models.Model):
 
     def __str__(self):
         return f"{self.employee} - {self.hours_worked} hrs"
+
+# ---------------------
+# Modelo de Orden de Cambio
+# ---------------------
+class ChangeOrder(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='change_orders')
+    description = models.TextField()
+    date_created = models.DateField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pendiente'),
+        ('approved', 'Aprobado'),
+        ('sent', 'Enviado'),
+        ('billed', 'Facturado'),
+        ('paid', 'Pagado'),
+    ], default='pending')
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Change Order for {self.project.name} - {self.description[:30]}"
 

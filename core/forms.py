@@ -9,7 +9,17 @@ class ScheduleForm(forms.ModelForm):
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        fields = ['project', 'description', 'amount', 'date', 'receipt', 'invoice', 'category']
+        fields = [
+            'project',
+            'amount',
+            'project_name',
+            'date',
+            'category',
+            'description',
+            'receipt',
+            'invoice',
+            'change_order',  # <-- asegúrate de incluirlo
+        ]
 
 class IncomeForm(forms.ModelForm):
     class Meta:
@@ -27,6 +37,7 @@ class TimeEntryForm(forms.ModelForm):
             'end_time',
             'hours_worked',
             'touch_ups',
+            'change_order',  # <-- agrega esta línea
             'notes'
         ]
         widgets = {

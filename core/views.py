@@ -7,7 +7,7 @@ from django.utils.timezone import now
 from datetime import date, timedelta
 from io import BytesIO
 from xhtml2pdf import pisa
-from .models import Project, Expense, Income, Schedule, TimeEntry, Payroll, PayrollEntry, Employee, Task, Comment
+from .models import Project, Expense, Income, Schedule, TimeEntry, Payroll, PayrollEntry, Employee, Task, Comment, ChangeOrder
 from .forms import ScheduleForm, ExpenseForm, IncomeForm, TimeEntryForm, PayrollForm, PayrollEntryForm
 from django.forms import modelformset_factory
 import json
@@ -117,6 +117,17 @@ def dashboard_view(request):
         summary = ', '.join([f"{hours}h - {project}" for project, hours in project_hours.items()])
         project_hours_summary_dict[employee.id] = summary
 
+    # --- Generar eventos para el calendario ---
+    calendar_events = []
+    for s in schedules:
+        calendar_events.append({
+            "title": f"{s.project.name} ({s.title})",
+            "start": s.start_datetime.isoformat(),
+            # Si tienes end_datetime, úsalo; si no, solo start
+            "end": s.end_datetime.isoformat() if hasattr(s, 'end_datetime') and s.end_datetime else s.start_datetime.isoformat(),
+            "color": "#1e3a8a",  # Puedes personalizar por proyecto o status
+        })
+
     context = {
         "role": role,
         "total_income": total_income,
@@ -139,6 +150,7 @@ def dashboard_view(request):
         "chart_budget_materials": json.dumps(chart_budget_materials),
         "chart_budget_other": json.dumps(chart_budget_other),
         "project_hours_summary_dict": project_hours_summary_dict,
+        "calendar_events": json.dumps(calendar_events),
     }
 
     return render(request, "core/dashboard.html", context)
@@ -324,3 +336,8 @@ def agregar_comentario(request, project_id):
         project = get_object_or_404(Project, id=project_id)
         Comment.objects.create(project=project, user=request.user, text=text, image=image)
     return redirect('client_project_view', project_id=project_id)
+
+@login_required
+def changeorder_detail_view(request, changeorder_id):
+    changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
+    return render(request, "core/changeorder_detail.html", {"changeorder": changeorder})
