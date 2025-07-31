@@ -1,5 +1,5 @@
 from django import forms
-from .models import Schedule, Expense, Income, TimeEntry, Project, Payroll, PayrollEntry, Employee
+from .models import Schedule, Expense, Income, TimeEntry, Project, Payroll, PayrollEntry, Employee, ChangeOrder
 
 class ScheduleForm(forms.ModelForm):
     class Meta:
@@ -69,3 +69,8 @@ class PayrollEntryForm(forms.ModelForm):
     class Meta:
         model = PayrollEntry
         fields = ['employee', 'hours_worked', 'hourly_rate', 'notes']
+
+class ChangeOrderForm(forms.ModelForm):
+    class Meta:
+        model = ChangeOrder
+        fields = ['project', 'description', 'status', 'notes']

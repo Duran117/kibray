@@ -49,6 +49,9 @@ urlpatterns = [
 
     # Change Order Detail
     path('changeorder/<int:changeorder_id>/', views.changeorder_detail_view, name='changeorder_detail'),
+
+    # Add Change Order
+    path('changeorder/add/', views.changeorder_create_view, name='changeorder_create'),
 ]
 
 # Static and media files in development

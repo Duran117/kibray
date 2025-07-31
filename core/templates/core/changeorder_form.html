@@ -1,0 +1,13 @@
+<!-- core/templates/core/changeorder_form.html -->
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Create Change Order</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

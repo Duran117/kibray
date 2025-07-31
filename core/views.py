@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from io import BytesIO
 from xhtml2pdf import pisa
 from .models import Project, Expense, Income, Schedule, TimeEntry, Payroll, PayrollEntry, Employee, Task, Comment, ChangeOrder
-from .forms import ScheduleForm, ExpenseForm, IncomeForm, TimeEntryForm, PayrollForm, PayrollEntryForm
+from .forms import ScheduleForm, ExpenseForm, IncomeForm, TimeEntryForm, PayrollForm, PayrollEntryForm, ChangeOrderForm
 from django.forms import modelformset_factory
 import json
 from collections import defaultdict
@@ -341,3 +341,14 @@ def agregar_comentario(request, project_id):
 def changeorder_detail_view(request, changeorder_id):
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
     return render(request, "core/changeorder_detail.html", {"changeorder": changeorder})
+
+@login_required
+def changeorder_create_view(request):
+    if request.method == "POST":
+        form = ChangeOrderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+    else:
+        form = ChangeOrderForm()
+    return render(request, "core/changeorder_form.html", {"form": form})
