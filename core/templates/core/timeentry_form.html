@@ -35,10 +35,16 @@ function calculateHours() {
         let startMinutes = sh * 60 + sm;
         let endMinutes = eh * 60 + em;
         let diff = endMinutes - startMinutes;
-        let hours = (diff / 60) - 0.5; // Resta 30 minutos
+        let hours = diff / 60;
+
+        // Solo descuenta 30 minutos si la hora de salida es después de las 12:30
+        if (endMinutes > (12 * 60 + 30)) {
+            hours -= 0.5;
+        }
         if (hours < 0) hours += 24; // Por si cruza medianoche
+
         document.getElementById('id_hours_worked_display').value = hours.toFixed(2);
-        document.getElementById('id_hours_worked').value = hours.toFixed(2); // <-- ESTA LÍNEA
+        document.getElementById('id_hours_worked').value = hours.toFixed(2);
     } else {
         document.getElementById('id_hours_worked_display').value = '';
         document.getElementById('id_hours_worked').value = '';

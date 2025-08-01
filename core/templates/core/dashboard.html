@@ -44,14 +44,14 @@
 <div class="container">
 
     <!-- Botones de acciones -->
-    <div style="margin-bottom: 20px;">
-        <a href="{% url 'schedule_create' %}" class="btn-pdf" style="margin-right:10px;">Add Event</a>
-        <a href="{% url 'expense_create' %}" class="btn-pdf" style="margin-right:10px;">Add Expense</a>
-        <a href="{% url 'income_create' %}" class="btn-pdf" style="margin-right:10px;">Add Income</a>
-        <a href="{% url 'timeentry_create' %}" class="btn-pdf" style="margin-right:10px;">Register Hours</a>
-        <a href="{% url 'changeorder_create' %}" class="btn-pdf" style="margin-right:10px;">Add Change Order</a>
+    <div class="d-grid gap-2 mb-4">
+        <a href="{% url 'schedule_create' %}" class="btn btn-primary btn-lg w-100">Add Event</a>
+        <a href="{% url 'expense_create' %}" class="btn btn-success btn-lg w-100">Add Expense</a>
+        <a href="{% url 'income_create' %}" class="btn btn-info btn-lg w-100">Add Income</a>
+        <a href="{% url 'timeentry_create' %}" class="btn btn-warning btn-lg w-100">Register Hours</a>
+        <a href="{% url 'changeorder_create' %}" class="btn btn-secondary btn-lg w-100">Add Change Order</a>
         {% if role == "admin" or role == "superuser" or role == "project_manager" %}
-            <a href="{% url 'payroll_create' %}" class="btn-pdf" style="margin-right:10px;">Create Payroll</a>
+            <a href="{% url 'payroll_create' %}" class="btn btn-dark btn-lg w-100">Create Payroll</a>
         {% endif %}
     </div>
 
