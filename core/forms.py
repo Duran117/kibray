@@ -1,5 +1,5 @@
 from django import forms
-from .models import Schedule, Expense, Income, TimeEntry, Project, Payroll, PayrollEntry, Employee, ChangeOrder, PayrollRecord
+from .models import Schedule, Expense, Income, TimeEntry, Project, Payroll, PayrollEntry, Employee, ChangeOrder, PayrollRecord, Invoice, InvoiceLine
 
 class ScheduleForm(forms.ModelForm):
     class Meta:
@@ -102,3 +102,21 @@ class PayrollRecordForm(forms.ModelForm):
     class Meta:
         model = PayrollRecord
         fields = ['paid', 'pay_date', 'check_number']
+
+class InvoiceLineForm(forms.ModelForm):
+    class Meta:
+        model = InvoiceLine
+        fields = ['description', 'amount']
+
+InvoiceLineFormSet = forms.inlineformset_factory(
+    Invoice, InvoiceLine, form=InvoiceLineForm, extra=1, can_delete=True
+)
+
+class InvoiceForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = ['project', 'change_orders', 'due_date', 'notes', 'total_amount', 'is_paid']
+        widgets = {
+            'change_orders': forms.CheckboxSelectMultiple,
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+        }

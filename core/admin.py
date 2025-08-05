@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Employee, Income, Expense, Project, TimeEntry, Schedule, Profile
+from .models import Employee, Income, Expense, Project, TimeEntry, Schedule, Profile, Invoice, InvoiceLine
 
 # Empleado
 @admin.register(Employee)
@@ -64,3 +64,20 @@ class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'role')
     list_filter = ('role',)
     search_fields = ('user__username',)
+
+# Factura
+class InvoiceLineInline(admin.TabularInline):
+    model = InvoiceLine
+    extra = 1
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ('invoice_number', 'project', 'total_amount', 'is_paid', 'date_issued')
+    inlines = [InvoiceLineInline]
+    search_fields = ('invoice_number', 'project__name', 'project__client')
+    list_filter = ('is_paid', 'project')
+
+@admin.register(InvoiceLine)
+class InvoiceLineAdmin(admin.ModelAdmin):
+    list_display = ('invoice', 'description', 'amount')
+    search_fields = ('description',)

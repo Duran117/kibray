@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* Usa aquí el CSS necesario para replicar tu diseño */
+    body { font-family: Arial, sans-serif; }
+    .header { display: flex; justify-content: space-between; }
+    .logo { width: 120px; }
+    .info-table, .lines-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .lines-table th, .lines-table td { border: 1px solid #ccc; padding: 6px; }
+    .lines-table th { background: #eee; }
+    .total-row { font-weight: bold; }
+    /* ...más estilos según tu ejemplo... */
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <img src="{{ STATIC_ROOT }}/logo.png" class="logo" />
+      <p>
+        Kibray Paint & Stain LLC<br>
+        P.O Box 25881<br>
+        Silverthorne, CO, 80497<br>
+        970 333 4872<br>
+        jduran@kibraypainting.net
+      </p>
+    </div>
+    <div>
+      <h2>INVOICE</h2>
+      <table class="info-table">
+        <tr><td>INVOICE NO.</td><td>{{ invoice.invoice_number }}</td></tr>
+        <tr><td>DATE</td><td>{{ invoice.date_issued }}</td></tr>
+        <tr><td>CUSTOMER</td><td>{{ invoice.project.client }}</td></tr>
+        <tr><td>DUE DATE</td><td>{{ invoice.due_date }}</td></tr>
+      </table>
+    </div>
+  </div>
+  <hr>
+  <p><strong>TO</strong><br>
+    {{ invoice.project.client }}<br>
+    {{ invoice.project.client_address }}
+  </p>
+  <p><strong>JOB</strong>: {{ invoice.project.name }}<br>
+     <strong>PAYMENT TERMS</strong>: Due on receipt
+  </p>
+  <table class="lines-table">
+    <tr>
+      <th>DESCRIPTION</th>
+      <th>AMOUNT</th>
+    </tr>
+    {% for line in invoice.lines.all %}
+    <tr>
+      <td>{{ line.description }}</td>
+      <td>${{ line.amount|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+    <tr class="total-row">
+      <td>TOTAL DUE</td>
+      <td>${{ invoice.total_amount|floatformat:2 }}</td>
+    </tr>
+  </table>
+  <p style="margin-top:40px; font-size:12px;">
+    Make all checks payable to Kibray Paint & Stain LLC.
+  </p>
+</body>
+</html>

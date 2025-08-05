@@ -5,6 +5,14 @@ from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
 from core import views
+from core.views import (
+    invoice_create_view,
+    changeorder_lines_ajax,
+    invoice_pdf_view,
+    invoice_detail_view,
+    invoice_list_view,
+    invoice_edit_view,
+)
 from django.shortcuts import redirect
 
 def root_redirect(request):
@@ -56,6 +64,21 @@ urlpatterns = [
 
     # Payroll summary
     path('payroll/summary/', views.payroll_summary_view, name='payroll_summary'),
+
+    # Add Invoice
+    path('invoices/add/', invoice_create_view, name='invoice_create'),
+
+    # AJAX
+    path('ajax/changeorder-lines/', changeorder_lines_ajax, name='changeorder_lines_ajax'),
+
+    # Invoice PDF
+    path('invoices/<int:pk>/', invoice_detail_view, name='invoice_detail'),
+    path('invoices/<int:pk>/pdf/', invoice_pdf_view, name='invoice_pdf'),
+
+    path('invoices/', invoice_list_view, name='invoice_list'),
+
+    # Edit Invoice
+    path('invoices/<int:pk>/edit/', invoice_edit_view, name='invoice_edit'),
 ]
 
 # Static and media files in development

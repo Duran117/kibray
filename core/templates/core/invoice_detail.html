@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Factura {{ invoice.invoice_number }}</h2>
+  <p><strong>Proyecto:</strong> {{ invoice.project.name }}</p>
+  <p><strong>Cliente:</strong> {{ invoice.project.client }}</p>
+  <p><strong>Fecha:</strong> {{ invoice.date_issued }}</p>
+  <p><strong>Vencimiento:</strong> {{ invoice.due_date }}</p>
+  <p><strong>Monto total:</strong> ${{ invoice.total_amount|floatformat:2 }}</p>
+  <h3>Líneas de factura</h3>
+  <table>
+    <tr>
+      <th>Descripción</th>
+      <th>Monto</th>
+    </tr>
+    {% for line in invoice.lines.all %}
+    <tr>
+      <td>{{ line.description }}</td>
+      <td>${{ line.amount|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank">Descargar PDF</a>
+  <br>
+  <a href="{% url 'invoice_list' %}">Volver a la lista de facturas</a>
+  <br>
+  <a href="{% url 'invoice_edit' pk=invoice.pk %}">Editar factura</a>
+{% endblock %}

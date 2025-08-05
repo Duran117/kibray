@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+{% block content %}
+  <h2>Facturas</h2>
+  <a href="{% url 'invoice_create' %}">Crear nueva factura</a>
+  <table>
+    <tr>
+      <th>No.</th>
+      <th>Proyecto</th>
+      <th>Cliente</th>
+      <th>Fecha</th>
+      <th>Monto</th>
+      <th>Pagada</th>
+      <th>Acciones</th>
+    </tr>
+    {% for invoice in invoices %}
+    <tr>
+      <td>{{ invoice.invoice_number }}</td>
+      <td>{{ invoice.project.name }}</td>
+      <td>{{ invoice.project.client }}</td>
+      <td>{{ invoice.date_issued }}</td>
+      <td>${{ invoice.total_amount|floatformat:2 }}</td>
+      <td>{% if invoice.is_paid %}✔️{% else %}❌{% endif %}</td>
+      <td>
+        <a href="{% url 'invoice_detail' pk=invoice.pk %}">Ver</a> |
+        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank">PDF</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

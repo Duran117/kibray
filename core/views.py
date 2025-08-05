@@ -1,36 +1,50 @@
 from django.db.models import Sum
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.template.loader import get_template
+from django.http import HttpResponse, JsonResponse
+from django.template.loader import get_template, render_to_string
 from django.utils.timezone import now
 from datetime import date, timedelta
 from io import BytesIO
 from xhtml2pdf import pisa
-from .models import Project, Expense, Income, Schedule, TimeEntry, Payroll, PayrollEntry, Employee, Task, Comment, ChangeOrder, PayrollRecord
-from .forms import ScheduleForm, ExpenseForm, IncomeForm, TimeEntryForm, PayrollForm, PayrollEntryForm, ChangeOrderForm, PayrollRecordForm
-from django.forms import modelformset_factory
-import json
 from collections import defaultdict
+from django.contrib import messages
+import json
 
+from .models import (
+    Project, Expense, Income, Schedule, TimeEntry, Payroll, PayrollEntry,
+    Employee, Task, Comment, ChangeOrder, PayrollRecord, Invoice
+)
+from .forms import (
+    ScheduleForm, ExpenseForm, IncomeForm, TimeEntryForm, PayrollForm,
+    PayrollEntryForm, ChangeOrderForm, PayrollRecordForm, InvoiceForm, InvoiceLineFormSet
+)
+
+# --- DASHBOARD ---
 @login_required
 def dashboard_view(request):
     user = request.user
+    try:
+        employee = Employee.objects.get(user=user)
+    except Employee.DoesNotExist:
+        employee = None
 
-    # Verifica que el usuario tenga perfil y rol
+    if employee:
+        projects = Project.objects.filter(timeentry__employee=employee).distinct()
+    else:
+        projects = Project.objects.none()
+
     profile = getattr(user, 'profile', None)
     role = getattr(profile, 'role', None)
     if not profile or not role:
-        return redirect('home')  # O muestra un error 403
+        return redirect('home')
 
-    # Métricas generales
     total_income = Income.objects.aggregate(t=Sum("amount"))["t"] or 0
     total_expense = Expense.objects.aggregate(t=Sum("amount"))["t"] or 0
     net_profit = total_income - total_expense
     employee_count = Employee.objects.count()
     active_projects = Project.objects.filter(end_date__isnull=True).count()
 
-    # Proyectos por rol
     if role == "client":
         projects = Project.objects.filter(client=user.username)
     elif role == "project_manager":
@@ -43,7 +57,6 @@ def dashboard_view(request):
         project_expense=Sum("expenses__amount")
     )
 
-    # Eventos próximos (30 días)
     future = date.today() + timedelta(days=30)
     if role == "employee":
         schedules = Schedule.objects.filter(assigned_to=user, start_datetime__date__lte=future)
@@ -53,7 +66,6 @@ def dashboard_view(request):
         schedules = Schedule.objects.filter(start_datetime__date__lte=future)
     schedules = schedules.order_by("start_datetime")[:10]
 
-    # Entradas de tiempo y cálculo de horas/costos
     week_ago = date.today() - timedelta(days=7)
     month_ago = date.today() - timedelta(days=30)
     time_entries = TimeEntry.objects.all()
@@ -75,12 +87,10 @@ def dashboard_view(request):
 
     hours_week, hours_month, total_hours, labor_cost = calculate_hours_and_cost(time_entries)
 
-    # Gráficas
     chart_labels = []
     chart_income = []
     chart_expense = []
     chart_net_profit = []
-
     chart_budget_labels = []
     chart_budget_labor = []
     chart_budget_materials = []
@@ -101,7 +111,6 @@ def dashboard_view(request):
         chart_budget_materials.append(getattr(proj, 'budget_materials', 0) or 0)
         chart_budget_other.append(getattr(proj, 'budget_other', 0) or 0)
 
-    # Convierte Decimals a float
     chart_income = [float(x) for x in chart_income]
     chart_expense = [float(x) for x in chart_expense]
     chart_net_profit = [float(x) for x in chart_net_profit]
@@ -109,7 +118,6 @@ def dashboard_view(request):
     chart_budget_materials = [float(x) for x in chart_budget_materials]
     chart_budget_other = [float(x) for x in chart_budget_other]
 
-    # Resumen de horas por proyecto para cada empleado
     empleados = Employee.objects.filter(is_active=True)
     project_hours_summary_dict = {}
     for employee in empleados:
@@ -117,15 +125,13 @@ def dashboard_view(request):
         summary = ', '.join([f"{hours}h - {project}" for project, hours in project_hours.items()])
         project_hours_summary_dict[employee.id] = summary
 
-    # --- Generar eventos para el calendario ---
     calendar_events = []
     for s in schedules:
         calendar_events.append({
             "title": f"{s.project.name} ({s.title})",
             "start": s.start_datetime.isoformat(),
-            # Si tienes end_datetime, úsalo; si no, solo start
             "end": s.end_datetime.isoformat() if hasattr(s, 'end_datetime') and s.end_datetime else s.start_datetime.isoformat(),
-            "color": "#1e3a8a",  # Puedes personalizar por proyecto o status
+            "color": "#1e3a8a",
         })
 
     context = {
@@ -152,13 +158,12 @@ def dashboard_view(request):
         "project_hours_summary_dict": project_hours_summary_dict,
         "calendar_events": json.dumps(calendar_events),
     }
-
     return render(request, "core/dashboard.html", context)
 
+# --- PROJECT PDF ---
 @login_required
 def project_pdf_view(request, project_id):
     project = get_object_or_404(Project, id=project_id)
-
     incomes = Income.objects.filter(project=project)
     expenses = Expense.objects.filter(project=project)
     time_entries = TimeEntry.objects.filter(project=project)
@@ -167,7 +172,6 @@ def project_pdf_view(request, project_id):
     total_income = incomes.aggregate(total=Sum("amount"))["total"] or 0
     total_expense = expenses.aggregate(total=Sum("amount"))["total"] or 0
     profit = total_income - total_expense
-
     total_hours = sum([te.hours_worked for te in time_entries])
     labor_cost = sum([te.labor_cost for te in time_entries])
 
@@ -194,6 +198,7 @@ def project_pdf_view(request, project_id):
         return HttpResponse(result.getvalue(), content_type="application/pdf")
     return HttpResponse("Error rendering PDF", status=500)
 
+# --- CRUD SCHEDULE, EXPENSE, INCOME, TIMEENTRY ---
 @login_required
 def schedule_create_view(request):
     profile = getattr(request.user, 'profile', None)
@@ -260,6 +265,7 @@ def timeentry_create_view(request):
         form = TimeEntryForm()
     return render(request, "core/timeentry_form.html", {"form": form})
 
+# --- PAYROLL ---
 @login_required
 def payroll_create_view(request):
     profile = getattr(request.user, 'profile', None)
@@ -308,6 +314,7 @@ def obtener_horas_por_proyecto(employee):
             resumen[entry.project.name] += float(entry.hours_worked)
     return resumen
 
+# --- CLIENTE: Vista de proyecto y formularios ---
 def client_project_view(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     schedules = Schedule.objects.filter(project=project)
@@ -337,6 +344,7 @@ def agregar_comentario(request, project_id):
         Comment.objects.create(project=project, user=request.user, text=text, image=image)
     return redirect('client_project_view', project_id=project_id)
 
+# --- CHANGE ORDER ---
 @login_required
 def changeorder_detail_view(request, changeorder_id):
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
@@ -353,11 +361,14 @@ def changeorder_create_view(request):
         form = ChangeOrderForm()
     return render(request, "core/changeorder_form.html", {"form": form})
 
-from django.shortcuts import render, redirect
-from .models import TimeEntry, Employee, PayrollRecord
-from .forms import PayrollRecordForm
-from datetime import timedelta, date
+def changeorder_board_view(request):
+    changeorders = ChangeOrder.objects.all().order_by('-date_created')
+    context = {
+        'changeorders': changeorders,
+    }
+    return render(request, 'core/changeorder_board.html', context)
 
+# --- PAYROLL SUMMARY ---
 def payroll_summary_view(request):
     week_start = request.GET.get('week_start')
     employee_id = request.GET.get('employee')
@@ -392,7 +403,6 @@ def payroll_summary_view(request):
         return redirect(request.path + f"?week_start={week_start}&employee={employee_id or ''}")
 
     for emp in employees:
-        # Calcula horas y paga
         hours_by_day = []
         total_hours = 0
         for i in range(7):
@@ -416,7 +426,6 @@ def payroll_summary_view(request):
                 'total_pay': round(total_hours * float(emp.hourly_rate), 2),
             }
         )
-        # Si ya existe, actualiza horas y total
         if not created:
             record.total_hours = total_hours
             record.hourly_rate = emp.hourly_rate
@@ -442,11 +451,70 @@ def payroll_summary_view(request):
     }
     return render(request, 'core/payroll_summary.html', context)
 
-from .models import ChangeOrder
+# --- INVOICES ---
+def invoice_create_view(request):
+    if request.method == 'POST':
+        form = InvoiceForm(request.POST)
+        formset = InvoiceLineFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            invoice = form.save()
+            formset.instance = invoice
+            formset.save()
+            messages.success(request, "Factura creada correctamente.")
+            return redirect('invoice_detail', pk=invoice.pk)
+    else:
+        form = InvoiceForm()
+        formset = InvoiceLineFormSet()
+    return render(request, 'core/invoice_form.html', {'form': form, 'formset': formset})
 
-def changeorder_board_view(request):
-    changeorders = ChangeOrder.objects.all().order_by('-date_created')
-    context = {
-        'changeorders': changeorders,
-    }
-    return render(request, 'core/changeorder_board.html', context)
+def changeorder_lines_ajax(request):
+    ids = request.GET.getlist('ids[]')
+    lines = []
+    for co in ChangeOrder.objects.filter(id__in=ids):
+        for te in TimeEntry.objects.filter(change_order=co):
+            lines.append({
+                'description': f"Horas de {te.employee} ({te.date}): {te.hours_worked}h",
+                'amount': float(te.hours_worked) * 50.0,
+            })
+        if hasattr(co, 'material_description') and hasattr(co, 'material_amount'):
+            lines.append({
+                'description': f"Material: {co.material_description}",
+                'amount': float(co.material_amount),
+            })
+        lines.append({
+            'description': f"Change Order: {co.description}",
+            'amount': float(co.amount),
+        })
+    return JsonResponse({'lines': lines})
+
+def invoice_pdf_view(request, pk):
+    invoice = Invoice.objects.get(pk=pk)
+    html = render_to_string('core/invoice_pdf.html', {'invoice': invoice})
+    import weasyprint
+    pdf = weasyprint.HTML(string=html).write_pdf()
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename=Factura_{invoice.invoice_number}.pdf'
+    return response
+
+def invoice_detail_view(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    return render(request, 'core/invoice_detail.html', {'invoice': invoice})
+
+def invoice_list_view(request):
+    invoices = Invoice.objects.all().order_by('-date_issued')
+    return render(request, 'core/invoice_list.html', {'invoices': invoices})
+
+def invoice_edit_view(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    if request.method == 'POST':
+        form = InvoiceForm(request.POST, instance=invoice)
+        formset = InvoiceLineFormSet(request.POST, instance=invoice)
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, "Factura actualizada correctamente.")
+            return redirect('invoice_detail', pk=invoice.pk)
+    else:
+        form = InvoiceForm(instance=invoice)
+        formset = InvoiceLineFormSet(instance=invoice)
+    return render(request, 'core/invoice_form.html', {'form': form, 'formset': formset, 'edit_mode': True})

@@ -3,12 +3,14 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.core.exceptions import ValidationError
 
 # ---------------------
 # Modelo de Empleado
 # ---------------------
 class Employee(models.Model):
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)  # <-- AGREGA ESTA LÍNEA
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     social_security_number = models.CharField(max_length=20, unique=True)
@@ -128,11 +130,19 @@ class TimeEntry(models.Model):
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     touch_ups = models.BooleanField(default=False)
-    change_order = models.ForeignKey('ChangeOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='time_entries')
+    change_order = models.ForeignKey(
+        'ChangeOrder',  # <-- Pon el nombre del modelo entre comillas
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,  # <-- Esto lo hace opcional en el formulario
+        related_name='time_entries'
+    )
 
     @property
     def labor_cost(self):
-        return round(self.hours_worked * self.employee.hourly_rate, 2)
+        if self.hours_worked is not None and self.employee and self.employee.hourly_rate is not None:
+            return round(self.hours_worked * self.employee.hourly_rate, 2)
+        return 0
 
     def save(self, *args, **kwargs):
         if self.start_time and self.end_time:
@@ -253,6 +263,15 @@ class Payroll(models.Model):
     def __str__(self):
         return f"{self.project.name} - {self.week_start} to {self.week_end}"
 
+def get_last_hourly_rate(employee, before_date):
+    last_record = PayrollRecord.objects.filter(
+        employee=employee,
+        week_end__lt=before_date
+    ).order_by('-week_end').first()
+    if last_record:
+        return last_record.hourly_rate
+    return employee.hourly_rate
+
 class PayrollEntry(models.Model):
     payroll = models.ForeignKey(Payroll, related_name="entries", on_delete=models.CASCADE)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
@@ -263,6 +282,8 @@ class PayrollEntry(models.Model):
     payment_reference = models.CharField(max_length=100, blank=True, help_text="Cheque o referencia de pago individual")
 
     def save(self, *args, **kwargs):
+        if not self.hourly_rate:
+            self.hourly_rate = get_last_hourly_rate(self.employee, self.payroll.week_start)
         self.total_pay = round(self.hours_worked * self.hourly_rate, 2)
         super().save(*args, **kwargs)
 
@@ -304,4 +325,106 @@ class PayrollRecord(models.Model):
 
     def __str__(self):
         return f"{self.employee} | {self.week_start} - {self.week_end}"
+
+# Puedes poner esto en core/models.py o en un archivo utils.py
+
+def get_week_hours(employee, week_start, week_end):
+    return TimeEntry.objects.filter(
+        employee=employee,
+        date__range=(week_start, week_end),
+        change_order__isnull=True
+    )
+
+def calcular_total_horas(employee, week_start, week_end):
+    horas = get_week_hours(employee, week_start, week_end)
+    return sum([h.hours_worked or 0 for h in horas])
+
+# Ejemplo de función para crear un registro de nómina semanal
+def crear_o_actualizar_payroll_record(employee, week_start, week_end):
+    total_hours = calcular_total_horas(employee, week_start, week_end)
+    last_rate = get_last_hourly_rate(employee, week_start)
+    total_pay = round(total_hours * last_rate, 2)
+    record, created = PayrollRecord.objects.update_or_create(
+        employee=employee,
+        week_start=week_start,
+        week_end=week_end,
+        defaults={
+            'total_hours': total_hours,
+            'hourly_rate': last_rate,
+            'total_pay': total_pay,
+        }
+    )
+    return record
+
+# ---------------------
+# Modelo de Factura
+# ---------------------
+class Invoice(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='invoices')
+    change_orders = models.ManyToManyField('ChangeOrder', blank=True, related_name='invoices')
+    invoice_number = models.CharField(max_length=20, unique=True, editable=False)
+    date_issued = models.DateField(auto_now_add=True)
+    due_date = models.DateField(null=True, blank=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    is_paid = models.BooleanField(default=False)
+    pdf = models.FileField(upload_to='invoices/', blank=True, null=True)
+    notes = models.TextField(blank=True)
+    # Relación a Income (se crea cuando se marca como pagado)
+    income = models.OneToOneField('Income', on_delete=models.SET_NULL, null=True, blank=True, related_name='invoice_link')
+
+    def save(self, *args, **kwargs):
+        creating = self._state.adding
+        was_paid = False
+        if not creating:
+            old = Invoice.objects.get(pk=self.pk)
+            was_paid = old.is_paid
+
+        # Generar número de factura si no existe
+        if not self.invoice_number:
+            initials = ''.join([w[0].upper() for w in self.project.client.split()[:2]])
+            count = Invoice.objects.filter(project__client__icontains=self.project.client[:2]).count() + 1
+            self.invoice_number = f"KP{initials}{count:03d}"
+
+        super().save(*args, **kwargs)
+
+        # Si se marcó como pagado y no había sido pagado antes, crea Income
+        if self.is_paid and (creating or not was_paid) and not self.income:
+            income = Income.objects.create(
+                project=self.project,
+                project_name=f"Factura {self.invoice_number}",
+                amount=self.total_amount,
+                date=self.date_issued,
+                payment_method="OTRO",  # Puedes ajustar esto según tu lógica
+                description=f"Ingreso por factura {self.invoice_number}",
+            )
+            self.income = income
+            super().save(update_fields=['income'])
+
+    def clean(self):
+        # Calcula el monto máximo permitido
+        project_budget = self.project.budget_total or 0
+        change_orders_total = sum([co.amount for co in self.change_orders.all()])
+        max_allowed = project_budget + change_orders_total
+
+        if self.total_amount > max_allowed:
+            raise ValidationError(
+                f"El monto total de la factura (${self.total_amount}) excede el máximo permitido (${max_allowed})."
+            )
+
+    def __str__(self):
+        return f"{self.invoice_number} - {self.project.name}"
+
+# ---------------------
+# Modelo de Línea de Factura
+# ---------------------
+class InvoiceLine(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='lines')
+    description = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    # Opcional: relación a TimeEntry o Expense para trazabilidad
+    time_entry = models.ForeignKey('TimeEntry', on_delete=models.SET_NULL, null=True, blank=True)
+    expense = models.ForeignKey('Expense', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.description} - ${self.amount}"
 

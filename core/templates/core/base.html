@@ -45,5 +45,13 @@
     {% else %}
         <a href="{% url 'login' %}">Iniciar sesión</a>
     {% endif %}
+
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
 </body>
 </html>

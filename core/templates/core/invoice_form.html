@@ -1,0 +1,90 @@
+{% extends "core/base.html" %}
+{% block content %}
+  {% if edit_mode %}
+    <h2>Editar Factura</h2>
+  {% else %}
+    <h2>Crear Factura</h2>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <h3>Líneas de factura</h3>
+    <div id="suggested-lines"></div>
+    {{ formset.management_form }}
+    <div id="formset-lines">
+      {% for form in formset %}
+        <div class="formset-line">
+          {{ form.as_p }}
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit">Guardar Factura</button>
+  </form>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const changeOrdersSelect = document.querySelector('select[name="change_orders"]');
+      const suggestedDiv = document.getElementById('suggested-lines');
+      const formsetDiv = document.getElementById('formset-lines');
+      if (changeOrdersSelect) {
+        changeOrdersSelect.addEventListener('change', function() {
+          const selected = Array.from(changeOrdersSelect.selectedOptions).map(opt => opt.value);
+          fetch(`/ajax/changeorder-lines/?ids[]=${selected.join('&ids[]=')}`)
+            .then(response => response.json())
+            .then(data => {
+              // Muestra sugerencias en una tabla
+              let html = '';
+              if (data.lines.length > 0) {
+                html += '<h4>Sugerencias de líneas:</h4><table><tr><th>Descripción</th><th>Monto</th><th>Agregar</th></tr>';
+                data.lines.forEach((line, idx) => {
+                  html += `<tr>
+                    <td>${line.description}</td>
+                    <td>$${line.amount.toFixed(2)}</td>
+                    <td><button type="button" class="add-line-btn" data-desc="${line.description}" data-amount="${line.amount}">Agregar</button></td>
+                  </tr>`;
+                });
+                html += '</table>';
+              } else {
+                html = '';
+              }
+              suggestedDiv.innerHTML = html;
+
+              // Botones para agregar línea al formset
+              document.querySelectorAll('.add-line-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                  const desc = this.getAttribute('data-desc');
+                  const amount = this.getAttribute('data-amount');
+                  // Crea inputs para el formset
+                  const totalForms = document.getElementById('id_invoiceline_set-TOTAL_FORMS');
+                  const idx = parseInt(totalForms.value);
+                  const newLine = document.createElement('div');
+                  newLine.className = 'formset-line';
+                  newLine.innerHTML = `
+                    <label>Descripción: <input type="text" name="invoiceline_set-${idx}-description" value="${desc}" /></label>
+                    <label>Monto: <input type="number" step="0.01" name="invoiceline_set-${idx}-amount" value="${amount}" /></label>
+                    <input type="hidden" name="invoiceline_set-${idx}-id" />
+                    <input type="hidden" name="invoiceline_set-${idx}-invoice" />
+                  `;
+                  formsetDiv.appendChild(newLine);
+                  totalForms.value = idx + 1;
+                });
+              });
+            });
+        });
+      }
+
+      // Validación de monto antes de enviar el formulario
+      document.querySelector('form').addEventListener('submit', function(e) {
+        let total = 0;
+        document.querySelectorAll('input[name^="invoiceline_set-"][name$="-amount"]').forEach(input => {
+          total += parseFloat(input.value) || 0;
+        });
+        // Toma el monto total permitido del campo principal
+        const max = parseFloat(document.getElementById('id_total_amount').value) || 0;
+        if (total > max) {
+          alert(`La suma de las líneas ($${total.toFixed(2)}) excede el monto total de la factura ($${max.toFixed(2)}).`);
+          e.preventDefault();
+        }
+      });
+    });
+  </script>
+{% endblock %}

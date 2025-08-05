@@ -8,9 +8,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad: usar variable en producción
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise Exception("DJANGO_SECRET_KEY environment variable not set!")
 
 # 🔁 Modo debug (False en producción)
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'False'
 
 # 🌍 Hosts permitidos
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'kibray-backend.onrender.com']
