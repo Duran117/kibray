@@ -1,0 +1,75 @@
+{% load static %}
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <img src="{% static 'kibray-logo.png' %}" alt="Logo" style="height:60px;">
+        <h2>Payroll Summary</h2>
+    </div>
+    <form method="get" class="mb-3">
+        <div class="row justify-content-center">
+            <div class="col-md-4 mb-2">
+                <select name="employee" class="form-control">
+                    <option value="">All Employees</option>
+                    {% for emp in employees %}
+                        <option value="{{ emp.id }}" {% if emp.id == selected_employee %}selected{% endif %}>{{ emp.first_name }} {{ emp.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 mb-2">
+                <input type="date" name="week_start" class="form-control" value="{{ selected_week }}">
+            </div>
+            <div class="col-md-2 mb-2">
+                <button type="submit" class="btn btn-primary w-100">Show</button>
+            </div>
+        </div>
+    </form>
+    <form method="post">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Week Period</th>
+                        <th>M</th>
+                        <th>T</th>
+                        <th>W</th>
+                        <th>T</th>
+                        <th>F</th>
+                        <th>S</th>
+                        <th>S</th>
+                        <th>Total H</th>
+                        <th>H/price</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Pay Date</th>
+                        <th>Check #</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in payroll_rows %}
+                    <tr>
+                        <td>{{ row.employee.first_name }} {{ row.employee.last_name }}</td>
+                        <td>{{ row.week_period }}</td>
+                        {% for h in row.hours_by_day %}
+                            <td>{% if h %}{{ h }}{% else %}-{% endif %}</td>
+                        {% endfor %}
+                        <td>{{ row.total_hours }}</td>
+                        <td>${{ row.hourly_rate }}</td>
+                        <td>${{ row.total_pay }}</td>
+                        <td>{{ row.form.paid }}</td>
+                        <td>{{ row.form.pay_date }}</td>
+                        <td>{{ row.form.check_number }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="15">No data for this period.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-end">
+            <button type="submit" class="btn btn-success">Save Changes</button>
+        </div>
+    </form>
+</div>

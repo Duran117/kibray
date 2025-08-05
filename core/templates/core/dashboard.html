@@ -1,161 +1,85 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block content %}
-<div class="header">
-    <img src="{% static 'kibray-logo.png' %}" alt="Kibray Logo" style="height:60px; margin-bottom:10px;">
-    <h1>Welcome, {{ user.username }}</h1>
-</div>
-
-<div class="container my-3">
-  <div class="row">
-    <div class="col-12 col-md-6 col-lg-4 mb-3">
-      <div class="card p-3">
-        <h2>Total Income</h2>
-        <p>${{ total_income }}</p>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-4 mb-3">
-      <div class="card p-3">
-        <h2>Total Expenses</h2>
-        <p>${{ total_expense }}</p>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-4 mb-3">
-      <div class="card p-3">
-        <h2>Net Profit</h2>
-        <p>${{ net_profit }}</p>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-4 mb-3">
-      <div class="card p-3">
-        <h2>Employees</h2>
-        <p>{{ employee_count }}</p>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-4 mb-3">
-      <div class="card p-3">
-        <h2>Active Projects</h2>
-        <p>{{ active_projects }}</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-
-    <!-- Botones de acciones -->
-    <div class="d-grid gap-2 mb-4">
-        <a href="{% url 'schedule_create' %}" class="btn btn-primary btn-lg w-100">Add Event</a>
-        <a href="{% url 'expense_create' %}" class="btn btn-success btn-lg w-100">Add Expense</a>
-        <a href="{% url 'income_create' %}" class="btn btn-info btn-lg w-100">Add Income</a>
-        <a href="{% url 'timeentry_create' %}" class="btn btn-warning btn-lg w-100">Register Hours</a>
-        <a href="{% url 'changeorder_create' %}" class="btn btn-secondary btn-lg w-100">Add Change Order</a>
-        {% if role == "admin" or role == "superuser" or role == "project_manager" %}
-            <a href="{% url 'payroll_create' %}" class="btn btn-dark btn-lg w-100">Create Payroll</a>
-        {% endif %}
+<div class="container py-4">
+    <!-- Logo y bienvenida -->
+    <div class="text-center mb-4">
+        <img src="{% static 'kibray-logo.png' %}" alt="Logo" style="height:60px;">
+        <h2 class="mt-2">Welcome, {{ user.first_name }}</h2>
     </div>
 
-    <!-- Projects Overview -->
-    <div class="card">
-        <h2>Projects Overview</h2>
-        <div class="table-responsive">
-  <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Client</th>
-                    <th>Income</th>
-                    <th>Expense</th>
-                    <th>Profit</th>
-                    <th>Labor $</th>
-                    <th>Materials $</th>
-                    <th>Other $</th>
-                    <th>Total Budget</th>
-                    <th>PDF</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for project in projects %}
-                <tr>
-                    <td>{{ project.name }}</td>
-                    <td>{{ project.client }}</td>
-                    <td>${{ project.project_income|default:"0.00" }}</td>
-                    <td>${{ project.project_expense|default:"0.00" }}</td>
-                    <td>
-                        {% with profit=project.project_income|default:0|floatformat:2|add:"-"|add:project.project_expense|default:0|floatformat:2 %}
-                            {% if profit < 0 %}
-                                <span style="color:red;">${{ profit }}</span>
-                            {% else %}
-                                ${{ profit }}
-                            {% endif %}
-                        {% endwith %}
-                    </td>
-                    <td>${{ project.budget_labor|default:"0.00" }}</td>
-                    <td>${{ project.budget_materials|default:"0.00" }}</td>
-                    <td>${{ project.budget_other|default:"0.00" }}</td>
-                    <td>${{ project.budget_total|default:"0.00" }}</td>
-                    <td><a class="btn-pdf" href="{% url 'project_pdf' project.id %}" target="_blank">PDF</a></td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="10">No projects found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Botones de acción -->
+    <div class="row mb-4 justify-content-center">
+        <div class="col-12 col-md-10">
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                <a href="{% url 'payroll_summary' %}" class="btn btn-success">Payroll Summary</a>
+                <a href="{% url 'schedule_create' %}" class="btn btn-primary">Add Event</a>
+                <a href="{% url 'expense_create' %}" class="btn btn-success">Add Expense</a>
+                <a href="{% url 'income_create' %}" class="btn btn-info">Add Income</a>
+                <a href="{% url 'timeentry_create' %}" class="btn btn-warning">Register Hours</a>
+                <a href="{% url 'changeorder_board' %}" class="btn btn-warning">Change Orders Board</a>
+            </div>
         </div>
     </div>
 
-    <!-- Upcoming Events -->
-    <div class="card">
-        <h2>Upcoming Events (Next 30 Days)</h2>
-        <ul>
-            {% for schedule in schedules %}
-                <li>
-                    <strong>{{ schedule.project.name }}</strong> - {{ schedule.title }}: {{ schedule.start_datetime|date:"Y-m-d H:i" }}
-                </li>
-            {% empty %}
-                <li>No upcoming events</li>
-            {% endfor %}
-        </ul>
+    <!-- Project Overview y Upcoming Events -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="card-title">Project Overview</h4>
+                    <!-- Tabla o resumen de proyectos aquí -->
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="card-title">Upcoming Events (30 next days)</h4>
+                    <!-- Lista de eventos próximos aquí -->
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Hours Worked Summary -->
-    <div class="card">
-        <h2>Hours Worked Summary</h2>
-        <p>This week: {{ hours_week }} hrs</p>
-        <p>This month: {{ hours_month }} hrs</p>
-        <p>Total: {{ total_hours }} hrs</p>
-        <p>Labor Cost: ${{ labor_cost }}</p>
+    <!-- Gráficas -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5>Net Profit</h5>
+                    <canvas id="netProfitChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5>Budget per Project</h5>
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5>Income vs Expense</h5>
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Income vs Expense Chart -->
-    <div class="container my-3">
-  <div class="row">
-    <div class="col-12 col-md-6 col-lg-4 mb-3">
-      <div class="card p-3">
-        <h2>Income vs Expense Chart</h2>
-        <canvas id="incomeExpenseChart" style="max-width:100%;"></canvas>
-      </div>
-    </div>
-    <!-- Repite para otras tarjetas -->
-  </div>
-</div>
-
-    <!-- Budget Allocation per Project -->
-    <div class="card">
-        <h2>Budget Allocation per Project</h2>
-        <canvas id="budgetChart"></canvas>
-    </div>
-
-    <!-- Net Profit per Project -->
-    <div class="card">
-        <h2>Net Profit per Project</h2>
-        <canvas id="netProfitChart"></canvas>
-    </div>
-
-    <!-- Project & Event Calendar -->
-    <div class="card">
-        <h2>Project & Event Calendar</h2>
-        <div id="calendar"></div>
+    <!-- Calendario de eventos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Project Event Calendar</h5>
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

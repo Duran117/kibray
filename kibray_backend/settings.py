@@ -7,9 +7,7 @@ from django.conf.urls.static import static
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad: usar variable en producción
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
-if not SECRET_KEY:
-    raise Exception("SECRET_KEY environment variable not set!")
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # 🔁 Modo debug (False en producción)
 DEBUG = os.getenv('DEBUG', 'True') == 'True'

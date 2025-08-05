@@ -7,8 +7,8 @@ from django.utils.timezone import now
 from datetime import date, timedelta
 from io import BytesIO
 from xhtml2pdf import pisa
-from .models import Project, Expense, Income, Schedule, TimeEntry, Payroll, PayrollEntry, Employee, Task, Comment, ChangeOrder
-from .forms import ScheduleForm, ExpenseForm, IncomeForm, TimeEntryForm, PayrollForm, PayrollEntryForm, ChangeOrderForm
+from .models import Project, Expense, Income, Schedule, TimeEntry, Payroll, PayrollEntry, Employee, Task, Comment, ChangeOrder, PayrollRecord
+from .forms import ScheduleForm, ExpenseForm, IncomeForm, TimeEntryForm, PayrollForm, PayrollEntryForm, ChangeOrderForm, PayrollRecordForm
 from django.forms import modelformset_factory
 import json
 from collections import defaultdict
@@ -352,3 +352,101 @@ def changeorder_create_view(request):
     else:
         form = ChangeOrderForm()
     return render(request, "core/changeorder_form.html", {"form": form})
+
+from django.shortcuts import render, redirect
+from .models import TimeEntry, Employee, PayrollRecord
+from .forms import PayrollRecordForm
+from datetime import timedelta, date
+
+def payroll_summary_view(request):
+    week_start = request.GET.get('week_start')
+    employee_id = request.GET.get('employee')
+
+    if week_start:
+        week_start = date.fromisoformat(week_start)
+    else:
+        today = date.today()
+        week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
+
+    employees = Employee.objects.all()
+    if employee_id:
+        employees = employees.filter(id=employee_id)
+
+    payroll_rows = []
+    if request.method == "POST":
+        for emp in employees:
+            record, created = PayrollRecord.objects.get_or_create(
+                employee=emp,
+                week_start=week_start,
+                week_end=week_end,
+                defaults={
+                    'total_hours': 0,
+                    'hourly_rate': emp.hourly_rate,
+                    'total_pay': 0,
+                }
+            )
+            form = PayrollRecordForm(request.POST, prefix=str(emp.id), instance=record)
+            if form.is_valid():
+                form.save()
+        return redirect(request.path + f"?week_start={week_start}&employee={employee_id or ''}")
+
+    for emp in employees:
+        # Calcula horas y paga
+        hours_by_day = []
+        total_hours = 0
+        for i in range(7):
+            day = week_start + timedelta(days=i)
+            entries = TimeEntry.objects.filter(
+                employee=emp,
+                date=day,
+                change_order__isnull=True
+            )
+            day_hours = sum(e.hours_worked or 0 for e in entries)
+            hours_by_day.append(day_hours if day_hours else "")
+            total_hours += day_hours
+
+        record, created = PayrollRecord.objects.get_or_create(
+            employee=emp,
+            week_start=week_start,
+            week_end=week_end,
+            defaults={
+                'total_hours': total_hours,
+                'hourly_rate': emp.hourly_rate,
+                'total_pay': round(total_hours * float(emp.hourly_rate), 2),
+            }
+        )
+        # Si ya existe, actualiza horas y total
+        if not created:
+            record.total_hours = total_hours
+            record.hourly_rate = emp.hourly_rate
+            record.total_pay = round(total_hours * float(emp.hourly_rate), 2)
+            record.save()
+
+        form = PayrollRecordForm(prefix=str(emp.id), instance=record)
+        payroll_rows.append({
+            'employee': emp,
+            'week_period': f"{week_start} - {week_end}",
+            'hours_by_day': hours_by_day,
+            'total_hours': total_hours,
+            'hourly_rate': emp.hourly_rate,
+            'total_pay': round(total_hours * float(emp.hourly_rate), 2),
+            'form': form,
+        })
+
+    context = {
+        'payroll_rows': payroll_rows,
+        'employees': Employee.objects.all(),
+        'selected_employee': int(employee_id) if employee_id else "",
+        'selected_week': week_start.isoformat(),
+    }
+    return render(request, 'core/payroll_summary.html', context)
+
+from .models import ChangeOrder
+
+def changeorder_board_view(request):
+    changeorders = ChangeOrder.objects.all().order_by('-date_created')
+    context = {
+        'changeorders': changeorders,
+    }
+    return render(request, 'core/changeorder_board.html', context)

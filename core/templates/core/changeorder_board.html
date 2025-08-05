@@ -1,0 +1,56 @@
+<div class="container py-4">
+    <h2>Change Orders Board</h2>
+    <div class="row">
+        {% for co in changeorders %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <strong>{{ co.project.name }}</strong>
+                    <span class="badge bg-secondary float-end">{{ co.get_status_display }}</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Description:</strong> {{ co.description }}</p>
+                    <p><strong>Date:</strong> {{ co.date_created }}</p>
+                    <hr>
+                    <h6>Time Entries:</h6>
+                    {% if co.time_entries.all %}
+                        <ul class="list-group list-group-flush">
+                        {% for te in co.time_entries.all %}
+                            <li class="list-group-item">
+                                <strong>{{ te.employee.first_name }} {{ te.employee.last_name }}</strong><br>
+                                {{ te.date }} | {{ te.start_time }} - {{ te.end_time }} ({{ te.hours_worked }} hrs)
+                                {% if te.notes %}<br><em>{{ te.notes }}</em>{% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No time entries.</p>
+                    {% endif %}
+                    <hr>
+                    <h6>Expenses:</h6>
+                    {% if co.expenses.all %}
+                        <ul class="list-group list-group-flush">
+                        {% for ex in co.expenses.all %}
+                            <li class="list-group-item">
+                                <strong>{{ ex.category }}</strong>: ${{ ex.amount }}<br>
+                                {{ ex.date }} - {{ ex.description }}
+                                {% if ex.invoice %}
+                                    <br><a href="{{ ex.invoice.url }}" target="_blank">Invoice</a>
+                                {% endif %}
+                                {% if ex.receipt %}
+                                    <br><a href="{{ ex.receipt.url }}" target="_blank">Receipt</a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No expenses.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No change orders found.</p>
+        {% endfor %}
+    </div>
+</div>

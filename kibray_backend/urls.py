@@ -39,8 +39,6 @@ urlpatterns = [
     # Add Time Entry (registro de horas)
     path('timeentry/add/', views.timeentry_create_view, name='timeentry_create'),
 
-    # Add Payroll (nómina)
-    path('payroll/add/', views.payroll_create_view, name='payroll_create'),
 
     # ----------- CLIENTE: Vista de proyecto y formularios -----------
     path('proyecto/<int:project_id>/', views.client_project_view, name='client_project_view'),
@@ -52,6 +50,12 @@ urlpatterns = [
 
     # Add Change Order
     path('changeorder/add/', views.changeorder_create_view, name='changeorder_create'),
+
+    # Change Order Board
+    path('changeorders/board/', views.changeorder_board_view, name='changeorder_board'),
+
+    # Payroll summary
+    path('payroll/summary/', views.payroll_summary_view, name='payroll_summary'),
 ]
 
 # Static and media files in development

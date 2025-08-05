@@ -121,13 +121,13 @@ class Expense(models.Model):
 # ---------------------
 class TimeEntry(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)  # <-- hazlo opcional
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
-    touch_ups = models.BooleanField(default=False)  # <-- agrega este campo
+    touch_ups = models.BooleanField(default=False)
     change_order = models.ForeignKey('ChangeOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='time_entries')
 
     @property
@@ -135,13 +135,15 @@ class TimeEntry(models.Model):
         return round(self.hours_worked * self.employee.hourly_rate, 2)
 
     def save(self, *args, **kwargs):
-        if self.start_time and self.end_time and self.date:
-            start = datetime.combine(self.date, self.start_time)
-            end = datetime.combine(self.date, self.end_time)
-            delta = end - start
-            hours = (delta.total_seconds() / 3600) - 0.5  # Resta 30 minutos
+        if self.start_time and self.end_time:
+            start_minutes = self.start_time.hour * 60 + self.start_time.minute
+            end_minutes = self.end_time.hour * 60 + self.end_time.minute
+            diff = end_minutes - start_minutes
+            hours = diff / 60
+            if end_minutes > (12 * 60 + 30):
+                hours -= 0.5
             if hours < 0:
-                hours += 24  # Por si el registro abarca más de un día
+                hours += 24
             self.hours_worked = round(hours, 2)
         super().save(*args, **kwargs)
 
@@ -285,4 +287,21 @@ class ChangeOrder(models.Model):
 
     def __str__(self):
         return f"Change Order for {self.project.name} - {self.description[:30]}"
+
+# ---------------------
+# Modelo de Registro de Nómina
+# ---------------------
+class PayrollRecord(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    week_start = models.DateField()
+    week_end = models.DateField()
+    total_hours = models.DecimalField(max_digits=6, decimal_places=2)
+    hourly_rate = models.DecimalField(max_digits=8, decimal_places=2)
+    total_pay = models.DecimalField(max_digits=10, decimal_places=2)
+    paid = models.BooleanField(default=False)
+    pay_date = models.DateField(null=True, blank=True)
+    check_number = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return f"{self.employee} | {self.week_start} - {self.week_end}"
 
