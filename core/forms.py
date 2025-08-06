@@ -36,7 +36,6 @@ class TimeEntryForm(forms.ModelForm):
             'start_time',
             'end_time',
             'hours_worked',
-            'touch_ups',
             'change_order',
             'notes'
         ]
@@ -45,19 +44,19 @@ class TimeEntryForm(forms.ModelForm):
             'start_time': forms.TimeInput(attrs={'type': 'time', 'required': True, 'class': 'form-control'}),
             'end_time': forms.TimeInput(attrs={'type': 'time', 'required': True, 'class': 'form-control'}),
             'employee': forms.Select(attrs={'required': True, 'class': 'form-control'}),
-            'change_order': forms.Select(attrs={'required': True, 'class': 'form-control'}),
+            'change_order': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['project'].queryset = Project.objects.filter(end_date__isnull=True)
-        self.fields['project'].required = False  # Solo obligatorio si no es touch up
+        self.fields['project'].required = False
         self.fields['notes'].required = False
         self.fields['employee'].required = True
         self.fields['date'].required = True
         self.fields['start_time'].required = True
         self.fields['end_time'].required = True
-        self.fields['change_order'].required = True  # Si debe ser obligatorio
+        self.fields['change_order'].required = False  # <-- opcional
 
     def clean(self):
         cleaned_data = super().clean()
@@ -67,7 +66,7 @@ class TimeEntryForm(forms.ModelForm):
         end_time = cleaned_data.get('end_time')
         employee = cleaned_data.get('employee')
         date = cleaned_data.get('date')
-        change_order = cleaned_data.get('change_order')
+        # change_order = cleaned_data.get('change_order')  # <-- ya no es obligatorio
 
         if not touch_ups and not project:
             self.add_error('project', "You must select a project unless this is a touch up.")
@@ -79,8 +78,7 @@ class TimeEntryForm(forms.ModelForm):
             self.add_error('start_time', "Start time is required.")
         if not end_time:
             self.add_error('end_time', "End time is required.")
-        if not change_order:
-            self.add_error('change_order', "Change order is required.")
+        # No validación para change_order
         return cleaned_data
 
 class PayrollForm(forms.ModelForm):

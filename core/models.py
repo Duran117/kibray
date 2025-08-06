@@ -129,15 +129,14 @@ class TimeEntry(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    notes = models.TextField(blank=True, null=True)
-    touch_ups = models.BooleanField(default=False)
     change_order = models.ForeignKey(
-        'ChangeOrder',  # <-- Pon el nombre del modelo entre comillas
+        'ChangeOrder',
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,  # <-- Esto lo hace opcional en el formulario
+        blank=True,
         related_name='time_entries'
     )
+    notes = models.TextField(blank=True, null=True)
 
     @property
     def labor_cost(self):

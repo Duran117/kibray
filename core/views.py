@@ -256,7 +256,6 @@ def timeentry_create_view(request):
             if form.cleaned_data.get('touch_ups'):
                 po = form.cleaned_data.get('po_reference', '')
                 note = form.cleaned_data.get('notes', '')
-                time_entry.notes = f"TOUCH UPS - PO: {po}. {note}"
                 time_entry.project = None
             time_entry.employee = getattr(request.user, 'employee', None)
             time_entry.save()
