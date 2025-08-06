@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError
+from django import forms  # <-- Importa forms aquí
 
 # ---------------------
 # Modelo de Empleado
@@ -427,4 +428,21 @@ class InvoiceLine(models.Model):
 
     def __str__(self):
         return f"{self.description} - ${self.amount}"
+
+# ---------------------
+# Formulario para Registro de Horas
+# ---------------------
+class TimeEntryForm(forms.ModelForm):
+    class Meta:
+        model = TimeEntry
+        fields = [
+            'employee',
+            'project',
+            'date',
+            'start_time',
+            'end_time',
+            'hours_worked',
+            'change_order',  # incluye este si lo necesitas
+            # agrega aquí todos los campos que quieres mostrar en el formulario
+        ]
 
