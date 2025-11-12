@@ -1,0 +1,10 @@
+Hola {{ user.get_full_name|default:user.username }},
+
+Tienes {{ count }} notificaciones nuevas en las últimas {{ since|timesince:now }}:
+{% for n in items %}
+- {{ n.created_at|date:"Y-m-d H:i" }} · {{ n.message|default:n.title }}
+{% endfor %}
+
+Revisa tu panel para más detalles: {{ site_url }}
+
+— {{ app_name }}

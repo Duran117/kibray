@@ -1,0 +1,191 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "My Daily Plan" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{% trans "Good Morning" %}, {{ employee.first_name }}!</h2>
+            <p class="lead">{% trans "Your work plan for" %} <strong>{{ today|date:"l, F d, Y" }}</strong></p>
+        </div>
+    </div>
+
+    {% if activities %}
+    <div class="row">
+        {% for activity in activities %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 {% if activity.status == 'COMPLETED' %}border-success{% elif activity.status == 'IN_PROGRESS' %}border-primary{% endif %}">
+                <div class="card-header {% if activity.status == 'COMPLETED' %}bg-success text-white{% elif activity.status == 'IN_PROGRESS' %}bg-primary text-white{% else %}bg-light{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <span class="badge {% if activity.status == 'COMPLETED' %}bg-light text-success{% elif activity.status == 'IN_PROGRESS' %}bg-light text-primary{% else %}bg-secondary{% endif %}">
+                                #{{ activity.order }}
+                            </span>
+                            {{ activity.title }}
+                        </h5>
+                        <span class="badge {% if activity.status == 'COMPLETED' %}bg-light text-success{% elif activity.status == 'IN_PROGRESS' %}bg-light text-primary{% else %}bg-secondary{% endif %}">
+                            {{ activity.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Project Info -->
+                    <div class="alert alert-info mb-3">
+                        <h6 class="mb-2"><i class="bi bi-building"></i> {% trans "Project" %}</h6>
+                        <p class="mb-1"><strong>{{ activity.daily_plan.project.name }}</strong></p>
+                        {% if activity.daily_plan.project.address %}
+                        <p class="mb-0 small">
+                            <i class="bi bi-geo-alt"></i> {{ activity.daily_plan.project.address }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description -->
+                    {% if activity.description %}
+                    <div class="mb-3">
+                        <h6>{% trans "Description" %}</h6>
+                        <p class="text-muted">{{ activity.description }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- SOP Template -->
+                    {% if activity.activity_template %}
+                    <div class="mb-3">
+                        <h6><i class="bi bi-book"></i> {% trans "SOP" %}: {{ activity.activity_template.name }}</h6>
+                        
+                        {% if activity.activity_template.steps %}
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <strong>{% trans "Steps to follow:" %}</strong>
+                                <ol class="mb-0 mt-2">
+                                    {% for step in activity.activity_template.steps %}
+                                    <li>{{ step }}</li>
+                                    {% endfor %}
+                                </ol>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if activity.activity_template.tips %}
+                        <div class="alert alert-warning mt-2 mb-0">
+                            <strong><i class="bi bi-lightbulb"></i> {% trans "Tips:" %}</strong>
+                            <p class="mb-0 small">{{ activity.activity_template.tips }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Time Estimate -->
+                    {% if activity.estimated_hours %}
+                    <div class="mb-3">
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-clock"></i> {% trans "Estimated time:" %} {{ activity.estimated_hours }} {% trans "hours" %}
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Team -->
+                    <div class="mb-3">
+                        <h6><i class="bi bi-people"></i> {% trans "Team assigned" %}</h6>
+                        <div>
+                            {% for emp in activity.assigned_employees.all %}
+                            <span class="badge bg-secondary me-1">{{ emp.first_name }} {{ emp.last_name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Materials Needed -->
+                    {% if activity.materials_needed %}
+                    <div class="mb-3">
+                        <h6><i class="bi bi-box-seam"></i> {% trans "Materials needed" %}</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for material in activity.materials_needed %}
+                            <li class="list-group-item px-0 py-1">
+                                {% if activity.material_shortage %}
+                                <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                {% else %}
+                                <i class="bi bi-check-circle text-success"></i>
+                                {% endif %}
+                                {{ material }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        
+                        {% if activity.materials_checked %}
+                        <div class="mt-2 small">
+                            {% if activity.material_shortage %}
+                            <span class="badge bg-danger">{% trans "Shortage" %}</span>
+                            {% else %}
+                            <span class="badge bg-success">{% trans "All materials OK" %}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% if activity.material_shortage %}
+                        <div class="alert alert-danger mt-2 mb-0">
+                            <i class="bi bi-exclamation-triangle-fill"></i> 
+                            {% trans "Warning: Material shortage detected. Contact your supervisor." %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Progress -->
+                    {% if activity.progress_percentage > 0 %}
+                    <div class="mb-3">
+                        <h6>{% trans "Progress" %}</h6>
+                        {% with p=activity.progress_percentage|default:0 %}
+                        <div class="progress" style="height: 25px;">
+                            {% if p == 100 %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ p }}%;" aria-valuenow="{{ p }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ p }}%
+                            </div>
+                            {% else %}
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ p }}%;" aria-valuenow="{{ p }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ p }}%
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endwith %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer">
+                    {% if activity.status != 'COMPLETED' %}
+                    <a href="{% url 'activity_complete' activity.id %}" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle"></i> {% trans "Mark as Complete" %}
+                    </a>
+                    {% else %}
+                    <div class="text-center text-success">
+                        <i class="bi bi-check-circle-fill"></i> {% trans "Activity completed!" %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-info text-center py-5">
+                <i class="bi bi-calendar-check" style="font-size: 4rem;"></i>
+                <h4 class="mt-3">{% trans "No activities assigned for today" %}</h4>
+                <p class="text-muted">{% trans "Enjoy your day off or check with your supervisor!" %}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

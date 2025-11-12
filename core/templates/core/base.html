@@ -1,57 +1,230 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ request.session.lang|default:'en' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kibray</title>
+  <title>Kibray</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    {% load i18n %}
+  <link rel="stylesheet" href="{% static 'styles.css' %}">
+  <link rel="stylesheet" href="{% static 'theme.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+      .fab-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1050;
+      }
+      .fab-main {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+      }
+      .fab-main:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      }
+      .fab-actions {
+        position: absolute;
+        bottom: 70px;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+      .fab-container:hover .fab-actions,
+      .fab-container:focus-within .fab-actions {
+        opacity: 1;
+        visibility: visible;
+        bottom: 70px;
+      }
+      .fab-action {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+      .fab-action:hover {
+        transform: translateX(-4px);
+      }
+      .fab-action-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        font-size: 18px;
+      }
+      .fab-label {
+        background: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
+    <nav class="navbar navbar-expand-lg kb-navbar navbar-light mb-3">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">Kibray</a>
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+          <img src="{% static 'brand/kibray-logo.png' %}" alt="Kibray" height="32" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));"> Kibray
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <!-- tus enlaces aquí -->
+            {% if user.is_authenticated %}
+              <li class="nav-item d-flex align-items-center gap-2 me-2">
+                <a class="kb-nav-icon" href="{% url 'notifications_list' %}" title="{% trans 'Notificaciones' %}" aria-label="Notificaciones" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                  <i class="bi bi-bell"></i>
+                  {% if badges.unread_notifications_count > 0 %}
+                    <span class="badge bg-danger rounded-pill">{{ badges.unread_notifications_count }}</span>
+                  {% endif %}
+                </a>
+                <a class="kb-nav-icon" href="{% url 'pm_select_project' 'chat' %}" title="Chat" aria-label="Chat" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                  <i class="bi bi-chat-dots"></i>
+                </a>
+                <a class="kb-nav-icon" href="{% url 'pm_select_project' 'plans' %}" title="Planos" aria-label="Planos" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                  <i class="bi bi-map"></i>
+                </a>
+                <a class="kb-nav-icon" href="{% url 'pm_select_project' 'colors' %}" title="Colores" aria-label="Colores" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                  <i class="bi bi-palette"></i>
+                </a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  {% if request.session.lang == 'es' %}ES{% else %}EN{% endif %}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
+                  <li><a class="dropdown-item" href="{% url 'set_language' 'en' %}">English</a></li>
+                  <li><a class="dropdown-item" href="{% url 'set_language' 'es' %}">Español</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-person-circle me-1"></i> {{ user.username }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown" style="border-radius:14px;">
+                  <li class="dropdown-header">Paneles</li>
+                  <li><a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-grid me-1"></i> Dashboard General</a></li>
+                  {% if user.is_staff %}
+                    <li><a class="dropdown-item" href="{% url 'dashboard_pm' %}"><i class="bi bi-kanban me-1"></i> PM / Líder</a></li>
+                    <li><a class="dropdown-item" href="{% url 'dashboard_admin' %}"><i class="bi bi-shield-lock me-1"></i> Admin</a></li>
+                  {% endif %}
+                  <li><a class="dropdown-item" href="{% url 'dashboard_employee' %}"><i class="bi bi-person-workspace me-1"></i> Empleado</a></li>
+                  <li><a class="dropdown-item" href="{% url 'dashboard_client' %}"><i class="bi bi-building me-1"></i> Cliente / Builder / Superintendente</a></li>
+                  <li><a class="dropdown-item" href="{% url 'dashboard_designer' %}"><i class="bi bi-brush me-1"></i> Diseñador / Owner</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li class="dropdown-header">Cuenta</li>
+                  {% if user.is_staff %}
+                    <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-1"></i> Admin Site</a></li>
+                  {% endif %}
+                  <li>
+                    <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                      {% csrf_token %}
+                      <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-1"></i> {% trans "Cerrar sesión" %}</button>
+                    </form>
+                  </li>
+                </ul>
+              </li>
+            {% else %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}">{% trans "Iniciar sesión" %}</a>
+              </li>
+            {% endif %}
           </ul>
         </div>
       </div>
     </nav>
 
+    {% if messages %}
+      <div class="container">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     {% block content %}
     {% endblock %}
 
-    {% if user.is_authenticated %}
-        {% if user.profile.role == 'client' %}
-            <!-- Menú para cliente -->
-            <a href="{% url 'client_project_view' project_id=1 %}">Mi Proyecto</a>
-        {% elif user.profile.role == 'employee' %}
-            <!-- Menú para empleado -->
-            <a href="{% url 'dashboard' %}">Dashboard Empleado</a>
-        {% elif user.profile.role == 'project_manager' %}
-            <!-- Menú para project manager -->
-            <a href="{% url 'dashboard' %}">Dashboard Manager</a>
-            <a href="{% url 'admin:index' %}">Admin</a>
-        {% endif %}
-        <form action="{% url 'logout' %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn-pdf">Logout</button>
-        </form>
-    {% else %}
-        <a href="{% url 'login' %}">Iniciar sesión</a>
+    <!-- Floating Action Button -->
+    {% if user.is_authenticated and user.is_staff and project %}
+    <!-- FAB solo visible cuando hay contexto de proyecto -->
+    <div class="fab-container">
+      <div class="fab-actions">
+        <a href="{% url 'project_minute_create' project.id %}" class="fab-action">
+          <span class="fab-label">Nueva Minuta</span>
+          <div class="fab-action-btn btn btn-info text-white">
+            <i class="bi bi-journal-plus"></i>
+          </div>
+        </a>
+        <a href="{% url 'changeorder_create' %}" class="fab-action">
+          <span class="fab-label">Nuevo Change Order</span>
+          <div class="fab-action-btn btn btn-warning text-white">
+            <i class="bi bi-file-earmark-plus"></i>
+          </div>
+        </a>
+        <a href="{% url 'materials_request' project.id %}" class="fab-action">
+          <span class="fab-label">Solicitar Materiales</span>
+          <div class="fab-action-btn btn btn-success text-white">
+            <i class="bi bi-box-seam"></i>
+          </div>
+        </a>
+      </div>
+      <button class="fab-main btn btn-primary" type="button">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    </div>
     {% endif %}
 
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Init tooltips & keyboard shortcuts
+    document.addEventListener('DOMContentLoaded',()=>{
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el=> new bootstrap.Tooltip(el));
+      document.addEventListener('keydown', function(e){
+        if(e.altKey){
+          switch(e.key){
+            case '1': window.location.href = '{% url 'dashboard' %}'; break;
+            case '2': window.location.href = '{% url 'dashboard_pm' %}'; break;
+            case '3': window.location.href = '{% url 'dashboard_employee' %}'; break;
+            case '4': window.location.href = '{% url 'dashboard_client' %}'; break;
+            case '5': window.location.href = '{% url 'dashboard_designer' %}'; break;
+            case '6': window.location.href = '{% url 'dashboard_superintendent' %}'; break;
+          }
+        }
+        // Esc cierra popovers y modales
+        if(e.key === 'Escape'){
+          document.querySelectorAll('.popover.show').forEach(p => p.remove());
+          document.querySelectorAll('.modal.show').forEach(m => {
+            const inst = bootstrap.Modal.getInstance(m) || new bootstrap.Modal(m);
+            inst.hide();
+          });
+        }
+      });
+    });
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

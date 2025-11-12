@@ -1,0 +1,132 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}Sincronizar con Google Calendar - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-google me-2"></i>
+                        Sincronizar {{ project.name }} con Google Calendar
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Sigue estos pasos</strong> para agregar el cronograma del proyecto a tu Google Calendar.
+                    </div>
+
+                    <h5 class="mt-4 mb-3">📥 Opción 1: Importar archivo ICS</h5>
+                    <ol>
+                        <li class="mb-3">
+                            <strong>Descarga el archivo del cronograma:</strong>
+                            <br>
+                            <a href="{{ ics_url }}" class="btn btn-success btn-sm mt-2">
+                                <i class="bi bi-download me-2"></i>Descargar {{ project.name }}_schedule.ics
+                            </a>
+                        </li>
+                        <li class="mb-3">
+                            <strong>Abre Google Calendar:</strong>
+                            <br>
+                            <a href="https://calendar.google.com" target="_blank" class="text-decoration-none">
+                                calendar.google.com <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+                        </li>
+                        <li class="mb-3">
+                            <strong>Importa el archivo:</strong>
+                            <ul class="mt-2">
+                                <li>Haz clic en el ícono de <strong>⚙️ Configuración</strong></li>
+                                <li>Selecciona <strong>"Importar y exportar"</strong> en el menú izquierdo</li>
+                                <li>Haz clic en <strong>"Seleccionar archivo"</strong> y elige el archivo descargado</li>
+                                <li>Selecciona el calendario donde quieres agregar los eventos</li>
+                                <li>Haz clic en <strong>"Importar"</strong></li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Nota:</strong> La importación es estática. Si cambian las fechas en Kibray, deberás descargar e importar el archivo nuevamente.
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">🔗 Opción 2: Suscripción por URL (Avanzado)</h5>
+                    <p class="text-muted small">
+                        Esta opción mantiene tu calendario sincronizado automáticamente, pero requiere que el servidor Kibray sea accesible públicamente.
+                    </p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">URL de Suscripción:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control font-monospace small" value="{{ subscription_url }}" readonly id="subscriptionUrl">
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard()">
+                                <i class="bi bi-clipboard"></i> Copiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <ol>
+                        <li class="mb-2">En Google Calendar, haz clic en el <strong>+</strong> junto a "Otros calendarios"</li>
+                        <li class="mb-2">Selecciona <strong>"Desde URL"</strong></li>
+                        <li class="mb-2">Pega la URL de arriba</li>
+                        <li class="mb-2">Haz clic en <strong>"Agregar calendario"</strong></li>
+                    </ol>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">📱 Desde dispositivos móviles</h5>
+                    <p>
+                        <strong>iPhone/iPad:</strong> Descarga el archivo ICS y ábrelo. iOS te preguntará en qué calendario guardarlo.
+                    </p>
+                    <p>
+                        <strong>Android:</strong> Usa la aplicación de Google Calendar y sigue los pasos de importación desde el navegador.
+                    </p>
+
+                    <div class="alert alert-success mt-4">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Los eventos incluyen:
+                        <ul class="mb-0 mt-2">
+                            <li>Título y descripción de cada tarea</li>
+                            <li>Fechas de inicio y fin planificadas</li>
+                            <li>Estado y porcentaje de progreso</li>
+                            <li>Categoría del proyecto</li>
+                            <li>Colores según estado (verde = completado, azul = en progreso, rojo = bloqueado)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'schedule_generator' project.id %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver al Cronograma
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard() {
+    const input = document.getElementById('subscriptionUrl');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check"></i> Copiado';
+    btn.classList.add('btn-success');
+    btn.classList.remove('btn-outline-secondary');
+    
+    setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+// filepath: c:\Users\jesus\Kibray\core\templates\core\site_photo_form.html
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container py-3">
+  <h4>Nueva foto · {{ project.name }}</h4>
+  {% for m in messages %}<div class="alert alert-{{ m.tags }}">{{ m }}</div>{% endfor %}
+  <form method="post" enctype="multipart/form-data" class="card card-body">
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-3"><label class="form-label">Cuarto/Habitación</label>{{ form.room }}</div>
+      <div class="col-md-3"><label class="form-label">Pared/Ubicación</label>{{ form.wall_ref }}</div>
+      <div class="col-md-6"><label class="form-label">Imagen</label>{{ form.image }}</div>
+
+      <div class="col-md-4"><label class="form-label">Color aprobado</label>{{ form.approved_color }}</div>
+      <div class="col-md-4"><label class="form-label">Color (texto)</label>{{ form.color_text }}</div>
+      <div class="col-md-4"><label class="form-label">Marca</label>{{ form.brand }}</div>
+
+      <div class="col-md-3"><label class="form-label">Acabado</label>{{ form.finish }}</div>
+      <div class="col-md-3"><label class="form-label">Brillo</label>{{ form.gloss }}</div>
+      <div class="col-md-3 form-check d-flex align-items-end">
+        <label class="form-check-label me-2" for="id_special_finish">Acabado especial</label>{{ form.special_finish }}
+      </div>
+      <div class="col-md-3"><label class="form-label">Capas</label>{{ form.coats }}</div>
+
+      <div class="col-12"><label class="form-label">Notas</label>{{ form.notes }}</div>
+
+      {{ form.annotations }} <!-- hidden -->
+
+      <div class="col-12">
+        <div class="border rounded p-2 mb-2">
+          <div class="d-flex gap-2 mb-2">
+            <button type="button" id="tool-pen" class="btn btn-sm btn-outline-secondary">Pluma</button>
+            <button type="button" id="tool-text" class="btn btn-sm btn-outline-secondary">Texto</button>
+            <button type="button" id="tool-rect" class="btn btn-sm btn-outline-secondary">Rectángulo</button>
+            <button type="button" id="tool-undo" class="btn btn-sm btn-outline-secondary">Deshacer</button>
+            <button type="button" id="tool-clear" class="btn btn-sm btn-outline-danger">Limpiar</button>
+          </div>
+          <div id="canvas-wrap" style="position:relative; max-width:100%; overflow:auto;">
+            <img id="photo-preview" alt="preview" style="max-width:100%; display:none;">
+            <canvas id="annot-canvas" style="position:absolute; left:0; top:0; display:none;"></canvas>
+          </div>
+          <div class="form-text">Puedes dibujar indicaciones sobre la imagen (marcar detalles a cubrir, zonas a cuidar, etc.).</div>
+        </div>
+      </div>
+
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary">Guardar</button>
+        <a class="btn btn-secondary" href="{% url 'site_photo_list' project.id %}">Cancelar</a>
+      </div>
+    </div>
+  </form>
+
+  <script>
+    const inputFile = document.getElementById("id_image");
+    const img = document.getElementById("photo-preview");
+    const canvas = document.getElementById("annot-canvas");
+    const ctx = canvas.getContext("2d");
+    const hidden = document.getElementById("id_annotations");
+
+    const state = { tool: "pen", strokes: [], current: null };
+
+    function resizeCanvas() {
+      if (!img.naturalWidth) return;
+      const rect = img.getBoundingClientRect();
+      canvas.width = img.clientWidth;
+      canvas.height = img.clientHeight;
+      canvas.style.width = img.clientWidth + "px";
+      canvas.style.height = img.clientHeight + "px";
+      canvas.style.display = "block";
+    }
+
+    inputFile?.addEventListener("change", e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      img.onload = () => { img.style.display = "block"; resizeCanvas(); redraw(); };
+      img.src = url;
+    });
+
+    window.addEventListener("resize", () => { if (img.style.display === "block") { resizeCanvas(); redraw(); } });
+
+    // Tools
+    document.getElementById("tool-pen")?.addEventListener("click", () => state.tool = "pen");
+    document.getElementById("tool-text")?.addEventListener("click", () => state.tool = "text");
+    document.getElementById("tool-rect")?.addEventListener("click", () => state.tool = "rect");
+    document.getElementById("tool-undo")?.addEventListener("click", () => { state.strokes.pop(); redraw(); saveJSON(); });
+    document.getElementById("tool-clear")?.addEventListener("click", () => { state.strokes = []; redraw(); saveJSON(); });
+
+    function startDraw(x, y) {
+      if (state.tool === "pen") {
+        state.current = { type:"pen", pts:[[x,y]], color:"#ff0000", width:2 };
+      } else if (state.tool === "rect") {
+        state.current = { type:"rect", x1:x, y1:y, x2:x, y2:y, color:"#ff0000", width:2 };
+      } else if (state.tool === "text") {
+        const t = prompt("Texto:");
+        if (t) { state.strokes.push({ type:"text", x:x, y:y, text:t, color:"#ff0000", size:14 }); saveJSON(); redraw(); }
+      }
+    }
+    function moveDraw(x, y) {
+      if (!state.current) return;
+      if (state.current.type === "pen") state.current.pts.push([x,y]);
+      if (state.current.type === "rect") { state.current.x2 = x; state.current.y2 = y; }
+      redraw();
+    }
+    function endDraw() {
+      if (state.current) state.strokes.push(state.current);
+      state.current = null;
+      saveJSON();
+    }
+
+    function redraw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const drawStroke = s => {
+        ctx.strokeStyle = s.color || "#ff0000";
+        ctx.fillStyle = s.color || "#ff0000";
+        ctx.lineWidth = s.width || 2;
+        if (s.type === "pen") {
+          ctx.beginPath();
+          s.pts.forEach((p,i)=> i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
+          ctx.stroke();
+        } else if (s.type === "rect") {
+          const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
+          const w = Math.abs(s.x2 - s.x1), h = Math.abs(s.y2 - s.y1);
+          ctx.strokeRect(x,y,w,h);
+        } else if (s.type === "text") {
+          ctx.font = `${s.size||14}px sans-serif`;
+          ctx.fillText(s.text, s.x, s.y);
+        }
+      };
+      state.strokes.forEach(drawStroke);
+      if (state.current) drawStroke(state.current);
+    }
+
+    function saveJSON() {
+      hidden.value = JSON.stringify({ strokes: state.strokes });
+    }
+
+    function relPos(evt) {
+      const r = canvas.getBoundingClientRect();
+      return [evt.clientX - r.left, evt.clientY - r.top];
+    }
+
+    canvas.addEventListener("mousedown", e => startDraw(...relPos(e)));
+    canvas.addEventListener("mousemove", e => moveDraw(...relPos(e)));
+    window.addEventListener("mouseup", endDraw);
+    // Touch
+    canvas.addEventListener("touchstart", e => { e.preventDefault(); startDraw(...relPos(e.touches[0])); });
+    canvas.addEventListener("touchmove", e => { e.preventDefault(); moveDraw(...relPos(e.touches[0])); });
+    canvas.addEventListener("touchend", e => { e.preventDefault(); endDraw(); });
+  </script>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+.gantt-wrapper {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.gantt-controls {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gantt-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 700px;
+}
+
+/* Frappe Gantt Customizations */
+:global(.gantt .bar) {
+  fill: #0d6efd;
+  stroke: #0257d5;
+  stroke-width: 0;
+  border-radius: 6px;
+}
+
+:global(.gantt .bar.status-done) {
+  fill: #198754;
+  stroke: #146c43;
+}
+
+:global(.gantt .bar.status-in_progress) {
+  fill: #0d6efd;
+  stroke: #0257d5;
+}
+
+:global(.gantt .bar.status-blocked) {
+  fill: #dc3545;
+  stroke: #b02a37;
+}
+
+:global(.gantt .bar.status-not_started) {
+  fill: #6c757d;
+  stroke: #5a6268;
+}
+
+:global(.gantt .bar.milestone) {
+  fill: #6610f2;
+  stroke: #5b0ed9;
+  transform: rotate(45deg);
+}
+
+:global(.gantt .bar-progress) {
+  fill: rgba(255, 255, 255, 0.3);
+}
+
+:global(.gantt .bar-label) {
+  fill: white;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+:global(.gantt .today-highlight) {
+  fill: #ffc107;
+  opacity: 0.2;
+}
+
+/* Popup styling */
+:global(.gantt-popup) {
+  padding: 15px;
+  min-width: 200px;
+}
+
+:global(.gantt-popup h5) {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+}
+
+:global(.gantt-popup p) {
+  margin: 5px 0;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+:global(.gantt-popup p strong) {
+  color: #495057;
+  font-weight: 600;
+}
+
+/* Grid lines */
+:global(.gantt .grid-row) {
+  fill: none;
+}
+
+:global(.gantt .grid-header) {
+  fill: #f8f9fa;
+  stroke: #dee2e6;
+  stroke-width: 1px;
+}
+
+:global(.gantt .lower-text),
+:global(.gantt .upper-text) {
+  fill: #495057;
+  font-size: 11px;
+}
+
+:global(.gantt .tick) {
+  stroke: #e9ecef;
+  stroke-width: 0.5px;
+}
+
+/* Arrows for dependencies */
+:global(.gantt .arrow) {
+  stroke: #6c757d;
+  stroke-width: 1.5px;
+  fill: none;
+}

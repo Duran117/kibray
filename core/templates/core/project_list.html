@@ -1,0 +1,22 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h3>Projects</h3>
+<table class="table table-sm">
+  <thead><tr><th>ID</th><th>Name</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for p in projects %}
+    <tr>
+      <td>{{ p.id }}</td>
+      <td>{{ p.name|default:p }}</td>
+      <td>
+  <a class="btn btn-outline-primary btn-sm" href="{% url 'project_overview' p.id %}">Dashboard</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'budget_lines' p.id %}">Budget</a>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="3">No projects yet. Create one in admin.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p><a class="btn btn-sm btn-success" href="/admin/">Go to Admin</a></p>
+{% endblock %}

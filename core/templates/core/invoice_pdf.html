@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,13 +17,13 @@
 <body>
   <div class="header">
     <div>
-      <img src="{{ STATIC_ROOT }}/logo.png" class="logo" />
+      <img src="{% static company.logo_path %}" class="logo" />
       <p>
-        Kibray Paint & Stain LLC<br>
-        P.O Box 25881<br>
-        Silverthorne, CO, 80497<br>
-        970 333 4872<br>
-        jduran@kibraypainting.net
+        {{ company.name }}<br>
+        {{ company.address_line1 }}<br>
+        {{ company.city_state_zip }}<br>
+        {{ company.phone }}<br>
+        {{ company.email }}
       </p>
     </div>
     <div>
@@ -60,7 +61,7 @@
     </tr>
   </table>
   <p style="margin-top:40px; font-size:12px;">
-    Make all checks payable to Kibray Paint & Stain LLC.
+    Make all checks payable to {{ company.name }}.
   </p>
 </body>
 </html>

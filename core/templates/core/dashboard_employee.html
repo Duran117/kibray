@@ -1,0 +1,226 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container py-4 kb-container-narrow">
+  {% if not employee %}
+    <div class="alert alert-danger">No estás vinculado a un empleado. Pide al admin que te asigne.</div>
+  {% else %}
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <h2 class="mb-1"><span class="text-gradient"><i class="bi bi-person-workspace"></i> Hola, {{ employee.first_name }}!</span></h2>
+    <p class="text-muted">{{ today|date:"l, F d, Y" }} · {{ now|date:"g:i A" }}</p>
+  </div>
+
+  <!-- Clock In/Out (Destacado) -->
+  <div class="card kb-elevated mb-4">
+    <div class="card-body text-center p-4">
+      {% if open_entry %}
+        <i class="bi bi-clock-fill text-success" style="font-size: 3rem;"></i>
+        <h4 class="mt-3 mb-2">Trabajando en {{ open_entry.project.name }}</h4>
+        <p class="text-muted mb-3">Entrada: {{ open_entry.start_time|date:"g:i A" }}</p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="clock_out">
+          <button class="btn btn-danger btn-lg px-5">
+            <i class="bi bi-box-arrow-right"></i> Marcar Salida
+          </button>
+        </form>
+      {% else %}
+        <i class="bi bi-clock text-primary" style="font-size: 3rem;"></i>
+        <h4 class="mt-3 mb-4">Marca tu Entrada</h4>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="clock_in">
+          <div class="row g-3 justify-content-center">
+            <div class="col-md-6">
+              <label class="form-label"><strong>Proyecto:</strong></label>
+              {{ form.project }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><strong>Cost Code:</strong></label>
+              {{ form.cost_code }}
+            </div>
+            <div class="col-12">
+              <label class="form-label"><strong>Notas (opcional):</strong></label>
+              {{ form.notes }}
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary btn-lg px-5 shadow-hover">
+                <i class="bi bi-box-arrow-in-right"></i> Marcar Entrada
+              </button>
+            </div>
+          </div>
+        </form>
+      {% endif %}
+  <!-- Mis Touch-Ups -->
+  {% if my_touchups %}
+  <div class="card mb-4">
+    <div class="card-header" style="background: var(--kb-gradient-accent); color:#fff;">
+      <h5 class="mb-0"><i class="bi bi-brush"></i> Mis Touch-Ups Asignados</h5>
+    </div>
+    <div class="card-body">
+      <ul class="list-group list-group-flush">
+        {% for task in my_touchups %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <h6 class="mb-1">{{ task.title }}</h6>
+            <small class="text-muted">{{ task.project.name }}</small>
+            {% if task.description %}
+            <p class="mb-0 small mt-1">{{ task.description|truncatewords:15 }}</p>
+            {% endif %}
+          </div>
+          <div class="d-flex flex-column align-items-end gap-1">
+            <span class="badge bg-{% if task.status == 'Pendiente' %}secondary{% elif task.status == 'En Progreso' %}primary{% else %}success{% endif %}">
+              {{ task.status }}
+            </span>
+            <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-outline-primary">
+              Ver
+            </a>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Horas de la Semana -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <i class="bi bi-calendar-week text-info" style="font-size: 2rem;"></i>
+          <h3 class="mt-2 mb-0">{{ week_hours|floatformat:1 }}h</h3>
+          <p class="text-muted mb-0">Esta Semana</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <i class="bi bi-list-check text-success" style="font-size: 2rem;"></i>
+          <h3 class="mt-2 mb-0">{{ my_activities|length }}</h3>
+          <p class="text-muted mb-0">Tareas Pendientes Hoy</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Qué hacer hoy -->
+  {% if my_activities %}
+  <div class="card mb-4">
+    <div class="card-header text-white" style="background: var(--kb-gradient-success);">
+      <h5 class="mb-0"><i class="bi bi-list-task"></i> Qué Hacer Hoy</h5>
+    </div>
+    <div class="card-body">
+      <ul class="list-group list-group-flush">
+        {% for item in my_activities %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <h6 class="mb-1">{{ item.activity.title }}</h6>
+            <small class="text-muted">{{ item.project.name }}</small>
+            {% if item.activity.description %}
+            <p class="mb-0 small mt-1">{{ item.activity.description }}</p>
+            {% endif %}
+          </div>
+          <a href="{% url 'activity_complete' item.activity.id %}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-check-circle"></i> Completar
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Mi Schedule Hoy -->
+  {% if my_schedule %}
+  <div class="card mb-4">
+    <div class="card-header text-white" style="background: var(--kb-gradient-accent);">
+      <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Mi Horario de Hoy</h5>
+    </div>
+    <div class="card-body">
+      <ul class="list-group list-group-flush">
+        {% for sched in my_schedule %}
+        <li class="list-group-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="mb-1">{{ sched.title }}</h6>
+              <small class="text-muted">{{ sched.project.name }}</small>
+            </div>
+            <span class="badge bg-info">{{ sched.start_datetime|date:"g:i A" }}</span>
+          </div>
+          {% if sched.description %}
+          <p class="mb-0 small mt-2">{{ sched.description }}</p>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Acciones Rápidas -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
+    </div>
+    <div class="card-body">
+      <div class="kb-action-grid" role="grid" aria-label="Acciones rápidas Empleado">
+        <a href="{% url 'employee_morning_dashboard' %}" class="shadow-hover"><i class="bi bi-sun"></i> Plan Mañana</a>
+        <a href="{% url 'notifications_list' %}" class="shadow-hover"><i class="bi bi-bell"></i> Notificaciones {% if badges.unread_notifications_count > 0 %}<span class="badge bg-danger ms-1">{{ badges.unread_notifications_count }}</span>{% endif %}</a>
+        <a href="{% url 'task_list_all' %}" class="shadow-hover"><i class="bi bi-list-check"></i> Mis Tareas</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Últimas Entradas -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-clock-history"></i> Últimas Entradas</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Proyecto</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th class="text-end">Horas</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in recent %}
+            <tr>
+              <td>{{ r.date|date:"M d" }}</td>
+              <td>{% if r.project %}{{ r.project.name }}{% else %}—{% endif %}</td>
+              <td>{{ r.start_time|date:"g:i A" }}</td>
+              <td>{{ r.end_time|date:"g:i A"|default:"—" }}</td>
+              <td class="text-end">
+                {% if r.hours_worked %}
+                <span class="badge bg-primary">{{ r.hours_worked|floatformat:1 }}h</span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-muted">Sin registros recientes.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+</div>
+
+<style>
+.card { transition: transform 0.2s; }
+.card:hover { transform: translateY(-2px); }
+</style>
+{% endblock %}

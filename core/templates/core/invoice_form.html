@@ -1,90 +1,161 @@
 {% extends "core/base.html" %}
 {% block content %}
-  {% if edit_mode %}
-    <h2>Editar Factura</h2>
-  {% else %}
-    <h2>Crear Factura</h2>
-  {% endif %}
-  <form method="post">
+  {% if edit_mode %}<h2>Edit Invoice</h2>{% else %}<h2>Create Invoice</h2>{% endif %}
+
+  <form method="post" id="invoice-form">
     {% csrf_token %}
-    {{ form.as_p }}
-    <h3>Líneas de factura</h3>
-    <div id="suggested-lines"></div>
-    {{ formset.management_form }}
-    <div id="formset-lines">
-      {% for form in formset %}
-        <div class="formset-line">
-          {{ form.as_p }}
+
+    <div class="mb-3">
+      <label class="form-label">Project</label>
+      {{ form.project }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Due Date</label>
+      {{ form.due_date }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Notes</label>
+      {{ form.notes }}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Project Change Orders</label>
+      <select id="co_selector" multiple class="form-control"></select>
+      <button type="button" id="add_change_order_lines" class="btn btn-outline-primary mt-2">Add CO Lines</button>
+    </div>
+
+    <h5 class="mt-3">Invoice Lines</h5>
+    <div id="invoice-lines">
+      {{ formset.management_form }}
+      {% for f in formset.forms %}
+        <div class="row g-2 align-items-center invoice-line mb-2">
+          <div class="col-8">{{ f.description }}</div>
+          <div class="col-3">{{ f.amount }}</div>
+          <div class="col-1">{% if formset.can_delete %}{{ f.DELETE }}{% endif %}</div>
         </div>
       {% endfor %}
     </div>
-    <button type="submit">Guardar Factura</button>
+    <button type="button" id="add_manual_line" class="btn btn-secondary mt-2">Add Line</button>
+
+    <div class="mt-3">
+      <strong>Total: $<span id="invoice-total">0.00</span></strong>
+    </div>
+
+    <div style="display:none;">
+      {{ form.total_amount }}
+      {{ form.change_orders }}
+    </div>
+
+    <div class="mt-3">
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a class="btn btn-light" href="{% url 'dashboard' %}">Cancel</a>
+    </div>
   </form>
+
+  <template id="line-template">
+    <div class="row g-2 align-items-center invoice-line mb-2">
+      <div class="col-8">
+        <input type="text" name="__NAME__-description" class="form-control" placeholder="Description">
+      </div>
+      <div class="col-3">
+        <input type="number" name="__NAME__-amount" step="0.01" min="0" class="form-control" placeholder="Amount">
+      </div>
+      <div class="col-1">
+        <input type="checkbox" name="__NAME__-DELETE" style="display:none;">
+      </div>
+    </div>
+  </template>
+
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const changeOrdersSelect = document.querySelector('select[name="change_orders"]');
-      const suggestedDiv = document.getElementById('suggested-lines');
-      const formsetDiv = document.getElementById('formset-lines');
-      if (changeOrdersSelect) {
-        changeOrdersSelect.addEventListener('change', function() {
-          const selected = Array.from(changeOrdersSelect.selectedOptions).map(opt => opt.value);
-          fetch(`/ajax/changeorder-lines/?ids[]=${selected.join('&ids[]=')}`)
-            .then(response => response.json())
-            .then(data => {
-              // Muestra sugerencias en una tabla
-              let html = '';
-              if (data.lines.length > 0) {
-                html += '<h4>Sugerencias de líneas:</h4><table><tr><th>Descripción</th><th>Monto</th><th>Agregar</th></tr>';
-                data.lines.forEach((line, idx) => {
-                  html += `<tr>
-                    <td>${line.description}</td>
-                    <td>$${line.amount.toFixed(2)}</td>
-                    <td><button type="button" class="add-line-btn" data-desc="${line.description}" data-amount="${line.amount}">Agregar</button></td>
-                  </tr>`;
-                });
-                html += '</table>';
-              } else {
-                html = '';
-              }
-              suggestedDiv.innerHTML = html;
+    const projectSelect = document.getElementById('id_project');
+    const visibleCO = document.getElementById('co_selector');
+    const hiddenCO = document.getElementById('id_change_orders');
+    const linesContainer = document.getElementById('invoice-lines');
+    const totalSpan = document.getElementById('invoice-total');
+    const totalInput = document.getElementById('id_total_amount');
+    const mgmtTotal = document.getElementById('id_lines-TOTAL_FORMS');
 
-              // Botones para agregar línea al formset
-              document.querySelectorAll('.add-line-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                  const desc = this.getAttribute('data-desc');
-                  const amount = this.getAttribute('data-amount');
-                  // Crea inputs para el formset
-                  const totalForms = document.getElementById('id_invoiceline_set-TOTAL_FORMS');
-                  const idx = parseInt(totalForms.value);
-                  const newLine = document.createElement('div');
-                  newLine.className = 'formset-line';
-                  newLine.innerHTML = `
-                    <label>Descripción: <input type="text" name="invoiceline_set-${idx}-description" value="${desc}" /></label>
-                    <label>Monto: <input type="number" step="0.01" name="invoiceline_set-${idx}-amount" value="${amount}" /></label>
-                    <input type="hidden" name="invoiceline_set-${idx}-id" />
-                    <input type="hidden" name="invoiceline_set-${idx}-invoice" />
-                  `;
-                  formsetDiv.appendChild(newLine);
-                  totalForms.value = idx + 1;
-                });
-              });
-            });
-        });
-      }
+    function n0(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
-      // Validación de monto antes de enviar el formulario
-      document.querySelector('form').addEventListener('submit', function(e) {
-        let total = 0;
-        document.querySelectorAll('input[name^="invoiceline_set-"][name$="-amount"]').forEach(input => {
-          total += parseFloat(input.value) || 0;
-        });
-        // Toma el monto total permitido del campo principal
-        const max = parseFloat(document.getElementById('id_total_amount').value) || 0;
-        if (total > max) {
-          alert(`La suma de las líneas ($${total.toFixed(2)}) excede el monto total de la factura ($${max.toFixed(2)}).`);
-          e.preventDefault();
-        }
+    function recalcTotal(){
+      let t = 0;
+      linesContainer.querySelectorAll('input[name$="-amount"]').forEach(i => t += n0(i.value));
+      totalSpan.textContent = t.toFixed(2);
+      if (totalInput) totalInput.value = t.toFixed(2);
+    }
+
+    function addLine(desc, amt){
+      const tpl = document.getElementById('line-template').content.cloneNode(true);
+      const idx = parseInt(mgmtTotal.value, 10);
+      tpl.querySelectorAll('input').forEach(inp => {
+        inp.name = inp.name.replace('__NAME__', `lines-${idx}`);
+        if (inp.name.endsWith('-description') && desc !== undefined) inp.value = desc;
+        if (inp.name.endsWith('-amount') && amt !== undefined) inp.value = amt;
       });
+      linesContainer.appendChild(tpl);
+      mgmtTotal.value = idx + 1;
+      recalcTotal();
+    }
+
+    function rebuildHiddenCOOptions(list){
+      if (!hiddenCO) return;
+      const preselected = new Set(Array.from(hiddenCO.selectedOptions).map(o => o.value));
+      hiddenCO.innerHTML = '';
+      list.forEach(co => {
+        const opt = document.createElement('option');
+        opt.value = String(co.id);
+        opt.textContent = co.description;
+        if (preselected.has(String(co.id))) opt.selected = true;
+        hiddenCO.appendChild(opt);
+      });
+    }
+
+    function syncHiddenCOSelection(){
+      if (!hiddenCO) return;
+      const selectedIds = new Set(Array.from(visibleCO.selectedOptions).map(o => o.value));
+      Array.from(hiddenCO.options).forEach(opt => opt.selected = selectedIds.has(opt.value));
+    }
+
+    function loadCO(){
+      const pid = projectSelect ? projectSelect.value : null;
+      visibleCO.innerHTML = '';
+      if (!pid) { rebuildHiddenCOOptions([]); return; }
+      const preselected = new Set(Array.from(hiddenCO ? hiddenCO.selectedOptions : []).map(o => o.value));
+      fetch(`/ajax/changeorders/?project_id=${pid}`)
+        .then(r => r.json())
+        .then(d => {
+          d.change_orders.forEach(co => {
+            const opt = document.createElement('option');
+            opt.value = String(co.id);
+            opt.textContent = `${co.description} - $${Number(co.amount).toFixed(2)}`;
+            if (preselected.has(String(co.id))) opt.selected = true;
+            visibleCO.appendChild(opt);
+          });
+          rebuildHiddenCOOptions(d.change_orders);
+          syncHiddenCOSelection();
+        });
+    }
+
+    document.getElementById('add_manual_line').addEventListener('click', () => addLine('', ''));
+    document.getElementById('add_change_order_lines').addEventListener('click', () => {
+      const ids = Array.from(visibleCO.selectedOptions).map(o => o.value);
+      if (!ids.length) return;
+      const qs = ids.map(id => `ids[]=${encodeURIComponent(id)}`).join('&');
+      fetch(`/ajax/changeorder_lines/?${qs}`)
+        .then(r => r.json())
+        .then(data => {
+          data.lines.forEach(l => addLine(l.description, l.amount));
+          recalcTotal();
+        });
+      syncHiddenCOSelection();
+    });
+
+    visibleCO.addEventListener('change', syncHiddenCOSelection);
+    linesContainer.addEventListener('input', e => { if (e.target.name.endsWith('-amount')) recalcTotal(); });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (projectSelect) { projectSelect.addEventListener('change', loadCO); loadCO(); }
+      recalcTotal();
     });
   </script>
 {% endblock %}

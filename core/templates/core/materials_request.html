@@ -1,0 +1,192 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container py-3">
+  <h4>Solicitar materiales · {{ project.name }}</h4>
+
+  {% for m in messages %}
+    <div class="alert alert-{{ m.tags }}">{{ m }}</div>
+  {% endfor %}
+
+  <form method="post" enctype="multipart/form-data" class="card card-body">
+    {% csrf_token %}
+    <div class="row g-3">
+      <!-- Catálogo -->
+      <div class="col-12">
+        <label class="form-label">{{ form.catalog_item.label }}</label>
+        {{ form.catalog_item }}
+        <div class="form-text">Si no aparece, deja esto vacío y llena los campos para crear y guardar el material.</div>
+      </div>
+
+      <!-- Atajos -->
+      <div class="col-lg-6">
+        <label class="form-label">{{ form.approved_color.label }}</label>
+        {{ form.approved_color }}
+      </div>
+      <div class="col-lg-6">
+        <label class="form-label">{{ form.product_preset.label }}</label>
+        {{ form.product_preset }}
+      </div>
+
+      <!-- Datos del material -->
+      <div class="col-md-4">
+        <label class="form-label">{{ form.category.label }}</label>
+        {{ form.category }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">{{ form.brand.label }}</label>
+        {{ form.brand }}
+      </div>
+      <div class="col-md-4" id="brand-other-wrap" style="display:none">
+        <label class="form-label">{{ form.brand_other.label }}</label>
+        {{ form.brand_other }}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">{{ form.product_name.label }}</label>
+        {{ form.product_name }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">{{ form.color_name.label }}</label>
+        {{ form.color_name }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">{{ form.color_code.label }}</label>
+        {{ form.color_code }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">{{ form.finish.label }}</label>
+        {{ form.finish }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">{{ form.gloss.label }}</label>
+        {{ form.gloss }}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">{{ form.formula.label }}</label>
+        {{ form.formula }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">{{ form.reference_image.label }}</label>
+        {{ form.reference_image }}
+      </div>
+
+      <!-- Cantidad y cuándo -->
+      <div class="col-md-3">
+        <label class="form-label">{{ form.quantity.label }}</label>
+        {{ form.quantity }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">{{ form.unit.label }}</label>
+        {{ form.unit }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">{{ form.needed_when.label }}</label>
+        {{ form.needed_when }}
+      </div>
+      <div class="col-md-3" id="needed-date-wrap">
+        <label class="form-label">{{ form.needed_date.label }}</label>
+        {{ form.needed_date }}
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">{{ form.comments.label }}</label>
+        {{ form.comments }}
+      </div>
+
+      <div class="col-12 form-check">
+        {{ form.save_to_catalog }}
+        <label class="form-check-label" for="id_save_to_catalog">{{ form.save_to_catalog.label }}</label>
+      </div>
+
+      <div class="col-12">
+        <button class="btn btn-primary">Solicitar</button>
+        <a class="btn btn-secondary" href="{% url 'dashboard_pm' %}">Volver</a>
+      </div>
+    </div>
+  </form>
+
+  <script>
+    // Datos entregados por la vista
+    const PRESETS = JSON.parse('{{ presets_json|default:"[]"|escapejs }}');
+    const CATALOG = JSON.parse('{{ catalog_json|default:"[]"|escapejs }}');
+
+    // Utilidad para asignar valores
+    function setVal(id, val) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.tagName === "SELECT" || el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+        el.value = val ?? "";
+      }
+    }
+
+    // Marca "Otra" => mostrar campo de texto
+    const brandSel = document.getElementById("id_brand");
+    const brandWrap = document.getElementById("brand-other-wrap");
+    const brandOther = document.getElementById("id_brand_other");
+    function toggleBrandOther() {
+      const show = brandSel && brandSel.value === "other";
+      if (brandWrap) brandWrap.style.display = show ? "" : "none";
+      if (!show && brandOther) brandOther.value = "";
+    }
+    if (brandSel) {
+      brandSel.addEventListener("change", toggleBrandOther);
+      toggleBrandOther();
+    }
+
+    // Presets de producto
+    const presetSelect = document.getElementById("id_product_preset");
+    function applyPreset() {
+      const raw = presetSelect ? presetSelect.value : "";
+      if (!raw) return;
+      const idx = parseInt(raw, 10);
+      if (Number.isNaN(idx)) return;
+      const p = PRESETS[idx];
+      if (!p) return;
+      setVal("id_category", p.category);
+      setVal("id_brand", p.brand);
+      const prod = document.getElementById("id_product_name");
+      if (prod && !prod.value) setVal("id_product_name", p.product_name);
+      setVal("id_unit", p.unit);
+      toggleBrandOther();
+    }
+    if (presetSelect) presetSelect.addEventListener("change", applyPreset);
+
+    // Catálogo del proyecto
+    const catSelect = document.getElementById("id_catalog_item");
+    function applyCatalog() {
+      const raw = catSelect ? catSelect.value : "";
+      const id = parseInt(raw || "0", 10);
+      const item = CATALOG.find(x => x.id === id);
+      if (!item) return;
+      setVal("id_category", item.category);
+      setVal("id_product_name", item.product_name);
+      setVal("id_color_name", item.color_name);
+      setVal("id_color_code", item.color_code);
+      setVal("id_finish", item.finish);
+      setVal("id_gloss", item.gloss);
+      setVal("id_formula", item.formula);
+      setVal("id_unit", item.default_unit);
+      // Marca texto libre desde catálogo
+      setVal("id_brand", "other");
+      toggleBrandOther();
+      setVal("id_brand_other", item.brand_text);
+    }
+    if (catSelect) catSelect.addEventListener("change", applyCatalog);
+
+    // Mostrar fecha solo cuando se elija "Fecha específica"
+    const whenSelect = document.getElementById("id_needed_when");
+    const dateWrap = document.getElementById("needed-date-wrap");
+    const dateInput = document.getElementById("id_needed_date");
+    function toggleDate() {
+      const show = whenSelect && whenSelect.value === "date";
+      if (dateWrap) dateWrap.style.display = show ? "" : "none";
+      if (!show && dateInput) dateInput.value = "";
+    }
+    if (whenSelect) {
+      whenSelect.addEventListener("change", toggleDate);
+      toggleDate();
+    }
+  </script>
+</div>
+{% endblock %}

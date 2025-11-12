@@ -1,103 +1,488 @@
 {% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
 {% block content %}
-<style>
-    .client-container {
-        background: #f8f9fa;
-        padding: 32px 24px;
-        border-radius: 12px;
-        max-width: 900px;
-        margin: 32px auto;
-        box-shadow: 0 2px 12px rgba(44,62,80,0.08);
-    }
-    .client-container h2 {
-        color: #2c3e50;
-        margin-bottom: 18px;
-    }
-    .client-container h3 {
-        color: #2980b9;
-        margin-top: 30px;
-    }
-    .schedule-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 18px;
-        background: #fff;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 1px 4px rgba(44,62,80,0.06);
-    }
-    .schedule-table th, .schedule-table td {
-        padding: 10px 8px;
-        text-align: left;
-    }
-    .schedule-table th {
-        background: #2980b9;
-        color: #fff;
-        font-weight: 600;
-        border-bottom: 2px solid #21618c;
-    }
-    .schedule-table tr:nth-child(even) {
-        background: #f2f6fa;
-    }
-    .schedule-table tr:hover {
-        background: #eaf2fb;
-    }
-    .comment-img {
-        max-width: 180px;
-        border-radius: 6px;
-        margin-top: 6px;
-    }
-    .comment-box {
-        background: #fff;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 12px;
-        box-shadow: 0 1px 4px rgba(44,62,80,0.04);
-    }
-</style>
-<div class="client-container">
-    <h2>{{ project.name }}</h2>
-    <p><strong>Cliente:</strong> {{ project.client }}</p>
-    <p><strong>Descripción:</strong> {{ project.description }}</p>
-    <p><strong>Fechas:</strong> {{ project.start_date }} - {{ project.end_date }}</p>
+<div class="container-fluid py-4">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">Mis Proyectos</a></li>
+      <li class="breadcrumb-item active">{{ project.name }}</li>
+    </ol>
+  </nav>
 
-    <h3>Cronograma</h3>
-    <table class="schedule-table">
-        <tr>
-            <th>Tarea</th>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th>Estado</th>
-        </tr>
-        {% for schedule in schedules %}
-        <tr>
-            <td>{{ schedule.title }}</td>
-            <td>{{ schedule.start_datetime }}</td>
-            <td>{{ schedule.end_datetime }}</td>
-            <td>
-                {% if schedule.is_complete %}
-                    <span style="color:green;">Completado</span>
-                {% else %}
-                    <span style="color:orange;">Pendiente</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="4">No hay tareas en el cronograma.</td></tr>
-        {% endfor %}
-    </table>
+  <!-- Header del Proyecto -->
+  <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="card-body text-white">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <h2 class="mb-2"><i class="bi bi-building"></i> {{ project.name }}</h2>
+          <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ project.address|default:"—" }}</p>
+          <p class="mb-0 opacity-75">
+            <i class="bi bi-calendar3"></i> 
+            {{ project.start_date|date:"M d, Y" }} - {{ project.end_date|date:"M d, Y"|default:"En Progreso" }}
+          </p>
+        </div>
+        <div class="col-lg-4 text-end mt-3 mt-lg-0">
+          <div class="h1 mb-0">{{ progress_pct }}%</div>
+          <small>Progreso del Proyecto</small>
+          <div class="progress mt-2" style="height: 10px;">
+            <div class="progress-bar bg-success" style="width: {{ progress_pct }}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <h3>Tareas</h3>
-    <ul>
-        {% for task in tasks %}
-            <li>
-                <strong>{{ task.title }}</strong> - {{ task.status }}<br>
-                {{ task.description }}
-            </li>
-        {% empty %}
-            <li>No hay tareas registradas.</li>
-        {% endfor %}
-    </ul>
+  <!-- Notificaciones Pendientes -->
+  {% if pending_requests %}
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <h5 class="alert-heading"><i class="bi bi-bell"></i> Solicitudes Pendientes de Respuesta</h5>
+    <p class="mb-0">Tienes {{ pending_requests|length }} solicitud(es) pendiente(s) de ser atendidas por el PM.</p>
+    <hr>
+    <a href="#mis-solicitudes" class="alert-link">Ver detalles abajo</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endif %}
+
+  <!-- Métricas Clave -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-receipt text-primary fs-1"></i>
+          <h4 class="mt-2 mb-0">${{ total_invoiced|floatformat:2 }}</h4>
+          <small class="text-muted">Total Facturado</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-check-circle text-success fs-1"></i>
+          <h4 class="mt-2 mb-0">${{ total_paid|floatformat:2 }}</h4>
+          <small class="text-muted">Pagado</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-hourglass-split text-warning fs-1"></i>
+          <h4 class="mt-2 mb-0">${{ balance|floatformat:2 }}</h4>
+          <small class="text-muted">Balance Pendiente</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- === SOLICITUDES Y TOUCH-UPS === -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100" id="mis-solicitudes">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-chat-left-dots"></i> Mis Solicitudes / Touch-ups</span>
+          <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#nuevaTareaModal">
+            <i class="bi bi-plus-circle"></i> Nueva Solicitud
+          </button>
+        </div>
+        <div class="card-body">
+          {% if pending_tasks %}
+          <h6 class="text-warning"><i class="bi bi-clock-history"></i> Pendientes ({{ pending_tasks|length }})</h6>
+          <div class="list-group list-group-flush mb-3">
+            {% for task in pending_tasks %}
+            <div class="list-group-item border-0 px-0">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1">{{ task.title }}</h6>
+                  <p class="mb-1 small text-muted">{{ task.description|default:"Sin descripción" }}</p>
+                  <small class="text-muted">
+                    <i class="bi bi-calendar"></i> {{ task.created_at|date:"M d, Y" }}
+                    {% if task.assigned_to %}
+                    · <i class="bi bi-person-check"></i> Asignado a: {{ task.assigned_to.name }}
+                    {% endif %}
+                  </small>
+                  {% if task.image %}
+                  <br><a href="{{ task.image.url }}" target="_blank" class="small"><i class="bi bi-image"></i> Ver foto</a>
+                  {% endif %}
+                </div>
+                <span class="badge bg-warning">{{ task.status }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if completed_tasks %}
+          <h6 class="text-success"><i class="bi bi-check-circle"></i> Completadas Recientes</h6>
+          <div class="list-group list-group-flush">
+            {% for task in completed_tasks %}
+            <div class="list-group-item border-0 px-0">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1 text-decoration-line-through">{{ task.title }}</h6>
+                  <small class="text-muted">
+                    <i class="bi bi-check2"></i> {{ task.completed_at|date:"M d, Y"|default:task.created_at|date:"M d, Y" }}
+                  </small>
+                </div>
+                <span class="badge bg-success">Completada</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if not pending_tasks and not completed_tasks %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-clipboard-check fs-1 opacity-25"></i>
+            <p class="mt-2">No hay tareas registradas</p>
+            <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#nuevaTareaModal">
+              Crear Primera Tarea
+            </button>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- === MINUTAS Y COMUNICACIÓN === -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-journal-text"></i> Minutas del Proyecto</span>
+          <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+        </div>
+        <div class="card-body">
+          {% if project_minutes %}
+          <div class="timeline">
+            {% for minute in project_minutes %}
+            <div class="d-flex mb-3">
+              <div class="flex-shrink-0">
+                <span class="badge bg-{% if minute.event_type == 'decision' %}success{% elif minute.event_type == 'change' %}warning{% elif minute.event_type == 'milestone' %}info{% else %}secondary{% endif %} rounded-circle p-2">
+                  <i class="bi bi-{% if minute.event_type == 'decision' %}check-circle{% elif minute.event_type == 'change' %}arrow-repeat{% elif minute.event_type == 'milestone' %}flag{% else %}dot{% endif %}"></i>
+                </span>
+              </div>
+              <div class="flex-grow-1 ms-3">
+                <h6 class="mb-1">{{ minute.title }}</h6>
+                <p class="mb-1 small">{{ minute.description|truncatewords:20 }}</p>
+                <small class="text-muted">
+                  <i class="bi bi-calendar"></i> {{ minute.event_date|date:"M d, Y" }}
+                  · {{ minute.get_event_type_display }}
+                </small>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-journal fs-1 opacity-25"></i>
+            <p class="mt-2">No hay minutas disponibles</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- === PRÓXIMOS EVENTOS === -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom">
+          <i class="bi bi-calendar-event"></i> Próximos Eventos
+        </div>
+        <div class="card-body">
+          {% if upcoming_schedules %}
+          <div class="list-group list-group-flush">
+            {% for schedule in upcoming_schedules %}
+            <div class="list-group-item border-0 px-0">
+              <div class="d-flex align-items-start">
+                <i class="bi bi-clock text-primary fs-4 me-3"></i>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1">{{ schedule.title }}</h6>
+                  <p class="mb-1 small text-muted">
+                    <i class="bi bi-calendar3"></i> {{ schedule.start_datetime|date:"D, M d 'at' g:i A" }}
+                  </p>
+                  {% if schedule.description %}
+                  <small class="text-muted">{{ schedule.description }}</small>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-calendar-x fs-1 opacity-25"></i>
+            <p class="mt-2">No hay eventos programados</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- === FOTOS RECIENTES === -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-images"></i> Fotos Recientes</span>
+          <a href="{% url 'site_photo_list' project.id %}" class="btn btn-sm btn-outline-primary">Ver Galería</a>
+        </div>
+        <div class="card-body">
+          {% if recent_photos %}
+          <div class="row g-2">
+            {% for photo in recent_photos %}
+            <div class="col-4">
+              <a href="{{ photo.image.url }}" target="_blank">
+                <img src="{{ photo.image.url }}" class="img-fluid rounded shadow-sm" 
+                     style="height: 120px; object-fit: cover; width: 100%;" 
+                     alt="Site photo">
+              </a>
+              <small class="text-muted d-block mt-1">{{ photo.room|default:photo.created_at|date:"M d" }}</small>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-camera fs-1 opacity-25"></i>
+            <p class="mt-2">No hay fotos disponibles</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+      <!-- === COLORES / SAMPLES === -->
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-palette"></i> Colores / Samples</span>
+            <div class="btn-group">
+              <a href="{% url 'color_sample_list' project.id %}" class="btn btn-sm btn-outline-primary">Ver Todos</a>
+              <a href="{% url 'color_sample_create' project.id %}" class="btn btn-sm btn-primary">Nueva muestra</a>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if color_samples %}
+            <div class="row g-2">
+              {% for s in color_samples %}
+              <div class="col-6">
+                <div class="border rounded p-2 h-100">
+                  {% if s.sample_image %}
+                  <a href="{% url 'color_sample_detail' s.id %}"><img src="{{ s.sample_image.url }}" class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;"></a>
+                  {% endif %}
+                  <div class="mt-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <strong class="small">{{ s.name|default:s.code|default:'Muestra' }}</strong>
+                      <span class="badge text-bg-secondary">{{ s.get_status_display }}</span>
+                    </div>
+                    <div class="text-muted small">{{ s.brand }} {{ s.finish }} {{ s.gloss }}</div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+              <i class="bi bi-palette fs-1 opacity-25"></i>
+              <p class="mt-2">No hay muestras todavía</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    <!-- === FACTURAS === -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <i class="bi bi-receipt-cutoff"></i> Facturas
+        </div>
+        <div class="card-body">
+          {% if invoices %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Número</th>
+                  <th>Fecha</th>
+                  <th class="text-end">Monto</th>
+                  <th class="text-end">Pagado</th>
+                  <th class="text-end">Balance</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                  <td><strong>{{ invoice.number }}</strong></td>
+                  <td>{{ invoice.date_issued|date:"M d, Y" }}</td>
+                  <td class="text-end">${{ invoice.total_amount|floatformat:2 }}</td>
+                  <td class="text-end">${{ invoice.amount_paid|floatformat:2 }}</td>
+                  <td class="text-end fw-bold">${{ invoice.balance|floatformat:2 }}</td>
+                  <td>
+                    <span class="badge bg-{% if invoice.payment_status == 'paid' %}success{% elif invoice.payment_status == 'partial' %}warning{% else %}danger{% endif %}">
+                      {{ invoice.get_payment_status_display }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-receipt fs-1 opacity-25"></i>
+            <p class="mt-2">No hay facturas generadas</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- === COMENTARIOS === -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-chat-dots"></i> Comentarios</span>
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoComentarioModal">
+            <i class="bi bi-plus-circle"></i> Nuevo Comentario
+          </button>
+        </div>
+        <div class="card-body">
+          {% if comments %}
+          <div class="list-group list-group-flush">
+            {% for comment in comments %}
+            <div class="list-group-item border-0 px-0">
+              <div class="d-flex align-items-start">
+                <div class="flex-shrink-0">
+                  <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                       style="width: 40px; height: 40px;">
+                    <i class="bi bi-person"></i>
+                  </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="mb-0">{{ comment.user.get_full_name|default:comment.user.username }}</h6>
+                      <small class="text-muted">{{ comment.created_at|date:"M d, Y 'at' g:i A" }}</small>
+                    </div>
+                  </div>
+                  <p class="mt-2 mb-1">{{ comment.text }}</p>
+                  {% if comment.image %}
+                  <a href="{{ comment.image.url }}" target="_blank">
+                    <img src="{{ comment.image.url }}" class="img-fluid rounded shadow-sm mt-2" 
+                         style="max-width: 300px;" alt="Comment image">
+                  </a>
+                  {% endif %}
+                  {% if comment.task %}
+                  <small class="badge bg-info mt-2">
+                    <i class="bi bi-link-45deg"></i> Relacionado con: {{ comment.task.title }}
+                  </small>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-chat fs-1 opacity-25"></i>
+            <p class="mt-2">No hay comentarios aún</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón volver -->
+  <div class="mt-4">
+    <a href="{% url 'dashboard_client' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Volver a Mis Proyectos
+    </a>
+  </div>
+</div>
+
+<!-- Modal: Nueva Tarea/Touch-up -->
+<div class="modal fade" id="nuevaTareaModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'agregar_tarea' project.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-clipboard-plus"></i> Nueva Solicitud / Touch-up</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Título *</label>
+            <input type="text" name="title" class="form-control" required 
+                   placeholder="Ej: Touch-up en pared principal">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea name="description" class="form-control" rows="3" 
+                      placeholder="Describe el problema o lo que necesitas..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Foto (opcional)</label>
+            <input type="file" name="image" class="form-control" accept="image/*">
+            <small class="form-text text-muted">
+              <i class="bi bi-info-circle"></i> Puedes tomar una foto del área que necesita atención
+            </small>
+          </div>
+          <div class="alert alert-info small mb-0">
+            <i class="bi bi-lightbulb"></i> <strong>Tip:</strong> Si marcaste el área con tape azul, 
+            toma una foto clara para que el equipo sepa exactamente dónde trabajar.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle"></i> Crear Solicitud
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo Comentario -->
+<div class="modal fade" id="nuevoComentarioModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'agregar_comentario' project.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-chat-left-text"></i> Nuevo Comentario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Comentario</label>
+            <textarea name="text" class="form-control" rows="4" 
+                      placeholder="Escribe tu comentario aquí..." required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Imagen (opcional)</label>
+            <input type="file" name="image" class="form-control" accept="image/*">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send"></i> Enviar Comentario
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
     <form method="post" action="{% url 'agregar_tarea' project.id %}">
         {% csrf_token %}
         <input type="text" name="title" placeholder="Nueva tarea" required>

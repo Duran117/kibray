@@ -1,0 +1,31 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="container py-5 text-center">
+  <h3 class="mb-3"><i class="bi bi-trash"></i> {% trans 'Eliminar Tarea' %}</h3>
+  <p class="mb-4">{% trans '¿Estás seguro de que deseas eliminar la tarea?' %} <strong>{{ task.title }}</strong></p>
+  <form method="post" class="d-inline">
+    {% csrf_token %}
+    <button class="btn btn-danger">{% trans 'Sí, eliminar' %}</button>
+    <a href="{% url 'task_detail' task.id %}" class="btn btn-outline-secondary">{% trans 'Cancelar' %}</a>
+  </form>
+  <div class="mt-3">
+    <a href="javascript:history.back();" class="btn btn-link">{% trans 'Regresar' %}</a>
+  </div>
+</div>
+{% endblock %}{% extends 'core/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="container py-5 text-center">
+  <h3 class="mb-3"><i class="bi bi-trash"></i> {% trans 'Eliminar Tarea' %}</h3>
+  <p class="mb-4">{% trans '¿Estás seguro de que deseas eliminar la tarea?' %} <strong>{{ task.title }}</strong></p>
+  <form method="post" class="d-inline">
+    {% csrf_token %}
+    <button class="btn btn-danger">{% trans 'Sí, eliminar' %}</button>
+    <a href="{% url 'task_detail' task.id %}" class="btn btn-outline-secondary">{% trans 'Cancelar' %}</a>
+  </form>
+  <div class="mt-3">
+    <a href="javascript:history.back();" class="btn btn-link">{% trans 'Regresar' %}</a>
+  </div>
+</div>
+{% endblock %}

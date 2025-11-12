@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0"><i class="bi bi-list-task"></i> {% trans 'Tareas del Proyecto' %} – {{ project.name }}</h2>
+    <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans 'Volver' %}</a>
+  </div>
+  {% if can_create and form %}
+  <div id="crear" class="card mb-4">
+    <div class="card-header"><i class="bi bi-plus-circle"></i> {% trans 'Crear nueva tarea' %}</div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" class="row g-3">
+        {% csrf_token %}
+        {{ form.project.as_hidden }}
+        <div class="col-md-6">{{ form.title.label_tag }}{{ form.title }}</div>
+        <div class="col-md-6">{{ form.status.label_tag }}{{ form.status }}</div>
+        <div class="col-12">{{ form.description.label_tag }}{{ form.description }}</div>
+        <div class="col-md-6">{{ form.assigned_to.label_tag }}{{ form.assigned_to }}</div>
+        <div class="col-md-6">{{ form.image.label_tag }}{{ form.image }}</div>
+        <div class="col-md-6">{{ form.is_touchup.label_tag }}{{ form.is_touchup }}</div>
+        <div class="col-12"><button class="btn btn-primary">{% trans 'Guardar' %}</button></div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>{% trans 'Título' %}</th>
+          <th>{% trans 'Estado' %}</th>
+          <th>{% trans 'Asignado' %}</th>
+          <th class="text-end">{% trans 'Acciones' %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tasks %}
+        <tr>
+          <td>#{{ t.id }}</td>
+          <td>{{ t.title }}</td>
+          <td>{{ t.status }}</td>
+          <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:'—' }}</td>
+          <td class="text-end">
+            <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary">{% trans 'Ver' %}</a>
+            {% if can_create %}
+            <a href="{% url 'task_edit' t.id %}" class="btn btn-sm btn-outline-secondary">{% trans 'Editar' %}</a>
+            <a href="{% url 'task_delete' t.id %}" class="btn btn-sm btn-outline-danger">{% trans 'Eliminar' %}</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted text-center py-4"><i class="bi bi-inbox me-2"></i>{% trans 'No hay tareas todavía.' %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

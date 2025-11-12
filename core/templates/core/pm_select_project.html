@@ -1,0 +1,22 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container py-3">
+  <h4>Selecciona proyecto · {{ action|title }}</h4>
+  <form method="post" class="row g-2 mt-2">
+    {% csrf_token %}
+    <div class="col-md-6">
+      <label class="form-label">Proyecto</label>
+      <select name="project" class="form-select">
+        <option value="">— Selecciona —</option>
+        {% for p in projects %}
+          <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary">Continuar</button>
+      <a class="btn btn-secondary" href="{% url 'dashboard_pm' %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

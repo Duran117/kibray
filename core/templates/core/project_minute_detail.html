@@ -1,0 +1,98 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <a href="{% url 'project_minutes_list' minute.project.id %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Volver a Timeline
+    </a>
+  </div>
+
+  <div class="card shadow">
+    <div class="card-header bg-{% if minute.event_type == 'decision' %}primary{% elif minute.event_type == 'approval' %}success{% elif minute.event_type == 'issue' %}danger{% elif minute.event_type == 'call' %}info{% else %}secondary{% endif %} text-white">
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+          <i class="bi bi-{% if minute.event_type == 'decision' %}lightbulb{% elif minute.event_type == 'call' %}telephone{% elif minute.event_type == 'meeting' %}people{% elif minute.event_type == 'approval' %}check-circle{% elif minute.event_type == 'change' %}pencil{% elif minute.event_type == 'issue' %}exclamation-triangle{% elif minute.event_type == 'milestone' %}flag{% elif minute.event_type == 'email' %}envelope{% else %}chat-left-text{% endif %}"></i>
+          {{ minute.get_event_type_display }}
+        </h4>
+        <span class="badge bg-white text-dark">
+          {{ minute.event_date|date:"M d, Y - g:i A" }}
+        </span>
+      </div>
+    </div>
+    <div class="card-body p-4">
+      <h3 class="mb-3">{{ minute.title }}</h3>
+      
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="bg-light p-3 rounded">
+            <small class="text-muted d-block mb-1">Proyecto</small>
+            <strong>{{ minute.project.name }}</strong>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="bg-light p-3 rounded">
+            <small class="text-muted d-block mb-1">Creado por</small>
+            <strong>{{ minute.created_by.get_full_name|default:minute.created_by.username }}</strong>
+            <small class="text-muted d-block">{{ minute.created_at|date:"M d, Y g:i A" }}</small>
+          </div>
+        </div>
+      </div>
+
+      {% if minute.participants %}
+      <div class="mb-4">
+        <h6 class="text-muted mb-2">Participantes</h6>
+        <p class="mb-0">{{ minute.participants }}</p>
+      </div>
+      {% endif %}
+
+      {% if minute.description %}
+      <div class="mb-4">
+        <h6 class="text-muted mb-2">Descripción</h6>
+        <div class="border-start border-3 border-primary ps-3">
+          {{ minute.description|linebreaks }}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if minute.attachment %}
+      <div class="mb-4">
+        <h6 class="text-muted mb-2">Archivo Adjunto</h6>
+        <a href="{{ minute.attachment.url }}" target="_blank" class="btn btn-outline-primary">
+          <i class="bi bi-paperclip"></i> Ver archivo adjunto
+        </a>
+      </div>
+      {% endif %}
+
+      <div class="mt-4 pt-3 border-top">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            {% if not minute.visible_to_client %}
+            <span class="badge bg-warning text-dark">
+              <i class="bi bi-eye-slash"></i> Privado (solo Admin/PM)
+            </span>
+            {% else %}
+            <span class="badge bg-success">
+              <i class="bi bi-eye"></i> Visible para cliente
+            </span>
+            {% endif %}
+          </div>
+          {% if user.is_staff or user.is_superuser %}
+          <div>
+            <!-- Aquí podrías agregar botones de editar/eliminar en el futuro -->
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navegación a otras minutas -->
+  <div class="mt-4 text-center">
+    <a href="{% url 'project_minutes_list' minute.project.id %}" class="btn btn-primary">
+      Ver todas las minutas del proyecto
+    </a>
+  </div>
+</div>
+{% endblock %}

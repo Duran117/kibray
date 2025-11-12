@@ -1,0 +1,199 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Daily Planning Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{% trans "Daily Planning Dashboard" %}</h2>
+            <p class="text-muted">{% trans "Manage daily work plans for all projects" %}</p>
+        </div>
+    </div>
+
+    <!-- Alerts for overdue plans -->
+    {% if overdue_plans %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> {% trans "Overdue Plans!" %}</h5>
+        <p>{% trans "The following plans are past their 5pm deadline:" %}</p>
+        <ul>
+            {% for plan in overdue_plans %}
+            <li>
+                <strong>{{ plan.project.name }}</strong> - {{ plan.plan_date }}
+                <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-warning ms-2">
+                    {% trans "Complete Now" %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Action buttons -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>{% trans "Create New Daily Plan" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="create_plan" value="1">
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Select Project" %}</label>
+                            <select name="project_id" class="form-select" required>
+                                <option value="">-- {% trans "Choose Project" %} --</option>
+                                {% for project in active_projects %}
+                                <option value="{{ project.id }}">{{ project.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Plan Date" %}</label>
+                            <input type="date" name="plan_date" class="form-control" min="{{ today|date:'Y-m-d' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle"></i> {% trans "Create Plan" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Plans -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>{% trans "Today's Plans" %} ({{ today }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if todays_plans %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Project" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Activities" %}</th>
+                                    <th>{% trans "Created By" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for plan in todays_plans %}
+                                <tr>
+                                    <td><strong>{{ plan.project.name }}</strong></td>
+                                    <td>
+                                        {% if plan.status == 'DRAFT' %}
+                                        <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                                        {% elif plan.status == 'SUBMITTED' %}
+                                        <span class="badge bg-info">{% trans "Submitted" %}</span>
+                                        {% elif plan.status == 'APPROVED' %}
+                                        <span class="badge bg-success">{% trans "Approved" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">{% trans "Skipped" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ plan.activities.count }} {% trans "activities" %}</td>
+                                    <td>{{ plan.created_by.username }}</td>
+                                    <td>
+                                        <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-pencil"></i> {% trans "Edit" %}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">{% trans "No plans for today yet." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Plans -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>{% trans "Recent Plans" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_plans %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Project" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Activities" %}</th>
+                                    <th>{% trans "Created" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for plan in recent_plans %}
+                                <tr>
+                                    <td>{{ plan.plan_date }}</td>
+                                    <td>{{ plan.project.name }}</td>
+                                    <td>
+                                        {% if plan.status == 'DRAFT' %}
+                                        <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                                        {% elif plan.status == 'SUBMITTED' %}
+                                        <span class="badge bg-info">{% trans "Submitted" %}</span>
+                                        {% elif plan.status == 'APPROVED' %}
+                                        <span class="badge bg-success">{% trans "Approved" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">{% trans "Skipped" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ plan.activities.count }}</td>
+                                    <td>{{ plan.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary">
+                                            {% trans "View/Edit" %}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">{% trans "No plans created yet." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h6>{% trans "Quick Links" %}</h6>
+                    <a href="{% url 'sop_library' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-book"></i> {% trans "SOP Library" %}
+                    </a>
+                    <a href="{% url 'employee_morning_dashboard' %}" class="btn btn-outline-info">
+                        <i class="bi bi-person-workspace"></i> {% trans "Employee View" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

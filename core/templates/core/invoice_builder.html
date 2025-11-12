@@ -1,0 +1,302 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Crear Factura Inteligente" %} - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>💡 {% trans "Crear Factura Inteligente" %}</h2>
+            <p class="text-muted">Proyecto: <strong>{{ project.name }}</strong> - {{ project.client }}</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- LEFT COLUMN: Source Data -->
+            <div class="col-md-8">
+                
+                <!-- ESTIMATE (Base Contract) -->
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">📋 Contrato Base (Estimado)</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if estimate %}
+                            <div class="form-check">
+                                <input class="form-check-input estimate-checkbox" type="checkbox" name="include_estimate" id="include_estimate" checked>
+                                <label class="form-check-label" for="include_estimate">
+                                    <strong>Estimado v{{ estimate.version }}</strong> - Aprobado el {{ estimate.created_at|date:"M d, Y" }}
+                                </label>
+                            </div>
+                            <div class="mt-2 ms-4 small">
+                                <div>📦 {{ estimate.lines.count }} items</div>
+                                <div>💰 Total: <strong>${{ estimate_total|floatformat:2 }}</strong></div>
+                                <div class="text-muted">Incluye markup ({{ estimate.markup_material }}% mat + {{ estimate.markup_labor }}% labor) + overhead ({{ estimate.overhead_pct }}%) + profit ({{ estimate.target_profit_pct }}%)</div>
+                            </div>
+                                                        <hr>
+                                                        <h6 class="mt-3">Facturación Progresiva</h6>
+                                                        <p class="text-muted mb-2">Ingresa porcentajes para líneas específicas del estimado si deseas facturación parcial. Si dejas todos en blanco se facturará el contrato completo.</p>
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-bordered align-middle">
+                                                                <thead class="table-light">
+                                                                    <tr>
+                                                                        <th style="width:110px;">Código</th>
+                                                                        <th>Descripción</th>
+                                                                        <th class="text-end">Costo Directo</th>
+                                                                        <th class="text-center">Facturado</th>
+                                                                        <th class="text-center">Restante</th>
+                                                                        <th style="width:120px;" class="text-center">% Nuevo</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% for line in estimate_lines_data %}
+                                                                    <tr>
+                                                                        <td><code>{{ line.code }}</code></td>
+                                                                        <td class="small">{{ line.description|default:"(sin desc)" }}</td>
+                                                                        <td class="text-end">${{ line.direct_cost|floatformat:2 }}</td>
+                                                                        <td class="text-center">
+                                                                            {% if line.already_pct > 0 %}
+                                                                                <span class="badge bg-info">{{ line.already_pct|floatformat:2 }}%</span>
+                                                                            {% else %}
+                                                                                <span class="text-muted">0%</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td class="text-center">
+                                                                            {% if line.remaining_pct > 0 %}
+                                                                                <span class="badge bg-success">{{ line.remaining_pct|floatformat:2 }}%</span>
+                                                                            {% else %}
+                                                                                <span class="badge bg-secondary">0%</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td class="text-center">
+                                                                            {% if line.remaining_pct > 0 %}
+                                                                                <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}" name="prog_pct_{{ line.id }}" class="form-control form-control-sm text-center" placeholder="0.00">
+                                                                            {% else %}
+                                                                                <input type="number" class="form-control form-control-sm text-center" disabled value="0" title="Completamente facturado">
+                                                                            {% endif %}
+                                                                        </td>
+                                                                    </tr>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                        {% else %}
+                            <p class="text-muted mb-0">⚠️ No hay estimado aprobado para este proyecto.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- CHANGE ORDERS -->
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">🔧 Change Orders (Sin Facturar)</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if unbilled_cos %}
+                            {% for co in unbilled_cos %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input co-checkbox" type="checkbox" name="change_orders" value="{{ co.id }}" id="co_{{ co.id }}" checked>
+                                    <label class="form-check-label" for="co_{{ co.id }}">
+                                        <strong>CO #{{ co.id }}</strong>: {{ co.description|truncatewords:15 }}
+                                        <span class="badge bg-{{ co.status|default:'secondary' }}">{{ co.get_status_display }}</span>
+                                    </label>
+                                    <div class="ms-4 small">
+                                        💵 Monto: <strong>${{ co.amount|floatformat:2 }}</strong> | {{ co.date_created|date:"M d, Y" }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted mb-0">✅ No hay change orders pendientes de facturar.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- TIME & MATERIALS (General) -->
+                <div class="card mb-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">⏱️ Tiempo & Materiales (General)</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if time_general %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input time-checkbox" type="checkbox" name="include_time_general" id="include_time_general" checked>
+                                <label class="form-check-label" for="include_time_general">
+                                    <strong>{{ general_hours }} horas</strong> de trabajo no vinculadas a COs
+                                </label>
+                                <div class="ms-4 small">
+                                    💵 Facturar: <strong>${{ time_general_total|floatformat:2 }}</strong> ({{ general_hours }} hrs × ${{ tm_rate }}/hr)
+                                </div>
+                            </div>
+                            <div class="ms-4 mt-2">
+                                <details>
+                                    <summary class="small text-muted" style="cursor: pointer;">Ver detalle de entradas ({{ time_general|length }})</summary>
+                                    <table class="table table-sm table-bordered mt-2">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Empleado</th>
+                                                <th>Horas</th>
+                                                <th>Costo Labor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for te in time_general %}
+                                            <tr>
+                                                <td>{{ te.date|date:"M d" }}</td>
+                                                <td>{{ te.employee.name }}</td>
+                                                <td>{{ te.hours_worked|floatformat:1 }}</td>
+                                                <td>${{ te.labor_cost|floatformat:2 }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </details>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">✅ No hay tiempo general sin facturar.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- TIME & MATERIALS (Linked to COs) -->
+                {% if time_by_co %}
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">⏱️ Tiempo Extra en Change Orders</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for co_data in time_by_co %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input time-co-checkbox" type="checkbox" name="time_cos" value="{{ co_data.co.id }}" id="time_co_{{ co_data.co.id }}" checked>
+                                <label class="form-check-label" for="time_co_{{ co_data.co.id }}">
+                                    <strong>CO #{{ co_data.co.id }}</strong>: {{ co_data.co.description|truncatewords:10 }}
+                                </label>
+                                <div class="ms-4 small">
+                                    ⏱️ {{ co_data.total_hours }} horas | 💵 Facturar: <strong>${{ co_data.billable_amount|floatformat:2 }}</strong>
+                                </div>
+                            </div>
+                            <div class="ms-4 mt-1 mb-3">
+                                <details>
+                                    <summary class="small text-muted" style="cursor: pointer;">Ver {{ co_data.entries|length }} entradas de tiempo</summary>
+                                    <table class="table table-sm table-bordered mt-2">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Empleado</th>
+                                                <th>Horas</th>
+                                                <th>Notas</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for te in co_data.entries %}
+                                            <tr>
+                                                <td>{{ te.date|date:"M d" }}</td>
+                                                <td>{{ te.employee.name }}</td>
+                                                <td>{{ te.hours_worked|floatformat:1 }}</td>
+                                                <td class="small">{{ te.notes|default:"—" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </details>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- RIGHT COLUMN: Summary & Actions -->
+            <div class="col-md-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">💰 Resumen de Factura</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tbody>
+                                {% if estimate %}
+                                <tr id="summary-estimate" class="estimate-summary">
+                                    <td>Contrato Base</td>
+                                    <td class="text-end"><strong>${{ estimate_total|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endif %}
+                                
+                                {% if unbilled_cos %}
+                                <tr id="summary-cos" class="co-summary">
+                                    <td>Change Orders</td>
+                                    <td class="text-end"><strong>${{ co_total|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endif %}
+                                
+                                {% if time_general %}
+                                <tr id="summary-time-general" class="time-summary">
+                                    <td>T&M General</td>
+                                    <td class="text-end"><strong>${{ time_general_total|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endif %}
+                                
+                                {% if time_by_co %}
+                                <tr id="summary-time-cos" class="time-co-summary">
+                                    <td>T&M (COs)</td>
+                                    <td class="text-end"><strong>${{ time_co_total|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endif %}
+                                
+                                <tr class="table-active">
+                                    <td><strong>TOTAL</strong></td>
+                                    <td class="text-end"><h4 class="mb-0" id="grand-total">${{ grand_total|floatformat:2 }}</h4></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="mb-3">
+                            <label for="due_date" class="form-label">Fecha de Vencimiento</label>
+                            <input type="date" class="form-control" name="due_date" id="due_date" value="{{ due_date|default:'' }}">
+                            <small class="text-muted">Default: Net 30 días</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                ✅ Generar Factura
+                            </button>
+                            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+
+                        <div class="alert alert-info mt-3 small">
+                            <strong>💡 Nota:</strong> Esta factura se creará en estado <strong>BORRADOR</strong>. Podrás editarla y marcarla como "Enviada" después.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Simple dynamic total update (optional enhancement)
+document.addEventListener('DOMContentLoaded', function() {
+    const estimateCheckbox = document.querySelector('.estimate-checkbox');
+    const coCheckboxes = document.querySelectorAll('.co-checkbox');
+    const timeCheckbox = document.querySelector('.time-checkbox');
+    const timeCoCheckboxes = document.querySelectorAll('.time-co-checkbox');
+    
+    // Show/hide summary rows based on checkboxes
+    if (estimateCheckbox) {
+        estimateCheckbox.addEventListener('change', function() {
+            document.getElementById('summary-estimate').style.display = this.checked ? '' : 'none';
+        });
+    }
+    
+    // You can add more interactivity here to update grand total dynamically
+});
+</script>
+{% endblock %}

@@ -1,0 +1,306 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Daily Plan" %} - {{ plan.project.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'daily_planning_dashboard' %}">{% trans "Daily Planning" %}</a></li>
+                    <li class="breadcrumb-item active">{{ plan.project.name }} - {{ plan.plan_date }}</li>
+                </ol>
+            </nav>
+            <h2>{% trans "Edit Daily Plan" %}</h2>
+            <p class="text-muted">
+                <strong>{% trans "Project:" %}</strong> {{ plan.project.name }} | 
+                <strong>{% trans "Date:" %}</strong> {{ plan.plan_date }} | 
+                <strong>{% trans "Status:" %}</strong> 
+                {% if plan.status == 'DRAFT' %}
+                <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                {% elif plan.status == 'SUBMITTED' %}
+                <span class="badge bg-info">{% trans "Submitted" %}</span>
+                {% elif plan.status == 'APPROVED' %}
+                <span class="badge bg-success">{% trans "Approved" %}</span>
+                {% endif %}
+            </p>
+            
+            {% if plan.is_overdue %}
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i> 
+                {% trans "This plan is overdue! Deadline was:" %} {{ plan.completion_deadline }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-auto">
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="check_materials">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search"></i> {% trans "Check materials for all activities" %}
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Left column: Activities list -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Activities" %} ({{ activities.count }})</h5>
+                    {% if plan.status == 'DRAFT' %}
+                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addActivityModal">
+                        <i class="bi bi-plus-circle"></i> {% trans "Add Activity" %}
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if activities %}
+                    <div class="list-group">
+                        {% for activity in activities %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <span class="badge bg-secondary me-2">{{ activity.order }}</span>
+                                        {{ activity.title }}
+                                    </h6>
+                                    
+                                    {% if activity.description %}
+                                    <p class="mb-2 text-muted small">{{ activity.description }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="mb-2">
+                                        {% if activity.activity_template %}
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-book"></i> SOP: {{ activity.activity_template.name }}
+                                        </span>
+                                        {% endif %}
+                                        
+                                        {% if activity.schedule_item %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-calendar-check"></i> Schedule: {{ activity.schedule_item.title }}
+                                        </span>
+                                        {% endif %}
+                                        
+                                        {% if activity.estimated_hours %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock"></i> {{ activity.estimated_hours }}h
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <strong class="small">{% trans "Assigned:" %}</strong>
+                                        {% for emp in activity.assigned_employees.all %}
+                                        <span class="badge bg-secondary">{{ emp.first_name }} {{ emp.last_name }}</span>
+                                        {% empty %}
+                                        <span class="text-muted small">{% trans "No one assigned yet" %}</span>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    {% if activity.materials_needed %}
+                                    <div class="small">
+                                        <strong>{% trans "Materials:" %}</strong>
+                                        <span class="text-muted">{{ activity.materials_needed|length }} items{% if activity.materials_checked %} · {% if activity.material_shortage %}<span class='text-danger'>{% trans "Shortage" %}</span>{% else %}<span class='text-success'>{% trans "OK" %}</span>{% endif %}{% endif %}</span>
+                                        {% if activity.material_shortage %}
+                                        <span class="badge bg-danger">{% trans "Shortage!" %}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="mt-2">
+                                        <span class="badge 
+                                            {% if activity.status == 'COMPLETED' %}bg-success
+                                            {% elif activity.status == 'IN_PROGRESS' %}bg-primary
+                                            {% elif activity.status == 'BLOCKED' %}bg-danger
+                                            {% else %}bg-secondary
+                                            {% endif %}">
+                                            {{ activity.get_status_display }}
+                                        </span>
+                                        
+                                        {% if activity.progress_percentage > 0 %}
+                                        <span class="small text-muted">{{ activity.progress_percentage }}% {% trans "complete" %}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if plan.status == 'DRAFT' %}
+                                <div class="ms-3">
+                                    <form method="post" action="{% url 'daily_plan_delete_activity' activity.id %}" onsubmit="return confirm('{% trans 'Delete this activity?' %}');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-clipboard-x" style="font-size: 3rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">{% trans "No activities added yet. Click 'Add Activity' to start." %}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: Actions -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "Actions" %}</h6>
+                </div>
+                <div class="card-body">
+                    {% if plan.status == 'DRAFT' %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="submit">
+                        <button type="submit" class="btn btn-success w-100 mb-2" {% if not activities %}disabled{% endif %}>
+                            <i class="bi bi-check-circle"></i> {% trans "Submit Plan" %}
+                        </button>
+                    </form>
+                    
+                    {% if not activities %}
+                    <p class="small text-muted">{% trans "Add at least one activity before submitting" %}</p>
+                    {% endif %}
+                    {% endif %}
+                    
+                    <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "Quick Links" %}</h6>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'sop_library' %}" class="btn btn-outline-info w-100 mb-2" target="_blank">
+                        <i class="bi bi-book"></i> {% trans "Browse SOPs" %}
+                    </a>
+                    <a href="{% url 'project_overview' plan.project.id %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-folder"></i> {% trans "View Project" %}
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "Plan Info" %}</h6>
+                </div>
+                <div class="card-body small">
+                    <p><strong>{% trans "Created by:" %}</strong> {{ plan.created_by.username }}</p>
+                    <p><strong>{% trans "Created:" %}</strong> {{ plan.created_at|date:"M d, Y H:i" }}</p>
+                    <p><strong>{% trans "Deadline:" %}</strong> {{ plan.completion_deadline|date:"M d, Y H:i" }}</p>
+                    {% if plan.approved_by %}
+                    <p><strong>{% trans "Approved by:" %}</strong> {{ plan.approved_by.username }}</p>
+                    <p><strong>{% trans "Approved:" %}</strong> {{ plan.approved_at|date:"M d, Y H:i" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Activity Modal -->
+<div class="modal fade" id="addActivityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_activity">
+                
+                <div class="modal-header">
+                    <h5 class="modal-title">{% trans "Add Activity" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Activity Template (SOP)" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
+                        <select name="activity_template" id="templateSelect" class="form-select">
+                            <option value="">-- {% trans "Select SOP template" %} --</option>
+                            {% for template in available_templates %}
+                            <option value="{{ template.id }}" 
+                                    data-name="{{ template.name }}"
+                                    data-description="{{ template.description }}"
+                                    data-hours="{{ template.time_estimate|default:'' }}">
+                                {{ template.get_category_display }} - {{ template.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Link to Schedule Item" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
+                        <select name="schedule_item" class="form-select">
+                            <option value="">-- {% trans "Not linked to schedule" %} --</option>
+                            {% for item in schedule_items %}
+                            <option value="{{ item.id }}">{{ item.title }} ({{ item.start_datetime|date:"M d" }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Activity Title" %} *</label>
+                        <input type="text" name="title" id="activityTitle" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Description" %}</label>
+                        <textarea name="description" id="activityDescription" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Estimated Hours" %}</label>
+                        <input type="number" name="estimated_hours" id="estimatedHours" class="form-control" step="0.5" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Assign Employees" %}</label>
+                        <select name="assigned_employees" class="form-select" multiple size="5">
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">{% trans "Hold Ctrl/Cmd to select multiple employees" %}</small>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> {% trans "Add Activity" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-fill form when SOP template is selected
+if (document.getElementById('templateSelect')) {
+    document.getElementById('templateSelect').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    if (selected.value) {
+        document.getElementById('activityTitle').value = selected.dataset.name || '';
+        document.getElementById('activityDescription').value = selected.dataset.description || '';
+        document.getElementById('estimatedHours').value = selected.dataset.hours || '';
+    }
+    });
+}
+</script>
+
+{% endblock %}

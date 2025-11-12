@@ -1,0 +1,89 @@
+{% extends "core/base.html" %}
+{% load i18n static %}
+{% block title %}{% if editing %}{% trans "Edit SOP" %}{% else %}{% trans "Create SOP" %}{% endif %}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>{% if editing %}{% trans "Edit SOP" %}{% else %}{% trans "Create SOP" %}{% endif %}</h2>
+  <form method="post" enctype="multipart/form-data" id="sop-form">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="id_name" class="form-label">{% trans "Name" %}*</label>
+      {{ form.name }}
+    </div>
+    <div class="mb-3">
+      <label for="id_category" class="form-label">{% trans "Category" %}*</label>
+      {{ form.category }}
+    </div>
+    <div class="mb-3">
+      <label for="id_tips" class="form-label">{% trans "Tips" %}*</label>
+      {{ form.tips }}
+    </div>
+    <div class="mb-3">
+      <label for="id_description" class="form-label">{% trans "Description" %}</label>
+      {{ form.description }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Checklist Steps" %}*</label>
+      <ul id="steps-list" class="list-group mb-2"></ul>
+      <div class="input-group mb-2">
+        <input type="text" id="step-input" class="form-control" placeholder="{% trans 'Add step...' %}">
+        <button type="button" class="btn btn-outline-primary" id="add-step">+</button>
+      </div>
+      {{ form.steps }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Materials" %}*</label>
+      <ul id="materials-list" class="list-group mb-2"></ul>
+      <div class="input-group mb-2">
+        <input type="text" id="material-input" class="form-control" placeholder="{% trans 'Add material...' %}">
+        <button type="button" class="btn btn-outline-primary" id="add-material">+</button>
+      </div>
+      {{ form.materials_list }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Tools" %}*</label>
+      <ul id="tools-list" class="list-group mb-2"></ul>
+      <div class="input-group mb-2">
+        <input type="text" id="tool-input" class="form-control" placeholder="{% trans 'Add tool...' %}">
+        <button type="button" class="btn btn-outline-primary" id="add-tool">+</button>
+      </div>
+      {{ form.tools_list }}
+    </div>
+    <div class="mb-3">
+      <label for="id_common_errors" class="form-label">{% trans "Common Errors" %}</label>
+      {{ form.common_errors }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Reference Photos / Files" %}</label>
+      {% if editing and sop.reference_files.exists %}
+      <div class="alert alert-info">
+        <strong>{% trans "Existing files:" %}</strong>
+        <ul class="mb-0 mt-2">
+          {% for ref_file in sop.reference_files.all %}
+          <li>
+            <a href="{{ ref_file.file.url }}" target="_blank">{{ ref_file.filename }}</a>
+            <small class="text-muted">({{ ref_file.uploaded_at|date:"M d, Y" }})</small>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      <input type="file" name="reference_files" id="photo-input" class="form-control" multiple accept="image/*,.pdf,.doc,.docx">
+      <small class="form-text text-muted">{% trans "Upload photos, PDFs, or documents (multiple files allowed)" %}</small>
+      <div id="photo-list" class="mt-2"></div>
+      {{ form.reference_photos }}
+    </div>
+    <div class="mb-3">
+      <label for="id_video_url" class="form-label">{% trans "Video or Resource Link" %}</label>
+      {{ form.video_url }}
+    </div>
+    <div class="form-check mb-3">
+      {{ form.is_active }} <label class="form-check-label" for="id_is_active">{% trans "Active" %}</label>
+    </div>
+    <button type="submit" class="btn btn-success">{% trans "Save SOP" %}</button>
+    <a href="{% url 'sop_library' %}" class="btn btn-secondary ms-2">{% trans "Cancel" %}</a>
+  </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="{% static 'core/sop_creator.js' %}"></script>
+{% endblock %}

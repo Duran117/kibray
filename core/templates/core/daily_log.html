@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0"><i class="bi bi-journal-text"></i> {% trans 'Daily Logs' %} – {{ project.name }}</h2>
+    <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans 'Volver' %}</a>
+  </div>
+
+  {% if form %}
+  <div id="crear" class="card mb-4">
+    <div class="card-header"><i class="bi bi-plus-circle"></i> {% trans 'Crear nuevo log' %}</div>
+    <div class="card-body">
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-6">{{ form.date.label_tag }}{{ form.date }}</div>
+        <div class="col-md-6">{{ form.crew_count.label_tag }}{{ form.crew_count }}</div>
+        <div class="col-12">{{ form.weather.label_tag }}{{ form.weather }}</div>
+        <div class="col-12">{{ form.progress_notes.label_tag }}{{ form.progress_notes }}</div>
+        <div class="col-12">{{ form.safety_incidents.label_tag }}{{ form.safety_incidents }}</div>
+        <div class="col-12">{{ form.delays.label_tag }}{{ form.delays }}</div>
+        <div class="col-12"><button class="btn btn-primary">{% trans 'Guardar' %}</button></div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="list-group">
+    {% for log in logs %}
+      <div class="list-group-item">
+        <div class="d-flex justify-content-between">
+          <h6 class="mb-1">{{ log.date|date:'Y-m-d' }}</h6>
+          <span class="badge bg-secondary">{{ log.crew_count }} crew</span>
+        </div>
+        <div class="small text-muted">{{ log.weather|default:'—' }}</div>
+        {% if log.progress_notes %}<div class="mt-2"><strong>{% trans 'Progreso:' %}</strong> {{ log.progress_notes }}</div>{% endif %}
+        {% if log.safety_incidents %}<div class="mt-1 text-warning"><strong>{% trans 'Incidentes:' %}</strong> {{ log.safety_incidents }}</div>{% endif %}
+        {% if log.delays %}<div class="mt-1 text-danger"><strong>{% trans 'Retrasos:' %}</strong> {{ log.delays }}</div>{% endif %}
+      </div>
+    {% empty %}
+      <div class="text-center py-5 text-muted"><i class="bi bi-journal display-6"></i><div class="mt-2">{% trans 'Sin daily logs' %}</div></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

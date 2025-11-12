@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-3">
+  <h2>Reportes de Daños: {{ project.name }}</h2>
+  <div class="mb-3 d-flex gap-2">
+    <a href="?" class="btn btn-sm btn-outline-secondary{% if not filter_status and not filter_severity %} active{% endif %}">Todos</a>
+    <div class="dropdown">
+      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Estado</button>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="?status=open">Abierto</a>
+        <a class="dropdown-item" href="?status=in_progress">En Progreso</a>
+        <a class="dropdown-item" href="?status=resolved">Resuelto</a>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Severidad</button>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="?severity=low">Bajo</a>
+        <a class="dropdown-item" href="?severity=medium">Medio</a>
+        <a class="dropdown-item" href="?severity=high">Alto</a>
+        <a class="dropdown-item" href="?severity=critical">Crítico</a>
+      </div>
+    </div>
+  </div>
+  <table class="table table-sm table-hover align-middle">
+    <thead>
+      <tr><th>Título</th><th>Severidad</th><th>Estado</th><th>Reportado</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+      {% for r in reports %}
+      <tr>
+        <td>{{ r.title }}</td>
+        <td><span class="badge bg-danger">{{ r.get_severity_display }}</span></td>
+        <td><span class="badge bg-info text-dark">{{ r.get_status_display }}</span></td>
+        <td>{{ r.reported_at|date:'Y-m-d H:i' }}</td>
+        <td><a href="{% url 'damage_report_detail' r.id %}" class="btn btn-sm btn-outline-primary">Ver</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-muted">Sin reportes.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5>{% trans "Compra directa" %} · {{ project.name }}</h5>
+    <a href="{% url 'inventory_view' project.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Volver al inventario" %}</a>
+  </div>
+  <form method="post" enctype="multipart/form-data" class="card card-body" id="purchaseForm">
+    {% csrf_token %}
+    <h6>{% trans "Datos del ticket" %}</h6>
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">{% trans "Tienda" %}</label>
+        <input type="text" name="store_name" class="form-control" placeholder="Sherwin-Williams" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">{% trans "Total" %} ($)</label>
+        <input type="number" step="0.01" name="total" class="form-control" placeholder="0.00">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">{% trans "Foto del recibo" %}</label>
+        <input type="file" name="receipt_photo" class="form-control" accept="image/*">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="no_expense" id="no_expense">
+          <label class="form-check-label" for="no_expense">{% trans "Sin gasto" %}</label>
+        </div>
+      </div>
+      <div class="col-12">
+        <label class="form-label">{% trans "Notas" %}</label>
+        <textarea name="notes" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+
+    <h6>{% trans "Ítems comprados" %}</h6>
+    <table class="table table-sm" id="itemsTable">
+      <thead>
+        <tr><th>{% trans "Producto" %}</th><th>{% trans "Categoría" %}</th><th>{% trans "Unidad" %}</th><th>{% trans "Cantidad" %}</th><th></th></tr>
+      </thead>
+      <tbody id="itemsBody">
+        <tr>
+          <td><input type="text" class="form-control form-control-sm item-name" placeholder="Tape 2in"></td>
+          <td>
+            <select class="form-select form-select-sm item-category">
+              <option value="tape">Tape</option>
+              <option value="plastic">Plastic</option>
+              <option value="masking_paper">Masking Paper</option>
+              <option value="floor_paper">Floor Paper</option>
+              <option value="sandpaper">Sandpaper</option>
+              <option value="paint">Paint</option>
+              <option value="stain">Stain</option>
+              <option value="primer">Primer</option>
+              <option value="ladder">Ladder</option>
+              <option value="sander">Sander</option>
+              <option value="sprayer">Sprayer</option>
+              <option value="other">Other</option>
+            </select>
+          </td>
+          <td><input type="text" class="form-control form-control-sm item-unit" placeholder="roll" value="pcs"></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm item-qty" placeholder="0"></td>
+          <td><button type="button" class="btn btn-sm btn-danger remove-row">X</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button type="button" class="btn btn-sm btn-secondary mb-3" id="addRow">+ {% trans "Agregar ítem" %}</button>
+
+    <input type="hidden" name="items_json" id="itemsJson">
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">{% trans "Guardar compra" %}</button>
+      <a href="{% url 'inventory_view' project.id %}" class="btn btn-secondary">{% trans "Cancelar" %}</a>
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('addRow').addEventListener('click', () => {
+  const tbody = document.getElementById('itemsBody');
+  const row = tbody.rows[0].cloneNode(true);
+  row.querySelectorAll('input').forEach(inp => inp.value = '');
+  tbody.appendChild(row);
+});
+
+document.getElementById('itemsBody').addEventListener('click', (e) => {
+  if (e.target.classList.contains('remove-row')) {
+    if (document.getElementById('itemsBody').rows.length > 1) {
+      e.target.closest('tr').remove();
+    }
+  }
+});
+
+document.getElementById('purchaseForm').addEventListener('submit', (e) => {
+  const rows = document.querySelectorAll('#itemsBody tr');
+  const items = [];
+  rows.forEach(row => {
+    const name = row.querySelector('.item-name').value.trim();
+    const category = row.querySelector('.item-category').value;
+    const unit = row.querySelector('.item-unit').value.trim();
+    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+    if (name && qty > 0) {
+      items.push({ name, category, unit, qty });
+    }
+  });
+  document.getElementById('itemsJson').value = JSON.stringify(items);
+});
+</script>
+{% endblock %}

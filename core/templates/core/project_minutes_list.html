@@ -1,0 +1,141 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3><i class="bi bi-journal-text"></i> Minutas / Timeline</h3>
+      <p class="text-muted mb-0">{{ project.name }}</p>
+    </div>
+    <div>
+      {% if user.is_staff or user.is_superuser %}
+      <a href="{% url 'project_minute_create' project.id %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nueva Minuta
+      </a>
+      {% endif %}
+      <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small">Filtrar por tipo:</label>
+          <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for value, label in event_types %}
+            <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-sm btn-primary w-100">Filtrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+    {% for minute in minutes %}
+    <div class="timeline-item mb-4">
+      <div class="row">
+        <div class="col-md-2 text-md-end">
+          <div class="text-muted small">
+            {{ minute.event_date|date:"M d, Y" }}<br>
+            <strong>{{ minute.event_date|date:"g:i A" }}</strong>
+          </div>
+          <span class="badge bg-{% if minute.event_type == 'decision' %}primary{% elif minute.event_type == 'approval' %}success{% elif minute.event_type == 'issue' %}danger{% elif minute.event_type == 'call' %}info{% else %}secondary{% endif %} mt-1">
+            {{ minute.get_event_type_display }}
+          </span>
+        </div>
+        <div class="col-md-10">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title mb-2">
+                <i class="bi bi-{% if minute.event_type == 'decision' %}lightbulb{% elif minute.event_type == 'call' %}telephone{% elif minute.event_type == 'meeting' %}people{% elif minute.event_type == 'approval' %}check-circle{% elif minute.event_type == 'change' %}pencil{% elif minute.event_type == 'issue' %}exclamation-triangle{% elif minute.event_type == 'milestone' %}flag{% elif minute.event_type == 'email' %}envelope{% else %}chat-left-text{% endif %}"></i>
+                {{ minute.title }}
+              </h5>
+              
+              {% if minute.description %}
+              <p class="card-text">{{ minute.description|linebreaks }}</p>
+              {% endif %}
+              
+              {% if minute.participants %}
+              <p class="small text-muted mb-1">
+                <strong>Participantes:</strong> {{ minute.participants }}
+              </p>
+              {% endif %}
+              
+              {% if minute.attachment %}
+              <p class="mb-1">
+                <a href="{{ minute.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-paperclip"></i> Ver adjunto
+                </a>
+              </p>
+              {% endif %}
+              
+              <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                <small class="text-muted">
+                  Creado por {{ minute.created_by.get_full_name|default:minute.created_by.username }}
+                  {% if not minute.visible_to_client %}
+                  <span class="badge bg-warning text-dark ms-2">Privado</span>
+                  {% endif %}
+                </small>
+                <a href="{% url 'project_minute_detail' minute.id %}" class="btn btn-sm btn-outline-primary">
+                  Ver detalles
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5">
+      <i class="bi bi-journal display-1 text-muted"></i>
+      <h4 class="mt-3">No hay minutas registradas</h4>
+      <p class="text-muted">Las minutas te ayudan a mantener un registro de decisiones y comunicaciones.</p>
+      {% if user.is_staff or user.is_superuser %}
+      <a href="{% url 'project_minute_create' project.id %}" class="btn btn-primary mt-2">
+        Crear primera minuta
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+.timeline-item {
+  position: relative;
+}
+.timeline-item:before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: -2rem;
+  width: 2px;
+  background: #dee2e6;
+  transform: translateX(-50%);
+}
+@media (max-width: 768px) {
+  .timeline-item:before {
+    left: 1rem;
+  }
+}
+.card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}

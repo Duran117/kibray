@@ -1,0 +1,5 @@
+[
+  { "model": "core.costcode", "pk": 1, "fields": { "code": "LAB001", "name": "General Labor", "category": "labor", "active": true } },
+  { "model": "core.costcode", "pk": 2, "fields": { "code": "MAT001", "name": "Primer Coat Materials", "category": "material", "active": true } },
+  { "model": "core.costcode", "pk": 3, "fields": { "code": "EQP001", "name": "Equipment Rental", "category": "equipment", "active": true } }
+]

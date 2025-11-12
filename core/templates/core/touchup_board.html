@@ -1,0 +1,215 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="container-fluid mt-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Touch-Ups: {{ project.name }}</h2>
+    <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary">{% trans "Volver al proyecto" %}</a>
+  </div>
+
+  <!-- Advanced Filters -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="get" class="row g-3" id="filterForm">
+        <div class="col-md-2">
+          <label class="form-label">Estado</label>
+          <select name="status" class="form-select form-select-sm">
+            <option value="">{% trans "Todos" %}</option>
+            <option value="Pendiente" {% if filter_status == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="En Progreso" {% if filter_status == 'En Progreso' %}selected{% endif %}>En Progreso</option>
+            <option value="Completada" {% if filter_status == 'Completada' %}selected{% endif %}>Completada</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Asignado</label>
+          <select name="assigned" class="form-select form-select-sm">
+            <option value="">{% trans "Todos" %}</option>
+            <option value="unassigned" {% if filter_assigned == 'unassigned' %}selected{% endif %}>Sin asignar</option>
+            {% for emp in employees %}
+              <option value="{{ emp.id }}" {% if filter_assigned == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Desde</label>
+          <input type="date" name="date_from" class="form-control form-control-sm" value="{{ filter_date_from }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Hasta</label>
+          <input type="date" name="date_to" class="form-control form-control-sm" value="{{ filter_date_to }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Ordenar</label>
+          <select name="sort" class="form-select form-select-sm">
+            <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Más reciente</option>
+            <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Más antiguo</option>
+            <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Estado (A-Z)</option>
+            <option value="-status" {% if sort_by == '-status' %}selected{% endif %}>Estado (Z-A)</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+          <a href="{% url 'touchup_board' project.id %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Touch-Ups Table -->
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Título</th>
+          <th>Estado</th>
+          <th>Asignado</th>
+          <th>Creado</th>
+          <th>Imagen</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in page_obj %}
+        <tr data-task-id="{{ t.id }}">
+          <td>
+            <strong>{{ t.title }}</strong>
+            {% if t.description %}<br><small class="text-muted">{{ t.description|truncatewords:10 }}</small>{% endif %}
+          </td>
+          <td>
+            <select class="form-select form-select-sm status-select" data-task-id="{{ t.id }}" style="width:140px;">
+              <option value="Pendiente" {% if t.status == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+              <option value="En Progreso" {% if t.status == 'En Progreso' %}selected{% endif %}>En Progreso</option>
+              <option value="Completada" {% if t.status == 'Completada' %}selected{% endif %}>Completada</option>
+            </select>
+          </td>
+          <td>
+            <select class="form-select form-select-sm assign-select" data-task-id="{{ t.id }}" style="width:150px;">
+              <option value="">Sin asignar</option>
+              {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if t.assigned_to.id == emp.id %}selected{% endif %}>{{ emp.username }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><small>{{ t.created_at|date:'Y-m-d H:i' }}</small></td>
+          <td>
+            {% if t.image %}
+              <a href="{{ t.image.url }}" target="_blank">
+                <img src="{{ t.image.url }}" style="height:50px;width:50px;object-fit:cover;border-radius:4px;"/>
+              </a>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary" title="Ver detalle">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">No hay touch-ups con estos filtros.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <nav>
+    <ul class="pagination pagination-sm justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page=1{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_assigned %}&assigned={{ filter_assigned }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Primera</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_assigned %}&assigned={{ filter_assigned }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Anterior</a>
+        </li>
+      {% endif %}
+      
+      <li class="page-item active">
+        <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+      </li>
+      
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_assigned %}&assigned={{ filter_assigned }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Siguiente</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_assigned %}&assigned={{ filter_assigned }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Última</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+
+<script>
+// AJAX Quick Updates
+document.addEventListener('DOMContentLoaded', function() {
+  // Status updates
+  document.querySelectorAll('.status-select').forEach(select => {
+    select.addEventListener('change', function() {
+      const taskId = this.dataset.taskId;
+      const newStatus = this.value;
+      
+      fetch(`/touchups/quick-update/${taskId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `action=status&status=${encodeURIComponent(newStatus)}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Optional: show toast notification
+          console.log('Estado actualizado:', data.status);
+        } else {
+          alert('Error: ' + (data.error || 'No se pudo actualizar'));
+          location.reload();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error de conexión');
+        location.reload();
+      });
+    });
+  });
+
+  // Assignment updates
+  document.querySelectorAll('.assign-select').forEach(select => {
+    select.addEventListener('change', function() {
+      const taskId = this.dataset.taskId;
+      const employeeId = this.value;
+      
+      fetch(`/touchups/quick-update/${taskId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `action=assign&employee_id=${employeeId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Asignado a:', data.assigned_to);
+        } else {
+          alert('Error: ' + (data.error || 'No se pudo actualizar'));
+          location.reload();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error de conexión');
+        location.reload();
+      });
+    });
+  });
+});
+</script>
+{% endblock %}

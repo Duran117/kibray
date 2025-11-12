@@ -1,87 +1,219 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 from core import views
-from core.views import (
-    invoice_create_view,
-    changeorder_lines_ajax,
-    invoice_pdf_view,
-    invoice_detail_view,
-    invoice_list_view,
-    invoice_edit_view,
-)
-from django.shortcuts import redirect
-
-def root_redirect(request):
-    return redirect('dashboard')
+from core import views_notifications as notif_views
+from django.views.i18n import set_language as dj_set_language
 
 urlpatterns = [
-    # Home redirects to dashboard
-    path('', root_redirect, name='home'),
+    # Home
+    path("", views.root_redirect, name="home"),
 
-    # Dashboard view
-    path('dashboard/', views.dashboard_view, name='dashboard'),
+    # Auth
+    path("login/", auth_views.LoginView.as_view(template_name="core/login.html"), name="login"),
+    path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
 
-    # Authentication
-    path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
-    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    # Admin
+    path("admin/", admin.site.urls),
 
-    # Django admin
-    path('admin/', admin.site.urls),
+    # Dashboard(s)
+    path("dashboard/", views.dashboard_view, name="dashboard"),
+    path("dashboard/admin/", views.dashboard_admin, name="dashboard_admin"),
+    path("dashboard/employee/", views.dashboard_employee, name="dashboard_employee"),
+    path("dashboard/pm/", views.dashboard_pm, name="dashboard_pm"),
+    path("dashboard/pm/select/<str:action>/", views.pm_select_project, name="pm_select_project"),
+    path("dashboard/client/", views.dashboard_client, name="dashboard_client"),
+    path("dashboard/designer/", views.dashboard_designer, name="dashboard_designer"),
+    path("dashboard/superintendent/", views.dashboard_superintendent, name="dashboard_superintendent"),
 
-    # Project PDF report
-    path('project/<int:project_id>/pdf/', views.project_pdf_view, name='project_pdf'),
+    # Project list
+    path("projects/", views.project_list, name="project_list"),
 
-    # Add Event (Schedule)
-    path('schedule/add/', views.schedule_create_view, name='schedule_create'),
+    # Project overview + acciones
+    path("projects/<int:project_id>/overview/", views.project_overview, name="project_overview"),
+    path("projects/<int:project_id>/profit/", views.project_profit_dashboard, name="project_profit_dashboard"),
+    path("projects/<int:project_id>/materials/request/", views.materials_request_view, name="materials_request"),
+    path("projects/<int:project_id>/pickup/", views.pickup_view, name="pickup_view"),
+    path("projects/<int:project_id>/inventory/", views.inventory_view, name="inventory_view"),
+    path("projects/<int:project_id>/inventory/move/", views.inventory_move_view, name="inventory_move"),
+    path("projects/<int:project_id>/inventory/history/", views.inventory_history_view, name="inventory_history"),
+    path("projects/<int:project_id>/tasks/", views.task_list_view, name="task_list"),
+    path("tasks/<int:task_id>/edit/", views.task_edit_view, name="task_edit"),
+    path("tasks/<int:task_id>/delete/", views.task_delete_view, name="task_delete"),
+    path("projects/<int:project_id>/schedule/", views.project_schedule_view, name="project_schedule"),
+    
+    # Schedule Generator (Hierarchical)
+    path("projects/<int:project_id>/schedule/generator/", views.schedule_generator_view, name="schedule_generator"),
+    path("schedule/category/<int:category_id>/edit/", views.schedule_category_edit, name="schedule_category_edit"),
+    path("schedule/category/<int:category_id>/delete/", views.schedule_category_delete, name="schedule_category_delete"),
+    path("schedule/item/<int:item_id>/edit/", views.schedule_item_edit, name="schedule_item_edit"),
+    path("schedule/item/<int:item_id>/delete/", views.schedule_item_delete, name="schedule_item_delete"),
+    
+    # Calendar Integration
+    path("projects/<int:project_id>/schedule/export.ics", views.project_schedule_ics, name="project_schedule_ics"),
+    path("projects/<int:project_id>/schedule/google-calendar/", views.project_schedule_google_calendar, name="project_schedule_google_calendar"),
+    
+    # React Gantt Chart
+    path("projects/<int:project_id>/schedule/gantt/", views.schedule_gantt_react_view, name="schedule_gantt_react"),
 
-    # Add Expense
-    path('expense/add/', views.expense_create_view, name='expense_create'),
+    # Site photos
+    path("projects/<int:project_id>/photos/", views.site_photo_list, name="site_photo_list"),
+    path("projects/<int:project_id>/photos/new/", views.site_photo_create, name="site_photo_create"),
+    # Color Samples
+    path("projects/<int:project_id>/colors/", views.color_sample_list, name="color_sample_list"),
+    path("projects/<int:project_id>/colors/new/", views.color_sample_create, name="color_sample_create"),
+    path("colors/sample/<int:sample_id>/", views.color_sample_detail, name="color_sample_detail"),
+    path("colors/sample/<int:sample_id>/review/", views.color_sample_review, name="color_sample_review"),
+    path("colors/sample/<int:sample_id>/quick-action/", views.color_sample_quick_action, name="color_sample_quick_action"),
+    
+    # Floor Plans
+    path("projects/<int:project_id>/plans/", views.floor_plan_list, name="floor_plan_list"),
+    path("projects/<int:project_id>/plans/new/", views.floor_plan_create, name="floor_plan_create"),
+    path("plans/<int:plan_id>/", views.floor_plan_detail, name="floor_plan_detail"),
+    path("plans/<int:plan_id>/add-pin/", views.floor_plan_add_pin, name="floor_plan_add_pin"),
+    path("pins/<int:pin_id>/detail.json", views.pin_detail_ajax, name="pin_detail_ajax"),
 
-    # Add Income
-    path('income/add/', views.income_create_view, name='income_create'),
+    # Touch-up board
+    path("projects/<int:project_id>/touchups/", views.touchup_board, name="touchup_board"),
+    path("touchups/quick-update/<int:task_id>/", views.touchup_quick_update, name="touchup_quick_update"),
 
-    # Add Time Entry (registro de horas)
-    path('timeentry/add/', views.timeentry_create_view, name='timeentry_create'),
+    # Damage reports
+    path("projects/<int:project_id>/damages/", views.damage_report_list, name="damage_report_list"),
+    path("damages/<int:report_id>/", views.damage_report_detail, name="damage_report_detail"),
+    path("damages/<int:report_id>/add-photos/", views.damage_report_add_photos, name="damage_report_add_photos"),
+    path("damages/<int:report_id>/update-status/", views.damage_report_update_status, name="damage_report_update_status"),
 
+    # Design chat (legacy simple); new channel-based chat below
+    path("projects/<int:project_id>/design-chat/", views.design_chat, name="design_chat"),
+    # Channel-based project chat
+    path("projects/<int:project_id>/chat/", views.project_chat_index, name="project_chat_index"),
+    path("projects/<int:project_id>/chat/<int:channel_id>/", views.project_chat_room, name="project_chat_room"),
 
-    # ----------- CLIENTE: Vista de proyecto y formularios -----------
-    path('proyecto/<int:project_id>/', views.client_project_view, name='client_project_view'),
-    path('proyecto/<int:project_id>/agregar_tarea/', views.agregar_tarea, name='agregar_tarea'),
-    path('proyecto/<int:project_id>/agregar_comentario/', views.agregar_comentario, name='agregar_comentario'),
+    # PDF resumen de proyecto
+    path("project/<int:project_id>/pdf/", views.project_pdf_view, name="project_pdf"),
 
-    # Change Order Detail
-    path('changeorder/<int:changeorder_id>/', views.changeorder_detail_view, name='changeorder_detail'),
+    # Crear entidades simples
+    path("schedule/add/", views.schedule_create_view, name="schedule_create"),
+    path("expense/add/", views.expense_create_view, name="expense_create"),
+    path("income/add/", views.income_create_view, name="income_create"),
+    path("timeentry/add/", views.timeentry_create_view, name="timeentry_create"),
 
-    # Add Change Order
-    path('changeorder/add/', views.changeorder_create_view, name='changeorder_create'),
+    # Vista cliente
+    path("proyecto/<int:project_id>/", views.client_project_view, name="client_project_view"),
+    path("proyecto/<int:project_id>/agregar_tarea/", views.agregar_tarea, name="agregar_tarea"),
+    path("proyecto/<int:project_id>/agregar_comentario/", views.agregar_comentario, name="agregar_comentario"),
 
-    # Change Order Board
-    path('changeorders/board/', views.changeorder_board_view, name='changeorder_board'),
+    # Change Orders
+    path("changeorder/<int:changeorder_id>/", views.changeorder_detail_view, name="changeorder_detail"),
+    path("changeorder/add/", views.changeorder_create_view, name="changeorder_create"),
+    path("changeorders/board/", views.changeorder_board_view, name="changeorder_board"),
+    path("changeorders/unassigned-time/", views.unassigned_timeentries_view, name="unassigned_timeentries"),
 
-    # Payroll summary
-    path('payroll/summary/', views.payroll_summary_view, name='payroll_summary'),
+    # Client Requests
+    path("projects/<int:project_id>/client-requests/new/", views.client_request_create, name="client_request_create"),
+    path("projects/<int:project_id>/client-requests/", views.client_requests_list, name="client_requests_list"),
+    path("client-requests/", views.client_requests_list, name="client_requests_list_all"),
+    path("client-requests/<int:request_id>/convert/", views.client_request_convert_to_co, name="client_request_convert"),
 
-    # Add Invoice
-    path('invoices/add/', invoice_create_view, name='invoice_create'),
+    # Payroll
+    # Nuevo sistema de nómina
+    path("payroll/week/", views.payroll_weekly_review, name="payroll_weekly_review"),
+    path("payroll/record/<int:record_id>/pay/", views.payroll_record_payment, name="payroll_record_payment"),
+    path("payroll/history/", views.payroll_payment_history, name="payroll_payment_history"),
+    path("payroll/history/employee/<int:employee_id>/", views.payroll_payment_history, name="payroll_payment_history_employee"),
 
-    # AJAX
-    path('ajax/changeorder-lines/', changeorder_lines_ajax, name='changeorder_lines_ajax'),
+    # Invoices
+    path("invoices/", views.invoice_list, name="invoice_list"),
+    # path("invoices/new/", views.invoice_create_view, name="invoice_create"),  # DEPRECATED: Use invoice_builder instead
+    path("invoices/builder/<int:project_id>/", views.invoice_builder_view, name="invoice_builder"),
+    path("invoices/payments/", views.invoice_payment_dashboard, name="invoice_payment_dashboard"),
+    path("invoices/<int:invoice_id>/pay/", views.record_invoice_payment, name="record_invoice_payment"),
+    path("invoices/<int:invoice_id>/mark-sent/", views.invoice_mark_sent, name="invoice_mark_sent"),
+    path("invoices/<int:invoice_id>/mark-approved/", views.invoice_mark_approved, name="invoice_mark_approved"),
+    path("invoices/<int:pk>/", views.invoice_detail, name="invoice_detail"),
+    # path("invoices/<int:pk>/edit/", views.invoice_edit, name="invoice_edit"),  # DEPRECATED: Edit from invoice_detail if needed
+    path("invoices/<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),
+    path("ajax/changeorders/", views.changeorders_ajax, name="changeorders_ajax"),
+    path("ajax/changeorder_lines/", views.changeorder_lines_ajax, name="changeorder_lines_ajax"),
 
-    # Invoice PDF
-    path('invoices/<int:pk>/', invoice_detail_view, name='invoice_detail'),
-    path('invoices/<int:pk>/pdf/', invoice_pdf_view, name='invoice_pdf'),
+    # Cost codes / presupuesto
+    path("cost-codes/", views.costcode_list_view, name="costcode_list"),
+    path("projects/<int:project_id>/budget/", views.budget_lines_view, name="budget_lines"),
+    path("budget-line/<int:line_id>/plan/", views.budget_line_plan_view, name="budget_line_plan"),
 
-    path('invoices/', invoice_list_view, name='invoice_list'),
+    # Estimates
+    path("projects/<int:project_id>/estimates/new/", views.estimate_create_view, name="estimate_create"),
+    path("estimates/<int:estimate_id>/", views.estimate_detail_view, name="estimate_detail"),
 
-    # Edit Invoice
-    path('invoices/<int:pk>/edit/', invoice_edit_view, name='invoice_edit'),
+    # Daily log / RFIs / Issues / Risks
+    path("projects/<int:project_id>/daily-log/", views.daily_log_view, name="daily_log"),
+    path("projects/<int:project_id>/rfis/", views.rfi_list_view, name="rfi_list"),
+    path("rfis/<int:rfi_id>/answer/", views.rfi_answer_view, name="rfi_answer"),
+    path("projects/<int:project_id>/issues/", views.issue_list_view, name="issue_list"),
+    path("projects/<int:project_id>/risks/", views.risk_list_view, name="risk_list"),
+
+    # Earned Value + export
+    path("projects/<int:project_id>/earned-value/", views.project_ev_view, name="project_ev"),
+    path("projects/<int:project_id>/earned-value/series/", views.project_ev_series, name="project_ev_series"),
+    path("projects/<int:project_id>/earned-value/csv/", views.project_ev_csv, name="project_ev_csv"),
+    path("projects/<int:project_id>/progress/upload/", views.upload_project_progress, name="upload_project_progress"),
+    path("projects/<int:project_id>/progress/sample.csv", views.download_progress_sample, name="download_progress_sample"),
+    path("projects/<int:project_id>/progress/export.csv", views.project_progress_csv, name="project_progress_csv"),
+    path("projects/<int:project_id>/progress/<int:pk>/delete/", views.delete_progress, name="delete_progress"),
+    path("projects/<int:project_id>/progress/<int:pk>/edit/", views.edit_progress, name="edit_progress"),
+    path("projects/<int:project_id>/progress/", RedirectView.as_view(pattern_name="project_ev", permanent=False), name="project_progress"),
+
+    # Legacy redirect
+    path("project/<int:project_id>/earned-value/", RedirectView.as_view(pattern_name="project_ev", permanent=True), name="project_ev_legacy"),
+    # Inventario
+    path("projects/<int:project_id>/inventory/", views.inventory_view, name="inventory_view"),
+    path("projects/<int:project_id>/inventory/move/", views.inventory_move_view, name="inventory_move"),
+    path("projects/<int:project_id>/inventory/history/", views.inventory_history_view, name="inventory_history"),
+
+    # Materials
+    path("materials/request/<int:request_id>/receive-ticket/", views.materials_receive_ticket_view, name="materials_receive_ticket"),
+    path("projects/<int:project_id>/materials/direct-purchase/", views.materials_direct_purchase_view, name="materials_direct_purchase"),
+    path("materials/requests/", views.materials_requests_list_view, name="materials_requests_list_all"),
+    path("projects/<int:project_id>/materials/requests/", views.materials_requests_list_view, name="materials_requests_list"),
+    path("materials/requests/<int:request_id>/", views.materials_request_detail_view, name="materials_request_detail"),
+    path("materials/requests/<int:request_id>/mark-ordered/", views.materials_mark_ordered_view, name="materials_mark_ordered"),
+    
+    # Daily Planning System
+    path("planning/", views.daily_planning_dashboard, name="daily_planning_dashboard"),
+    path("planning/project/<int:project_id>/create/", views.daily_plan_create, name="daily_plan_create"),
+    path("planning/<int:plan_id>/edit/", views.daily_plan_edit, name="daily_plan_edit"),
+    path("planning/activity/<int:activity_id>/delete/", views.daily_plan_delete_activity, name="daily_plan_delete_activity"),
+    path("planning/activity/<int:activity_id>/complete/", views.activity_complete, name="activity_complete"),
+    path("planning/employee/morning/", views.employee_morning_dashboard, name="employee_morning_dashboard"),
+    path("planning/sop/library/", views.sop_library, name="sop_library"),
+    path("planning/sop/create/", views.sop_create_edit, name="sop_create"),
+    path("planning/sop/<int:template_id>/edit/", views.sop_create_edit, name="sop_edit"),
+    
+    # Minutas / Project Timeline
+    path("projects/<int:project_id>/minutes/", views.project_minutes_list, name="project_minutes_list"),
+    path("projects/<int:project_id>/minutes/new/", views.project_minute_create, name="project_minute_create"),
+    path("minutes/<int:minute_id>/", views.project_minute_detail, name="project_minute_detail"),
+    
+    # Notifications
+    path("notifications/", notif_views.notifications_list, name="notifications_list"),
+    path("notifications/<int:notification_id>/mark-read/", notif_views.notification_mark_read, name="notification_mark_read"),
+    path("notifications/mark-all-read/", notif_views.notifications_mark_all_read, name="notifications_mark_all_read"),
+    # Task detail & my tasks (added to fix broken dashboard links)
+    path("tasks/<int:task_id>/", views.task_detail, name="task_detail"),
+    path("tasks/my/", views.task_list_all, name="task_list_all"),
+    
+    # REST API v1 (mobile, integrations)
+    path("api/v1/", include("core.api.urls")),
+    
+    # Language switch (simple session-based)
+    path("lang/<str:code>/", views.set_language_view, name="set_language"),
 ]
 
-# Static and media files in development
+# Media/Static en desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1,0 +1,167 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Tiempo sin CO asignado</h3>
+    <a href="{% url 'changeorder_board' %}" class="btn btn-outline-secondary">Ver COs</a>
+  </div>
+
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+      <label class="form-label">Proyecto</label>
+      <select name="project" class="form-select">
+        <option value="">Todos</option>
+        {% for p in projects %}
+          <option value="{{ p.id }}" {% if filters.project_id|default:'' == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Empleado</label>
+      <select name="employee" class="form-select">
+        <option value="">Todos</option>
+        {% for e in employees %}
+          <option value="{{ e.id }}" {% if filters.employee_id|default:'' == e.id|stringformat:'s' %}selected{% endif %}>{{ e.first_name }} {{ e.last_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Desde</label>
+      <input type="date" name="from" value="{{ filters.date_from }}" class="form-control" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Hasta</label>
+      <input type="date" name="to" value="{{ filters.date_to }}" class="form-control" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Por página</label>
+      <select name="ps" class="form-select">
+        {% for s in '25,50,100'.split(',') %}
+          <option value="{{ s }}" {% if filters.page_size|stringformat:'s' == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 mt-2">
+      <button class="btn btn-primary">Filtrar</button>
+      <a href="{% url 'unassigned_timeentries' %}" class="btn btn-secondary">Limpiar</a>
+    </div>
+  </form>
+
+  <form method="post" class="card mb-3" id="bulk-form">{% csrf_token %}
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <input type="hidden" name="action" value="assign" id="bulk-action" />
+        <div class="col-md-3">
+          <label class="form-label">Asignar a CO existente (solo del proyecto filtrado)</label>
+          <select name="change_order_id" id="co-select" class="form-select">
+            <option value="">-- Selecciona CO --</option>
+            {% for co in change_orders %}
+              {% if not filters.project_id or co.project.id|stringformat:'s' == filters.project_id|stringformat:'s' %}
+                <option data-project="{{ co.project.id }}" value="{{ co.id }}">#{{ co.id }} · {{ co.project.name }} · ${{ co.amount|floatformat:0 }} · {{ co.status }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <div class="border rounded p-2 bg-light h-100">
+            <div class="fw-semibold mb-1">O crear CO rápido</div>
+            <div class="row g-2">
+              <div class="col-7"><input type="text" name="new_co_description" class="form-control" placeholder="Descripción" /></div>
+              <div class="col-3"><input type="number" step="0.01" name="new_co_amount" class="form-control" placeholder="0.00" /></div>
+              <div class="col-2 d-grid">
+                <button type="button" class="btn btn-outline-primary" onclick="submitCreateAssign()">Crear</button>
+              </div>
+            </div>
+            <div class="small text-muted mt-1">Usará el proyecto de las filas seleccionadas (todas deben pertenecer al mismo).</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="border rounded p-2 bg-light h-100">
+            <div class="fw-semibold mb-1">Resumen Selección</div>
+            <div id="selection-stats" class="small text-muted">0 filas, 0.00 h</div>
+          </div>
+        </div>
+        <div class="col-md-2 d-grid">
+          <button class="btn btn-success" id="assign-btn" disabled>Asignar seleccionados</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th style="width:28px"><input type="checkbox" onclick="document.querySelectorAll('input[name=selected]').forEach(cb=>cb.checked=this.checked)" /></th>
+            <th>Fecha</th>
+            <th>Empleado</th>
+            <th>Proyecto</th>
+            <thead class="table-secondary">
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for te in page_obj.object_list %}
+            <tr>
+              <td><input type="checkbox" name="selected" value="{{ te.id }}" /></td>
+                <th>Acción</th>
+              <td>{{ te.date }}</td>
+              <td>{{ te.employee.first_name }} {{ te.employee.last_name }}</td>
+              <td>{{ te.project.name if te.project }}{% if not te.project %}<span class="text-muted">—</span>{% endif %}</td>
+              <td>{{ te.hours_worked|default:"-" }}</td>
+              <td class="small">{{ te.notes|default:"" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">No hay registros sin CO.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="quickAssign({{ te.id }})" title="Asignar rápidamente a CO seleccionado" disabled>⇨</button>
+                  </td>
+    </div>
+  </form>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <nav>
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+<script>
+function toggleAll(master){
+  document.querySelectorAll('input[name=selected]').forEach(cb=>{cb.checked=master.checked});
+  recalcSelection();
+}
+function recalcSelection(){
+  const boxes=[...document.querySelectorAll('input[name=selected]:checked')];
+  let hours=0;let projects=new Set();
+  boxes.forEach(b=>{hours+=parseFloat(b.dataset.hours||'0'); if(b.dataset.project){projects.add(b.dataset.project);} });
+  document.getElementById('selection-stats').innerText=`${boxes.length} filas, ${hours.toFixed(2)} h${projects.size>1?' (⚠ proyectos mixtos)':''}`;
+  const assignBtn=document.getElementById('assign-btn');
+  assignBtn.disabled=boxes.length===0 || projects.size>1;
+  document.querySelectorAll('button[onclick^="quickAssign"]').forEach(btn=>{btn.disabled=document.getElementById('co-select').value===''})
+}
+function submitCreateAssign(){
+  const boxes=[...document.querySelectorAll('input[name=selected]:checked')];
+  let projects=[...new Set(boxes.map(b=>b.dataset.project).filter(Boolean))];
+  if(projects.length!==1){alert('Selecciona filas de un solo proyecto para crear CO.');return;}
+  document.getElementById('bulk-action').value='create_and_assign';
+  document.getElementById('bulk-form').submit();
+}
+function quickAssign(id){
+  const co=document.getElementById('co-select').value; if(!co){alert('Selecciona un CO primero');return;}
+  // Crear un form dinámico para solo ese id
+  const f=document.createElement('form'); f.method='POST'; f.style.display='none'; f.innerHTML=`${document.querySelector('#bulk-form [name=csrfmiddlewaretoken]').outerHTML}<input name="action" value="assign"/><input name="change_order_id" value="${co}"/><input name="selected" value="${id}"/>`; document.body.appendChild(f); f.submit();
+}
+document.getElementById('co-select').addEventListener('change',()=>recalcSelection());
+</script>
+</div>
+{% endblock %}

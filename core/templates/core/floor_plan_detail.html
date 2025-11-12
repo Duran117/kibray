@@ -1,0 +1,318 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<style>
+.plan-wrapper { position: relative; display: inline-block; }
+.plan-wrapper img { max-width: 100%; height: auto; display: block; }
+.plan-pin { position: absolute; transform: translate(-50%, -100%); cursor: pointer; }
+.plan-pin .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,0.3); }
+.pin-path-line { stroke-width: 3; fill: none; pointer-events: none; }
+.pin-path-marker { }
+.zoom-controls { position: absolute; top: 10px; right: 10px; z-index: 100; }
+</style>
+<div class="container-fluid py-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">Planos</a></li>
+      <li class="breadcrumb-item active">{{ plan.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body position-relative" style="overflow:auto; max-height:80vh;">
+          <div class="zoom-controls btn-group">
+            <button class="btn btn-sm btn-outline-secondary" id="zoomIn" title="Zoom in">+</button>
+            <button class="btn btn-sm btn-outline-secondary" id="zoomOut" title="Zoom out">−</button>
+            <button class="btn btn-sm btn-outline-secondary" id="zoomReset" title="Reset">1:1</button>
+          </div>
+          <div class="plan-wrapper" id="planWrapper">
+            <svg id="planSvg" style="position:absolute; top:0; left:0; pointer-events:none; width:100%; height:100%;"></svg>
+            <img id="planImage" src="{{ plan.image.url }}" alt="plan" style="transform-origin: top left;">
+            {% for pin in pins %}
+              <div class="plan-pin" data-pin-id="{{ pin.id }}" data-color="{{ pin.pin_color }}" data-popover-url="{% url 'pin_detail_ajax' pin.id %}" style="left: {{ pin.x|floatformat:4|mul:100 }}%; top: {{ pin.y|floatformat:4|mul:100 }}%;" title="{{ pin.title }}" tabindex="0">
+                <div class="dot" style="background-color: {{ pin.pin_color }};"></div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-secondary mt-2">Haz clic sobre el plano para agregar un pin. Marca "Línea multipunto" para conectar puntos A→B→C. Cada pin nuevo tiene un color único.</div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header">Pines</div>
+        <div class="card-body p-0" style="max-height:300px; overflow-y:auto;">
+          <ul class="list-group list-group-flush">
+          {% for pin in pins %}
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong>{{ pin.title|default:'(sin título)' }}</strong>
+                  <span class="badge" style="background-color: {{ pin.pin_color }}; color: #fff; margin-left:4px;">●</span>
+                  <div class="small text-muted">{{ pin.get_pin_type_display }} · {{ pin.created_at|date:'Y-m-d H:i' }}</div>
+                  {% if pin.is_multipoint %}
+                    <div class="small"><span class="badge text-bg-success">Línea: {{ pin.path_points|length }} pts</span></div>
+                  {% endif %}
+                  {% if pin.color_sample %}
+                    <div class="small"><span class="badge text-bg-secondary">Color:</span> {{ pin.color_sample.name|default:pin.color_sample.code }}</div>
+                  {% endif %}
+                  {% if pin.linked_task %}
+                    <div class="small"><span class="badge text-bg-info">Tarea:</span> {{ pin.linked_task.title }}</div>
+                  {% endif %}
+                  {% if pin.description %}
+                    <div class="small mt-1">{{ pin.description }}</div>
+                  {% endif %}
+                </div>
+                <span class="badge text-bg-light">({{ pin.x }}, {{ pin.y }})</span>
+              </div>
+            </li>
+          {% empty %}
+            <li class="list-group-item">No hay pines en este plano.</li>
+          {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="card mt-3">
+        <div class="card-header">Agregar pin</div>
+        <div class="card-body">
+          <form id="pinForm" method="post" action="{% url 'floor_plan_add_pin' plan.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="x" id="pinX">
+            <input type="hidden" name="y" id="pinY">
+            <input type="hidden" name="is_multipoint" id="isMultipoint" value="false">
+            <input type="hidden" name="path_points" id="pathPoints" value="[]">
+            {{ form.as_p|default:'' }}
+            <div class="mb-2">
+              <label class="form-label">Color aprobado (opcional)</label>
+              <select name="color_sample" class="form-select form-select-sm">
+                <option value="">— Selecciona —</option>
+                {% for c in color_samples %}
+                  <option value="{{ c.id }}">{{ c.name|default:c.code }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="create_task" id="createTask">
+              <label class="form-check-label" for="createTask">Crear tarea touch-up</label>
+            </div>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="multipointCheck">
+              <label class="form-check-label" for="multipointCheck">Línea multipunto (A→B→C)</label>
+            </div>
+            <div id="multipointControls" style="display:none;">
+              <div class="alert alert-info small">Haz clic en múltiples puntos. Presiona <b>Esc</b> para finalizar.</div>
+              <div id="pointsList" class="small mb-2"></div>
+              <button type="button" class="btn btn-sm btn-warning" id="clearPoints">Limpiar puntos</button>
+            </div>
+            <button class="btn btn-primary btn-sm" id="saveBtn">Guardar pin</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const img = document.getElementById('planImage');
+  const wrapper = document.getElementById('planWrapper');
+  const svg = document.getElementById('planSvg');
+  const pinX = document.getElementById('pinX');
+  const pinY = document.getElementById('pinY');
+  const form = document.getElementById('pinForm');
+  const multipointCheck = document.getElementById('multipointCheck');
+  const multipointControls = document.getElementById('multipointControls');
+  const isMultipointInput = document.getElementById('isMultipoint');
+  const pathPointsInput = document.getElementById('pathPoints');
+  const pointsList = document.getElementById('pointsList');
+  const clearBtn = document.getElementById('clearPoints');
+  const zoomIn = document.getElementById('zoomIn');
+  const zoomOut = document.getElementById('zoomOut');
+  const zoomReset = document.getElementById('zoomReset');
+
+  let scale = 1.0;
+  let multipointMode = false;
+  let tempPoints = [];
+
+  // Zoom controls
+  zoomIn.addEventListener('click', ()=>{ scale = Math.min(scale+0.2, 3); applyZoom(); });
+  zoomOut.addEventListener('click', ()=>{ scale = Math.max(scale-0.2, 0.5); applyZoom(); });
+  zoomReset.addEventListener('click', ()=>{ scale=1; applyZoom(); });
+  function applyZoom(){ img.style.transform = `scale(${scale})`; updateSvgSize(); renderLines(); }
+  function updateSvgSize(){
+    const rect = img.getBoundingClientRect();
+    svg.setAttribute('width', rect.width);
+    svg.setAttribute('height', rect.height);
+  }
+
+  multipointCheck.addEventListener('change', function(){
+    multipointMode = this.checked;
+    multipointControls.style.display = multipointMode ? 'block' : 'none';
+    isMultipointInput.value = multipointMode ? 'true' : 'false';
+    if(!multipointMode){ tempPoints=[]; renderLines(); updatePointsList(); }
+  });
+
+  clearBtn.addEventListener('click', ()=>{ tempPoints=[]; renderLines(); updatePointsList(); });
+
+  wrapper.addEventListener('click', function(evt){
+    // No crear pins si se hace click sobre un pin existente (para popover)
+    if (evt.target && evt.target.closest && evt.target.closest('.plan-pin')) {
+      return;
+    }
+    const rect = img.getBoundingClientRect();
+    const x = (evt.clientX - rect.left) / (rect.width);
+    const y = (evt.clientY - rect.top) / (rect.height);
+    if(multipointMode){
+      tempPoints.push({x:x.toFixed(4), y:y.toFixed(4), label:String.fromCharCode(65+tempPoints.length)});
+      renderLines();
+      updatePointsList();
+    } else {
+      pinX.value = x.toFixed(4);
+      pinY.value = y.toFixed(4);
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && multipointMode && tempPoints.length>0){
+      // Finalizar multipunto: guardar primer punto como origen
+      pinX.value = tempPoints[0].x;
+      pinY.value = tempPoints[0].y;
+      pathPointsInput.value = JSON.stringify(tempPoints);
+      alert('Puntos capturados. Presiona Guardar pin.');
+    }
+  });
+
+  function renderLines(){
+    svg.innerHTML = '';
+    if(tempPoints.length < 2) return;
+    const rect = img.getBoundingClientRect();
+    for(let i=0; i<tempPoints.length-1; i++){
+      const p1 = tempPoints[i];
+      const p2 = tempPoints[i+1];
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('class','pin-path-line');
+      line.setAttribute('x1', p1.x * rect.width);
+      line.setAttribute('y1', p1.y * rect.height);
+      line.setAttribute('x2', p2.x * rect.width);
+      line.setAttribute('y2', p2.y * rect.height);
+      svg.appendChild(line);
+    }
+    tempPoints.forEach(pt=>{
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('cx', pt.x * rect.width);
+      circle.setAttribute('cy', pt.y * rect.height);
+      circle.setAttribute('r', 5);
+      circle.setAttribute('class','pin-path-marker');
+      svg.appendChild(circle);
+      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x', pt.x * rect.width + 8);
+      text.setAttribute('y', pt.y * rect.height - 8);
+      text.setAttribute('fill','#28a745');
+      text.setAttribute('font-weight','bold');
+      text.textContent = pt.label;
+      svg.appendChild(text);
+    });
+  }
+
+  function updatePointsList(){
+    if(tempPoints.length===0){ pointsList.innerHTML=''; return; }
+    pointsList.innerHTML = 'Puntos: ' + tempPoints.map(p=> `<b>${p.label}</b> (${p.x},${p.y})`).join(', ');
+  }
+
+  window.addEventListener('resize', ()=>{ updateSvgSize(); renderLines(); });
+  updateSvgSize();
+
+  // Render existing multipoint pins
+  const pinsData = {{ pins|safe|default:"[]" }};
+  // (Para renderizar pins existentes con path_points se requiere pasar datos como JSON desde el backend)
+
+  // Popovers para pines: al hacer clic, cargar detalles vía AJAX
+  const pinEls = document.querySelectorAll('.plan-pin');
+  let activePopover = null;
+  pinEls.forEach(el => {
+    const url = el.getAttribute('data-popover-url');
+    const color = el.getAttribute('data-color') || '#0d6efd';
+    const pop = new bootstrap.Popover(el, {
+      html: true,
+      container: 'body',
+      placement: 'top',
+      trigger: 'manual',
+      title: `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color}"></span> Detalles</span>`,
+      content: '<div class="text-muted small">Cargando…</div>'
+    });
+
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+      // Cerrar popover activo si es otro
+      if (activePopover && activePopover !== pop) {
+        activePopover.hide();
+      }
+      pop.show();
+      activePopover = pop;
+      if (!url) return;
+      fetch(url, { headers: { 'Accept': 'application/json' }})
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+          const titleHtml = `<span style="display:inline-flex;align-items:center;gap:6px;">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${data.color || color}"></span>
+              ${escapeHtml(data.title || 'Pin')}
+            </span>`;
+          let body = '';
+          if (data.description) {
+            body += `<div class="mb-2">${escapeHtml(data.description)}</div>`;
+          }
+          if (data.task) {
+            body += `<div class="mb-1"><span class="badge text-bg-info me-1">Tarea</span>
+              <a href="${data.links?.task || '#'}">${escapeHtml(data.task.title || ('#'+data.task.id))}</a>
+              <span class="ms-1 badge text-bg-light">${escapeHtml(data.task.status || '')}</span></div>`;
+          }
+          if (data.color_sample) {
+            body += `<div class="mb-1"><span class="badge text-bg-secondary me-1">Color</span>
+              <a href="${data.links?.color_sample || '#'}">${escapeHtml(data.color_sample.name || ('#'+data.color_sample.id))}</a>
+              <span class="ms-1 text-muted small">${escapeHtml(data.color_sample.brand || '')}</span>
+              <span class="ms-1 badge text-bg-light">${escapeHtml(data.color_sample.status || '')}</span></div>`;
+          }
+          if (!body) {
+            body = '<div class="text-muted small">Sin detalles vinculados.</div>';
+          }
+          // Actualizar contenido del popover
+          try {
+            pop.setContent({
+              '.popover-header': titleHtml,
+              '.popover-body': body
+            });
+          } catch (err) {
+            // Fallback para versiones antiguas
+            el.setAttribute('data-bs-content', body);
+            el.setAttribute('data-bs-original-title', titleHtml);
+          }
+        })
+        .catch(() => {
+          try {
+            pop.setContent({ '.popover-body': '<div class="text-danger small">Error cargando detalles.</div>' });
+          } catch (_) {}
+        });
+    });
+  });
+
+  // Cerrar al hacer clic fuera
+  document.addEventListener('click', function(){
+    if (activePopover) {
+      activePopover.hide();
+      activePopover = null;
+    }
+  });
+
+  // util: escape básico para contenido HTML
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#39;');
+  }
+})();
+</script>
+{% endblock %}

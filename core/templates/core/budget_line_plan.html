@@ -1,0 +1,11 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h4>Edit Plan</h4>
+<p><strong>{{ line.cost_code.code }}</strong> - {{ line.description }} (Baseline: ${{ line.baseline_amount }})</p>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-primary btn-sm">Save</button>
+  <a href="{% url 'budget_lines' line.project.id %}" class="btn btn-secondary btn-sm">Cancel</a>
+</form>
+{% endblock %}

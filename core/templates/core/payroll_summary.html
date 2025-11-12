@@ -17,6 +17,9 @@
             <div class="col-md-4 mb-2">
                 <input type="date" name="week_start" class="form-control" value="{{ selected_week }}">
             </div>
+            <div class="col-md-4 mb-2">
+                <input type="date" name="week_end" class="form-control" value="{{ selected_week_end }}">
+            </div>
             <div class="col-md-2 mb-2">
                 <button type="submit" class="btn btn-primary w-100">Show</button>
             </div>
@@ -51,14 +54,29 @@
                         <td>{{ row.employee.first_name }} {{ row.employee.last_name }}</td>
                         <td>{{ row.week_period }}</td>
                         {% for h in row.hours_by_day %}
-                            <td>{% if h %}{{ h }}{% else %}-{% endif %}</td>
+                            <td>
+                                <input type="number" name="hours_{{ row.employee.id }}_{{ forloop.counter0 }}" value="{{ h|default_if_none:'' }}" min="0" step="0.25" class="form-control" />
+                            </td>
                         {% endfor %}
-                        <td>{{ row.total_hours }}</td>
+                        <td>
+                            <input type="number" name="total_hours_{{ row.employee.id }}" value="{{ row.total_hours }}" min="0" step="0.25" class="form-control" />
+                        </td>
                         <td>${{ row.hourly_rate }}</td>
                         <td>${{ row.total_pay }}</td>
-                        <td>{{ row.form.paid }}</td>
-                        <td>{{ row.form.pay_date }}</td>
-                        <td>{{ row.form.check_number }}</td>
+                        <!-- Removido campo editable Paid -->
+                        <td>
+                            {% if row.form.instance.paid %}
+                                <span class="badge bg-success">Pagado</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <input type="date" name="pay_date_{{ row.employee.id }}" value="{{ row.form.pay_date }}" class="form-control" />
+                        </td>
+                        <td>
+                            <input type="text" name="check_number_{{ row.employee.id }}" value="{{ row.form.check_number }}" class="form-control" />
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>

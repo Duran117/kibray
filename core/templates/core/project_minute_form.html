@@ -1,0 +1,116 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <h3><i class="bi bi-plus-circle"></i> Nueva Minuta</h3>
+    <p class="text-muted mb-0">{{ project.name }}</p>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+              <label class="form-label"><strong>Tipo de Evento *</strong></label>
+              <select name="event_type" class="form-select" required>
+                {% for value, label in event_types %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+              <small class="text-muted">Selecciona el tipo de evento o comunicación</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label"><strong>Título *</strong></label>
+              <input type="text" name="title" class="form-control" placeholder="Ej: Aprobación de cambio en diseño de cocina" required maxlength="200">
+              <small class="text-muted">Resumen breve del evento</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label"><strong>Fecha y Hora del Evento *</strong></label>
+              <input type="datetime-local" name="event_date" class="form-control" 
+                     value="{{ today|date:'Y-m-d' }}T{{ today|date:'H:i' }}" required>
+              <small class="text-muted">Cuándo ocurrió este evento</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label"><strong>Descripción Detallada</strong></label>
+              <textarea name="description" class="form-control" rows="6" 
+                        placeholder="Describe los detalles, decisiones tomadas, acuerdos alcanzados, etc."></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label"><strong>Participantes</strong></label>
+              <input type="text" name="participants" class="form-control" 
+                     placeholder="Ej: John Doe, Jane Smith, Cliente">
+              <small class="text-muted">Personas involucradas en llamada/reunión (opcional)</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label"><strong>Archivo Adjunto</strong></label>
+              <input type="file" name="attachment" class="form-control">
+              <small class="text-muted">PDF, foto, correo escaneado, etc. (opcional)</small>
+            </div>
+
+            <div class="mb-3">
+              <div class="form-check">
+                <input type="checkbox" name="visible_to_client" class="form-check-input" id="visible" checked>
+                <label class="form-check-label" for="visible">
+                  <strong>Visible para el cliente</strong>
+                  <small class="text-muted d-block">Si desmarcas esto, solo Admin/PM podrán ver esta minuta</small>
+                </label>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Guardar Minuta
+              </button>
+              <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-outline-secondary">
+                Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card bg-light">
+        <div class="card-body">
+          <h6><i class="bi bi-info-circle"></i> Guía de Tipos</h6>
+          <ul class="small mb-0">
+            <li><strong>Decisión:</strong> Decisiones importantes del proyecto</li>
+            <li><strong>Llamada:</strong> Llamadas telefónicas</li>
+            <li><strong>Correo:</strong> Correos electrónicos importantes</li>
+            <li><strong>Reunión:</strong> Reuniones presenciales o virtuales</li>
+            <li><strong>Aprobación:</strong> Aprobaciones formales</li>
+            <li><strong>Cambio/Modificación:</strong> Cambios en scope o diseño</li>
+            <li><strong>Problema:</strong> Problemas o issues relevantes</li>
+            <li><strong>Hito:</strong> Hitos alcanzados</li>
+            <li><strong>Nota:</strong> Notas generales</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <h6><i class="bi bi-lightbulb"></i> Mejores Prácticas</h6>
+          <ul class="small mb-0">
+            <li>Registra las minutas lo antes posible</li>
+            <li>Sé específico y conciso</li>
+            <li>Incluye nombres de participantes</li>
+            <li>Adjunta evidencia cuando sea posible</li>
+            <li>Marca como privado info sensible</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

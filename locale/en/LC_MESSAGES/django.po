@@ -1,0 +1,832 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-07 20:27-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\core\templates\core\activity_complete.html:4
+#: .\core\templates\core\activity_complete.html:12
+msgid "Complete Activity"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:19
+#: .\core\templates\core\daily_plan_edit.html:18
+msgid "Project:"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:20
+#: .\core\templates\core\daily_plan_edit.html:19
+msgid "Date:"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:25
+#: .\core\templates\core\daily_plan_edit.html:250
+#: .\core\templates\core\employee_morning_dashboard.html:49
+msgid "Description"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:35
+msgid "Progress Percentage"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:66
+msgid "Select the completion percentage for this activity"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:71
+msgid "Upload Photos"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:78
+msgid ""
+"Upload photos showing the completed work. You can select multiple files."
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:83
+msgid "Internal Notes"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:83
+msgid "Optional - Not shown to client"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:87
+msgid "Add any notes about this activity (in Spanish, for internal use only)"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:89
+msgid ""
+"These notes are for internal use only and will not be shown to the client"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:96
+msgid "Checklist"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:112
+msgid "Verify that all steps have been completed before submitting"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:120
+#: .\core\templates\core\employee_morning_dashboard.html:144
+msgid "Mark as Complete"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:123
+#: .\core\templates\core\daily_plan_edit.html:271
+#, fuzzy
+#| msgid "Cancelar"
+msgid "Cancel"
+msgstr "Cancel"
+
+#: .\core\templates\core\activity_complete.html:133
+msgid "Important Information"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:135
+msgid "Photos help document the quality of work for the client"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:136
+msgid ""
+"Internal notes can include issues encountered, materials used, or time taken"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:137
+#, python-format
+msgid "If you can't complete 100%%, indicate the percentage achieved"
+msgstr ""
+
+#: .\core\templates\core\activity_complete.html:138
+msgid "Contact your supervisor if you encounter any problems"
+msgstr ""
+
+#: .\core\templates\core\base.html:36
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: .\core\templates\core\base.html:38 .\core\templates\core\dashboard_pm.html:5
+msgid "Dashboard PM"
+msgstr "Project Manager Dashboard"
+
+#: .\core\templates\core\base.html:45
+msgid "Cerrar sesión"
+msgstr "Logout"
+
+#: .\core\templates\core\base.html:52
+msgid "Iniciar sesión"
+msgstr "Login"
+
+#: .\core\templates\core\daily_plan_edit.html:4
+#: .\core\templates\core\daily_plan_edit.html:16
+msgid "Edit Daily Plan"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:12
+#: .\core\templates\core\dashboard_pm.html:32
+msgid "Daily Planning"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:20
+msgid "Status:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:22
+#: .\core\templates\core\daily_planning_dashboard.html:96
+#: .\core\templates\core\daily_planning_dashboard.html:153
+msgid "Draft"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:24
+#: .\core\templates\core\daily_planning_dashboard.html:98
+#: .\core\templates\core\daily_planning_dashboard.html:155
+msgid "Submitted"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:26
+#: .\core\templates\core\daily_planning_dashboard.html:100
+#: .\core\templates\core\daily_planning_dashboard.html:157
+msgid "Approved"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:33
+msgid "This plan is overdue! Deadline was:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:44
+#: .\core\templates\core\daily_planning_dashboard.html:85
+#: .\core\templates\core\daily_planning_dashboard.html:141
+msgid "Activities"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:47
+#: .\core\templates\core\daily_plan_edit.html:214
+#: .\core\templates\core\daily_plan_edit.html:273
+msgid "Add Activity"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:88
+msgid "Assigned:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:92
+msgid "No one assigned yet"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:98
+msgid "Materials:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:101
+msgid "Shortage!"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:117
+msgid "complete"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:124
+msgid "Delete this activity?"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:139
+msgid "No activities added yet. Click 'Add Activity' to start."
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:150
+#: .\core\templates\core\daily_planning_dashboard.html:87
+#: .\core\templates\core\daily_planning_dashboard.html:143
+msgid "Actions"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:158
+msgid "Submit Plan"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:163
+msgid "Add at least one activity before submitting"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:168
+#: .\core\templates\core\employee_morning_dashboard.html:171
+#, fuzzy
+#| msgid "Dashboard"
+msgid "Back to Dashboard"
+msgstr "Dashboard"
+
+#: .\core\templates\core\daily_plan_edit.html:175
+#: .\core\templates\core\daily_planning_dashboard.html:187
+msgid "Quick Links"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:179
+msgid "Browse SOPs"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:182
+msgid "View Project"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:189
+msgid "Plan Info"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:192
+msgid "Created by:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:193
+msgid "Created:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:194
+msgid "Deadline:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:196
+msgid "Approved by:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:197
+msgid "Approved:"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:220
+msgid "Activity Template (SOP)"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:220
+#: .\core\templates\core\daily_plan_edit.html:235
+msgid "(optional)"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:222
+msgid "Select SOP template"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:235
+msgid "Link to Schedule Item"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:237
+msgid "Not linked to schedule"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:245
+msgid "Activity Title"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:255
+msgid "Estimated Hours"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:260
+msgid "Assign Employees"
+msgstr ""
+
+#: .\core\templates\core\daily_plan_edit.html:266
+msgid "Hold Ctrl/Cmd to select multiple employees"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:4
+#: .\core\templates\core\daily_planning_dashboard.html:10
+msgid "Daily Planning Dashboard"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:11
+msgid "Manage daily work plans for all projects"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:18
+msgid "Overdue Plans!"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:19
+msgid "The following plans are past their 5pm deadline:"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:25
+msgid "Complete Now"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:39
+msgid "Create New Daily Plan"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:46
+msgid "Select Project"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:48
+msgid "Choose Project"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:55
+msgid "Plan Date"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:61
+msgid "Create Plan"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:75
+msgid "Today's Plans"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:83
+#: .\core\templates\core\daily_planning_dashboard.html:139
+#: .\core\templates\core\employee_morning_dashboard.html:37
+msgid "Project"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:84
+#: .\core\templates\core\daily_planning_dashboard.html:140
+msgid "Status"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:86
+msgid "Created By"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:102
+#: .\core\templates\core\daily_planning_dashboard.html:159
+msgid "Skipped"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:105
+msgid "activities"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:109
+msgid "Edit"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:118
+msgid "No plans for today yet."
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:130
+msgid "Recent Plans"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:138
+msgid "Date"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:142
+msgid "Created"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:166
+msgid "View/Edit"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:175
+msgid "No plans created yet."
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:189
+#: .\core\templates\core\sop_library.html:4
+#: .\core\templates\core\sop_library.html:10
+msgid "SOP Library"
+msgstr ""
+
+#: .\core\templates\core\daily_planning_dashboard.html:192
+msgid "Employee View"
+msgstr ""
+
+#: .\core\templates\core\dashboard_pm.html:21
+msgid "Selecciona tu idioma:"
+msgstr "Select your language:"
+
+#: .\core\templates\core\dashboard_pm.html:35
+#: .\core\templates\core\dashboard_pm.html:82
+msgid "Proyecto"
+msgstr "Project"
+
+#: .\core\templates\core\dashboard_pm.html:38
+msgid "Solicitar materiales"
+msgstr "Request materials"
+
+#: .\core\templates\core\dashboard_pm.html:41
+msgid "Pick up material"
+msgstr "Pick up material"
+
+#: .\core\templates\core\dashboard_pm.html:44
+msgid "Tasks"
+msgstr "Tasks"
+
+#: .\core\templates\core\dashboard_pm.html:47
+msgid "Schedule"
+msgstr "Schedule"
+
+#: .\core\templates\core\dashboard_pm.html:50
+msgid "Reporte de daños"
+msgstr "Damage report"
+
+#: .\core\templates\core\dashboard_pm.html:53
+#: .\core\templates\core\inventory_view.html:6
+msgid "Inventario"
+msgstr "Inventory"
+
+#: .\core\templates\core\dashboard_pm.html:56
+msgid "Earned Value"
+msgstr "Earned Value"
+
+#: .\core\templates\core\dashboard_pm.html:59
+msgid "Solicitudes (todas)"
+msgstr "Requests (all)"
+
+#: .\core\templates\core\dashboard_pm.html:62
+#: .\core\templates\core\inventory_view.html:8
+#: .\core\templates\core\materials_direct_purchase.html:6
+msgid "Compra directa"
+msgstr "Direct purchase"
+
+#: .\core\templates\core\dashboard_pm.html:65
+msgid "Pendientes"
+msgstr "Pending"
+
+#: .\core\templates\core\dashboard_pm.html:70
+msgid "Idioma actual:"
+msgstr "Current language:"
+
+#: .\core\templates\core\dashboard_pm.html:88
+msgid "Horas hoy"
+msgstr "Hours today"
+
+#: .\core\templates\core\dashboard_pm.html:89
+msgid "Costo mano de obra hoy"
+msgstr "Labor cost today"
+
+#: .\core\templates\core\dashboard_pm.html:119
+msgid "Sin proyectos."
+msgstr "No projects."
+
+#: .\core\templates\core\employee_morning_dashboard.html:4
+msgid "My Daily Plan"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:10
+msgid "Good Morning"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:11
+msgid "Your work plan for"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:57
+msgid "SOP"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:62
+msgid "Steps to follow:"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:74
+#: .\core\templates\core\sop_library.html:145
+msgid "Tips:"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:85
+msgid "Estimated time:"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:85
+#: .\core\templates\core\sop_library.html:71
+msgid "hours"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:92
+msgid "Team assigned"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:103
+msgid "Materials needed"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:120
+msgid "Warning: Material shortage detected. Contact your supervisor."
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:129
+msgid "Progress"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:148
+msgid "Activity completed!"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:161
+msgid "No activities assigned for today"
+msgstr ""
+
+#: .\core\templates\core\employee_morning_dashboard.html:162
+msgid "Enjoy your day off or check with your supervisor!"
+msgstr ""
+
+#: .\core\templates\core\inventory_history.html:6
+#, fuzzy
+#| msgid "Registrar movimiento"
+msgid "Historial de movimientos"
+msgstr "Movement history"
+
+#: .\core\templates\core\inventory_history.html:7
+msgid "Volver"
+msgstr "Back"
+
+#: .\core\templates\core\inventory_history.html:13
+msgid "Todos los items"
+msgstr "All items"
+
+#: .\core\templates\core\inventory_history.html:23
+msgid "Todos los tipos"
+msgstr "All types"
+
+#: .\core\templates\core\inventory_history.html:24
+#, fuzzy
+#| msgid "Guardar compra"
+msgid "Entrada compra"
+msgstr "Save purchase"
+
+#: .\core\templates\core\inventory_history.html:25
+msgid "Salida a uso"
+msgstr "Issue to use"
+
+#: .\core\templates\core\inventory_history.html:26
+msgid "Traslado"
+msgstr "Transfer"
+
+#: .\core\templates\core\inventory_history.html:27
+msgid "Regreso a storage"
+msgstr "Return to storage"
+
+#: .\core\templates\core\inventory_history.html:28
+msgid "Ajuste"
+msgstr "Adjustment"
+
+#: .\core\templates\core\inventory_history.html:29
+msgid "Consumo"
+msgstr "Consumption"
+
+#: .\core\templates\core\inventory_history.html:33
+msgid "Filtrar"
+msgstr "Filter"
+
+#: .\core\templates\core\inventory_history.html:39
+msgid "Fecha"
+msgstr "Date"
+
+#: .\core\templates\core\inventory_history.html:39
+#: .\core\templates\core\inventory_move.html:17
+msgid "Tipo"
+msgstr "Type"
+
+#: .\core\templates\core\inventory_history.html:39
+#: .\core\templates\core\inventory_move.html:13
+#: .\core\templates\core\inventory_view.html:26
+msgid "Item"
+msgstr "Item"
+
+#: .\core\templates\core\inventory_history.html:39
+#, fuzzy
+#| msgid "Cantidad"
+msgid "Cant"
+msgstr "Qty"
+
+#: .\core\templates\core\inventory_history.html:39
+#: .\core\templates\core\inventory_move.html:21
+msgid "Desde"
+msgstr "From"
+
+#: .\core\templates\core\inventory_history.html:39
+#: .\core\templates\core\inventory_move.html:25
+msgid "Hacia"
+msgstr "To"
+
+#: .\core\templates\core\inventory_history.html:39
+msgid "Por"
+msgstr "By"
+
+#: .\core\templates\core\inventory_history.html:39
+#: .\core\templates\core\inventory_move.html:33
+#, fuzzy
+#| msgid "Notas"
+msgid "Nota"
+msgstr "Note"
+
+#: .\core\templates\core\inventory_history.html:54
+#, fuzzy
+#| msgid "Registrar movimiento"
+msgid "Sin movimientos."
+msgstr "No movements."
+
+#: .\core\templates\core\inventory_move.html:6
+#, fuzzy
+#| msgid "Volver al inventario"
+msgid "Movimiento de inventario"
+msgstr "Inventory movement"
+
+#: .\core\templates\core\inventory_move.html:7
+#: .\core\templates\core\materials_direct_purchase.html:7
+msgid "Volver al inventario"
+msgstr "Back to inventory"
+
+#: .\core\templates\core\inventory_move.html:29
+#: .\core\templates\core\inventory_view.html:26
+#: .\core\templates\core\materials_direct_purchase.html:40
+msgid "Cantidad"
+msgstr "Quantity"
+
+#: .\core\templates\core\inventory_move.html:39
+msgid "Agregar gasto ahora"
+msgstr "Add expense now"
+
+#: .\core\templates\core\inventory_move.html:42
+msgid "Sin gasto para este material"
+msgstr "No expense for this material"
+
+#: .\core\templates\core\inventory_move.html:44
+msgid ""
+"Si marcas 'Agregar gasto ahora', al guardar te llevamos al formulario de "
+"gastos con el proyecto ya seleccionado."
+msgstr ""
+"If you check 'Add expense now', upon saving we'll take you to the expense "
+"form with the project already selected."
+
+#: .\core\templates\core\inventory_move.html:48
+#, fuzzy
+#| msgid "Guardar compra"
+msgid "Guardar"
+msgstr "Save"
+
+#: .\core\templates\core\inventory_move.html:49
+#: .\core\templates\core\materials_direct_purchase.html:73
+msgid "Cancelar"
+msgstr "Cancel"
+
+#: .\core\templates\core\inventory_view.html:9
+msgid "Registrar movimiento"
+msgstr "Register movement"
+
+#: .\core\templates\core\inventory_view.html:10
+msgid "Historial"
+msgstr "History"
+
+#: .\core\templates\core\inventory_view.html:16
+msgid "Alertas:"
+msgstr "Alerts:"
+
+#: .\core\templates\core\inventory_view.html:26
+#: .\core\templates\core\materials_direct_purchase.html:40
+msgid "Categoría"
+msgstr "Category"
+
+#: .\core\templates\core\inventory_view.html:26
+msgid "Umbral"
+msgstr "Threshold"
+
+#: .\core\templates\core\inventory_view.html:36
+msgid "Bajo"
+msgstr "Low"
+
+#: .\core\templates\core\inventory_view.html:39
+msgid "Sin registros."
+msgstr "No records."
+
+#: .\core\templates\core\materials_direct_purchase.html:11
+msgid "Datos del ticket"
+msgstr "Receipt details"
+
+#: .\core\templates\core\materials_direct_purchase.html:14
+msgid "Tienda"
+msgstr "Store"
+
+#: .\core\templates\core\materials_direct_purchase.html:18
+msgid "Total"
+msgstr "Total"
+
+#: .\core\templates\core\materials_direct_purchase.html:22
+msgid "Foto del recibo"
+msgstr "Receipt photo"
+
+#: .\core\templates\core\materials_direct_purchase.html:28
+msgid "Sin gasto"
+msgstr "No expense"
+
+#: .\core\templates\core\materials_direct_purchase.html:32
+msgid "Notas"
+msgstr "Notes"
+
+#: .\core\templates\core\materials_direct_purchase.html:37
+msgid "Ítems comprados"
+msgstr "Purchased items"
+
+#: .\core\templates\core\materials_direct_purchase.html:40
+msgid "Producto"
+msgstr "Product"
+
+#: .\core\templates\core\materials_direct_purchase.html:40
+msgid "Unidad"
+msgstr "Unit"
+
+#: .\core\templates\core\materials_direct_purchase.html:67
+msgid "Agregar ítem"
+msgstr "Add item"
+
+#: .\core\templates\core\materials_direct_purchase.html:72
+msgid "Guardar compra"
+msgstr "Save purchase"
+
+#: .\core\templates\core\sop_library.html:11
+msgid "Browse Standard Operating Procedures and Activity Templates"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:22
+#, fuzzy
+#| msgid "Categoría"
+msgid "Category"
+msgstr "Category"
+
+#: .\core\templates\core\sop_library.html:24
+msgid "All Categories"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:33
+#: .\core\templates\core\sop_library.html:43
+msgid "Search"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:37
+msgid "Search by name, description, or tips..."
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:79
+msgid "Steps"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:84
+msgid "Show/Hide Steps"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:101
+msgid "Materials"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:106
+#, fuzzy
+#| msgid "Solicitar materiales"
+msgid "Show/Hide Materials"
+msgstr "Request materials"
+
+#: .\core\templates\core\sop_library.html:123
+msgid "Tools"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:128
+msgid "Show/Hide Tools"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:153
+msgid "Common Errors:"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:162
+msgid "Watch Video Tutorial"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:169
+msgid "Created by"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:178
+msgid "No SOPs found"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:181
+msgid "Try adjusting your search filters"
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:183
+msgid ""
+"No SOPs have been created yet. Contact your administrator to create activity "
+"templates."
+msgstr ""
+
+#: .\core\templates\core\sop_library.html:195
+msgid "Back to Planning Dashboard"
+msgstr ""

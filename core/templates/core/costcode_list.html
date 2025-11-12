@@ -1,0 +1,11 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h3>Cost Codes</h3>
+<table class="table table-sm">
+  <tr><th>Code</th><th>Name</th><th>Category</th><th>Active</th></tr>
+  {% for c in codes %}
+    <tr><td>{{ c.code }}</td><td>{{ c.name }}</td><td>{{ c.category }}</td><td>{{ c.active }}</td></tr>
+  {% empty %}<tr><td colspan="4">No cost codes.</td></tr>{% endfor %}
+</table>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary btn-sm">Add</button></form>
+{% endblock %}

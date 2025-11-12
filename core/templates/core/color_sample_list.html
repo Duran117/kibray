@@ -1,0 +1,41 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container py-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">Mis Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item active">Colores</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Colores / Samples</h3>
+    <a href="{% url 'color_sample_create' project.id %}" class="btn btn-primary">Nueva muestra</a>
+  </div>
+
+  <div class="row g-3">
+    {% for s in samples %}
+    <div class="col-md-4">
+      <div class="card h-100">
+        {% if s.sample_image %}
+        <img src="{{ s.sample_image.url }}" class="card-img-top" alt="sample">
+        {% endif %}
+        <div class="card-body">
+          <h5 class="card-title">{{ s.name|default:s.code|default:'Muestra' }}</h5>
+          <p class="mb-1"><span class="badge text-bg-secondary">{{ s.get_status_display }}</span> · v{{ s.version }}</p>
+          <p class="card-text small text-muted">{{ s.brand }} {{ s.finish }} {{ s.gloss }}</p>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'color_sample_detail' s.id %}">Ver detalle</a>
+        </div>
+        <div class="card-footer small text-muted">Creado: {{ s.created_at|date:'Y-m-d H:i' }}</div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">No hay muestras de color aún.</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

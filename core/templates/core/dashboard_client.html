@@ -1,0 +1,183 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4 kb-container-narrow">
+  <div class="text-center mb-4">
+    <h2 class="display-5">Mis Proyectos</h2>
+    <div class="text-muted">{{ display_name }}</div>
+    <p class="text-muted mb-0">{{ today|date:"l, F d, Y" }}</p>
+  </div>
+
+  {% for data in project_data %}
+  <div class="card shadow-sm mb-4 kb-elevated kb-gradient-border">
+    <!-- Header con progreso -->
+  <div class="card-header text-white" style="background: var(--kb-gradient-primary); border-top-left-radius: var(--kb-radius); border-top-right-radius: var(--kb-radius);">
+      <div class="row align-items-center text-white">
+        <div class="col-md-8">
+          <h3 class="mb-1">{{ data.project.name }}</h3>
+          <p class="mb-0 opacity-75">
+            <i class="bi bi-geo-alt"></i> {{ data.project.address|default:"—" }}
+          </p>
+        </div>
+        <div class="col-md-4 text-end">
+          <div class="h1 mb-0">{{ data.progress_pct }}%</div>
+          <small>Progreso</small>
+        </div>
+      </div>
+      <!-- Barra de progreso -->
+      <div class="progress mt-3" style="height: 10px; background:#233; opacity:.35">
+        <div class="progress-bar bg-success" role="progressbar" style="width: {{ data.progress_pct }}%"></div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="row g-4">
+        <!-- === GALERÍA DE FOTOS === -->
+        <div class="col-lg-6">
+          <h5 class="kb-section-title"><i class="bi bi-images"></i> Galería Reciente</h5>
+          {% if data.recent_photos %}
+          <div class="row g-2">
+            {% for photo in data.recent_photos %}
+            <div class="col-4">
+              <a href="{{ photo.image.url }}" target="_blank" class="d-block">
+                <img src="{{ photo.image.url }}" class="img-fluid rounded shadow-sm" alt="Site photo" style="height: 120px; object-fit: cover; width: 100%;">
+              </a>
+              <small class="text-muted d-block mt-1">{{ photo.room|default:"—" }}</small>
+            </div>
+            {% endfor %}
+          </div>
+          <a href="{% url 'site_photo_list' data.project.id %}" class="btn btn-sm btn-outline-primary mt-2 w-100">
+            Ver todas las fotos →
+          </a>
+          {% else %}
+          <p class="text-muted">No hay fotos disponibles aún.</p>
+          {% endif %}
+        </div>
+
+        <!-- === FACTURAS Y PAGOS === -->
+        <div class="col-lg-6">
+          <h5 class="kb-section-title"><i class="bi bi-receipt"></i> Facturas</h5>
+          
+          <!-- Resumen financiero -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="p-3 bg-light rounded text-center">
+                <small class="text-muted d-block">Total Facturado</small>
+                <h5 class="mb-0 text-primary">${{ data.total_invoiced|floatformat:2 }}</h5>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 bg-light rounded text-center">
+                <small class="text-muted d-block">Pendiente</small>
+                <h5 class="mb-0 text-danger">${{ data.balance|floatformat:2 }}</h5>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de facturas -->
+          {% if data.invoices %}
+          <ul class="list-group">
+            {% for invoice in data.invoices %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ invoice.invoice_number }}</strong><br>
+                <small class="text-muted">{{ invoice.date_issued|date:"M d, Y" }}</small>
+              </div>
+              <div class="text-end">
+                <div class="fw-bold">${{ invoice.total_amount|floatformat:2 }}</div>
+                <span class="badge bg-{{ invoice.status }}">{{ invoice.get_status_display }}</span>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-muted">No hay facturas aún.</p>
+          {% endif %}
+        </div>
+
+        <!-- === PRÓXIMO EVENTO === -->
+        <div class="col-lg-6">
+          <h5 class="kb-section-title"><i class="bi bi-calendar-check"></i> Próximo Evento</h5>
+          {% if data.next_schedule %}
+          <div class="alert alert-info">
+            <h6 class="mb-1">{{ data.next_schedule.title }}</h6>
+            <p class="mb-1"><i class="bi bi-clock"></i> {{ data.next_schedule.start_datetime|date:"D, M d 'at' g:i A" }}</p>
+            {% if data.next_schedule.description %}
+            <small class="text-muted">{{ data.next_schedule.description }}</small>
+            {% endif %}
+          </div>
+          {% else %}
+          <p class="text-muted">No hay eventos programados próximamente.</p>
+          {% endif %}
+        </div>
+
+        <!-- === MIS SOLICITUDES === -->
+        <div class="col-lg-6">
+          <h5 class="kb-section-title"><i class="bi bi-chat-left-dots"></i> Mis Solicitudes</h5>
+          {% if data.client_requests %}
+          <ul class="list-group">
+            {% for req in data.client_requests %}
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong>{{ req.title }}</strong><br>
+                  <small class="text-muted">{{ req.created_at|date:"M d, Y" }}</small>
+                </div>
+                <span class="badge bg-{{ req.status }}">{{ req.get_status_display }}</span>
+              </div>
+              {% if req.description %}
+              <p class="mb-0 mt-2 small">{{ req.description|truncatewords:20 }}</p>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-muted mb-3">No tienes solicitudes aún.</p>
+          {% endif %}
+          <a href="{% url 'client_request_create' data.project.id %}" class="btn btn-sm btn-success w-100">
+            <i class="bi bi-plus-circle"></i> Nueva Solicitud
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer con acciones -->
+    <div class="card-footer bg-light">
+      <div class="d-flex gap-2">
+        <a href="{% url 'client_project_view' data.project.id %}" class="btn btn-outline-primary btn-sm flex-fill">
+          <i class="bi bi-eye"></i> Ver Detalles
+        </a>
+        <a href="{% url 'site_photo_list' data.project.id %}" class="btn btn-outline-secondary btn-sm flex-fill">
+          <i class="bi bi-images"></i> Galería
+        </a>
+        <a href="{% url 'project_minutes_list' data.project.id %}" class="btn btn-outline-info btn-sm flex-fill">
+          <i class="bi bi-journal-text"></i> Minutas
+        </a>
+        <a href="{% url 'client_requests_list' data.project.id %}" class="btn btn-outline-success btn-sm flex-fill">
+          <i class="bi bi-chat"></i> Solicitudes
+        </a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="text-center py-5">
+    <i class="bi bi-folder2-open display-1 text-muted"></i>
+    <h3 class="mt-3">No tienes proyectos asignados</h3>
+    <p class="text-muted">Contacta con tu Project Manager para más información.</p>
+  </div>
+  {% endfor %}
+</div>
+
+<style>
+.card {
+  transition: transform 0.2s;
+}
+.card:hover {
+  transform: translateY(-5px);
+}
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+</style>
+{% endblock %}

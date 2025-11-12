@@ -1,28 +1,130 @@
 {% extends "core/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Factura {{ invoice.invoice_number }}{% endblock %}
+
 {% block content %}
-  <h2>Factura {{ invoice.invoice_number }}</h2>
-  <p><strong>Proyecto:</strong> {{ invoice.project.name }}</p>
-  <p><strong>Cliente:</strong> {{ invoice.project.client }}</p>
-  <p><strong>Fecha:</strong> {{ invoice.date_issued }}</p>
-  <p><strong>Vencimiento:</strong> {{ invoice.due_date }}</p>
-  <p><strong>Monto total:</strong> ${{ invoice.total_amount|floatformat:2 }}</p>
-  <h3>Líneas de factura</h3>
-  <table>
-    <tr>
-      <th>Descripción</th>
-      <th>Monto</th>
-    </tr>
-    {% for line in invoice.lines.all %}
-    <tr>
-      <td>{{ line.description }}</td>
-      <td>${{ line.amount|floatformat:2 }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-  <br>
-  <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank">Descargar PDF</a>
-  <br>
-  <a href="{% url 'invoice_list' %}">Volver a la lista de facturas</a>
-  <br>
-  <a href="{% url 'invoice_edit' pk=invoice.pk %}">Editar factura</a>
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8 d-flex align-items-center">
+            <img src="{% static company.logo_path %}" alt="Logo" style="height:60px;" class="me-3"/>
+            <div>
+                <h2 class="mb-1">📄 Factura {{ invoice.invoice_number }}</h2>
+                <p class="text-muted mb-0">
+                    <strong>Proyecto:</strong> {{ invoice.project.name }} | 
+                    <strong>Cliente:</strong> {{ invoice.project.client }}
+                </p>
+                <small class="text-muted">{{ company.name }} • {{ company.phone }} • {{ company.email }}</small>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="badge bg-{{ invoice.status|default:'secondary' }} fs-5">{{ invoice.get_status_display|default:'BORRADOR' }}</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📋 Líneas de Factura</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in invoice.lines.all %}
+                            <tr>
+                                <td>{{ line.description }}</td>
+                                <td class="text-end"><strong>${{ line.amount|floatformat:2 }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td><strong>TOTAL</strong></td>
+                                <td class="text-end"><h4 class="mb-0">${{ invoice.total_amount|floatformat:2 }}</h4></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">ℹ️ Información</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Fecha Emisión:</strong> {{ invoice.date_issued|date:"M d, Y" }}</p>
+                    <p><strong>Vencimiento:</strong> {{ invoice.due_date|date:"M d, Y" }}</p>
+                    <p><strong>Empresa:</strong> {{ company.name }}<br>{{ company.address_line1 }}<br>{{ company.city_state_zip }}<br>{{ company.phone }} | {{ company.email }}</p>
+                    {% if invoice.sent_date %}
+                    <p><strong>Enviada:</strong> {{ invoice.sent_date|date:"M d, Y" }}</p>
+                    {% endif %}
+                    {% if invoice.amount_paid %}
+                    <p><strong>Pagado:</strong> ${{ invoice.amount_paid|floatformat:2 }}</p>
+                    <p><strong>Saldo:</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">⚙️ Acciones</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Status Actions -->
+                    {% if invoice.status == 'DRAFT' %}
+                    <div class="alert alert-warning mb-3">
+                        <strong>📝 Borrador</strong> - Esta factura aún no ha sido enviada al cliente.
+                    </div>
+                    <form method="post" action="{% url 'invoice_mark_sent' invoice.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            📧 Marcar como Enviada
+                        </button>
+                    </form>
+                    {% elif invoice.status == 'SENT' or invoice.status == 'VIEWED' %}
+                    <div class="alert alert-info mb-3">
+                        <strong>📤 Enviada</strong> - Esperando aprobación del cliente.
+                    </div>
+                    <form method="post" action="{% url 'invoice_mark_approved' invoice.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100 mb-2">
+                            ✅ Marcar como Aprobada
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' %}
+                        <a href="{% url 'record_invoice_payment' invoice.id %}" class="btn btn-success">
+                            💵 Registrar Pago
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn btn-primary">
+                            📥 Descargar PDF
+                        </a>
+                        <a href="{% url 'project_overview' invoice.project.id %}" class="btn btn-outline-primary">
+                            📁 Ver Proyecto
+                        </a>
+                        <a href="{% url 'invoice_payment_dashboard' %}" class="btn btn-outline-warning">
+                            💰 Panel de Pagos
+                        </a>
+                        <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary">
+                            📋 Lista de Facturas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

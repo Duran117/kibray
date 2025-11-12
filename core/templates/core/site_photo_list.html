@@ -1,0 +1,32 @@
+```html
+// filepath: c:\Users\jesus\Kibray\core\templates\core\site_photo_list.html
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h4>Fotos del proyecto · {{ project.name }}</h4>
+    <a class="btn btn-primary" href="{% url 'site_photo_create' project.id %}">Nueva foto</a>
+  </div>
+  {% if photos %}
+    <div class="row g-3">
+      {% for p in photos %}
+        <div class="col-md-4">
+          <div class="card h-100">
+            <img src="{{ p.image.url }}" class="card-img-top" alt="foto pared">
+            <div class="card-body">
+              <div class="small text-muted">{{ p.room }} · {{ p.wall_ref }}</div>
+              <div>{{ p.approved_color|default:p.color_text }}</div>
+              <div class="small">{{ p.brand }} {{ p.finish }} {{ p.gloss }}</div>
+              <div class="small">Capas: {{ p.coats }} · Especial: {{ p.special_finish|yesno:"Sí,No" }}</div>
+              <p class="small mb-0">{{ p.notes|default:"" }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">Sin fotos aún.</p>
+  {% endif %}
+</div>
+{% endblock %}
+```

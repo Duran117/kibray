@@ -1,5 +1,37 @@
 <div class="container py-4">
-    <h2>Change Orders Board</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0"><i class="bi bi-file-earmark-text"></i> Change Orders</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'dashboard_admin' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+            <a href="{% url 'changeorder_create' %}" class="btn btn-warning"><i class="bi bi-plus-circle"></i> Nuevo</a>
+        </div>
+    </div>
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-3">
+            <select name="project" class="form-select">
+                <option value="">Todos los proyectos</option>
+                {% for p in projects %}
+                <option value="{{ p.id }}" {% if filter_project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">Todos los estados</option>
+                <option value="pending" {% if filter_status=='pending' %}selected{% endif %}>Pendiente</option>
+                <option value="approved" {% if filter_status=='approved' %}selected{% endif %}>Aprobado</option>
+                <option value="sent" {% if filter_status=='sent' %}selected{% endif %}>Enviado</option>
+                <option value="billed" {% if filter_status=='billed' %}selected{% endif %}>Facturado</option>
+                <option value="paid" {% if filter_status=='paid' %}selected{% endif %}>Pagado</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-center">
+            <button class="btn btn-primary w-100">Filtrar</button>
+        </div>
+        <div class="col-md-3 d-flex align-items-center">
+            <div class="alert alert-info mb-0 w-100 py-2"><strong>Total:</strong> ${{ total_amount|floatformat:2 }}</div>
+        </div>
+    </form>
     <div class="row">
         {% for co in changeorders %}
         <div class="col-md-6 col-lg-4 mb-4">
@@ -46,11 +78,15 @@
                     {% else %}
                         <p class="text-muted">No expenses.</p>
                     {% endif %}
+                                        <div class="mt-3 d-flex gap-2">
+                                            <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                            <a href="{% url 'project_overview' co.project.id %}" class="btn btn-sm btn-outline-secondary">Proyecto</a>
+                                        </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <p>No change orders found.</p>
+            <p>No change orders found.</p>
         {% endfor %}
     </div>
 </div>

@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container py-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">Mis Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'color_sample_list' project.id %}">Colores</a></li>
+      <li class="breadcrumb-item active">Detalle</li>
+    </ol>
+  </nav>
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h3>{{ sample.name|default:sample.code|default:'Muestra' }} <span class="badge text-bg-secondary">{{ sample.get_status_display }}</span></h3>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'color_sample_review' sample.id %}">Revisar / Cambiar estado</a>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card">
+        {% if sample.sample_image %}<img src="{{ sample.sample_image.url }}" class="card-img-top" alt="sample">{% endif %}
+        <div class="card-body">
+          <p><strong>Marca:</strong> {{ sample.brand }}</p>
+          <p><strong>Código:</strong> {{ sample.code }}</p>
+          <p><strong>Acabado:</strong> {{ sample.finish }} {{ sample.gloss }}</p>
+          <p><strong>Versión:</strong> v{{ sample.version }}</p>
+          {% if sample.approved_at %}
+          <p class="text-success"><strong>Aprobado:</strong> {{ sample.approved_at|date:'Y-m-d H:i' }} por {{ sample.approved_by }}</p>
+          {% endif %}
+          <p><strong>Notas internas:</strong><br>{{ sample.notes|default:'—' }}</p>
+          <p><strong>Notas cliente:</strong><br>{{ sample.client_notes|default:'—' }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header">Anotaciones (JSON)</div>
+        <div class="card-body">
+          {% if sample.annotations %}
+            <pre class="small bg-light p-2">{{ sample.annotations|safe }}</pre>
+          {% else %}
+            <div class="text-muted small">Sin anotaciones aún.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

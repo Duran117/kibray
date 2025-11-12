@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-3">
+  <a href="{% url 'damage_report_list' project.id %}" class="btn btn-link">← Volver</a>
+  <h3>{{ report.title }}</h3>
+  <p class="text-muted">{{ report.get_severity_display }} · {{ report.get_status_display }} · {{ report.reported_at|date:'Y-m-d H:i' }}</p>
+  <p>{{ report.description|default:'(Sin descripción)' }}</p>
+  {% if report.pin and report.plan %}
+  <p>Plano: <a href="{% url 'floor_plan_detail' report.plan.id %}">{{ report.plan.name }}</a></p>
+  {% endif %}
+  <hr>
+  <h5>Fotos</h5>
+  <div class="row g-2">
+    {% for p in report.photos.all %}
+    <div class="col-6 col-md-3">
+      <img src="{{ p.image.url }}" class="img-fluid rounded" alt="photo"/>
+      {% if p.notes %}<div class="small text-muted">{{ p.notes }}</div>{% endif %}
+    </div>
+    {% empty %}
+    <div class="text-muted">No hay fotos.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

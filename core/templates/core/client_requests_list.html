@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Solicitudes de Cliente{% if project %} – {{ project.name }}{% endif %}</h3>
+    {% if project %}<a class="btn btn-primary" href="{% url 'client_request_create' project.id %}">Nueva Solicitud</a>{% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead class="table-secondary">
+        <tr>
+          <th>ID</th>
+          <th>Proyecto</th>
+          <th>Título</th>
+          <th>Estado</th>
+          <th>CO</th>
+          <th>Creada</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in requests %}
+          <tr>
+            <td>{{ r.id }}</td>
+            <td>{{ r.project.name }}</td>
+            <td>{{ r.title }}</td>
+            <td>{{ r.get_status_display }}</td>
+            <td>{% if r.change_order %}<a href="{% url 'changeorder_detail' r.change_order.id %}">CO #{{ r.change_order.id }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              {% if not r.change_order %}
+              <a class="btn btn-sm btn-outline-success" href="{% url 'client_request_convert' r.id %}">Convertir a CO</a>
+              {% else %}
+              <span class="text-muted">Convertida</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted">Sin solicitudes</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
