@@ -10,6 +10,7 @@ from .views import (
     DailyPlanViewSet, PlannedActivityViewSet, TimeEntryViewSet,
     MaterialRequestViewSet, MaterialCatalogViewSet,
     InventoryItemViewSet, InventoryLocationViewSet, ProjectInventoryViewSet, InventoryMovementViewSet,
+    PayrollPeriodViewSet, PayrollRecordViewSet, PayrollPaymentViewSet,
     global_search, save_changeorder_photo_annotations, delete_changeorder_photo,
     update_changeorder_photo_image
 )
@@ -57,6 +58,11 @@ router.register(r'inventory/items', InventoryItemViewSet, basename='inventory-it
 router.register(r'inventory/locations', InventoryLocationViewSet, basename='inventory-location')
 router.register(r'inventory/stocks', ProjectInventoryViewSet, basename='project-inventory')
 router.register(r'inventory/movements', InventoryMovementViewSet, basename='inventory-movement')
+
+# Module 16: Payroll
+router.register(r'payroll/periods', PayrollPeriodViewSet, basename='payroll-period')
+router.register(r'payroll/records', PayrollRecordViewSet, basename='payroll-record')
+router.register(r'payroll/payments', PayrollPaymentViewSet, basename='payroll-payment')
 
 urlpatterns = [
     # JWT Auth

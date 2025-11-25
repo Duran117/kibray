@@ -627,3 +627,92 @@ class MaterialCatalogSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_by', 'created_at']
 
+
+# ============================================================================
+# PHASE 4: Module 16 - Payroll API
+# ============================================================================
+
+class PayrollPaymentSerializer(serializers.ModelSerializer):
+    recorded_by_name = serializers.CharField(source='recorded_by.get_full_name', read_only=True, allow_null=True)
+
+    class Meta:
+        from core.models import PayrollPayment
+        model = PayrollPayment
+        fields = [
+            'id', 'payroll_record', 'amount', 'payment_date', 'payment_method',
+            'check_number', 'reference', 'notes', 'recorded_by', 'recorded_by_name', 'recorded_at'
+        ]
+        read_only_fields = ['recorded_by', 'recorded_at']
+
+
+class PayrollRecordSerializer(serializers.ModelSerializer):
+    employee_name = serializers.SerializerMethodField()
+    amount_paid = serializers.SerializerMethodField()
+    balance_due = serializers.SerializerMethodField()
+    period_id = serializers.IntegerField(source='period.id', read_only=True)
+
+    class Meta:
+        from core.models import PayrollRecord
+        model = PayrollRecord
+        fields = [
+            'id', 'period', 'period_id', 'employee', 'employee_name',
+            'week_start', 'week_end', 'total_hours', 'hourly_rate', 'adjusted_rate',
+            'regular_hours', 'overtime_hours', 'overtime_rate', 'bonus', 'deductions', 'deduction_notes',
+            'gross_pay', 'tax_withheld', 'net_pay', 'total_pay',
+            'manually_adjusted', 'adjusted_by', 'adjusted_at', 'adjustment_reason',
+            'reviewed', 'notes', 'amount_paid', 'balance_due'
+        ]
+        read_only_fields = ['adjusted_by', 'adjusted_at', 'gross_pay', 'net_pay', 'amount_paid', 'balance_due']
+
+    def get_employee_name(self, obj):
+        try:
+            return f"{obj.employee.first_name} {obj.employee.last_name}".strip()
+        except Exception:
+            return None
+
+    def get_amount_paid(self, obj):
+        try:
+            return obj.amount_paid()
+        except Exception:
+            return 0
+
+    def get_balance_due(self, obj):
+        try:
+            return obj.balance_due()
+        except Exception:
+            return 0
+
+
+class PayrollPeriodSerializer(serializers.ModelSerializer):
+    total_payroll = serializers.SerializerMethodField()
+    total_paid = serializers.SerializerMethodField()
+    balance_due = serializers.SerializerMethodField()
+
+    class Meta:
+        from core.models import PayrollPeriod
+        model = PayrollPeriod
+        fields = [
+            'id', 'week_start', 'week_end', 'status', 'notes', 'created_by', 'created_at',
+            'approved_by', 'approved_at', 'validation_errors',
+            'total_payroll', 'total_paid', 'balance_due'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'approved_by', 'approved_at', 'validation_errors', 'total_payroll', 'total_paid', 'balance_due']
+
+    def get_total_payroll(self, obj):
+        try:
+            return obj.total_payroll()
+        except Exception:
+            return 0
+
+    def get_total_paid(self, obj):
+        try:
+            return obj.total_paid()
+        except Exception:
+            return 0
+
+    def get_balance_due(self, obj):
+        try:
+            return obj.balance_due()
+        except Exception:
+            return 0
+

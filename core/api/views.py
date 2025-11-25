@@ -22,7 +22,8 @@ from core.models import (
     ChangeOrderPhoto, Income, Expense, CostCode, BudgetLine, DailyLog,
     TaskTemplate, WeatherSnapshot, Employee, DailyPlan, PlannedActivity, TimeEntry,
     MaterialRequest, MaterialRequestItem, MaterialCatalog,
-    InventoryItem, InventoryLocation, ProjectInventory, InventoryMovement
+    InventoryItem, InventoryLocation, ProjectInventory, InventoryMovement,
+    PayrollPeriod, PayrollRecord, PayrollPayment
 )
 from .serializers import (
     NotificationSerializer, ChatChannelSerializer, ChatMessageSerializer,
@@ -36,7 +37,8 @@ from .serializers import (
     TimeEntrySerializer,
     InventoryItemSerializer, InventoryLocationSerializer, ProjectInventorySerializer,
     InventoryMovementSerializer, MaterialRequestSerializer, MaterialRequestItemSerializer,
-    MaterialCatalogSerializer
+    MaterialCatalogSerializer,
+    PayrollPeriodSerializer, PayrollRecordSerializer, PayrollPaymentSerializer
 )
 from .filters import IncomeFilter, ExpenseFilter, ProjectFilter
 from .pagination import StandardResultsSetPagination
@@ -289,6 +291,92 @@ class DamageReportViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(reported_by=self.request.user)
+
+# ================================
+# Module 16: Payroll API
+# ================================
+
+class PayrollPeriodViewSet(viewsets.ModelViewSet):
+    serializer_class = PayrollPeriodSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['status', 'week_start', 'week_end']
+    ordering_fields = ['week_start', 'week_end', 'created_at']
+
+    def get_queryset(self):
+        return PayrollPeriod.objects.select_related('created_by', 'approved_by').order_by('-week_start')
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def validate(self, request, pk=None):
+        period = self.get_object()
+        errors = period.validate_period()
+        return Response({'errors': errors})
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        period = self.get_object()
+        skip = request.data.get('skip_validation') in (True, 'true', '1', 1)
+        try:
+            period.approve(approved_by=request.user, skip_validation=bool(skip))
+            return Response({'status': 'approved'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+
+    @action(detail=True, methods=['post'])
+    def generate_expenses(self, request, pk=None):
+        period = self.get_object()
+        period.generate_expense_records()
+        return Response({'status': 'ok'})
+
+
+class PayrollRecordViewSet(viewsets.ModelViewSet):
+    serializer_class = PayrollRecordSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['period', 'employee', 'week_start', 'week_end', 'reviewed']
+    ordering_fields = ['week_start', 'employee__last_name']
+
+    def get_queryset(self):
+        return PayrollRecord.objects.select_related('employee', 'period', 'adjusted_by').order_by('-week_start')
+
+    @action(detail=True, methods=['post'])
+    def manual_adjust(self, request, pk=None):
+        record = self.get_object()
+        reason = request.data.get('reason', '')
+        updates = request.data.get('updates', {})
+        if not isinstance(updates, dict):
+            return Response({'error': 'updates must be an object'}, status=400)
+        record.manual_adjust(adjusted_by=request.user, reason=reason, **updates)
+        return Response(self.get_serializer(record).data)
+
+    @action(detail=True, methods=['post'])
+    def create_expense(self, request, pk=None):
+        record = self.get_object()
+        exp = record.create_expense_record()
+        return Response({'expense_id': exp.id})
+
+
+class PayrollPaymentViewSet(viewsets.ModelViewSet):
+    serializer_class = PayrollPaymentSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['payroll_record', 'payment_date', 'payment_method']
+    ordering_fields = ['payment_date', 'amount']
+
+    def get_queryset(self):
+        return PayrollPayment.objects.select_related('payroll_record', 'recorded_by').order_by('-payment_date')
+
+    def perform_create(self, serializer):
+        payment = serializer.save(recorded_by=self.request.user)
+        # Optional: guard against overpayment
+        try:
+            if payment.payroll_record.amount_paid() > payment.payroll_record.total_pay:
+                return Response({'warning': 'Overpayment detected'}, status=201)
+        except Exception:
+            pass
 
 # Floor Plans & Pins
 class FloorPlanViewSet(viewsets.ReadOnlyModelViewSet):
