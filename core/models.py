@@ -12,6 +12,12 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.apps import apps
 from django.utils import timezone
 from typing import TYPE_CHECKING, Callable
+import base64
+import hashlib
+import hmac
+import secrets
+import struct
+import time
 
 if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
@@ -1383,6 +1389,73 @@ class PayrollPayment(models.Model):
     def __str__(self):
         ref = f"#{self.check_number}" if self.check_number else self.reference
         return f"${self.amount} - {self.payroll_record.employee} - {ref}"
+
+
+# ---------------------
+# Two-Factor Authentication (TOTP)
+# ---------------------
+class TwoFactorProfile(models.Model):
+    """Minimal TOTP-based 2FA profile linked to Django User.
+
+    No external deps: implements RFC 6238 (HMAC-SHA1, 30s step, 6 digits).
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='twofa')
+    secret = models.CharField(max_length=64, blank=True, help_text='Base32 secret (no padding)')
+    enabled = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_verified_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['enabled'])]
+        verbose_name = 'Two-Factor Profile'
+        verbose_name_plural = 'Two-Factor Profiles'
+
+    @staticmethod
+    def generate_base32_secret(length: int = 20) -> str:
+        """Generate a random base32-encoded secret without padding."""
+        raw = secrets.token_bytes(length)
+        b32 = base64.b32encode(raw).decode('utf-8').replace('=', '')
+        return b32
+
+    @staticmethod
+    def _totp(secret_b32: str, for_time: int | None = None, period: int = 30, digits: int = 6) -> str:
+        if for_time is None:
+            for_time = int(time.time())
+        counter = int(for_time // period)
+        # Add padding for base32 decode if needed
+        pad_len = (-len(secret_b32)) % 8
+        padded = secret_b32 + ('=' * pad_len)
+        key = base64.b32decode(padded.upper())
+        msg = struct.pack('>Q', counter)
+        h = hmac.new(key, msg, hashlib.sha1).digest()
+        o = h[-1] & 0x0F
+        code = (struct.unpack('>I', h[o:o+4])[0] & 0x7FFFFFFF) % (10 ** digits)
+        return str(code).zfill(digits)
+
+    def provisioning_uri(self, issuer: str = 'Kibray') -> str:
+        """Return otpauth URI that can be used to generate a QR code."""
+        if not self.secret:
+            self.secret = self.generate_base32_secret()
+            self.save(update_fields=['secret'])
+        label = f"{issuer}:{self.user.username}"
+        return f"otpauth://totp/{label}?secret={self.secret}&issuer={issuer}&digits=6&period=30"
+
+    def verify_otp(self, otp: str, valid_window: int = 1) -> bool:
+        """Verify provided TOTP within +/- valid_window steps (default 1)."""
+        try:
+            now = int(time.time())
+            for offset in range(-valid_window, valid_window + 1):
+                if self._totp(self.secret, now + offset * 30) == str(otp).zfill(6):
+                    return True
+            return False
+        except Exception:
+            return False
+
+    @staticmethod
+    def get_or_create_for_user(user: User) -> 'TwoFactorProfile':
+        prof, _ = TwoFactorProfile.objects.get_or_create(user=user)
+        return prof
 
 
 def get_week_hours(employee, week_start, week_end):

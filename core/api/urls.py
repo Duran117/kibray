@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from .views import TwoFactorTokenObtainPairView, TwoFactorViewSet
 from .views import (
     NotificationViewSet, ChatChannelViewSet, ChatMessageViewSet,
     TaskViewSet, DamageReportViewSet, FloorPlanViewSet, PlanPinViewSet,
@@ -64,9 +65,12 @@ router.register(r'payroll/periods', PayrollPeriodViewSet, basename='payroll-peri
 router.register(r'payroll/records', PayrollRecordViewSet, basename='payroll-record')
 router.register(r'payroll/payments', PayrollPaymentViewSet, basename='payroll-payment')
 
+# Security: 2FA
+router.register(r'2fa', TwoFactorViewSet, basename='twofactor')
+
 urlpatterns = [
     # JWT Auth
-    path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/login/', TwoFactorTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # Global Search
     path('search/', global_search, name='global_search'),

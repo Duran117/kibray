@@ -716,3 +716,48 @@ class PayrollPeriodSerializer(serializers.ModelSerializer):
         except Exception:
             return 0
 
+    
+# ============================================================================
+# SECURITY: 2FA (TOTP)
+# ============================================================================
+
+class TwoFactorSetupSerializer(serializers.Serializer):
+    secret = serializers.CharField(read_only=True)
+    otpauth_uri = serializers.CharField(read_only=True)
+
+
+class TwoFactorEnableSerializer(serializers.Serializer):
+    otp = serializers.CharField(max_length=6)
+
+
+class TwoFactorDisableSerializer(serializers.Serializer):
+    otp = serializers.CharField(max_length=6)
+
+
+# JWT: Custom Token serializer enforcing 2FA when enabled
+try:
+    from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+except Exception:  # pragma: no cover - fallback if simplejwt unavailable in certain contexts
+    TokenObtainPairSerializer = object  # type: ignore
+
+
+class TwoFactorTokenObtainPairSerializer(TokenObtainPairSerializer):  # type: ignore[misc]
+    otp = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = getattr(self, 'user', None)
+        if user is None:
+            return data
+        try:
+            from core.models import TwoFactorProfile
+            prof = getattr(user, 'twofa', None)
+            if prof and prof.enabled:
+                otp = self.initial_data.get('otp')
+                if not otp or not prof.verify_otp(otp):
+                    raise serializers.ValidationError({'otp': 'Invalid or missing OTP for 2FA-enabled account'})
+        except Exception:
+            # If any unexpected error, deny for safety
+            raise serializers.ValidationError({'otp': '2FA validation failed'})
+        return data
+

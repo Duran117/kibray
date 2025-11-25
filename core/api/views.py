@@ -38,10 +38,13 @@ from .serializers import (
     InventoryItemSerializer, InventoryLocationSerializer, ProjectInventorySerializer,
     InventoryMovementSerializer, MaterialRequestSerializer, MaterialRequestItemSerializer,
     MaterialCatalogSerializer,
-    PayrollPeriodSerializer, PayrollRecordSerializer, PayrollPaymentSerializer
+    PayrollPeriodSerializer, PayrollRecordSerializer, PayrollPaymentSerializer,
+    TwoFactorSetupSerializer, TwoFactorEnableSerializer, TwoFactorDisableSerializer,
+    TwoFactorTokenObtainPairSerializer
 )
 from .filters import IncomeFilter, ExpenseFilter, ProjectFilter
 from .pagination import StandardResultsSetPagination
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 User = get_user_model()
 
@@ -377,6 +380,57 @@ class PayrollPaymentViewSet(viewsets.ModelViewSet):
                 return Response({'warning': 'Overpayment detected'}, status=201)
         except Exception:
             pass
+
+
+# ================================
+# Security: 2FA TOTP API
+# ================================
+class TwoFactorViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def setup(self, request):
+        from core.models import TwoFactorProfile
+        prof = TwoFactorProfile.get_or_create_for_user(request.user)
+        # Ensure secret exists
+        uri = prof.provisioning_uri()
+        return Response({'secret': prof.secret, 'otpauth_uri': uri})
+
+    @action(detail=False, methods=['post'])
+    def enable(self, request):
+        from core.models import TwoFactorProfile
+        serializer = TwoFactorEnableSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        otp = serializer.validated_data['otp']
+        prof = TwoFactorProfile.get_or_create_for_user(request.user)
+        if not prof.secret:
+            prof.secret = TwoFactorProfile.generate_base32_secret()
+        if prof.verify_otp(otp):
+            prof.enabled = True
+            from django.utils import timezone
+            prof.last_verified_at = timezone.now()
+            prof.save(update_fields=['enabled', 'secret', 'last_verified_at'])
+            return Response({'status': 'enabled'})
+        return Response({'error': 'Invalid OTP'}, status=400)
+
+    @action(detail=False, methods=['post'])
+    def disable(self, request):
+        from core.models import TwoFactorProfile
+        serializer = TwoFactorDisableSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        otp = serializer.validated_data['otp']
+        prof = TwoFactorProfile.get_or_create_for_user(request.user)
+        if not prof.enabled:
+            return Response({'status': 'already_disabled'})
+        if prof.verify_otp(otp):
+            prof.enabled = False
+            prof.save(update_fields=['enabled'])
+            return Response({'status': 'disabled'})
+        return Response({'error': 'Invalid OTP'}, status=400)
+
+
+class TwoFactorTokenObtainPairView(TokenObtainPairView):
+    serializer_class = TwoFactorTokenObtainPairSerializer
 
 # Floor Plans & Pins
 class FloorPlanViewSet(viewsets.ReadOnlyModelViewSet):
