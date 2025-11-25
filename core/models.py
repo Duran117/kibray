@@ -3544,24 +3544,32 @@ class DailyPlan(models.Model):
     def fetch_weather(self):
         """
         Q12.8: Obtener clima automáticamente basado en la ubicación del proyecto.
-        Usa API de OpenWeatherMap o similar.
+        Usa WeatherService con abstracción de providers (Module 30)
         """
         if not self.project.address:
             return None
         
-        # TODO: Implementar integración con API de clima
-        # Por ahora retorna estructura de ejemplo
-        from django.utils import timezone
-        self.weather_data = {
-            'temp': 72,  # Fahrenheit
-            'condition': 'Sunny',
-            'humidity': 45,
-            'wind_speed': 5,
-            'precipitation_chance': 10,
-        }
-        self.weather_fetched_at = timezone.now()
-        self.save()
-        return self.weather_data
+        # Get project coordinates (mock for now, should use geocoding)
+        # TODO: Implement geocoding for project.address
+        latitude = 40.7128  # Default NYC coordinates
+        longitude = -74.0060
+        
+        try:
+            from core.services.weather import weather_service
+            from django.utils import timezone
+            
+            weather_data = weather_service.get_weather(latitude, longitude)
+            
+            # Store weather data
+            self.weather_data = weather_data
+            self.weather_fetched_at = timezone.now()
+            self.save(update_fields=['weather_data', 'weather_fetched_at'])
+            
+            return self.weather_data
+        except Exception as e:
+            # Log error and return None
+            print(f"Weather fetch failed: {e}")
+            return None
     
     def convert_activities_to_tasks(self, user=None):
         """
