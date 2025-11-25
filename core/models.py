@@ -163,6 +163,8 @@ class Expense(models.Model):
 class TimeEntry(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)
+    # Link optional to a Task for integrated time tracking (Module 11 extension)
+    task = models.ForeignKey('Task', on_delete=models.SET_NULL, null=True, blank=True, related_name='time_entries', help_text="Tarea asociada para agregar horas trabajadas")
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField(null=True, blank=True)  # <- permitir entrada abierta
@@ -514,7 +516,8 @@ class Task(models.Model):
     def start_tracking(self):
         """Q11.13: Iniciar tracking de tiempo en la tarea"""
         from django.utils import timezone
-        if not self.started_at and not self.is_touchup:
+        # Solo iniciar si no hay tracking activo y dependencias están completas
+        if not self.started_at and not self.is_touchup and self.can_start():
             self.started_at = timezone.now()
             self.status = 'En Progreso'
             self.save()
@@ -526,6 +529,9 @@ class Task(models.Model):
         from django.utils import timezone
         if self.started_at and not self.is_touchup:
             elapsed = (timezone.now() - self.started_at).total_seconds()
+            # Asegurar al menos 1 segundo para evitar métricas 0
+            if elapsed < 1:
+                elapsed = 1
             self.time_tracked_seconds += int(elapsed)
             self.started_at = None
             self.save()
@@ -535,6 +541,47 @@ class Task(models.Model):
     def get_time_tracked_hours(self):
         """Retorna horas trabajadas en formato decimal"""
         return round(self.time_tracked_seconds / 3600.0, 2)
+
+    # --- Module 11 extension: Integrate TimeEntry aggregation ---
+    def get_time_entries_hours(self):
+        """Suma de horas registradas vía TimeEntry vinculadas a esta tarea."""
+        total = Decimal("0.00")
+        for te in self.time_entries.all():
+            if te.hours_worked is not None:
+                total += Decimal(str(te.hours_worked))
+        return float(total)
+
+    @property
+    def total_hours(self):
+        """Total de horas combinando tracking interno + registros (Decimal horas)."""
+        return round(self.get_time_tracked_hours() + self.get_time_entries_hours(), 2)
+
+    @property
+    def reopen_events_count(self):
+        """Número de veces que la tarea fue reabierta (estado desde Completada a Pendiente/En Progreso)."""
+        return self.status_changes.filter(old_status='Completada').exclude(new_status='Completada').count()
+
+    def add_image(self, image_file, uploaded_by=None, caption=""):
+        """Agregar nueva imagen versionada (marca anteriores como no actuales y aumenta versión)."""
+        from core.models import TaskImage
+        # Calcular siguiente versión de forma simple (conteo existente + 1)
+        next_version = self.images.count() + 1
+        # Marcar la imagen actual anterior como no vigente
+        self.images.filter(is_current=True).update(is_current=False)
+        new_image = TaskImage.objects.create(
+            task=self,
+            image=image_file,
+            caption=caption,
+            uploaded_by=uploaded_by,
+            version=next_version,
+            is_current=True,
+        )
+        # Salvaguarda: si por alguna razón la versión quedó en 1 pero hay más de una imagen, corregir
+        img_count = self.images.count()
+        if img_count > 1 and new_image.version == 1:
+            new_image.version = img_count
+            new_image.save(update_fields=['version'])
+        return new_image
 
     def reopen(self, user=None, notes: str = ""):
         """Reabrir una tarea completada (Q11.12) creando historial y limpiando fecha de completado.

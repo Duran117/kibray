@@ -111,6 +111,88 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Response({'status': 'updated'})
         return Response({'error': 'status required'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # ---- Module 11 custom actions ----
+    @action(detail=True, methods=['post'])
+    def add_dependency(self, request, pk=None):
+        """Agregar una dependencia a la tarea (otra task debe completarse antes)."""
+        task = self.get_object()
+        dep_id = request.data.get('dependency_id')
+        if not dep_id:
+            return Response({'error': 'dependency_id required'}, status=400)
+        if str(task.id) == str(dep_id):
+            return Response({'error': 'Task cannot depend on itself'}, status=400)
+        dependency = Task.objects.filter(pk=dep_id).first()
+        if not dependency:
+            return Response({'error': 'Dependency task not found'}, status=404)
+        task.dependencies.add(dependency)
+        try:
+            task.full_clean()  # re-validar ciclos
+        except Exception as e:
+            task.dependencies.remove(dependency)
+            return Response({'error': str(e)}, status=400)
+        return Response({'status': 'ok', 'dependencies': list(task.dependencies.values_list('id', flat=True))})
+
+    @action(detail=True, methods=['post'])
+    def remove_dependency(self, request, pk=None):
+        task = self.get_object()
+        dep_id = request.data.get('dependency_id')
+        if not dep_id:
+            return Response({'error': 'dependency_id required'}, status=400)
+        dependency = Task.objects.filter(pk=dep_id).first()
+        if not dependency:
+            return Response({'error': 'Dependency task not found'}, status=404)
+        task.dependencies.remove(dependency)
+        return Response({'status': 'ok', 'dependencies': list(task.dependencies.values_list('id', flat=True))})
+
+    @action(detail=True, methods=['post'])
+    def reopen(self, request, pk=None):
+        """Reabrir una tarea Completada (cambia estado y registra histórico)."""
+        task = self.get_object()
+        notes = request.data.get('notes', '')
+        success = task.reopen(user=request.user, notes=notes)
+        if not success:
+            return Response({'error': 'Task not in Completada state'}, status=400)
+        return Response({'status': 'ok', 'new_status': task.status, 'reopen_events_count': task.reopen_events_count})
+
+    @action(detail=True, methods=['post'])
+    def start_tracking(self, request, pk=None):
+        task = self.get_object()
+        if not task.can_start():
+            return Response({'error': 'Dependencies incomplete'}, status=400)
+        started = task.start_tracking()
+        if not started:
+            return Response({'error': 'Already tracking or touch-up'}, status=400)
+        return Response({'status': 'ok', 'started_at': task.started_at})
+
+    @action(detail=True, methods=['post'])
+    def stop_tracking(self, request, pk=None):
+        task = self.get_object()
+        elapsed = task.stop_tracking()
+        if elapsed is None:
+            return Response({'error': 'Not tracking'}, status=400)
+        return Response({'status': 'ok', 'elapsed_seconds': elapsed, 'time_tracked_seconds': task.time_tracked_seconds, 'time_tracked_hours': task.get_time_tracked_hours()})
+
+    @action(detail=True, methods=['get'])
+    def hours_summary(self, request, pk=None):
+        task = self.get_object()
+        return Response({
+            'task_id': task.id,
+            'title': task.title,
+            'time_tracked_hours': task.get_time_tracked_hours(),
+            'time_entries_hours': task.get_time_entries_hours(),
+            'total_hours': task.total_hours
+        })
+
+    @action(detail=True, methods=['post'], parser_classes=[MultiPartParser, FormParser])
+    def add_image(self, request, pk=None):
+        task = self.get_object()
+        img = request.FILES.get('image')
+        if not img:
+            return Response({'error': 'image file required'}, status=400)
+        caption = request.data.get('caption', '')
+        new_image = task.add_image(image_file=img, uploaded_by=request.user, caption=caption)
+        return Response({'status': 'ok', 'image_id': new_image.id, 'version': new_image.version})
+
 # Damage Reports
 class DamageReportViewSet(viewsets.ModelViewSet):
     serializer_class = DamageReportSerializer

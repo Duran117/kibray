@@ -36,15 +36,29 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     assigned_to_name = serializers.CharField(source='assigned_to.get_full_name', read_only=True, allow_null=True)
     project_name = serializers.CharField(source='project.name', read_only=True)
+    priority = serializers.CharField(read_only=True)
+    due_date = serializers.DateField(read_only=True, allow_null=True)
+    total_hours = serializers.FloatField(read_only=True)
+    time_tracked_hours = serializers.SerializerMethodField()
+    dependencies_ids = serializers.SerializerMethodField()
+    reopen_events_count = serializers.IntegerField(source='reopen_events_count', read_only=True)
     
     class Meta:
         model = Task
         fields = [
             'id', 'title', 'description', 'project', 'project_name',
-            'assigned_to', 'assigned_to_name', 'status', 'is_touchup',
-            'created_at'
+            'assigned_to', 'assigned_to_name', 'status', 'priority',
+            'due_date', 'is_touchup', 'created_at', 'started_at',
+            'time_tracked_seconds', 'time_tracked_hours', 'total_hours',
+            'dependencies_ids', 'reopen_events_count'
         ]
     read_only_fields = ['created_at']
+
+    def get_time_tracked_hours(self, obj):
+        return obj.get_time_tracked_hours()
+
+    def get_dependencies_ids(self, obj):
+        return list(obj.dependencies.values_list('id', flat=True))
 
 class DamageReportSerializer(serializers.ModelSerializer):
     reported_by_name = serializers.CharField(source='reported_by.get_full_name', read_only=True, allow_null=True)
