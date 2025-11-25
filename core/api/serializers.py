@@ -360,6 +360,31 @@ class DailyLogPlanningSerializer(serializers.ModelSerializer):
         }
 
 
+# ============================================================================
+# PHASE 2: Module 13 - Time Tracking
+# ============================================================================
+
+class TimeEntrySerializer(serializers.ModelSerializer):
+    employee_name = serializers.SerializerMethodField(read_only=True)
+    task_title = serializers.CharField(source='task.title', read_only=True)
+    project_name = serializers.CharField(source='project.name', read_only=True)
+
+    class Meta:
+        from core.models import TimeEntry
+        model = TimeEntry
+        fields = [
+            'id', 'employee', 'employee_name', 'project', 'project_name', 'task', 'task_title',
+            'date', 'start_time', 'end_time', 'hours_worked', 'notes', 'cost_code', 'change_order'
+        ]
+        read_only_fields = ['hours_worked']
+
+    def get_employee_name(self, obj):
+        try:
+            return f"{obj.employee.first_name} {obj.employee.last_name}".strip()
+        except Exception:
+            return None
+
+
 class InstantiatePlannedTemplatesSerializer(serializers.Serializer):
     """Serializer for instantiate_planned_templates action"""
     assigned_to_id = serializers.IntegerField(required=False, allow_null=True)

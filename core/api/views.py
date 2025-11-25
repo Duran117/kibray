@@ -20,7 +20,7 @@ from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
     FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem,
     ChangeOrderPhoto, Income, Expense, CostCode, BudgetLine, DailyLog,
-    TaskTemplate, WeatherSnapshot, Employee, DailyPlan, PlannedActivity
+    TaskTemplate, WeatherSnapshot, Employee, DailyPlan, PlannedActivity, TimeEntry
 )
 from .serializers import (
     NotificationSerializer, ChatChannelSerializer, ChatMessageSerializer,
@@ -30,7 +30,8 @@ from .serializers import (
     ProjectSerializer, IncomeSerializer, ExpenseSerializer,
     CostCodeSerializer, BudgetLineSerializer, ProjectBudgetSummarySerializer,
     DailyLogPlanningSerializer, TaskTemplateSerializer, WeatherSnapshotSerializer,
-    InstantiatePlannedTemplatesSerializer, DailyPlanSerializer, PlannedActivitySerializer
+    InstantiatePlannedTemplatesSerializer, DailyPlanSerializer, PlannedActivitySerializer,
+    TimeEntrySerializer
 )
 from .filters import IncomeFilter, ExpenseFilter, ProjectFilter
 from .pagination import StandardResultsSetPagination
@@ -1206,6 +1207,20 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
         activity = serializer.save(daily_plan=plan)
         return Response(PlannedActivitySerializer(activity).data, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['post'])
+    def recompute_actual_hours(self, request, pk=None):
+        """Sum hours from time entries linked to tasks converted from this plan's activities."""
+        from django.db.models import Sum
+        plan = self.get_object()
+        task_ids = list(plan.activities.exclude(converted_task__isnull=True).values_list('converted_task_id', flat=True))
+        total = TimeEntry.objects.filter(task_id__in=task_ids).aggregate(s=Sum('hours_worked'))['s'] or 0
+        plan.actual_hours_worked = total
+        plan.save(update_fields=['actual_hours_worked'])
+        return Response({
+            'actual_hours_worked': float(total) if total is not None else 0.0,
+            'task_count': len(task_ids)
+        })
+
 
 class PlannedActivityViewSet(viewsets.ModelViewSet):
     """CRUD for PlannedActivity with material checks"""
@@ -1227,6 +1242,29 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
             'material_shortage': activity.material_shortage,
             'description': activity.description
         })
+
+    @action(detail=True, methods=['get'])
+    def variance(self, request, pk=None):
+        """Compute variance using estimated vs actual hours. If actual_hours is None, compute from converted_task time entries."""
+        from django.db.models import Sum
+        activity = self.get_object()
+        actual = activity.actual_hours
+        if actual is None and activity.converted_task_id:
+            actual = TimeEntry.objects.filter(task_id=activity.converted_task_id).aggregate(s=Sum('hours_worked'))['s']
+        if activity.estimated_hours and actual is not None:
+            try:
+                est = float(activity.estimated_hours)
+                act = float(actual)
+                variance_hours = round(est - act, 2)
+                variance_pct = round(((variance_hours) / est) * 100, 1) if est else None
+                return Response({
+                    'variance_hours': variance_hours,
+                    'variance_percentage': variance_pct,
+                    'is_efficient': variance_hours > 0
+                })
+            except Exception:
+                pass
+        return Response({'detail': 'Insufficient data for variance'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
@@ -1263,4 +1301,57 @@ class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
                 {'message': 'No weather data available'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+# ============================================================================
+# Module 13: TimeEntry API
+# ============================================================================
+
+class TimeEntryViewSet(viewsets.ModelViewSet):
+    queryset = TimeEntry.objects.all().select_related('employee', 'project', 'task')
+    serializer_class = TimeEntrySerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['employee', 'project', 'date']
+    search_fields = ['notes', 'task__title', 'project__name', 'employee__first_name', 'employee__last_name']
+    ordering_fields = ['date', 'start_time', 'end_time', 'hours_worked']
+    ordering = ['-date', '-start_time']
+
+    @action(detail=True, methods=['post'])
+    def stop(self, request, pk=None):
+        """Stop an open time entry by setting end_time; accepts optional end_time in payload (HH:MM[:SS])."""
+        entry = self.get_object()
+        end_time = request.data.get('end_time')
+        from datetime import datetime
+        from django.utils import timezone
+        if end_time:
+            try:
+                fmt = '%H:%M:%S' if len(end_time.split(':')) == 3 else '%H:%M'
+                entry.end_time = datetime.strptime(end_time, fmt).time()
+            except Exception:
+                return Response({'detail': 'Invalid end_time format'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            entry.end_time = timezone.localtime().time()
+        entry.save()
+        return Response(TimeEntrySerializer(entry).data)
+
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """Aggregate total hours by grouping key (employee|project|task). Example: /time-entries/summary/?group=task&project=<id>"""
+        from django.db.models import Sum
+        group = request.query_params.get('group', 'employee')
+        qs = self.filter_queryset(self.get_queryset())
+        if group == 'project':
+            data = qs.values('project').annotate(total_hours=Sum('hours_worked')).order_by('project')
+        elif group == 'task':
+            data = qs.values('task').annotate(total_hours=Sum('hours_worked')).order_by('task')
+        else:
+            data = qs.values('employee').annotate(total_hours=Sum('hours_worked')).order_by('employee')
+        normalized = []
+        for row in data:
+            row = dict(row)
+            if row.get('total_hours') is not None:
+                row['total_hours'] = str(row['total_hours'])
+            normalized.append(row)
+        return Response(normalized)
 
