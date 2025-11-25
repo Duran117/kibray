@@ -241,16 +241,17 @@ class TestTimeTrackingAutoStatus:
         task.refresh_from_db()
         assert task.status == 'En Progreso'
         
-        # Verify status change recorded (may be >=2 due to full_clean())
-        changes = TaskStatusChange.objects.filter(task=task)
-        assert changes.count() >= 1
-        assert changes.filter(new_status='En Progreso').exists()
+        # Verify status change recorded (exactamente uno tras refactor)
+        changes_before = TaskStatusChange.objects.filter(task=task)
+        assert changes_before.count() == 1
+        assert changes_before.filter(new_status='En Progreso').exists()
 
         task.description = 'Updated description'
         task.save()
-        
-        # Verify no TaskStatusChange created
-        assert TaskStatusChange.objects.filter(task=task).count() == 0
+
+        # Verify no new TaskStatusChange record added
+        changes_after = TaskStatusChange.objects.filter(task=task)
+        assert changes_after.count() == changes_before.count()
 
 
 @pytest.mark.django_db

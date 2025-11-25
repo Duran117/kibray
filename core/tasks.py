@@ -179,6 +179,32 @@ def generate_weekly_payroll():
     }
 
 
+@shared_task(name='core.tasks.update_daily_weather_snapshots')
+def update_daily_weather_snapshots():
+    """Daily task to snapshot weather for active projects (Module 30 skeleton)."""
+    from core.models import Project, Notification
+    from core.services.weather_service import get_weather_service
+    svc = get_weather_service()
+    now = timezone.now()
+    projects = Project.objects.filter(is_active=True) if hasattr(Project, 'is_active') else Project.objects.all()
+    count = 0
+    for project in projects:
+        # Placeholder: using project.name as location key
+        data = svc.get_weather(project.name)
+        # For now, just notify admins with snapshot (will later persist to model)
+        Notification.objects.create(
+            user=None,
+            notification_type='weather_snapshot',
+            title=f'Weather Snapshot {project.name}',
+            message=f"{data.condition} {data.temperature_c}°C",
+            related_object_type='project',
+            related_object_id=project.id
+        )
+        count += 1
+    logger.info(f"Weather snapshots generated for {count} projects at {now}")
+    return {'snapshots': count, 'timestamp': str(now)}
+
+
 @shared_task(name='core.tasks.check_inventory_shortages')
 def check_inventory_shortages():
     """

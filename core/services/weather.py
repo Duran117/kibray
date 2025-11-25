@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, Optional
 from datetime import datetime
 import os
+from django.utils import timezone
+from core.models import WeatherSnapshot, Project
 
 
 class WeatherProvider(ABC):
@@ -173,3 +175,30 @@ class WeatherService:
 
 # Global instance
 weather_service = WeatherService()
+
+# --- Snapshot helpers ---
+def get_or_create_snapshot(project: Project, latitude: float, longitude: float, date: Optional[datetime] = None) -> WeatherSnapshot:
+    """Obtiene o crea un WeatherSnapshot para (project, date). Usa provider configurado.
+    Refresca si snapshot está obsoleto (>6h) según lógica `is_stale()`."""
+    target_date = (date or timezone.now()).date()
+    snap = WeatherSnapshot.objects.filter(project=project, date=target_date, source='openweathermap').first()
+    if snap and not snap.is_stale():
+        return snap
+
+    data = weather_service.get_weather(latitude=latitude, longitude=longitude, date=date)
+    if snap is None:
+        snap = WeatherSnapshot(project=project, date=target_date, source=data.get('provider','openweathermap'))
+    snap.temperature_max = data.get('temperature')
+    snap.temperature_min = data.get('temperature')  # hasta tener rango real
+    snap.conditions_text = data.get('description') or data.get('condition') or ''
+    snap.humidity_percent = data.get('humidity')
+    snap.wind_kph = data.get('wind_speed')
+    snap.raw_json = data
+    snap.provider_url = 'https://api.openweathermap.org/data/2.5'
+    snap.latitude = latitude
+    snap.longitude = longitude
+    snap.fetched_at = timezone.now()
+    snap.save()
+    return snap
+
+__all__ = ['weather_service', 'WeatherService', 'get_or_create_snapshot', 'WeatherSnapshot']

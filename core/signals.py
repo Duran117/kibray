@@ -1,3 +1,80 @@
+"""Señales para tareas, imágenes y recalculo de progreso.
+
+Responsabilidades:
+ - Registrar cambios de estado (TaskStatusChange)
+ - Establecer completed_at cuando estado pasa a Completada
+ - Recalcular progreso de ScheduleItem al cambiar estado de una Task
+ - Versionado de TaskImage: marcar anteriores como no actuales e incrementar versión
+"""
+
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
+from django.utils import timezone
+
+from django.db import models
+from core.models import Task, TaskStatusChange, TaskImage
+
+
+# --- TASK STATUS CHANGE & PROGRESS ---
+@receiver(pre_save, sender=Task)
+def task_capture_old_status(sender, instance: Task, **kwargs):
+    if instance.pk:
+        try:
+            old = Task.objects.get(pk=instance.pk)
+            instance._old_status = old.status
+        except Task.DoesNotExist:
+            instance._old_status = None
+    else:
+        instance._old_status = None
+
+
+@receiver(post_save, sender=Task)
+def task_post_save(sender, instance: Task, created, **kwargs):
+    old_status = getattr(instance, '_old_status', None)
+
+    # Nuevo cambio de estado (excluimos creación inicial si no hay old_status)
+    if old_status and old_status != instance.status:
+        TaskStatusChange.objects.create(
+            task=instance,
+            old_status=old_status,
+            new_status=instance.status,
+            changed_by=getattr(instance, '_current_user', None),
+            notes='Cambio automático por actualización de estado'
+        )
+
+    # Marcar fecha de completado
+    if instance.status == 'Completada' and instance.completed_at is None:
+        instance.completed_at = timezone.now()
+        instance.save(update_fields=['completed_at'])
+
+    # Recalcular progreso del ScheduleItem si hay vínculo
+    if instance.schedule_item:
+        try:
+            instance.schedule_item.recalculate_progress(save=True)
+        except Exception:
+            pass
+
+
+# --- TASK IMAGE VERSIONING ---
+@receiver(post_save, sender=TaskImage)
+def task_image_versioning(sender, instance: TaskImage, created, **kwargs):
+    if not created:
+        return
+    # Obtener imágenes actuales previas
+    previous = TaskImage.objects.filter(task=instance.task, is_current=True).exclude(pk=instance.pk)
+    if previous.exists():
+        # Incrementar versión basado en máximo anterior
+        max_version = previous.aggregate(v=models.Max('version'))['v'] or 1
+        instance.version = max_version + 1
+        # Marcar anteriores como no actuales
+        previous.update(is_current=False)
+        instance.is_current = True
+        instance.save(update_fields=['version', 'is_current'])
+    else:
+        # Primera imagen de la tarea
+        instance.version = 1
+        instance.is_current = True
+        instance.save(update_fields=['version', 'is_current'])
 # core/signals.py
 """
 Señales para Task, TaskImage, TaskStatusChange.

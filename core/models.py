@@ -535,41 +535,57 @@ class Task(models.Model):
     def get_time_tracked_hours(self):
         """Retorna horas trabajadas en formato decimal"""
         return round(self.time_tracked_seconds / 3600.0, 2)
+
+    def reopen(self, user=None, notes: str = ""):
+        """Reabrir una tarea completada (Q11.12) creando historial y limpiando fecha de completado.
+
+        - Solo aplica si el estado actual es 'Completada'.
+        - Cambia estado a 'En Progreso' (o 'Pendiente' si no puede iniciar).
+        - Registra TaskStatusChange.
+        - Opcional: notas del motivo.
+        """
+        from django.utils import timezone
+        from core.models import TaskStatusChange
+
+        if self.status != 'Completada':
+            return False
+
+        old_status = self.status
+        # Determinar nuevo estado según dependencias
+        self.status = 'En Progreso' if self.can_start() else 'Pendiente'
+        self.completed_at = None
+        # Marcar usuario actual para notificaciones en signal
+        self._current_user = user
+        self.save(skip_validation=True)  # evitar doble validación
+
+        TaskStatusChange.objects.create(
+            task=self,
+            old_status=old_status,
+            new_status=self.status,
+            changed_by=user,
+            notes=notes or 'Reapertura de tarea'
+        )
+        return True
     
     def save(self, *args, **kwargs):
         """Q11.12: Registrar cambios de estado en TaskStatusChange y notificar (Q11.10)"""
-        # Validar antes de guardar
+        # Validar antes de guardar (mantener comportamiento existente)
         skip_validation = kwargs.pop('skip_validation', False)
         if not skip_validation:
             self.full_clean()
-        
+
         is_new = self.pk is None
-        old_status = None
         old_assigned_to = None
-        
+
         if not is_new:
             old_obj = Task.objects.filter(pk=self.pk).first()
-            if old_obj:
-                if old_obj.status != self.status:
-                    old_status = old_obj.status
-                if old_obj.assigned_to != self.assigned_to:
-                    old_assigned_to = old_obj.assigned_to
-        
+            if old_obj and old_obj.assigned_to != self.assigned_to:
+                old_assigned_to = old_obj.assigned_to
+
+        # Guardar sin manejar cambios de estado (delegado a señales)
         super().save(*args, **kwargs)
-        
-        # Q11.12: Crear registro de cambio de estado
-        if old_status and old_status != self.status:
-            TaskStatusChange.objects.create(
-                task=self,
-                old_status=old_status,
-                new_status=self.status,
-                changed_by=getattr(self, '_current_user', None)
-            )
-            
-            # Q11.10: Notificar cambio de estado
-            self._notify_status_change(old_status)
-        
-        # Q11.10: Notificar nueva asignación
+
+        # Notificar nueva asignación solamente aquí. Cambios de estado se manejan vía signals.
         if old_assigned_to != self.assigned_to and self.assigned_to:
             self._notify_assignment()
     
@@ -683,6 +699,57 @@ class TaskStatusChange(models.Model):
     
     def __str__(self):
         return f"{self.task.title}: {self.old_status} → {self.new_status}"
+
+
+# MÓDULO 29: Plantillas de tareas (Pre-Task Library)
+class TaskTemplate(models.Model):
+    """Reusable task template for quick task instantiation (Module 29)."""
+    PRIORITY_CHOICES = (
+        ('Alta', 'Alta'),
+        ('Media', 'Media'),
+        ('Baja', 'Baja'),
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    default_priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='Media')
+    estimated_hours = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    tags = models.JSONField(default=list, blank=True, help_text="List of keyword tags for fuzzy search")
+    checklist = models.JSONField(default=list, blank=True, help_text="Ordered checklist items strings")
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Plantilla de Tarea'
+        verbose_name_plural = 'Plantillas de Tareas'
+        indexes = [
+            models.Index(fields=['default_priority']),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def create_task(self, project, created_by=None, assigned_to=None, extra_fields=None):
+        """Instantiate a Task from this template.
+        extra_fields: dict overrides or additional Task fields.
+        """
+        from core.models import Task  # Local import to avoid circular
+        data = {
+            'project': project,
+            'title': self.title,
+            'description': self.description,
+            'priority': self.default_priority,
+            'created_by': created_by,
+            'status': 'Pendiente',
+        }
+        if assigned_to:
+            data['assigned_to'] = assigned_to
+        if extra_fields:
+            data.update(extra_fields)
+        task = Task.objects.create(**data)
+        return task
 
 
 # ---------------------
@@ -1552,6 +1619,42 @@ class Proposal(models.Model):
     def __str__(self): return f"Proposal {self.estimate.code} ({self.estimate.project.name})"
 
 # --- Field Communication ---
+# Weather snapshot (caching daily outdoor conditions for a project)
+class WeatherSnapshot(models.Model):
+    """Datos meteorológicos diarios cacheados para un proyecto.
+    Se usa para auto‑rellenar `DailyLog.weather` y analítica (Fase 2 / Módulo 30).
+    Único por (project, date, source). Si se necesita refrescar se crea uno nuevo
+    con mismo par y se reemplaza (o se actualiza campos)."""
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='weather_snapshots')
+    date = models.DateField()
+    source = models.CharField(max_length=50, default='open-meteo')
+    temperature_max = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    temperature_min = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    conditions_text = models.CharField(max_length=120, blank=True)
+    precipitation_mm = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    wind_kph = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    humidity_percent = models.PositiveSmallIntegerField(null=True, blank=True)
+    raw_json = models.JSONField(blank=True, null=True)
+    fetched_at = models.DateTimeField(auto_now_add=True)
+    provider_url = models.URLField(blank=True)
+    # Opcional permitir coordenadas override si se agregan más adelante
+    latitude = models.DecimalField(max_digits=8, decimal_places=5, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=8, decimal_places=5, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('project', 'date', 'source')
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.project.name} {self.date} {self.source}"
+
+    def is_stale(self, ttl_hours: int = 6) -> bool:
+        """Define si el snapshot debería refrescarse (por defecto cada 6h)."""
+        if not self.fetched_at:
+            return True
+        age = timezone.now() - self.fetched_at
+        return age.total_seconds() > ttl_hours * 3600
+
 class DailyLog(models.Model):
     """
     Daily Log - Reporte diario del PM sobre el progreso del proyecto.
@@ -1589,6 +1692,12 @@ class DailyLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(default=False, help_text="Visible para cliente/owner")
+    # --- Extensión DailyPlan ---
+    planned_templates = models.ManyToManyField('TaskTemplate', blank=True, related_name='daily_logs', help_text="Plantillas previstas para instanciar tareas del día")
+    planned_tasks = models.ManyToManyField('Task', blank=True, related_name='planned_in_logs', help_text="Tareas creadas desde plantillas para este día")
+    is_complete = models.BooleanField(default=False, help_text="Plan diario marcado como completo")
+    incomplete_reason = models.TextField(blank=True, help_text="Motivo si el plan quedó incompleto")
+    auto_weather = models.BooleanField(default=True, help_text="Si se auto‑rellena el clima (Módulo 30)")
     
     class Meta:
         unique_together = ('project', 'date')
@@ -1605,6 +1714,37 @@ class DailyLog(models.Model):
         total_tasks = self.completed_tasks.count()
         fully_completed = self.completed_tasks.filter(status='completed').count()
         return {'total': total_tasks, 'completed': fully_completed}
+
+    # --- Métodos DailyPlan ---
+    def instantiate_planned_templates(self, created_by=None, assigned_to=None):
+        """Crear Tasks desde las TaskTemplate planificadas (idempotente)."""
+        created = []
+        for tpl in self.planned_templates.all():
+            # Evitar duplicar si ya se creó tarea con mismo título ligada al log
+            if self.planned_tasks.filter(title=tpl.title).exists():
+                continue
+            task = tpl.create_task(
+                project=self.project,
+                created_by=created_by,
+                assigned_to=assigned_to,
+                extra_fields={'description': tpl.description, 'status': 'Pendiente'}
+            )
+            self.planned_tasks.add(task)
+            created.append(task)
+        return created
+
+    def evaluate_completion(self):
+        """Evalúa si el plan está completo (todas planned_tasks Completadas)."""
+        total = self.planned_tasks.count()
+        if total == 0:
+            self.is_complete = False
+            self.incomplete_reason = 'No hay tareas planificadas.'
+        else:
+            done = self.planned_tasks.filter(status='Completada').count()
+            self.is_complete = (done == total)
+            self.incomplete_reason = '' if self.is_complete else f"Faltan {total - done} tareas por completar"
+        self.save(update_fields=['is_complete', 'incomplete_reason'])
+        return self.is_complete
 
 
 class DailyLogPhoto(models.Model):

@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from .models import Employee, Income, Expense, Project, TimeEntry, Schedule, Profile, Invoice, InvoiceLine, InvoicePayment
 from .models import ClientProjectAccess
+from .models import TaskTemplate
 from .models import BudgetLine, BudgetProgress, CostCode
 from .models import MaterialRequest, MaterialRequestItem
 from .models import MaterialCatalog, SitePhoto
@@ -827,5 +828,12 @@ class ChangeOrderAdmin(admin.ModelAdmin):
     def response_change(self, request, obj):
         """Redirige al CO Board después de editar un CO"""
         return redirect('changeorder_board')
+
+@admin.register(TaskTemplate)
+class TaskTemplateAdmin(admin.ModelAdmin):
+    list_display = ('title', 'default_priority', 'estimated_hours', 'is_active', 'created_at')
+    search_fields = ('title', 'description', 'tags')
+    list_filter = ('default_priority', 'is_active')
+    readonly_fields = ('created_at', 'updated_at')
 
 
