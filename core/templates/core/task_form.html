@@ -111,6 +111,81 @@
             {% endif %}
           </div>
 
+          <!-- ACTIVITY 1: Priority (Q11.6) -->
+          <div class="col-12 col-md-6">
+            <label for="{{ form.priority.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              {{ form.priority.label }}
+              {% if form.priority.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            <select 
+              name="{{ form.priority.name }}" 
+              id="{{ form.priority.id_for_label }}"
+              class="form-select"
+              style="min-height: 50px; font-size: 16px;"
+            >
+              {% for value, text in form.priority.field.choices %}
+                <option value="{{ value }}" {% if form.priority.value == value %}selected{% endif %}>{{ text }}</option>
+              {% endfor %}
+            </select>
+            {% if form.priority.errors %}
+              <div class="invalid-feedback d-block">{{ form.priority.errors }}</div>
+            {% endif %}
+            <small class="form-text text-muted">{{ form.priority.help_text }}</small>
+          </div>
+
+          <!-- ACTIVITY 1: Due Date (Q11.1) -->
+          <div class="col-12 col-md-6">
+            <label for="{{ form.due_date.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-calendar-event me-1"></i>
+              {{ form.due_date.label }}
+            </label>
+            <input 
+              type="date" 
+              name="{{ form.due_date.name }}" 
+              id="{{ form.due_date.id_for_label }}"
+              class="form-control"
+              value="{{ form.due_date.value|date:'Y-m-d'|default:'' }}"
+              style="min-height: 50px; font-size: 16px;"
+            >
+            {% if form.due_date.errors %}
+              <div class="invalid-feedback d-block">{{ form.due_date.errors }}</div>
+            {% endif %}
+            <small class="form-text text-muted">{{ form.due_date.help_text }}</small>
+          </div>
+
+          <!-- ACTIVITY 1: Dependencies (Q11.7) -->
+          <div class="col-12">
+            <label for="{{ form.dependencies.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-diagram-3 me-1"></i>
+              {{ form.dependencies.label }}
+            </label>
+            <select 
+              name="{{ form.dependencies.name }}" 
+              id="{{ form.dependencies.id_for_label }}"
+              class="form-select"
+              multiple
+              size="5"
+              style="font-size: 16px;"
+            >
+              {% for value, text in form.dependencies.field.choices %}
+                {% if value %}
+                  <option value="{{ value }}" 
+                          {% if value in form.dependencies.value or value|stringformat:"s" in form.dependencies.value %}selected{% endif %}>
+                    {{ text }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+            {% if form.dependencies.errors %}
+              <div class="invalid-feedback d-block">{{ form.dependencies.errors }}</div>
+            {% endif %}
+            <small class="form-text text-muted">
+              {{ form.dependencies.help_text }}
+              <br><i class="bi bi-info-circle"></i> {% trans 'Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples tareas' %}
+            </small>
+          </div>
+
           <!-- Image Upload -->
           <div class="col-12 col-md-6">
             <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold">

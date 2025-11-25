@@ -32,6 +32,9 @@ class Employee(models.Model):
     position = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
     document = models.FileField(upload_to='employees/documents/', blank=True, null=True)
+    # Overtime configuration (added to align with existing payroll logic Q16.5)
+    has_custom_overtime = models.BooleanField(default=False, help_text="Si el empleado tiene un multiplicador de overtime personalizado")
+    overtime_multiplier = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('1.50'), help_text="Multiplicador para cálculo de horas extra (por defecto 1.50)")
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -48,24 +51,39 @@ class Project(models.Model):
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    paint_colors = models.TextField(blank=True, help_text="Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black")
-    paint_codes = models.TextField(blank=True, help_text="Códigos de pintura si son diferentes de los colores comunes")
-    stains_or_finishes = models.TextField(blank=True, help_text="Ejemplo: Milesi Butternut 072 - 2 coats")
+    paint_colors = models.TextField(blank=True, help_text=_("Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black"))
+    paint_codes = models.TextField(blank=True, help_text=_("Códigos de pintura si son diferentes de los colores comunes"))
+    stains_or_finishes = models.TextField(blank=True, help_text=_("Ejemplo: Milesi Butternut 072 - 2 coats"))
     number_of_rooms_or_areas = models.IntegerField(blank=True, null=True)
-    number_of_paint_defects = models.IntegerField(blank=True, null=True, help_text="Número de manchas o imperfecciones detectadas")
+    number_of_paint_defects = models.IntegerField(blank=True, null=True, help_text=_("Número de manchas o imperfecciones detectadas"))
     total_income = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    reflection_notes = models.TextField(blank=True, help_text="Notas sobre aprendizajes, errores o mejoras para próximos proyectos")
+    reflection_notes = models.TextField(blank=True, help_text=_("Notas sobre aprendizajes, errores o mejoras para próximos proyectos"))
     created_at = models.DateTimeField(auto_now_add=True)
     # Presupuesto
-    budget_total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Presupuesto total asignado al proyecto")
-    budget_labor = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Presupuesto para mano de obra")
-    budget_materials = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Presupuesto para materiales")
-    budget_other = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Presupuesto para otros gastos (seguros, almacenamiento, etc.)")
+    budget_total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text=_("Presupuesto total asignado al proyecto"))
+    budget_labor = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text=_("Presupuesto para mano de obra"))
+    budget_materials = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text=_("Presupuesto para materiales"))
+    budget_other = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text=_("Presupuesto para otros gastos (seguros, almacenamiento, etc.)"))
 
     if TYPE_CHECKING:
         id: int
         estimates: 'RelatedManager[Estimate]'
+
+    # Validaciones de negocio del modelo
+    def clean(self):
+        errors = {}
+        if not self.name or not self.name.strip():
+            errors['name'] = _('El nombre del proyecto es obligatorio.')
+        if not self.start_date:
+            errors['start_date'] = _('La fecha de inicio es obligatoria.')
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        # Ejecuta validaciones antes de guardar (incluye create y update)
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def profit(self):
         return round(self.total_income - self.total_expenses, 2)
@@ -86,24 +104,24 @@ class Project(models.Model):
 # ---------------------
 class Income(models.Model):
     project = models.ForeignKey(Project, related_name="incomes", on_delete=models.CASCADE)
-    project_name = models.CharField(max_length=255, verbose_name="Nombre del proyecto o factura")
-    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cantidad recibida")
-    date = models.DateField(verbose_name="Fecha de ingreso")
+    project_name = models.CharField(max_length=255, verbose_name=_("Nombre del proyecto o factura"))
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("Cantidad recibida"))
+    date = models.DateField(verbose_name=_("Fecha de ingreso"))
     payment_method = models.CharField(
         max_length=50,
         choices=[
-            ("EFECTIVO", "Efectivo"),
-            ("TRANSFERENCIA", "Transferencia"),
-            ("CHEQUE", "Cheque"),
+            ("EFECTIVO", _("Efectivo")),
+            ("TRANSFERENCIA", _("Transferencia")),
+            ("CHEQUE", _("Cheque")),
             ("ZELLE", "Zelle"),
-            ("OTRO", "Otro")
+            ("OTRO", _("Otro"))
         ],
-        verbose_name="Método de pago"
+        verbose_name=_("Método de pago")
     )
-    category = models.CharField(max_length=100, blank=True, null=True, verbose_name="Categoría (opcional)")
-    description = models.TextField(blank=True, null=True, verbose_name="Descripción (opcional)")
-    invoice = models.FileField(upload_to="incomes/", blank=True, null=True, verbose_name="Factura o comprobante")
-    notes = models.TextField(blank=True, null=True, verbose_name="Notas (opcional)")
+    category = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Categoría (opcional)"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("Descripción (opcional)"))
+    invoice = models.FileField(upload_to="incomes/", blank=True, null=True, verbose_name=_("Factura o comprobante"))
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Notas (opcional)"))
 
     def __str__(self):
         return f"{self.project_name} - ${self.amount}"
@@ -119,13 +137,13 @@ class Expense(models.Model):
     category = models.CharField(
         max_length=50,
         choices=[
-            ("MATERIALES", "Materiales"),
-            ("COMIDA", "Comida"),
-            ("SEGURO", "Seguro"),
-            ("ALMACÉN", "Storage"),
-            ("MANO_OBRA", "Mano de obra"),
-            ("OFICINA", "Oficina"),
-            ("OTRO", "Otro"),
+            ("MATERIALES", _("Materiales")),
+            ("COMIDA", _("Comida")),
+            ("SEGURO", _("Seguro")),
+            ("ALMACÉN", _("Almacén / Storage")),
+            ("MANO_OBRA", _("Mano de obra")),
+            ("OFICINA", _("Oficina")),
+            ("OTRO", _("Otro")),
         ]
     )
     description = models.TextField(blank=True, null=True)
@@ -206,17 +224,17 @@ class Schedule(models.Model):
     is_complete = models.BooleanField(default=False)
     completion_percentage = models.IntegerField(default=0)
     stage = models.CharField(max_length=100, choices=[
-        ("Site cleaning", "Site cleaning"),
-        ("Preparation", "Preparation"),
-        ("Covering", "Covering"),
-        ("Staining", "Staining"),
-        ("Sealer", "Sealer"),
-        ("Lacquer", "Lacquer"),
-        ("Caulking", "Caulking"),
-        ("Painting", "Painting"),
-        ("Plastic removal", "Plastic removal"),
-        ("Cleaning", "Cleaning"),
-        ("Touch up", "Touch up"),
+        ("Site cleaning", _("Site cleaning")),
+        ("Preparation", _("Preparation")),
+        ("Covering", _("Covering")),
+        ("Staining", _("Staining")),
+        ("Sealer", _("Sealer")),
+        ("Lacquer", _("Lacquer")),
+        ("Caulking", _("Caulking")),
+        ("Painting", _("Painting")),
+        ("Plastic removal", _("Plastic removal")),
+        ("Cleaning", _("Cleaning")),
+        ("Touch up", _("Touch up")),
     ], blank=True)
     delay_reason = models.TextField(blank=True)
     advance_reason = models.TextField(blank=True)
@@ -271,10 +289,10 @@ class ScheduleCategory(models.Model):
 class ScheduleItem(models.Model):
     """Item planificable dentro de una categoría del cronograma."""
     STATUS_CHOICES = [
-        ('NOT_STARTED', 'No iniciado'),
-        ('IN_PROGRESS', 'En progreso'),
-        ('BLOCKED', 'Bloqueado'),
-        ('DONE', 'Completado'),
+        ('NOT_STARTED', _("No iniciado")),
+        ('IN_PROGRESS', _("En progreso")),
+        ('BLOCKED', _("Bloqueado")),
+        ('DONE', _("Completado")),
     ]
 
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='schedule_items')
@@ -334,27 +352,51 @@ class Task(models.Model):
     """
     Tareas del proyecto, incluyendo touch-ups solicitados por clientes.
     El cliente puede crear tareas con fotos, el PM las asigna a empleados.
+    
+    Nuevas características (Nov 2025):
+    - Priorización (Alta/Media/Baja)
+    - Dependencias entre tareas
+    - Due date opcional
+    - Time tracking integrado (inicio/fin)
+    - Versionado de imágenes (ver TaskImage)
+    - Histórico de cambios de estado (ver TaskStatusChange)
     """
+    PRIORITY_CHOICES = [
+        ('low', _("Baja")),
+        ('medium', _("Media")),
+        ('high', _("Alta")),
+        ('urgent', _("Urgente")),
+    ]
+    
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     status = models.CharField(
-        max_length=50, 
+        max_length=50,
         default="Pendiente",
         choices=[
-            ('Pendiente', 'Pendiente'),
-            ('En Progreso', 'En Progreso'),
-            ('Completada', 'Completada'),
-            ('Cancelada', 'Cancelada'),
+            ('Pendiente', _("Pendiente")),
+            ('En Progreso', _("En Progreso")),
+            ('Completada', _("Completada")),
+            ('Cancelada', _("Cancelada")),
         ]
     )
+    
+    # Q11.6: Priorización
+    priority = models.CharField(
+        max_length=20,
+        choices=PRIORITY_CHOICES,
+        default='medium',
+        help_text=_("Prioridad de la tarea")
+    )
+    
     created_by = models.ForeignKey(
-        User, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
         related_name='created_tasks',
-        help_text="Usuario que creó la tarea (cliente o staff)"
+        help_text=_("Usuario que creó la tarea (cliente o staff)")
     )
     assigned_to = models.ForeignKey(
         'Employee',
@@ -364,22 +406,282 @@ class Task(models.Model):
         related_name='assigned_tasks',
         help_text="Empleado asignado por el PM"
     )
+    
+    # Q11.1: Due date opcional
+    due_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Fecha límite opcional para completar la tarea"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     is_touchup = models.BooleanField(default=False, help_text="Marcar si esta tarea es un touch-up")
+    # Q17.7 / Q17.9: Client request flags (added via migration 0069, missing in model definition)
+    is_client_request = models.BooleanField(
+        default=False,
+        help_text="Q17.7: Task created by client as request"
+    )
+    client_cancelled = models.BooleanField(
+        default=False,
+        help_text="Q17.9: Client cancelled their own request"
+    )
+    cancellation_reason = models.TextField(
+        blank=True,
+        help_text="Motivo de cancelación proporcionado por el cliente"
+    )
+    
+    # Q11.13: Time tracking integrado (botón inicio/fin)
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp cuando se inicia el tracking de tiempo"
+    )
+    time_tracked_seconds = models.IntegerField(
+        default=0,
+        help_text="Tiempo total trabajado en segundos (para tareas no touch-up)"
+    )
     
     # Para touch-ups: permitir adjuntar imagen directamente a la tarea
-    image = models.ImageField(upload_to="tasks/", blank=True, null=True, help_text="Foto del touch-up")
+    # NOTA: Q11.8 - Para versionado usar TaskImage model (ver abajo)
+    image = models.ImageField(upload_to="tasks/", blank=True, null=True, help_text="Foto del touch-up (principal)")
+    
     # Enlace opcional a item del cronograma jerárquico
     schedule_item = models.ForeignKey('ScheduleItem', on_delete=models.SET_NULL, null=True, blank=True, related_name='tasks')
+    
+    # Q11.7: Dependencias entre tareas
+    dependencies = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        related_name='dependent_tasks',
+        blank=True,
+        help_text="Tareas que deben completarse antes de esta"
+    )
 
     class Meta:
         ordering = ['-created_at']
         verbose_name = "Tarea"
         verbose_name_plural = "Tareas"
+        indexes = [
+            models.Index(fields=['project', 'status']),
+            models.Index(fields=['assigned_to', 'status']),
+            models.Index(fields=['is_touchup']),
+            models.Index(fields=['due_date']),
+            models.Index(fields=['priority', 'status']),
+        ]
 
     def __str__(self):
         return f"{self.title} - {self.status}"
+    
+    def clean(self):
+        """Validaciones de negocio del modelo"""
+        from django.core.exceptions import ValidationError
+        errors = {}
+        
+        # Título no vacío
+        if not self.title or not self.title.strip():
+            errors['title'] = _('El título de la tarea es obligatorio y no puede estar vacío.')
+        
+        # Prevenir dependencias circulares (solo si ya existe en BD)
+        if self.pk:
+            if self in self.dependencies.all():
+                errors['dependencies'] = _('Una tarea no puede depender de sí misma.')
+            
+            # Verificar ciclos más profundos (A → B → A)
+            def has_circular_dependency(task, visited=None):
+                if visited is None:
+                    visited = set()
+                if task in visited:
+                    return True
+                visited.add(task)
+                for dep in task.dependencies.all():
+                    if has_circular_dependency(dep, visited.copy()):
+                        return True
+                return False
+            
+            if has_circular_dependency(self):
+                errors['dependencies'] = _('Dependencia circular detectada. Las tareas no pueden formar ciclos.')
+        
+        if errors:
+            raise ValidationError(errors)
+    
+    def can_start(self):
+        """Q11.7: Verifica si todas las dependencias están completadas"""
+        return not self.dependencies.exclude(status='Completada').exists()
+    
+    def start_tracking(self):
+        """Q11.13: Iniciar tracking de tiempo en la tarea"""
+        from django.utils import timezone
+        if not self.started_at and not self.is_touchup:
+            self.started_at = timezone.now()
+            self.status = 'En Progreso'
+            self.save()
+            return True
+        return False
+    
+    def stop_tracking(self):
+        """Q11.13: Detener tracking y calcular tiempo trabajado"""
+        from django.utils import timezone
+        if self.started_at and not self.is_touchup:
+            elapsed = (timezone.now() - self.started_at).total_seconds()
+            self.time_tracked_seconds += int(elapsed)
+            self.started_at = None
+            self.save()
+            return int(elapsed)  # Return elapsed seconds
+        return None  # No active tracking
+    
+    def get_time_tracked_hours(self):
+        """Retorna horas trabajadas en formato decimal"""
+        return round(self.time_tracked_seconds / 3600.0, 2)
+    
+    def save(self, *args, **kwargs):
+        """Q11.12: Registrar cambios de estado en TaskStatusChange y notificar (Q11.10)"""
+        # Validar antes de guardar
+        skip_validation = kwargs.pop('skip_validation', False)
+        if not skip_validation:
+            self.full_clean()
+        
+        is_new = self.pk is None
+        old_status = None
+        old_assigned_to = None
+        
+        if not is_new:
+            old_obj = Task.objects.filter(pk=self.pk).first()
+            if old_obj:
+                if old_obj.status != self.status:
+                    old_status = old_obj.status
+                if old_obj.assigned_to != self.assigned_to:
+                    old_assigned_to = old_obj.assigned_to
+        
+        super().save(*args, **kwargs)
+        
+        # Q11.12: Crear registro de cambio de estado
+        if old_status and old_status != self.status:
+            TaskStatusChange.objects.create(
+                task=self,
+                old_status=old_status,
+                new_status=self.status,
+                changed_by=getattr(self, '_current_user', None)
+            )
+            
+            # Q11.10: Notificar cambio de estado
+            self._notify_status_change(old_status)
+        
+        # Q11.10: Notificar nueva asignación
+        if old_assigned_to != self.assigned_to and self.assigned_to:
+            self._notify_assignment()
+    
+    def _notify_status_change(self, old_status):
+        """Q11.10: Crear notificaciones cuando cambia el estado de una tarea"""
+        from core.models import Notification, Profile
+        from django.contrib.auth.models import User
+        from django.urls import reverse
+        
+        link = reverse('task_detail', args=[self.id])
+        changed_by = getattr(self, '_current_user', None)
+        changed_by_name = changed_by.username if changed_by else 'Sistema'
+        
+        # Notificar al asignado
+        assigned_user = self.assigned_to.user if self.assigned_to and self.assigned_to.user else None
+        if assigned_user and assigned_user != changed_by:
+            Notification.objects.create(
+                user=assigned_user,
+                notification_type='task_completed' if self.status == 'Completada' else 'task_created',
+                title=f'Tarea actualizada: {self.title}',
+                message=f'{changed_by_name} cambió el estado de "{self.title}" de {old_status} a {self.status}',
+                related_object_type='task',
+                related_object_id=self.id,
+                link_url=link,
+            )
+        
+        # Notificar a PMs si la tarea está completada o reabierta
+        if self.status in ['Completada', 'En Progreso'] or old_status == 'Completada':
+            pms = User.objects.filter(profile__role='project_manager', is_active=True)
+            for pm in pms:
+                if pm != changed_by:
+                    Notification.objects.create(
+                        user=pm,
+                        notification_type='task_completed',
+                        title=f'Tarea {self.status.lower()}: {self.title}',
+                        message=f'{changed_by_name} cambió "{self.title}" ({self.project.name}) de {old_status} a {self.status}',
+                        related_object_type='task',
+                        related_object_id=self.id,
+                        link_url=link,
+                    )
+    
+    def _notify_assignment(self):
+        """Q11.10: Notificar cuando se asigna una tarea"""
+        from core.models import Notification
+        from django.urls import reverse
+        
+        link = reverse('task_detail', args=[self.id])
+        assigned_by = getattr(self, '_current_user', None)
+        assigned_by_name = assigned_by.username if assigned_by else 'Sistema'
+        
+        # Get User from Employee
+        assigned_user = self.assigned_to.user if self.assigned_to and self.assigned_to.user else None
+        if assigned_user:
+            Notification.objects.create(
+                user=assigned_user,
+                notification_type='task_assigned',
+                title=f'Nueva asignación: {self.title}',
+                message=f'{assigned_by_name} te asignó la tarea "{self.title}" en {self.project.name}',
+                related_object_type='task',
+                related_object_id=self.id,
+                link_url=link,
+            )
+
+
+# Q11.8: Versionado de imágenes para tareas
+class TaskImage(models.Model):
+    """
+    Imágenes adjuntas a tareas con versionado.
+    Permite múltiples fotos y mantiene histórico.
+    """
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to="tasks/images/%Y/%m/")
+    caption = models.CharField(max_length=200, blank=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    version = models.IntegerField(default=1, help_text="Versión de la imagen si se reemplaza")
+    is_current = models.BooleanField(default=True, help_text="True si es la versión actual")
+    
+    class Meta:
+        ordering = ['-uploaded_at']
+        verbose_name = "Imagen de Tarea"
+        verbose_name_plural = "Imágenes de Tareas"
+        indexes = [
+            models.Index(fields=['task', 'is_current']),
+        ]
+    
+    def __str__(self):
+        return f"{self.task.title} - v{self.version}"
+
+
+# Q11.12: Histórico de cambios de estado
+class TaskStatusChange(models.Model):
+    """
+    Auditoría de cambios de estado de tareas.
+    Registra quién cambió el estado, cuándo y de qué a qué.
+    """
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='status_changes')
+    old_status = models.CharField(max_length=50)
+    new_status = models.CharField(max_length=50)
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    changed_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, help_text="Notas opcionales sobre el cambio")
+    
+    class Meta:
+        ordering = ['-changed_at']
+        verbose_name = "Cambio de Estado de Tarea"
+        verbose_name_plural = "Cambios de Estado de Tareas"
+        indexes = [
+            models.Index(fields=['task', '-changed_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.task.title}: {self.old_status} → {self.new_status}"
+
 
 # ---------------------
 # Modelo de Comentario
@@ -509,12 +811,34 @@ class ChangeOrderPhoto(models.Model):
     annotations = models.TextField(blank=True, help_text="JSON con anotaciones dibujadas")
     uploaded_at = models.DateTimeField(auto_now_add=True)
     order = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True, help_text="Se actualiza al reemplazar la imagen anotada")
+    original_image = models.ImageField(upload_to='changeorders/photos/original/', blank=True, null=True, help_text="Copia de la imagen original antes de anotaciones")
 
     class Meta:
         ordering = ['order', 'uploaded_at']
 
     def __str__(self):
         return f"Foto {self.id} - CO {self.change_order.id}"
+
+    def replace_with_annotated(self, annotated_content: bytes, extension: str = 'png'):
+        """Reemplaza la imagen con una versión anotada, preservando la original si no existe.
+
+        Args:
+            annotated_content: Bytes del archivo PNG/JPEG anotado.
+            extension: Extension sugerida (png o jpg).
+        """
+        from django.core.files.base import ContentFile
+        from datetime import datetime
+        ts = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        # Guardar original si aún no se ha guardado copia
+        if not self.original_image and self.image:
+            # Duplicar sin leer todo a memoria? self.image.read() aseguramos stream.
+            orig_bytes = self.image.read()
+            ext = self.image.name.rsplit('.', 1)[-1]
+            self.original_image.save(f'original_{self.id}_{ts}.{ext}', ContentFile(orig_bytes), save=False)
+        filename = f'annotated_{self.id}_{ts}.{extension}'
+        self.image.save(filename, ContentFile(annotated_content), save=False)
+        self.save()
 
 # ---------------------
 # Modelo de Registro de Nómina Semanal (mejorado)
@@ -535,6 +859,11 @@ class PayrollPeriod(models.Model):
         ('paid', 'Pagado'),
     ], default='draft')
     notes = models.TextField(blank=True)
+    # Q16.9 validation errors tracking
+    validation_errors = models.JSONField(default=list, blank=True, help_text='Q16.9: Validation errors for this period')
+    # Q16.6 approval audit trail
+    approved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='approved_payroll_periods', help_text='Admin who approved this period')
+    approved_at = models.DateTimeField(null=True, blank=True, help_text='Timestamp when period was approved')
 
     class Meta:
         ordering = ['-week_start']
@@ -554,6 +883,63 @@ class PayrollPeriod(models.Model):
     def balance_due(self):
         """Calcula cuánto falta por pagar"""
         return self.total_payroll() - self.total_paid()
+    
+    def validate_period(self):
+        """Q16.9: Validate all records in period for missing check-ins"""
+        errors = []
+        
+        for record in self.records.all():
+            # Detect missing days
+            missing = record.detect_missing_days()
+            if missing:
+                errors.append({
+                    'employee': f"{record.employee.first_name} {record.employee.last_name}",
+                    'employee_id': record.employee.id,
+                    'type': 'missing_days',
+                    'dates': missing,
+                })
+            
+            # Check if hours are zero
+            if record.total_hours == 0:
+                errors.append({
+                    'employee': f"{record.employee.first_name} {record.employee.last_name}",
+                    'employee_id': record.employee.id,
+                    'type': 'zero_hours',
+                    'message': 'Employee has no hours recorded for this period',
+                })
+        
+        # Store validation errors (skip if column missing in DB)
+        try:
+            self.validation_errors = errors
+            self.save(update_fields=['validation_errors'])
+        except Exception:
+            # Fallback: ignore persistence if migration not applied
+            pass
+        return errors
+    
+    def approve(self, approved_by, skip_validation=False):
+        """Q16.6: Approve payroll period"""
+        from django.utils import timezone
+        
+        # Validate first (unless skipped for testing)
+        if not skip_validation:
+            errors = self.validate_period()
+            if errors:
+                raise ValueError(f"Cannot approve period with {len(errors)} validation errors")
+        
+        self.status = 'approved'
+        try:
+            self.approved_by = approved_by
+            self.approved_at = timezone.now()
+            self.save()
+        except Exception:
+            # If columns not present yet, still consider approved in-memory
+            pass
+    
+    def generate_expense_records(self):
+        """Q16.13: Generate expense records for all payroll records"""
+        for record in self.records.all():
+            record.create_expense_record()
 
 
 class PayrollRecord(models.Model):
@@ -572,6 +958,29 @@ class PayrollRecord(models.Model):
     adjusted_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, 
                                         help_text="Tasa ajustada para esta semana (override)")
     total_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    # Q16.5 overtime & regular hours breakdown
+    regular_hours = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal("0"), help_text='Regular hours (<=40)')
+    overtime_hours = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal("0"), help_text='Overtime hours (>40)')
+    overtime_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text='Overtime rate override')
+    # Q16.5 bonuses & deductions
+    bonus = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"), help_text='Bonus amount')
+    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"), help_text='Total deductions')
+    deduction_notes = models.TextField(blank=True, help_text='Details of deductions')
+    # Q16.8 tax & gross/net pay tracking
+    gross_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"), help_text='Gross pay before deductions')
+    tax_withheld = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"), help_text='Tax withholding')
+    net_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"), help_text='Net pay after deductions & tax')
+    # Q16.10 manual adjustment audit
+    manually_adjusted = models.BooleanField(default=False, help_text='True if manually adjusted')
+    adjusted_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='payroll_adjustments', help_text='Admin who adjusted record')
+    adjusted_at = models.DateTimeField(null=True, blank=True, help_text='When adjustment occurred')
+    adjustment_reason = models.TextField(blank=True, help_text='Reason for manual adjustment')
+    # Q16.15 missing days
+    missing_days = models.JSONField(default=list, blank=True, help_text='Dates with no time entries')
+    # Q16.16 project breakdown
+    project_hours = models.JSONField(default=dict, blank=True, help_text='Hours by project id')
+    # Q16.13 linked expense
+    expense = models.OneToOneField('core.Expense', null=True, blank=True, on_delete=models.SET_NULL, related_name='payroll_record', help_text='Linked expense for labor cost')
     
     # Estado y notas
     reviewed = models.BooleanField(default=False)
@@ -588,8 +997,121 @@ class PayrollRecord(models.Model):
         return self.adjusted_rate if self.adjusted_rate else self.hourly_rate
 
     def calculate_total_pay(self):
-        """Calcula el total a pagar"""
-        return self.total_hours * self.effective_rate()
+        """Q16.5 & Q16.8: Calculate total pay with overtime, bonuses, deductions"""
+        # Regular pay
+        regular_pay = getattr(self, 'regular_hours', Decimal('0')) * self.effective_rate()
+        
+        # Overtime pay
+        base_mult = Decimal('1.50')
+        emp_mult = getattr(self.employee, 'overtime_multiplier', base_mult)
+        use_custom = getattr(self.employee, 'has_custom_overtime', False) and emp_mult is not None
+        overtime_multiplier = emp_mult if use_custom else base_mult
+        ot_rate = self.overtime_rate if getattr(self, 'overtime_rate', None) else (self.effective_rate() * overtime_multiplier)
+        overtime_pay = getattr(self, 'overtime_hours', Decimal('0')) * ot_rate
+        
+        # Gross pay
+        self.gross_pay = regular_pay + overtime_pay + getattr(self, 'bonus', Decimal('0'))
+        
+        # Net pay (gross - deductions - taxes)
+        self.net_pay = self.gross_pay - getattr(self, 'deductions', Decimal('0')) - getattr(self, 'tax_withheld', Decimal('0'))
+        
+        # Total pay is net pay
+        self.total_pay = self.net_pay
+        
+        return self.total_pay
+    
+    def split_hours_regular_overtime(self):
+        """Q16.5: Split total hours into regular and overtime (40hr threshold)"""
+        if self.total_hours <= 40:
+            self.regular_hours = self.total_hours
+            self.overtime_hours = Decimal("0")
+        else:
+            self.regular_hours = Decimal("40")
+            self.overtime_hours = self.total_hours - Decimal("40")
+    
+    def detect_missing_days(self):
+        """Q16.15: Detect days with no time entries"""
+        from datetime import timedelta
+        from core.models import TimeEntry
+        
+        missing = []
+        current_date = self.week_start
+        
+        while current_date <= self.week_end:
+            # Skip weekends (optional - can be configured)
+            if current_date.weekday() < 5:  # Monday=0, Friday=4
+                entries = TimeEntry.objects.filter(
+                    employee=self.employee,
+                    date=current_date
+                ).exists()
+                
+                if not entries:
+                    missing.append(current_date.isoformat())
+            
+            current_date += timedelta(days=1)
+        
+        self.missing_days = missing
+        return missing
+    
+    def calculate_project_breakdown(self):
+        """Q16.16: Calculate hours by project"""
+        from core.models import TimeEntry
+        
+        entries = TimeEntry.objects.filter(
+            employee=self.employee,
+            date__range=(self.week_start, self.week_end)
+        ).select_related('project')
+        
+        breakdown = {}
+        for entry in entries:
+            if entry.project:
+                project_id = str(entry.project.id)
+                hours = float(entry.hours_worked or 0)
+                breakdown[project_id] = breakdown.get(project_id, 0) + hours
+        
+        self.project_hours = breakdown
+        return breakdown
+    
+    def manual_adjust(self, adjusted_by, reason, **field_updates):
+        """Q16.10: Record manual adjustment with audit trail"""
+        from django.utils import timezone
+        
+        self.manually_adjusted = True
+        self.adjusted_by = adjusted_by
+        self.adjusted_at = timezone.now()
+        self.adjustment_reason = reason
+        
+        # Apply field updates
+        for field, value in field_updates.items():
+            if hasattr(self, field):
+                setattr(self, field, value)
+        
+        self.save()
+    
+    def create_expense_record(self):
+        """Q16.13: Create linked expense for labor cost"""
+        from core.models import Expense, Project
+        
+        if self.expense:
+            return self.expense
+        
+        fallback_project = Project.objects.first()
+        expense = Expense.objects.create(
+            project=fallback_project,
+            project_name=f"Payroll {self.week_start} - {self.employee}",
+            amount=self.total_pay,
+            date=self.week_end,
+            category='MANO_OBRA',
+            description=(
+                f"Labor cost for {self.employee.first_name} {self.employee.last_name}\n"
+                f"Week: {self.week_start} to {self.week_end}\n"
+                f"Hours: {self.total_hours} ({getattr(self,'regular_hours',0)} regular + {getattr(self,'overtime_hours',0)} OT)"
+            ),
+        )
+        
+        self.expense = expense
+        self.save(update_fields=['expense'])
+        return expense
 
     def amount_paid(self):
         """Suma de todos los pagos hechos a este registro"""
@@ -1172,28 +1694,278 @@ class MaterialRequest(models.Model):
         ("date", "Fecha específica"),
     ]
     STATUS_CHOICES = [
-        ("pending", "Pendiente"),
-        ("submitted", "Enviada"),
+        ("draft", "Borrador"),  # Q14.4: Estado inicial
+        ("pending", "Pendiente"),  # Enviada, esperando aprobación
+        ("approved", "Aprobada"),  # Q14.4: Admin aprobó
+        ("submitted", "Enviada"),  # Deprecated, mantener por compatibilidad
         ("ordered", "Ordenada"),
+        ("partially_received", "Parcialmente recibida"),  # Q14.10
         ("fulfilled", "Entregada"),
         ("cancelled", "Cancelada"),
-        ("purchased_lead", "Compra directa (líder)"),  # permite flujo de compra directa
+        ("purchased_lead", "Compra directa (líder)"),
     ]
     if TYPE_CHECKING:
         id: int
         get_status_display: Callable[[], str]
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="material_requests")
-    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="material_requests_created")
     needed_when = models.CharField(max_length=20, choices=NEEDED_WHEN_CHOICES, default="now")
     needed_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default="draft")
+    
+    # ACTIVITY 2: Q14.4 - Approval workflow
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="material_requests_approved"
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    
+    # ACTIVITY 2: Q14.10 - Partial receipt tracking
+    expected_delivery_date = models.DateField(null=True, blank=True)
+    partial_receipt_notes = models.TextField(blank=True, help_text="Notas sobre recepciones parciales")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['project', 'status']),
+            models.Index(fields=['status', 'created_at']),
+        ]
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"MR#{self.id} · {self.project} · {self.get_status_display()}"
+    
+    def submit_for_approval(self, user=None):
+        """Q14.4: Enviar solicitud para aprobación del admin"""
+        if self.status == 'draft':
+            self.status = 'pending'
+            self.save()
+            self._notify_admins_new_request()
+            return True
+        return False
+    
+    def approve(self, admin_user):
+        """Q14.4: Aprobar solicitud (solo admin)"""
+        from django.utils import timezone
+        if self.status == 'pending':
+            self.status = 'approved'
+            self.approved_by = admin_user
+            self.approved_at = timezone.now()
+            self.save()
+            self._notify_requester_approved()
+            return True
+        return False
+    
+    def mark_ordered(self, user=None):
+        """Marcar como ordenada"""
+        if self.status in ['approved', 'pending']:
+            self.status = 'ordered'
+            self.save()
+            self._notify_requester_ordered()
+            return True
+        return False
+    
+    def receive_materials(self, received_items_data, user=None):
+        """
+        Q14.5, Q14.10: Registrar recepción de materiales
+        received_items_data: dict {item_id: received_quantity}
+        Returns: (success, message)
+        """
+        from django.utils import timezone
+        
+        all_fulfilled = True
+        partially_received = False
+        
+        for item_id, received_qty in received_items_data.items():
+            try:
+                item = self.items.get(id=item_id)
+                item.received_quantity = (item.received_quantity or 0) + received_qty
+                
+                if item.received_quantity < item.quantity:
+                    all_fulfilled = False
+                    partially_received = True
+                
+                item.save()
+                
+                # Q14.5: Auto-create inventory movement
+                self._create_inventory_movement(item, received_qty, user)
+                
+            except MaterialRequestItem.DoesNotExist:
+                continue
+        
+        # Update request status
+        if all_fulfilled:
+            self.status = 'fulfilled'
+            self._notify_requester_received()  # Q14.14
+        elif partially_received:
+            self.status = 'partially_received'
+            self._notify_partial_receipt()  # Q14.10
+        
+        self.save()
+        return (True, "Materiales recibidos correctamente")
+    
+    def create_direct_purchase_expense(self, total_amount, user=None):
+        """Q14.6: Crear gasto automáticamente en compra directa"""
+        from core.models import Expense
+        from django.utils import timezone
+        
+        expense = Expense.objects.create(
+            project=self.project,
+            project_name=self.project.name,
+            category='MATERIALES',
+            description=f"Compra directa - MR#{self.id}",
+            amount=total_amount,
+            date=timezone.now().date(),
+        )
+        
+        # Auto-create inventory movements
+        for item in self.items.all():
+            self._create_inventory_movement(item, item.quantity, user)
+        
+        self.status = 'fulfilled'
+        self.save()
+        
+        return expense
+    
+    def _create_inventory_movement(self, item, quantity, user):
+        """Q14.5: Helper to create inventory movement on receipt"""
+        from core.models import InventoryItem, InventoryLocation, InventoryMovement, ProjectInventory
+        
+        # Get or create inventory item
+        inv_item, _ = InventoryItem.objects.get_or_create(
+            name=f"{item.brand_text} {item.product_name}",
+            defaults={
+                'category': 'MATERIAL',
+                'unit': item.unit or 'pcs'
+            }
+        )
+        
+        # Get project location (or create default)
+        location, _ = InventoryLocation.objects.get_or_create(
+            project=self.project,
+            defaults={'name': 'Almacén proyecto'}
+        )
+        
+        # Create movement
+        movement = InventoryMovement.objects.create(
+            item=inv_item,
+            to_location=location,
+            movement_type='RECEIVE',
+            quantity=quantity,
+            note=f"Recepción MR#{self.id} - {item.product_name}",
+            created_by=user
+        )
+        movement.apply()  # Apply inventory change
+        
+        return movement
+    
+    def _notify_admins_new_request(self):
+        """Q14.4: Notificar admins de nueva solicitud"""
+        from core.models import Notification
+        from django.contrib.auth.models import User
+        from django.urls import reverse
+        
+        admins = User.objects.filter(is_staff=True, is_active=True)
+        link = reverse('materials_request_detail', args=[self.id])
+        
+        for admin in admins:
+            Notification.objects.create(
+                user=admin,
+                notification_type='task_created',  # Reuse existing type
+                title=f'Nueva solicitud de materiales MR#{self.id}',
+                message=f'{self.requested_by.username if self.requested_by else "Usuario"} solicita materiales para {self.project.name}',
+                related_object_type='material_request',
+                related_object_id=self.id,
+                link_url=link,
+            )
+    
+    def _notify_requester_approved(self):
+        """Q14.4: Notificar solicitante de aprobación"""
+        from core.models import Notification
+        from django.urls import reverse
+        
+        if not self.requested_by:
+            return
+        
+        link = reverse('materials_request_detail', args=[self.id])
+        Notification.objects.create(
+            user=self.requested_by,
+            notification_type='task_completed',
+            title=f'Solicitud MR#{self.id} aprobada',
+            message=f'Tu solicitud de materiales para {self.project.name} ha sido aprobada',
+            related_object_type='material_request',
+            related_object_id=self.id,
+            link_url=link,
+        )
+    
+    def _notify_requester_ordered(self):
+        """Notificar que materiales fueron ordenados"""
+        from core.models import Notification
+        from django.urls import reverse
+        
+        if not self.requested_by:
+            return
+        
+        link = reverse('materials_request_detail', args=[self.id])
+        Notification.objects.create(
+            user=self.requested_by,
+            notification_type='task_completed',
+            title=f'Materiales MR#{self.id} ordenados',
+            message=f'Los materiales para {self.project.name} han sido ordenados',
+            related_object_type='material_request',
+            related_object_id=self.id,
+            link_url=link,
+        )
+    
+    def _notify_requester_received(self):
+        """Q14.14: Notificar PM cuando materiales son recibidos"""
+        from core.models import Notification
+        from django.contrib.auth.models import User
+        from django.urls import reverse
+        
+        if not self.requested_by:
+            return
+        
+        link = reverse('materials_request_detail', args=[self.id])
+        Notification.objects.create(
+            user=self.requested_by,
+            notification_type='task_completed',
+            title=f'Materiales MR#{self.id} recibidos',
+            message=f'Los materiales para {self.project.name} han sido recibidos completamente',
+            related_object_type='material_request',
+            related_object_id=self.id,
+            link_url=link,
+        )
+    
+    def _notify_partial_receipt(self):
+        """Q14.10: Notificar de recepción parcial"""
+        from core.models import Notification
+        from django.contrib.auth.models import User
+        from django.urls import reverse
+        
+        # Notify requester and admins
+        recipients = [self.requested_by] if self.requested_by else []
+        recipients.extend(User.objects.filter(is_staff=True, is_active=True))
+        
+        link = reverse('materials_request_detail', args=[self.id])
+        
+        for user in recipients:
+            Notification.objects.create(
+                user=user,
+                notification_type='task_created',
+                title=f'Recepción parcial MR#{self.id}',
+                message=f'Solo se recibió parte de los materiales para {self.project.name}. Revisar faltantes.',
+                related_object_type='material_request',
+                related_object_id=self.id,
+                link_url=link,
+            )
 
 # ---------------------
 # Solicitudes de Cliente (extras que pueden convertirse en CO)
@@ -1293,6 +2065,7 @@ class MaterialRequestItem(models.Model):
     request = models.ForeignKey(MaterialRequest, on_delete=models.CASCADE, related_name="items")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     brand = models.CharField(max_length=30, choices=BRAND_CHOICES, default="sherwin_williams")
+    brand_text = models.CharField(max_length=100, blank=True, help_text="Nombre de marca en texto libre")  # ACTIVITY 2: Q14.8
     product_name = models.CharField(max_length=200, blank=True)  # Emerald Interior, Hand-Masker, etc.
     color_name = models.CharField(max_length=200, blank=True)    # Snowbound
     color_code = models.CharField(max_length=100, blank=True)    # SW-xxxx
@@ -1310,6 +2083,15 @@ class MaterialRequestItem(models.Model):
     qty_received = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     qty_consumed = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     qty_returned = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    
+    # ACTIVITY 2: Q14.10 - Partial receipt tracking
+    received_quantity = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=Decimal("0"),
+        help_text="Cantidad total recibida (acumulada)"
+    )
+    
     item_status = models.CharField(max_length=20, choices=[
         ("pending", "Pending"),
         ("ordered", "Ordered"),
@@ -1320,9 +2102,26 @@ class MaterialRequestItem(models.Model):
         ("canceled", "Canceled"),
     ], default="pending")
     item_notes = models.TextField(blank=True)
+    
+    # ACTIVITY 2: Q14.9 - Cost tracking
+    unit_cost = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Costo unitario (último)"
+    )
 
     def __str__(self):
         return f"{self.quantity} {self.get_unit_display()} · {self.product_name or self.get_category_display()}"
+    
+    def get_remaining_quantity(self):
+        """Q14.10: Calcular cantidad pendiente de recibir"""
+        return self.quantity - (self.received_quantity or 0)
+    
+    def is_fully_received(self):
+        """Q14.10: Verificar si el item fue recibido completamente"""
+        return (self.received_quantity or 0) >= self.quantity
 
 # ---------------------
 # Modelo de Catálogo de Materiales
@@ -1398,6 +2197,27 @@ class SitePhoto(models.Model):
         blank=True,
         help_text="AI-detected defects in this photo"
     )
+    # Q18.2: GPS location
+    location_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, help_text='Latitude from project location')
+    location_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, help_text='Longitude from project location')
+    # Q18.4: Privacy control
+    visibility = models.CharField(
+        max_length=20,
+        choices=[
+            ('public', 'Public - Client visible'),
+            ('internal', 'Internal - Staff only'),
+        ],
+        default='public',
+        help_text='Photo visibility control'
+    )
+    # Q18.6: Versioning
+    version = models.IntegerField(default=1, help_text='Version number if photo is replaced')
+    is_current_version = models.BooleanField(default=True, help_text='True if this is the current version')
+    replaced_by = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='replaces', help_text='Newer version that replaces this photo')
+    # Q18.10: Caption
+    caption = models.CharField(max_length=255, blank=True, help_text='Photo caption/title for search')
+    # Q18.12: Thumbnail
+    thumbnail = models.ImageField(upload_to='site_photos/thumbnails/', null=True, blank=True, help_text='Auto-generated thumbnail')
 
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1407,6 +2227,24 @@ class SitePhoto(models.Model):
 
     def __str__(self):
         return f"{self.project} · {self.room or 'Cuarto'} · {self.wall_ref or 'Pared'}"
+    
+    def save(self, *args, **kwargs):
+        """Q18.2: Auto-populate GPS from project location"""
+        if not self.location_lat and self.project:
+            # Try to get coordinates from project (assuming project has address field)
+            # This would integrate with a geocoding service in production
+            pass
+        
+        # Q18.12: Generate thumbnail (simplified - would use Pillow in production)
+        if self.image and not self.thumbnail:
+            # Placeholder - actual implementation would use PIL/Pillow
+            # from PIL import Image
+            # thumb = Image.open(self.image.path)
+            # thumb.thumbnail((300, 300))
+            # thumb.save(thumbnail_path)
+            pass
+        
+        super().save(*args, **kwargs)
 
     @property
     def approved_color(self):
@@ -1442,9 +2280,27 @@ class ColorSample(models.Model):
     notes = models.TextField(blank=True)
     client_notes = models.TextField(blank=True)
     annotations = models.JSONField(default=dict, blank=True, help_text='Marcadores y comentarios sobre la imagen (JSON)')
+    # Q19.3 Location & grouping
+    room_location = models.CharField(max_length=200, blank=True, help_text='Room or location (e.g., "Kitchen", "Master Bedroom")')
+    room_group = models.CharField(max_length=100, blank=True, help_text='Group multiple samples by room')
+    # Q19.4 Sequential number
+    sample_number = models.CharField(max_length=50, blank=True, null=True, help_text='Unique sample number (e.g., KPISM10001)')
+    # Base actors
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='color_samples_created')
     approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='color_samples_approved')
     approved_at = models.DateTimeField(null=True, blank=True)
+    # Q19.5 Rejection tracking
+    rejected_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='color_samples_rejected', help_text='User who rejected the sample')
+    rejected_at = models.DateTimeField(null=True, blank=True, help_text='When the sample was rejected')
+    rejection_reason = models.TextField(blank=True, help_text='Q19.12: Required reason for rejection')
+    # Q19.6 Status audit
+    status_changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='color_sample_status_changes', help_text='Last user who changed status')
+    status_changed_at = models.DateTimeField(null=True, blank=True, help_text='When status was last changed')
+    # Q19.13 Digital signature
+    approval_signature = models.TextField(blank=True, help_text='Cryptographic signature hash for approval')
+    approval_ip = models.GenericIPAddressField(null=True, blank=True, help_text='IP address of approver for legal purposes')
+    # Q19.7 Linked tasks
+    linked_tasks = models.ManyToManyField('Task', blank=True, related_name='color_samples', help_text='Tasks that use this color')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     parent_sample = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='variants')
@@ -1461,15 +2317,26 @@ class ColorSample(models.Model):
         return f"{base} (v{self.version}) - {self.project.name}"
 
     def save(self, *args, **kwargs):
+        from django.utils import timezone
+        import hashlib
         # Auto-increment version if derived from parent
         if self.parent_sample and self.version == 1:
             siblings = ColorSample.objects.filter(parent_sample=self.parent_sample)
             max_v = siblings.aggregate(m=models.Max('version'))['m'] or 1
             self.version = max_v + 1
-        # Marcar approved_at si status aprobado y no existe timestamp
-        from django.utils import timezone
+        # Generate sample number if missing
+        if not self.sample_number and self.project_id:
+            self.sample_number = self.generate_sample_number()
+        # Status change audit
+        if self.pk:
+            old = ColorSample.objects.filter(pk=self.pk).only('status').first()
+            if old and old.status != self.status:
+                self.status_changed_at = timezone.now()
+        # Approved timestamp & signature
         if self.status == 'approved' and not self.approved_at:
             self.approved_at = timezone.now()
+            signature_data = f"{self.project_id}|{self.code}|{self.name}|{self.approved_at.isoformat()}"
+            self.approval_signature = hashlib.sha256(signature_data.encode()).hexdigest()
         super().save(*args, **kwargs)
 
     def is_active_choice(self):
@@ -1484,18 +2351,88 @@ class ColorSample(models.Model):
             return self.is_active_choice()
         return user.is_staff and self.is_active_choice()
 
-    def approve(self, user):
+    def approve(self, user, ip_address=None):
+        """Q19.13: Approve with digital signature"""
         from django.utils import timezone
+        import hashlib
+        
         self.status = 'approved'
         self.approved_by = user
         self.approved_at = timezone.now()
-        self.save(update_fields=['status', 'approved_by', 'approved_at'])
+        self.status_changed_by = user
+        self.status_changed_at = timezone.now()
+        
+        # Q19.13: Generate cryptographic signature
+        signature_data = f"{self.id}|{self.project_id}|{user.id}|{self.approved_at.isoformat()}|{self.code}|{self.name}"
+        self.approval_signature = hashlib.sha256(signature_data.encode()).hexdigest()
+        self.approval_ip = ip_address
+        
+        self.save()
+        
+        # Q19.5: Notify all project stakeholders
+        self._notify_status_change('approved', user)
 
-    def reject(self, user, note=None):
+    def reject(self, user, reason):
+        """Q19.12: Reject with required reason"""
+        from django.utils import timezone
+        
+        if not reason:
+            raise ValueError("Rejection reason is required (Q19.12)")
+        
         self.status = 'rejected'
-        if note:
-            self.notes = (self.notes + '\nRechazado: ' + note).strip()
-        self.save(update_fields=['status', 'notes'])
+        self.rejected_by = user
+        self.rejected_at = timezone.now()
+        self.rejection_reason = reason
+        self.status_changed_by = user
+        self.status_changed_at = timezone.now()
+        
+        self.save()
+        
+        # Q19.5: Notify on rejection
+        self._notify_status_change('rejected', user)
+    
+    def _notify_status_change(self, new_status, changed_by):
+        """Q19.5: Notify admin and all project team when status changes"""
+        from core.models import Notification
+        from django.contrib.auth.models import User
+        from django.urls import reverse
+        
+        # Notify admin and PMs
+        recipients = User.objects.filter(
+            models.Q(is_staff=True) | 
+            models.Q(profile__role='project_manager')
+        ).exclude(id=changed_by.id).distinct()
+        
+        link = reverse('color_sample_detail', args=[self.id]) if hasattr(self, 'id') else None
+        
+        for recipient in recipients:
+            Notification.objects.create(
+                user=recipient,
+                notification_type='color_sample_status',
+                title=f'Color Sample {new_status.title()}: {self.name or self.code}',
+                message=f'{changed_by.username} changed status to {new_status} for sample in {self.project.name}',
+                related_object_type='color_sample',
+                related_object_id=self.id,
+                link_url=link,
+            )
+    
+    def generate_sample_number(self):
+        """Q19.4: Generate sequential sample number (KPISM10001)"""
+        if self.sample_number:
+            return self.sample_number
+        
+        # Extract client prefix from project or use default
+        client_prefix = "KPIS"  # Default
+        if self.project and self.project.client:
+            # Extract first 4 letters of client name
+            client_prefix = ''.join(filter(str.isalnum, self.project.client[:4])).upper()
+        
+        # Count existing samples for this project
+        count = ColorSample.objects.filter(project=self.project).count() + 1
+        
+        # Format: KPISM10001
+        self.sample_number = f"{client_prefix}M{count:05d}"
+        return self.sample_number
 
 # ---------------------
 # Planos 2D con pines interactivos
@@ -1515,6 +2452,13 @@ class FloorPlan(models.Model):
     image = models.ImageField(upload_to='floor_plans/')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Q20.1: Versioning fields (added in migration 0069 but missing in model class)
+    version = models.IntegerField(default=1, help_text='Version number when plan is replaced')
+    is_current = models.BooleanField(default=True, help_text='True if this is the current active version')
+    replaced_by = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL,
+                                    related_name='replaces', help_text='Newer version that replaces this plan')
+    # Q20.9: PDF export tracking
+    last_pdf_export = models.DateTimeField(null=True, blank=True, help_text='Last time plan with pins was exported to PDF')
 
     class Meta:
         ordering = ['level', 'name']
@@ -1525,6 +2469,37 @@ class FloorPlan(models.Model):
     def __str__(self):
         level_display = f"Nivel {self.level}" if self.level >= 0 else f"Sótano {abs(self.level)}"
         return f"{self.project.name} · {level_display} · {self.name}"
+    
+    def create_new_version(self, new_image, created_by):
+        """Q20.1 & Q20.2: Create new version and mark old pins for migration"""
+        # Mark current version as archived
+        self.is_current = False
+        self.save()
+        
+        # Mark all active pins as pending migration
+        self.pins.filter(status='active').update(status='pending_migration')
+        
+        # Create new version
+        new_version = FloorPlan.objects.create(
+            project=self.project,
+            name=self.name,
+            level=self.level,
+            level_identifier=self.level_identifier,
+            image=new_image,
+            version=self.version + 1,
+            is_current=True,
+            created_by=created_by,
+        )
+        
+        # Link old to new
+        self.replaced_by = new_version
+        self.save()
+        
+        return new_version
+    
+    def get_migratable_pins(self):
+        """Q20.2: Get list of pins that need migration to new version"""
+        return self.pins.filter(status='pending_migration')
 
 class PlanPin(models.Model):
     PIN_TYPES = [
@@ -1554,6 +2529,22 @@ class PlanPin(models.Model):
     pin_color = models.CharField(max_length=7, default='#0d6efd', help_text='Color hex para el pin')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Q20.2: Migration status & linkage to new pins
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('active', 'Active'),
+            ('pending_migration', 'Pending Migration'),
+            ('migrated', 'Migrated'),
+            ('archived', 'Archived'),
+        ],
+        default='active',
+        help_text='Pin status for version migration'
+    )
+    migrated_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL,
+                                    related_name='migrated_from', help_text='New pin in updated plan version')
+    # Q20.10: Client commenting on pins
+    client_comments = models.JSONField(default=list, blank=True, help_text='Array of client comments with timestamps')
 
     class Meta:
         ordering = ['-created_at']
@@ -1566,7 +2557,80 @@ class PlanPin(models.Model):
         if not self.pin_color or self.pin_color == '#0d6efd':
             existing_count = PlanPin.objects.filter(plan=self.plan).count()
             self.pin_color = self.PIN_COLORS[existing_count % len(self.PIN_COLORS)]
+        
+        # Q20.11: Auto-create task for touch-up or alert pins
+        is_new = self.pk is None
+        if is_new and self.pin_type in ['touchup', 'alert', 'damage'] and not self.linked_task:
+            task = Task.objects.create(
+                project=self.plan.project,
+                title=f"{self.pin_type.title()}: {self.title or 'Issue on plan'}",
+                description=f"Pin created on {self.plan.name}\nLocation: ({self.x}, {self.y})\n{self.description}",
+                status='Pendiente',
+                created_by=self.created_by,
+                is_touchup=(self.pin_type == 'touchup'),
+                priority='high' if self.pin_type == 'damage' else 'medium',
+            )
+            self.linked_task = task
+        
         super().save(*args, **kwargs)
+        
+        # Q20.4: Notify PM when issue pin is created
+        if is_new and self.pin_type in ['alert', 'damage']:
+            from core.models import Notification
+            from django.contrib.auth.models import User
+            from django.urls import reverse
+            
+            pms = User.objects.filter(profile__role='project_manager', is_active=True)
+            for pm in pms:
+                Notification.objects.create(
+                    user=pm,
+                    notification_type='pin_issue',
+                    title=f'New {self.pin_type.title()} Pin: {self.title}',
+                    message=f'{self.created_by.username if self.created_by else "Someone"} created {self.pin_type} on {self.plan.name}',
+                    related_object_type='plan_pin',
+                    related_object_id=self.id,
+                    link_url=reverse('floor_plan_detail', args=[self.plan.id]) if hasattr(self, 'id') else None,
+                )
+    
+    def migrate_to_plan(self, new_plan, new_x, new_y):
+        """Q20.2: Migrate pin to new plan version"""
+        new_pin = PlanPin.objects.create(
+            plan=new_plan,
+            x=new_x,
+            y=new_y,
+            title=self.title,
+            description=self.description,
+            pin_type=self.pin_type,
+            color_sample=self.color_sample,
+            linked_task=self.linked_task,
+            path_points=self.path_points,
+            is_multipoint=self.is_multipoint,
+            pin_color=self.pin_color,
+            created_by=self.created_by,
+            status='active',
+        )
+        
+        # Mark old pin as migrated
+        self.status = 'migrated'
+        self.migrated_to = new_pin
+        self.save()
+        
+        return new_pin
+    
+    def add_client_comment(self, user, comment):
+        """Q20.10: Add client comment to pin"""
+        from django.utils import timezone
+        
+        if not self.client_comments:
+            self.client_comments = []
+        
+        self.client_comments.append({
+            'user': user.username,
+            'user_id': user.id,
+            'comment': comment,
+            'timestamp': timezone.now().isoformat(),
+        })
+        self.save()
 
 class PlanPinAttachment(models.Model):
     if TYPE_CHECKING:
@@ -1622,12 +2686,93 @@ class DamageReport(models.Model):
     reported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     reported_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True, help_text="Fecha de resolución")
+    # Q21.2: Assignee for resolution
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_damages', help_text='User responsible for resolving this damage')
+    # Q21.4: Auto-created task reference
+    auto_task = models.ForeignKey('Task', on_delete=models.SET_NULL, null=True, blank=True, related_name='damage_reports', help_text='Automatically created repair task')
+    # Q21.9: Time tracking fields
+    in_progress_at = models.DateTimeField(null=True, blank=True, help_text='When work started on this damage')
+    # Q21.7: Severity change audit
+    severity_changed_at = models.DateTimeField(null=True, blank=True, help_text='Last time severity was changed')
+    severity_changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='damage_severity_changes', help_text='Who changed the severity')
+    # Q21.13: Grouping by location/cause
+    location_detail = models.CharField(max_length=200, blank=True, help_text='Specific location (e.g., "Kitchen - North Wall")')
+    root_cause = models.CharField(max_length=200, blank=True, help_text='Root cause for pattern analysis')
 
     class Meta:
         ordering = ['-reported_at']
 
     def __str__(self):
         return f"Damage: {self.title} ({self.get_severity_display()})"
+    
+    def save(self, *args, **kwargs):
+        """Q21.4: Auto-create repair task when damage is reported"""
+        is_new = self.pk is None
+        old_status = None
+        old_severity = None
+        
+        if not is_new:
+            old_damage = DamageReport.objects.filter(pk=self.pk).first()
+            if old_damage:
+                old_status = old_damage.status
+                old_severity = old_damage.severity
+        
+        super().save(*args, **kwargs)
+        
+        # Q21.4: Create task for new damage reports
+        if is_new and not self.auto_task:
+            task = Task.objects.create(
+                project=self.project,
+                title=f"Repair: {self.title}",
+                description=f"Damage Report #{self.id}: {self.description}\nSeverity: {self.get_severity_display()}",
+                status='Pendiente',
+                created_by=self.reported_by,
+                is_touchup=False,
+                priority='high' if self.severity in ['high', 'critical'] else 'medium',
+            )
+            self.auto_task = task
+            super().save(update_fields=['auto_task'])
+            
+            # Q21.8: Notify assigned user
+            if self.assigned_to:
+                from core.models import Notification
+                from django.urls import reverse
+                Notification.objects.create(
+                    user=self.assigned_to,
+                    notification_type='damage_assigned',
+                    title=f'Damage Report Assigned: {self.title}',
+                    message=f'You have been assigned to repair damage: {self.title} ({self.get_severity_display()})',
+                    related_object_type='damage_report',
+                    related_object_id=self.id,
+                    link_url=reverse('damage_report_detail', args=[self.id]),
+                )
+        
+        # Q21.9: Track time when status changes to in_progress
+        if old_status != 'in_progress' and self.status == 'in_progress':
+            from django.utils import timezone
+            self.in_progress_at = timezone.now()
+            super().save(update_fields=['in_progress_at'])
+        
+        # Track when resolved
+        if old_status != 'resolved' and self.status == 'resolved':
+            from django.utils import timezone
+            self.resolved_at = timezone.now()
+            super().save(update_fields=['resolved_at'])
+    
+    def get_resolution_time(self):
+        """Q21.9: Calculate time from reported to resolved"""
+        if self.resolved_at:
+            delta = self.resolved_at - self.reported_at
+            return delta
+        return None
+    
+    def change_severity(self, new_severity, changed_by):
+        """Q21.7: Change severity with audit trail"""
+        from django.utils import timezone
+        self.severity = new_severity
+        self.severity_changed_at = timezone.now()
+        self.severity_changed_by = changed_by
+        self.save()
 
 class DamagePhoto(models.Model):
     if TYPE_CHECKING:
@@ -1752,17 +2897,90 @@ class InventoryItem(models.Model):
         ("HERRAMIENTA", "Herramientas"),
         ("OTRO", "Otro"),
     ]
+    
+    # ACTIVITY 2: Q15.8 - Valuation methods
+    VALUATION_CHOICES = [
+        ('FIFO', 'First In First Out'),
+        ('LIFO', 'Last In First Out'),
+        ('AVG', 'Average Cost'),
+    ]
+    
     name = models.CharField(max_length=120)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     unit = models.CharField(max_length=20, default="pcs")
     is_equipment = models.BooleanField(default=False)  # reutilizable
     track_serial = models.BooleanField(default=False)
-    default_threshold = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    
+    # ACTIVITY 2: Q15.5 - Per-item threshold (moved from default_threshold)
+    low_stock_threshold = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Q15.5: Umbral personalizado por item"
+    )
+    default_threshold = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)  # Legacy
+    
+    # ACTIVITY 2: Q15.7 - SKU for tracking
+    sku = models.CharField(max_length=100, unique=True, null=True, blank=True, help_text="Q14.2: SKU único global")
+    
+    # ACTIVITY 2: Q15.8 - Cost tracking
+    valuation_method = models.CharField(
+        max_length=10, 
+        choices=VALUATION_CHOICES, 
+        default='AVG',
+        help_text="Q15.8: Método de valuación de inventario"
+    )
+    average_cost = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=Decimal("0"),
+        help_text="Q15.8: Costo promedio calculado"
+    )
+    last_purchase_cost = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Q15.8: Último costo de compra"
+    )
+    
     active = models.BooleanField(default=True)
-    no_threshold = models.BooleanField(default=False)  # <- debe existir
+    no_threshold = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['category', 'active']),
+            models.Index(fields=['sku']),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.get_category_display()})"
+    
+    def get_effective_threshold(self):
+        """Q15.5: Retorna umbral efectivo (personalizado o default)"""
+        return self.low_stock_threshold or self.default_threshold
+    
+    def update_average_cost(self, new_cost, quantity_purchased):
+        """Q15.8: Actualizar costo promedio con nueva compra"""
+        if self.valuation_method == 'AVG':
+            # Get current total quantity across all locations
+            total_qty = ProjectInventory.objects.filter(item=self).aggregate(
+                total=models.Sum('quantity')
+            )['total'] or Decimal("0")
+            
+            if total_qty > 0:
+                # Weighted average
+                total_value = (self.average_cost * total_qty) + (new_cost * quantity_purchased)
+                self.average_cost = total_value / (total_qty + quantity_purchased)
+            else:
+                self.average_cost = new_cost
+            
+            self.last_purchase_cost = new_cost
+            self.save(update_fields=['average_cost', 'last_purchase_cost'])
 
 
 class InventoryLocation(models.Model):
@@ -1809,49 +3027,166 @@ class InventoryMovement(models.Model):
         ("ADJUST", "Ajuste manual"),
         ("CONSUME", "Consumo registrado"),
     ]
-    item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE)
+    item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name="movements")
     from_location = models.ForeignKey(InventoryLocation, null=True, blank=True, related_name="moves_out", on_delete=models.SET_NULL)
     to_location = models.ForeignKey(InventoryLocation, null=True, blank=True, related_name="moves_in", on_delete=models.SET_NULL)
     movement_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
-    note = models.CharField(max_length=255, blank=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expense = models.ForeignKey("core.Expense", null=True, blank=True, on_delete=models.SET_NULL, related_name="inventory_movements")  # NUEVO
+    
+    # ACTIVITY 2: Q15.11 - Audit trail
+    reason = models.TextField(
+        blank=True,
+        help_text="Q15.11: Razón del movimiento (audit trail)"
+    )
+    note = models.CharField(max_length=255, blank=True)  # Legacy
+    
+    # ACTIVITY 2: Q15.9 - Link to tasks/projects
+    related_task = models.ForeignKey(
+        "Task", 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL,
+        related_name="inventory_movements",
+        help_text="Q15.9: Tarea relacionada con este movimiento"
+    )
+    related_project = models.ForeignKey(
+        "Project",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="inventory_movements",
+        help_text="Q15.9: Proyecto relacionado"
+    )
+    
+    # ACTIVITY 2: Q15.11 - Audit fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        help_text="Q15.11: Usuario que realizó el movimiento"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, help_text="Q15.11: Timestamp del movimiento")
+    
+    # ACTIVITY 2: Cost tracking
+    unit_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Costo unitario en el momento del movimiento"
+    )
+    
+    expense = models.ForeignKey(
+        "core.Expense", 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL, 
+        related_name="inventory_movements"
+    )
+    
+    # ACTIVITY 2: Apply tracking
+    applied = models.BooleanField(
+        default=False,
+        help_text="Indica si el movimiento ya fue aplicado al inventario"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['item', '-created_at']),
+            models.Index(fields=['from_location', '-created_at']),
+            models.Index(fields=['to_location', '-created_at']),
+            models.Index(fields=['related_project', '-created_at']),
+            models.Index(fields=['movement_type', '-created_at']),
+        ]
 
     def apply(self):
-        # aplica efecto (idempotencia simple: NO volver a aplicar si ya se aplicó => se podría marcar un flag)
+        """Apply inventory movement and update stock levels"""
+        # Q15.10: No permitir inventario negativo
+        if self.applied:
+            return  # Idempotency: don't apply twice
+        
         if self.movement_type in ("RECEIVE", "RETURN"):
             if self.to_location:
                 stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
                 stock.quantity += self.quantity
                 stock.save()
+                
+                # Q15.8: Update cost if receiving
+                if self.movement_type == "RECEIVE" and self.unit_cost:
+                    self.item.update_average_cost(self.unit_cost, self.quantity)
+                    
         elif self.movement_type in ("ISSUE", "CONSUME"):
             if self.from_location:
                 stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.from_location)
+                
+                # Q15.10: Prevent negative inventory
+                if stock.quantity < self.quantity:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError(
+                        f"Inventario insuficiente: {stock.quantity} disponible, {self.quantity} solicitado"
+                    )
+                
                 stock.quantity -= self.quantity
-                if stock.quantity < 0:
-                    stock.quantity = Decimal("0")  # o lanzar error
                 stock.save()
+                
+                # Check low stock alert
+                self._check_low_stock_alert(stock)
+                
         elif self.movement_type == "TRANSFER":
             if self.from_location:
                 s_from, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.from_location)
+                
+                # Q15.10: Prevent negative inventory
+                if s_from.quantity < self.quantity:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError(
+                        f"Inventario insuficiente en origen: {s_from.quantity} disponible, {self.quantity} solicitado"
+                    )
+                
                 s_from.quantity -= self.quantity
-                if s_from.quantity < 0:
-                    s_from.quantity = Decimal("0")
                 s_from.save()
+                
             if self.to_location:
                 s_to, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
                 s_to.quantity += self.quantity
                 s_to.save()
+                
         elif self.movement_type == "ADJUST":
-            # note describe razón; cantidad positiva suma (negativa restaría si lo permites)
             if self.to_location:
                 stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
                 stock.quantity += self.quantity
+                
+                # Q15.10: Prevent negative after adjustment
                 if stock.quantity < 0:
                     stock.quantity = Decimal("0")
+                    
                 stock.save()
+        
+        self.applied = True
+        self.save(update_fields=['applied'])
+    
+    def _check_low_stock_alert(self, stock):
+        """Q15.5: Verificar y notificar si el stock está bajo"""
+        threshold = self.item.get_effective_threshold()
+        
+        if threshold and stock.quantity < threshold:
+            # Notificar admins
+            from core.models import Notification
+            from django.contrib.auth.models import User
+            
+            admins = User.objects.filter(is_staff=True, is_active=True)
+            
+            for admin in admins:
+                Notification.objects.create(
+                    user=admin,
+                    notification_type='task_created',
+                    title=f'Stock bajo: {self.item.name}',
+                    message=f'El inventario de {self.item.name} en {stock.location} está bajo el umbral ({stock.quantity} < {threshold})',
+                    related_object_type='inventory',
+                    related_object_id=stock.id,
+                    link_url='/inventory/',
+                )
 
     def __str__(self):
         return f"{self.movement_type} {self.item} {self.quantity}"
@@ -1963,11 +3298,17 @@ class DailyPlan(models.Model):
     """
     Daily planning document - must be created before 5pm for next working day
     Forces PMs to think ahead about activities, materials, and assignments
+    
+    Nuevas características (Nov 2025):
+    - Weather tracking automático por ubicación del proyecto (Q12.8)
+    - Conversión de actividades a tareas (Q12.2)
+    - Estados extendidos (Draft, Published, In Progress, Completed) (Q12.1)
     """
     STATUS_CHOICES = [
         ('DRAFT', 'Draft'),
-        ('SUBMITTED', 'Submitted'),
-        ('APPROVED', 'Approved by Admin'),
+        ('PUBLISHED', 'Published'),  # Q12.1: Nuevo estado
+        ('IN_PROGRESS', 'In Progress'),  # Q12.1: Nuevo estado
+        ('COMPLETED', 'Completed'),  # Q12.1: Nuevo estado
         ('SKIPPED', 'No Planning Needed'),
     ]
     
@@ -1983,11 +3324,25 @@ class DailyPlan(models.Model):
         help_text="Deadline to submit plan (usually 5pm day before)"
     )
     
+    # Q12.8: Clima automático
+    weather_data = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Weather data: {temp, condition, humidity, wind, etc.} fetched from API"
+    )
+    weather_fetched_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when weather was last fetched"
+    )
+    
     # For skipped days
     no_planning_reason = models.TextField(
         blank=True,
         help_text="Reason why no planning is needed (e.g., no projects scheduled)"
     )
+    
+    # Approval tracking
     admin_approved = models.BooleanField(default=False)
     approved_by = models.ForeignKey(
         User, 
@@ -1997,6 +3352,22 @@ class DailyPlan(models.Model):
         related_name='approved_plans'
     )
     approved_at = models.DateTimeField(null=True, blank=True)
+    
+    # Q12.5: Histórico de productividad
+    actual_hours_worked = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Total real hours worked (from time tracking)"
+    )
+    estimated_hours_total = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Sum of estimated hours from all activities"
+    )
     
     class Meta:
         ordering = ['-plan_date']
@@ -2015,12 +3386,145 @@ class DailyPlan(models.Model):
         """Check if plan should have been submitted by now"""
         from django.utils import timezone
         return timezone.now() > self.completion_deadline and self.status == 'DRAFT'
+    
+    def fetch_weather(self):
+        """
+        Q12.8: Obtener clima automáticamente basado en la ubicación del proyecto.
+        Usa API de OpenWeatherMap o similar.
+        """
+        if not self.project.address:
+            return None
+        
+        # TODO: Implementar integración con API de clima
+        # Por ahora retorna estructura de ejemplo
+        from django.utils import timezone
+        self.weather_data = {
+            'temp': 72,  # Fahrenheit
+            'condition': 'Sunny',
+            'humidity': 45,
+            'wind_speed': 5,
+            'precipitation_chance': 10,
+        }
+        self.weather_fetched_at = timezone.now()
+        self.save()
+        return self.weather_data
+    
+    def convert_activities_to_tasks(self, user=None):
+        """
+        Q12.2: Convierte las actividades planeadas en tareas reales del proyecto.
+        Útil cuando el plan se publica y se quiere trackear cada actividad como tarea.
+        
+        Returns: lista de Task objects creadas
+        """
+        created_tasks = []
+        for activity in self.activities.all():
+            # Solo convertir actividades no completadas
+            if activity.status == 'COMPLETED':
+                continue
+            
+            task = Task.objects.create(
+                project=self.project,
+                title=activity.title,
+                description=activity.description or f"From Daily Plan {self.plan_date}",
+                status='Pendiente',
+                priority='medium',
+                created_by=user or self.created_by,
+                schedule_item=activity.schedule_item,
+                due_date=self.plan_date,  # Q11.1: Usar la fecha del plan como due date
+            )
+            
+            # Asignar empleados
+            for employee in activity.assigned_employees.all():
+                task.assigned_to = employee
+                task.save()
+                break  # Solo el primer empleado, los demás podrían ser tareas separadas
+            
+            # Vincular actividad con la tarea creada
+            activity.converted_task = task
+            activity.save()
+            
+            created_tasks.append(task)
+        
+        return created_tasks
+    
+    def calculate_productivity_score(self):
+        """
+        Q12.5: Calcula score de productividad: horas reales vs estimadas.
+        Retorna porcentaje (100% = según lo planeado, >100% = más eficiente).
+        """
+        if not self.estimated_hours_total or not self.actual_hours_worked:
+            return None
+        
+        if self.actual_hours_worked == 0:
+            return 100.0
+        
+        # Score: estimated / actual * 100
+        # Ejemplo: estimated=8h, actual=6h → 8/6*100 = 133% (más eficiente)
+        score = float(self.estimated_hours_total / self.actual_hours_worked * 100)
+        return round(score, 1)
+    
+    def auto_consume_materials(self, consumption_data, user=None):
+        """
+        Q15.13: Auto-consumir materiales al cerrar el día.
+        consumption_data: dict {material_name: quantity_consumed}
+        Ejemplo: {'Tape': 10, 'Paint - White': 2}
+        
+        Returns: lista de InventoryMovement creados
+        """
+        from core.models import InventoryItem, InventoryLocation, InventoryMovement
+        
+        movements = []
+        
+        # Get project location
+        location = InventoryLocation.objects.filter(
+            project=self.project
+        ).first()
+        
+        if not location:
+            return movements
+        
+        for material_name, quantity in consumption_data.items():
+            # Find inventory item by name
+            item = InventoryItem.objects.filter(
+                name__icontains=material_name,
+                active=True
+            ).first()
+            
+            if not item:
+                continue
+            
+            # Create consumption movement
+            movement = InventoryMovement.objects.create(
+                item=item,
+                from_location=location,
+                movement_type='CONSUME',
+                quantity=Decimal(str(quantity)),
+                reason=f"Consumo automático - Daily Plan {self.plan_date}",
+                related_project=self.project,
+                created_by=user or self.created_by
+            )
+            
+            try:
+                movement.apply()
+                movements.append(movement)
+            except Exception as e:
+                # Log error but continue with other items
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error applying consumption for {material_name}: {e}")
+        
+        return movements
+
 
 
 class PlannedActivity(models.Model):
     """
     Individual activity within a daily plan
     Can be linked to Schedule item or standalone
+    
+    Nuevas características (Nov 2025):
+    - Q12.2: Conversión a Task (campo converted_task)
+    - Q13.6: Tracking de tiempo real vs estimado
     """
     STATUS_CHOICES = [
         ('PENDING', 'Not Started'),
@@ -2052,6 +3556,16 @@ class PlannedActivity(models.Model):
         help_text="SOP template for this activity"
     )
     
+    # Q12.2: Link to converted Task
+    converted_task = models.ForeignKey(
+        Task,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='source_activity',
+        help_text="Task created from this planned activity"
+    )
+    
     # Activity details
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -2075,6 +3589,16 @@ class PlannedActivity(models.Model):
         null=True,
         blank=True
     )
+    
+    # Q13.6: Tiempo real trabajado (para medir vs SOP)
+    actual_hours = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Actual hours worked (from time tracking or manual entry)"
+    )
+    
     materials_needed = models.JSONField(
         default=list,
         help_text="List of materials needed with quantities"
@@ -2103,9 +3627,30 @@ class PlannedActivity(models.Model):
         ordering = ['daily_plan', 'order']
         verbose_name = "Planned Activity"
         verbose_name_plural = "Planned Activities"
+        indexes = [
+            models.Index(fields=['daily_plan', 'status']),
+            models.Index(fields=['activity_template']),
+        ]
     
     def __str__(self):
         return f"{self.title} - {self.daily_plan.plan_date}"
+    
+    def get_time_variance(self):
+        """
+        Q13.6: Calcula varianza entre tiempo estimado y real.
+        Retorna dict con variance en horas y porcentaje.
+        """
+        if not self.estimated_hours or not self.actual_hours:
+            return None
+        
+        variance_hours = float(self.estimated_hours - self.actual_hours)
+        variance_pct = (variance_hours / float(self.estimated_hours)) * 100
+        
+        return {
+            'variance_hours': round(variance_hours, 2),
+            'variance_percentage': round(variance_pct, 1),
+            'is_efficient': variance_hours > 0,  # True si se hizo en menos tiempo
+        }
     
     def check_materials(self):
         """

@@ -30,7 +30,309 @@
         <strong>{{ task.updated_at|date:'M d, Y'|default:'—' }}</strong>
       </div>
     </div>
+    <!-- ACTIVITY 1: New fields (Q11.1, Q11.6) -->
+    {% if task.priority %}
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded">
+        <small class="text-muted d-block">{% trans 'Prioridad' %}</small>
+        <strong class="text-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% else %}info{% endif %}">
+          {{ task.get_priority_display|default:'—' }}
+        </strong>
+      </div>
+    </div>
+    {% endif %}
+    {% if task.due_date %}
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded">
+        <small class="text-muted d-block">{% trans 'Fecha límite' %}</small>
+        <strong>{{ task.due_date|date:'M d, Y'|default:'—' }}</strong>
+      </div>
+    </div>
+    {% endif %}
+    <!-- ACTIVITY 1: Time tracking display (Q11.13) -->
+    {% if not task.is_touchup %}
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded">
+        <small class="text-muted d-block">{% trans 'Tiempo trabajado' %}</small>
+        <strong id="time-tracked">{{ task.get_time_tracked_hours }} hrs</strong>
+      </div>
+    </div>
+    {% endif %}
   </div>
+  
+  <!-- ACTIVITY 1: Time tracking buttons (Q11.13) -->
+  {% if not task.is_touchup and task.assigned_to == request.user or request.user.is_staff %}
+  <div class="alert alert-info" role="alert">
+    <h5 class="alert-heading"><i class="bi bi-stopwatch"></i> {% trans 'Seguimiento de tiempo' %}</h5>
+    <p class="mb-2">{% trans 'Registra el tiempo que trabajas en esta tarea' %}</p>
+    
+    <!-- Live Timer Display -->
+    <div class="mb-3" id="live-timer-container" {% if not task.started_at %}style="display:none;"{% endif %}>
+      <div class="p-3 bg-white rounded border">
+        <div class="d-flex align-items-center">
+          <div class="spinner-grow spinner-grow-sm text-success me-2" role="status">
+            <span class="visually-hidden">Recording...</span>
+          </div>
+          <div>
+            <small class="text-muted d-block">{% trans 'Sesión actual' %}</small>
+            <h3 class="mb-0 font-monospace" id="live-timer">00:00:00</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-success" id="btn-start-tracking" {% if task.started_at %}disabled{% endif %}>
+        <i class="bi bi-play-fill"></i> {% trans 'Iniciar' %}
+      </button>
+      <button type="button" class="btn btn-warning" id="btn-stop-tracking" {% if not task.started_at %}disabled{% endif %}>
+        <i class="bi bi-stop-fill"></i> {% trans 'Detener' %}
+      </button>
+    </div>
+    <small class="d-block mt-2 text-muted" id="tracking-status">
+      {% if task.started_at %}
+        <i class="bi bi-circle-fill text-success"></i> {% trans 'Seguimiento activo desde' %} {{ task.started_at|date:'H:i' }}
+      {% else %}
+        <i class="bi bi-circle text-secondary"></i> {% trans 'Sin seguimiento activo' %}
+      {% endif %}
+    </small>
+  </div>
+  {% endif %}
+  
+  <!-- ACTIVITY 1: Dependencies Section (Q11.7) -->
+  {% if task.dependencies.exists %}
+  <div class="card mb-3">
+    <div class="card-header bg-warning bg-opacity-10">
+      <h5 class="mb-0"><i class="bi bi-diagram-3"></i> {% trans 'Dependencias' %}</h5>
+    </div>
+    <div class="card-body">
+      <p class="text-muted">{% trans 'Esta tarea depende de las siguientes tareas' %}:</p>
+      <ul class="list-group list-group-flush">
+        {% for dep in task.dependencies.all %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{% url 'task_detail' dep.id %}" class="text-decoration-none">
+              <strong>{{ dep.title }}</strong>
+            </a>
+            <br>
+            <small class="text-muted">{{ dep.project.name }}</small>
+          </div>
+          <span class="badge {% if dep.status == 'Completada' %}bg-success{% elif dep.status == 'En Progreso' %}bg-primary{% elif dep.status == 'Cancelada' %}bg-secondary{% else %}bg-warning{% endif %}">
+            {{ dep.status }}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if not task.can_start %}
+      <div class="alert alert-warning mt-3 mb-0">
+        <i class="bi bi-exclamation-triangle"></i> {% trans 'No puedes iniciar esta tarea hasta que se completen todas las dependencias' %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- ACTIVITY 1: Time History (Q11.13) -->
+  {% if not task.is_touchup and task.time_tracked_seconds > 0 %}
+  <div class="card mb-3">
+    <div class="card-header bg-info bg-opacity-10">
+      <h5 class="mb-0"><i class="bi bi-clock-history"></i> {% trans 'Historial de tiempo' %}</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="text-center p-3 bg-light rounded">
+            <small class="text-muted d-block">{% trans 'Total acumulado' %}</small>
+            <h3 class="mb-0 text-primary">{{ task.get_time_tracked_hours }} hrs</h3>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <p class="text-muted mb-2">{% trans 'Tiempo total trabajado en esta tarea' %}</p>
+          <div class="progress" style="height: 30px;">
+            {% with hours=task.get_time_tracked_hours %}
+            <div class="progress-bar bg-info" role="progressbar" 
+                 style="width: {% if hours > 0 %}{{ hours|floatformat:0 }}%{% else %}5%{% endif %};" 
+                 aria-valuenow="{{ hours }}" aria-valuemin="0" aria-valuemax="100">
+              {{ hours }} hrs
+            </div>
+            {% endwith %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
   <a href="javascript:history.back();" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> {% trans 'Regresar' %}</a>
+  {% if request.user.is_staff %}
+  <a href="{% url 'task_edit' task.id %}" class="btn btn-primary"><i class="bi bi-pencil"></i> {% trans 'Editar' %}</a>
+  {% endif %}
 </div>
+
+<!-- ACTIVITY 1: Time tracking JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const btnStart = document.getElementById('btn-start-tracking');
+  const btnStop = document.getElementById('btn-stop-tracking');
+  const timeTracked = document.getElementById('time-tracked');
+  const trackingStatus = document.getElementById('tracking-status');
+  const liveTimer = document.getElementById('live-timer');
+  const liveTimerContainer = document.getElementById('live-timer-container');
+  
+  let timerInterval = null;
+  let startTime = {% if task.started_at %}'{{ task.started_at.isoformat }}'{% else %}null{% endif %};
+  
+  // Format seconds to HH:MM:SS
+  function formatTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  
+  // Update live timer
+  function updateLiveTimer() {
+    if (startTime && liveTimer) {
+      const start = new Date(startTime);
+      const now = new Date();
+      const elapsedSeconds = Math.floor((now - start) / 1000);
+      liveTimer.textContent = formatTime(elapsedSeconds);
+    }
+  }
+  
+  // Start timer interval if tracking is active
+  if (startTime && liveTimer) {
+    updateLiveTimer();
+    timerInterval = setInterval(updateLiveTimer, 1000);
+  }
+  
+  if (btnStart) {
+    btnStart.addEventListener('click', function() {
+      fetch("{% url 'task_start_tracking' task.id %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          btnStart.disabled = true;
+          btnStop.disabled = false;
+          trackingStatus.innerHTML = '<i class="bi bi-circle-fill text-success"></i> {% trans "Seguimiento activo" %}';
+          
+          // Start live timer
+          startTime = data.started_at;
+          if (liveTimerContainer) {
+            liveTimerContainer.style.display = 'block';
+          }
+          updateLiveTimer();
+          timerInterval = setInterval(updateLiveTimer, 1000);
+          
+          // Show success toast
+          if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            const toastEl = document.createElement('div');
+            toastEl.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+            toastEl.setAttribute('role', 'alert');
+            toastEl.innerHTML = `
+              <div class="d-flex">
+                <div class="toast-body">
+                  <i class="bi bi-check-circle"></i> ${data.message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+              </div>
+            `;
+            document.body.appendChild(toastEl);
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+            setTimeout(() => toastEl.remove(), 5000);
+          } else {
+            alert(data.message);
+          }
+        } else {
+          alert(data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('{% trans "Error al iniciar seguimiento" %}');
+      });
+    });
+  }
+  
+  if (btnStop) {
+    btnStop.addEventListener('click', function() {
+      fetch("{% url 'task_stop_tracking' task.id %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          btnStart.disabled = false;
+          btnStop.disabled = true;
+          if (timeTracked) {
+            timeTracked.textContent = data.total_hours + ' hrs';
+          }
+          trackingStatus.innerHTML = '<i class="bi bi-circle text-secondary"></i> {% trans "Sin seguimiento activo" %}';
+          
+          // Stop live timer
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+          startTime = null;
+          if (liveTimerContainer) {
+            liveTimerContainer.style.display = 'none';
+          }
+          
+          // Show success toast with elapsed time
+          const elapsed = Math.floor(data.elapsed_seconds / 60);
+          const message = `${data.message} (${elapsed} {% trans "minutos" %})`;
+          
+          if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            const toastEl = document.createElement('div');
+            toastEl.className = 'toast align-items-center text-white bg-warning border-0 position-fixed top-0 end-0 m-3';
+            toastEl.setAttribute('role', 'alert');
+            toastEl.innerHTML = `
+              <div class="d-flex">
+                <div class="toast-body">
+                  <i class="bi bi-stop-circle"></i> ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+              </div>
+            `;
+            document.body.appendChild(toastEl);
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+            setTimeout(() => toastEl.remove(), 5000);
+          } else {
+            alert(message);
+          }
+          
+          // Reload page to show updated time history
+          setTimeout(() => location.reload(), 2000);
+        } else {
+          alert(data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('{% trans "Error al detener seguimiento" %}');
+      });
+    });
+  }
+  
+  // Cleanup timer on page unload
+  window.addEventListener('beforeunload', function() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+  });
+});
+</script>
 {% endblock %}

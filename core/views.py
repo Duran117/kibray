@@ -1,5 +1,5 @@
 from collections import defaultdict
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from io import BytesIO
 from datetime import date, datetime, timedelta
 from functools import wraps
@@ -301,7 +301,12 @@ def dashboard_admin(request):
         'today': today,
     }
     
-    return render(request, 'core/dashboard_admin.html', context)
+    # Use clean Design System template by default
+    # Legacy template available via ?legacy=true
+    use_legacy = request.GET.get('legacy', 'false').lower() == 'true'
+    template = 'core/dashboard_admin.html' if use_legacy else 'core/dashboard_admin_clean.html'
+    
+    return render(request, template, context)
 
 
 # --- DASHBOARD CLIENTE (VISUAL Y ESTÉTICO) ---
@@ -385,8 +390,11 @@ def dashboard_client(request):
         'today': timezone.localdate(),
         'display_name': display_name,
     }
-    
-    return render(request, 'core/dashboard_client.html', context)
+
+    # Use clean template by default, legacy with ?legacy=true
+    use_legacy = request.GET.get('legacy')
+    template_name = 'core/dashboard_client.html' if use_legacy else 'core/dashboard_client_clean.html'
+    return render(request, template_name, context)
 
 
 # --- DASHBOARD (Redirect to role-based dashboards) ---
@@ -492,7 +500,8 @@ def schedule_create_view(request):
 def expense_create_view(request):
     profile = getattr(request.user, 'profile', None)
     role = getattr(profile, "role", "employee")
-    if role not in ["admin", "superuser", "project_manager"]:
+    # Allow Django superusers and staff automatically
+    if not (request.user.is_superuser or request.user.is_staff or role in ["admin", "superuser", "project_manager"]):
         return redirect('dashboard')
 
     if request.method == "POST":
@@ -508,7 +517,8 @@ def expense_create_view(request):
 def income_create_view(request):
     profile = getattr(request.user, 'profile', None)
     role = getattr(profile, "role", "employee")
-    if role not in ["admin", "superuser", "project_manager"]:
+    # Allow Django superusers and staff automatically
+    if not (request.user.is_superuser or request.user.is_staff or role in ["admin", "superuser", "project_manager"]):
         return redirect('dashboard')
 
     if request.method == "POST":
@@ -519,6 +529,100 @@ def income_create_view(request):
     else:
         form = IncomeForm()
     return render(request, "core/income_form.html", {"form": form})
+
+@login_required
+def income_list(request):
+    from core.models import Income
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        return redirect('dashboard')
+    qs = Income.objects.select_related('project').all().order_by('-date')
+    project_id = request.GET.get('project')
+    if project_id:
+        qs = qs.filter(project_id=project_id)
+    return render(request, 'core/income_list.html', { 'incomes': qs })
+
+@login_required
+def income_edit_view(request, income_id):
+    from core.models import Income
+    income = get_object_or_404(Income, id=income_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('income_list')
+    if request.method == 'POST':
+        form = IncomeForm(request.POST, request.FILES, instance=income)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Ingreso actualizado.')
+            return redirect('income_list')
+    else:
+        form = IncomeForm(instance=income)
+    return render(request, 'core/income_form.html', { 'form': form, 'income': income })
+
+@login_required
+def income_delete_view(request, income_id):
+    from core.models import Income
+    income = get_object_or_404(Income, id=income_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('income_list')
+    if request.method == 'POST':
+        income.delete()
+        messages.success(request, 'Ingreso eliminado.')
+        return redirect('income_list')
+    return render(request, 'core/income_confirm_delete.html', { 'income': income })
+
+@login_required
+def expense_list(request):
+    from core.models import Expense
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        return redirect('dashboard')
+    qs = Expense.objects.select_related('project').all().order_by('-date')
+    project_id = request.GET.get('project')
+    if project_id:
+        qs = qs.filter(project_id=project_id)
+    return render(request, 'core/expense_list.html', { 'expenses': qs })
+
+@login_required
+def expense_edit_view(request, expense_id):
+    from core.models import Expense
+    expense = get_object_or_404(Expense, id=expense_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('expense_list')
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST, request.FILES, instance=expense)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Gasto actualizado.')
+            return redirect('expense_list')
+    else:
+        form = ExpenseForm(instance=expense)
+    return render(request, 'core/expense_form.html', { 'form': form, 'expense': expense })
+
+@login_required
+def expense_delete_view(request, expense_id):
+    from core.models import Expense
+    expense = get_object_or_404(Expense, id=expense_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('expense_list')
+    if request.method == 'POST':
+        expense.delete()
+        messages.success(request, 'Gasto eliminado.')
+        return redirect('expense_list')
+    return render(request, 'core/expense_confirm_delete.html', { 'expense': expense })
 
 @login_required
 def timeentry_create_view(request):
@@ -533,6 +637,51 @@ def timeentry_create_view(request):
     else:
         form = TimeEntryForm()
     return render(request, "core/timeentry_form.html", {"form": form})
+
+@login_required
+def timeentry_edit_view(request, entry_id: int):
+    """Edit an existing TimeEntry. Allowed for staff/PM or the owning employee's user."""
+    from core.models import TimeEntry
+    entry = get_object_or_404(TimeEntry, id=entry_id)
+
+    # Permissions: staff/pm or owner
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    is_staff_pm = role in ["admin", "superuser", "project_manager"] or request.user.is_staff
+    is_owner = bool(getattr(entry.employee, 'user_id', None) == request.user.id)
+    if not (is_staff_pm or is_owner):
+        messages.error(request, 'Acceso denegado.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = TimeEntryForm(request.POST, instance=entry)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registro de horas actualizado.')
+            return redirect('dashboard')
+    else:
+        form = TimeEntryForm(instance=entry)
+    return render(request, 'core/timeentry_form.html', { 'form': form, 'timeentry': entry })
+
+@login_required
+def timeentry_delete_view(request, entry_id: int):
+    """Delete a TimeEntry with confirmation. Same permissions as edit."""
+    from core.models import TimeEntry
+    entry = get_object_or_404(TimeEntry, id=entry_id)
+
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    is_staff_pm = role in ["admin", "superuser", "project_manager"] or request.user.is_staff
+    is_owner = bool(getattr(entry.employee, 'user_id', None) == request.user.id)
+    if not (is_staff_pm or is_owner):
+        messages.error(request, 'Acceso denegado.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        entry.delete()
+        messages.success(request, 'Registro de horas eliminado.')
+        return redirect('dashboard')
+    return render(request, 'core/timeentry_confirm_delete.html', { 'timeentry': entry })
 
 # --- PAYROLL (DEPRECATED - usar payroll_weekly_review) ---
 # @login_required
@@ -647,6 +796,24 @@ def payroll_weekly_review(request):
                 if rate:
                     record.adjusted_rate = Decimal(rate)
                 
+                # Q16.5: Split regular vs overtime before calculating pay
+                record.split_hours_regular_overtime()
+                # Ensure overtime_rate default if not set
+                if not record.overtime_rate:
+                    # Graceful fallback if employee lacks new fields (pre-migration data)
+                    overtime_multiplier = Decimal('1.50')
+                    if hasattr(record.employee, 'has_custom_overtime') and hasattr(record.employee, 'overtime_multiplier'):
+                        if record.employee.has_custom_overtime and record.employee.overtime_multiplier:
+                            overtime_multiplier = record.employee.overtime_multiplier
+                    record.overtime_rate = (record.effective_rate() * overtime_multiplier).quantize(Decimal('0.01'))
+                # Defaults for bonus/deductions to avoid attribute errors
+                if not hasattr(record, 'bonus'):
+                    record.bonus = Decimal('0')
+                if not hasattr(record, 'deductions'):
+                    record.deductions = Decimal('0')
+                if not hasattr(record, 'tax_withheld'):
+                    record.tax_withheld = Decimal('0')
+
                 record.total_pay = record.calculate_total_pay()
                 record.notes = notes
                 record.reviewed = True
@@ -656,9 +823,11 @@ def payroll_weekly_review(request):
             return redirect('payroll_weekly_review')
         
         elif action == 'approve_period':
-            period.status = 'approved'
-            period.save()
-            messages.success(request, f"Nómina de la semana {week_start} - {week_end} aprobada.")
+            try:
+                period.approve(request.user, skip_validation=False)
+                messages.success(request, f"Nómina de la semana {week_start} - {week_end} aprobada.")
+            except Exception as e:
+                messages.error(request, f"No se pudo aprobar: {e}")
             return redirect('payroll_weekly_review')
 
     context = {
@@ -964,21 +1133,81 @@ def color_sample_quick_action(request, sample_id):
     
     if request.method == 'POST':
         action = request.POST.get('action')
-        
         if action == 'approve':
-            sample.status = 'approved'
-            sample.approved_by = request.user
-            sample.save()
+            # Use model method to ensure signature and audit
+            sample.approve(request.user, request.META.get('REMOTE_ADDR'))
             from core.notifications import notify_color_approved
             notify_color_approved(sample, request.user)
-            return JsonResponse({'success': True, 'status': 'approved', 'display': 'Aprobado'})
-        
+            return JsonResponse({
+                'success': True,
+                'status': 'approved',
+                'display': 'Aprobado',
+                'sample_number': sample.sample_number,
+                'signature': sample.approval_signature,
+            })
         elif action == 'reject':
-            sample.status = 'rejected'
-            sample.save()
-            return JsonResponse({'success': True, 'status': 'rejected', 'display': 'Rechazado'})
+            reason = request.POST.get('reason', '').strip()
+            if not reason:
+                return JsonResponse({'error': 'Razón de rechazo requerida'}, status=400)
+            sample.reject(request.user, reason)
+            return JsonResponse({
+                'success': True,
+                'status': 'rejected',
+                'display': 'Rechazado',
+                'reason': sample.rejection_reason,
+            })
     
     return JsonResponse({'error': 'Acción inválida'}, status=400)
+
+@login_required
+def color_sample_edit(request, sample_id):
+    """Edit existing color sample"""
+    sample = get_object_or_404(ColorSample, id=sample_id)
+    project = sample.project
+    profile = getattr(request.user, 'profile', None)
+    
+    if not (request.user.is_staff or (profile and profile.role in ['client', 'project_manager'])):
+        messages.error(request, 'Acceso denegado.')
+        return redirect('color_sample_detail', sample_id=sample_id)
+    
+    if request.method == 'POST':
+        form = ColorSampleForm(request.POST, request.FILES, instance=sample)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Muestra actualizada.')
+            return redirect('color_sample_detail', sample_id=sample_id)
+    else:
+        form = ColorSampleForm(instance=sample)
+    
+    return render(request, 'core/color_sample_form.html', {
+        'form': form,
+        'project': project,
+        'sample': sample,
+        'is_edit': True,
+    })
+
+@login_required
+def color_sample_delete(request, sample_id):
+    """Delete color sample"""
+    sample = get_object_or_404(ColorSample, id=sample_id)
+    project = sample.project
+    profile = getattr(request.user, 'profile', None)
+    
+    if not (request.user.is_staff or (profile and profile.role == 'project_manager')):
+        messages.error(request, 'Acceso denegado.')
+        return redirect('color_sample_detail', sample_id=sample_id)
+    
+    if request.method == 'POST':
+        project_id = sample.project.id
+        sample.delete()
+        messages.success(request, 'Muestra eliminada.')
+        return redirect('color_sample_list', project_id=project_id)
+    
+    return render(request, 'core/color_sample_confirm_delete.html', {
+        'sample': sample,
+        'project': project,
+    })
+
 
 # --- FLOOR PLANS ---
 @login_required
@@ -997,11 +1226,18 @@ def floor_plan_list(request, project_id):
     # Sort levels
     sorted_levels = sorted(plans_by_level.keys(), reverse=True)  # Top to bottom
     
+    # Check if user can edit pins (PM, Admin, Client, Designer, Owner)
+    profile = getattr(request.user, 'profile', None)
+    can_edit_pins = request.user.is_staff or (profile and profile.role in [
+        'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+    ])
+    
     return render(request, 'core/floor_plan_list.html', {
         'project': project,
         'plans': plans,
         'plans_by_level': dict(plans_by_level),
         'sorted_levels': sorted_levels,
+        'can_edit_pins': can_edit_pins,
     })
 
 @login_required
@@ -1029,6 +1265,7 @@ def floor_plan_create(request, project_id):
 
 @login_required
 def floor_plan_detail(request, plan_id):
+    import json
     from core.models import FloorPlan, PlanPin, ColorSample, Task
     plan = get_object_or_404(FloorPlan, id=plan_id)
     pins = plan.pins.select_related('color_sample','linked_task').all()
@@ -1040,12 +1277,76 @@ def floor_plan_detail(request, plan_id):
         'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
     ])
     
+    # Serialize pins data for JavaScript
+    pins_data = []
+    for pin in pins:
+        pins_data.append({
+            'id': pin.id,
+            'x': float(pin.x),
+            'y': float(pin.y),
+            'title': pin.title,
+            'description': pin.description or '',
+            'pin_type': pin.pin_type,
+            'pin_color': pin.pin_color,
+            'path_points': pin.path_points or []
+        })
+    pins_json = json.dumps(pins_data)
+    
+    # Provide PlanPinForm so the page can render the pin editor fields
+    from core.forms import PlanPinForm
+    pin_form = PlanPinForm()
+
     return render(request, 'core/floor_plan_detail.html', {
         'plan': plan,
         'pins': pins,
+        'pins_json': pins_json,
         'color_samples': color_samples,
         'project': plan.project,
         'can_edit_pins': can_edit_pins,
+        'form': pin_form,
+    })
+
+@login_required
+def floor_plan_edit(request, plan_id):
+    """Edit an existing floor plan (name, level, image)"""
+    plan = get_object_or_404(FloorPlan, id=plan_id)
+    project = plan.project
+    profile = getattr(request.user, 'profile', None)
+    if not (request.user.is_staff or (profile and profile.role in ['project_manager'])):
+        messages.error(request, 'Acceso denegado.')
+        return redirect('floor_plan_detail', plan_id=plan.id)
+    if request.method == 'POST':
+        form = FloorPlanForm(request.POST, request.FILES, instance=plan)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Plano actualizado.')
+            return redirect('floor_plan_detail', plan_id=plan.id)
+    else:
+        form = FloorPlanForm(instance=plan)
+    return render(request, 'core/floor_plan_form.html', {
+        'form': form,
+        'project': project,
+        'plan': plan,
+        'is_edit': True,
+    })
+
+@login_required
+def floor_plan_delete(request, plan_id):
+    """Delete a floor plan and its pins"""
+    plan = get_object_or_404(FloorPlan, id=plan_id)
+    project = plan.project
+    profile = getattr(request.user, 'profile', None)
+    if not (request.user.is_staff or (profile and profile.role in ['project_manager'])):
+        messages.error(request, 'Acceso denegado.')
+        return redirect('floor_plan_detail', plan_id=plan.id)
+    if request.method == 'POST':
+        project_id = project.id
+        plan.delete()
+        messages.success(request, 'Plano eliminado.')
+        return redirect('floor_plan_list', project_id=project_id)
+    return render(request, 'core/floor_plan_confirm_delete.html', {
+        'project': project,
+        'plan': plan,
     })
 
 @login_required
@@ -1200,7 +1501,7 @@ def agregar_tarea(request, project_id):
 
 @login_required
 def touchup_board(request, project_id):
-    """Vista dedicada para gestionar touch-ups del proyecto."""
+    """Vista dedicada para gestionar touch-ups del proyecto (Q11.2 con mejoras)."""
     from django.core.paginator import Paginator
     
     project = get_object_or_404(Project, id=project_id)
@@ -1210,6 +1511,11 @@ def touchup_board(request, project_id):
     status = request.GET.get('status')
     if status:
         qs = qs.filter(status=status)
+    
+    # ACTIVITY 1: Priority filter (Q11.6)
+    priority = request.GET.get('priority')
+    if priority:
+        qs = qs.filter(priority=priority)
     
     assigned = request.GET.get('assigned')
     if assigned == 'unassigned':
@@ -1225,9 +1531,22 @@ def touchup_board(request, project_id):
     if date_to:
         qs = qs.filter(created_at__date__lte=date_to)
     
-    # Sorting
+    # ACTIVITY 1: Filter by due date (Q11.1 - overdue tasks)
+    show_overdue = request.GET.get('overdue')
+    if show_overdue:
+        from django.utils import timezone
+        qs = qs.filter(due_date__lt=timezone.now().date(), status__in=['pending', 'in_progress'])
+    
+    # Sorting (updated with new fields)
     sort_by = request.GET.get('sort', '-created_at')
-    if sort_by in ['created_at', '-created_at', 'status', '-status', 'assigned_to', '-assigned_to']:
+    valid_sorts = [
+        'created_at', '-created_at', 
+        'status', '-status', 
+        'assigned_to', '-assigned_to',
+        'priority', '-priority',  # Q11.6
+        'due_date', '-due_date'   # Q11.1
+    ]
+    if sort_by in valid_sorts:
         qs = qs.order_by(sort_by)
     
     # Pagination
@@ -1238,15 +1557,23 @@ def touchup_board(request, project_id):
     # Get available employees for filter dropdown
     employees = User.objects.filter(profile__role__in=['employee', 'superintendent']).order_by('username')
     
-    return render(request, 'core/touchup_board.html', {
+    # ACTIVITY 1: Priority choices for filter dropdown
+    from core.models import Task
+    priority_choices = Task.PRIORITY_CHOICES
+    
+    # Usamos plantilla limpia para evitar errores de bloques duplicados
+    return render(request, 'core/touchup_board_clean.html', {
         'project': project,
         'page_obj': page_obj,
         'filter_status': status,
+        'filter_priority': priority,
         'filter_assigned': assigned,
         'filter_date_from': date_from,
         'filter_date_to': date_to,
+        'show_overdue': show_overdue,
         'sort_by': sort_by,
         'employees': employees,
+        'priority_choices': priority_choices,
     })
 
 @login_required
@@ -1341,6 +1668,54 @@ def damage_report_detail(request, report_id):
     return render(request, 'core/damage_report_detail.html', {
         'report': report,
         'project': report.project,
+    })
+
+@login_required
+def damage_report_edit(request, report_id):
+    """Edit an existing damage report."""
+    from core.models import DamageReport
+    from core.forms import DamageReportForm
+    report = get_object_or_404(DamageReport, id=report_id)
+    project = report.project
+    profile = getattr(request.user, 'profile', None)
+    can_edit = request.user.is_staff or (profile and profile.role in ['superintendent','project_manager']) or (request.user == report.reported_by)
+    if not can_edit:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('damage_report_detail', report_id=report.id)
+    if request.method == 'POST':
+        form = DamageReportForm(project, request.POST, request.FILES, instance=report)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Reporte actualizado.')
+            return redirect('damage_report_detail', report_id=report.id)
+    else:
+        form = DamageReportForm(project, instance=report)
+    return render(request, 'core/damage_report_form.html', {
+        'form': form,
+        'project': project,
+        'report': report,
+        'is_edit': True,
+    })
+
+@login_required
+def damage_report_delete(request, report_id):
+    """Delete a damage report with confirmation."""
+    from core.models import DamageReport
+    report = get_object_or_404(DamageReport, id=report_id)
+    project = report.project
+    profile = getattr(request.user, 'profile', None)
+    can_delete = request.user.is_staff or (profile and profile.role in ['superintendent','project_manager']) or (request.user == report.reported_by)
+    if not can_delete:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('damage_report_detail', report_id=report.id)
+    if request.method == 'POST':
+        project_id = project.id
+        report.delete()
+        messages.success(request, 'Reporte de daño eliminado.')
+        return redirect('damage_report_list', project_id=project_id)
+    return render(request, 'core/damage_report_confirm_delete.html', {
+        'project': project,
+        'report': report,
     })
 
 @login_required
@@ -1571,9 +1946,17 @@ def changeorder_create_view(request):
         except:
             pass
     
-    # Use modern template that extends base.html
-    use_modern = request.GET.get('modern', 'false').lower() == 'true'
-    template = "core/changeorder_form_modern.html" if use_modern else "core/changeorder_form_standalone.html"
+    # Use clean Design System template by default
+    # Legacy template available via ?legacy=true
+    use_legacy = request.GET.get('legacy', 'false').lower() == 'true'
+    use_standalone = request.GET.get('standalone', 'false').lower() == 'true'
+    
+    if use_standalone:
+        template = "core/changeorder_form_standalone.html"
+    elif use_legacy:
+        template = "core/changeorder_form_modern.html"
+    else:
+        template = "core/changeorder_form_clean.html"
     
     return render(request, template, {
         "form": form,
@@ -1608,9 +1991,17 @@ def changeorder_edit_view(request, co_id):
         status='approved'
     ).order_by('code')
     
-    # Use modern template that extends base.html
-    use_modern = request.GET.get('modern', 'false').lower() == 'true'
-    template = "core/changeorder_form_modern.html" if use_modern else "core/changeorder_form_standalone.html"
+    # Use clean Design System template by default
+    # Legacy template available via ?legacy=true
+    use_legacy = request.GET.get('legacy', 'false').lower() == 'true'
+    use_standalone = request.GET.get('standalone', 'false').lower() == 'true'
+    
+    if use_standalone:
+        template = "core/changeorder_form_standalone.html"
+    elif use_legacy:
+        template = "core/changeorder_form_modern.html"
+    else:
+        template = "core/changeorder_form_clean.html"
     
     return render(request, template, {
         "form": form, 
@@ -1645,25 +2036,7 @@ def get_approved_colors(request, project_id):
         'colors': list(colors)
     })
 
-@login_required
-@require_POST
-def save_photo_annotations(request, photo_id):
-    """Save drawing annotations to a photo"""
-    photo = get_object_or_404(ChangeOrderPhoto, id=photo_id)
-    data = json.loads(request.body)
-    # Convert annotations array to JSON string for TextField storage
-    annotations_data = data.get('annotations', [])
-    photo.annotations = json.dumps(annotations_data) if annotations_data else ''
-    photo.save()
-    return JsonResponse({'success': True})
-
-@login_required
-@require_POST
-def delete_changeorder_photo(request, photo_id):
-    """Delete a change order photo"""
-    photo = get_object_or_404(ChangeOrderPhoto, id=photo_id)
-    photo.delete()
-    return JsonResponse({'success': True})
+    # (Legacy annotation and delete endpoints removed; use DRF versions under /api/v1/changeorder-photo/)
 
 @login_required
 def changeorder_board_view(request):
@@ -2654,7 +3027,7 @@ def daily_log_create(request, project_id):
     pending_tasks = Task.objects.filter(
         project=project,
         status__in=['pending', 'in_progress']
-    ).select_related('assigned_to').order_by('priority', 'due_date')
+    ).select_related('assigned_to').order_by('created_at')
     
     # Obtener actividades del schedule activas
     active_schedules = Schedule.objects.filter(
@@ -2698,6 +3071,43 @@ def rfi_answer_view(request, rfi_id):
     return render(request, 'core/rfi_answer.html', {'rfi': rfi, 'form': form})
 
 @login_required
+def rfi_edit_view(request, rfi_id):
+    """Edit an RFI. Allowed for staff/PM."""
+    rfi = get_object_or_404(RFI, pk=rfi_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('rfi_list', project_id=rfi.project_id)
+    
+    if request.method == 'POST':
+        form = RFIForm(request.POST, instance=rfi)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'RFI actualizado.')
+            return redirect('rfi_list', project_id=rfi.project_id)
+    else:
+        form = RFIForm(instance=rfi)
+    return render(request, 'core/rfi_form.html', {'form': form, 'rfi': rfi, 'project': rfi.project})
+
+@login_required
+def rfi_delete_view(request, rfi_id):
+    """Delete an RFI with confirmation. Staff/PM only."""
+    rfi = get_object_or_404(RFI, pk=rfi_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('rfi_list', project_id=rfi.project_id)
+    
+    project_id = rfi.project_id
+    if request.method == 'POST':
+        rfi.delete()
+        messages.success(request, 'RFI eliminado.')
+        return redirect('rfi_list', project_id=project_id)
+    return render(request, 'core/rfi_confirm_delete.html', {'rfi': rfi})
+
+@login_required
 def issue_list_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     form = IssueForm(request.POST or None)
@@ -2710,6 +3120,43 @@ def issue_list_view(request, project_id):
     return render(request, 'core/issue_list.html', {'project': project, 'issues': issues, 'form': form})
 
 @login_required
+def issue_edit_view(request, issue_id):
+    """Edit an Issue. Allowed for staff/PM."""
+    issue = get_object_or_404(Issue, pk=issue_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('issue_list', project_id=issue.project_id)
+    
+    if request.method == 'POST':
+        form = IssueForm(request.POST, instance=issue)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Issue actualizado.')
+            return redirect('issue_list', project_id=issue.project_id)
+    else:
+        form = IssueForm(instance=issue)
+    return render(request, 'core/issue_form.html', {'form': form, 'issue': issue, 'project': issue.project})
+
+@login_required
+def issue_delete_view(request, issue_id):
+    """Delete an Issue with confirmation. Staff/PM only."""
+    issue = get_object_or_404(Issue, pk=issue_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('issue_list', project_id=issue.project_id)
+    
+    project_id = issue.project_id
+    if request.method == 'POST':
+        issue.delete()
+        messages.success(request, 'Issue eliminado.')
+        return redirect('issue_list', project_id=project_id)
+    return render(request, 'core/issue_confirm_delete.html', {'issue': issue})
+
+@login_required
 def risk_list_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     form = RiskForm(request.POST or None)
@@ -2720,6 +3167,43 @@ def risk_list_view(request, project_id):
         return redirect('risk_list', project_id=project.id)
     risks = project.risks.all()
     return render(request, 'core/risk_list.html', {'project': project, 'risks': risks, 'form': form})
+
+@login_required
+def risk_edit_view(request, risk_id):
+    """Edit a Risk. Allowed for staff/PM."""
+    risk = get_object_or_404(Risk, pk=risk_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('risk_list', project_id=risk.project_id)
+    
+    if request.method == 'POST':
+        form = RiskForm(request.POST, instance=risk)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Risk actualizado.')
+            return redirect('risk_list', project_id=risk.project_id)
+    else:
+        form = RiskForm(instance=risk)
+    return render(request, 'core/risk_form.html', {'form': form, 'risk': risk, 'project': risk.project})
+
+@login_required
+def risk_delete_view(request, risk_id):
+    """Delete a Risk with confirmation. Staff/PM only."""
+    risk = get_object_or_404(Risk, pk=risk_id)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('risk_list', project_id=risk.project_id)
+    
+    project_id = risk.project_id
+    if request.method == 'POST':
+        risk.delete()
+        messages.success(request, 'Risk eliminado.')
+        return redirect('risk_list', project_id=project_id)
+    return render(request, 'core/risk_confirm_delete.html', {'risk': risk})
 
 @login_required
 def root_redirect(request):
@@ -3302,9 +3786,13 @@ def dashboard_employee(request):
         "my_activities": my_activities,
         "my_schedule": my_schedule,
         "my_touchups": my_touchups,
+        "badges": {"unread_notifications_count": 0},  # Placeholder
     }
     
-    return render(request, "core/dashboard_employee.html", context)
+    # Use clean template by default, legacy with ?legacy=true
+    use_legacy = request.GET.get('legacy')
+    template_name = 'core/dashboard_employee.html' if use_legacy else 'core/dashboard_employee_clean.html'
+    return render(request, template_name, context)
 
 # --- DASHBOARD PM ---
 @login_required
@@ -3342,7 +3830,7 @@ def dashboard_pm(request):
     
     # 5. Daily Plans de hoy
     from core.models import DailyPlan
-    today_plans = DailyPlan.objects.filter(date=today).count()
+    today_plans = DailyPlan.objects.filter(plan_date=today).count()
     
     # === MATERIALES PENDIENTES (top 10) ===
     pending_materials_list = MaterialRequest.objects.filter(
@@ -3403,9 +3891,15 @@ def dashboard_pm(request):
         # Context
         'today': today,
         'show_language_prompt': show_language_prompt,
+        
+        # Badges for notifications
+        'badges': {'unread_notifications_count': 0},  # Placeholder
     }
     
-    return render(request, "core/dashboard_pm.html", context)
+    # Use clean template by default, legacy with ?legacy=true
+    use_legacy = request.GET.get('legacy')
+    template_name = 'core/dashboard_pm.html' if use_legacy else 'core/dashboard_pm_clean.html'
+    return render(request, template_name, context)
 
 # --- PM: seleccionar proyecto por acción ---
 @login_required
@@ -3777,8 +4271,44 @@ def pickup_view(request, project_id: int):
     return render(request, "core/pickup_view.html", {"project": project})
 @login_required
 def task_list_view(request, project_id: int):
+    from datetime import date, timedelta
     project = get_object_or_404(Project, pk=project_id)
-    tasks = Task.objects.filter(project=project).order_by("-id") if Task else []
+    tasks = Task.objects.filter(project=project).select_related('assigned_to').prefetch_related('dependencies') if Task else []
+    
+    # Apply filters from query parameters
+    status_filter = request.GET.get('status')
+    priority_filter = request.GET.get('priority')
+    assigned_filter = request.GET.get('assigned_to')
+    overdue_filter = request.GET.get('overdue')
+    
+    if status_filter:
+        tasks = tasks.filter(status=status_filter)
+    
+    if priority_filter:
+        tasks = tasks.filter(priority=priority_filter)
+    
+    if assigned_filter:
+        tasks = tasks.filter(assigned_to_id=assigned_filter)
+    
+    today = date.today()
+    if overdue_filter == 'yes':
+        # Tasks overdue (due_date < today and not completed)
+        tasks = tasks.filter(due_date__lt=today).exclude(status='Completada')
+    elif overdue_filter == 'today':
+        # Tasks due today
+        tasks = tasks.filter(due_date=today)
+    elif overdue_filter == 'week':
+        # Tasks due this week
+        week_end = today + timedelta(days=7)
+        tasks = tasks.filter(due_date__lte=week_end, due_date__gte=today)
+    
+    tasks = tasks.order_by("-id")
+    
+    # Get employees for filter dropdown
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    employees = User.objects.filter(is_active=True).order_by('first_name', 'last_name')
+    
     can_create = request.user.is_staff
     form = None
     try:
@@ -3793,11 +4323,20 @@ def task_list_view(request, project_id: int):
                 inst.created_by = request.user
                 inst.project = project
                 inst.save()
+                form.save_m2m()  # Save dependencies
                 messages.success(request, "Tarea creada.")
                 return redirect("task_list", project_id=project.id)
         else:
             form = TaskForm(initial={"project": project})
-    return render(request, "core/task_list.html", {"project": project, "tasks": tasks, "form": form, "can_create": can_create})
+    
+    return render(request, "core/task_list.html", {
+        "project": project, 
+        "tasks": tasks, 
+        "form": form, 
+        "can_create": can_create,
+        "employees": employees,
+        "today": today,
+    })
 
 @login_required
 def task_detail(request, task_id: int):
@@ -3840,6 +4379,150 @@ def task_list_all(request):
     """Lista de tareas asignadas al usuario actual (para empleado)."""
     tasks = Task.objects.filter(assigned_to=request.user).select_related("project").order_by("-id") if Task else []
     return render(request, "core/task_list_all.html", {"tasks": tasks})
+
+
+# ===========================
+# ACTIVITY 1: NEW TIME TRACKING ENDPOINTS (Q11.13)
+# ===========================
+
+@login_required
+def task_start_tracking(request, task_id):
+    """AJAX endpoint to start time tracking on a task."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Check permission
+    if not (request.user.is_staff or task.assigned_to == request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+    
+    # Check if task can start (dependencies)
+    if not task.can_start():
+        incomplete_deps = task.dependencies.filter(status__in=['pending', 'in_progress'])
+        dep_names = ", ".join([d.title for d in incomplete_deps])
+        return JsonResponse({
+            'error': f'No se puede iniciar. Dependencias incompletas: {dep_names}'
+        }, status=400)
+    
+    # Start tracking
+    if task.start_tracking():
+        return JsonResponse({
+            'success': True,
+            'started_at': task.started_at.isoformat() if task.started_at else None,
+            'message': 'Seguimiento de tiempo iniciado'
+        })
+    else:
+        return JsonResponse({
+            'error': 'Ya hay un seguimiento activo'
+        }, status=400)
+
+
+@login_required
+def task_stop_tracking(request, task_id):
+    """AJAX endpoint to stop time tracking on a task."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Check permission
+    if not (request.user.is_staff or task.assigned_to == request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+    
+    # Stop tracking
+    elapsed = task.stop_tracking()
+    if elapsed is not None:
+        return JsonResponse({
+            'success': True,
+            'elapsed_seconds': elapsed,
+            'total_hours': task.get_time_tracked_hours(),
+            'message': f'Seguimiento detenido. {elapsed} segundos agregados.'
+        })
+    else:
+        return JsonResponse({
+            'error': 'No hay seguimiento activo'
+        }, status=400)
+
+
+# ===========================
+# ACTIVITY 1: DAILY PLAN ENHANCEMENTS
+# ===========================
+
+@login_required
+def daily_plan_fetch_weather(request, plan_id):
+    """AJAX endpoint to fetch weather for a daily plan (Q12.8)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    if not _is_staffish(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+    
+    plan = get_object_or_404(DailyPlan, id=plan_id)
+    
+    # Fetch weather (calls API)
+    success = plan.fetch_weather()
+    
+    if success:
+        return JsonResponse({
+            'success': True,
+            'weather_data': plan.weather_data,
+            'fetched_at': plan.weather_fetched_at.isoformat() if plan.weather_fetched_at else None
+        })
+    else:
+        return JsonResponse({
+            'error': 'No se pudo obtener el clima. Verifique la ubicación del proyecto.'
+        }, status=400)
+
+
+@login_required
+def daily_plan_convert_activities(request, plan_id):
+    """Convert planned activities to tasks (Q12.2)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    if not _is_staffish(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+    
+    plan = get_object_or_404(DailyPlan, id=plan_id)
+    
+    # Can only convert if status is PUBLISHED
+    if plan.status != 'PUBLISHED':
+        return JsonResponse({
+            'error': 'Solo se pueden convertir planes en estado PUBLISHED'
+        }, status=400)
+    
+    # Convert activities to tasks
+    created_tasks = plan.convert_activities_to_tasks()
+    
+    # Update plan status
+    plan.status = 'IN_PROGRESS'
+    plan.save()
+    
+    return JsonResponse({
+        'success': True,
+        'tasks_created': len(created_tasks),
+        'task_ids': [t.id for t in created_tasks],
+        'message': f'{len(created_tasks)} tareas creadas exitosamente'
+    })
+
+
+@login_required
+def daily_plan_productivity(request, plan_id):
+    """Get productivity score for a daily plan (Q12.5)."""
+    plan = get_object_or_404(DailyPlan, id=plan_id)
+    
+    score = plan.calculate_productivity_score()
+    
+    return JsonResponse({
+        'plan_id': plan.id,
+        'plan_date': plan.plan_date.isoformat(),
+        'estimated_hours': float(plan.estimated_hours_total or 0),
+        'actual_hours': float(plan.actual_hours_worked or 0),
+        'productivity_score': score,
+        'status': plan.status
+    })
+
 
 @login_required
 def project_schedule_view(request, project_id: int):
@@ -4277,6 +4960,188 @@ def materials_request_detail_view(request, request_id):
 
 
 # ===========================
+# ACTIVITY 2: NEW MATERIAL REQUEST WORKFLOW VIEWS
+# ===========================
+
+@login_required
+@require_POST
+def materials_request_submit(request, request_id):
+    """Q14.4: Enviar solicitud para aprobación del admin"""
+    mat_request = get_object_or_404(MaterialRequest, pk=request_id)
+    
+    # Verify user can submit
+    if mat_request.requested_by != request.user and not request.user.is_staff:
+        messages.error(request, "No tienes permiso para enviar esta solicitud")
+        return redirect('materials_request_detail', request_id=request_id)
+    
+    if mat_request.submit_for_approval(request.user):
+        messages.success(request, "Solicitud enviada para aprobación")
+    else:
+        messages.warning(request, "La solicitud no está en estado borrador")
+    
+    return redirect('materials_request_detail', request_id=request_id)
+
+
+@login_required
+@staff_required
+@require_POST
+def materials_request_approve(request, request_id):
+    """Q14.4: Aprobar solicitud (solo admin)"""
+    mat_request = get_object_or_404(MaterialRequest, pk=request_id)
+    
+    if mat_request.approve(request.user):
+        messages.success(request, f"Solicitud #{mat_request.id} aprobada")
+    else:
+        messages.warning(request, "La solicitud no está pendiente de aprobación")
+    
+    return redirect('materials_request_detail', request_id=request_id)
+
+
+@login_required
+@staff_required
+@require_POST
+def materials_request_reject(request, request_id):
+    """Q14.4: Rechazar solicitud"""
+    mat_request = get_object_or_404(MaterialRequest, pk=request_id)
+    reason = request.POST.get('reason', '')
+    
+    mat_request.status = 'cancelled'
+    if reason:
+        mat_request.notes = (mat_request.notes or '') + f"\n[Rechazada]: {reason}"
+    mat_request.save()
+    
+    messages.success(request, f"Solicitud #{mat_request.id} rechazada")
+    return redirect('materials_requests_list_all')
+
+
+@login_required
+@staff_required
+def materials_receive_partial(request, request_id):
+    """Q14.10: Registrar recepción parcial de materiales"""
+    mat_request = get_object_or_404(MaterialRequest, pk=request_id)
+    
+    if request.method == 'POST':
+        received_data = {}
+        
+        for item in mat_request.items.all():
+            qty_key = f'received_{item.id}'
+            qty_value = request.POST.get(qty_key)
+            
+            if qty_value:
+                try:
+                    qty = Decimal(qty_value)
+                    if qty > 0:
+                        received_data[item.id] = qty
+                except (ValueError, InvalidOperation):
+                    continue
+        
+        if received_data:
+            success, message = mat_request.receive_materials(received_data, request.user)
+            if success:
+                messages.success(request, message)
+            else:
+                messages.error(request, message)
+        else:
+            messages.warning(request, "No se especificaron cantidades recibidas")
+        
+        return redirect('materials_request_detail', request_id=request_id)
+    
+    # GET request - show form
+    items = mat_request.items.all()
+    return render(request, 'core/materials_receive_partial.html', {
+        'mat_request': mat_request,
+        'items': items,
+    })
+
+
+@login_required
+@staff_required
+@require_POST
+def materials_create_expense(request, request_id):
+    """Q14.6: Crear gasto automáticamente desde compra directa"""
+    mat_request = get_object_or_404(MaterialRequest, pk=request_id)
+    
+    total_amount_str = request.POST.get('total_amount')
+    if not total_amount_str:
+        messages.error(request, "Debes especificar el monto total")
+        return redirect('materials_request_detail', request_id=request_id)
+    
+    try:
+        total_amount = Decimal(total_amount_str)
+        expense = mat_request.create_direct_purchase_expense(total_amount, request.user)
+        messages.success(request, f"Gasto #{expense.id} creado por ${total_amount}")
+    except (ValueError, InvalidOperation):
+        messages.error(request, "Monto inválido")
+    except Exception as e:
+        messages.error(request, f"Error al crear gasto: {str(e)}")
+    
+    return redirect('materials_request_detail', request_id=request_id)
+
+
+@login_required
+def inventory_low_stock_alert(request):
+    """Q15.5: Dashboard de alertas de stock bajo"""
+    from core.models import ProjectInventory
+    
+    # Get all inventory items below threshold
+    low_stock_items = []
+    
+    for stock in ProjectInventory.objects.select_related('item', 'location', 'location__project'):
+        if stock.is_below:
+            low_stock_items.append({
+                'stock': stock,
+                'threshold': stock.threshold(),
+                'deficit': stock.threshold() - stock.quantity if stock.threshold() else 0,
+            })
+    
+    # Sort by severity (highest deficit first)
+    low_stock_items.sort(key=lambda x: x['deficit'], reverse=True)
+    
+    return render(request, 'core/inventory_low_stock.html', {
+        'low_stock_items': low_stock_items,
+    })
+
+
+@login_required
+@staff_required
+@require_POST
+def inventory_adjust(request, item_id, location_id):
+    """Q15.11: Ajuste manual de inventario con audit trail"""
+    from core.models import InventoryItem, InventoryLocation, InventoryMovement
+    
+    item = get_object_or_404(InventoryItem, pk=item_id)
+    location = get_object_or_404(InventoryLocation, pk=location_id)
+    
+    quantity_str = request.POST.get('quantity')
+    reason = request.POST.get('reason', '')
+    
+    if not quantity_str or not reason:
+        messages.error(request, "Cantidad y razón son requeridos")
+        return redirect('inventory_view', project_id=location.project_id)
+    
+    try:
+        quantity = Decimal(quantity_str)
+        
+        movement = InventoryMovement.objects.create(
+            item=item,
+            to_location=location,
+            movement_type='ADJUST',
+            quantity=quantity,
+            reason=reason,  # Q15.11: Audit trail
+            created_by=request.user,
+        )
+        movement.apply()
+        
+        messages.success(request, f"Inventario ajustado: {quantity} {item.unit}")
+    except (ValueError, InvalidOperation) as e:
+        messages.error(request, f"Cantidad inválida: {str(e)}")
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+    
+    return redirect('inventory_view', project_id=location.project_id)
+
+
+# ===========================
 # DAILY PLANNING SYSTEM VIEWS
 # ===========================
 
@@ -4606,25 +5471,43 @@ def activity_complete(request, activity_id):
 @login_required
 def sop_library(request):
     """
-    Browse and search Activity Templates (SOPs)
+    Browse and search Activity Templates (SOPs) - Q13.3 enhanced search
     """
     if not _is_staffish(request.user):
         return HttpResponseForbidden("Access denied")
     
     category = request.GET.get('category', '')
     search = request.GET.get('search', '')
+    duration_min = request.GET.get('duration_min', '')
+    duration_max = request.GET.get('duration_max', '')
     
     templates = ActivityTemplate.objects.filter(is_active=True)
     
     if category:
         templates = templates.filter(category=category)
     
+    # ACTIVITY 1: Enhanced keyword search (Q13.3)
     if search:
         templates = templates.filter(
             Q(name__icontains=search) |
             Q(description__icontains=search) |
-            Q(tips__icontains=search)
+            Q(tips__icontains=search) |
+            Q(materials_needed__icontains=search) |
+            Q(special_requirements__icontains=search)
         )
+    
+    # ACTIVITY 1: Duration filter (Q13.3)
+    if duration_min:
+        try:
+            templates = templates.filter(estimated_duration__gte=float(duration_min))
+        except ValueError:
+            pass
+    
+    if duration_max:
+        try:
+            templates = templates.filter(estimated_duration__lte=float(duration_max))
+        except ValueError:
+            pass
     
     templates = templates.order_by('category', 'name')
     
@@ -4633,6 +5516,8 @@ def sop_library(request):
         'categories': ActivityTemplate.CATEGORY_CHOICES,
         'selected_category': category,
         'search_query': search,
+        'duration_min': duration_min,
+        'duration_max': duration_max,
     }
     
     return render(request, 'core/sop_library.html', context)
@@ -4807,12 +5692,17 @@ def dashboard_designer(request):
         project__in=projects
     ).select_related('project').order_by('-start_datetime')[:10]
     
-    return render(request, 'core/dashboard_designer.html', {
+    context = {
         'projects': projects,
         'color_samples': color_samples,
         'plans': plans,
         'schedules': schedules,
-    })
+    }
+    
+    # Use clean template by default, legacy with ?legacy=true
+    use_legacy = request.GET.get('legacy')
+    template_name = 'core/dashboard_designer.html' if use_legacy else 'core/dashboard_designer_clean.html'
+    return render(request, template_name, context)
 
 
 @login_required
@@ -5974,4 +6864,490 @@ def pin_delete_photo(request, attachment_id):
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
+
+# ========================================
+# GESTIÓN DE CLIENTES
+# ========================================
+
+@login_required
+@staff_member_required
+def client_list(request):
+    """Lista de todos los clientes con búsqueda y filtros"""
+    from core.models import Profile, ClientProjectAccess
+    
+    # Solo usuarios con perfil de cliente
+    clients = User.objects.filter(profile__role='client').select_related('profile').order_by('-date_joined')
+    
+    # Búsqueda
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        clients = clients.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(username__icontains=search_query)
+        )
+    
+    # Filtro por estado
+    status_filter = request.GET.get('status', '')
+    if status_filter == 'active':
+        clients = clients.filter(is_active=True)
+    elif status_filter == 'inactive':
+        clients = clients.filter(is_active=False)
+    
+    # Agregar conteo de proyectos asignados
+    clients_data = []
+    for client in clients:
+        project_count = ClientProjectAccess.objects.filter(user=client).count()
+        clients_data.append({
+            'user': client,
+            'project_count': project_count
+        })
+    
+    # Paginación
+    paginator = Paginator(clients_data, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'total_clients': clients.count(),
+    }
+    
+    return render(request, 'core/client_list.html', context)
+
+
+@login_required
+@staff_member_required
+def client_create(request):
+    """Crear nuevo cliente"""
+    from core.forms import ClientCreationForm
+    from django.core.mail import send_mail
+    from django.conf import settings
+    
+    if request.method == 'POST':
+        form = ClientCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            
+            # Enviar email de bienvenida si está marcado
+            if form.cleaned_data.get('send_welcome_email'):
+                temp_password = form.temp_password
+                email_body = f"""
+Bienvenido a Kibray Construction Management System
+
+Hola {user.first_name},
+
+Tu cuenta ha sido creada exitosamente. Aquí están tus credenciales de acceso:
+
+Usuario: {user.email}
+Contraseña temporal: {temp_password}
+
+Por favor, cambia tu contraseña después del primer inicio de sesión.
+
+Accede al sistema en: {request.build_absolute_uri('/')}
+
+Saludos,
+El equipo de Kibray
+                """
+                try:
+                    send_mail(
+                        'Bienvenido a Kibray',
+                        email_body,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=True,
+                    )
+                    messages.success(request, f'Cliente creado exitosamente. Se ha enviado un email con las credenciales de acceso a {user.email}')
+                except Exception as e:
+                    messages.warning(request, f'Cliente creado pero hubo un error al enviar el email: {str(e)}. Contacta al cliente directamente para proporcionarle acceso.')
+            else:
+                # No mostrar contraseña en UI - solo indicar que se creó
+                messages.success(request, f'Cliente creado exitosamente. Recuerda proporcionarle sus credenciales de acceso de forma segura.')
+            
+            return redirect('client_detail', user_id=user.id)
+    else:
+        form = ClientCreationForm()
+    
+    return render(request, 'core/client_form.html', {'form': form, 'is_create': True})
+
+
+@login_required
+@staff_member_required
+def client_detail(request, user_id):
+    """Detalle de un cliente con sus proyectos asignados"""
+    from core.models import Profile, ClientProjectAccess
+    
+    client = get_object_or_404(User, id=user_id)
+    
+    # Verificar que es un cliente
+    if not hasattr(client, 'profile') or client.profile.role != 'client':
+        messages.error(request, 'Este usuario no es un cliente.')
+        return redirect('client_list')
+    
+    # Obtener proyectos asignados
+    project_accesses = ClientProjectAccess.objects.filter(user=client).select_related('project')
+    
+    # Actividad reciente
+    recent_comments = Comment.objects.filter(user=client).select_related('task', 'task__project').order_by('-created_at')[:5]
+    
+    # Tasks: Los clientes no son empleados, así que no pueden tener tasks asignadas directamente
+    # Solo mostraremos las tasks que crearon o comentaron
+    recent_tasks = []
+    
+    from core.models import ClientRequest
+    recent_requests = ClientRequest.objects.filter(created_by=client).select_related('project').order_by('-created_at')[:5]
+    
+    context = {
+        'client': client,
+        'project_accesses': project_accesses,
+        'recent_comments': recent_comments,
+        'recent_tasks': recent_tasks,
+        'recent_requests': recent_requests,
+    }
+    
+    return render(request, 'core/client_detail.html', context)
+
+
+@login_required
+@staff_member_required
+def client_edit(request, user_id):
+    """Editar información de un cliente"""
+    from core.forms import ClientEditForm
+    
+    client = get_object_or_404(User, id=user_id)
+    
+    # Verificar que es un cliente
+    if not hasattr(client, 'profile') or client.profile.role != 'client':
+        messages.error(request, 'Este usuario no es un cliente.')
+        return redirect('client_list')
+    
+    if request.method == 'POST':
+        form = ClientEditForm(request.POST, instance=client)
+        if form.is_valid():
+            user = form.save()
+            
+            # Actualizar perfil
+            if hasattr(user, 'profile'):
+                user.profile.language = form.cleaned_data.get('language', 'en')
+                user.profile.save()
+            
+            messages.success(request, 'Información del cliente actualizada exitosamente.')
+            return redirect('client_detail', user_id=user.id)
+    else:
+        form = ClientEditForm(instance=client)
+    
+    return render(request, 'core/client_form.html', {'form': form, 'client': client, 'is_create': False})
+
+
+@login_required
+@staff_member_required
+def client_delete(request, user_id):
+    """Desactivar o eliminar un cliente (con confirmación)"""
+    client = get_object_or_404(User, id=user_id)
+    
+    # Verificar que es un cliente
+    if not hasattr(client, 'profile') or client.profile.role != 'client':
+        messages.error(request, 'Este usuario no es un cliente.')
+        return redirect('client_list')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action', 'deactivate')
+        
+        # SECURITY: Logging de auditoría para operaciones críticas
+        import logging
+        audit_logger = logging.getLogger('django')
+        audit_logger.warning(
+            f'CLIENT_DELETE_ATTEMPT | Actor: {request.user.username} (ID:{request.user.id}) | '
+            f'Target: {client.username} (ID:{client.id}) | Action: {action} | '
+            f'IP: {request.META.get("REMOTE_ADDR")}'
+        )
+        
+        if action == 'deactivate':
+            client.is_active = False
+            client.save()
+            messages.success(request, f'Cliente {client.get_full_name()} desactivado exitosamente.')
+        elif action == 'delete':
+            # SECURITY: Verificar dependencias críticas antes de CASCADE delete
+            from core.models import ClientProjectAccess, ClientRequest
+            
+            project_count = ClientProjectAccess.objects.filter(user=client).count()
+            request_count = ClientRequest.objects.filter(created_by=client).count()
+            comment_count = Comment.objects.filter(user=client).count()
+            # Los clientes no son empleados, no pueden tener tareas asignadas
+            task_count = 0
+            
+            if any([project_count, request_count, comment_count, task_count]):
+                messages.error(
+                    request,
+                    f'❌ No se puede eliminar este cliente porque tiene datos asociados: '
+                    f'{project_count} proyectos asignados, {request_count} solicitudes, '
+                    f'{comment_count} comentarios. '
+                    f'Usa "Desactivar" para preservar la integridad de los datos.'
+                )
+                return redirect('client_detail', user_id=client.id)
+            
+            client_name = client.get_full_name()
+            client.delete()
+            messages.success(request, f'Cliente {client_name} eliminado permanentemente.')
+            return redirect('client_list')
+        
+        return redirect('client_detail', user_id=client.id)
+    
+    # GET: Mostrar estadísticas para confirmar
+    from core.models import ClientProjectAccess, ClientRequest
+    context = {
+        'client': client,
+        'project_count': ClientProjectAccess.objects.filter(user=client).count(),
+        'request_count': ClientRequest.objects.filter(created_by=client).count(),
+        'comment_count': Comment.objects.filter(user=client).count(),
+        # Los clientes no tienen tareas asignadas (solo empleados)
+        'task_count': 0,
+    }
+    
+    return render(request, 'core/client_delete_confirm.html', context)
+
+
+@login_required
+@staff_member_required
+def client_reset_password(request, user_id):
+    """Resetear contraseña de un cliente"""
+    from core.forms import ClientPasswordResetForm
+    from django.core.mail import send_mail
+    from django.conf import settings
+    
+    client = get_object_or_404(User, id=user_id)
+    
+    if not hasattr(client, 'profile') or client.profile.role != 'client':
+        messages.error(request, 'Este usuario no es un cliente.')
+        return redirect('client_list')
+    
+    if request.method == 'POST':
+        form = ClientPasswordResetForm(request.POST)
+        if form.is_valid():
+            new_password = form.cleaned_data['new_password']
+            client.set_password(new_password)
+            client.save()
+            
+            # Enviar email notificando el cambio
+            try:
+                send_mail(
+                    'Tu contraseña ha sido actualizada',
+                    f'Hola {client.first_name},\n\nTu contraseña ha sido actualizada por un administrador.\nNueva contraseña: {new_password}\n\nPor favor, cámbiala después de iniciar sesión.\n\nSaludos,\nEl equipo de Kibray',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [client.email],
+                    fail_silently=True,
+                )
+                messages.success(request, f'Contraseña actualizada y email enviado a {client.email}')
+            except Exception as e:
+                messages.warning(request, f'Contraseña actualizada pero hubo un error al enviar el email: {str(e)}')
+            
+            return redirect('client_detail', user_id=client.id)
+    else:
+        form = ClientPasswordResetForm()
+    
+    return render(request, 'core/client_password_reset.html', {'form': form, 'client': client})
+
+
+@login_required
+@staff_member_required
+def client_assign_project(request, user_id):
+    """Asignar o remover proyectos de un cliente"""
+    from core.models import ClientProjectAccess
+    
+    client = get_object_or_404(User, id=user_id)
+    
+    if not hasattr(client, 'profile') or client.profile.role != 'client':
+        messages.error(request, 'Este usuario no es un cliente.')
+        return redirect('client_list')
+    
+    if request.method == 'POST':
+        project_id = request.POST.get('project_id')
+        action = request.POST.get('action', 'add')
+        
+        if not project_id:
+            messages.error(request, 'Proyecto no especificado.')
+            return redirect('client_detail', user_id=client.id)
+        
+        project = get_object_or_404(Project, id=project_id)
+        
+        if action == 'add':
+            access, created = ClientProjectAccess.objects.get_or_create(
+                user=client,
+                project=project,
+                defaults={
+                    'role': 'client',
+                    'can_comment': True,
+                    'can_create_tasks': True
+                }
+            )
+            if created:
+                messages.success(request, f'Cliente asignado al proyecto "{project.name}" exitosamente.')
+            else:
+                messages.info(request, f'El cliente ya tiene acceso al proyecto "{project.name}".')
+        
+        elif action == 'remove':
+            deleted_count, _ = ClientProjectAccess.objects.filter(user=client, project=project).delete()
+            if deleted_count > 0:
+                messages.success(request, f'Acceso al proyecto "{project.name}" removido.')
+            else:
+                messages.info(request, 'El cliente no tenía acceso a ese proyecto.')
+        
+        return redirect('client_detail', user_id=client.id)
+    
+    # GET: Mostrar formulario con proyectos disponibles
+    from core.models import ClientProjectAccess
+    assigned_projects = ClientProjectAccess.objects.filter(user=client).values_list('project_id', flat=True)
+    available_projects = Project.objects.exclude(id__in=assigned_projects).order_by('name')
+    
+    context = {
+        'client': client,
+        'available_projects': available_projects,
+    }
+    
+    return render(request, 'core/client_assign_project.html', context)
+
+
+# ========================================
+# GESTIÓN DE PROYECTOS
+# ========================================
+
+@login_required
+@staff_member_required
+def project_create(request):
+    """Crear nuevo proyecto"""
+    from core.forms import ProjectCreateForm
+    
+    if request.method == 'POST':
+        form = ProjectCreateForm(request.POST)
+        if form.is_valid():
+            project = form.save()
+            messages.success(request, f'Proyecto "{project.name}" creado exitosamente.')
+            return redirect('project_overview', project_id=project.id)
+    else:
+        form = ProjectCreateForm()
+    
+    return render(request, 'core/project_form.html', {'form': form, 'is_create': True})
+
+
+@login_required
+@staff_member_required
+def project_edit(request, project_id):
+    """Editar proyecto existente"""
+    from core.forms import ProjectEditForm
+    
+    project = get_object_or_404(Project, id=project_id)
+    
+    if request.method == 'POST':
+        form = ProjectEditForm(request.POST, instance=project)
+        if form.is_valid():
+            project = form.save()
+            messages.success(request, f'Proyecto "{project.name}" actualizado exitosamente.')
+            return redirect('project_overview', project_id=project.id)
+    else:
+        form = ProjectEditForm(instance=project)
+    
+    return render(request, 'core/project_form.html', {'form': form, 'project': project, 'is_create': False})
+
+
+@login_required
+@staff_member_required
+def project_delete(request, project_id):
+    """Eliminar proyecto (con confirmación y validación de dependencias)"""
+    project = get_object_or_404(Project, id=project_id)
+    
+    if request.method == 'POST':
+        # SECURITY: Logging de auditoría
+        import logging
+        audit_logger = logging.getLogger('django')
+        audit_logger.warning(
+            f'PROJECT_DELETE_ATTEMPT | Actor: {request.user.username} (ID:{request.user.id}) | '
+            f'Project: {project.name} (ID:{project.id}) | '
+            f'IP: {request.META.get("REMOTE_ADDR")}'
+        )
+        
+        # SECURITY: Verificar dependencias críticas ANTES de permitir eliminación
+        has_expenses = Expense.objects.filter(project=project).exists()
+        has_incomes = Income.objects.filter(project=project).exists()
+        has_timeentries = TimeEntry.objects.filter(project=project).exists()
+        has_changeorders = ChangeOrder.objects.filter(project=project).exists()
+        has_dailylogs = DailyLog.objects.filter(project=project).exists()
+        has_schedules = ScheduleItem.objects.filter(project=project).exists()
+        has_invoices = Invoice.objects.filter(project=project).exists()
+        
+        if any([has_expenses, has_incomes, has_timeentries, has_changeorders, has_dailylogs, has_schedules, has_invoices]):
+            messages.error(
+                request,
+                '❌ No se puede eliminar este proyecto porque tiene datos financieros o operacionales asociados. '
+                'Considera marcarlo como completado en lugar de eliminarlo para preservar la integridad de los datos.'
+            )
+            return redirect('project_overview', project_id=project.id)
+        
+        project_name = project.name
+        project.delete()
+        messages.success(request, f'Proyecto "{project_name}" eliminado permanentemente.')
+        return redirect('project_list')
+    
+    # GET: Calcular estadísticas detalladas para confirmación
+    from core.models import DailyLog, ScheduleItem, Invoice
+    
+    expense_count = Expense.objects.filter(project=project).count()
+    income_count = Income.objects.filter(project=project).count()
+    timeentry_count = TimeEntry.objects.filter(project=project).count()
+    co_count = ChangeOrder.objects.filter(project=project).count()
+    task_count = Task.objects.filter(project=project).count()
+    dailylog_count = DailyLog.objects.filter(project=project).count()
+    schedule_count = ScheduleItem.objects.filter(project=project).count()
+    invoice_count = Invoice.objects.filter(project=project).count()
+    
+    context = {
+        'project': project,
+        'expense_count': expense_count,
+        'income_count': income_count,
+        'timeentry_count': timeentry_count,
+        'co_count': co_count,
+        'task_count': task_count,
+        'dailylog_count': dailylog_count,
+        'schedule_count': schedule_count,
+        'invoice_count': invoice_count,
+        'has_critical_data': any([expense_count, income_count, timeentry_count, co_count, dailylog_count, schedule_count, invoice_count]),
+    }
+    
+    return render(request, 'core/project_delete_confirm.html', context)
+
+
+@login_required
+@staff_member_required
+def project_status_toggle(request, project_id):
+    """Cambiar estado del proyecto (activo/completado)"""
+    project = get_object_or_404(Project, id=project_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'complete':
+            if not project.end_date:
+                project.end_date = timezone.localdate()
+                project.save()
+                messages.success(request, f'Proyecto "{project.name}" marcado como completado.')
+        elif action == 'reopen':
+            project.end_date = None
+            project.save()
+            messages.success(request, f'Proyecto "{project.name}" reabierto.')
+        
+        return redirect('project_overview', project_id=project.id)
+    
+    return redirect('project_overview', project_id=project.id)
+
+
+# --- DEMO: JavaScript i18n ---
+@login_required
+def js_i18n_demo(request):
+    """
+    Demo page showing how to use Django's JavaScript translation catalog.
+    This demonstrates gettext(), ngettext(), and interpolate() in JavaScript.
+    """
+    return render(request, 'core/js_i18n_demo.html')
 

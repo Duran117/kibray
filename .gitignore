@@ -5,11 +5,20 @@ __pycache__/
 *.pyd
 *.sqlite3
 
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
 # Django
 db.sqlite3
+db.sqlite3.backup_*
 media/
 staticfiles/
 .env
+*.log
+logs/
 
 # VSCode
 .vscode/
@@ -18,5 +27,7 @@ staticfiles/
 .DS_Store
 Thumbs.db
 
+# Compiled translations (keep .po, ignore .mo)
+*.mo
 # Node/npm (si usas)
 node_modules/

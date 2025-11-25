@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 12:35-0700\n"
+"POT-Creation-Date: 2025-11-25 08:50-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,11 +30,11 @@ msgstr "Este campo es obligatorio."
 #: core/templates/core/damage_report_form.html:26
 #: core/templates/core/expense_confirm_delete.html:15
 #: core/templates/core/expense_list.html:22
+#: core/templates/core/floor_plan_detail.html:238
 #: core/templates/core/income_confirm_delete.html:15
 #: core/templates/core/income_list.html:22
 #: core/templates/core/schedule_generator.html:564
 #: core/templates/core/schedule_generator_old.html:280
-#| msgid "Description"
 msgid "Descripción"
 msgstr "Descripción"
 
@@ -42,12 +42,14 @@ msgstr "Descripción"
 #: core/templates/core/admin/expense_form.html:94
 #: core/templates/core/admin/income_form.html:41
 #: core/templates/core/admin/income_form.html:98
+#: core/templates/core/changeorder_board.html:522
 #: core/templates/core/changeorder_form_clean.html:80
 #: core/templates/core/changeorder_form_modern.html:168
 #: core/templates/core/expense_confirm_delete.html:13
 #: core/templates/core/expense_list.html:23
 #: core/templates/core/income_confirm_delete.html:13
 #: core/templates/core/income_list.html:23
+#: core/templates/core/invoice_builder.html:206
 msgid "Monto"
 msgstr "Monto"
 
@@ -92,7 +94,6 @@ msgid "Marcar para que sea visible para cliente y owner"
 msgstr "Marcar para que sea visible para cliente y owner"
 
 #: core/forms.py:237
-#| msgid "Description"
 msgid "Descripción de la foto..."
 msgstr "Descripción"
 
@@ -109,7 +110,6 @@ msgid "Ej: Cocina - Pared Norte"
 msgstr "Ej: Cocina - Pared Norte"
 
 #: core/forms.py:266
-#| msgid "Categoría"
 msgid "Causa raíz (opcional)"
 msgstr "Categoría"
 
@@ -161,251 +161,265 @@ msgstr "Change Order relacionado (opcional)"
 msgid "Fecha límite opcional"
 msgstr "Fecha límite opcional"
 
-#: core/forms.py:343 core/models.py:387
+#: core/forms.py:343 core/models.py:390
 msgid "Prioridad de la tarea"
 msgstr "Prioridad de la tarea"
 
-#: core/forms.py:353 core/templates/core/damage_report_confirm_delete.html:25
+#: core/forms.py:349
+msgid "Tareas que deben completarse antes de esta"
+msgstr ""
+
+#: core/forms.py:360 core/templates/core/damage_report_confirm_delete.html:25
 #: core/templates/core/damage_report_form.html:21
 #: core/templates/core/project_schedule.html:36
 #: core/templates/core/schedule_generator.html:556
 #: core/templates/core/schedule_generator_old.html:268
-#: core/templates/core/task_list.html:32
+#: core/templates/core/task_list.html:127
 #: core/templates/core/task_list_all.html:12
 msgid "Título"
 msgstr "Título"
 
-#: core/models.py:51
+#: core/models.py:54
 msgid "Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black"
 msgstr "Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black"
 
-#: core/models.py:52
+#: core/models.py:55
 msgid "Códigos de pintura si son diferentes de los colores comunes"
 msgstr "Códigos de pintura si son diferentes de los colores comunes"
 
-#: core/models.py:53
+#: core/models.py:56
 msgid "Ejemplo: Milesi Butternut 072 - 2 coats"
 msgstr "Ejemplo: Milesi Butternut 072 - 2 coats"
 
-#: core/models.py:55
+#: core/models.py:58
 msgid "Número de manchas o imperfecciones detectadas"
 msgstr "Número de manchas o imperfecciones detectadas"
 
-#: core/models.py:58
+#: core/models.py:61
 msgid "Notas sobre aprendizajes, errores o mejoras para próximos proyectos"
 msgstr "Notas sobre aprendizajes, errores o mejoras para próximos proyectos"
 
-#: core/models.py:61
+#: core/models.py:64
 msgid "Presupuesto total asignado al proyecto"
 msgstr "Presupuesto total asignado al proyecto"
 
-#: core/models.py:62
-#| msgid "Costo mano de obra hoy"
+#: core/models.py:65
 msgid "Presupuesto para mano de obra"
 msgstr "Costo mano de obra hoy"
 
-#: core/models.py:63
-#| msgid "Costo mano de obra hoy"
+#: core/models.py:66
 msgid "Presupuesto para materiales"
 msgstr "Costo mano de obra hoy"
 
-#: core/models.py:64
+#: core/models.py:67
 msgid "Presupuesto para otros gastos (seguros, almacenamiento, etc.)"
 msgstr "Presupuesto para otros gastos (seguros, almacenamiento, etc.)"
 
-#: core/models.py:74 core/views_admin.py:465 core/views_admin.py:508
+#: core/models.py:77 core/views_admin.py:465 core/views_admin.py:508
 msgid "El nombre del proyecto es obligatorio."
 msgstr "El nombre del proyecto es obligatorio."
 
-#: core/models.py:76 core/views_admin.py:467 core/views_admin.py:510
+#: core/models.py:79 core/views_admin.py:467 core/views_admin.py:510
 msgid "La fecha de inicio es obligatoria."
 msgstr "La fecha de inicio es obligatoria."
 
-#: core/models.py:104
+#: core/models.py:107
 msgid "Nombre del proyecto o factura"
 msgstr "Nombre del proyecto o factura"
 
-#: core/models.py:105
-#| msgid "Cantidad"
+#: core/models.py:108
 msgid "Cantidad recibida"
 msgstr "Cantidad"
 
-#: core/models.py:106
+#: core/models.py:109
 msgid "Fecha de ingreso"
 msgstr "Fecha de ingreso"
 
-#: core/models.py:110
-#| msgid "Actions"
+#: core/models.py:113
 msgid "Efectivo"
 msgstr "Acciones"
 
-#: core/models.py:111
+#: core/models.py:114
 msgid "Transferencia"
 msgstr "Transferencia"
 
-#: core/models.py:112
+#: core/models.py:115
 msgid "Cheque"
 msgstr "Cheque"
 
-#: core/models.py:114 core/models.py:143
+#: core/models.py:117 core/models.py:146
 msgid "Otro"
 msgstr "Otro"
 
-#: core/models.py:116 core/templates/core/admin/income_form.html:52
+#: core/models.py:119 core/templates/core/admin/income_form.html:52
 msgid "Método de pago"
 msgstr "Método de pago"
 
-#: core/models.py:118 core/templates/core/admin/income_form.html:60
-#| msgid "Categoría"
+#: core/models.py:121 core/templates/core/admin/income_form.html:60
 msgid "Categoría (opcional)"
 msgstr "Categoría"
 
-#: core/models.py:119
-#| msgid "Description"
+#: core/models.py:122
 msgid "Descripción (opcional)"
 msgstr "Descripción"
 
-#: core/models.py:120
+#: core/models.py:123
 msgid "Factura o comprobante"
 msgstr "Factura o comprobante"
 
-#: core/models.py:121
-#| msgid "Categoría"
+#: core/models.py:124 core/templates/core/damage_report_detail.html:40
 msgid "Notas (opcional)"
 msgstr "Categoría"
 
-#: core/models.py:137 core/templates/core/dashboard_pm.html:69
-#| msgid "Materials"
+#: core/models.py:140 core/templates/core/dashboard_pm.html:69
 msgid "Materiales"
 msgstr "Materiales"
 
-#: core/models.py:138
+#: core/models.py:141
 msgid "Comida"
 msgstr "Comida"
 
-#: core/models.py:139
+#: core/models.py:142
 msgid "Seguro"
 msgstr "Seguro"
 
-#: core/models.py:140
+#: core/models.py:143
 msgid "Almacén / Storage"
 msgstr "Almacén / Storage"
 
-#: core/models.py:141
-#| msgid "Costo mano de obra hoy"
+#: core/models.py:144
 msgid "Mano de obra"
 msgstr "Costo mano de obra hoy"
 
-#: core/models.py:142
+#: core/models.py:145
 msgid "Oficina"
 msgstr "Oficina"
 
-#: core/models.py:224
+#: core/models.py:227
 msgid "Site cleaning"
 msgstr "Limpieza del sitio"
 
-#: core/models.py:225
+#: core/models.py:228
 msgid "Preparation"
 msgstr "Preparación"
 
-#: core/models.py:226
+#: core/models.py:229
 msgid "Covering"
 msgstr "Cobertura"
 
-#: core/models.py:227
-#| msgid "Daily Planning"
+#: core/models.py:230
 msgid "Staining"
 msgstr "Planificación Diaria"
 
-#: core/models.py:228
+#: core/models.py:231
 msgid "Sealer"
 msgstr "Sellador"
 
-#: core/models.py:229
+#: core/models.py:232
 msgid "Lacquer"
 msgstr "Laca"
 
-#: core/models.py:230
+#: core/models.py:233
 msgid "Caulking"
 msgstr "Calafateo"
 
-#: core/models.py:231
+#: core/models.py:234
 msgid "Painting"
 msgstr "Pintura"
 
-#: core/models.py:232
+#: core/models.py:235
 msgid "Plastic removal"
 msgstr "Remoción de plástico"
 
-#: core/models.py:233
-#| msgid "Daily Planning"
+#: core/models.py:236
 msgid "Cleaning"
 msgstr "Planificación Diaria"
 
-#: core/models.py:234
+#: core/models.py:237
 msgid "Touch up"
 msgstr "Retoques"
 
-#: core/models.py:289 core/templates/core/schedule_generator_old.html:128
+#: core/models.py:292 core/templates/core/schedule_generator_old.html:128
 msgid "No iniciado"
 msgstr "No iniciado"
 
-#: core/models.py:290 core/templates/core/schedule_generator_old.html:124
-#| msgid "Progress"
+#: core/models.py:293 core/templates/core/schedule_generator_old.html:124
 msgid "En progreso"
 msgstr "Progreso"
 
-#: core/models.py:291 core/templates/core/schedule_generator_old.html:126
+#: core/models.py:294 core/templates/core/schedule_generator_old.html:126
 msgid "Bloqueado"
 msgstr "Bloqueado"
 
-#: core/models.py:292 core/templates/core/client_assign_project.html:79
+#: core/models.py:295 core/templates/core/changeorder_board.html:462
+#: core/templates/core/changeorder_board.html:510
+#: core/templates/core/client_assign_project.html:79
 #: core/templates/core/project_delete_confirm.html:69
 #: core/templates/core/project_schedule.html:48
 #: core/templates/core/schedule_generator_old.html:122
-#| msgid "Complete Now"
 msgid "Completado"
 msgstr "Completar Ahora"
 
-#: core/models.py:362
+#: core/models.py:365 core/templates/core/task_list.html:37
 msgid "Baja"
 msgstr "Baja"
 
-#: core/models.py:363
+#: core/models.py:366
 msgid "Media"
 msgstr "Media"
 
-#: core/models.py:364
+#: core/models.py:367 core/templates/core/task_list.html:39
 msgid "Alta"
 msgstr "Alta"
 
-#: core/models.py:365
+#: core/models.py:368 core/templates/core/task_list.html:40
 msgid "Urgente"
 msgstr "Urgente"
 
-#: core/models.py:375 core/templates/core/project_schedule.html:50
-#| msgid "Pendientes"
+#: core/models.py:378 core/templates/core/changeorder_board.html:552
+#: core/templates/core/project_schedule.html:50
+#: core/templates/core/task_list.html:27
 msgid "Pendiente"
 msgstr "Pendientes"
 
-#: core/models.py:376
-#| msgid "Progress"
+#: core/models.py:379 core/templates/core/changeorder_board.html:461
+#: core/templates/core/task_list.html:28
 msgid "En Progreso"
 msgstr "Progreso"
 
-#: core/models.py:377
-#| msgid "Complete Now"
+#: core/models.py:380 core/templates/core/task_list.html:29
 msgid "Completada"
 msgstr "Completar Ahora"
 
-#: core/models.py:378
-#| msgid "Cancelar"
+#: core/models.py:381 core/templates/core/task_list.html:30
 msgid "Cancelada"
 msgstr "Cancelar"
 
-#: core/models.py:396
+#: core/models.py:399
 msgid "Usuario que creó la tarea (cliente o staff)"
 msgstr "Usuario que creó la tarea (cliente o staff)"
+
+#: core/models.py:483
+msgid "El título de la tarea es obligatorio y no puede estar vacío."
+msgstr ""
+
+#: core/models.py:488
+msgid "Una tarea no puede depender de sí misma."
+msgstr ""
+
+#: core/models.py:503
+msgid "Dependencia circular detectada. Las tareas no pueden formar ciclos."
+msgstr ""
+
+#: core/signals.py:122
+#, python-brace-format
+msgid "Cambio de Status: {}"
+msgstr ""
+
+#: core/signals.py:123
+#, python-brace-format
+msgid "La tarea \"{}\" cambió de {} a {}"
+msgstr ""
 
 #: core/templates/core/activity_complete.html:4
 #: core/templates/core/activity_complete.html:12
@@ -479,6 +493,7 @@ msgstr "Marcar como Completo"
 
 #: core/templates/core/activity_complete.html:123
 #: core/templates/core/color_sample_confirm_delete.html:51
+#: core/templates/core/daily_plan_create.html:12
 #: core/templates/core/daily_plan_edit.html:282
 #: core/templates/core/employee_performance_detail.html:278
 #: core/templates/core/expense_form.html:149
@@ -491,10 +506,9 @@ msgstr "Marcar como Completo"
 #: core/templates/core/risk_form.html:97
 #: core/templates/core/schedule_form.html:126
 #: core/templates/core/sop_creator.html:84
-#: core/templates/core/task_form.html:182
+#: core/templates/core/task_form.html:257
 #: core/templates/core/timeentry_confirm_delete.html:44
 #: core/templates/core/timeentry_form.html:162
-#| msgid "Cancelar"
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -538,7 +552,6 @@ msgstr ""
 
 #: core/templates/core/admin/dashboard_main.html:21
 #: core/templates/core/admin/dashboard_main.html:42
-#| msgid "Dashboard PM"
 msgid "Dashboard Operativo"
 msgstr "Panel PM"
 
@@ -552,6 +565,7 @@ msgstr "Panel PM"
 #: core/templates/core/components/header.html:89
 #: core/templates/core/components/sidebar.html:15
 #: core/templates/core/daily_planning_dashboard.html:551
+#: core/templates/core/dashboard_admin.html:291
 #: core/templates/core/project_delete_confirm.html:16
 #: core/templates/core/project_form.html:22
 #: core/templates/core/project_list.html:276
@@ -590,7 +604,6 @@ msgstr "Total Usuarios"
 #: core/templates/core/admin/dashboard_main.html:57
 #: core/templates/core/admin/dashboard_main.html:72
 #: core/templates/core/admin/users_list.html:16
-#| msgid "activities"
 msgid "activos"
 msgstr "actividades"
 
@@ -601,7 +614,6 @@ msgstr "actividades"
 #: core/templates/core/base.html:557 core/templates/core/client_list.html:92
 #: core/templates/core/project_delete_confirm.html:20
 #: core/templates/core/project_form.html:26 core/views_admin.py:302
-#| msgid "Proyecto"
 msgid "Proyectos"
 msgstr "Proyecto"
 
@@ -614,16 +626,18 @@ msgstr "Proyecto"
 #: core/templates/core/client_detail.html:26
 #: core/templates/core/client_form.html:35
 #: core/templates/core/client_password_reset.html:20
-#| msgid "Pendientes"
 msgid "Clientes"
 msgstr "Pendientes"
 
 #: core/templates/core/admin/dashboard_main.html:99
 #: core/templates/core/admin/dashboard_main.html:185
 #: core/templates/core/base.html:566
+#: core/templates/core/changeorder_board.html:428
 #: core/templates/core/components/header.html:32
 #: core/templates/core/components/header.html:97
 #: core/templates/core/components/sidebar.html:29
+#: core/templates/core/dashboard_admin.html:148
+#: core/templates/core/invoice_builder.html:330
 #: core/templates/core/project_delete_confirm.html:116 core/views_admin.py:332
 msgid "Change Orders"
 msgstr "Órdenes de Cambio"
@@ -639,7 +653,6 @@ msgid "Administra usuarios, roles, permisos y grupos del sistema."
 msgstr "Administra usuarios, roles, permisos y grupos del sistema."
 
 #: core/templates/core/admin/dashboard_main.html:124
-#| msgid "Todos los tipos"
 msgid "Ver todos los usuarios"
 msgstr "Todos los tipos"
 
@@ -656,7 +669,6 @@ msgid "Gestionar grupos"
 msgstr "Gestionar grupos"
 
 #: core/templates/core/admin/dashboard_main.html:140
-#| msgid "Sin registros."
 msgid "Últimos registros:"
 msgstr "Sin registros."
 
@@ -681,7 +693,6 @@ msgstr "Gastos"
 #: core/templates/core/admin/dashboard_main.html:179
 #: core/templates/core/income_list.html:7
 #: core/templates/core/project_delete_confirm.html:100 core/views_admin.py:312
-#| msgid "Progress"
 msgid "Ingresos"
 msgstr "Progreso"
 
@@ -702,7 +713,6 @@ msgid "Ver logs completos"
 msgstr "Ver logs completos"
 
 #: core/templates/core/admin/dashboard_main.html:207
-#| msgid "Activity Title"
 msgid "Actividad reciente:"
 msgstr "Título de Actividad"
 
@@ -749,12 +759,12 @@ msgid "Registrar un nuevo gasto"
 msgstr "Registrar un nuevo gasto"
 
 #: core/templates/core/admin/expense_form.html:18
-#| msgid "Volver al inventario"
 msgid "Volver a Gastos"
 msgstr "Volver al inventario"
 
 #: core/templates/core/admin/expense_form.html:28
 #: core/templates/core/admin/income_form.html:28
+#: core/templates/core/changeorder_board.html:444
 #: core/templates/core/changeorder_form_clean.html:52
 #: core/templates/core/client_assign_project.html:54
 #: core/templates/core/client_detail.html:157
@@ -769,7 +779,7 @@ msgstr "Proyecto"
 
 #: core/templates/core/admin/expense_form.html:30
 #: core/templates/core/admin/income_form.html:30
-#| msgid "Selecciona tu idioma:"
+#: core/templates/core/floor_plan_detail.html:184
 msgid "Selecciona"
 msgstr "Selecciona tu idioma:"
 
@@ -782,11 +792,14 @@ msgstr "Nombre Factura/Proyecto"
 #: core/templates/core/admin/expense_form.html:86
 #: core/templates/core/admin/income_form.html:48
 #: core/templates/core/admin/income_form.html:90
+#: core/templates/core/changeorder_board.html:525
 #: core/templates/core/expense_confirm_delete.html:11
 #: core/templates/core/expense_list.html:20
 #: core/templates/core/income_confirm_delete.html:11
 #: core/templates/core/income_list.html:20
 #: core/templates/core/inventory_history.html:39
+#: core/templates/core/invoice_builder.html:238
+#: core/templates/core/invoice_builder.html:286
 msgid "Fecha"
 msgstr "Fecha"
 
@@ -816,8 +829,10 @@ msgstr "Categoría"
 #: core/templates/core/damage_report_form.html:70
 #: core/templates/core/expense_confirm_delete.html:20
 #: core/templates/core/floor_plan_confirm_delete.html:31
+#: core/templates/core/floor_plan_detail.html:621
 #: core/templates/core/income_confirm_delete.html:20
 #: core/templates/core/inventory_move.html:49
+#: core/templates/core/invoice_builder.html:367
 #: core/templates/core/materials_direct_purchase.html:73
 #: core/templates/core/project_delete_confirm.html:174
 #: core/templates/core/project_form.html:283
@@ -841,13 +856,11 @@ msgstr "Cancelar"
 #: core/templates/core/client_form.html:227
 #: core/templates/core/damage_report_form.html:71
 #: core/templates/core/project_form.html:291
-#| msgid "Guardar compra"
 msgid "Guardar Cambios"
 msgstr "Guardar"
 
 #: core/templates/core/admin/expense_form.html:69
 #: core/templates/core/admin/model_list.html:32 core/views_admin.py:714
-#| msgid "Agregar gasto ahora"
 msgid "Crear Gasto"
 msgstr "Agregar gasto ahora"
 
@@ -862,7 +875,6 @@ msgstr "Grupo"
 
 #: core/templates/core/admin/group_detail.html:13
 #: core/templates/core/admin/group_form.html:15
-#| msgid "Volver al inventario"
 msgid "Volver a Grupos"
 msgstr "Volver al inventario"
 
@@ -904,17 +916,14 @@ msgid "Selecciona los permisos que tendrá este grupo"
 msgstr "Selecciona los permisos que tendrá este grupo"
 
 #: core/templates/core/admin/group_detail.html:114
-#| msgid "Selecciona tu idioma:"
 msgid "Seleccionar todo"
 msgstr "Selecciona tu idioma:"
 
 #: core/templates/core/admin/group_detail.html:117
-#| msgid "Selecciona tu idioma:"
 msgid "Deseleccionar todo"
 msgstr "Selecciona tu idioma:"
 
 #: core/templates/core/admin/group_detail.html:163
-#| msgid "Guardar compra"
 msgid "Guardar Permisos"
 msgstr "Guardar"
 
@@ -982,7 +991,9 @@ msgstr "Administra grupos de usuarios y sus permisos"
 #: core/templates/core/admin/model_list.html:40
 #: core/templates/core/admin/user_detail.html:20
 #: core/templates/core/admin/users_list.html:20
+#: core/templates/core/changeorder_board.html:432
 #: core/templates/core/daily_log.html:7
+#: core/templates/core/damage_report_detail.html:6
 #: core/templates/core/inventory_history.html:7
 #: core/templates/core/issue_list.html:7
 #: core/templates/core/project_schedule.html:7
@@ -1006,6 +1017,7 @@ msgstr "Permisos asignados"
 
 #: core/templates/core/admin/groups_list.html:53
 #: core/templates/core/admin/users_list.html:166
+#: core/templates/core/changeorder_board.html:582
 #: core/templates/core/client_list.html:154
 msgid "Ver detalles"
 msgstr "Ver dettodoses"
@@ -1059,12 +1071,10 @@ msgid "Modificar datos del ingreso"
 msgstr "Modificar datos del ingreso"
 
 #: core/templates/core/admin/income_form.html:14
-#| msgid "Registrar movimiento"
 msgid "Registrar un nuevo ingreso"
 msgstr "Registrar movimiento"
 
 #: core/templates/core/admin/income_form.html:18
-#| msgid "Volver al inventario"
 msgid "Volver a Ingresos"
 msgstr "Volver al inventario"
 
@@ -1086,14 +1096,12 @@ msgid "Total"
 msgstr "Total"
 
 #: core/templates/core/admin/model_list.html:22
-#| msgid "Sin registros."
 msgid "registros"
 msgstr "Sin registros."
 
 #: core/templates/core/admin/model_list.html:28
 #: core/templates/core/admin/project_form.html:286
 #: core/templates/core/project_form.html:289
-#| msgid "Proyecto"
 msgid "Crear Proyecto"
 msgstr "Proyecto"
 
@@ -1110,19 +1118,22 @@ msgstr "Buscar"
 #: core/templates/core/admin/model_list.html:91
 #: core/templates/core/admin/user_detail.html:134
 #: core/templates/core/admin/users_list.html:112
+#: core/templates/core/changeorder_board.html:526
 #: core/templates/core/client_detail.html:161
 #: core/templates/core/client_list.html:96
 #: core/templates/core/expense_list.html:24
 #: core/templates/core/income_list.html:24
 #: core/templates/core/inventory_low_stock.html:37
 #: core/templates/core/schedule_generator_old.html:108
-#: core/templates/core/task_list.html:35
+#: core/templates/core/task_list.html:132
 #: core/templates/core/task_list_all.html:15
 msgid "Acciones"
 msgstr "Acciones"
 
 #: core/templates/core/admin/model_list.html:145
 #: core/templates/core/admin/users_list.html:169
+#: core/templates/core/changeorder_board.html:585
+#: core/templates/core/changeorder_board.html:586
 #: core/templates/core/changeorder_form_clean.html:5
 #: core/templates/core/changeorder_form_clean.html:495
 #: core/templates/core/changeorder_form_modern.html:5
@@ -1130,32 +1141,37 @@ msgstr "Acciones"
 #: core/templates/core/client_detail.html:53
 #: core/templates/core/client_form.html:41
 #: core/templates/core/client_list.html:159
+#: core/templates/core/damage_report_detail.html:8
+#: core/templates/core/damage_report_detail.html:9
 #: core/templates/core/project_form.html:29
 #: core/templates/core/project_list.html:280
 #: core/templates/core/schedule_generator_old.html:90
-#: core/templates/core/task_detail.html:88
-#: core/templates/core/task_list.html:48
-#| msgid "Edit"
+#: core/templates/core/task_detail.html:168
+#: core/templates/core/task_list.html:176
 msgid "Editar"
 msgstr "Editar"
 
 #: core/templates/core/admin/model_list.html:152
 #: core/templates/core/admin/model_list.html:166
 #: core/templates/core/admin/model_list.html:180
+#: core/templates/core/changeorder_board.html:591
 #: core/templates/core/changeorder_form_clean.html:501
 #: core/templates/core/changeorder_form_modern.html:303
 #: core/templates/core/client_delete_confirm.html:25
 #: core/templates/core/client_delete_confirm.html:90
 #: core/templates/core/damage_report_confirm_delete.html:34
+#: core/templates/core/damage_report_detail.html:11
+#: core/templates/core/damage_report_detail.html:12
 #: core/templates/core/expense_confirm_delete.html:21
 #: core/templates/core/floor_plan_confirm_delete.html:34
+#: core/templates/core/floor_plan_detail.html:84
 #: core/templates/core/income_confirm_delete.html:21
 #: core/templates/core/project_delete_confirm.html:25
 #: core/templates/core/project_list.html:283
 #: core/templates/core/schedule_category_confirm_delete.html:25
 #: core/templates/core/schedule_generator_old.html:93
 #: core/templates/core/schedule_item_confirm_delete.html:25
-#: core/templates/core/task_list.html:49
+#: core/templates/core/task_list.html:177
 msgid "Eliminar"
 msgstr "Eliminar"
 
@@ -1198,7 +1214,6 @@ msgid "Siguiente"
 msgstr "Siguiente"
 
 #: core/templates/core/admin/model_list.html:240
-#| msgid "Sin registros."
 msgid "No hay registros"
 msgstr "Sin registros."
 
@@ -1228,7 +1243,6 @@ msgstr "Crear Primer Ingreso"
 
 #: core/templates/core/admin/project_form.html:28
 #: core/templates/core/inventory_low_stock.html:13
-#| msgid "Volver al inventario"
 msgid "Volver a Proyectos"
 msgstr "Volver al inventario"
 
@@ -1299,7 +1313,6 @@ msgid "Presupuesto Total"
 msgstr "Presupuesto Total"
 
 #: core/templates/core/admin/project_form.html:181
-#| msgid "Costo mano de obra hoy"
 msgid "Presupuesto Mano de Obra"
 msgstr "Costo mano de obra hoy"
 
@@ -1369,6 +1382,8 @@ msgstr "Rol"
 #: core/templates/core/admin/user_form.html:57
 #: core/templates/core/admin/users_list.html:140
 #: core/templates/core/base.html:379
+#: core/templates/core/invoice_builder.html:239
+#: core/templates/core/invoice_builder.html:287
 msgid "Empleado"
 msgstr "Empleado"
 
@@ -1380,7 +1395,6 @@ msgstr "Contratista"
 
 #: core/templates/core/admin/user_detail.html:71
 #: core/templates/core/admin/user_form.html:60
-#| msgid "Project"
 msgid "Project Manager"
 msgstr "Proyecto"
 
@@ -1402,7 +1416,6 @@ msgid "Superusuario (todos los permisos)"
 msgstr "Superusuario (todos los permisos)"
 
 #: core/templates/core/admin/user_detail.html:98
-#| msgid "Guardar compra"
 msgid "Guardar cambios"
 msgstr "Guardar compra"
 
@@ -1459,7 +1472,6 @@ msgid "No pertenece a ningún grupo"
 msgstr "No pertenece a ningún grupo"
 
 #: core/templates/core/admin/user_detail.html:248
-#| msgid "Activity Title"
 msgid "Actividad Reciente"
 msgstr "Título de Actividad"
 
@@ -1506,7 +1518,6 @@ msgstr "Personal"
 #: core/templates/core/admin/users_list.html:57
 #: core/templates/core/admin/users_list.html:88
 #: core/templates/core/client_list.html:68
-#| msgid "activities"
 msgid "Inactivos"
 msgstr "actividades"
 
@@ -1515,7 +1526,6 @@ msgid "Nombre, email, username..."
 msgstr "Nombre, email, username..."
 
 #: core/templates/core/admin/users_list.html:75
-#| msgid "Todos los items"
 msgid "Todos los roles"
 msgstr "Todos los items"
 
@@ -1529,6 +1539,8 @@ msgstr "Contratistas"
 
 #: core/templates/core/admin/users_list.html:84
 #: core/templates/core/admin/users_list.html:110
+#: core/templates/core/changeorder_board.html:455
+#: core/templates/core/changeorder_board.html:524
 #: core/templates/core/changeorder_form_clean.html:92
 #: core/templates/core/changeorder_form_modern.html:179
 #: core/templates/core/client_assign_project.html:56
@@ -1543,13 +1555,14 @@ msgstr "Contratistas"
 #: core/templates/core/schedule_generator_old.html:276
 #: core/templates/core/task_detail.html:11
 #: core/templates/core/task_detail_backup.html:11
-#: core/templates/core/task_list.html:33
+#: core/templates/core/task_list.html:24 core/templates/core/task_list.html:129
 #: core/templates/core/task_list_all.html:14
 msgid "Estado"
 msgstr "Estado"
 
 #: core/templates/core/admin/users_list.html:86
 #: core/templates/core/client_list.html:63
+#: core/templates/core/task_list.html:26 core/templates/core/task_list.html:46
 #: core/templates/core/touchup_board.html:13
 #: core/templates/core/touchup_board.html:22
 #: core/templates/core/touchup_board.html:333
@@ -1563,7 +1576,6 @@ msgstr "Todos"
 
 #: core/templates/core/admin/users_list.html:87
 #: core/templates/core/client_list.html:65
-#| msgid "Actions"
 msgid "Activos"
 msgstr "Acciones"
 
@@ -1586,7 +1598,6 @@ msgstr "Superuser"
 #: core/templates/core/client_detail.html:129
 #: core/templates/core/client_list.html:137
 #: core/templates/core/project_delete_confirm.html:72
-#| msgid "Actions"
 msgid "Activo"
 msgstr "Acciones"
 
@@ -1623,7 +1634,6 @@ msgstr "Paneles"
 
 #: core/templates/core/base.html:374 core/templates/core/dashboard.html:13
 #: core/templates/core/dashboard_clean.html:16
-#| msgid "Dashboard"
 msgid "Dashboard General"
 msgstr "Panel"
 
@@ -1670,7 +1680,6 @@ msgid "Nuevo Change Order"
 msgstr "Nuevo Change Order"
 
 #: core/templates/core/base.html:437
-#| msgid "Solicitar materiales"
 msgid "Solicitar Materiales"
 msgstr "Solicitar materiales"
 
@@ -1692,7 +1701,8 @@ msgstr "encontrado"
 
 #: core/templates/core/base.html:680
 msgid "¿Quieres recibir notificaciones sobre actualizaciones de tus proyectos?"
-msgstr "¿Quieres recibir notificaciones sobre actualizaciones de tus proyectos?"
+msgstr ""
+"¿Quieres recibir notificaciones sobre actualizaciones de tus proyectos?"
 
 #: core/templates/core/base.html:681
 msgid "Permitir"
@@ -1715,7 +1725,6 @@ msgid "Tareas y Touch-ups"
 msgstr "Tareas y Touch-ups"
 
 #: core/templates/core/base.html:699
-#| msgid "Volver al inventario"
 msgid "Materiales e Inventario"
 msgstr "Volver al inventario"
 
@@ -1727,6 +1736,141 @@ msgstr "Alertas de Presupuesto"
 msgid "¡Notificaciones activadas correctamente!"
 msgstr "¡Notificaciones activadas correctamente!"
 
+#: core/templates/core/changeorder_board.html:435
+#: core/templates/core/dashboard_admin.html:87
+msgid "Nuevo CO"
+msgstr "Nuevo CO"
+
+#: core/templates/core/changeorder_board.html:446
+#, fuzzy
+#| msgid "Todos los roles"
+msgid "Todos los proyectos"
+msgstr "Todos los items"
+
+#: core/templates/core/changeorder_board.html:457
+#, fuzzy
+#| msgid "Todos los tipos"
+msgid "Todos los estados"
+msgstr "Todos los tipos"
+
+#: core/templates/core/changeorder_board.html:458
+#: core/templates/core/changeorder_board.html:492
+msgid "Borrador"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:459
+#: core/templates/core/changeorder_board.html:498
+msgid "En Revisión"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:460
+#: core/templates/core/changeorder_board.html:504
+#: core/templates/core/changeorder_board.html:556
+msgid "Aprobado"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:463
+#, fuzzy
+#| msgid "Actualizado"
+msgid "Rechazado"
+msgstr "Actualizado"
+
+#: core/templates/core/changeorder_board.html:469
+#: core/templates/core/components/photo_editor_modal.html:74
+#: core/templates/core/task_list.html:65
+msgid "Limpiar"
+msgstr "Limpiar"
+
+#: core/templates/core/changeorder_board.html:480
+#, fuzzy
+#| msgid "Total"
+msgid "Total COs"
+msgstr "Total"
+
+#: core/templates/core/changeorder_board.html:486
+#, fuzzy
+#| msgid "Monto"
+msgid "Monto Total"
+msgstr "Monto"
+
+#: core/templates/core/changeorder_board.html:521
+#, fuzzy
+#| msgid "COs"
+msgid "CO#"
+msgstr "COs"
+
+#: core/templates/core/changeorder_board.html:523
+#, fuzzy
+#| msgid "Descripción"
+msgid "Proyecto / Descripción"
+msgstr "Descripción"
+
+#: core/templates/core/changeorder_board.html:560
+msgid "Enviado"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:564
+#, fuzzy
+#| msgid "Facturas"
+msgid "Facturado"
+msgstr "Facturas"
+
+#: core/templates/core/changeorder_board.html:568
+msgid "Pagado"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:583
+#: core/templates/core/task_list.html:174
+#: core/templates/core/task_list_all.html:26
+msgid "Ver"
+msgstr "Volver"
+
+#: core/templates/core/changeorder_board.html:590
+#, fuzzy
+#| msgid "¿Estás seguro de eliminar este reporte?"
+msgid "¿Estás seguro de eliminar este Change Order?"
+msgstr "¿Estás seguro de eliminar este reporte?"
+
+#: core/templates/core/changeorder_board.html:598
+#, fuzzy
+#| msgid "Editar Cliente"
+msgid "Enviar al cliente"
+msgstr "Editar Cliente"
+
+#: core/templates/core/changeorder_board.html:599
+msgid "Enviar"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:608
+msgid "No hay Change Orders para mostrar"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:622
+msgid "¿Enviar este Change Order al cliente para firma?"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:636
+msgid "✅ Change Order enviado al cliente correctamente"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:639
+#: core/templates/core/damage_report_detail.html:98
+#: core/templates/core/floor_plan_detail.html:687
+#, fuzzy
+#| msgid "Common Errors:"
+msgid "Error:"
+msgstr "Errores Comunes:"
+
+#: core/templates/core/changeorder_board.html:639
+msgid "No se pudo enviar"
+msgstr ""
+
+#: core/templates/core/changeorder_board.html:644
+#, fuzzy
+#| msgid "Error al iniciar seguimiento"
+msgid "Error al enviar al cliente"
+msgstr "Error al iniciar seguimiento"
+
 #: core/templates/core/changeorder_form_clean.html:5
 #: core/templates/core/changeorder_form_modern.html:5
 #: core/templates/core/client_form.html:39
@@ -1736,7 +1880,6 @@ msgstr "¡Notificaciones activadas correctamente!"
 #: core/templates/core/schedule_generator.html:599
 #: core/templates/core/schedule_generator_old.html:237
 #: core/templates/core/schedule_generator_old.html:311
-#| msgid "Created"
 msgid "Crear"
 msgstr "Creado"
 
@@ -1758,12 +1901,12 @@ msgstr "Complete la información del change order"
 #: core/templates/core/changeorder_form_clean.html:35
 #: core/templates/core/changeorder_form_modern.html:127
 #: core/templates/core/changeorder_form_modern.html:348
-#| msgid "Volver"
 msgid "Volver al CO"
 msgstr "Volver"
 
 #: core/templates/core/changeorder_form_clean.html:106
 #: core/templates/core/changeorder_form_modern.html:191
+#: core/templates/core/invoice_builder.html:289
 #: core/templates/core/materials_direct_purchase.html:32
 msgid "Notas"
 msgstr "Notas"
@@ -1823,7 +1966,6 @@ msgstr "Clic para seleccionar color"
 
 #: core/templates/core/changeorder_form_clean.html:201
 #: core/templates/core/changeorder_form_modern.html:267
-#| msgid "Foto del recibo"
 msgid "Fotos del Proyecto"
 msgstr "Foto del recibo"
 
@@ -1905,11 +2047,11 @@ msgid "foto"
 msgstr "foto"
 
 #: core/templates/core/changeorder_form_clean.html:512
-#| msgid "Description"
 msgid "Descripción..."
 msgstr "Descripción"
 
 #: core/templates/core/changeorder_form_clean.html:534
+#: core/templates/core/floor_plan_detail.html:247
 msgid "¿Eliminar esta foto?"
 msgstr "¿Eliminar esta foto?"
 
@@ -1964,13 +2106,11 @@ msgstr "0 fotos"
 
 #: core/templates/core/changeorder_form_modern.html:358
 #: core/templates/core/components/photo_editor_modal.html:26
-#| msgid "Registrar movimiento"
 msgid "Editor de Fotos"
 msgstr "Historial de movimientos"
 
 #: core/templates/core/changeorder_form_modern.html:360
 #: core/templates/core/components/photo_editor_modal.html:31
-#| msgid "Cerrar sesión"
 msgid "Cerrar"
 msgstr "Cerrar sesión"
 
@@ -1981,7 +2121,6 @@ msgstr "Dibujar"
 
 #: core/templates/core/changeorder_form_modern.html:370
 #: core/templates/core/components/photo_editor_modal.html:51
-#| msgid "Fecha"
 msgid "Flecha"
 msgstr "Fecha"
 
@@ -2035,18 +2174,15 @@ msgid "Blanco"
 msgstr "Blanco"
 
 #: core/templates/core/changeorder_form_modern.html:402
-#| msgid "Guardar compra"
 msgid "Guardar Anotaciones"
 msgstr "Guardar compra"
 
 #: core/templates/core/client_assign_project.html:5
 #: core/templates/core/client_assign_project.html:25
-#| msgid "Sin proyectos."
 msgid "Asignar Proyectos"
 msgstr "Sin proyectos."
 
 #: core/templates/core/client_assign_project.html:33
-#| msgid "Sin proyectos."
 msgid "Asignar Proyectos a"
 msgstr "Sin proyectos."
 
@@ -2063,7 +2199,6 @@ msgid "Cliente del Proyecto"
 msgstr "Cliente del Proyecto"
 
 #: core/templates/core/client_assign_project.html:57
-#| msgid "Fecha"
 msgid "Fechas"
 msgstr "Fecha"
 
@@ -2076,7 +2211,7 @@ msgid "Sin cliente"
 msgstr "Sin cliente"
 
 #: core/templates/core/client_assign_project.html:102
-#| msgid "Assigned:"
+#: core/templates/core/task_list.html:103
 msgid "Asignar"
 msgstr "Asignados:"
 
@@ -2089,7 +2224,6 @@ msgid "Este cliente ya tiene acceso a todos los proyectos existentes"
 msgstr "Este cliente ya tiene acceso a todos los proyectos existentes"
 
 #: core/templates/core/client_assign_project.html:123
-#| msgid "Volver al inventario"
 msgid "Volver al Perfil"
 msgstr "Volver al inventario"
 
@@ -2123,7 +2257,6 @@ msgid "Volver al Perfil del Cliente"
 msgstr "Volver al Perfil del Cliente"
 
 #: core/templates/core/client_assign_project.html:152
-#| msgid "Todos los items"
 msgid "Ver Todos los Clientes"
 msgstr "Todos los items"
 
@@ -2187,12 +2320,10 @@ msgstr ""
 
 #: core/templates/core/client_detail.html:13
 #: core/templates/core/client_form.html:21
-#| msgid "Volver al inventario"
 msgid "Volver a Clientes"
 msgstr "Volver al inventario"
 
 #: core/templates/core/client_detail.html:56
-#| msgid "Proyecto"
 msgid "Asignar Proyecto"
 msgstr "Proyecto"
 
@@ -2221,7 +2352,6 @@ msgid "Usuario:"
 msgstr "Usuario:"
 
 #: core/templates/core/client_detail.html:96
-#| msgid "Idioma actual:"
 msgid "Idioma:"
 msgstr "Idioma actual:"
 
@@ -2255,8 +2385,7 @@ msgid "Permisos"
 msgstr "Permisos"
 
 #: core/templates/core/client_detail.html:160
-#: core/templates/core/task_list.html:34
-#| msgid "Assigned:"
+#: core/templates/core/task_list.html:130
 msgid "Asignado"
 msgstr "Asignados:"
 
@@ -2265,7 +2394,6 @@ msgid "Comentar"
 msgstr "Comentar"
 
 #: core/templates/core/client_detail.html:186
-#| msgid "Created"
 msgid "Crear tareas"
 msgstr "Creado"
 
@@ -2282,12 +2410,10 @@ msgid "Asignar Primer Proyecto"
 msgstr "Asignar Primer Proyecto"
 
 #: core/templates/core/client_detail.html:231
-#| msgid "Solicitudes (todas)"
 msgid "Solicitudes Recientes"
 msgstr "Solicitudes (todas)"
 
 #: core/templates/core/client_detail.html:257
-#| msgid "Solicitudes (todas)"
 msgid "Sin solicitudes recientes"
 msgstr "Solicitudes (todas)"
 
@@ -2339,7 +2465,6 @@ msgid "Los usuarios inactivos no pueden iniciar sesión"
 msgstr "Los usuarios inactivos no pueden iniciar sesión"
 
 #: core/templates/core/client_form.html:225
-#| msgid "Created"
 msgid "Crear Cliente"
 msgstr "Creado"
 
@@ -2369,22 +2494,18 @@ msgstr "Recuerda asignar proyectos al cliente después de crearlo"
 
 #: core/templates/core/client_list.html:5
 #: core/templates/core/client_list.html:26
-#| msgid "Pendientes"
 msgid "Gestión de Clientes"
 msgstr "Pendientes"
 
 #: core/templates/core/client_list.html:14
-#| msgid "Volver al inventario"
 msgid "Volver al Panel Administrativo"
 msgstr "Volver al inventario"
 
 #: core/templates/core/client_list.html:29
-#| msgid "Total"
 msgid "Total:"
 msgstr "Total"
 
 #: core/templates/core/client_list.html:29
-#| msgid "Pendientes"
 msgid "clientes"
 msgstr "Pendientes"
 
@@ -2393,22 +2514,18 @@ msgid "Nombre, email, usuario..."
 msgstr "Nombre, email, usuario..."
 
 #: core/templates/core/client_list.html:93
-#| msgid "Idioma actual:"
 msgid "Idioma"
 msgstr "Idioma actual:"
 
 #: core/templates/core/client_list.html:95
-#| msgid "Registrar movimiento"
 msgid "Registrado"
 msgstr "Registrar movimiento"
 
 #: core/templates/core/client_list.html:120
-#| msgid "Proyecto"
 msgid "proyecto(s)"
 msgstr "Proyecto"
 
 #: core/templates/core/client_list.html:164
-#| msgid "Sin proyectos."
 msgid "Asignar proyectos"
 msgstr "Sin proyectos."
 
@@ -2500,7 +2617,6 @@ msgstr "Eliminar"
 #: core/templates/core/dashboard_pm_clean.html:98
 #: core/templates/core/project_list.html:5
 #: core/templates/core/project_list.html:205
-#| msgid "Project"
 msgid "Projects"
 msgstr "Proyectos"
 
@@ -2513,10 +2629,6 @@ msgstr "Cerrar Sesión"
 msgid "Login"
 msgstr "Iniciar Sesión"
 
-#: core/templates/core/components/photo_editor_modal.html:74
-msgid "Limpiar"
-msgstr "Limpiar"
-
 #: core/templates/core/components/photo_editor_modal.html:128
 #: core/templates/core/daily_log.html:22
 #: core/templates/core/inventory_move.html:48
@@ -2524,8 +2636,7 @@ msgstr "Limpiar"
 #: core/templates/core/project_schedule.html:24
 #: core/templates/core/schedule_category_form.html:23
 #: core/templates/core/schedule_item_form.html:23
-#: core/templates/core/task_list.html:22
-#| msgid "Guardar compra"
+#: core/templates/core/task_list.html:87
 msgid "Guardar"
 msgstr "Guardar"
 
@@ -2536,7 +2647,6 @@ msgid "Edit"
 msgstr "Editar"
 
 #: core/templates/core/components/photo_grid.html:68
-#| msgid "No plans for today yet."
 msgid "No photos yet"
 msgstr "No hay planes para hoy todavía."
 
@@ -2545,7 +2655,6 @@ msgid "Team"
 msgstr "Equipo"
 
 #: core/templates/core/components/sidebar.html:43
-#| msgid "Cancelar"
 msgid "Finance"
 msgstr "Cancelar"
 
@@ -2570,12 +2679,10 @@ msgid "Crear nuevo log"
 msgstr "Crear nuevo log"
 
 #: core/templates/core/daily_log.html:36
-#| msgid "Progress"
 msgid "Progreso:"
 msgstr "Progreso"
 
 #: core/templates/core/daily_log.html:37
-#| msgid "Pendientes"
 msgid "Incidentes:"
 msgstr "Pendientes"
 
@@ -2586,6 +2693,26 @@ msgstr "Retrasos:"
 #: core/templates/core/daily_log.html:41
 msgid "Sin daily logs"
 msgstr "Sin daily logs"
+
+#: core/templates/core/daily_plan_create.html:3
+#: core/templates/core/daily_planning_dashboard.html:570
+msgid "Create Daily Plan"
+msgstr "Crear Nuevo Plan Diario"
+
+#: core/templates/core/daily_plan_create.html:6
+#, fuzzy
+#| msgid "My Daily Plan"
+msgid "New Daily Plan"
+msgstr "Mi Plan Diario"
+
+#: core/templates/core/daily_plan_create.html:7
+msgid "Minimal placeholder template for daily plan creation."
+msgstr ""
+
+#: core/templates/core/daily_plan_create.html:11
+#: core/templates/core/timeentry_form.html:153
+msgid "Save"
+msgstr "Guardar"
 
 #: core/templates/core/daily_plan_edit.html:4
 #: core/templates/core/daily_plan_edit.html:16
@@ -2662,7 +2789,6 @@ msgstr "Materiales:"
 
 #: core/templates/core/daily_plan_edit.html:110
 #: core/templates/core/employee_morning_dashboard.html:120
-#| msgid "Shortage!"
 msgid "Shortage"
 msgstr "¡Escasez!"
 
@@ -2686,8 +2812,9 @@ msgstr "¿Eliminar esta actividad?"
 
 #: core/templates/core/daily_plan_edit.html:150
 msgid "No activities added yet. Click 'Add Activity' to start."
-msgstr "No activities added yet. Click 'Add Activity' to start."
-"No se han agregado actividades. Haz clic en 'Agregar Actividad' para empezar."
+msgstr ""
+"No activities added yet. Click 'Add Activity' to start.No se han agregado "
+"actividades. Haz clic en 'Agregar Actividad' para empezar."
 
 #: core/templates/core/daily_plan_edit.html:161
 #: core/templates/core/daily_planning_dashboard.html:407
@@ -2713,7 +2840,6 @@ msgstr "Agrega al menos una actividad antes de enviar"
 #: core/templates/core/income_form.html:18
 #: core/templates/core/schedule_form.html:18
 #: core/templates/core/timeentry_form.html:18
-#| msgid "Dashboard"
 msgid "Back to Dashboard"
 msgstr "Panel"
 
@@ -2799,7 +2925,6 @@ msgid "Overdue Plans!"
 msgstr "¡Planes Vencidos!"
 
 #: core/templates/core/daily_planning_dashboard.html:314
-#| msgid "The following plans are past their 5pm deadline:"
 msgid "These plans are past their 5pm deadline:"
 msgstr "Los siguientes planes pasaron su plazo de 5pm:"
 
@@ -2847,7 +2972,6 @@ msgid "activities"
 msgstr "actividades"
 
 #: core/templates/core/daily_planning_dashboard.html:391
-#| msgid "Edit Daily Plan"
 msgid "Edit Plan"
 msgstr "Editar Plan Diario"
 
@@ -2901,7 +3025,6 @@ msgstr "Planes Recientes"
 #: core/templates/core/dashboard_admin.html:158
 #: core/templates/core/dashboard_employee_clean.html:106
 #: core/templates/core/dashboard_pm_clean.html:158
-#| msgid "View/Edit"
 msgid "View"
 msgstr "Ver/Editar"
 
@@ -2916,7 +3039,6 @@ msgid "View/Edit"
 msgstr "Ver/Editar"
 
 #: core/templates/core/daily_planning_dashboard.html:533
-#| msgid "Recent Plans"
 msgid "No recent plans."
 msgstr "Planes Recientes"
 
@@ -2930,14 +3052,8 @@ msgstr "Biblioteca de SOPs"
 msgid "Employee View"
 msgstr "Vista de Empleado"
 
-#: core/templates/core/daily_planning_dashboard.html:570
-#| msgid "Create New Daily Plan"
-msgid "Create Daily Plan"
-msgstr "Crear Nuevo Plan Diario"
-
 #: core/templates/core/damage_report_confirm_delete.html:9
 #: core/templates/core/damage_report_form.html:9
-#| msgid "Reporte de daños"
 msgid "Reportes de Daños"
 msgstr "Reporte de daños"
 
@@ -2960,6 +3076,69 @@ msgstr ""
 msgid "Severidad"
 msgstr "Severidad"
 
+#: core/templates/core/damage_report_detail.html:25
+#, python-format
+msgid "%(photo_count)s Foto"
+msgid_plural "%(photo_count)s Fotos"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: core/templates/core/damage_report_detail.html:31
+#, fuzzy
+#| msgid "Agregar ítem"
+msgid "Agregar Fotos"
+msgstr "Agregar ítem"
+
+#: core/templates/core/damage_report_detail.html:35
+#: core/templates/core/floor_plan_detail.html:243
+#, fuzzy
+#| msgid "Seleccionar todo"
+msgid "Seleccionar fotos"
+msgstr "Selecciona tu idioma:"
+
+#: core/templates/core/damage_report_detail.html:37
+msgid "Puedes seleccionar múltiples archivos"
+msgstr ""
+
+#: core/templates/core/damage_report_detail.html:41
+#, fuzzy
+#| msgid "Descripción de la foto..."
+msgid "Descripción de las fotos"
+msgstr "Descripción"
+
+#: core/templates/core/damage_report_detail.html:44
+#: core/templates/core/floor_plan_detail.html:245
+#, fuzzy
+#| msgid "Cómo subir fotos:"
+msgid "Subir Fotos"
+msgstr "Cómo subir fotos:"
+
+#: core/templates/core/damage_report_detail.html:67
+msgid "No hay fotos aún. Usa el formulario de arriba para agregar fotos."
+msgstr ""
+
+#: core/templates/core/damage_report_detail.html:80
+#, fuzzy
+#| msgid "Buscando..."
+msgid "Subiendo..."
+msgstr "Buscando..."
+
+#: core/templates/core/damage_report_detail.html:80
+msgid "Subiendo fotos..."
+msgstr ""
+
+#: core/templates/core/damage_report_detail.html:98
+#: core/templates/core/floor_plan_detail.html:687
+msgid "Error desconocido"
+msgstr ""
+
+#: core/templates/core/damage_report_detail.html:101
+#, fuzzy
+#| msgid "Error al eliminar foto"
+msgid "Error al subir fotos:"
+msgstr "Error al eliminar foto"
+
 #: core/templates/core/damage_report_form.html:10
 msgid "Editar Reporte"
 msgstr "Editar Reporte"
@@ -2974,7 +3153,6 @@ msgstr "Costo Estimado"
 
 #: core/templates/core/damage_report_form.html:52
 #: core/templates/core/floor_plan_confirm_delete.html:25
-#| msgid "Plan Info"
 msgid "Plano"
 msgstr "Información del Plan"
 
@@ -3001,7 +3179,6 @@ msgstr "Bienvenido"
 #: core/templates/core/dashboard_employee_clean.html:190
 #: core/templates/core/financial_dashboard.html:231
 #: core/templates/core/productivity_dashboard.html:240
-#| msgid "Quick Links"
 msgid "Quick Actions"
 msgstr "Enlaces Rápidos"
 
@@ -3036,7 +3213,6 @@ msgstr "Agregar Ingreso"
 #: core/templates/core/dashboard_clean.html:47
 #: core/templates/core/timeentry_form.html:6
 #: core/templates/core/timeentry_form.html:14
-#| msgid "Estimated Hours"
 msgid "Register Hours"
 msgstr "Horas Estimadas"
 
@@ -3056,7 +3232,6 @@ msgstr "Pagos"
 
 #: core/templates/core/dashboard.html:90
 #: core/templates/core/dashboard_clean.html:75
-#| msgid "Project"
 msgid "Project Overview"
 msgstr "Proyecto"
 
@@ -3091,7 +3266,6 @@ msgstr "Net Profit"
 
 #: core/templates/core/dashboard.html:135
 #: core/templates/core/dashboard_clean.html:107
-#| msgid "Select Project"
 msgid "Budget per Project"
 msgstr "Seleccionar Proyecto"
 
@@ -3162,7 +3336,6 @@ msgstr "Lista"
 #: core/templates/core/dashboard_admin.html:13
 #: core/templates/core/dashboard_admin_clean.html:5
 #: core/templates/core/dashboard_admin_clean.html:14
-#| msgid "Dashboard"
 msgid "Admin Dashboard"
 msgstr "Panel"
 
@@ -3184,17 +3357,14 @@ msgid "Nuevo Cliente"
 msgstr "Nuevo Cliente"
 
 #: core/templates/core/dashboard_admin.html:57
-#| msgid "Proyecto"
 msgid "Nuevo Proyecto"
 msgstr "Proyecto"
 
 #: core/templates/core/dashboard_admin.html:63
-#| msgid "Pendientes"
 msgid "Ver Clientes"
 msgstr "Pendientes"
 
 #: core/templates/core/dashboard_admin.html:69
-#| msgid "Proyecto"
 msgid "Ver Proyectos"
 msgstr "Proyecto"
 
@@ -3208,15 +3378,10 @@ msgstr "Nuevo Gasto"
 msgid "Nuevo Ingreso"
 msgstr "Nuevo Ingreso"
 
-#: core/templates/core/dashboard_admin.html:87
-msgid "Nuevo CO"
-msgstr "Nuevo CO"
-
 #: core/templates/core/dashboard_admin.html:102
 #: core/templates/core/dashboard_admin.html:639
 #: core/templates/core/dashboard_admin_clean.html:59
 #: core/templates/core/dashboard_pm_clean.html:36
-#| msgid "No one assigned yet"
 msgid "Unassigned Time"
 msgstr "Nadie asignado todavía"
 
@@ -3227,13 +3392,11 @@ msgstr "sin asignar"
 
 #: core/templates/core/dashboard_admin.html:111
 #: core/templates/core/dashboard_admin_clean.html:67
-#| msgid "Assigned:"
 msgid "Assign now"
 msgstr "Asignados:"
 
 #: core/templates/core/dashboard_admin.html:112
 #: core/templates/core/dashboard_pm_clean.html:42
-#| msgid "Assigned:"
 msgid "Assign"
 msgstr "Asignados:"
 
@@ -3265,13 +3428,11 @@ msgstr "Awaiting approval"
 #: core/templates/core/dashboard_admin.html:335
 #: core/templates/core/dashboard_admin_clean.html:101
 #: core/templates/core/dashboard_admin_clean.html:247
-#| msgid "Approved"
 msgid "Approve"
 msgstr "Aprobado"
 
 #: core/templates/core/dashboard_admin.html:171
 #: core/templates/core/dashboard_admin_clean.html:110
-#| msgid "Pendientes"
 msgid "Pending Invoices"
 msgstr "Pendientes"
 
@@ -3298,7 +3459,6 @@ msgstr "Projects with Alerts"
 #: core/templates/core/dashboard_admin.html:247
 #: core/templates/core/dashboard_admin_clean.html:172
 #: core/templates/core/financial_dashboard.html:150
-#| msgid "Alertas:"
 msgid "Alerts"
 msgstr "Alertas:"
 
@@ -3336,7 +3496,6 @@ msgstr "Pagado"
 #: core/templates/core/dashboard_admin.html:421
 #: core/templates/core/dashboard_admin_clean.html:314
 #: core/templates/core/employee_performance_list.html:234
-#| msgid "Pendientes"
 msgid "Pending"
 msgstr "Pendientes"
 
@@ -3356,6 +3515,15 @@ msgstr "Time Recorded"
 msgid "This Week"
 msgstr "Esta Semana"
 
+# Dashboard summary labels
+#: core/templates/core/dashboard_admin.html:460
+msgid "Proyectos Activos"
+msgstr "Proyectos Activos"
+
+#: core/templates/core/dashboard_admin.html:468
+msgid "Proyectos Completados"
+msgstr "Proyectos Completados"
+
 #: core/templates/core/dashboard_admin.html:484
 msgid "Income vs Expenses"
 msgstr "Income vs Expenses"
@@ -3373,12 +3541,10 @@ msgid "COs"
 msgstr "COs"
 
 #: core/templates/core/dashboard_admin.html:558
-#| msgid "Daily Planning"
 msgid "Planning"
 msgstr "Planificación Diaria"
 
 #: core/templates/core/dashboard_admin.html:563
-#| msgid "Select Project"
 msgid "Select a project first"
 msgstr "Seleccionar Proyecto"
 
@@ -3392,7 +3558,6 @@ msgid "Profit"
 msgstr "Ganancia"
 
 #: core/templates/core/dashboard_admin.html:641
-#| msgid "Pendientes"
 msgid "Pending COs"
 msgstr "Pendientes"
 
@@ -3405,20 +3570,17 @@ msgstr ""
 #: core/templates/core/dashboard_admin_clean.html:347
 #: core/templates/core/dashboard_admin_clean.html:353
 #: core/templates/core/dashboard_pm_clean.html:202
-#| msgid "View Project"
 msgid "Active Projects"
 msgstr "Ver Proyecto"
 
 #: core/templates/core/dashboard_admin_clean.html:362
 #: core/templates/core/dashboard_admin_clean.html:368
-#| msgid "Select Project"
 msgid "Completed Projects"
 msgstr "Seleccionar Proyecto"
 
 #: core/templates/core/dashboard_client_clean.html:4
 #: core/templates/core/dashboard_client_clean.html:13
 #: core/templates/core/dashboard_designer_clean.html:22
-#| msgid "Project"
 msgid "My Projects"
 msgstr "Proyecto"
 
@@ -3429,7 +3591,6 @@ msgid "Progress"
 msgstr "Progreso"
 
 #: core/templates/core/dashboard_client_clean.html:50
-#| msgid "Recent Plans"
 msgid "Recent Gallery"
 msgstr "Planes Recientes"
 
@@ -3458,7 +3619,6 @@ msgid "Next Event"
 msgstr "Next Event"
 
 #: core/templates/core/dashboard_client_clean.html:134
-#| msgid "Not linked to schedule"
 msgid "No upcoming events scheduled"
 msgstr "No vinculado al calendario"
 
@@ -3488,7 +3648,6 @@ msgstr "Solicitudes"
 
 #: core/templates/core/dashboard_client_clean.html:202
 #: core/templates/core/dashboard_designer_clean.html:39
-#| msgid "No one assigned yet"
 msgid "No projects assigned"
 msgstr "Nadie asignado todavía"
 
@@ -3498,7 +3657,6 @@ msgstr "Contact your Project Manager for more information"
 
 #: core/templates/core/dashboard_designer_clean.html:4
 #: core/templates/core/dashboard_designer_clean.html:13
-#| msgid "Dashboard"
 msgid "Designer Dashboard"
 msgstr "Panel"
 
@@ -3513,7 +3671,6 @@ msgid "Client"
 msgstr "Cliente"
 
 #: core/templates/core/dashboard_designer_clean.html:50
-#| msgid "Recent Plans"
 msgid "Recent Color Samples"
 msgstr "Planes Recientes"
 
@@ -3522,7 +3679,6 @@ msgid "No color samples available"
 msgstr "No color samples available"
 
 #: core/templates/core/dashboard_designer_clean.html:80
-#| msgid "Recent Plans"
 msgid "Recent Floor Plans"
 msgstr "Planes Recientes"
 
@@ -3531,12 +3687,10 @@ msgid "No floor plans available"
 msgstr "No floor plans available"
 
 #: core/templates/core/dashboard_designer_clean.html:106
-#| msgid "Schedule"
 msgid "Upcoming Schedule"
 msgstr "Horario"
 
 #: core/templates/core/dashboard_designer_clean.html:115
-#| msgid "Add Activity"
 msgid "Activity"
 msgstr "Agregar Actividad"
 
@@ -3551,13 +3705,11 @@ msgid "End"
 msgstr "Fin"
 
 #: core/templates/core/dashboard_designer_clean.html:133
-#| msgid "Not linked to schedule"
 msgid "No upcoming schedule"
 msgstr "No vinculado al calendario"
 
 #: core/templates/core/dashboard_employee_clean.html:4
 #: core/templates/core/dashboard_employee_clean.html:16
-#| msgid "Dashboard"
 msgid "Employee Dashboard"
 msgstr "Panel"
 
@@ -3566,7 +3718,6 @@ msgid "Hello"
 msgstr "Hello"
 
 #: core/templates/core/dashboard_employee_clean.html:30
-#| msgid "Not linked to schedule"
 msgid "Not Linked to Employee"
 msgstr "No vinculado al calendario"
 
@@ -3596,7 +3747,6 @@ msgid "Notes"
 msgstr "Notas"
 
 #: core/templates/core/dashboard_employee_clean.html:69
-#| msgid "(optional)"
 msgid "optional"
 msgstr "(opcional)"
 
@@ -3613,12 +3763,10 @@ msgid "What to Do Today"
 msgstr "What to Do Today"
 
 #: core/templates/core/dashboard_employee_clean.html:151
-#| msgid "complete"
 msgid "Complete"
 msgstr "completo"
 
 #: core/templates/core/dashboard_employee_clean.html:165
-#| msgid "Schedule"
 msgid "My Schedule Today"
 msgstr "Horario"
 
@@ -3628,23 +3776,19 @@ msgstr "Morning Plan"
 
 #: core/templates/core/dashboard_employee_clean.html:200
 #: core/templates/core/dashboard_pm_clean.html:118
-#| msgid "Actions"
 msgid "Notifications"
 msgstr "Acciones"
 
 #: core/templates/core/dashboard_employee_clean.html:210
-#| msgid "Tasks"
 msgid "My Tasks"
 msgstr "Tareas"
 
 #: core/templates/core/dashboard_employee_clean.html:216
-#| msgid "Recent Plans"
 msgid "Recent Entries"
 msgstr "Planes Recientes"
 
 #: core/templates/core/dashboard_employee_clean.html:225
 #: core/templates/core/timeentry_confirm_delete.html:32
-#| msgid "hours"
 msgid "Hours"
 msgstr "horas"
 
@@ -3658,13 +3802,11 @@ msgstr "Panel PM"
 
 #: core/templates/core/dashboard_pm_clean.html:4
 #: core/templates/core/dashboard_pm_clean.html:13
-#| msgid "Dashboard"
 msgid "PM Dashboard"
 msgstr "Panel"
 
 #: core/templates/core/dashboard_pm_clean.html:50
 #: core/templates/core/dashboard_pm_clean.html:144
-#| msgid "Materials"
 msgid "Pending Materials"
 msgstr "Materiales"
 
@@ -3689,17 +3831,14 @@ msgid "Colors"
 msgstr "Colors"
 
 #: core/templates/core/dashboard_pm_clean.html:164
-#| msgid "Pick up material"
 msgid "No pending materials"
 msgstr "Recoger material"
 
 #: core/templates/core/dashboard_pm_clean.html:173
-#| msgid "Activities"
 msgid "Active Issues"
 msgstr "Actividades"
 
 #: core/templates/core/dashboard_pm_clean.html:196
-#| msgid "activities"
 msgid "No active issues"
 msgstr "actividades"
 
@@ -3708,7 +3847,6 @@ msgid "Hours Today"
 msgstr "Hours Today"
 
 #: core/templates/core/dashboard_pm_clean.html:241
-#| msgid "View Project"
 msgid "No active projects"
 msgstr "Ver Proyecto"
 
@@ -3755,14 +3893,14 @@ msgid "Materials needed"
 msgstr "Materiales necesarios"
 
 #: core/templates/core/employee_morning_dashboard.html:122
-#| msgid "All Categories"
 msgid "All materials OK"
 msgstr "Todas las Categorías"
 
 #: core/templates/core/employee_morning_dashboard.html:129
 msgid "Warning: Material shortage detected. Contact your supervisor."
-msgstr "Warning: Material shortage detected. Contact your supervisor."
-"Advertencia: Escasez de materiales detectada. Contacta a tu supervisor."
+msgstr ""
+"Warning: Material shortage detected. Contact your supervisor.Advertencia: "
+"Escasez de materiales detectada. Contacta a tu supervisor."
 
 #: core/templates/core/employee_morning_dashboard.html:163
 msgid "Activity completed!"
@@ -3812,14 +3950,12 @@ msgstr "Total Hours Worked"
 
 #: core/templates/core/employee_performance_detail.html:161
 #: core/templates/core/productivity_dashboard.html:145
-#| msgid "Estimated Hours"
 msgid "Billable Hours"
 msgstr "Horas Estimadas"
 
 #: core/templates/core/employee_performance_detail.html:166
 #: core/templates/core/employee_performance_detail.html:290
 #: core/templates/core/productivity_dashboard.html:153
-#| msgid "Activity Title"
 msgid "Productivity Rate"
 msgstr "Título de Actividad"
 
@@ -3833,12 +3969,10 @@ msgid "Days Late"
 msgstr "Days Late"
 
 #: core/templates/core/employee_performance_detail.html:183
-#| msgid "Mark as Complete"
 msgid "Tasks Completed"
 msgstr "Marcar como Completo"
 
 #: core/templates/core/employee_performance_detail.html:188
-#| msgid "Created"
 msgid "Defects Created"
 msgstr "Creado"
 
@@ -3951,7 +4085,6 @@ msgstr "Overtodos Score"
 
 #: core/templates/core/employee_performance_list.html:165
 #: core/templates/core/financial_dashboard.html:243
-#| msgid "Producto"
 msgid "Productivity"
 msgstr "Producto"
 
@@ -3960,7 +4093,6 @@ msgid "Hours Worked"
 msgstr "Hours Worked"
 
 #: core/templates/core/employee_performance_list.html:180
-#| msgid "Tasks"
 msgid "Tasks Done"
 msgstr "Tareas"
 
@@ -3997,7 +4129,6 @@ msgid "Team Summary"
 msgstr "Team Summary"
 
 #: core/templates/core/employee_performance_list.html:272
-#| msgid "Employee View"
 msgid "Employees Reviewed"
 msgstr "Vista de Empleado"
 
@@ -4015,19 +4146,16 @@ msgstr "Bonuses Paid"
 
 #: core/templates/core/employee_performance_list.html:302
 #: core/templates/core/invoice_aging_report.html:248
-#| msgid "Back to Planning Dashboard"
 msgid "Back to Financial Dashboard"
 msgstr "Volver al Panel de Planificación"
 
 #: core/templates/core/employee_performance_list.html:305
 #: core/templates/core/productivity_dashboard.html:5
 #: core/templates/core/productivity_dashboard.html:102
-#| msgid "Dashboard"
 msgid "Productivity Dashboard"
 msgstr "Panel"
 
 #: core/templates/core/expense_confirm_delete.html:8
-#| msgid "Sin gasto"
 msgid "Eliminar Gasto"
 msgstr "Sin gasto"
 
@@ -4051,7 +4179,6 @@ msgid "Current file"
 msgstr "Current file"
 
 #: core/templates/core/expense_form.html:102
-#| msgid "View Project"
 msgid "View receipt"
 msgstr "Ver Proyecto"
 
@@ -4064,14 +4191,12 @@ msgid "Save Expense"
 msgstr "Save Expense"
 
 #: core/templates/core/expense_list.html:47
-#| msgid "Sin gasto"
 msgid "Sin gastos"
 msgstr "Sin gasto"
 
 #: core/templates/core/financial_dashboard.html:5
 #: core/templates/core/financial_dashboard.html:91
 #: core/templates/core/productivity_dashboard.html:243
-#| msgid "Dashboard"
 msgid "Financial Dashboard"
 msgstr "Panel"
 
@@ -4167,7 +4292,6 @@ msgid "Export Expenses"
 msgstr "Export Expenses"
 
 #: core/templates/core/floor_plan_confirm_delete.html:9
-#| msgid "Plan Info"
 msgid "Planos"
 msgstr "Información del Plan"
 
@@ -4188,6 +4312,179 @@ msgstr ""
 #: core/templates/core/floor_plan_confirm_delete.html:26
 msgid "Nivel"
 msgstr "Nivel"
+
+#: core/templates/core/floor_plan_detail.html:78
+#, fuzzy
+#| msgid "Editar Ingreso"
+msgid "Editar Pines"
+msgstr "Editar Ingreso"
+
+#: core/templates/core/floor_plan_detail.html:81
+msgid "Editar Plano (imagen/nivel)"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:94
+#: core/templates/core/floor_plan_detail.html:131
+msgid "Modo Visualización"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:98
+#: core/templates/core/floor_plan_detail.html:133
+msgid "Modo Edición"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:101
+#, fuzzy
+#| msgid "Nuevo Cliente"
+msgid "Nuevo Pin"
+msgstr "Nuevo Cliente"
+
+#: core/templates/core/floor_plan_detail.html:107
+#: core/templates/core/floor_plan_detail.html:230
+msgid "VISUALIZANDO"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:131
+msgid "Haz clic en los pines para ver su información."
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:133
+msgid "Cambia a"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:133
+msgid "para agregar o editar pines."
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:139
+msgid "Pines"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:166
+#, fuzzy
+#| msgid "No hay usuarios en este grupo"
+msgid "No hay pines en este plano."
+msgstr "No hay usuarios en este grupo"
+
+#: core/templates/core/floor_plan_detail.html:172
+#, fuzzy
+#| msgid "Agregar ítem"
+msgid "Agregar pin"
+msgstr "Agregar ítem"
+
+#: core/templates/core/floor_plan_detail.html:182
+#, fuzzy
+#| msgid "Categoría (opcional)"
+msgid "Color aprobado (opcional)"
+msgstr "Categoría"
+
+#: core/templates/core/floor_plan_detail.html:192
+#, fuzzy
+#| msgid "Crear tareas"
+msgid "Crear tarea touch-up"
+msgstr "Creado"
+
+#: core/templates/core/floor_plan_detail.html:196
+msgid "Línea multipunto (A→B→C)"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:199
+msgid "Haz clic en múltiples puntos. Presiona"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:199
+msgid "para finalizar."
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:201
+#, fuzzy
+#| msgid "Limpiar Todo"
+msgid "Limpiar puntos"
+msgstr "Limpiar Todo"
+
+#: core/templates/core/floor_plan_detail.html:203
+#, fuzzy
+#| msgid "Guardar"
+msgid "Guardar pin"
+msgstr "Guardar"
+
+#: core/templates/core/floor_plan_detail.html:231
+msgid "EDITANDO"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:232
+msgid ""
+"Modo Visualización: Haz clic en los pines para ver su información. Cambia a "
+"Modo Edición para agregar o editar pines."
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:233
+msgid "Modo Visualización: Haz clic en los pines para ver su información."
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:234
+msgid "Modo Edición: Haz clic sobre el plano para agregar un pin. Marca \\"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:235
+msgid ""
+"Nuevo Pin: Haz clic sobre el plano para posicionar el pin. Se abrirá el "
+"creador para completar la información."
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:236
+msgid "Puntos capturados. Presiona Guardar pin."
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:237
+msgid "Error cargando detalles del pin"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:239
+#, fuzzy
+#| msgid "Colores Aprobados del Proyecto"
+msgid "Color Aprobado"
+msgstr "Colores Aprobados del Proyecto"
+
+#: core/templates/core/floor_plan_detail.html:240
+#, fuzzy
+#| msgid "fotos"
+msgid "Fotos"
+msgstr "fotos"
+
+#: core/templates/core/floor_plan_detail.html:241
+#, fuzzy
+#| msgid "No hay proyectos disponibles"
+msgid "No hay fotos adjuntas"
+msgstr "No hay proyectos disponibles"
+
+#: core/templates/core/floor_plan_detail.html:242
+#, fuzzy
+#| msgid "Editar Cliente"
+msgid "Editar Pin"
+msgstr "Editar Cliente"
+
+#: core/templates/core/floor_plan_detail.html:244
+msgid "Anotar Fotos"
+msgstr ""
+
+#: core/templates/core/floor_plan_detail.html:246
+#, fuzzy
+#| msgid "Cómo subir fotos:"
+msgid "Error subiendo fotos"
+msgstr "Cómo subir fotos:"
+
+#: core/templates/core/floor_plan_detail.html:552
+#, fuzzy
+#| msgid "New Task"
+msgid "Linked Task"
+msgstr "Tareas"
+
+#: core/templates/core/floor_plan_detail.html:565
+#, fuzzy
+#| msgid "Agregar ítem"
+msgid "Agregar Foto"
+msgstr "Agregar ítem"
 
 #: core/templates/core/income_confirm_delete.html:8
 msgid "Eliminar Ingreso"
@@ -4215,12 +4512,10 @@ msgid "Save Income"
 msgstr "Save Income"
 
 #: core/templates/core/income_list.html:47
-#| msgid "Sin registros."
 msgid "Sin ingresos"
 msgstr "Sin registros."
 
 #: core/templates/core/inventory_history.html:6
-#| msgid "Registrar movimiento"
 msgid "Historial de movimientos"
 msgstr "Historial de movimientos"
 
@@ -4233,7 +4528,6 @@ msgid "Todos los tipos"
 msgstr "Todos los tipos"
 
 #: core/templates/core/inventory_history.html:24
-#| msgid "Guardar compra"
 msgid "Entrada compra"
 msgstr "Entrada compra"
 
@@ -4270,7 +4564,6 @@ msgid "Item"
 msgstr "Artículo"
 
 #: core/templates/core/inventory_history.html:39
-#| msgid "Cantidad"
 msgid "Cant"
 msgstr "Cant"
 
@@ -4290,12 +4583,10 @@ msgstr "Por"
 
 #: core/templates/core/inventory_history.html:39
 #: core/templates/core/inventory_move.html:33
-#| msgid "Notas"
 msgid "Nota"
 msgstr "Nota"
 
 #: core/templates/core/inventory_history.html:54
-#| msgid "Registrar movimiento"
 msgid "Sin movimientos."
 msgstr "Sin movimientos."
 
@@ -4345,7 +4636,6 @@ msgid "BAJO"
 msgstr "BAJO"
 
 #: core/templates/core/inventory_low_stock.html:69
-#| msgid "Solicitar materiales"
 msgid "Solicitar"
 msgstr "Solicitar materiales"
 
@@ -4354,7 +4644,6 @@ msgid "¡Excelente! No hay artículos con stock bajo en este momento."
 msgstr "¡Excelente! No hay artículos con stock bajo en este momento."
 
 #: core/templates/core/inventory_move.html:6
-#| msgid "Volver al inventario"
 msgid "Movimiento de inventario"
 msgstr "Movimiento de inventario"
 
@@ -4393,7 +4682,6 @@ msgid "Compra directa"
 msgstr "Compra directa"
 
 #: core/templates/core/inventory_view.html:362
-#| msgid "Registrar movimiento"
 msgid "Movimiento"
 msgstr "Sin movimientos."
 
@@ -4491,17 +4779,14 @@ msgid "Base Contract"
 msgstr "Base Contract"
 
 #: core/templates/core/invoice_builder.html:46
-#| msgid "Estimated Hours"
 msgid "Estimate"
 msgstr "Horas Estimadas"
 
 #: core/templates/core/invoice_builder.html:54
-#| msgid "Estimated Hours"
 msgid "Estimate v"
 msgstr "Horas Estimadas"
 
 #: core/templates/core/invoice_builder.html:63
-#| msgid "Item"
 msgid "Items"
 msgstr "Artículo"
 
@@ -4544,13 +4829,136 @@ msgid "%% New"
 msgstr "%% Nuevo"
 
 #: core/templates/core/invoice_builder.html:129
-#| msgid "Complete Now"
 msgid "Completely billed"
 msgstr "Completar Ahora"
 
 #: core/templates/core/invoice_builder.html:185
 msgid "No approved estimate for this project"
 msgstr "No approved estimate for this project"
+
+#: core/templates/core/invoice_builder.html:194
+#, fuzzy
+#| msgid "Change Orders"
+msgid "Change Orders (Sin Facturar)"
+msgstr "Órdenes de Cambio"
+
+#: core/templates/core/invoice_builder.html:211
+msgid "No hay change orders pendientes de facturar."
+msgstr ""
+
+#: core/templates/core/invoice_builder.html:219
+msgid "Tiempo & Materiales (General)"
+msgstr ""
+
+#: core/templates/core/invoice_builder.html:226
+#: core/templates/core/invoice_builder.html:277
+msgid "horas"
+msgstr ""
+
+#: core/templates/core/invoice_builder.html:226
+msgid "de trabajo no vinculadas a COs"
+msgstr ""
+
+#: core/templates/core/invoice_builder.html:229
+#: core/templates/core/invoice_builder.html:277
+#, fuzzy
+#| msgid "Facturas"
+msgid "Facturar"
+msgstr "Facturas"
+
+#: core/templates/core/invoice_builder.html:229
+#, fuzzy
+#| msgid "hours"
+msgid "hrs"
+msgstr "horas"
+
+#: core/templates/core/invoice_builder.html:229
+msgid "hr"
+msgstr ""
+
+#: core/templates/core/invoice_builder.html:234
+#, fuzzy
+#| msgid "Ver detalles"
+msgid "Ver detalle de entradas"
+msgstr "Ver dettodoses"
+
+#: core/templates/core/invoice_builder.html:240
+#: core/templates/core/invoice_builder.html:288
+#, fuzzy
+#| msgid "Horas hoy"
+msgid "Horas"
+msgstr "Horas hoy"
+
+#: core/templates/core/invoice_builder.html:241
+#, fuzzy
+#| msgid "Costo Estimado"
+msgid "Costo Labor"
+msgstr "Costo Estimado"
+
+#: core/templates/core/invoice_builder.html:258
+#, fuzzy
+#| msgid "No hay ítems en esta categoría."
+msgid "No hay tiempo general sin facturar."
+msgstr "No hay ítems en esta categoría."
+
+#: core/templates/core/invoice_builder.html:267
+#, fuzzy
+#| msgid "Nuevo Change Order"
+msgid "Tiempo Extra en Change Orders"
+msgstr "Nuevo Change Order"
+
+#: core/templates/core/invoice_builder.html:282
+#, fuzzy, python-format
+#| msgid "Entradas de Tiempo"
+msgid "Ver %(count)s entradas de tiempo"
+msgstr "Entrada compra"
+
+#: core/templates/core/invoice_builder.html:323
+#, fuzzy
+#| msgid "Contratistas"
+msgid "Contrato Base"
+msgstr "Contratistas"
+
+#: core/templates/core/invoice_builder.html:337
+#, fuzzy
+#| msgid "Generar"
+msgid "T&M General"
+msgstr "Generar"
+
+#: core/templates/core/invoice_builder.html:344
+msgid "T&M (COs)"
+msgstr ""
+
+#: core/templates/core/invoice_builder.html:350
+msgid "TOTAL"
+msgstr ""
+
+#: core/templates/core/invoice_builder.html:357
+#, fuzzy
+#| msgid "Fecha de Inicio"
+msgid "Fecha de Vencimiento"
+msgstr "Fecha de Inicio"
+
+#: core/templates/core/invoice_builder.html:359
+msgid "Default: Net 30 días"
+msgstr ""
+
+#: core/templates/core/invoice_builder.html:364
+#, fuzzy
+#| msgid "Generar"
+msgid "Generar Factura"
+msgstr "Generar"
+
+#: core/templates/core/invoice_builder.html:372
+#, fuzzy
+#| msgid "Nota"
+msgid "Nota:"
+msgstr "Nota"
+
+#: core/templates/core/invoice_builder.html:372
+msgid ""
+"Esta factura se creará en estado Borrador. Podrás editarla y marcarla como \\"
+msgstr ""
 
 #: core/templates/core/issue_confirm_delete.html:4
 #: core/templates/core/issue_confirm_delete.html:12
@@ -4584,7 +4992,6 @@ msgstr "Edit Issue"
 
 #: core/templates/core/issue_form.html:17 core/templates/core/rfi_form.html:17
 #: core/templates/core/risk_form.html:17
-#| msgid "Dashboard"
 msgid "Back to List"
 msgstr "Panel"
 
@@ -4593,7 +5000,6 @@ msgid "Save Issue"
 msgstr "Save Issue"
 
 #: core/templates/core/issue_list.html:6
-#| msgid "Reporte de daños"
 msgid "Alertas / Daños"
 msgstr "Reporte de daños"
 
@@ -4602,9 +5008,94 @@ msgid "Crear alerta/daño"
 msgstr "Crear alerta/daño"
 
 #: core/templates/core/issue_list.html:36
-#| msgid "Sin registros."
 msgid "Sin reportes"
 msgstr "Sin registros."
+
+#: core/templates/core/js_i18n_demo.html:18
+msgid "JavaScript i18n Demo"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:24
+msgid "Demo:"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:25
+msgid ""
+"This page demonstrates how to use Django's JavaScript translation catalog."
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:28
+msgid "Test Buttons"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:32
+msgid "Show Greeting"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:36
+msgid "Test Confirm Dialog"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:40
+msgid "Test Delete Confirmation"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:44
+msgid "Test Pluralization"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:50
+msgid "Implementation Example"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:76
+#, fuzzy
+#| msgid "Current image"
+msgid "Current Language:"
+msgstr "Current image"
+
+#: core/templates/core/js_i18n_demo.html:87
+msgid "Hello! Welcome to the system."
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:88
+#, fuzzy
+#| msgid "Are you sure you want to delete this color sample?"
+msgid "Are you sure you want to continue?"
+msgstr "Are you sure you want to eliminar this color sample?"
+
+#: core/templates/core/js_i18n_demo.html:89
+msgid "Operation confirmed successfully"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:90
+msgid "Operation cancelled"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:91
+#, fuzzy
+#| msgid "Are you sure you want to delete this color sample?"
+msgid "Are you sure you want to delete this item?"
+msgstr "Are you sure you want to eliminar this color sample?"
+
+#: core/templates/core/js_i18n_demo.html:92
+msgid "This action cannot be undone."
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:93
+msgid "Item deleted successfully"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:94
+#, python-format
+msgid "%%s project found"
+msgstr ""
+
+#: core/templates/core/js_i18n_demo.html:95
+#, fuzzy, python-format
+#| msgid "No projects assigned"
+msgid "%%s projects found"
+msgstr "Nadie asignado todavía"
 
 #: core/templates/core/login.html:245
 msgid "Welcome Back"
@@ -4687,17 +5178,14 @@ msgid "Employee performance and efficiency metrics"
 msgstr "Employee performance and efficiency metrics"
 
 #: core/templates/core/productivity_dashboard.html:113
-#| msgid "Plan Date"
 msgid "Start Date"
 msgstr "Fecha del Plan"
 
 #: core/templates/core/productivity_dashboard.html:117
-#| msgid "Plan Date"
 msgid "End Date"
 msgstr "Fecha del Plan"
 
 #: core/templates/core/productivity_dashboard.html:122
-#| msgid "Filtrar"
 msgid "Filter"
 msgstr "Filtrar"
 
@@ -4706,17 +5194,14 @@ msgid "Reset"
 msgstr "Restablecer"
 
 #: core/templates/core/productivity_dashboard.html:137
-#| msgid "Total"
 msgid "Total Hours"
 msgstr "Total"
 
 #: core/templates/core/productivity_dashboard.html:139
-#| msgid "Assign Employees"
 msgid "All employees"
 msgstr "Asignar Empleados"
 
 #: core/templates/core/productivity_dashboard.html:147
-#| msgid "Assigned:"
 msgid "Assigned to COs"
 msgstr "Asignados:"
 
@@ -4726,7 +5211,6 @@ msgid "Target: 80%%"
 msgstr "Target: 80%%"
 
 #: core/templates/core/productivity_dashboard.html:166
-#| msgid "Activity Title"
 msgid "Productivity Trend"
 msgstr "Título de Actividad"
 
@@ -4862,12 +5346,10 @@ msgid "SÍ, ELIMINAR PROYECTO PERMANENTEMENTE"
 msgstr "SÍ, ELIMINAR PROYECTO PERMANENTEMENTE"
 
 #: core/templates/core/project_delete_confirm.html:191
-#| msgid "Volver al inventario"
 msgid "Volver al Proyecto"
 msgstr "Volver al inventario"
 
 #: core/templates/core/project_delete_confirm.html:198
-#| msgid "Mark as Complete"
 msgid "Marcar como Completado"
 msgstr "Marcar como Completo"
 
@@ -4878,7 +5360,6 @@ msgstr "Crear Nuevo Proyecto"
 
 #: core/templates/core/project_form.html:9
 #: core/templates/core/project_form.html:42 core/views_admin.py:479
-#| msgid "Proyecto"
 msgid "Editar Proyecto"
 msgstr "Proyecto"
 
@@ -4886,29 +5367,19 @@ msgstr "Proyecto"
 msgid "Dejar en blanco para proyectos activos"
 msgstr "Dejar en blanco para proyectos activos"
 
-# Dashboard summary labels
-msgid "Proyectos Activos"
-msgstr "Proyectos Activos"
-
-msgid "Proyectos Completados"
-msgstr "Proyectos Completados"
-
 #: core/templates/core/project_form.html:198
 msgid "Especificaciones Técnicas"
 msgstr "Especificaciones Técnicas"
 
 #: core/templates/core/project_list.html:209
-#| msgid "View Project"
 msgid "New Project"
 msgstr "Nuevo Proyecto"
 
 #: core/templates/core/project_list.html:221
-#| msgid "Project"
 msgid "Project Name"
 msgstr "Nombre del Proyecto"
 
 #: core/templates/core/project_list.html:300
-#| msgid "No plans created yet."
 msgid "No projects yet"
 msgstr "No hay proyectos todavía"
 
@@ -4917,7 +5388,6 @@ msgid "Create your first project to get started"
 msgstr "Crea tu primer proyecto para comenzar"
 
 #: core/templates/core/project_list.html:304
-#| msgid "Choose Project"
 msgid "Create Project"
 msgstr "Crear Proyecto"
 
@@ -4952,19 +5422,19 @@ msgstr "Eliminar RFI"
 
 #: core/templates/core/rfi_confirm_delete.html:15
 msgid "Are you sure you want to delete this RFI? This action cannot be undone."
-msgstr "¿Estás seguro de que quieres eliminar este RFI? Esta acción no se puede deshacer."
+msgstr ""
+"¿Estás seguro de que quieres eliminar este RFI? Esta acción no se puede "
+"deshacer."
 
 #: core/templates/core/rfi_confirm_delete.html:20
 msgid "Number"
 msgstr "Número"
 
 #: core/templates/core/rfi_confirm_delete.html:28
-#| msgid "Description"
 msgid "Question"
 msgstr "Descripción"
 
 #: core/templates/core/rfi_form.html:6 core/templates/core/rfi_form.html:13
-#| msgid "Edit"
 msgid "Edit RFI"
 msgstr "Editar"
 
@@ -4995,7 +5465,6 @@ msgid "Risk Score"
 msgstr "Puntuación de Riesgo"
 
 #: core/templates/core/risk_form.html:6 core/templates/core/risk_form.html:13
-#| msgid "Edit"
 msgid "Edit Risk"
 msgstr "Editar"
 
@@ -5004,7 +5473,6 @@ msgid "Save Risk"
 msgstr "Guardar Riesgo"
 
 #: core/templates/core/schedule_category_confirm_delete.html:4
-#| msgid "Categoría"
 msgid "Eliminar Categoría"
 msgstr "Categoría"
 
@@ -5020,7 +5488,6 @@ msgstr ""
 
 #: core/templates/core/schedule_category_form.html:4
 #: core/templates/core/schedule_category_form.html:12
-#| msgid "Categoría"
 msgid "Editar Categoría"
 msgstr "Categoría"
 
@@ -5082,14 +5549,12 @@ msgid "Usa 'Generar' para comenzar desde el estimado aprobado."
 msgstr "Usa 'Generar' para comenzar desde el estimado aprobado."
 
 #: core/templates/core/schedule_generator.html:413
-#| msgid "Categoría"
 msgid "Sin categoría"
 msgstr "Categoría"
 
 #: core/templates/core/schedule_generator.html:509
 #: core/templates/core/schedule_generator_old.html:56
 #: core/templates/core/schedule_generator_old.html:229
-#| msgid "Categoría"
 msgid "Nueva Categoría"
 msgstr "Categoría"
 
@@ -5101,12 +5566,10 @@ msgstr "Nuevo Ítem"
 
 #: core/templates/core/schedule_generator.html:544
 #: core/templates/core/schedule_generator_old.html:258
-#| msgid "Categoría"
 msgid "Categoría existente"
 msgstr "Categoría"
 
 #: core/templates/core/schedule_generator.html:551
-#| msgid "Categoría"
 msgid "Nueva categoría"
 msgstr "Categoría"
 
@@ -5133,7 +5596,6 @@ msgstr "Línea Presupuestaria"
 
 #: core/templates/core/schedule_generator.html:592
 #: core/templates/core/schedule_generator_old.html:304
-#| msgid "Estimated time:"
 msgid "Estimate Line"
 msgstr "Tiempo estimado:"
 
@@ -5166,7 +5628,6 @@ msgid "Generar desde Estimado"
 msgstr "Generar desde Estimado"
 
 #: core/templates/core/schedule_generator_old.html:52
-#| msgid "Categoría"
 msgid "Categorías e Ítems"
 msgstr "Categoría"
 
@@ -5179,7 +5640,6 @@ msgid "ítems"
 msgstr "ítems"
 
 #: core/templates/core/schedule_generator_old.html:106
-#| msgid "Progress"
 msgid "Progreso"
 msgstr "Progreso"
 
@@ -5192,7 +5652,6 @@ msgid "No hay ítems en esta categoría."
 msgstr "No hay ítems en esta categoría."
 
 #: core/templates/core/schedule_generator_old.html:174
-#| msgid "Categoría"
 msgid "Subcategorías"
 msgstr "Categoría"
 
@@ -5201,7 +5660,6 @@ msgid "Ítems sin categoría"
 msgstr "Ítems sin categoría"
 
 #: core/templates/core/schedule_generator_old.html:205
-#| msgid "Categoría"
 msgid "Asignar categoría"
 msgstr "Categoría"
 
@@ -5254,13 +5712,11 @@ msgstr "Editar Ítem del Cronograma"
 
 #: core/templates/core/sop_creator.html:3
 #: core/templates/core/sop_creator.html:6
-#| msgid "Edit"
 msgid "Edit SOP"
 msgstr "Editar"
 
 #: core/templates/core/sop_creator.html:3
 #: core/templates/core/sop_creator.html:6
-#| msgid "Create Plan"
 msgid "Create SOP"
 msgstr "Crear Plan"
 
@@ -5270,17 +5726,14 @@ msgstr "Nombre"
 
 #: core/templates/core/sop_creator.html:14
 #: core/templates/core/sop_library.html:27
-#| msgid "Categoría"
 msgid "Category"
 msgstr "Categoría"
 
 #: core/templates/core/sop_creator.html:18
-#| msgid "Tips:"
 msgid "Tips"
 msgstr "Consejos:"
 
 #: core/templates/core/sop_creator.html:26
-#| msgid "Checklist"
 msgid "Checklist Steps"
 msgstr "Lista de Verificación"
 
@@ -5302,7 +5755,6 @@ msgid "Add tool..."
 msgstr "Add tool..."
 
 #: core/templates/core/sop_creator.html:53
-#| msgid "Common Errors:"
 msgid "Common Errors"
 msgstr "Errores Comunes:"
 
@@ -5323,7 +5775,6 @@ msgid "Video or Resource Link"
 msgstr "Video or Resource Link"
 
 #: core/templates/core/sop_creator.html:81
-#| msgid "Activities"
 msgid "Active"
 msgstr "Actividades"
 
@@ -5336,7 +5787,6 @@ msgid "Browse Standard Operating Procedures and Activity Templates"
 msgstr "Explorar Procedimientos Operativos Estándar y Plantillas de Actividad"
 
 #: core/templates/core/sop_library.html:15
-#| msgid "Create New Daily Plan"
 msgid "Create New SOP"
 msgstr "Crear Nuevo Plan Diario"
 
@@ -5367,7 +5817,6 @@ msgid "Created by"
 msgstr "Creado por"
 
 #: core/templates/core/sop_library.html:117
-#| msgid "Solicitar materiales"
 msgid "Show/Hide Materials"
 msgstr "Solicitar materiales"
 
@@ -5388,7 +5837,6 @@ msgid "Reference Files"
 msgstr "Referencia Files"
 
 #: core/templates/core/sop_library.html:186
-#| msgid "Show/Hide Steps"
 msgid "Show/Hide Files"
 msgstr "Mostrar/Ocultar Pasos"
 
@@ -5427,9 +5875,8 @@ msgstr "Sí, eliminar"
 
 #: core/templates/core/task_confirm_delete.html:13
 #: core/templates/core/task_confirm_delete.html:28
-#: core/templates/core/task_detail.html:86
+#: core/templates/core/task_detail.html:166
 #: core/templates/core/task_detail_backup.html:34
-#| msgid "Regreso a storage"
 msgid "Regresar"
 msgstr "Regreso a storage"
 
@@ -5440,13 +5887,12 @@ msgstr "Sin descripción"
 
 #: core/templates/core/task_detail.html:17
 #: core/templates/core/task_detail_backup.html:17
-#| msgid "Assigned:"
+#: core/templates/core/task_list.html:44
 msgid "Asignado a"
 msgstr "Asignados:"
 
 #: core/templates/core/task_detail.html:23
 #: core/templates/core/task_detail_backup.html:23
-#| msgid "Created"
 msgid "Creado"
 msgstr "Creado"
 
@@ -5456,10 +5902,12 @@ msgid "Actualizado"
 msgstr "Actualizado"
 
 #: core/templates/core/task_detail.html:37
+#: core/templates/core/task_list.html:34 core/templates/core/task_list.html:128
 msgid "Prioridad"
 msgstr "Prioridad"
 
 #: core/templates/core/task_detail.html:47
+#: core/templates/core/task_list.html:55 core/templates/core/task_list.html:131
 msgid "Fecha límite"
 msgstr "Fecha límite"
 
@@ -5468,7 +5916,6 @@ msgid "Tiempo trabajado"
 msgstr "Tiempo trabajado"
 
 #: core/templates/core/task_detail.html:66
-#| msgid "Volver al inventario"
 msgid "Seguimiento de tiempo"
 msgstr "Movimiento de inventario"
 
@@ -5476,43 +5923,81 @@ msgstr "Movimiento de inventario"
 msgid "Registra el tiempo que trabajas en esta tarea"
 msgstr "Registra el tiempo que trabajas en esta tarea"
 
-#: core/templates/core/task_detail.html:70
-#| msgid "Iniciar sesión"
+#: core/templates/core/task_detail.html:77
+msgid "Sesión actual"
+msgstr ""
+
+#: core/templates/core/task_detail.html:86
 msgid "Iniciar"
 msgstr "Iniciar sesión"
 
-#: core/templates/core/task_detail.html:73
+#: core/templates/core/task_detail.html:89
 msgid "Detener"
 msgstr "Detener"
 
-#: core/templates/core/task_detail.html:78
+#: core/templates/core/task_detail.html:94
 msgid "Seguimiento activo desde"
 msgstr "Seguimiento activo desde"
 
-#: core/templates/core/task_detail.html:80
-#: core/templates/core/task_detail.html:142
+#: core/templates/core/task_detail.html:96
+#: core/templates/core/task_detail.html:281
 msgid "Sin seguimiento activo"
 msgstr "Sin seguimiento activo"
 
-#: core/templates/core/task_detail.html:114
+#: core/templates/core/task_detail.html:106
+msgid "Dependencias"
+msgstr ""
+
+#: core/templates/core/task_detail.html:109
+msgid "Esta tarea depende de las siguientes tareas"
+msgstr ""
+
+#: core/templates/core/task_detail.html:128
+msgid ""
+"No puedes iniciar esta tarea hasta que se completen todas las dependencias"
+msgstr ""
+
+#: core/templates/core/task_detail.html:139
+#, fuzzy
+#| msgid "Historial de movimientos"
+msgid "Historial de tiempo"
+msgstr "Historial de movimientos"
+
+#: core/templates/core/task_detail.html:145
+#, fuzzy
+#| msgid "Total Usuarios"
+msgid "Total acumulado"
+msgstr "Total Usuarios"
+
+#: core/templates/core/task_detail.html:150
+#, fuzzy
+#| msgid "Registra el tiempo que trabajas en esta tarea"
+msgid "Tiempo total trabajado en esta tarea"
+msgstr "Registra el tiempo que trabajas en esta tarea"
+
+#: core/templates/core/task_detail.html:223
 msgid "Seguimiento activo"
 msgstr "Seguimiento activo"
 
-#: core/templates/core/task_detail.html:122
+#: core/templates/core/task_detail.html:259
 msgid "Error al iniciar seguimiento"
 msgstr "Error al iniciar seguimiento"
 
-#: core/templates/core/task_detail.html:150
+#: core/templates/core/task_detail.html:295
+#, fuzzy
+#| msgid "Minutes"
+msgid "minutos"
+msgstr "Minutos"
+
+#: core/templates/core/task_detail.html:325
 msgid "Error al detener seguimiento"
 msgstr "Error al detener seguimiento"
 
 #: core/templates/core/task_form.html:5 core/templates/core/task_form.html:13
-#| msgid "Edit"
 msgid "Edit Task"
 msgstr "Editar"
 
 #: core/templates/core/task_form.html:5 core/templates/core/task_form.html:13
-#| msgid "Tasks"
 msgid "New Task"
 msgstr "Tareas"
 
@@ -5521,25 +6006,28 @@ msgid "Enter task title"
 msgstr "Enter task title"
 
 #: core/templates/core/task_form.html:61
-#| msgid "Description"
 msgid "Enter task description"
 msgstr "Descripción"
 
 #: core/templates/core/task_form.html:102
-#| msgid "Team assigned"
 msgid "Select assignee"
 msgstr "Equipo asignado"
 
-#: core/templates/core/task_form.html:133
+#: core/templates/core/task_form.html:185
+msgid ""
+"Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples "
+"tareas"
+msgstr ""
+
+#: core/templates/core/task_form.html:208
 msgid "Current image"
 msgstr "Current image"
 
-#: core/templates/core/task_form.html:143
-#| msgid "Actions"
+#: core/templates/core/task_form.html:218
 msgid "Options"
 msgstr "Acciones"
 
-#: core/templates/core/task_form.html:178
+#: core/templates/core/task_form.html:253
 msgid "Save Task"
 msgstr "Save Task"
 
@@ -5547,19 +6035,83 @@ msgstr "Save Task"
 msgid "Tareas del Proyecto"
 msgstr "Tareas del Proyecto"
 
-#: core/templates/core/task_list.html:11
+#: core/templates/core/task_list.html:14
+msgid "Filtros"
+msgstr "Filtros"
+
+#: core/templates/core/task_list.html:36 core/templates/core/task_list.html:57
+msgid "Todas"
+msgstr "Todas"
+
+#: core/templates/core/task_list.html:38
+msgid "Normal"
+msgstr "Normal"
+
+#: core/templates/core/task_list.html:58
+msgid "Vencidas"
+msgstr "Vencidas"
+
+#: core/templates/core/task_list.html:59
+msgid "Hoy"
+msgstr "Hoy"
+
+#: core/templates/core/task_list.html:60
+msgid "Esta semana"
+msgstr "Esta semana"
+
+#: core/templates/core/task_list.html:64
+msgid "Aplicar filtros"
+msgstr "Aplicar filtros"
+
+#: core/templates/core/task_list.html:74
 msgid "Crear nueva tarea"
 msgstr "Crear nueva tarea"
 
-#: core/templates/core/task_list.html:46
-#: core/templates/core/task_list_all.html:26
-#| msgid "Volver"
-msgid "Ver"
-msgstr "Volver"
+#: core/templates/core/task_list.html:99
+msgid "tareas seleccionadas"
+msgstr "tareas seleccionadas"
 
-#: core/templates/core/task_list.html:54
+#: core/templates/core/task_list.html:106
+msgid "Cambiar prioridad"
+msgstr "Cambiar prioridad"
+
+#: core/templates/core/task_list.html:109
+msgid "Cambiar estado"
+msgstr "Cambiar estado"
+
+#: core/templates/core/task_list.html:147
+msgid "Tiene dependencias"
+msgstr "Tiene dependencias"
+
+#: core/templates/core/task_list.html:167
+msgid "Vencida"
+msgstr "Vencida"
+
+#: core/templates/core/task_list.html:177
+msgid "¿Eliminar esta tarea?"
+msgstr "¿Eliminar esta tarea?"
+
+#: core/templates/core/task_list.html:182
 msgid "No hay tareas todavía."
 msgstr "No hay tareas todavía."
+
+#: core/templates/core/task_list.html:228
+msgid "ID del empleado a asignar"
+msgstr "ID del empleado a asignar"
+
+#: core/templates/core/task_list.html:232
+#: core/templates/core/task_list.html:243
+#: core/templates/core/task_list.html:254
+msgid "Funcionalidad en desarrollo"
+msgstr "Funcionalidad en desarrollo"
+
+#: core/templates/core/task_list.html:239
+msgid "Nueva prioridad (low/normal/high/urgent)"
+msgstr "Nueva prioridad (low/normal/high/urgent)"
+
+#: core/templates/core/task_list.html:250
+msgid "Nuevo estado (Pendiente/En Progreso/Completada/Cancelada)"
+msgstr "Nuevo estado (Pendiente/En Progreso/Completada/Cancelada)"
 
 #: core/templates/core/task_list_all.html:5
 msgid "Mis Tareas"
@@ -5593,7 +6145,6 @@ msgid ""
 msgstr ""
 
 #: core/templates/core/timeentry_confirm_delete.html:24
-#| msgid "Employee View"
 msgid "Employee"
 msgstr "Vista de Empleado"
 
@@ -5612,10 +6163,6 @@ msgid ""
 "PM)"
 msgstr ""
 
-#: core/templates/core/timeentry_form.html:153
-msgid "Save"
-msgstr "Guardar"
-
 #: core/templates/core/timeentry_form.html:157
 msgid "Save and Add Another"
 msgstr "Save and Add Another"
@@ -5627,7 +6174,6 @@ msgstr "Save & Add"
 #: core/templates/core/touchup_board.html:7
 #: core/templates/core/touchup_board_clean.html:7
 #: core/templates/core/touchup_board_old.html:7
-#| msgid "Volver al inventario"
 msgid "Volver al proyecto"
 msgstr "Volver al inventario"
 
@@ -5698,7 +6244,6 @@ msgid "Grupo creado correctamente."
 msgstr "Grupo creado correctamente."
 
 #: core/views_admin.py:317
-#| msgid "Guardar compra"
 msgid "Entradas de Tiempo"
 msgstr "Entrada compra"
 
@@ -5749,12 +6294,3 @@ msgstr "Método de pago inválido."
 #: core/views_admin.py:897
 msgid "Ingreso eliminado"
 msgstr "Ingreso eliminado"
-
-#~ msgid "Manage daily work plans for all projects"
-#~ msgstr "Gestionar planes de trabajo diarios para todos los proyectos"
-
-#~ msgid "Earned Value"
-#~ msgstr "Valor ganado"
-
-#~ msgid "Horas hoy"
-#~ msgstr "Horas hoy"
