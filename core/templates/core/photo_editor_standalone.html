@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Fotos - Change Order</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .editor-header {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .editor-header h1 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .editor-header h1 i {
+            color: #667eea;
+            font-size: 1.75rem;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            overflow: auto;
+        }
+
+        .canvas-wrapper {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            overflow: auto;
+            max-width: 100%;
+        }
+
+        #drawingCanvas {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: crosshair;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            background: #f8fafc;
+        }
+
+        .tools-panel {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .tools-section {
+            margin-bottom: 2rem;
+        }
+
+        .tools-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .tools-section h3 {
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .drawing-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .tool-btn {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            color: #475569;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tool-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .tool-btn i {
+            font-size: 1.1rem;
+        }
+
+        .color-size-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+        }
+
+        input[type="color"] {
+            width: 80px;
+            height: 50px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        input[type="color"]:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        input[type="range"] {
+            width: 200px;
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #5568d3;
+        }
+
+        .size-display {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn i {
+            font-size: 1.2rem;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            flex: 1;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-cancel:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+        }
+
+        .btn-undo, .btn-redo, .btn-clear {
+            background: white;
+            border: 2px solid #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-undo:hover, .btn-redo:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .btn-clear:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .status-message {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .status-message.success {
+            border-left: 4px solid #10b981;
+            color: #059669;
+        }
+
+        .status-message.error {
+            border-left: 4px solid #ef4444;
+            color: #dc2626;
+        }
+
+        .status-message i {
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .editor-header {
+                padding: 1rem;
+            }
+
+            .editor-header h1 {
+                font-size: 1.25rem;
+            }
+
+            .editor-container {
+                padding: 1rem;
+            }
+
+            .canvas-wrapper, .tools-panel {
+                padding: 1rem;
+            }
+
+            .drawing-tools {
+                justify-content: center;
+            }
+
+            .color-size-controls {
+                justify-content: center;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            input[type="range"] {
+                width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-header">
+        <h1>
+            <i class="bi bi-brush"></i>
+            Editor de Fotos
+        </h1>
+        <button class="btn btn-cancel" onclick="closeEditor()">
+            <i class="bi bi-x-lg"></i>
+            Cerrar
+        </button>
+    </div>
+
+    <div class="editor-container">
+        <div class="canvas-wrapper">
+            <canvas id="drawingCanvas"></canvas>
+        </div>
+
+        <div class="tools-panel">
+            <!-- Drawing Tools -->
+            <div class="tools-section">
+                <h3><i class="bi bi-tools"></i> Herramientas</h3>
+                <div class="drawing-tools">
+                    <button class="tool-btn active" data-tool="pencil">
+                        <i class="bi bi-pencil"></i>
+                        Lápiz
+                    </button>
+                    <button class="tool-btn" data-tool="arrow">
+                        <i class="bi bi-arrow-up-right"></i>
+                        Flecha
+                    </button>
+                    <button class="tool-btn" data-tool="text">
+                        <i class="bi bi-fonts"></i>
+                        Texto
+                    </button>
+                    <button class="btn-undo">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Deshacer
+                    </button>
+                    <button class="btn-redo">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Rehacer
+                    </button>
+                    <button class="btn-clear">
+                        <i class="bi bi-trash"></i>
+                        Limpiar Todo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Color & Size Controls -->
+            <div class="tools-section">
+                <h3><i class="bi bi-palette"></i> Color y Tamaño</h3>
+                <div class="color-size-controls">
+                    <div class="control-group">
+                        <label>Color</label>
+                        <input type="color" id="colorPicker" value="#ff0000">
+                    </div>
+                    <div class="control-group">
+                        <label>Grosor: <span class="size-display" id="sizeDisplay">3px</span></label>
+                        <input type="range" id="lineWidth" min="1" max="20" value="3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="tools-section">
+                <h3><i class="bi bi-check-circle"></i> Acciones</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-save" onclick="saveAnnotations()">
+                        <i class="bi bi-save"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-message" id="statusMessage">
+        <i class="bi bi-check-circle-fill"></i>
+        <span id="statusText"></span>
+    </div>
+
+    <script>
+        let canvas, ctx;
+        let currentTool = 'pencil';
+        let currentColor = '#ff0000';
+        let lineWidth = 3;
+        let isDrawing = false;
+        let startX, startY;
+        let currentAnnotations = [];
+        let drawingHistory = [];
+        let historyStep = -1;
+        let photoData = null;
+
+        // Load photo data from sessionStorage
+        window.addEventListener('DOMContentLoaded', function() {
+            const dataStr = sessionStorage.getItem('photoEditorData');
+            console.log('Raw sessionStorage data:', dataStr);
+            
+            if (!dataStr) {
+                showStatus('Error: No se encontraron datos de la foto', 'error');
+                return;
+            }
+
+            try {
+                photoData = JSON.parse(dataStr);
+                console.log('Parsed photoData:', photoData);
+                console.log('PhotoData.annotations type:', typeof photoData.annotations);
+                console.log('PhotoData.annotations isArray:', Array.isArray(photoData.annotations));
+                console.log('PhotoData.annotations value:', photoData.annotations);
+                initializeEditor();
+            } catch (e) {
+                showStatus('Error al cargar datos de la foto', 'error');
+                console.error('Parse error:', e);
+            }
+        });
+
+        function initializeEditor() {
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d');
+
+            console.log('Initializing editor with photoData:', photoData);
+            console.log('Annotations to load:', photoData.annotations);
+
+            // Load image
+            const img = new Image();
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                // Load existing annotations
+                if (photoData.annotations && Array.isArray(photoData.annotations) && photoData.annotations.length > 0) {
+                    console.log('Loading', photoData.annotations.length, 'annotations');
+                    currentAnnotations = photoData.annotations;
+                    redrawAnnotations();
+                } else {
+                    console.log('No annotations to load');
+                    currentAnnotations = [];
+                }
+                drawingHistory = [currentAnnotations.slice()];
+                historyStep = 0;
+            };
+            img.onerror = function() {
+                showStatus('Error al cargar la imagen', 'error');
+            };
+            img.src = photoData.imageUrl;
+
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            // Canvas events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            // Touch events
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+
+            // Tool buttons
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTool = this.dataset.tool;
+                });
+            });
+
+            // Color picker
+            document.getElementById('colorPicker').addEventListener('change', function(e) {
+                currentColor = e.target.value;
+            });
+
+            // Line width
+            const lineWidthInput = document.getElementById('lineWidth');
+            lineWidthInput.addEventListener('input', function(e) {
+                lineWidth = parseInt(e.target.value);
+                document.getElementById('sizeDisplay').textContent = lineWidth + 'px';
+            });
+
+            // Undo/Redo/Clear
+            document.querySelector('.btn-undo').addEventListener('click', undo);
+            document.querySelector('.btn-redo').addEventListener('click', redo);
+            document.querySelector('.btn-clear').addEventListener('click', clearAll);
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            startX = (e.clientX - rect.left) * scaleX;
+            startY = (e.clientY - rect.top) * scaleY;
+
+            if (currentTool === 'text') {
+                const text = prompt('Ingrese el texto:');
+                if (text) {
+                    currentAnnotations.push({
+                        type: 'text',
+                        x: startX,
+                        y: startY,
+                        text: text,
+                        color: currentColor,
+                        size: lineWidth * 6
+                    });
+                    saveToHistory();
+                    redrawCanvas();
+                }
+                isDrawing = false;
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing || currentTool === 'text') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const currentX = (e.clientX - rect.left) * scaleX;
+            const currentY = (e.clientY - rect.top) * scaleY;
+
+            if (currentTool === 'pencil') {
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = lineWidth;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(currentX, currentY);
+                ctx.stroke();
+                startX = currentX;
+                startY = currentY;
+
+                currentAnnotations.push({
+                    type: 'pencil',
+                    x1: startX,
+                    y1: startY,
+                    x2: currentX,
+                    y2: currentY,
+                    color: currentColor,
+                    width: lineWidth
+                });
+            }
+        }
+
+        function stopDrawing(e) {
+            if (!isDrawing) return;
+
+            if (currentTool === 'arrow') {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const endX = (e.clientX - rect.left) * scaleX;
+                const endY = (e.clientY - rect.top) * scaleY;
+
+                currentAnnotations.push({
+                    type: 'arrow',
+                    x1: startX,
+                    y1: startY,
+                    x2: endX,
+                    y2: endY,
+                    color: currentColor,
+                    width: lineWidth
+                });
+                redrawCanvas();
+            }
+
+            saveToHistory();
+            isDrawing = false;
+        }
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function redrawCanvas() {
+            const img = new Image();
+            img.onload = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                redrawAnnotations();
+            };
+            img.src = photoData.imageUrl;
+        }
+
+        function redrawAnnotations() {
+            currentAnnotations.forEach(ann => {
+                if (ann.type === 'pencil') {
+                    ctx.strokeStyle = ann.color;
+                    ctx.lineWidth = ann.width;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(ann.x1, ann.y1);
+                    ctx.lineTo(ann.x2, ann.y2);
+                    ctx.stroke();
+                } else if (ann.type === 'arrow') {
+                    drawArrow(ann.x1, ann.y1, ann.x2, ann.y2, ann.color, ann.width);
+                } else if (ann.type === 'text') {
+                    ctx.fillStyle = ann.color;
+                    ctx.font = `${ann.size}px Arial`;
+                    ctx.fillText(ann.text, ann.x, ann.y);
+                }
+            });
+        }
+
+        function drawArrow(x1, y1, x2, y2, color, width) {
+            const headlen = 15;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.lineTo(x2, y2);
+            ctx.fill();
+        }
+
+        function saveToHistory() {
+            historyStep++;
+            drawingHistory = drawingHistory.slice(0, historyStep);
+            drawingHistory.push(currentAnnotations.slice());
+        }
+
+        function undo() {
+            if (historyStep > 0) {
+                historyStep--;
+                currentAnnotations = drawingHistory[historyStep].slice();
+                redrawCanvas();
+            }
+        }
+
+        function redo() {
+            if (historyStep < drawingHistory.length - 1) {
+                historyStep++;
+                currentAnnotations = drawingHistory[historyStep].slice();
+                redrawCanvas();
+            }
+        }
+
+        function clearAll() {
+            if (confirm('¿Está seguro de que desea borrar todas las anotaciones?')) {
+                currentAnnotations = [];
+                saveToHistory();
+                redrawCanvas();
+            }
+        }
+
+        async function saveAnnotations() {
+            const saveBtn = document.querySelector('.btn-save');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+
+            try {
+                if (photoData.isNewPhoto) {
+                    // Send back to parent window for new photos
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'photoAnnotationsSaved',
+                            photoIndex: photoData.photoIndex,
+                            photoId: null,
+                            annotations: currentAnnotations
+                        }, '*');
+                        showStatus('¡Guardado exitosamente!', 'success');
+                        setTimeout(() => window.close(), 1500);
+                    } else {
+                        throw new Error('No se pudo comunicar con la ventana principal');
+                    }
+                } else {
+                    // Save existing photo via API
+                    const response = await fetch(`/api/v1/changeorder-photo/${photoData.photoId}/annotations/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            annotations: currentAnnotations
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Error al guardar');
+
+                    const data = await response.json();
+                    if (data.success) {
+                        if (window.opener) {
+                            window.opener.postMessage({
+                                type: 'photoAnnotationsSaved',
+                                photoIndex: null,
+                                photoId: photoData.photoId,
+                                annotations: currentAnnotations
+                            }, '*');
+                        }
+                        showStatus('¡Guardado exitosamente!', 'success');
+                        setTimeout(() => window.close(), 1500);
+                    } else {
+                        throw new Error(data.message || 'Error desconocido');
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                showStatus('Error al guardar: ' + error.message, 'error');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-save"></i> Guardar Cambios';
+            }
+        }
+
+        function closeEditor() {
+            if (confirm('¿Está seguro de que desea cerrar sin guardar?')) {
+                window.close();
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusMsg = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            const icon = statusMsg.querySelector('i');
+
+            statusText.textContent = message;
+            statusMsg.className = 'status-message ' + type;
+            
+            if (type === 'success') {
+                icon.className = 'bi bi-check-circle-fill';
+            } else {
+                icon.className = 'bi bi-x-circle-fill';
+            }
+
+            statusMsg.style.display = 'flex';
+            setTimeout(() => {
+                statusMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

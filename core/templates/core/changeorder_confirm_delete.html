@@ -1,0 +1,143 @@
+{% extends "core/base.html" %}
+
+{% block title %}Eliminar Change Order - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        padding: 40px 20px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .delete-card {
+        background: white;
+        border: 2px solid #fee2e2;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .delete-icon {
+        width: 80px;
+        height: 80px;
+        background: #fee2e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+    
+    .delete-icon i {
+        font-size: 40px;
+        color: #dc2626;
+    }
+    
+    .delete-title {
+        text-align: center;
+        color: #1e293b;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+    
+    .delete-warning {
+        text-align: center;
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+    
+    .co-details {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    
+    .co-details-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .co-details-row:last-child {
+        border-bottom: none;
+    }
+    
+    .co-details-label {
+        font-weight: 600;
+        color: #475569;
+    }
+    
+    .co-details-value {
+        color: #1e293b;
+    }
+    
+    .btn-group-delete {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+    }
+    
+    .btn-group-delete .btn {
+        flex: 1;
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="delete-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        
+        <h2 class="delete-title">¿Eliminar Change Order?</h2>
+        <p class="delete-warning">
+            Esta acción no se puede deshacer. Todos los datos relacionados con este Change Order se perderán permanentemente.
+        </p>
+        
+        <div class="co-details">
+            <div class="co-details-row">
+                <span class="co-details-label">CO #:</span>
+                <span class="co-details-value">CO-{{ changeorder.id|stringformat:"04d" }}</span>
+            </div>
+            <div class="co-details-row">
+                <span class="co-details-label">Proyecto:</span>
+                <span class="co-details-value">{{ changeorder.project.name }}</span>
+            </div>
+            <div class="co-details-row">
+                <span class="co-details-label">Monto:</span>
+                <span class="co-details-value">${{ changeorder.amount|floatformat:2 }}</span>
+            </div>
+            <div class="co-details-row">
+                <span class="co-details-label">Estado:</span>
+                <span class="co-details-value">{{ changeorder.get_status_display }}</span>
+            </div>
+            <div class="co-details-row">
+                <span class="co-details-label">Descripción:</span>
+                <span class="co-details-value">{{ changeorder.description|truncatewords:15 }}</span>
+            </div>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="btn-group-delete">
+                <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Sí, Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

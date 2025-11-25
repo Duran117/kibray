@@ -20,20 +20,57 @@
     <div class="col-md-4">
       <div class="card h-100">
         {% if s.sample_image %}
-        <img src="{{ s.sample_image.url }}" class="card-img-top" alt="sample">
+        <img src="{{ s.sample_image.url }}" class="card-img-top" alt="sample" style="height: 200px; object-fit: cover;">
+        {% else %}
+        <!-- Placeholder with brand/code info -->
+        <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+          <div class="text-center p-3">
+            <i class="bi bi-palette" style="font-size: 3rem; color: #6c757d;"></i>
+            <div class="mt-2">
+              <strong>{{ s.brand|default:"Color" }}</strong><br>
+              <small>{{ s.code|default:"" }}</small>
+            </div>
+          </div>
+        </div>
         {% endif %}
         <div class="card-body">
-          <h5 class="card-title">{{ s.name|default:s.code|default:'Muestra' }}</h5>
-          <p class="mb-1"><span class="badge text-bg-secondary">{{ s.get_status_display }}</span> · v{{ s.version }}</p>
-          <p class="card-text small text-muted">{{ s.brand }} {{ s.finish }} {{ s.gloss }}</p>
-          <a class="btn btn-sm btn-outline-primary" href="{% url 'color_sample_detail' s.id %}">Ver detalle</a>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            {% if s.code %}
+            <div style="width: 30px; height: 30px; border-radius: 5px; border: 2px solid #dee2e6; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);" 
+                 title="Color code: {{ s.code }}">
+            </div>
+            {% endif %}
+            <h5 class="card-title mb-0">{{ s.name|default:s.code|default:'Muestra' }}</h5>
+          </div>
+          <p class="mb-1">
+            <span class="badge {% if s.status == 'approved' %}bg-success{% elif s.status == 'rejected' %}bg-danger{% elif s.status == 'review' %}bg-warning{% else %}bg-secondary{% endif %}">
+              {{ s.get_status_display }}
+            </span> 
+            <span class="badge bg-info">v{{ s.version }}</span>
+          </p>
+          <p class="card-text small text-muted">
+            {% if s.brand %}<i class="bi bi-tag"></i> {{ s.brand }}<br>{% endif %}
+            {% if s.code %}<i class="bi bi-upc"></i> {{ s.code }}<br>{% endif %}
+            {% if s.finish or s.gloss %}
+              <i class="bi bi-droplet"></i> {{ s.finish }} {{ s.gloss }}
+            {% endif %}
+          </p>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'color_sample_detail' s.id %}">
+            <i class="bi bi-eye"></i> Ver detalle
+          </a>
         </div>
-        <div class="card-footer small text-muted">Creado: {{ s.created_at|date:'Y-m-d H:i' }}</div>
+        <div class="card-footer small text-muted">
+          <i class="bi bi-clock"></i> {{ s.created_at|date:'Y-m-d H:i' }}
+          {% if s.created_by %}· {{ s.created_by.username }}{% endif %}
+        </div>
       </div>
     </div>
     {% empty %}
     <div class="col-12">
-      <div class="alert alert-info">No hay muestras de color aún.</div>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No hay muestras de color aún. 
+        <a href="{% url 'color_sample_create' project.id %}" class="alert-link">Crear la primera muestra</a>
+      </div>
     </div>
     {% endfor %}
   </div>

@@ -1,0 +1,106 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 mb-0">{{ title }}</h1>
+            {% if action == 'edit' %}
+                <p class="text-muted mb-0">{% trans "Modificar datos del ingreso" %}</p>
+            {% else %}
+                <p class="text-muted mb-0">{% trans "Registrar un nuevo ingreso" %}</p>
+            {% endif %}
+        </div>
+        <a href="{% url 'admin_model_list' model_name='income' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Volver a Ingresos" %}
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{% trans "Proyecto" %} <span class="text-danger">*</span></label>
+                        <select name="project" class="form-select" required>
+                            <option value="">-- {% trans "Selecciona" %} --</option>
+                            {% for p in projects %}
+                                <option value="{{ p.id }}" {% if action == 'edit' and p.id == income.project_id %}selected{% endif %}>{{ p.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{% trans "Nombre Factura/Proyecto" %} <span class="text-danger">*</span></label>
+                        <input type="text" name="project_name" class="form-control" value="{% if action == 'edit' %}{{ income.project_name }}{% endif %}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{% trans "Monto" %} <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" name="amount" class="form-control" value="{% if action == 'edit' %}{{ income.amount }}{% endif %}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{% trans "Fecha" %} <span class="text-danger">*</span></label>
+                        <input type="date" name="date" class="form-control" value="{% if action == 'edit' %}{{ income.date|date:'Y-m-d' }}{% endif %}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{% trans "Método de pago" %} <span class="text-danger">*</span></label>
+                        <select name="payment_method" class="form-select" required>
+                            {% for code,label in payment_choices %}
+                                <option value="{{ code }}" {% if action == 'edit' and income.payment_method == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{% trans "Categoría (opcional)" %}</label>
+                        <input type="text" name="category" class="form-control" value="{% if action == 'edit' %}{{ income.category }}{% endif %}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{% trans "Descripción" %}</label>
+                        <textarea name="description" rows="3" class="form-control">{% if action == 'edit' %}{{ income.description }}{% endif %}</textarea>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'admin_model_list' model_name='income' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg me-2"></i>{% trans "Cancelar" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-2"></i>{% if action == 'edit' %}{% trans "Guardar Cambios" %}{% else %}{% trans "Crear Ingreso" %}{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if action == 'edit' %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-body">
+                <h6 class="text-muted mb-3">{% trans "Información del Sistema" %}</h6>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">ID</small>
+                        <strong>{{ income.id }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">{% trans "Fecha" %}</small>
+                        <strong>{{ income.date|date:'d/m/Y' }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">{% trans "Método" %}</small>
+                        <strong>{{ income.payment_method }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">{% trans "Monto" %}</small>
+                        <strong class="text-success">${{ income.amount }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

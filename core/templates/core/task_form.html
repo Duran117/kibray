@@ -1,24 +1,210 @@
 {% extends 'core/base.html' %}
 {% load i18n %}
+{% load static %}
+
+{% block title %}{% if edit %}{% trans "Edit Task" %}{% else %}{% trans "New Task" %}{% endif %} - Kibray{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <h2 class="mb-3">{% if edit %}{% trans 'Editar Tarea' %}{% else %}{% trans 'Nueva Tarea' %}{% endif %}</h2>
-  <form method="post" enctype="multipart/form-data" class="row g-3">
-    {% csrf_token %}
-    {{ form.project.as_hidden }}
-    <div class="col-md-6">{{ form.title.label_tag }}{{ form.title }}</div>
-    <div class="col-md-6">{{ form.status.label_tag }}{{ form.status }}</div>
-    <div class="col-12">{{ form.description.label_tag }}{{ form.description }}</div>
-    <div class="col-md-6">{{ form.assigned_to.label_tag }}{{ form.assigned_to }}</div>
-    <div class="col-md-6">{{ form.image.label_tag }}{{ form.image }}</div>
-    <div class="col-md-6">{{ form.is_touchup.label_tag }}{{ form.is_touchup }}</div>
-    <div class="col-12 d-flex gap-2">
-      <button class="btn btn-primary">{% trans 'Guardar' %}</button>
-      <a href="{% url 'task_detail' task.id %}" class="btn btn-outline-secondary">{% trans 'Cancelar' %}</a>
+<div class="container-fluid py-3 py-md-4" style="max-width: 900px;">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
+    <h2 class="mb-0 h3 h-md-2">
+      <i class="bi bi-{% if edit %}pencil-square{% else %}plus-circle{% endif %} text-primary me-2"></i>
+      {% if edit %}{% trans 'Edit Task' %}{% else %}{% trans 'New Task' %}{% endif %}
+    </h2>
+    <a href="javascript:history.back();" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>
+      {% trans 'Back' %}
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-3 p-md-4">
+      <form method="post" enctype="multipart/form-data" id="taskForm">
+        {% csrf_token %}
+        {{ form.project.as_hidden }}
+        
+        <div class="row g-3">
+          <!-- Title -->
+          <div class="col-12">
+            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-card-heading me-1"></i>
+              {{ form.title.label }}
+              {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            <input 
+              type="text" 
+              name="{{ form.title.name }}" 
+              id="{{ form.title.id_for_label }}"
+              class="form-control form-control-lg"
+              value="{{ form.title.value|default:'' }}"
+              placeholder="{% trans 'Enter task title' %}"
+              style="min-height: 50px; font-size: 16px;"
+              required
+            >
+            {% if form.title.errors %}
+              <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Description -->
+          <div class="col-12">
+            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-text-paragraph me-1"></i>
+              {{ form.description.label }}
+            </label>
+            <textarea 
+              name="{{ form.description.name }}" 
+              id="{{ form.description.id_for_label }}"
+              class="form-control"
+              rows="4"
+              placeholder="{% trans 'Enter task description' %}"
+              style="min-height: 100px; font-size: 16px;"
+            >{{ form.description.value|default:'' }}</textarea>
+            {% if form.description.errors %}
+              <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Status and Assigned To -->
+          <div class="col-12 col-md-6">
+            <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-flag me-1"></i>
+              {{ form.status.label }}
+              {% if form.status.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            <select 
+              name="{{ form.status.name }}" 
+              id="{{ form.status.id_for_label }}"
+              class="form-select"
+              style="min-height: 50px; font-size: 16px;"
+            >
+              {% for value, text in form.status.field.choices %}
+                <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ text }}</option>
+              {% endfor %}
+            </select>
+            {% if form.status.errors %}
+              <div class="invalid-feedback d-block">{{ form.status.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="{{ form.assigned_to.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-person-check me-1"></i>
+              {{ form.assigned_to.label }}
+            </label>
+            <select 
+              name="{{ form.assigned_to.name }}" 
+              id="{{ form.assigned_to.id_for_label }}"
+              class="form-select"
+              style="min-height: 50px; font-size: 16px;"
+            >
+              <option value="">{% trans 'Select assignee' %}</option>
+              {% for value, text in form.assigned_to.field.choices %}
+                {% if value %}
+                  <option value="{{ value }}" {% if form.assigned_to.value == value %}selected{% endif %}>{{ text }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+            {% if form.assigned_to.errors %}
+              <div class="invalid-feedback d-block">{{ form.assigned_to.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Image Upload -->
+          <div class="col-12 col-md-6">
+            <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-image me-1"></i>
+              {{ form.image.label }}
+            </label>
+            <input 
+              type="file" 
+              name="{{ form.image.name }}" 
+              id="{{ form.image.id_for_label }}"
+              class="form-control"
+              accept="image/*"
+              style="min-height: 50px; font-size: 16px;"
+            >
+            {% if form.image.errors %}
+              <div class="invalid-feedback d-block">{{ form.image.errors }}</div>
+            {% endif %}
+            {% if task and task.image %}
+              <div class="mt-2">
+                <small class="text-muted">{% trans "Current image" %}:</small>
+                <img src="{{ task.image.url }}" alt="Task image" class="img-thumbnail mt-1" style="max-height: 100px;">
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Is Touchup Checkbox -->
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold d-block">
+              <i class="bi bi-brush me-1"></i>
+              {% trans "Options" %}
+            </label>
+            <div class="form-check form-switch" style="min-height: 50px; padding-top: 12px;">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                name="{{ form.is_touchup.name }}" 
+                id="{{ form.is_touchup.id_for_label }}"
+                {% if form.is_touchup.value %}checked{% endif %}
+                style="width: 3em; height: 1.5em;"
+              >
+              <label class="form-check-label ms-2" for="{{ form.is_touchup.id_for_label }}">
+                {{ form.is_touchup.label }}
+              </label>
+            </div>
+            {% if form.is_touchup.errors %}
+              <div class="invalid-feedback d-block">{{ form.is_touchup.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Form Errors -->
+          {% if form.non_field_errors %}
+          <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+              {{ form.non_field_errors }}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Action Buttons -->
+          <div class="col-12">
+            <hr class="my-3">
+            <div class="d-flex flex-column flex-sm-row gap-2">
+              <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                <i class="bi bi-check-circle me-2"></i>
+                {% trans 'Save Task' %}
+              </button>
+              <a href="{% if task %}{% url 'task_detail' task.id %}{% else %}javascript:history.back();{% endif %}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-x-circle me-2"></i>
+                {% trans 'Cancel' %}
+              </a>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
-  </form>
-  <div class="mt-3">
-    <a href="javascript:history.back();" class="btn btn-link">{% trans 'Regresar' %}</a>
   </div>
-  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Focus first input
+  document.getElementById('{{ form.title.id_for_label }}').focus();
+  
+  // Form validation
+  const form = document.getElementById('taskForm');
+  form.addEventListener('submit', function(e) {
+    const title = document.getElementById('{{ form.title.id_for_label }}');
+    if (!title.value.trim()) {
+      e.preventDefault();
+      title.classList.add('is-invalid');
+      title.focus();
+      return false;
+    }
+  });
+});
+</script>
 {% endblock %}

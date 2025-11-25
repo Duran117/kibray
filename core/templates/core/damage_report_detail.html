@@ -9,16 +9,83 @@
   <p>Plano: <a href="{% url 'floor_plan_detail' report.plan.id %}">{{ report.plan.name }}</a></p>
   {% endif %}
   <hr>
-  <h5>Fotos</h5>
-  <div class="row g-2">
+  <h5>Fotos ({{ report.photos.count }})</h5>
+  
+  <!-- Upload Form -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <h6 class="card-title"><i class="bi bi-camera"></i> Agregar Fotos</h6>
+      <form method="post" enctype="multipart/form-data" id="photoUploadForm" action="{% url 'damage_report_add_photos' report.id %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="photos" class="form-label">Seleccionar fotos</label>
+          <input type="file" class="form-control" id="photos" name="photos" accept="image/*" multiple required>
+          <div class="form-text">Puedes seleccionar múltiples archivos</div>
+        </div>
+        <div class="mb-3">
+          <label for="notes" class="form-label">Notas (opcional)</label>
+          <input type="text" class="form-control" id="notes" name="notes" placeholder="Descripción de las fotos">
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-upload"></i> Subir Fotos
+        </button>
+      </form>
+      <div id="uploadStatus" class="mt-2"></div>
+    </div>
+  </div>
+
+  <!-- Photo Gallery -->
+  <div class="row g-2" id="photoGallery">
     {% for p in report.photos.all %}
     <div class="col-6 col-md-3">
-      <img src="{{ p.image.url }}" class="img-fluid rounded" alt="photo"/>
-      {% if p.notes %}<div class="small text-muted">{{ p.notes }}</div>{% endif %}
+      <div class="card h-100">
+        <img src="{{ p.image.url }}" class="card-img-top" alt="photo" style="height: 200px; object-fit: cover;"/>
+        {% if p.notes %}
+        <div class="card-body p-2">
+          <small class="text-muted">{{ p.notes }}</small>
+        </div>
+        {% endif %}
+      </div>
     </div>
     {% empty %}
-    <div class="text-muted">No hay fotos.</div>
+    <div class="col-12">
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No hay fotos aún. Usa el formulario de arriba para agregar fotos.
+      </div>
+    </div>
     {% endfor %}
   </div>
 </div>
+
+<script>
+document.getElementById('photoUploadForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const statusDiv = document.getElementById('uploadStatus');
+  const formData = new FormData(this);
+  
+  statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Subiendo...</span></div> Subiendo fotos...';
+  
+  try {
+    const response = await fetch(this.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      statusDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+      // Reload page after 1 second to show new photos
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      statusDiv.innerHTML = '<div class="alert alert-danger">Error: ' + (data.error || 'Error desconocido') + '</div>';
+    }
+  } catch (error) {
+    statusDiv.innerHTML = '<div class="alert alert-danger">Error al subir fotos: ' + error.message + '</div>';
+  }
+});
+</script>
 {% endblock %}

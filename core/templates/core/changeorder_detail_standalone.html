@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CO-{{ changeorder.id|stringformat:"04d" }} - Kibray</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f8fafc;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            padding: 20px;
+        }
+
+        .co-page {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem 2.5rem;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .co-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1.2rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .co-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .co-subtitle {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+
+        .co-project-name {
+            margin: 0.5rem 0 0;
+            font-weight: 500;
+            color: #475569;
+            font-size: 1rem;
+        }
+
+        .co-header-right {
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .co-header-right p {
+            margin: 0.3rem 0;
+            color: #64748b;
+        }
+
+        .co-amount {
+            margin-top: 0.6rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #059669;
+        }
+
+        .co-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .co-status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .co-status.approved {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .co-status.sent {
+            background: #e9d5ff;
+            color: #6b21a8;
+        }
+
+        .co-status.billed,
+        .co-status.paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .co-section {
+            margin-bottom: 2rem;
+        }
+
+        .co-section h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .co-section h2 i {
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .co-two-cols {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            row-gap: 0.6rem;
+            column-gap: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .co-label {
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .co-value {
+            color: #1e293b;
+        }
+
+        .co-description {
+            background: #f8fafc;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .co-notes {
+            background: #fffbeb;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            color: #78350f;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .co-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .co-table th,
+        .co-table td {
+            padding: 0.7rem 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        .co-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .co-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .co-table-amount {
+            font-weight: 600;
+            color: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .co-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.6rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #059669;
+            color: #ffffff;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 1px solid #667eea;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Photo Gallery */
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: white;
+        }
+
+        .photo-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .photo-caption {
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: #475569;
+            margin: 0;
+        }
+
+        .photo-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(102, 126, 234, 0.95);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* Fullscreen Photo Modal */
+        .photo-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .photo-modal.active {
+            display: flex;
+        }
+
+        .photo-modal-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+
+        .photo-modal-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .photo-modal-content canvas {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .photo-modal-caption {
+            text-align: center;
+            color: white;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .photo-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0.5rem;
+        }
+
+        .photo-modal-close:hover {
+            color: #cbd5e1;
+        }
+
+        @media (max-width: 768px) {
+            .co-page {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .co-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .co-header-right {
+                text-align: left;
+            }
+
+            .co-two-cols {
+                grid-template-columns: 1fr;
+            }
+
+            .co-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .photo-gallery {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="co-page">
+        <!-- HEADER -->
+        <header class="co-header">
+            <div>
+                <div class="co-subtitle">Change Order</div>
+                <h1>CO-{{ changeorder.id|stringformat:"04d" }}</h1>
+                <p class="co-project-name">{{ changeorder.project.name }}</p>
+            </div>
+
+            <div class="co-header-right">
+                <p>
+                    <span class="co-status {{ changeorder.status }}">
+                        {% if changeorder.status == 'pending' %}
+                            <i class="bi bi-clock"></i> Pendiente
+                        {% elif changeorder.status == 'approved' %}
+                            <i class="bi bi-check-circle"></i> Aprobado
+                        {% elif changeorder.status == 'sent' %}
+                            <i class="bi bi-send"></i> Enviado
+                        {% elif changeorder.status == 'billed' %}
+                            <i class="bi bi-receipt"></i> Facturado
+                        {% elif changeorder.status == 'paid' %}
+                            <i class="bi bi-cash"></i> Pagado
+                        {% endif %}
+                    </span>
+                </p>
+                <p class="co-amount">${{ changeorder.amount|floatformat:2 }}</p>
+                <p><strong>Fecha:</strong> {{ changeorder.date_created|date:"d/m/Y" }}</p>
+                <p><strong>Cliente:</strong> {{ changeorder.project.client|default:"Sin cliente" }}</p>
+            </div>
+        </header>
+
+        <!-- INFO PRINCIPAL -->
+        <section class="co-section">
+            <h2><i class="bi bi-info-circle"></i> Información del Change Order</h2>
+            <div class="co-two-cols">
+                <div class="co-label">Proyecto</div>
+                <div class="co-value">{{ changeorder.project.name }}</div>
+
+                <div class="co-label">Cliente</div>
+                <div class="co-value">{{ changeorder.project.client|default:"Sin cliente" }}</div>
+
+                <div class="co-label">Fecha de creación</div>
+                <div class="co-value">{{ changeorder.date_created|date:"d/m/Y" }}</div>
+
+                <div class="co-label">Estado</div>
+                <div class="co-value">{{ changeorder.get_status_display }}</div>
+            </div>
+        </section>
+
+        <!-- DESCRIPCIÓN -->
+        <section class="co-section">
+            <h2><i class="bi bi-file-text"></i> Descripción del Cambio</h2>
+            <div class="co-description">
+                {{ changeorder.description }}
+            </div>
+        </section>
+
+        <!-- NOTAS -->
+        {% if changeorder.notes %}
+        <section class="co-section">
+            <h2><i class="bi bi-sticky"></i> Notas Adicionales</h2>
+            <div class="co-notes">
+                {{ changeorder.notes|linebreaks }}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- COLOR INFORMATION -->
+        {% if changeorder.color or changeorder.reference_code %}
+        <section class="co-section">
+            <h2><i class="bi bi-palette"></i> Información de Color</h2>
+            <div class="co-two-cols">
+                {% if changeorder.color %}
+                <div class="co-label">Color</div>
+                <div class="co-value">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 50px; height: 50px; border-radius: 8px; border: 2px solid #e2e8f0; background: {{ changeorder.color }};"></div>
+                        <span style="font-family: monospace; font-weight: 600;">{{ changeorder.color }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if changeorder.reference_code %}
+                <div class="co-label">Código de Referencia</div>
+                <div class="co-value">{{ changeorder.reference_code }}</div>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- PHOTOS -->
+        {% if changeorder.photos.all %}
+        <section class="co-section">
+            <h2><i class="bi bi-images"></i> Fotos del Proyecto ({{ changeorder.photos.count }})</h2>
+            <div class="photo-gallery">
+                {% for photo in changeorder.photos.all %}
+                <div class="photo-item">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.description }}" onclick="viewPhotoFullscreen('{{ photo.image.url }}', '{{ photo.description|escapejs }}', '{{ photo.annotations|escapejs }}')">
+                    {% if photo.description %}
+                    <p class="photo-caption">{{ photo.description }}</p>
+                    {% endif %}
+                    {% if photo.annotations %}
+                    <div class="photo-badge">
+                        <i class="bi bi-pencil"></i> Con anotaciones
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- GASTOS -->
+        <section class="co-section">
+            <h2><i class="bi bi-receipt-cutoff"></i> Gastos Asociados</h2>
+            {% if changeorder.expenses.all %}
+                <table class="co-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th>Monto</th>
+                            <th>Documentos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in changeorder.expenses.all %}
+                        <tr>
+                            <td>{{ expense.date|date:"d/m/Y" }}</td>
+                            <td>{{ expense.description }}</td>
+                            <td class="co-table-amount">-${{ expense.amount|floatformat:2 }}</td>
+                            <td>
+                                {% if expense.receipt %}
+                                <a href="{{ expense.receipt.url }}" target="_blank" class="btn btn-outline">
+                                    <i class="bi bi-paperclip"></i> Recibo
+                                </a>
+                                {% endif %}
+                                {% if expense.invoice %}
+                                <a href="{{ expense.invoice.url }}" target="_blank" class="btn btn-outline">
+                                    <i class="bi bi-file-earmark-pdf"></i> Factura
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    No hay gastos asociados a este Change Order.
+                </div>
+            {% endif %}
+        </section>
+
+        <!-- BOTONES -->
+        <footer class="co-actions">
+            <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver al Board
+            </a>
+            <a href="{% url 'changeorder_edit' changeorder.id %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            {% if changeorder.status == 'approved' %}
+            <button class="btn btn-success" onclick="sendToClient({{ changeorder.id }})">
+                <i class="bi bi-send"></i> Enviar al Cliente
+            </button>
+            {% endif %}
+        </footer>
+    </div>
+
+    <!-- Photo Fullscreen Modal -->
+    <div id="photoModal" class="photo-modal" onclick="closePhotoModal()">
+        <div class="photo-modal-content" onclick="event.stopPropagation()">
+            <button class="photo-modal-close" onclick="closePhotoModal()">&times;</button>
+            <canvas id="photoCanvas"></canvas>
+            <p class="photo-modal-caption" id="photoCaption"></p>
+        </div>
+    </div>
+
+    <script>
+    function sendToClient(coId) {
+        if (!confirm('¿Enviar este Change Order al cliente para firma?')) {
+            return;
+        }
+        
+        fetch(`/api/changeorders/${coId}/send-to-client/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Change Order enviado al cliente correctamente');
+                location.reload();
+            } else {
+                alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('❌ Error al enviar al cliente');
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function viewPhotoFullscreen(imageUrl, description, annotations) {
+        const modal = document.getElementById('photoModal');
+        const canvas = document.getElementById('photoCanvas');
+        const caption = document.getElementById('photoCaption');
+        const ctx = canvas.getContext('2d');
+
+        caption.textContent = description || '';
+        modal.classList.add('active');
+
+        const img = new Image();
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            // Draw annotations if present
+            if (annotations) {
+                try {
+                    const annotationData = JSON.parse(annotations);
+                    annotationData.forEach(ann => {
+                        ctx.strokeStyle = ann.color;
+                        ctx.lineWidth = ann.width;
+                        ctx.fillStyle = ann.color;
+                        
+                        switch(ann.type) {
+                            case 'line':
+                                ctx.beginPath();
+                                ctx.moveTo(ann.x1, ann.y1);
+                                ctx.lineTo(ann.x2, ann.y2);
+                                ctx.stroke();
+                                break;
+                            case 'arrow':
+                                drawArrow(ctx, ann.x1, ann.y1, ann.x2, ann.y2, ann.color, ann.width);
+                                break;
+                            case 'circle':
+                                const radius = Math.sqrt(Math.pow(ann.x2 - ann.x1, 2) + Math.pow(ann.y2 - ann.y1, 2));
+                                ctx.beginPath();
+                                ctx.arc(ann.x1, ann.y1, radius, 0, 2 * Math.PI);
+                                ctx.stroke();
+                                break;
+                            case 'rect':
+                                ctx.strokeRect(ann.x1, ann.y1, ann.x2 - ann.x1, ann.y2 - ann.y1);
+                                break;
+                        }
+                    });
+                } catch(e) {
+                    console.error('Error drawing annotations:', e);
+                }
+            }
+        };
+        img.src = imageUrl;
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color, width) {
+        const headlen = 15;
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function closePhotoModal() {
+        document.getElementById('photoModal').classList.remove('active');
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePhotoModal();
+        }
+    });
+    </script>
+</body>
+</html>

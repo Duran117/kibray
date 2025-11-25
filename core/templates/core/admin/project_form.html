@@ -1,0 +1,337 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header con gradiente -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold">
+                                <i class="bi bi-{% if action == 'edit' %}pencil-square{% else %}plus-circle{% endif %} me-2"></i>
+                                {{ title }}
+                            </h1>
+                            <p class="mb-0 opacity-75">
+                                {% if action == 'edit' %}
+                                    <i class="bi bi-info-circle me-1"></i>Modificar información del proyecto
+                                {% else %}
+                                    <i class="bi bi-rocket-takeoff me-1"></i>Completar datos del nuevo proyecto
+                                {% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'admin_model_list' model_name='projects' %}" class="btn btn-light shadow-sm">
+                            <i class="bi bi-arrow-left me-2"></i>{% trans "Volver a Proyectos" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Información Básica -->
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3 fw-bold border-bottom pb-2">
+                                <i class="bi bi-info-circle-fill me-2"></i>{% trans "Información Básica" %}
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label fw-semibold">
+                                        <i class="bi bi-tag-fill text-primary me-1"></i>
+                                        {% trans "Nombre del Proyecto" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg shadow-sm" id="name" name="name" 
+                                           value="{{ project.name|default:'' }}" required
+                                           placeholder="Ej: Remodelación Casa Smith">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="client" class="form-label fw-semibold">
+                                        <i class="bi bi-person-fill text-info me-1"></i>
+                                        {% trans "Cliente" %}
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg shadow-sm" id="client" name="client" 
+                                           value="{{ project.client|default:'' }}"
+                                           placeholder="Nombre del cliente">
+                                </div>
+                                <div class="col-12">
+                                    <label for="address" class="form-label fw-semibold">
+                                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                                        {% trans "Dirección" %}
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg shadow-sm" id="address" name="address" 
+                                           value="{{ project.address|default:'' }}"
+                                           placeholder="Dirección completa del proyecto">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="start_date" class="form-label fw-semibold">
+                                        <i class="bi bi-calendar-check-fill text-success me-1"></i>
+                                        {% trans "Fecha de Inicio" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" class="form-control form-control-lg shadow-sm" id="start_date" name="start_date" 
+                                           value="{{ project.start_date|date:'Y-m-d'|default:'' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="end_date" class="form-label fw-semibold">
+                                        <i class="bi bi-calendar-x-fill text-warning me-1"></i>
+                                        {% trans "Fecha de Fin" %}
+                                    </label>
+                                    <input type="date" class="form-control form-control-lg shadow-sm" id="end_date" name="end_date" 
+                                           value="{{ project.end_date|date:'Y-m-d'|default:'' }}">
+                                    <small class="text-muted">Opcional - Dejar vacío si el proyecto está activo</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold">
+                                <i class="bi bi-card-text text-secondary me-1"></i>
+                                {% trans "Descripción" %}
+                            </label>
+                            <textarea class="form-control shadow-sm" id="description" name="description" rows="3"
+                                      placeholder="Describe el alcance del proyecto...">{{ project.description|default:'' }}</textarea>
+                        </div>
+
+                        <!-- Detalles de Pintura -->
+                        <div class="mb-4">
+                            <h5 class="text-success mb-3 fw-bold border-bottom pb-2">
+                                <i class="bi bi-palette-fill me-2"></i>{% trans "Detalles de Pintura" %}
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="paint_colors" class="form-label fw-semibold">
+                                        <i class="bi bi-droplet-fill text-success me-1"></i>
+                                        {% trans "Colores de Pintura" %}
+                                    </label>
+                                    <textarea class="form-control shadow-sm" id="paint_colors" name="paint_colors" rows="2" 
+                                              placeholder="Ej: SW 7008 Alabaster, SW 6258 Tricorn Black">{{ project.paint_colors|default:'' }}</textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="paint_codes" class="form-label fw-semibold">
+                                        <i class="bi bi-upc-scan text-success me-1"></i>
+                                        {% trans "Códigos de Pintura" %}
+                                    </label>
+                                    <textarea class="form-control shadow-sm" id="paint_codes" name="paint_codes" rows="2"
+                                              placeholder="Códigos de referencia">{{ project.paint_codes|default:'' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label for="stains_or_finishes" class="form-label fw-semibold">
+                                        <i class="bi bi-brush-fill text-success me-1"></i>
+                                        {% trans "Tintes o Acabados" %}
+                                    </label>
+                                    <textarea class="form-control shadow-sm" id="stains_or_finishes" name="stains_or_finishes" rows="2" 
+                                              placeholder="Ej: Milesi Butternut 072 - 2 coats">{{ project.stains_or_finishes|default:'' }}</textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="number_of_rooms_or_areas" class="form-label fw-semibold">
+                                        <i class="bi bi-door-closed-fill text-success me-1"></i>
+                                        {% trans "Número de Habitaciones/Áreas" %}
+                                    </label>
+                                    <input type="number" class="form-control shadow-sm" id="number_of_rooms_or_areas" name="number_of_rooms_or_areas" 
+                                           value="{{ project.number_of_rooms_or_areas|default:'' }}" min="0"
+                                           placeholder="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="number_of_paint_defects" class="form-label fw-semibold">
+                                        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                                        {% trans "Número de Defectos" %}
+                                    </label>
+                                    <input type="number" class="form-control shadow-sm" id="number_of_paint_defects" name="number_of_paint_defects" 
+                                           value="{{ project.number_of_paint_defects|default:'' }}" min="0"
+                                           placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Presupuesto -->
+                        <div class="mb-4">
+                            <h5 class="text-warning mb-3 fw-bold border-bottom pb-2">
+                                <i class="bi bi-cash-stack me-2"></i>{% trans "Presupuesto" %}
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="budget_total" class="form-label fw-semibold">
+                                        <i class="bi bi-currency-dollar text-success me-1"></i>
+                                        {% trans "Presupuesto Total" %}
+                                    </label>
+                                    <div class="input-group input-group-lg shadow-sm">
+                                        <span class="input-group-text bg-success text-white">
+                                            <i class="bi bi-currency-dollar"></i>
+                                        </span>
+                                        <input type="number" class="form-control" id="budget_total" name="budget_total" 
+                                               value="{{ project.budget_total|default:'0.00' }}" step="0.01" min="0"
+                                               placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="budget_labor" class="form-label fw-semibold">
+                                        <i class="bi bi-people-fill text-primary me-1"></i>
+                                        {% trans "Presupuesto Mano de Obra" %}
+                                    </label>
+                                    <div class="input-group input-group-lg shadow-sm">
+                                        <span class="input-group-text bg-primary text-white">
+                                            <i class="bi bi-currency-dollar"></i>
+                                        </span>
+                                        <input type="number" class="form-control" id="budget_labor" name="budget_labor" 
+                                               value="{{ project.budget_labor|default:'0.00' }}" step="0.01" min="0"
+                                               placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="budget_materials" class="form-label fw-semibold">
+                                        <i class="bi bi-box-seam-fill text-info me-1"></i>
+                                        {% trans "Presupuesto Materiales" %}
+                                    </label>
+                                    <div class="input-group input-group-lg shadow-sm">
+                                        <span class="input-group-text bg-info text-white">
+                                            <i class="bi bi-currency-dollar"></i>
+                                        </span>
+                                        <input type="number" class="form-control" id="budget_materials" name="budget_materials" 
+                                               value="{{ project.budget_materials|default:'0.00' }}" step="0.01" min="0"
+                                               placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="budget_other" class="form-label fw-semibold">
+                                        <i class="bi bi-three-dots text-secondary me-1"></i>
+                                        {% trans "Presupuesto Otros" %}
+                                    </label>
+                                    <div class="input-group input-group-lg shadow-sm">
+                                        <span class="input-group-text bg-secondary text-white">
+                                            <i class="bi bi-currency-dollar"></i>
+                                        </span>
+                                        <input type="number" class="form-control" id="budget_other" name="budget_other" 
+                                               value="{{ project.budget_other|default:'0.00' }}" step="0.01" min="0"
+                                               placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notas de Reflexión -->
+                        <div class="mb-4">
+                            <label for="reflection_notes" class="form-label fw-semibold">
+                                <i class="bi bi-journal-text text-info me-1"></i>
+                                {% trans "Notas de Reflexión" %}
+                            </label>
+                            <textarea class="form-control shadow-sm" id="reflection_notes" name="reflection_notes" rows="4" 
+                                      placeholder="Aprendizajes, errores o mejoras para próximos proyectos...">{{ project.reflection_notes|default:'' }}</textarea>
+                            <small class="text-muted">Documenta lecciones aprendidas y recomendaciones futuras</small>
+                        </div>
+
+                        <!-- Estadísticas (solo en modo edición) -->
+                        {% if action == 'edit' and project %}
+                        <div class="mb-4 pt-4 border-top">
+                            <h6 class="text-muted mb-3">
+                                <i class="bi bi-bar-chart-line-fill me-2"></i>Estadísticas del Proyecto
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                                        <div class="card-body text-center">
+                                            <p class="text-muted mb-1 small">ID del Proyecto</p>
+                                            <h5 class="mb-0 fw-bold text-primary">#{{ project.id }}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                                        <div class="card-body text-center">
+                                            <p class="text-muted mb-1 small">Fecha de Creación</p>
+                                            <h6 class="mb-0 fw-semibold">{{ project.created_at|date:"d/m/Y" }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, {% if project.end_date %}#e0e0e0{% else %}#a8edea{% endif %} 0%, {% if project.end_date %}#bdbdbd{% else %}#fed6e3{% endif %} 100%);">
+                                        <div class="card-body text-center">
+                                            <p class="text-muted mb-1 small">Estado</p>
+                                            <span class="badge {% if project.end_date %}bg-secondary{% else %}bg-success{% endif %} fs-6">
+                                                {% if project.end_date %}Completado{% else %}Activo{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);">
+                                        <div class="card-body text-center">
+                                            <p class="text-muted mb-1 small">Última Actualización</p>
+                                            <h6 class="mb-0 fw-semibold">{{ project.updated_at|date:"d/m/Y" }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Botones de Acción -->
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
+                            <a href="{% url 'admin_model_list' model_name='projects' %}" class="btn btn-lg btn-outline-secondary shadow-sm">
+                                <i class="bi bi-x-lg me-2"></i>{% trans "Cancelar" %}
+                            </a>
+                            <button type="submit" class="btn btn-lg btn-primary shadow-sm">
+                                <i class="bi bi-check-lg me-2"></i>
+                                {% if action == 'edit' %}{% trans "Actualizar Proyecto" %}{% else %}{% trans "Crear Proyecto" %}{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Mejoras estéticas */
+    .form-control-lg,
+    .form-control {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control-lg:focus,
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+    
+    .input-group-text {
+        border: 2px solid #e9ecef;
+        border-right: none;
+        font-weight: 600;
+    }
+    
+    .input-group .form-control {
+        border-left: none;
+    }
+    
+    .input-group:focus-within .input-group-text {
+        border-color: #667eea;
+    }
+    
+    h5.border-bottom {
+        border-color: rgba(0,0,0,0.1) !important;
+    }
+    
+    .card-body .card {
+        transition: transform 0.2s ease;
+    }
+    
+    .card-body .card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

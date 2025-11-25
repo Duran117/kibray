@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.shortcuts import redirect
+from django.urls import reverse
 from .models import Employee, Income, Expense, Project, TimeEntry, Schedule, Profile, Invoice, InvoiceLine, InvoicePayment
 from .models import ClientProjectAccess
 from .models import BudgetLine, BudgetProgress, CostCode
@@ -11,6 +13,14 @@ from .models import (
     InventoryItem, InventoryLocation, ProjectInventory, InventoryMovement,
 )
 from .models import ActivityTemplate, DailyPlan, PlannedActivity, ActivityCompletion, SOPReferenceFile
+from .models import (
+    EVSnapshot, QualityInspection, QualityDefect, RecurringTask,
+    GPSCheckIn, ExpenseOCRData, InvoiceAutomation, InventoryBarcode,
+    PunchListItem, Subcontractor, SubcontractorAssignment,
+    EmployeePerformanceMetric, EmployeeCertification, EmployeeSkillLevel,
+    SOPCompletion
+)
+from .models import ChangeOrder
 
 # Empleado
 @admin.register(Employee)
@@ -443,3 +453,371 @@ class ActivityCompletionAdmin(admin.ModelAdmin):
             obj.verified_by = request.user
             obj.verified_at = timezone.now()
         super().save_model(request, obj, form, change)
+
+
+# ===========================
+# NEW MODELS - ADVANCED FEATURES
+# ===========================
+
+@admin.register(EVSnapshot)
+class EVSnapshotAdmin(admin.ModelAdmin):
+    list_display = ('project', 'date', 'earned_value', 'actual_cost', 'spi', 'cpi', 'percent_complete')
+    list_filter = ('project', 'date')
+    search_fields = ('project__name',)
+    date_hierarchy = 'date'
+    ordering = ('-date',)
+    readonly_fields = ('spi', 'cpi', 'schedule_variance', 'cost_variance', 'estimate_at_completion', 
+                       'estimate_to_complete', 'variance_at_completion')
+
+
+@admin.register(QualityInspection)
+class QualityInspectionAdmin(admin.ModelAdmin):
+    list_display = ('project', 'inspection_type', 'scheduled_date', 'status', 'overall_score', 
+                    'ai_defect_count', 'manual_defect_count', 'inspector')
+    list_filter = ('status', 'inspection_type', 'project', 'scheduled_date')
+    search_fields = ('project__name', 'inspector__username', 'notes')
+    date_hierarchy = 'scheduled_date'
+    readonly_fields = ('ai_defect_count', 'manual_defect_count')
+    fieldsets = (
+        ('Inspection Details', {
+            'fields': ('project', 'inspection_type', 'scheduled_date', 'completed_date', 'inspector', 'status')
+        }),
+        ('Results', {
+            'fields': ('overall_score', 'ai_defect_count', 'manual_defect_count', 'notes')
+        }),
+        ('Checklist', {
+            'fields': ('checklist_data',)
+        }),
+        ('Warranty', {
+            'fields': ('warranty_expiration', 'warranty_notes'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(QualityDefect)
+class QualityDefectAdmin(admin.ModelAdmin):
+    list_display = ('inspection', 'severity', 'category', 'detected_by_ai', 'ai_confidence', 'resolved', 'resolved_by')
+    list_filter = ('severity', 'category', 'detected_by_ai', 'resolved', 'inspection__project')
+    search_fields = ('description', 'location', 'resolution_notes')
+    readonly_fields = ('ai_confidence', 'ai_pattern_match')
+    fieldsets = (
+        ('Defect Info', {
+            'fields': ('inspection', 'severity', 'category', 'description', 'location')
+        }),
+        ('AI Detection', {
+            'fields': ('detected_by_ai', 'ai_confidence', 'ai_pattern_match')
+        }),
+        ('Photos', {
+            'fields': ('photo', 'resolution_photo')
+        }),
+        ('Resolution', {
+            'fields': ('resolved', 'resolved_date', 'resolved_by', 'resolution_notes')
+        }),
+    )
+
+
+@admin.register(RecurringTask)
+class RecurringTaskAdmin(admin.ModelAdmin):
+    list_display = ('title', 'project', 'frequency', 'start_date', 'end_date', 'assigned_to', 'active', 'last_generated')
+    list_filter = ('frequency', 'active', 'project')
+    search_fields = ('title', 'description', 'project__name')
+    readonly_fields = ('last_generated',)
+    fieldsets = (
+        ('Task Info', {
+            'fields': ('project', 'title', 'description', 'frequency', 'estimated_hours')
+        }),
+        ('Schedule', {
+            'fields': ('start_date', 'end_date', 'last_generated', 'active')
+        }),
+        ('Assignment', {
+            'fields': ('assigned_to', 'cost_code')
+        }),
+        ('Checklist', {
+            'fields': ('checklist',)
+        }),
+    )
+
+
+@admin.register(GPSCheckIn)
+class GPSCheckInAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'project', 'check_in_time', 'check_out_time', 'within_geofence', 
+                    'distance_from_project', 'flagged_for_review')
+    list_filter = ('within_geofence', 'flagged_for_review', 'auto_break_detected', 'project', 'employee')
+    search_fields = ('employee__first_name', 'employee__last_name', 'project__name', 'review_notes')
+    readonly_fields = ('distance_from_project', 'auto_break_detected', 'auto_break_minutes')
+    date_hierarchy = 'check_in_time'
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('employee', 'project', 'time_entry')
+        }),
+        ('Check In', {
+            'fields': ('check_in_time', 'check_in_latitude', 'check_in_longitude', 'check_in_accuracy')
+        }),
+        ('Check Out', {
+            'fields': ('check_out_time', 'check_out_latitude', 'check_out_longitude', 'check_out_accuracy')
+        }),
+        ('Geofence Validation', {
+            'fields': ('within_geofence', 'distance_from_project', 'flagged_for_review', 'review_notes')
+        }),
+        ('Auto Break Detection', {
+            'fields': ('auto_break_detected', 'auto_break_minutes'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(ExpenseOCRData)
+class ExpenseOCRDataAdmin(admin.ModelAdmin):
+    list_display = ('expense', 'vendor_name', 'transaction_date', 'total_amount', 'ocr_confidence', 
+                    'verified', 'verified_by')
+    list_filter = ('verified', 'ocr_confidence', 'ai_suggestion_confidence')
+    search_fields = ('vendor_name', 'raw_text', 'verification_notes')
+    readonly_fields = ('ocr_confidence', 'ai_suggestion_confidence', 'raw_text')
+    fieldsets = (
+        ('Expense Link', {
+            'fields': ('expense',)
+        }),
+        ('OCR Extracted Data', {
+            'fields': ('vendor_name', 'transaction_date', 'total_amount', 'tax_amount', 'line_items', 'raw_text', 'ocr_confidence')
+        }),
+        ('AI Suggestions', {
+            'fields': ('suggested_category', 'suggested_cost_code', 'ai_suggestion_confidence')
+        }),
+        ('Verification', {
+            'fields': ('verified', 'verified_by', 'verification_notes')
+        }),
+    )
+
+
+@admin.register(InvoiceAutomation)
+class InvoiceAutomationAdmin(admin.ModelAdmin):
+    list_display = ('invoice', 'is_recurring', 'recurrence_frequency', 'next_recurrence_date', 
+                    'auto_send_on_creation', 'auto_remind_before_due', 'last_reminder_sent')
+    list_filter = ('is_recurring', 'recurrence_frequency', 'auto_send_on_creation', 'auto_remind_before_due', 
+                   'auto_remind_after_due', 'apply_late_fees')
+    search_fields = ('invoice__invoice_number', 'stripe_payment_intent_id', 'payment_link')
+    readonly_fields = ('stripe_payment_intent_id', 'payment_link', 'last_reminder_sent')
+    fieldsets = (
+        ('Invoice Link', {
+            'fields': ('invoice',)
+        }),
+        ('Recurrence', {
+            'fields': ('is_recurring', 'recurrence_frequency', 'next_recurrence_date', 'recurrence_end_date')
+        }),
+        ('Automation Settings', {
+            'fields': ('auto_send_on_creation', 'auto_remind_before_due', 'auto_remind_after_due', 'reminder_frequency_days')
+        }),
+        ('Late Fees', {
+            'fields': ('apply_late_fees', 'late_fee_percentage', 'late_fee_grace_days')
+        }),
+        ('Payment Integration', {
+            'fields': ('stripe_payment_intent_id', 'payment_link', 'last_reminder_sent'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(InventoryBarcode)
+class InventoryBarcodeAdmin(admin.ModelAdmin):
+    list_display = ('item', 'barcode_type', 'barcode_value', 'enable_auto_reorder', 
+                    'reorder_point', 'reorder_quantity', 'preferred_vendor')
+    list_filter = ('barcode_type', 'enable_auto_reorder', 'item__category')
+    search_fields = ('barcode_value', 'item__name', 'preferred_vendor')
+    readonly_fields = ('barcode_image',)
+    fieldsets = (
+        ('Barcode Info', {
+            'fields': ('item', 'barcode_type', 'barcode_value', 'barcode_image')
+        }),
+        ('Auto Reorder', {
+            'fields': ('enable_auto_reorder', 'reorder_point', 'reorder_quantity', 'preferred_vendor')
+        }),
+    )
+
+
+# ===========================
+# NUEVOS MODELOS 2025
+# ===========================
+
+@admin.register(PunchListItem)
+class PunchListItemAdmin(admin.ModelAdmin):
+    list_display = ('project', 'location', 'priority', 'category', 'status', 'assigned_to', 'created_at')
+    list_filter = ('status', 'priority', 'category', 'created_at')
+    search_fields = ('project__name', 'location', 'description')
+    readonly_fields = ('created_at', 'created_by', 'completed_at', 'verified_at', 'verified_by')
+    fieldsets = (
+        ('Item Details', {
+            'fields': ('project', 'location', 'description', 'priority', 'category')
+        }),
+        ('Assignment', {
+            'fields': ('assigned_to', 'status')
+        }),
+        ('Media', {
+            'fields': ('photo',)
+        }),
+        ('Tracking', {
+            'fields': ('created_at', 'created_by', 'completed_at', 'verified_at', 'verified_by', 'notes'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(Subcontractor)
+class SubcontractorAdmin(admin.ModelAdmin):
+    list_display = ('company_name', 'specialty', 'contact_name', 'phone', 'rating', 'insurance_verified', 'is_active')
+    list_filter = ('specialty', 'insurance_verified', 'w9_on_file', 'is_active')
+    search_fields = ('company_name', 'contact_name', 'email', 'phone')
+    readonly_fields = ('created_at',)
+    fieldsets = (
+        ('Company Info', {
+            'fields': ('company_name', 'specialty', 'contact_name', 'email', 'phone', 'address')
+        }),
+        ('Rates & Rating', {
+            'fields': ('hourly_rate', 'rating')
+        }),
+        ('Compliance', {
+            'fields': ('insurance_verified', 'insurance_expires', 'w9_on_file', 'license_number')
+        }),
+        ('Status', {
+            'fields': ('is_active', 'notes', 'created_at')
+        }),
+    )
+
+
+@admin.register(SubcontractorAssignment)
+class SubcontractorAssignmentAdmin(admin.ModelAdmin):
+    list_display = ('project', 'subcontractor', 'status', 'start_date', 'end_date', 'contract_amount', 'balance_due')
+    list_filter = ('status', 'start_date')
+    search_fields = ('project__name', 'subcontractor__company_name')
+    readonly_fields = ('created_at', 'balance_due')
+    fieldsets = (
+        ('Assignment', {
+            'fields': ('project', 'subcontractor', 'scope_of_work', 'status')
+        }),
+        ('Timeline', {
+            'fields': ('start_date', 'end_date')
+        }),
+        ('Financials', {
+            'fields': ('contract_amount', 'amount_paid', 'balance_due')
+        }),
+        ('Notes', {
+            'fields': ('notes', 'created_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(EmployeePerformanceMetric)
+class EmployeePerformanceMetricAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'year', 'month', 'productivity_rate', 'quality_rating', 'bonus_amount', 'bonus_paid')
+    list_filter = ('year', 'month', 'bonus_paid')
+    search_fields = ('employee__first_name', 'employee__last_name')
+    readonly_fields = ('created_at', 'updated_at', 'overall_score')
+    fieldsets = (
+        ('Period', {
+            'fields': ('employee', 'year', 'month')
+        }),
+        ('Auto-Calculated Metrics', {
+            'fields': ('total_hours_worked', 'billable_hours', 'productivity_rate', 
+                      'defects_created', 'tasks_completed', 'tasks_on_time'),
+            'classes': ('collapse',)
+        }),
+        ('Attendance', {
+            'fields': ('days_worked', 'days_late', 'days_absent')
+        }),
+        ('Manual Ratings', {
+            'fields': ('quality_rating', 'attitude_rating', 'teamwork_rating', 'overall_score')
+        }),
+        ('Bonus', {
+            'fields': ('bonus_amount', 'bonus_notes', 'bonus_paid', 'bonus_paid_date')
+        }),
+        ('Metadata', {
+            'fields': ('notes', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(EmployeeCertification)
+class EmployeeCertificationAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'certification_name', 'skill_category', 'date_earned', 'expires_at', 'is_expired', 'verified_by')
+    list_filter = ('skill_category', 'date_earned', 'expires_at')
+    search_fields = ('employee__first_name', 'employee__last_name', 'certification_name', 'certificate_number')
+    readonly_fields = ('date_earned', 'is_expired')
+    fieldsets = (
+        ('Certification', {
+            'fields': ('employee', 'certification_name', 'skill_category', 'certificate_number')
+        }),
+        ('Dates', {
+            'fields': ('date_earned', 'expires_at', 'is_expired')
+        }),
+        ('Verification', {
+            'fields': ('verified_by', 'notes')
+        }),
+    )
+
+
+@admin.register(EmployeeSkillLevel)
+class EmployeeSkillLevelAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'skill', 'level', 'total_points', 'assessments_passed', 'last_assessment_date')
+    list_filter = ('level', 'last_assessment_date')
+    search_fields = ('employee__first_name', 'employee__last_name', 'skill')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        ('Skill Info', {
+            'fields': ('employee', 'skill', 'level')
+        }),
+        ('Progress', {
+            'fields': ('assessments_passed', 'total_points', 'last_assessment_date')
+        }),
+        ('Notes', {
+            'fields': ('notes', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(SOPCompletion)
+class SOPCompletionAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'sop', 'completed_at', 'passed', 'score', 'points_awarded', 'badge_awarded')
+    list_filter = ('passed', 'completed_at', 'badge_awarded')
+    search_fields = ('employee__first_name', 'employee__last_name', 'sop__name')
+    readonly_fields = ('completed_at',)
+    fieldsets = (
+        ('Completion', {
+            'fields': ('employee', 'sop', 'completed_at', 'time_taken')
+        }),
+        ('Results', {
+            'fields': ('score', 'passed', 'points_awarded', 'badge_awarded')
+        }),
+        ('Notes', {
+            'fields': ('notes',),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+# Change Order Admin - Redirige al CO Board después de crear/editar
+@admin.register(ChangeOrder)
+class ChangeOrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'project', 'description_short', 'amount', 'status', 'date_created')
+    list_filter = ('status', 'date_created', 'project')
+    search_fields = ('project__name', 'description')
+    readonly_fields = ('date_created',)
+    date_hierarchy = 'date_created'
+    ordering = ('-date_created',)
+    
+    def description_short(self, obj):
+        """Muestra una versión corta de la descripción"""
+        return obj.description[:50] + '...' if len(obj.description) > 50 else obj.description
+    description_short.short_description = 'Description'
+    
+    def response_add(self, request, obj, post_url_continue=None):
+        """Redirige al CO Board después de crear un CO"""
+        return redirect('changeorder_board')
+    
+    def response_change(self, request, obj):
+        """Redirige al CO Board después de editar un CO"""
+        return redirect('changeorder_board')
+
+

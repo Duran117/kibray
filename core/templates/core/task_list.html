@@ -41,7 +41,7 @@
           <td>#{{ t.id }}</td>
           <td>{{ t.title }}</td>
           <td>{{ t.status }}</td>
-          <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:'—' }}</td>
+          <td>{{ t.assigned_to|default:'—' }}</td>
           <td class="text-end">
             <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary">{% trans 'Ver' %}</a>
             {% if can_create %}

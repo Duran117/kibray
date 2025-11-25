@@ -1,0 +1,205 @@
+{% comment %}
+Photo Annotation Editor Component
+
+Usage:
+{% include 'core/partials/photo_annotator.html' with canvas_id='myCanvas' image_url=photo.image.url annotations=photo.annotations %}
+
+Required parameters:
+- canvas_id: Unique ID for the canvas element
+- image_url: URL of the image to annotate
+
+Optional parameters:
+- annotations: Existing annotations JSON (if editing)
+- show_save_button: Show save button (default: true)
+- height: Canvas container height (default: 600px)
+{% endcomment %}
+
+<!-- Fabric.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
+<!-- Photo Annotator Component -->
+<div class="photo-annotator-container" id="annotator-container-{{ canvas_id }}">
+    <!-- Toolbar -->
+    <div class="card mb-3">
+        <div class="card-body p-3">
+            <div class="row g-2 align-items-center">
+                <!-- Tools -->
+                <div class="col-auto">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm tool-btn" data-tool="brush" title="Dibujo libre">
+                            <i class="bi bi-brush"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm tool-btn" data-tool="arrow" title="Flecha">
+                            <i class="bi bi-arrow-up-right"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm tool-btn" data-tool="rectangle" title="Rectángulo">
+                            <i class="bi bi-square"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm tool-btn" data-tool="circle" title="Círculo">
+                            <i class="bi bi-circle"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm tool-btn" data-tool="text" title="Texto">
+                            <i class="bi bi-fonts"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm tool-btn" data-tool="select" title="Seleccionar">
+                            <i class="bi bi-cursor"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Color Picker -->
+                <div class="col-auto">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Color</span>
+                        <input type="color" class="form-control form-control-color" id="color-picker-{{ canvas_id }}" value="#ff0000" title="Color">
+                    </div>
+                </div>
+
+                <!-- Brush Width -->
+                <div class="col-auto">
+                    <div class="input-group input-group-sm" style="width: 150px;">
+                        <span class="input-group-text">Grosor</span>
+                        <input type="range" class="form-range" id="brush-width-{{ canvas_id }}" min="1" max="10" value="3">
+                        <span class="input-group-text" id="width-display-{{ canvas_id }}">3</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="col-auto ms-auto">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="undo-btn-{{ canvas_id }}" title="Deshacer">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" id="delete-btn-{{ canvas_id }}" title="Eliminar selección">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" id="clear-btn-{{ canvas_id }}" title="Limpiar todo">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="card">
+        <div class="card-body p-3 text-center" style="background: #f8f9fa;">
+            <canvas id="{{ canvas_id }}" style="border: 1px solid #dee2e6; background: white;"></canvas>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="alert alert-info mt-3 mb-0">
+        <h6 class="mb-2"><i class="bi bi-info-circle"></i> Instrucciones</h6>
+        <ul class="mb-0 small">
+            <li><strong>Dibujo libre:</strong> Selecciona el pincel y dibuja directamente sobre la imagen</li>
+            <li><strong>Formas:</strong> Selecciona flecha/rectángulo/círculo, haz clic y arrastra</li>
+            <li><strong>Texto:</strong> Haz clic en texto, luego escribe directamente en el canvas</li>
+            <li><strong>Editar:</strong> Usa la herramienta de selección para mover/redimensionar elementos</li>
+            <li><strong>Eliminar:</strong> Selecciona un elemento y haz clic en el botón de eliminar</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Hidden input to store annotations JSON -->
+<input type="hidden" id="annotations-data-{{ canvas_id }}" name="annotations_{{ canvas_id }}" value="">
+
+<script>
+(function() {
+    const canvasId = '{{ canvas_id }}';
+    const imageUrl = '{{ image_url }}';
+    const existingAnnotations = {{ annotations|safe|default:'null' }};
+
+    // Inicializar anotador
+    const annotator = new PhotoAnnotator(canvasId, imageUrl, existingAnnotations);
+    
+    annotator.init().then(() => {
+        console.log('Photo annotator initialized for', canvasId);
+        
+        // Seleccionar herramienta por defecto (brush)
+        document.querySelector(`#annotator-container-${canvasId} [data-tool="brush"]`).classList.add('active');
+    }).catch(error => {
+        console.error('Error initializing annotator:', error);
+        alert('Error cargando el editor de anotaciones. Por favor recarga la página.');
+    });
+
+    // Tool buttons
+    document.querySelectorAll(`#annotator-container-${canvasId} .tool-btn`).forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tool = this.getAttribute('data-tool');
+            
+            // Update active button
+            document.querySelectorAll(`#annotator-container-${canvasId} .tool-btn`).forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Set tool
+            if (tool === 'text') {
+                annotator.addText('Texto');
+            } else {
+                annotator.setTool(tool);
+            }
+        });
+    });
+
+    // Color picker
+    document.getElementById(`color-picker-${canvasId}`).addEventListener('change', function() {
+        annotator.setColor(this.value);
+    });
+
+    // Brush width
+    const brushWidthInput = document.getElementById(`brush-width-${canvasId}`);
+    const widthDisplay = document.getElementById(`width-display-${canvasId}`);
+    
+    brushWidthInput.addEventListener('input', function() {
+        const width = parseInt(this.value);
+        annotator.setBrushWidth(width);
+        widthDisplay.textContent = width;
+    });
+
+    // Undo
+    document.getElementById(`undo-btn-${canvasId}`).addEventListener('click', () => {
+        annotator.undo();
+    });
+
+    // Delete selected
+    document.getElementById(`delete-btn-${canvasId}`).addEventListener('click', () => {
+        annotator.deleteSelected();
+    });
+
+    // Clear all
+    document.getElementById(`clear-btn-${canvasId}`).addEventListener('click', () => {
+        if (confirm('¿Limpiar todas las anotaciones?')) {
+            annotator.clear();
+        }
+    });
+
+    // Guardar anotaciones automáticamente en hidden input
+    setInterval(() => {
+        const annotationsData = annotator.getAnnotations();
+        document.getElementById(`annotations-data-${canvasId}`).value = annotationsData;
+    }, 1000);
+
+    // Exponer annotator globalmente para acceso externo
+    window[`annotator_${canvasId}`] = annotator;
+})();
+</script>
+
+<style>
+.photo-annotator-container .tool-btn.active {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.photo-annotator-container canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.form-control-color {
+    width: 50px;
+    height: 31px;
+}
+</style>

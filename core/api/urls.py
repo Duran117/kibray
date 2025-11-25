@@ -4,7 +4,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     NotificationViewSet, ChatChannelViewSet, ChatMessageViewSet,
     TaskViewSet, DamageReportViewSet, FloorPlanViewSet, PlanPinViewSet,
-    ColorSampleViewSet, ProjectViewSet, ScheduleCategoryViewSet, ScheduleItemViewSet
+    ColorSampleViewSet, ProjectViewSet, ScheduleCategoryViewSet, ScheduleItemViewSet,
+    global_search, save_changeorder_photo_annotations, delete_changeorder_photo
 )
 
 router = DefaultRouter()
@@ -24,6 +25,11 @@ urlpatterns = [
     # JWT Auth
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # Global Search
+    path('search/', global_search, name='global_search'),
+    # ChangeOrder Photos
+    path('changeorder-photo/<int:photo_id>/annotations/', save_changeorder_photo_annotations, name='save_photo_annotations'),
+    path('changeorder-photo/<int:photo_id>/delete/', delete_changeorder_photo, name='delete_photo'),
     # API routes
     path('', include(router.urls)),
 ]

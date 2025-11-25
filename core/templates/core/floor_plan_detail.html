@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load core_extras %}
 {% block content %}
 <style>
 .plan-wrapper { position: relative; display: inline-block; }
@@ -8,6 +9,48 @@
 .pin-path-line { stroke-width: 3; fill: none; pointer-events: none; }
 .pin-path-marker { }
 .zoom-controls { position: absolute; top: 10px; right: 10px; z-index: 100; }
+
+/* Mode Toggle Styles */
+.mode-toggle-container {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.mode-toggle-buttons .btn {
+  margin-right: 5px;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.mode-toggle-buttons .btn i {
+  margin-right: 5px;
+}
+.mode-toggle-buttons .btn.active {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+}
+.mode-badge {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 15px;
+  border-radius: 20px;
+}
+.plan-wrapper.edit-mode {
+  border: 3px solid #28a745;
+  box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+  cursor: crosshair;
+}
+.plan-wrapper.view-mode {
+  border: 3px solid #007bff;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.2);
+  cursor: default;
+}
 </style>
 <div class="container-fluid py-3">
   <nav aria-label="breadcrumb">
@@ -20,6 +63,25 @@
 
   <div class="row g-3">
     <div class="col-lg-8">
+      <!-- Mode Toggle Controls -->
+      <div class="mode-toggle-container">
+        <div class="mode-toggle-buttons">
+          <button type="button" class="btn btn-primary active" id="viewModeBtn" onclick="switchToViewMode()">
+            <i class="bi bi-eye"></i> Modo Visualización
+          </button>
+          {% if can_edit_pins %}
+          <button type="button" class="btn btn-success" id="editModeBtn" onclick="switchToEditMode()">
+            <i class="bi bi-pencil"></i> Modo Edición
+          </button>
+          {% endif %}
+        </div>
+        <div>
+          <span class="mode-badge badge bg-primary" id="modeBadge">
+            <i class="bi bi-eye"></i> VISUALIZANDO
+          </span>
+        </div>
+      </div>
+      
       <div class="card">
         <div class="card-body position-relative" style="overflow:auto; max-height:80vh;">
           <div class="zoom-controls btn-group">
@@ -27,7 +89,7 @@
             <button class="btn btn-sm btn-outline-secondary" id="zoomOut" title="Zoom out">−</button>
             <button class="btn btn-sm btn-outline-secondary" id="zoomReset" title="Reset">1:1</button>
           </div>
-          <div class="plan-wrapper" id="planWrapper">
+          <div class="plan-wrapper view-mode" id="planWrapper">
             <svg id="planSvg" style="position:absolute; top:0; left:0; pointer-events:none; width:100%; height:100%;"></svg>
             <img id="planImage" src="{{ plan.image.url }}" alt="plan" style="transform-origin: top left;">
             {% for pin in pins %}
@@ -38,7 +100,12 @@
           </div>
         </div>
       </div>
-      <div class="alert alert-secondary mt-2">Haz clic sobre el plano para agregar un pin. Marca "Línea multipunto" para conectar puntos A→B→C. Cada pin nuevo tiene un color único.</div>
+      <div class="alert alert-secondary mt-2" id="modeHelpText">
+        <i class="bi bi-info-circle"></i> <strong>Modo Visualización:</strong> Haz clic en los pines para ver su información. 
+        {% if can_edit_pins %}
+        Cambia a <strong>Modo Edición</strong> para agregar o editar pines.
+        {% endif %}
+      </div>
     </div>
     <div class="col-lg-4">
       <div class="card">
@@ -134,6 +201,39 @@
   let scale = 1.0;
   let multipointMode = false;
   let tempPoints = [];
+  let currentMode = 'view'; // 'view' or 'edit'
+
+  // Mode Toggle Functions
+  function switchToViewMode() {
+    currentMode = 'view';
+    document.getElementById('viewModeBtn').classList.add('active');
+    document.getElementById('editModeBtn')?.classList.remove('active');
+    document.getElementById('modeBadge').innerHTML = '<i class="bi bi-eye"></i> VISUALIZANDO';
+    document.getElementById('modeBadge').className = 'mode-badge badge bg-primary';
+    wrapper.classList.remove('edit-mode');
+    wrapper.classList.add('view-mode');
+    document.getElementById('modeHelpText').innerHTML = `
+      <i class="bi bi-info-circle"></i> <strong>Modo Visualización:</strong> Haz clic en los pines para ver su información. 
+      {% if can_edit_pins %}
+      Cambia a <strong>Modo Edición</strong> para agregar o editar pines.
+      {% endif %}
+    `;
+  }
+
+  function switchToEditMode() {
+    currentMode = 'edit';
+    document.getElementById('viewModeBtn').classList.remove('active');
+    document.getElementById('editModeBtn').classList.add('active');
+    document.getElementById('modeBadge').innerHTML = '<i class="bi bi-pencil"></i> EDITANDO';
+    document.getElementById('modeBadge').className = 'mode-badge badge bg-success';
+    wrapper.classList.remove('view-mode');
+    wrapper.classList.add('edit-mode');
+    document.getElementById('modeHelpText').innerHTML = `
+      <i class="bi bi-pencil-square"></i> <strong>Modo Edición:</strong> Haz clic sobre el plano para agregar un pin. 
+      Marca "Línea multipunto" para conectar puntos A→B→C. Cada pin nuevo tiene un color único.
+      Haz clic en pines existentes para editarlos.
+    `;
+  }
 
   // Zoom controls
   zoomIn.addEventListener('click', ()=>{ scale = Math.min(scale+0.2, 3); applyZoom(); });
@@ -160,6 +260,12 @@
     if (evt.target && evt.target.closest && evt.target.closest('.plan-pin')) {
       return;
     }
+    
+    // Solo permitir crear pins en modo edición
+    if (currentMode !== 'edit') {
+      return;
+    }
+    
     const rect = img.getBoundingClientRect();
     const x = (evt.clientX - rect.left) / (rect.width);
     const y = (evt.clientY - rect.top) / (rect.height);
@@ -227,82 +333,337 @@
   const pinsData = {{ pins|safe|default:"[]" }};
   // (Para renderizar pins existentes con path_points se requiere pasar datos como JSON desde el backend)
 
-  // Popovers para pines: al hacer clic, cargar detalles vía AJAX
+  // Popovers para pines: al hacer clic, abrir modal de detalles
   const pinEls = document.querySelectorAll('.plan-pin');
-  let activePopover = null;
   pinEls.forEach(el => {
-    const url = el.getAttribute('data-popover-url');
-    const color = el.getAttribute('data-color') || '#0d6efd';
-    const pop = new bootstrap.Popover(el, {
-      html: true,
-      container: 'body',
-      placement: 'top',
-      trigger: 'manual',
-      title: `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color}"></span> Detalles</span>`,
-      content: '<div class="text-muted small">Cargando…</div>'
-    });
-
     el.addEventListener('click', function(e){
       e.stopPropagation();
-      // Cerrar popover activo si es otro
-      if (activePopover && activePopover !== pop) {
-        activePopover.hide();
+      const pinId = this.getAttribute('data-pin-id');
+      if (pinId) {
+        openPinModal(pinId);
       }
-      pop.show();
-      activePopover = pop;
-      if (!url) return;
-      fetch(url, { headers: { 'Accept': 'application/json' }})
-        .then(r => r.ok ? r.json() : Promise.reject(r.status))
-        .then(data => {
-          const titleHtml = `<span style="display:inline-flex;align-items:center;gap:6px;">
-              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${data.color || color}"></span>
-              ${escapeHtml(data.title || 'Pin')}
-            </span>`;
-          let body = '';
-          if (data.description) {
-            body += `<div class="mb-2">${escapeHtml(data.description)}</div>`;
-          }
-          if (data.task) {
-            body += `<div class="mb-1"><span class="badge text-bg-info me-1">Tarea</span>
-              <a href="${data.links?.task || '#'}">${escapeHtml(data.task.title || ('#'+data.task.id))}</a>
-              <span class="ms-1 badge text-bg-light">${escapeHtml(data.task.status || '')}</span></div>`;
-          }
-          if (data.color_sample) {
-            body += `<div class="mb-1"><span class="badge text-bg-secondary me-1">Color</span>
-              <a href="${data.links?.color_sample || '#'}">${escapeHtml(data.color_sample.name || ('#'+data.color_sample.id))}</a>
-              <span class="ms-1 text-muted small">${escapeHtml(data.color_sample.brand || '')}</span>
-              <span class="ms-1 badge text-bg-light">${escapeHtml(data.color_sample.status || '')}</span></div>`;
-          }
-          if (!body) {
-            body = '<div class="text-muted small">Sin detalles vinculados.</div>';
-          }
-          // Actualizar contenido del popover
-          try {
-            pop.setContent({
-              '.popover-header': titleHtml,
-              '.popover-body': body
-            });
-          } catch (err) {
-            // Fallback para versiones antiguas
-            el.setAttribute('data-bs-content', body);
-            el.setAttribute('data-bs-original-title', titleHtml);
-          }
-        })
-        .catch(() => {
-          try {
-            pop.setContent({ '.popover-body': '<div class="text-danger small">Error cargando detalles.</div>' });
-          } catch (_) {}
-        });
     });
   });
 
-  // Cerrar al hacer clic fuera
-  document.addEventListener('click', function(){
-    if (activePopover) {
-      activePopover.hide();
-      activePopover = null;
-    }
-  });
+  function openPinModal(pinId) {
+    const modal = new bootstrap.Modal(document.getElementById('pinInfoModal'));
+    const modalBody = document.getElementById('pinInfoModalBody');
+    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+    modal.show();
+
+    fetch(`/pins/${pinId}/info/`, {
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(data => {
+      renderPinModal(data, pinId);
+    })
+    .catch(() => {
+      modalBody.innerHTML = '<div class="alert alert-danger">Error cargando detalles del pin</div>';
+    });
+  }
+
+  function renderPinModal(pin, pinId) {
+    const canEdit = pin.can_edit;
+    let html = `
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="mb-1">${escapeHtml(pin.title || 'Pin sin título')}</h5>
+            <span class="badge bg-primary">${escapeHtml(pin.pin_type_display || pin.pin_type)}</span>
+          </div>
+          <div style="width: 30px; height: 30px; border-radius: 50%; background: ${pin.pin_color}; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
+        </div>
+      </div>
+
+      ${pin.description ? `
+        <div class="mb-3">
+          <h6 class="text-muted mb-1">Descripción</h6>
+          <p>${escapeHtml(pin.description)}</p>
+        </div>
+      ` : ''}
+
+      ${pin.color_sample ? `
+        <div class="mb-3">
+          <h6 class="text-muted mb-1">Color Aprobado</h6>
+          <div class="d-flex align-items-center gap-2">
+            ${pin.color_sample.hex_color ? `<div style="width: 24px; height: 24px; border-radius: 4px; background: ${pin.color_sample.hex_color}; border: 1px solid #dee2e6;"></div>` : ''}
+            <div>
+              <strong>${escapeHtml(pin.color_sample.name)}</strong>
+              ${pin.color_sample.manufacturer ? `<div class="small text-muted">${escapeHtml(pin.color_sample.manufacturer)} - ${escapeHtml(pin.color_sample.color_code || '')}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
+      ${pin.linked_task ? `
+        <div class="mb-3">
+          <h6 class="text-muted mb-1">Tarea Vinculada</h6>
+          <div>
+            <strong>${escapeHtml(pin.linked_task.name)}</strong>
+            <span class="badge bg-info ms-2">${escapeHtml(pin.linked_task.status)}</span>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="text-muted mb-0">Fotos (${pin.attachments.length})</h6>
+          ${canEdit ? `
+            <button class="btn btn-sm btn-primary" onclick="showAddPhotoForm(${pinId})">
+              <i class="bi bi-plus-circle"></i> Agregar Foto
+            </button>
+          ` : ''}
+        </div>
+        ${pin.attachments.length > 0 ? `
+          <div class="row g-2">
+            ${pin.attachments.map(att => `
+              <div class="col-6 col-md-4" id="attachment-${att.id}">
+                <div class="position-relative">
+                  <img src="${att.image_url}" class="img-fluid rounded" alt="Attachment">
+                  ${canEdit ? `
+                    <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
+                            onclick="deleteAttachment(${att.id})"
+                            style="opacity: 0.9;">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : '<p class="text-muted">No hay fotos adjuntas</p>'}
+      </div>
+
+      ${canEdit ? `
+        <div class="border-top pt-3">
+          <button class="btn btn-primary btn-sm" onclick="showEditForm(${pinId})">
+            <i class="bi bi-pencil"></i> Editar Pin
+          </button>
+        </div>
+      ` : ''}
+    `;
+
+    document.getElementById('pinInfoModalBody').innerHTML = html;
+  }
+
+  window.showEditForm = function(pinId) {
+    // TODO: Mostrar formulario de edición inline
+    alert('Formulario de edición - próximamente');
+  };
+
+  window.showAddPhotoForm = function(pinId) {
+    const html = `
+      <form id="addPhotoForm" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label">Seleccionar fotos</label>
+          <input type="file" name="photos" id="pinPhotos" class="form-control" multiple accept="image/*" required>
+        </div>
+        <div id="pinPhotoPreview" class="row mb-3"></div>
+        <button type="button" class="btn btn-primary me-2" id="annotatePin PhotosBtn" disabled>
+          <i class="bi bi-pencil-square"></i> Anotar Fotos
+        </button>
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-upload"></i> Subir Fotos
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="openPinModal(${pinId})">
+          Cancelar
+        </button>
+      </form>
+    `;
+    document.getElementById('pinInfoModalBody').innerHTML = html;
+
+    // Handle photo selection
+    document.getElementById('pinPhotos').addEventListener('change', function(e) {
+      const files = e.target.files;
+      const preview = document.getElementById('pinPhotoPreview');
+      preview.innerHTML = '';
+      
+      if (files.length > 0) {
+        document.getElementById('annotatePinPhotosBtn').disabled = false;
+        
+        Array.from(files).forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const col = document.createElement('div');
+            col.className = 'col-6 mb-2';
+            col.innerHTML = `
+              <div class="card">
+                <img src="${e.target.result}" class="card-img-top" alt="Photo ${index + 1}">
+                <div class="card-body p-2 text-center">
+                  <small class="text-muted">${file.name}</small>
+                </div>
+              </div>
+            `;
+            preview.appendChild(col);
+          };
+          reader.readAsDataURL(file);
+        });
+      } else {
+        document.getElementById('annotatePinPhotosBtn').disabled = true;
+      }
+    });
+
+    // Annotate button
+    document.getElementById('annotatePinPhotosBtn')?.addEventListener('click', function() {
+      showPinPhotoAnnotator(pinId);
+    });
+
+    // Form submit
+    document.getElementById('addPhotoForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      
+      // Add annotations if they exist
+      window.pinPhotoAnnotations = window.pinPhotoAnnotations || {};
+      Object.keys(window.pinPhotoAnnotations).forEach(key => {
+        formData.append(key, window.pinPhotoAnnotations[key]);
+      });
+      
+      fetch(`/pins/${pinId}/add-photo/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': getCsrfToken()
+        }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          window.pinPhotoAnnotations = {}; // Clear
+          openPinModal(pinId); // Reload modal
+        } else {
+          alert('Error: ' + (data.error || 'Unknown error'));
+        }
+      })
+      .catch(err => alert('Error subiendo fotos'));
+    });
+  };
+
+  function showPinPhotoAnnotator(pinId) {
+    const files = document.getElementById('pinPhotos').files;
+    const annotationModal = document.getElementById('pinPhotoAnnotationModal');
+    const container = document.getElementById('pinAnnotationEditors');
+    container.innerHTML = '';
+    
+    const modal = new bootstrap.Modal(annotationModal);
+    modal.show();
+    
+    Array.from(files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const canvasId = `pinAnnotationCanvas${index}`;
+        
+        const editorDiv = document.createElement('div');
+        editorDiv.className = 'mb-5';
+        editorDiv.innerHTML = `
+          <h5 class="mb-3">Foto ${index + 1}: ${file.name}</h5>
+          <div class="card">
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="row g-2 align-items-center">
+                  <div class="col-auto">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-primary tool-btn active" data-canvas="${canvasId}" data-tool="brush">
+                        <i class="bi bi-brush"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="arrow">
+                        <i class="bi bi-arrow-up-right"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="rectangle">
+                        <i class="bi bi-square"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="circle">
+                        <i class="bi bi-circle"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="text">
+                        <i class="bi bi-fonts"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <input type="color" class="form-control form-control-sm form-control-color" id="pinColor${index}" value="#ff0000">
+                  </div>
+                  <div class="col-auto">
+                    <input type="range" class="form-range" id="pinWidth${index}" min="1" max="10" value="3" style="width: 120px;">
+                    <small id="pinWidthDisplay${index}">3px</small>
+                  </div>
+                  <div class="col-auto ms-auto">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.pinAnnotator${index}.undo()">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="if(confirm('¿Limpiar?')) window.pinAnnotator${index}.clear()">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center" style="background: #f8f9fa; padding: 20px;">
+                <canvas id="${canvasId}"></canvas>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(editorDiv);
+        
+        const annotator = new PhotoAnnotator(canvasId, e.target.result, null);
+        annotator.init().then(() => {
+          window[`pinAnnotator${index}`] = annotator;
+          
+          document.querySelectorAll(`[data-canvas="${canvasId}"]`).forEach(btn => {
+            btn.addEventListener('click', function() {
+              const tool = this.getAttribute('data-tool');
+              document.querySelectorAll(`[data-canvas="${canvasId}"]`).forEach(b => b.classList.remove('active'));
+              this.classList.add('active');
+              
+              if (tool === 'text') {
+                annotator.addText();
+              } else {
+                annotator.setTool(tool);
+              }
+            });
+          });
+          
+          document.getElementById(`pinColor${index}`).addEventListener('change', function() {
+            annotator.setColor(this.value);
+          });
+          
+          document.getElementById(`pinWidth${index}`).addEventListener('input', function() {
+            annotator.setBrushWidth(parseInt(this.value));
+            document.getElementById(`pinWidthDisplay${index}`).textContent = this.value + 'px';
+          });
+          
+          setInterval(() => {
+            window.pinPhotoAnnotations = window.pinPhotoAnnotations || {};
+            window.pinPhotoAnnotations[`annotations_${index}`] = annotator.getAnnotations();
+          }, 2000);
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  window.deleteAttachment = function(attachmentId) {
+    if (!confirm('¿Eliminar esta foto?')) return;
+
+    fetch(`/pins/attachments/${attachmentId}/delete/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCsrfToken()
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById(`attachment-${attachmentId}`).remove();
+      }
+    });
+  };
+
+  function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+  }
 
   // util: escape básico para contenido HTML
   function escapeHtml(str){
@@ -315,4 +676,48 @@
   }
 })();
 </script>
+
+<!-- Load Photo Annotator Script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+<script src="{% static 'core/js/photo-annotator.js' %}"></script>
+
+<!-- Pin Info Modal -->
+<div class="modal fade" id="pinInfoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Información del Pin</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="pinInfoModalBody">
+        <!-- Content loaded via AJAX -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pin Photo Annotation Modal -->
+<div class="modal fade" id="pinPhotoAnnotationModal" tabindex="-1">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-pencil-square"></i> Anotar Fotos del Pin
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <div id="pinAnnotationEditors"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+          <i class="bi bi-check"></i> Guardar Anotaciones
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

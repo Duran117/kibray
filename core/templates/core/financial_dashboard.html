@@ -1,0 +1,355 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Financial Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .kpi-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 12px 0;
+    }
+    
+    .kpi-label {
+        color: #6b7280;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .kpi-positive {
+        color: #10b981;
+    }
+    
+    .kpi-negative {
+        color: #ef4444;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        min-height: 400px;
+    }
+    
+    .alert-box {
+        border-left: 4px solid;
+        padding: 16px;
+        margin-bottom: 16px;
+        border-radius: 4px;
+    }
+    
+    .alert-warning {
+        background: #fef3c7;
+        border-color: #f59e0b;
+    }
+    
+    .alert-danger {
+        background: #fee2e2;
+        border-color: #ef4444;
+    }
+    
+    .alert-info {
+        background: #dbeafe;
+        border-color: #3b82f6;
+    }
+    
+    .over-budget-table {
+        width: 100%;
+        margin-top: 12px;
+    }
+    
+    .over-budget-table th {
+        background: #f3f4f6;
+        padding: 12px;
+        text-align: left;
+    }
+    
+    .over-budget-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-graph-up-arrow"></i> {% trans "Financial Dashboard" %}</h1>
+            <p class="text-muted">{% trans "Executive overview of business financial health" %}</p>
+        </div>
+    </div>
+    
+    <!-- KPIs Row -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-label">{% trans "YTD Revenue" %}</div>
+                <div class="kpi-value kpi-positive">${{ ytd_revenue|floatformat:2 }}</div>
+                <small class="text-muted">{% trans "From paid invoices" %}</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-label">{% trans "YTD Expenses" %}</div>
+                <div class="kpi-value">${{ ytd_expenses|floatformat:2 }}</div>
+                <small class="text-muted">{% trans "All expenses this year" %}</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-label">{% trans "Profit Margin" %}</div>
+                <div class="kpi-value {% if profit_margin > 20 %}kpi-positive{% elif profit_margin < 10 %}kpi-negative{% endif %}">
+                    {{ profit_margin|floatformat:1 }}%
+                </div>
+                <small class="text-muted">{% trans "Target: 25%" %}</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-label">{% trans "Outstanding AR" %}</div>
+                <div class="kpi-value">${{ outstanding_ar|floatformat:2 }}</div>
+                <small class="text-muted">{% trans "Unpaid invoices" %}</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cash Flow Card -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="kpi-card">
+                <div class="kpi-label">{% trans "Cash Flow This Month" %}</div>
+                <div class="kpi-value {% if cash_flow > 0 %}kpi-positive{% else %}kpi-negative{% endif %}">
+                    ${{ cash_flow|floatformat:2 }}
+                </div>
+                <small class="text-muted">{% trans "Income minus expenses" %}</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alerts Section -->
+    {% if alerts %}
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="bi bi-exclamation-triangle"></i> {% trans "Alerts" %}</h3>
+            {% for alert in alerts %}
+                <div class="alert-box alert-{{ alert.type }}">
+                    <strong>{{ alert.message }}</strong>
+                    {% if alert.action_url %}
+                        <a href="{{ alert.action_url }}" class="btn btn-sm btn-primary float-end">
+                            {{ alert.action_text }}
+                        </a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Over Budget Projects Detail -->
+    {% if over_budget_projects %}
+    <div class="row">
+        <div class="col-12">
+            <div class="kpi-card">
+                <h4><i class="bi bi-exclamation-circle text-danger"></i> {% trans "Projects Over Budget" %}</h4>
+                <table class="over-budget-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Project" %}</th>
+                            <th>{% trans "Budget" %}</th>
+                            <th>{% trans "Actual" %}</th>
+                            <th>{% trans "Variance" %}</th>
+                            <th>{% trans "%" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proj in over_budget_projects %}
+                        <tr>
+                            <td><strong>{{ proj.name }}</strong></td>
+                            <td>${{ proj.budget|floatformat:2 }}</td>
+                            <td>${{ proj.actual|floatformat:2 }}</td>
+                            <td class="text-danger">${{ proj.variance|floatformat:2 }}</td>
+                            <td class="text-danger">+{{ proj.percentage|floatformat:1 }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Revenue Trend -->
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h4>{% trans "Revenue Trend (Last 12 Months)" %}</h4>
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Expenses Breakdown -->
+        <div class="col-md-4">
+            <div class="chart-container">
+                <h4>{% trans "Expenses Breakdown" %}</h4>
+                <canvas id="expensesBreakdownChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Profit per Project -->
+        <div class="col-md-12">
+            <div class="chart-container">
+                <h4>{% trans "Profit by Project (Top 10 Active)" %}</h4>
+                <canvas id="profitPerProjectChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="kpi-card">
+                <h4><i class="bi bi-lightning"></i> {% trans "Quick Actions" %}</h4>
+                <div class="btn-group mt-3" role="group">
+                    <a href="{% url 'invoice_aging_report' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-clock-history"></i> {% trans "Aging Report" %}
+                    </a>
+                    <a href="{% url 'export_financial_data' %}?type=invoices" class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-spreadsheet"></i> {% trans "Export Invoices" %}
+                    </a>
+                    <a href="{% url 'export_financial_data' %}?type=expenses" class="btn btn-outline-warning">
+                        <i class="bi bi-file-earmark-excel"></i> {% trans "Export Expenses" %}
+                    </a>
+                    <a href="{% url 'productivity_dashboard' %}" class="btn btn-outline-info">
+                        <i class="bi bi-people"></i> {% trans "Productivity" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Revenue Trend Chart
+const revenueTrendData = {{ revenue_trend|safe }};
+const ctx1 = document.getElementById('revenueTrendChart').getContext('2d');
+new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: revenueTrendData.labels,
+        datasets: [{
+            label: 'Revenue',
+            data: revenueTrendData.data,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Profit per Project Chart
+const profitData = {{ profit_per_project|safe }};
+const ctx2 = document.getElementById('profitPerProjectChart').getContext('2d');
+new Chart(ctx2, {
+    type: 'bar',
+    data: {
+        labels: profitData.labels,
+        datasets: [{
+            label: 'Profit',
+            data: profitData.data,
+            backgroundColor: profitData.data.map(val => val >= 0 ? '#10b981' : '#ef4444')
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Expenses Breakdown Pie Chart
+const expensesData = {{ expenses_breakdown|safe }};
+const ctx3 = document.getElementById('expensesBreakdownChart').getContext('2d');
+new Chart(ctx3, {
+    type: 'doughnut',
+    data: {
+        labels: expensesData.labels,
+        datasets: [{
+            data: expensesData.data,
+            backgroundColor: [
+                '#3b82f6',
+                '#8b5cf6',
+                '#ec4899',
+                '#f59e0b',
+                '#10b981',
+                '#6b7280'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

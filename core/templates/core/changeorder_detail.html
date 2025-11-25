@@ -1,24 +1,495 @@
 {% extends "core/base.html" %}
-{% block content %}
-<h2>Detalle de Orden de Cambio: {{ changeorder.description }}</h2>
-<p>Proyecto: {{ changeorder.project.name }}</p>
-<p>Estado: {{ changeorder.get_status_display }}</p>
-<p>Notas: {{ changeorder.notes }}</p>
+{% load static %}
 
-<h3>Gastos asociados</h3>
-<ul>
-    {% for expense in changeorder.expenses.all %}
-        <li>
-            {{ expense.date }} - ${{ expense.amount }} - {{ expense.description }}
-            {% if expense.receipt %}
-                | <a href="{{ expense.receipt.url }}" target="_blank">Ver recibo</a>
-            {% endif %}
-            {% if expense.invoice %}
-                | <a href="{{ expense.invoice.url }}" target="_blank">Ver factura</a>
-            {% endif %}
-        </li>
-    {% empty %}
-        <li>No hay gastos asociados.</li>
-    {% endfor %}
-</ul>
+{% block title %}CO-{{ changeorder.id|stringformat:"04d" }} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Reset body styles */
+    body {
+        background: #f8fafc !important;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
+
+    /* Page Container */
+    .co-page {
+        max-width: 900px !important;
+        margin: 2rem auto !important;
+        padding: 2rem 2.5rem !important;
+        background: #ffffff !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
+    }
+
+    /* Header */
+    .co-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        border-bottom: 2px solid #f0f0f0 !important;
+        padding-bottom: 1.2rem !important;
+        margin-bottom: 1.8rem !important;
+    }
+
+    .co-header h1 {
+        margin: 0 !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+    }
+
+    .co-subtitle {
+        text-transform: uppercase !important;
+        letter-spacing: 0.12em !important;
+        font-size: 0.75rem !important;
+        color: #64748b !important;
+        margin-bottom: 0.4rem !important;
+        font-weight: 600 !important;
+    }
+
+    .co-project-name {
+        margin: 0.5rem 0 0 !important;
+        font-weight: 500 !important;
+        color: #475569 !important;
+        font-size: 1rem !important;
+    }
+
+    .co-header-right {
+        text-align: right !important;
+        font-size: 0.9rem !important;
+    }
+
+    .co-header-right p {
+        margin: 0.3rem 0 !important;
+        color: #64748b !important;
+    }
+
+    .co-amount {
+        margin-top: 0.6rem !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        color: #059669 !important;
+    }
+
+    /* Status Badge */
+    .co-status {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.4rem !important;
+        padding: 0.35rem 0.9rem !important;
+        border-radius: 999px !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .co-status.pending {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+    }
+
+    .co-status.approved {
+        background: #dbeafe !important;
+        color: #1e40af !important;
+    }
+
+    .co-status.sent {
+        background: #e9d5ff !important;
+        color: #6b21a8 !important;
+    }
+
+    .co-status.billed,
+    .co-status.paid {
+        background: #d1fae5 !important;
+        color: #065f46 !important;
+    }
+
+    /* Sections */
+    .co-section {
+        margin-bottom: 2rem !important;
+    }
+
+    .co-section h2 {
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.8rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding-bottom: 0.5rem !important;
+        color: #334155 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+
+    .co-section h2 i {
+        color: #667eea !important;
+        font-size: 1.2rem !important;
+    }
+
+    /* Two Column Layout */
+    .co-two-cols {
+        display: grid !important;
+        grid-template-columns: 180px 1fr !important;
+        row-gap: 0.6rem !important;
+        column-gap: 1.5rem !important;
+        font-size: 0.95rem !important;
+    }
+
+    .co-label {
+        font-weight: 600 !important;
+        color: #64748b !important;
+    }
+
+    .co-value {
+        color: #1e293b !important;
+    }
+
+    /* Description Boxes */
+    .co-description {
+        background: #f8fafc !important;
+        padding: 1rem 1.2rem !important;
+        border-radius: 8px !important;
+        border-left: 4px solid #667eea !important;
+        color: #475569 !important;
+        line-height: 1.6 !important;
+    }
+
+    .co-notes {
+        background: #fffbeb !important;
+        padding: 1rem 1.2rem !important;
+        border-radius: 8px !important;
+        border-left: 4px solid #f59e0b !important;
+        color: #78350f !important;
+        line-height: 1.6 !important;
+        font-style: italic !important;
+    }
+
+    /* Table */
+    .co-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 0.9rem !important;
+        margin-top: 0.5rem !important;
+    }
+
+    .co-table th,
+    .co-table td {
+        padding: 0.7rem 0.8rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        text-align: left !important;
+    }
+
+    .co-table th {
+        background: #f8fafc !important;
+        font-weight: 600 !important;
+        color: #475569 !important;
+        font-size: 0.85rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .co-table tbody tr:hover {
+        background: #f8fafc !important;
+    }
+
+    .co-table-amount {
+        font-weight: 600 !important;
+        color: #dc2626 !important;
+    }
+
+    .empty-state {
+        text-align: center !important;
+        padding: 2rem !important;
+        color: #94a3b8 !important;
+        font-style: italic !important;
+    }
+
+    .empty-state i {
+        font-size: 2rem !important;
+        display: block !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Actions */
+    .co-actions {
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 0.6rem !important;
+        margin-top: 2rem !important;
+        padding-top: 1.5rem !important;
+        border-top: 1px solid #e2e8f0 !important;
+    }
+
+    .co-actions .btn {
+        padding: 0.6rem 1.2rem !important;
+        border-radius: 8px !important;
+        border: none !important;
+        text-decoration: none !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+
+    .co-actions .btn-secondary {
+        background: #e5e7eb !important;
+        color: #374151 !important;
+    }
+
+    .co-actions .btn-secondary:hover {
+        background: #d1d5db !important;
+    }
+
+    .co-actions .btn-primary {
+        background: #667eea !important;
+        color: #ffffff !important;
+    }
+
+    .co-actions .btn-primary:hover {
+        background: #5568d3 !important;
+    }
+
+    .co-actions .btn-success {
+        background: #059669 !important;
+        color: #ffffff !important;
+    }
+
+    .co-actions .btn-success:hover {
+        background: #047857 !important;
+    }
+
+    .btn-outline {
+        background: transparent !important;
+        color: #667eea !important;
+        border: 1px solid #667eea !important;
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.85rem !important;
+        text-decoration: none !important;
+        border-radius: 6px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .btn-outline:hover {
+        background: #667eea !important;
+        color: white !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .co-page {
+            margin: 1rem !important;
+            padding: 1.5rem !important;
+        }
+
+        .co-header {
+            flex-direction: column !important;
+            gap: 1rem !important;
+        }
+
+        .co-header-right {
+            text-align: left !important;
+        }
+
+        .co-two-cols {
+            grid-template-columns: 1fr !important;
+            row-gap: 0.3rem !important;
+        }
+
+        .co-label {
+            font-size: 0.85rem !important;
+        }
+
+        .co-actions {
+            flex-direction: column !important;
+        }
+
+        .co-actions .btn {
+            width: 100% !important;
+            justify-content: center !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="co-page">
+
+    <!-- HEADER -->
+    <header class="co-header">
+        <div>
+            <div class="co-subtitle">Change Order</div>
+            <h1>CO-{{ changeorder.id|stringformat:"04d" }}</h1>
+            <p class="co-project-name">{{ changeorder.project.name }}</p>
+        </div>
+
+        <div class="co-header-right">
+            <p>
+                <span class="co-status {{ changeorder.status }}">
+                    {% if changeorder.status == 'pending' %}
+                        <i class="bi bi-clock"></i> Pendiente
+                    {% elif changeorder.status == 'approved' %}
+                        <i class="bi bi-check-circle"></i> Aprobado
+                    {% elif changeorder.status == 'sent' %}
+                        <i class="bi bi-send"></i> Enviado
+                    {% elif changeorder.status == 'billed' %}
+                        <i class="bi bi-receipt"></i> Facturado
+                    {% elif changeorder.status == 'paid' %}
+                        <i class="bi bi-cash"></i> Pagado
+                    {% endif %}
+                </span>
+            </p>
+            <p class="co-amount">${{ changeorder.amount|floatformat:2 }}</p>
+            <p><strong>Fecha:</strong> {{ changeorder.date_created|date:"d/m/Y" }}</p>
+            <p><strong>Cliente:</strong> {{ changeorder.project.client|default:"Sin cliente" }}</p>
+        </div>
+    </header>
+
+    <!-- INFO PRINCIPAL -->
+    <section class="co-section">
+        <h2><i class="bi bi-info-circle"></i> Información del Change Order</h2>
+        <div class="co-two-cols">
+            <div class="co-label">Proyecto</div>
+            <div class="co-value">{{ changeorder.project.name }}</div>
+
+            <div class="co-label">Cliente</div>
+            <div class="co-value">{{ changeorder.project.client|default:"Sin cliente" }}</div>
+
+            <div class="co-label">Fecha de creación</div>
+            <div class="co-value">{{ changeorder.date_created|date:"d/m/Y" }}</div>
+
+            <div class="co-label">Estado</div>
+            <div class="co-value">{{ changeorder.get_status_display }}</div>
+        </div>
+    </section>
+
+    <!-- DESCRIPCIÓN -->
+    <section class="co-section">
+        <h2><i class="bi bi-file-text"></i> Descripción del Cambio</h2>
+        <div class="co-description">
+            {{ changeorder.description }}
+        </div>
+    </section>
+
+    <!-- NOTAS -->
+    {% if changeorder.notes %}
+    <section class="co-section">
+        <h2><i class="bi bi-sticky"></i> Notas Adicionales</h2>
+        <div class="co-notes">
+            {{ changeorder.notes|linebreaks }}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- GASTOS -->
+    <section class="co-section">
+        <h2><i class="bi bi-receipt-cutoff"></i> Gastos Asociados</h2>
+        {% if changeorder.expenses.all %}
+            <table class="co-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Documentos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in changeorder.expenses.all %}
+                    <tr>
+                        <td>{{ expense.date|date:"d/m/Y" }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td class="co-table-amount">-${{ expense.amount|floatformat:2 }}</td>
+                        <td>
+                            {% if expense.receipt %}
+                            <a href="{{ expense.receipt.url }}" target="_blank" class="btn btn-outline">
+                                <i class="bi bi-paperclip"></i> Recibo
+                            </a>
+                            {% endif %}
+                            {% if expense.invoice %}
+                            <a href="{{ expense.invoice.url }}" target="_blank" class="btn btn-outline">
+                                <i class="bi bi-file-earmark-pdf"></i> Factura
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                No hay gastos asociados a este Change Order.
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- BOTONES -->
+    <footer class="co-actions">
+        <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Board
+        </a>
+        <a href="{% url 'changeorder_edit' changeorder.id %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        {% if changeorder.status == 'approved' %}
+        <button class="btn btn-success" onclick="sendToClient({{ changeorder.id }})">
+            <i class="bi bi-send"></i> Enviar al Cliente
+        </button>
+        {% endif %}
+    </footer>
+
+</div>
+
+{% block extra_js %}
+<script>
+function sendToClient(coId) {
+    if (!confirm('¿Enviar este Change Order al cliente para firma?')) {
+        return;
+    }
+    
+    fetch(`/api/changeorders/${coId}/send-to-client/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Change Order enviado al cliente correctamente');
+            location.reload();
+        } else {
+            alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('❌ Error al enviar al cliente');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
 {% endblock %}

@@ -39,7 +39,7 @@ from core.models import MaterialCatalog, Project, InventoryLocation, ProjectInve
 from core.models import (
     Project, Expense, Income, Schedule, TimeEntry,
     Employee, Task, Comment,
-    ChangeOrder, PayrollRecord, PayrollPeriod, PayrollPayment, 
+    ChangeOrder, ChangeOrderPhoto, PayrollRecord, PayrollPeriod, PayrollPayment, 
     Invoice, InvoiceLine, InvoicePayment,
     CostCode, BudgetLine, Estimate, EstimateLine, Proposal,
     DailyLog, RFI, Issue, Risk, BudgetProgress,
@@ -983,11 +983,25 @@ def color_sample_quick_action(request, sample_id):
 # --- FLOOR PLANS ---
 @login_required
 def floor_plan_list(request, project_id):
+    """List all floor plans for a project, grouped by level"""
+    from collections import defaultdict
+    
     project = get_object_or_404(Project, id=project_id)
-    plans = project.floor_plans.all().order_by('name')
+    plans = project.floor_plans.all().order_by('level', 'name')
+    
+    # Group plans by level
+    plans_by_level = defaultdict(list)
+    for plan in plans:
+        plans_by_level[plan.level].append(plan)
+    
+    # Sort levels
+    sorted_levels = sorted(plans_by_level.keys(), reverse=True)  # Top to bottom
+    
     return render(request, 'core/floor_plan_list.html', {
         'project': project,
         'plans': plans,
+        'plans_by_level': dict(plans_by_level),
+        'sorted_levels': sorted_levels,
     })
 
 @login_required
@@ -1019,11 +1033,19 @@ def floor_plan_detail(request, plan_id):
     plan = get_object_or_404(FloorPlan, id=plan_id)
     pins = plan.pins.select_related('color_sample','linked_task').all()
     color_samples = plan.project.color_samples.filter(status__in=['approved','review']).order_by('-created_at')[:50]
+    
+    # Check if user can edit pins (PM, Admin, Client, Designer, Owner)
+    profile = getattr(request.user, 'profile', None)
+    can_edit_pins = request.user.is_staff or (profile and profile.role in [
+        'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+    ])
+    
     return render(request, 'core/floor_plan_detail.html', {
         'plan': plan,
         'pins': pins,
         'color_samples': color_samples,
         'project': plan.project,
+        'can_edit_pins': can_edit_pins,
     })
 
 @login_required
@@ -1266,9 +1288,36 @@ def touchup_quick_update(request, task_id):
 
 @login_required
 def damage_report_list(request, project_id):
-    """Lista de reportes de daños del proyecto."""
-    from core.models import DamageReport
+    """Lista y creación de reportes de daños del proyecto."""
+    from core.models import DamageReport, DamagePhoto
+    from core.forms import DamageReportForm
+    
     project = get_object_or_404(Project, id=project_id)
+    
+    # Handle creation
+    if request.method == 'POST':
+        form = DamageReportForm(project, request.POST, request.FILES)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.project = project
+            report.reported_by = request.user
+            report.save()
+            
+            # Handle multiple photo uploads
+            photos = request.FILES.getlist('photos')
+            for photo_file in photos:
+                DamagePhoto.objects.create(
+                    report=report,
+                    image=photo_file,
+                    notes=request.POST.get('photo_notes', '')
+                )
+            
+            messages.success(request, f'Reporte creado con {len(photos)} foto(s)')
+            return redirect('damage_report_detail', report_id=report.id)
+    else:
+        form = DamageReportForm(project)
+    
+    # List reports
     reports = project.damage_reports.select_related('plan','pin','reported_by').all()
     severity = request.GET.get('severity')
     if severity:
@@ -1276,9 +1325,11 @@ def damage_report_list(request, project_id):
     status = request.GET.get('status')
     if status:
         reports = reports.filter(status=status)
+    
     return render(request, 'core/damage_report_list.html', {
         'project': project,
         'reports': reports,
+        'form': form,
         'filter_severity': severity,
         'filter_status': status,
     })
@@ -1295,6 +1346,7 @@ def damage_report_detail(request, report_id):
 @login_required
 def damage_report_add_photos(request, report_id):
     """Add multiple photos to existing damage report."""
+    from core.models import DamageReport, DamagePhoto
     report = get_object_or_404(DamageReport, id=report_id)
     
     # Check permission
@@ -1306,13 +1358,22 @@ def damage_report_add_photos(request, report_id):
         if not photos:
             return JsonResponse({'error': 'No se enviaron fotos'}, status=400)
         
-        # Store photo URLs (for now, we'll save to report.photo field or create a separate model)
-        # Since DamageReport has single photo field, we'll update if empty
-        if not report.photo and photos:
-            report.photo = photos[0]
-            report.save()
+        # Create DamagePhoto for each uploaded image
+        created_count = 0
+        for photo_file in photos:
+            notes = request.POST.get('notes', '')
+            DamagePhoto.objects.create(
+                report=report,
+                image=photo_file,
+                notes=notes
+            )
+            created_count += 1
         
-        return JsonResponse({'success': True, 'count': len(photos)})
+        return JsonResponse({
+            'success': True, 
+            'count': created_count,
+            'message': f'{created_count} foto(s) agregada(s) correctamente'
+        })
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
@@ -1476,19 +1537,135 @@ def agregar_comentario(request, project_id):
 @login_required
 def changeorder_detail_view(request, changeorder_id):
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
-    return render(request, "core/changeorder_detail.html", {"changeorder": changeorder})
+    return render(request, "core/changeorder_detail_standalone.html", {"changeorder": changeorder})
 
 @login_required
 def changeorder_create_view(request):
     if request.method == "POST":
-        form = ChangeOrderForm(request.POST)
+        form = ChangeOrderForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('dashboard')
+            co = form.save()
+            # Handle photo uploads
+            photos = request.FILES.getlist('photos')
+            for idx, photo_file in enumerate(photos):
+                description = request.POST.get(f'photo_description_{idx}', '')
+                ChangeOrderPhoto.objects.create(
+                    change_order=co,
+                    image=photo_file,
+                    description=description,
+                    order=idx
+                )
+            return redirect('changeorder_board')
     else:
         form = ChangeOrderForm()
-    return render(request, "core/changeorder_form.html", {"form": form})
+    
+    # Get approved colors from the project if project is selected
+    approved_colors = []
+    project_id = request.GET.get('project')
+    if project_id:
+        try:
+            approved_colors = ColorSample.objects.filter(
+                project_id=project_id,
+                status='approved'
+            ).order_by('code')
+        except:
+            pass
+    
+    # Use modern template that extends base.html
+    use_modern = request.GET.get('modern', 'false').lower() == 'true'
+    template = "core/changeorder_form_modern.html" if use_modern else "core/changeorder_form_standalone.html"
+    
+    return render(request, template, {
+        "form": form,
+        "approved_colors": approved_colors
+    })
 
+@login_required
+def changeorder_edit_view(request, co_id):
+    """Editar un Change Order existente"""
+    changeorder = get_object_or_404(ChangeOrder, id=co_id)
+    if request.method == "POST":
+        form = ChangeOrderForm(request.POST, request.FILES, instance=changeorder)
+        if form.is_valid():
+            co = form.save()
+            # Handle new photo uploads
+            photos = request.FILES.getlist('photos')
+            for idx, photo_file in enumerate(photos):
+                description = request.POST.get(f'photo_description_{idx}', '')
+                ChangeOrderPhoto.objects.create(
+                    change_order=co,
+                    image=photo_file,
+                    description=description,
+                    order=co.photos.count() + idx
+                )
+            return redirect('changeorder_board')
+    else:
+        form = ChangeOrderForm(instance=changeorder)
+    
+    # Get approved colors from the project
+    approved_colors = ColorSample.objects.filter(
+        project=changeorder.project,
+        status='approved'
+    ).order_by('code')
+    
+    # Use modern template that extends base.html
+    use_modern = request.GET.get('modern', 'false').lower() == 'true'
+    template = "core/changeorder_form_modern.html" if use_modern else "core/changeorder_form_standalone.html"
+    
+    return render(request, template, {
+        "form": form, 
+        "changeorder": changeorder,
+        "is_edit": True,
+        "approved_colors": approved_colors
+    })
+
+@login_required
+def changeorder_delete_view(request, co_id):
+    """Eliminar un Change Order"""
+    changeorder = get_object_or_404(ChangeOrder, id=co_id)
+    if request.method == "POST":
+        changeorder.delete()
+        return redirect('changeorder_board')
+    return render(request, "core/changeorder_confirm_delete.html", {"changeorder": changeorder})
+
+@login_required
+def photo_editor_standalone_view(request):
+    """Standalone photo editor that opens in new tab/window"""
+    return render(request, "core/photo_editor_standalone.html")
+
+@login_required
+def get_approved_colors(request, project_id):
+    """API endpoint to get approved colors for a project"""
+    colors = ColorSample.objects.filter(
+        project_id=project_id,
+        status='approved'
+    ).values('id', 'code', 'name', 'brand', 'finish').order_by('code')
+    
+    return JsonResponse({
+        'colors': list(colors)
+    })
+
+@login_required
+@require_POST
+def save_photo_annotations(request, photo_id):
+    """Save drawing annotations to a photo"""
+    photo = get_object_or_404(ChangeOrderPhoto, id=photo_id)
+    data = json.loads(request.body)
+    # Convert annotations array to JSON string for TextField storage
+    annotations_data = data.get('annotations', [])
+    photo.annotations = json.dumps(annotations_data) if annotations_data else ''
+    photo.save()
+    return JsonResponse({'success': True})
+
+@login_required
+@require_POST
+def delete_changeorder_photo(request, photo_id):
+    """Delete a change order photo"""
+    photo = get_object_or_404(ChangeOrderPhoto, id=photo_id)
+    photo.delete()
+    return JsonResponse({'success': True})
+
+@login_required
 def changeorder_board_view(request):
     qs = ChangeOrder.objects.select_related('project').order_by('-date_created')
     status = request.GET.get('status')
@@ -1500,7 +1677,7 @@ def changeorder_board_view(request):
             qs = qs.filter(project_id=int(project_id))
         except (TypeError, ValueError):
             pass
-    total_amount = qs.aggregate(total=models.Sum('amount'))['total'] or 0
+    total_amount = qs.aggregate(total=Sum('amount'))['total'] or 0
     projects = Project.objects.order_by('name')
     return render(request, 'core/changeorder_board.html', {
         'changeorders': qs,
@@ -2004,7 +2181,8 @@ def invoice_create_view(request):
 @login_required
 def invoice_list(request):
     invoices = Invoice.objects.select_related('project').prefetch_related('lines').order_by('-date_issued', '-id')
-    return render(request, "core/invoice_list.html", {"invoices": invoices})
+    projects = Project.objects.filter(is_active=True).order_by('name')
+    return render(request, "core/invoice_list.html", {"invoices": invoices, "projects": projects})
 
 @login_required
 def invoice_detail(request, pk):
@@ -2178,7 +2356,7 @@ def project_profit_dashboard(request, project_id):
     # Change Orders (approved/sent, not cancelled)
     cos_revenue = project.change_orders.exclude(
         status__in=['cancelled', 'pending']
-    ).aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
     budgeted_revenue = estimate_revenue + cos_revenue
     
@@ -2186,12 +2364,12 @@ def project_profit_dashboard(request, project_id):
     # Labor cost from TimeEntries
     labor_cost = TimeEntry.objects.filter(
         project=project
-    ).aggregate(total=models.Sum('labor_cost'))['total'] or Decimal('0')
+    ).aggregate(total=Sum('labor_cost'))['total'] or Decimal('0')
     
     # Material/Expense costs
     material_cost = Expense.objects.filter(
         project=project
-    ).aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
     total_actual_cost = labor_cost + material_cost
     
@@ -2200,14 +2378,14 @@ def project_profit_dashboard(request, project_id):
         project=project
     ).exclude(
         status='CANCELLED'
-    ).aggregate(total=models.Sum('total_amount'))['total'] or Decimal('0')
+    ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
     
     # 4. COLLECTED AMOUNT (Sum of invoice payments)
     collected_amount = Invoice.objects.filter(
         project=project
     ).exclude(
         status='CANCELLED'
-    ).aggregate(total=models.Sum('amount_paid'))['total'] or Decimal('0')
+    ).aggregate(total=Sum('amount_paid'))['total'] or Decimal('0')
     
     # 5. CALCULATIONS
     # Profit = Billed - Actual Costs
@@ -2317,17 +2495,181 @@ def estimate_detail_view(request, estimate_id):
     })
 
 @login_required
+@login_required
 def daily_log_view(request, project_id):
+    """
+    Vista para gestionar Daily Logs de un proyecto.
+    PM puede crear reportes diarios seleccionando tareas completadas,
+    agregando fotos y notas. Visible para PM, diseñadores, cliente, owner.
+    """
+    from core.models import DailyLog, DailyLogPhoto, Task, Schedule
+    from core.forms import DailyLogForm, DailyLogPhotoForm
+    
     project = get_object_or_404(Project, pk=project_id)
-    form = DailyLogForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        dl = form.save(commit=False)
-        dl.project = project
-        dl.created_by = request.user
-        dl.save()
-        return redirect('daily_log', project_id=project.id)
-    logs = project.daily_logs.all()
-    return render(request, 'core/daily_log.html', {'project': project, 'logs': logs, 'form': form})
+    
+    # Verificar permisos (PM, admin, superuser)
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    can_create = role in ["admin", "superuser", "project_manager"]
+    
+    if request.method == 'POST' and can_create:
+        form = DailyLogForm(request.POST, project=project)
+        if form.is_valid():
+            dl = form.save(commit=False)
+            dl.project = project
+            dl.created_by = request.user
+            dl.save()
+            
+            # Guardar relaciones many-to-many
+            form.save_m2m()
+            
+            # Procesar fotos si hay
+            photos = request.FILES.getlist('photos')
+            for photo_file in photos:
+                photo = DailyLogPhoto.objects.create(
+                    image=photo_file,
+                    caption=request.POST.get('photo_caption', ''),
+                    uploaded_by=request.user
+                )
+                dl.photos.add(photo)
+            
+            messages.success(request, f"Daily Log creado para {dl.date}")
+            return redirect('daily_log_detail', log_id=dl.id)
+    else:
+        form = DailyLogForm(project=project) if can_create else None
+    
+    # Listar logs del proyecto (ordenados por fecha)
+    logs = project.daily_logs.select_related('created_by', 'schedule_item').prefetch_related('completed_tasks', 'photos').all()
+    
+    # Filtros
+    if not can_create and role == 'employee':
+        # Empleados NO pueden ver daily logs
+        return redirect('dashboard_employee')
+    
+    # Filtrar solo publicados para clientes
+    if role == 'client':
+        logs = logs.filter(is_published=True)
+    
+    context = {
+        'project': project,
+        'logs': logs,
+        'form': form,
+        'can_create': can_create,
+    }
+    
+    return render(request, 'core/daily_log_list.html', context)
+
+
+@login_required
+def daily_log_detail(request, log_id):
+    """Vista detallada de un Daily Log específico"""
+    from core.models import DailyLog, DailyLogPhoto
+    
+    log = get_object_or_404(DailyLog.objects.select_related('project', 'created_by', 'schedule_item').prefetch_related('completed_tasks', 'photos'), id=log_id)
+    
+    # Verificar permisos
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    
+    # Empleados no pueden ver
+    if role == 'employee':
+        messages.error(request, "No tienes permiso para ver Daily Logs")
+        return redirect('dashboard_employee')
+    
+    # Clientes solo ven publicados
+    if role == 'client' and not log.is_published:
+        messages.error(request, "Este Daily Log no está disponible")
+        return redirect('dashboard_client')
+    
+    # POST: Agregar más fotos
+    if request.method == 'POST' and role in ["admin", "superuser", "project_manager"]:
+        photos = request.FILES.getlist('photos')
+        caption = request.POST.get('caption', '')
+        for photo_file in photos:
+            photo = DailyLogPhoto.objects.create(
+                image=photo_file,
+                caption=caption,
+                uploaded_by=request.user
+            )
+            log.photos.add(photo)
+        messages.success(request, f"{len(photos)} foto(s) agregada(s)")
+        return redirect('daily_log_detail', log_id=log.id)
+    
+    context = {
+        'log': log,
+        'project': log.project,
+        'can_edit': role in ["admin", "superuser", "project_manager"],
+    }
+    
+    return render(request, 'core/daily_log_detail.html', context)
+
+
+@login_required
+def daily_log_create(request, project_id):
+    """Vista dedicada para crear un nuevo Daily Log"""
+    from core.models import DailyLog, Task, Schedule
+    from core.forms import DailyLogForm
+    from datetime import date
+    
+    project = get_object_or_404(Project, pk=project_id)
+    
+    # Verificar permisos
+    profile = getattr(request.user, 'profile', None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"]:
+        messages.error(request, "Solo PM puede crear Daily Logs")
+        return redirect('project_overview', project_id=project.id)
+    
+    if request.method == 'POST':
+        form = DailyLogForm(request.POST, project=project)
+        if form.is_valid():
+            dl = form.save(commit=False)
+            dl.project = project
+            dl.created_by = request.user
+            dl.save()
+            form.save_m2m()
+            
+            # Procesar fotos
+            photos = request.FILES.getlist('photos')
+            for photo_file in photos:
+                from core.models import DailyLogPhoto
+                photo = DailyLogPhoto.objects.create(
+                    image=photo_file,
+                    caption=request.POST.get('photo_caption', ''),
+                    uploaded_by=request.user
+                )
+                dl.photos.add(photo)
+            
+            messages.success(request, f"Daily Log creado exitosamente")
+            return redirect('daily_log_detail', log_id=dl.id)
+    else:
+        # Valores por defecto
+        initial = {
+            'date': date.today(),
+            'is_published': False,
+        }
+        form = DailyLogForm(initial=initial, project=project)
+    
+    # Obtener tareas pendientes/en progreso para sugerencias
+    pending_tasks = Task.objects.filter(
+        project=project,
+        status__in=['pending', 'in_progress']
+    ).select_related('assigned_to').order_by('priority', 'due_date')
+    
+    # Obtener actividades del schedule activas
+    active_schedules = Schedule.objects.filter(
+        project=project,
+        start_datetime__lte=date.today()
+    ).order_by('-start_datetime')[:10]
+    
+    context = {
+        'project': project,
+        'form': form,
+        'pending_tasks': pending_tasks,
+        'active_schedules': active_schedules,
+    }
+    
+    return render(request, 'core/daily_log_create.html', context)
 
 @login_required
 def rfi_list_view(request, project_id):
@@ -3183,6 +3525,51 @@ def project_overview(request, project_id: int):
     recent_logs = DailyLog.objects.filter(project=project).order_by("-date")[:10] if DailyLog else []
     files = ProjectFile.objects.filter(project=project).order_by("-uploaded_at")[:10] if ProjectFile else []
 
+    # Floor Plans data
+    try:
+        from core.models import FloorPlan, PlanPin
+        floor_plans = FloorPlan.objects.filter(project=project).order_by('level')[:5]
+        total_floor_plans = FloorPlan.objects.filter(project=project).count()
+        total_pins = PlanPin.objects.filter(floor_plan__project=project).count()
+    except Exception:
+        floor_plans = []
+        total_floor_plans = 0
+        total_pins = 0
+
+    # Touch-ups data
+    try:
+        from core.models import TouchUpPin
+        touchups_pending = TouchUpPin.objects.filter(floor_plan__project=project, status='pending').count()
+        touchups_in_progress = TouchUpPin.objects.filter(floor_plan__project=project, status='in_progress').count()
+        touchups_completed = TouchUpPin.objects.filter(floor_plan__project=project, status='completed').count()
+        total_touchups = touchups_pending + touchups_in_progress + touchups_completed
+        recent_touchups = TouchUpPin.objects.filter(
+            floor_plan__project=project
+        ).select_related('floor_plan', 'assigned_to').order_by('-created_at')[:5]
+    except Exception:
+        touchups_pending = 0
+        touchups_in_progress = 0
+        touchups_completed = 0
+        total_touchups = 0
+        recent_touchups = []
+
+    # Change Orders data
+    try:
+        from core.models import ChangeOrder
+        cos_draft = ChangeOrder.objects.filter(project=project, status='draft').count()
+        cos_review = ChangeOrder.objects.filter(project=project, status='review').count()
+        cos_approved = ChangeOrder.objects.filter(project=project, status='approved').count()
+        cos_in_progress = ChangeOrder.objects.filter(project=project, status='in_progress').count()
+        cos_completed = ChangeOrder.objects.filter(project=project, status='completed').count()
+        total_cos = ChangeOrder.objects.filter(project=project).count()
+    except Exception:
+        cos_draft = 0
+        cos_review = 0
+        cos_approved = 0
+        cos_in_progress = 0
+        cos_completed = 0
+        total_cos = 0
+
     leftovers = []
     if LeftoverItem:
         q = LeftoverItem.objects.filter(project=project)
@@ -3202,6 +3589,23 @@ def project_overview(request, project_id: int):
         "recent_logs": recent_logs,
         "files": files,
         "leftovers": leftovers,
+        # Floor Plans
+        "floor_plans": floor_plans,
+        "total_floor_plans": total_floor_plans,
+        "total_pins": total_pins,
+        # Touch-ups
+        "touchups_pending": touchups_pending,
+        "touchups_in_progress": touchups_in_progress,
+        "touchups_completed": touchups_completed,
+        "total_touchups": total_touchups,
+        "recent_touchups": recent_touchups,
+        # Change Orders
+        "cos_draft": cos_draft,
+        "cos_review": cos_review,
+        "cos_approved": cos_approved,
+        "cos_in_progress": cos_in_progress,
+        "cos_completed": cos_completed,
+        "total_cos": total_cos,
     })
 
 @login_required
@@ -4782,3 +5186,792 @@ def schedule_gantt_react_view(request, project_id):
     }
     
     return render(request, 'schedule_gantt_react.html', context)
+
+
+# ========================================================================================
+# CHANGE ORDER API ENDPOINTS
+# ========================================================================================
+
+@login_required
+@require_http_methods(["PATCH"])
+def changeorder_update_status(request, co_id):
+    """Update Change Order status via drag and drop in board"""
+    try:
+        co = get_object_or_404(ChangeOrder, id=co_id)
+        
+        # Check permissions
+        profile = getattr(request.user, 'profile', None)
+        role = getattr(profile, 'role', 'employee')
+        
+        if role not in ['admin', 'superuser', 'project_manager']:
+            return JsonResponse({'success': False, 'error': 'Sin permisos'}, status=403)
+        
+        # Parse request
+        data = json.loads(request.body)
+        new_status = data.get('status')
+        
+        # Validate status
+        valid_statuses = ['pending', 'approved', 'sent', 'billed', 'paid']
+        if new_status not in valid_statuses:
+            return JsonResponse({'success': False, 'error': 'Estado inválido'}, status=400)
+        
+        # Update status
+        old_status = co.status
+        co.status = new_status
+        co.save()
+        
+        return JsonResponse({
+            'success': True,
+            'co_id': co.id,
+            'old_status': old_status,
+            'new_status': new_status,
+            'message': f'Estado actualizado a {co.get_status_display()}'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def changeorder_send_to_client(request, co_id):
+    """Send Change Order to client for signature"""
+    try:
+        co = get_object_or_404(ChangeOrder, id=co_id)
+        
+        # Check permissions
+        profile = getattr(request.user, 'profile', None)
+        role = getattr(profile, 'role', 'employee')
+        
+        if role not in ['admin', 'superuser', 'project_manager']:
+            return JsonResponse({'success': False, 'error': 'Sin permisos'}, status=403)
+        
+        # Validate current status
+        if co.status in ['billed', 'paid']:
+            return JsonResponse({
+                'success': False, 
+                'error': 'No se puede enviar un CO ya facturado o pagado'
+            }, status=400)
+        
+        # Update status to 'sent'
+        co.status = 'sent'
+        co.save()
+        
+        # TODO: Send email notification to client
+        # This would integrate with your notification system
+        # send_co_notification_to_client(co)
+        
+        return JsonResponse({
+            'success': True,
+            'co_id': co.id,
+            'message': f'Change Order #{co.id} enviado al cliente',
+            'new_status': 'sent'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+# ========================================================================================
+# FILE ORGANIZATION VIEWS
+# ========================================================================================
+
+@login_required
+def project_files_view(request, project_id):
+    """Main view for project file organization system"""
+    from core.models import FileCategory, ProjectFile
+    from core.forms import FileCategoryForm, ProjectFileForm
+    
+    project = get_object_or_404(Project, id=project_id)
+    
+    # Get or create default categories
+    default_categories = [
+        ('Daily Logs Photos', 'daily_logs', 'bi-camera-fill', 'primary'),
+        ('Documents', 'documents', 'bi-file-earmark-text', 'info'),
+        ('Datasheets', 'datasheets', 'bi-file-spreadsheet', 'success'),
+        ('COs Firmados', 'cos_signed', 'bi-file-earmark-check', 'warning'),
+        ('Invoices', 'invoices', 'bi-receipt', 'success'),
+        ('Contracts', 'contracts', 'bi-file-earmark-ruled', 'danger'),
+        ('Photos', 'photos', 'bi-images', 'primary'),
+    ]
+    
+    for idx, (name, cat_type, icon, color) in enumerate(default_categories):
+        FileCategory.objects.get_or_create(
+            project=project,
+            name=name,
+            defaults={
+                'category_type': cat_type,
+                'icon': icon,
+                'color': color,
+                'order': idx,
+                'created_by': request.user
+            }
+        )
+    
+    # Get all categories and files
+    categories = project.file_categories.all()
+    selected_category_id = request.GET.get('category')
+    
+    if selected_category_id:
+        files = ProjectFile.objects.filter(
+            project=project,
+            category_id=selected_category_id
+        ).select_related('category', 'uploaded_by')
+    else:
+        files = ProjectFile.objects.filter(project=project).select_related('category', 'uploaded_by')
+    
+    # Search filter
+    search_query = request.GET.get('q')
+    if search_query:
+        files = files.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(tags__icontains=search_query)
+        )
+    
+    return render(request, 'core/project_files.html', {
+        'project': project,
+        'categories': categories,
+        'files': files,
+        'selected_category_id': selected_category_id,
+        'search_query': search_query or '',
+        'category_form': FileCategoryForm(),
+        'file_form': ProjectFileForm(),
+    })
+
+
+@login_required
+@require_POST
+def file_category_create(request, project_id):
+    """Create a new file category"""
+    from core.models import FileCategory
+    from core.forms import FileCategoryForm
+    
+    project = get_object_or_404(Project, id=project_id)
+    form = FileCategoryForm(request.POST)
+    
+    if form.is_valid():
+        category = form.save(commit=False)
+        category.project = project
+        category.created_by = request.user
+        category.save()
+        messages.success(request, f'Categoría "{category.name}" creada')
+    else:
+        messages.error(request, 'Error al crear categoría')
+    
+    return redirect('project_files', project_id=project_id)
+
+
+@login_required
+@require_POST
+def file_upload(request, project_id, category_id):
+    """Upload a file to a category"""
+    from core.models import ProjectFile, FileCategory
+    from core.forms import ProjectFileForm
+    
+    project = get_object_or_404(Project, id=project_id)
+    category = get_object_or_404(FileCategory, id=category_id, project=project)
+    
+    form = ProjectFileForm(request.POST, request.FILES)
+    if form.is_valid():
+        file_obj = form.save(commit=False)
+        file_obj.project = project
+        file_obj.category = category
+        file_obj.uploaded_by = request.user
+        file_obj.save()
+        messages.success(request, f'Archivo "{file_obj.name}" subido correctamente')
+    else:
+        messages.error(request, 'Error al subir archivo')
+    
+    return redirect('project_files', project_id=project_id)
+
+
+@login_required
+@require_POST
+def file_delete(request, file_id):
+    """Delete a file"""
+    from core.models import ProjectFile
+    
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    project_id = file_obj.project.id
+    
+    # Check permission
+    if not (request.user.is_staff or request.user == file_obj.uploaded_by):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+    
+    # Delete file from storage
+    if file_obj.file:
+        file_obj.file.delete()
+    
+    file_name = file_obj.name
+    file_obj.delete()
+    
+    messages.success(request, f'Archivo "{file_name}" eliminado')
+    return redirect('project_files', project_id=project_id)
+
+
+@login_required
+def file_download(request, file_id):
+    """Download a file"""
+    from core.models import ProjectFile
+    
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    # Check permissions
+    profile = getattr(request.user, 'profile', None)
+    if not file_obj.is_public and profile and profile.role == 'client':
+        return HttpResponseForbidden("No tienes permiso para descargar este archivo")
+    
+    # Serve file
+    if file_obj.file:
+        response = HttpResponse(file_obj.file, content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{file_obj.name}"'
+        return response
+    
+    return HttpResponseNotFound("Archivo no encontrado")
+
+
+@login_required
+def file_edit_metadata(request, file_id):
+    """Edit file metadata (name, description, tags, version)"""
+    from core.models import ProjectFile
+    
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    # Check permission
+    if not (request.user.is_staff or request.user == file_obj.uploaded_by):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+    
+    if request.method == 'POST':
+        file_obj.name = request.POST.get('name', file_obj.name)
+        file_obj.description = request.POST.get('description', '')
+        file_obj.tags = request.POST.get('tags', '')
+        file_obj.version = request.POST.get('version', '')
+        file_obj.save()
+        
+        messages.success(request, f'Archivo "{file_obj.name}" actualizado')
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Archivo actualizado'})
+        
+        return redirect('project_files', project_id=file_obj.project.id)
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+# ========================================================================================
+# TOUCH-UP PIN VIEWS (Separate from Info Pins)
+# ========================================================================================
+
+@login_required
+def touchup_plans_list(request, project_id):
+    """List all floor plans with active touch-ups"""
+    from core.models import FloorPlan, TouchUpPin
+    
+    project = get_object_or_404(Project, id=project_id)
+    profile = getattr(request.user, 'profile', None)
+    
+    # Permission check: PM, Admin, Client, Designer, Owner
+    if not request.user.is_staff and (not profile or profile.role not in [
+        'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+    ]):
+        messages.error(request, 'No tienes permiso para gestionar touch-ups')
+        return redirect('project_overview', project_id)
+    
+    # Get plans with active touch-ups
+    plans = FloorPlan.objects.filter(project=project).prefetch_related('touchup_pins')
+    
+    # Annotate with active touchup count
+    from django.db.models import Count, Q
+    plans = plans.annotate(
+        active_touchups=Count('touchup_pins', filter=Q(touchup_pins__status__in=['pending', 'in_progress']))
+    )
+    
+    context = {
+        'project': project,
+        'plans': plans,
+        'page_title': 'Planos Touch-up'
+    }
+    return render(request, 'core/touchup_plans_list.html', context)
+
+
+@login_required
+def touchup_plan_detail(request, plan_id):
+    """View a single floor plan with its touch-ups"""
+    from core.models import FloorPlan, TouchUpPin
+    
+    plan = get_object_or_404(FloorPlan, id=plan_id)
+    project = plan.project
+    profile = getattr(request.user, 'profile', None)
+    
+    # Permission check
+    allowed_roles = ['project_manager', 'admin', 'superuser', 'employee', 'painter', 'client', 'designer', 'owner']
+    if not request.user.is_staff and (not profile or profile.role not in allowed_roles):
+        messages.error(request, 'No tienes permiso para ver touch-ups')
+        return redirect('project_overview', project.id)
+    
+    # Get touchups - filter by assigned user if employee
+    touchups = TouchUpPin.objects.filter(plan=plan)
+    if profile and profile.role in ['employee', 'painter'] and not request.user.is_staff:
+        touchups = touchups.filter(assigned_to=request.user)
+    
+    touchups = touchups.select_related('assigned_to', 'created_by', 'approved_color', 'closed_by')
+    
+    # Can create: authorized roles
+    can_create = request.user.is_staff or (profile and profile.role in [
+        'project_manager', 'admin', 'client', 'designer', 'owner'
+    ])
+    
+    context = {
+        'project': project,
+        'plan': plan,
+        'touchups': touchups,
+        'can_create': can_create,
+        'page_title': f'Touch-ups - {plan.name}'
+    }
+    return render(request, 'core/touchup_plan_detail.html', context)
+
+
+@login_required
+def touchup_create(request, plan_id):
+    """Create a new touch-up pin"""
+    from core.models import FloorPlan, TouchUpPin
+    from core.forms import TouchUpPinForm
+    
+    plan = get_object_or_404(FloorPlan, id=plan_id)
+    project = plan.project
+    profile = getattr(request.user, 'profile', None)
+    
+    # Permission check: PM, Admin, Client, Designer, Owner
+    if not request.user.is_staff and (not profile or profile.role not in [
+        'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+    ]):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    
+    if request.method == 'POST':
+        form = TouchUpPinForm(request.POST, project=project)
+        if form.is_valid():
+            touchup = form.save(commit=False)
+            touchup.created_by = request.user
+            touchup.save()
+            
+            messages.success(request, f'Touch-up "{touchup.task_name}" creado')
+            return JsonResponse({
+                'success': True,
+                'touchup_id': touchup.id,
+                'message': 'Touch-up creado exitosamente'
+            })
+        else:
+            return JsonResponse({'error': 'Formulario inválido', 'errors': form.errors}, status=400)
+    
+    # GET - return form
+    form = TouchUpPinForm(initial={'plan': plan}, project=project)
+    return render(request, 'core/touchup_create_form.html', {
+        'form': form,
+        'plan': plan,
+        'project': project
+    })
+
+
+@login_required
+def touchup_detail_ajax(request, touchup_id):
+    """Get touch-up details via AJAX"""
+    from core.models import TouchUpPin
+    
+    touchup = get_object_or_404(TouchUpPin, id=touchup_id)
+    profile = getattr(request.user, 'profile', None)
+    
+    # Permission check
+    can_view = (
+        request.user.is_staff or
+        (profile and profile.role in ['project_manager', 'admin', 'superuser']) or
+        touchup.assigned_to == request.user
+    )
+    
+    if not can_view:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    
+    # Check if user can approve (PM/Admin)
+    can_approve = (
+        request.user.is_staff or
+        (profile and profile.role in ['project_manager', 'admin', 'superuser'])
+    )
+    
+    data = {
+        'id': touchup.id,
+        'task_name': touchup.task_name,
+        'description': touchup.description,
+        'status': touchup.status,
+        'status_display': touchup.get_status_display(),
+        'created_at': touchup.created_at.isoformat(),
+        'created_by': str(touchup.created_by) if touchup.created_by else None,
+        'assigned_to': str(touchup.assigned_to) if touchup.assigned_to else 'Sin asignar',
+        'approved_color': touchup.approved_color.name if touchup.approved_color else None,
+        'custom_color_name': touchup.custom_color_name,
+        'sheen': touchup.sheen,
+        'details': touchup.details,
+        'can_edit': touchup.can_edit(request.user),
+        'can_close': touchup.can_close(request.user),
+        'can_approve': can_approve,
+        'approval_status': touchup.approval_status,
+        'approval_status_display': touchup.get_approval_status_display(),
+        'rejection_reason': touchup.rejection_reason,
+        'reviewed_by': str(touchup.reviewed_by) if touchup.reviewed_by else None,
+        'reviewed_at': touchup.reviewed_at.isoformat() if touchup.reviewed_at else None,
+        'completion_photos': [
+            {
+                'id': photo.id,
+                'url': photo.image.url,
+                'notes': photo.notes,
+                'uploaded_at': photo.uploaded_at.isoformat()
+            }
+            for photo in touchup.completion_photos.all()
+        ]
+    }
+    
+    return JsonResponse(data)
+
+
+@login_required
+def touchup_update(request, touchup_id):
+    """Update a touch-up (PM/Admin only)"""
+    from core.models import TouchUpPin
+    from core.forms import TouchUpPinForm
+    
+    touchup = get_object_or_404(TouchUpPin, id=touchup_id)
+    
+    # Permission check
+    if not touchup.can_edit(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    
+    if request.method == 'POST':
+        form = TouchUpPinForm(request.POST, instance=touchup, project=touchup.plan.project)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Touch-up actualizado')
+            return JsonResponse({'success': True, 'message': 'Touch-up actualizado'})
+        else:
+            return JsonResponse({'error': 'Formulario inválido', 'errors': form.errors}, status=400)
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+@login_required
+def touchup_complete(request, touchup_id):
+    """Mark touch-up as completed with photos (Assigned employee or PM)"""
+    from core.models import TouchUpPin, TouchUpCompletionPhoto
+    from core.forms import TouchUpCompletionForm
+    import json
+    
+    touchup = get_object_or_404(TouchUpPin, id=touchup_id)
+    
+    # Permission check
+    if not touchup.can_close(request.user):
+        return JsonResponse({'error': 'No autorizado para cerrar este touch-up'}, status=403)
+    
+    if request.method == 'POST':
+        notes = request.POST.get('notes', '')
+        photos = request.FILES.getlist('photos')
+        
+        if not photos:
+            return JsonResponse({'error': 'Debes subir al menos una foto'}, status=400)
+        
+        # Save completion photos with annotations
+        for idx, photo in enumerate(photos):
+            # Get annotations for this photo if provided
+            annotations_key = f'annotations_{idx}'
+            annotations_data = request.POST.get(annotations_key, '{}')
+            
+            # Parse annotations JSON
+            try:
+                annotations = json.loads(annotations_data) if annotations_data else {}
+            except json.JSONDecodeError:
+                annotations = {}
+            
+            TouchUpCompletionPhoto.objects.create(
+                touchup=touchup,
+                image=photo,
+                notes=notes,
+                annotations=annotations,
+                uploaded_by=request.user
+            )
+        
+        # Mark as completed
+        touchup.close_touchup(request.user)
+        
+        messages.success(request, f'Touch-up "{touchup.task_name}" completado')
+        return JsonResponse({
+            'success': True,
+            'message': 'Touch-up completado exitosamente'
+        })
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+@login_required
+def touchup_delete(request, touchup_id):
+    """Delete a touch-up (PM/Admin only)"""
+    from core.models import TouchUpPin
+    
+    touchup = get_object_or_404(TouchUpPin, id=touchup_id)
+    
+    # Permission check
+    if not touchup.can_edit(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    
+    if request.method == 'POST':
+        plan_id = touchup.plan.id
+        task_name = touchup.task_name
+        touchup.delete()
+        
+        messages.success(request, f'Touch-up "{task_name}" eliminado')
+        return JsonResponse({'success': True, 'redirect': f'/plans/{plan_id}/touchups/'})
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+@login_required
+def touchup_approve(request, touchup_id):
+    """Approve a completed touch-up (PM/Admin only)"""
+    from core.models import TouchUpPin
+    from django.utils import timezone
+    
+    touchup = get_object_or_404(TouchUpPin, id=touchup_id)
+    
+    # Permission check - only PM/Admin can approve
+    if not touchup.can_edit(request.user):
+        return JsonResponse({'error': 'No autorizado para aprobar'}, status=403)
+    
+    if request.method == 'POST':
+        touchup.approval_status = 'approved'
+        touchup.reviewed_by = request.user
+        touchup.reviewed_at = timezone.now()
+        touchup.save()
+        
+        messages.success(request, f'Touch-up "{touchup.task_name}" aprobado')
+        return JsonResponse({
+            'success': True,
+            'message': 'Touch-up aprobado exitosamente'
+        })
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+@login_required
+def touchup_reject(request, touchup_id):
+    """Reject a completed touch-up with reason (PM/Admin only)"""
+    from core.models import TouchUpPin
+    from django.utils import timezone
+    
+    touchup = get_object_or_404(TouchUpPin, id=touchup_id)
+    
+    # Permission check - only PM/Admin can reject
+    if not touchup.can_edit(request.user):
+        return JsonResponse({'error': 'No autorizado para rechazar'}, status=403)
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        if not reason:
+            return JsonResponse({'error': 'Debes proporcionar un motivo de rechazo'}, status=400)
+        
+        touchup.approval_status = 'rejected'
+        touchup.rejection_reason = reason
+        touchup.reviewed_by = request.user
+        touchup.reviewed_at = timezone.now()
+        touchup.status = 'in_progress'  # Reabrir para que el empleado lo corrija
+        touchup.save()
+        
+        messages.warning(request, f'Touch-up "{touchup.task_name}" rechazado')
+        return JsonResponse({
+            'success': True,
+            'message': 'Touch-up rechazado, el empleado debe corregirlo'
+        })
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+# ========================================================================================
+# INFO PIN VIEWS (Different from Touch-up Pins)
+# ========================================================================================
+
+@login_required
+def pin_info_ajax(request, pin_id):
+    """Get info pin details via AJAX"""
+    from core.models import PlanPin
+    
+    pin = get_object_or_404(PlanPin, id=pin_id)
+    profile = getattr(request.user, 'profile', None)
+    
+    # Anyone can view info pins
+    can_edit = request.user.is_staff or (profile and profile.role in [
+        'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+    ])
+    
+    data = {
+        'id': pin.id,
+        'title': pin.title,
+        'description': pin.description,
+        'pin_type': pin.pin_type,
+        'pin_type_display': pin.get_pin_type_display(),
+        'pin_color': pin.pin_color,
+        'can_edit': can_edit,
+        'color_sample': None,
+        'linked_task': None,
+        'attachments': []
+    }
+    
+    # Add color sample if exists
+    if pin.color_sample:
+        data['color_sample'] = {
+            'id': pin.color_sample.id,
+            'name': pin.color_sample.name,
+            'manufacturer': pin.color_sample.manufacturer,
+            'color_code': pin.color_sample.color_code,
+            'hex_color': pin.color_sample.hex_color,
+        }
+    
+    # Add linked task if exists
+    if pin.linked_task:
+        data['linked_task'] = {
+            'id': pin.linked_task.id,
+            'name': pin.linked_task.name,
+            'status': pin.linked_task.status,
+        }
+    
+    # Add attachments (photos)
+    data['attachments'] = [
+        {
+            'id': att.id,
+            'image_url': att.image.url,
+            'has_annotations': bool(att.annotations),
+            'created_at': att.created_at.isoformat()
+        }
+        for att in pin.attachments.all()
+    ]
+    
+    return JsonResponse(data)
+
+
+@login_required
+def pin_update(request, pin_id):
+    """Update info pin details"""
+    from core.models import PlanPin
+    
+    pin = get_object_or_404(PlanPin, id=pin_id)
+    profile = getattr(request.user, 'profile', None)
+    
+    # Permission check
+    can_edit = request.user.is_staff or (profile and profile.role in [
+        'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+    ])
+    
+    if not can_edit:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    
+    if request.method == 'POST':
+        pin.title = request.POST.get('title', pin.title)
+        pin.description = request.POST.get('description', pin.description)
+        pin.pin_type = request.POST.get('pin_type', pin.pin_type)
+        
+        # Update color sample if provided
+        color_sample_id = request.POST.get('color_sample_id')
+        if color_sample_id:
+            from core.models import ColorSample
+            try:
+                pin.color_sample = ColorSample.objects.get(id=color_sample_id)
+            except ColorSample.DoesNotExist:
+                pass
+        
+        pin.save()
+        
+        messages.success(request, 'Pin actualizado exitosamente')
+        return JsonResponse({'success': True, 'message': 'Pin actualizado'})
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+@login_required
+def pin_add_photo(request, pin_id):
+    """Add photo attachment to info pin"""
+    from core.models import PlanPin, PlanPinAttachment
+    import json
+    
+    pin = get_object_or_404(PlanPin, id=pin_id)
+    profile = getattr(request.user, 'profile', None)
+    
+    # Permission check
+    can_edit = request.user.is_staff or (profile and profile.role in [
+        'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+    ])
+    
+    if not can_edit:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    
+    if request.method == 'POST':
+        photos = request.FILES.getlist('photos')
+        
+        if not photos:
+            return JsonResponse({'error': 'No se enviaron fotos'}, status=400)
+        
+        created_attachments = []
+        for idx, photo in enumerate(photos):
+            # Get annotations for this photo if provided
+            annotations_key = f'annotations_{idx}'
+            annotations_data = request.POST.get(annotations_key, '{}')
+            
+            # Parse annotations JSON
+            try:
+                annotations = json.loads(annotations_data) if annotations_data else {}
+            except json.JSONDecodeError:
+                annotations = {}
+            
+            attachment = PlanPinAttachment.objects.create(
+                pin=pin,
+                image=photo,
+                annotations=annotations
+            )
+            created_attachments.append({
+                'id': attachment.id,
+                'url': attachment.image.url
+            })
+        
+        messages.success(request, f'{len(photos)} foto(s) agregada(s) al pin')
+        return JsonResponse({
+            'success': True,
+            'message': 'Fotos agregadas exitosamente',
+            'attachments': created_attachments
+        })
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+@login_required
+def pin_delete_photo(request, attachment_id):
+    """Delete photo attachment from info pin"""
+    from core.models import PlanPinAttachment
+    
+    attachment = get_object_or_404(PlanPinAttachment, id=attachment_id)
+    profile = getattr(request.user, 'profile', None)
+    
+    # Permission check
+    can_edit = request.user.is_staff or (profile and profile.role in [
+        'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+    ])
+    
+    if not can_edit:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    
+    if request.method == 'POST':
+        # Delete file from storage
+        if attachment.image:
+            attachment.image.delete()
+        
+        attachment.delete()
+        
+        return JsonResponse({'success': True, 'message': 'Foto eliminada'})
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+

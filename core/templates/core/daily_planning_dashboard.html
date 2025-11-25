@@ -3,197 +3,605 @@
 
 {% block title %}{% trans "Daily Planning Dashboard" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ===== MOBILE-FIRST DAILY PLANNING ===== */
+    .daily-container {
+        padding: 12px;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+    
+    @media (min-width: 768px) {
+        .daily-container {
+            padding: 24px;
+        }
+    }
+    
+    /* ===== LARGE HEADER WITH DATE ===== */
+    .daily-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 20px 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .daily-header h1 {
+        font-size: 24px;
+        margin: 0 0 8px 0;
+        font-weight: 700;
+    }
+    
+    .daily-header .date {
+        font-size: 16px;
+        opacity: 0.9;
+    }
+    
+    @media (min-width: 768px) {
+        .daily-header h1 {
+            font-size: 32px;
+        }
+    }
+    
+    /* ===== OVERDUE ALERT (PROMINENT) ===== */
+    .overdue-alert {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        animation: pulse-alert 2s infinite;
+    }
+    
+    @keyframes pulse-alert {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+    
+    .overdue-alert h5 {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+    
+    .overdue-alert .btn {
+        background: white;
+        color: #dc2626;
+        border: none;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 6px;
+        margin-top: 8px;
+    }
+    
+    /* ===== QUICK CREATE CARD ===== */
+    .create-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .create-card h5 {
+        font-size: 18px;
+        margin-bottom: 16px;
+        color: #1f2937;
+    }
+    
+    .create-card select,
+    .create-card input,
+    .create-card button {
+        height: 48px; /* Touch-friendly */
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .create-card button {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* ===== TODAY'S PLANS CARDS (NOT TABLE) ===== */
+    .plans-section {
+        margin-bottom: 16px;
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px 8px 0 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .plan-card {
+        background: white;
+        border-radius: 0 0 12px 12px;
+        padding: 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .plan-item {
+        padding: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        transition: background 0.2s;
+    }
+    
+    .plan-item:last-child {
+        border-bottom: none;
+    }
+    
+    .plan-item:active {
+        background: #f9fafb;
+    }
+    
+    .plan-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+    
+    .plan-project {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        flex: 1;
+        margin-right: 12px;
+    }
+    
+    .plan-status {
+        flex-shrink: 0;
+    }
+    
+    .plan-meta {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .plan-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        color: #6b7280;
+    }
+    
+    .plan-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .plan-actions .btn {
+        flex: 1;
+        padding: 10px;
+        font-size: 15px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+    }
+    
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+    
+    .empty-state p {
+        font-size: 16px;
+    }
+    
+    /* ===== QUICK LINKS (LARGE BUTTONS) ===== */
+    .quick-links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    .quick-link-btn {
+        background: white;
+        border: 2px solid #e5e7eb;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        color: #1f2937;
+        text-decoration: none;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .quick-link-btn:hover,
+    .quick-link-btn:active {
+        background: #f9fafb;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .quick-link-btn i {
+        font-size: 32px;
+        display: block;
+        margin-bottom: 8px;
+        color: #3b82f6;
+    }
+    
+    .quick-link-btn span {
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    @media (min-width: 768px) {
+        .quick-links {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+    
+    /* ===== FLOATING ACTION BUTTON (MOBILE) ===== */
+    .fab-create {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        color: white;
+        font-size: 28px;
+        z-index: 100;
+        border: none;
+        transition: transform 0.2s;
+    }
+    
+    .fab-create:active {
+        transform: scale(0.95);
+    }
+    
+    @media (min-width: 768px) {
+        .fab-create {
+            display: none;
+        }
+    }
+    
+    /* ===== HIDE TABLE ON MOBILE (USE CARDS) ===== */
+    .desktop-table {
+        display: none;
+    }
+    
+    @media (min-width: 768px) {
+        .desktop-table {
+            display: table;
+        }
+        .mobile-cards {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>{% trans "Daily Planning Dashboard" %}</h2>
-            <p class="text-muted">{% trans "Manage daily work plans for all projects" %}</p>
+<div class="daily-container">
+    <!-- Header with Date -->
+    <div class="daily-header">
+        <h1><i class="bi bi-calendar-check"></i> {% trans "Daily Planning" %}</h1>
+        <div class="date">
+            <i class="bi bi-calendar3"></i> {{ today|date:"l, F j, Y" }}
         </div>
     </div>
 
-    <!-- Alerts for overdue plans -->
+    <!-- Overdue Alerts (Prominent) -->
     {% if overdue_plans %}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> {% trans "Overdue Plans!" %}</h5>
-        <p>{% trans "The following plans are past their 5pm deadline:" %}</p>
-        <ul>
-            {% for plan in overdue_plans %}
-            <li>
-                <strong>{{ plan.project.name }}</strong> - {{ plan.plan_date }}
-                <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-warning ms-2">
-                    {% trans "Complete Now" %}
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="overdue-alert">
+        <h5><i class="bi bi-exclamation-triangle-fill"></i> {% trans "Overdue Plans!" %}</h5>
+        <p style="margin-bottom: 8px;">{% trans "These plans are past their 5pm deadline:" %}</p>
+        {% for plan in overdue_plans %}
+        <div style="margin: 8px 0; padding: 12px; background: rgba(255,255,255,0.15); border-radius: 8px;">
+            <strong>{{ plan.project.name }}</strong><br>
+            <small>{{ plan.plan_date }}</small>
+            <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm mt-2">
+                <i class="bi bi-pencil"></i> {% trans "Complete Now" %}
+            </a>
+        </div>
+        {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Action buttons -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5>{% trans "Create New Daily Plan" %}</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post" class="row g-3">
-                        {% csrf_token %}
-                        <input type="hidden" name="create_plan" value="1">
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Select Project" %}</label>
-                            <select name="project_id" class="form-select" required>
-                                <option value="">-- {% trans "Choose Project" %} --</option>
-                                {% for project in active_projects %}
-                                <option value="{{ project.id }}">{{ project.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Plan Date" %}</label>
-                            <input type="date" name="plan_date" class="form-control" min="{{ today|date:'Y-m-d' }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-plus-circle"></i> {% trans "Create Plan" %}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+    <!-- Quick Create Form (Desktop) -->
+    <div class="create-card d-none d-md-block">
+        <h5><i class="bi bi-plus-circle"></i> {% trans "Create New Daily Plan" %}</h5>
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            <input type="hidden" name="create_plan" value="1">
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Select Project" %}</label>
+                <select name="project_id" class="form-select" required>
+                    <option value="">-- {% trans "Choose Project" %} --</option>
+                    {% for project in active_projects %}
+                    <option value="{{ project.id }}">{{ project.name }}</option>
+                    {% endfor %}
+                </select>
             </div>
-        </div>
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Plan Date" %}</label>
+                <input type="date" name="plan_date" class="form-control" min="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}" required>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn w-100">
+                    <i class="bi bi-plus-circle"></i> {% trans "Create Plan" %}
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- Today's Plans -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5>{% trans "Today's Plans" %} ({{ today }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if todays_plans %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>{% trans "Project" %}</th>
-                                    <th>{% trans "Status" %}</th>
-                                    <th>{% trans "Activities" %}</th>
-                                    <th>{% trans "Created By" %}</th>
-                                    <th>{% trans "Actions" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for plan in todays_plans %}
-                                <tr>
-                                    <td><strong>{{ plan.project.name }}</strong></td>
-                                    <td>
-                                        {% if plan.status == 'DRAFT' %}
-                                        <span class="badge bg-secondary">{% trans "Draft" %}</span>
-                                        {% elif plan.status == 'SUBMITTED' %}
-                                        <span class="badge bg-info">{% trans "Submitted" %}</span>
-                                        {% elif plan.status == 'APPROVED' %}
-                                        <span class="badge bg-success">{% trans "Approved" %}</span>
-                                        {% else %}
-                                        <span class="badge bg-warning">{% trans "Skipped" %}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ plan.activities.count }} {% trans "activities" %}</td>
-                                    <td>{{ plan.created_by.username }}</td>
-                                    <td>
-                                        <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-pencil"></i> {% trans "Edit" %}
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+    <div class="plans-section">
+        <div class="section-header">
+            <i class="bi bi-sun"></i> {% trans "Today's Plans" %} ({{ todays_plans|length }})
+        </div>
+        <div class="plan-card">
+            {% if todays_plans %}
+                <!-- Mobile Cards -->
+                <div class="mobile-cards">
+                    {% for plan in todays_plans %}
+                    <div class="plan-item">
+                        <div class="plan-item-header">
+                            <div class="plan-project">{{ plan.project.name }}</div>
+                            <div class="plan-status">
+                                {% if plan.status == 'DRAFT' %}
+                                <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                                {% elif plan.status == 'SUBMITTED' %}
+                                <span class="badge bg-info">{% trans "Submitted" %}</span>
+                                {% elif plan.status == 'APPROVED' %}
+                                <span class="badge bg-success">{% trans "Approved" %}</span>
+                                {% else %}
+                                <span class="badge bg-warning">{% trans "Skipped" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="plan-meta">
+                            <div class="plan-meta-item">
+                                <i class="bi bi-list-task"></i>
+                                {{ plan.activities.count }} {% trans "activities" %}
+                            </div>
+                            <div class="plan-meta-item">
+                                <i class="bi bi-person"></i>
+                                {{ plan.created_by.username }}
+                            </div>
+                        </div>
+                        <div class="plan-actions">
+                            <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-primary">
+                                <i class="bi bi-pencil"></i> {% trans "Edit Plan" %}
+                            </a>
+                        </div>
                     </div>
-                    {% else %}
-                    <p class="text-muted">{% trans "No plans for today yet." %}</p>
-                    {% endif %}
+                    {% endfor %}
                 </div>
-            </div>
+                
+                <!-- Desktop Table -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-hover desktop-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Project" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Activities" %}</th>
+                                <th>{% trans "Created By" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in todays_plans %}
+                            <tr>
+                                <td><strong>{{ plan.project.name }}</strong></td>
+                                <td>
+                                    {% if plan.status == 'DRAFT' %}
+                                    <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                                    {% elif plan.status == 'SUBMITTED' %}
+                                    <span class="badge bg-info">{% trans "Submitted" %}</span>
+                                    {% elif plan.status == 'APPROVED' %}
+                                    <span class="badge bg-success">{% trans "Approved" %}</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">{% trans "Skipped" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ plan.activities.count }}</td>
+                                <td>{{ plan.created_by.username }}</td>
+                                <td>
+                                    <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i> {% trans "Edit" %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <p>{% trans "No plans for today yet." %}</p>
+                    <p class="small text-muted d-md-none">{% trans "Tap the + button to create one" %}</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Recent Plans -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>{% trans "Recent Plans" %}</h5>
-                </div>
-                <div class="card-body">
-                    {% if recent_plans %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>{% trans "Date" %}</th>
-                                    <th>{% trans "Project" %}</th>
-                                    <th>{% trans "Status" %}</th>
-                                    <th>{% trans "Activities" %}</th>
-                                    <th>{% trans "Created" %}</th>
-                                    <th>{% trans "Actions" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for plan in recent_plans %}
-                                <tr>
-                                    <td>{{ plan.plan_date }}</td>
-                                    <td>{{ plan.project.name }}</td>
-                                    <td>
-                                        {% if plan.status == 'DRAFT' %}
-                                        <span class="badge bg-secondary">{% trans "Draft" %}</span>
-                                        {% elif plan.status == 'SUBMITTED' %}
-                                        <span class="badge bg-info">{% trans "Submitted" %}</span>
-                                        {% elif plan.status == 'APPROVED' %}
-                                        <span class="badge bg-success">{% trans "Approved" %}</span>
-                                        {% else %}
-                                        <span class="badge bg-warning">{% trans "Skipped" %}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ plan.activities.count }}</td>
-                                    <td>{{ plan.created_at|date:"M d, Y" }}</td>
-                                    <td>
-                                        <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary">
-                                            {% trans "View/Edit" %}
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+    <!-- Recent Plans (Collapsible on Mobile) -->
+    <div class="plans-section">
+        <div class="section-header" style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">
+            <i class="bi bi-clock-history"></i> {% trans "Recent Plans" %} ({{ recent_plans|length }})
+        </div>
+        <div class="plan-card">
+            {% if recent_plans %}
+                <!-- Mobile Cards -->
+                <div class="mobile-cards">
+                    {% for plan in recent_plans|slice:":5" %}
+                    <div class="plan-item">
+                        <div class="plan-item-header">
+                            <div class="plan-project">{{ plan.project.name }}</div>
+                            <div class="plan-status">
+                                {% if plan.status == 'DRAFT' %}
+                                <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                                {% elif plan.status == 'SUBMITTED' %}
+                                <span class="badge bg-info">{% trans "Submitted" %}</span>
+                                {% elif plan.status == 'APPROVED' %}
+                                <span class="badge bg-success">{% trans "Approved" %}</span>
+                                {% else %}
+                                <span class="badge bg-warning">{% trans "Skipped" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="plan-meta">
+                            <div class="plan-meta-item">
+                                <i class="bi bi-calendar"></i>
+                                {{ plan.plan_date }}
+                            </div>
+                            <div class="plan-meta-item">
+                                <i class="bi bi-list-task"></i>
+                                {{ plan.activities.count }}
+                            </div>
+                        </div>
+                        <div class="plan-actions">
+                            <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i> {% trans "View" %}
+                            </a>
+                        </div>
                     </div>
-                    {% else %}
-                    <p class="text-muted">{% trans "No plans created yet." %}</p>
-                    {% endif %}
+                    {% endfor %}
                 </div>
-            </div>
+                
+                <!-- Desktop Table -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-striped desktop-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "Project" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Activities" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in recent_plans %}
+                            <tr>
+                                <td>{{ plan.plan_date }}</td>
+                                <td>{{ plan.project.name }}</td>
+                                <td>
+                                    {% if plan.status == 'DRAFT' %}
+                                    <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                                    {% elif plan.status == 'SUBMITTED' %}
+                                    <span class="badge bg-info">{% trans "Submitted" %}</span>
+                                    {% elif plan.status == 'APPROVED' %}
+                                    <span class="badge bg-success">{% trans "Approved" %}</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">{% trans "Skipped" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ plan.activities.count }}</td>
+                                <td>
+                                    <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary">
+                                        {% trans "View/Edit" %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p>{% trans "No recent plans." %}</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Quick links -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    <h6>{% trans "Quick Links" %}</h6>
-                    <a href="{% url 'sop_library' %}" class="btn btn-outline-secondary me-2">
-                        <i class="bi bi-book"></i> {% trans "SOP Library" %}
-                    </a>
-                    <a href="{% url 'employee_morning_dashboard' %}" class="btn btn-outline-info">
-                        <i class="bi bi-person-workspace"></i> {% trans "Employee View" %}
-                    </a>
-                </div>
+    <!-- Quick Links -->
+    <div class="quick-links">
+        <a href="{% url 'sop_library' %}" class="quick-link-btn">
+            <i class="bi bi-book"></i>
+            <span>{% trans "SOP Library" %}</span>
+        </a>
+        <a href="{% url 'employee_morning_dashboard' %}" class="quick-link-btn">
+            <i class="bi bi-person-workspace"></i>
+            <span>{% trans "Employee View" %}</span>
+        </a>
+        <a href="{% url 'dashboard' %}" class="quick-link-btn">
+            <i class="bi bi-grid"></i>
+            <span>{% trans "Dashboard" %}</span>
+        </a>
+        <a href="{% url 'project_list' %}" class="quick-link-btn">
+            <i class="bi bi-building"></i>
+            <span>{% trans "Projects" %}</span>
+        </a>
+    </div>
+</div>
+
+<!-- Floating Action Button (Mobile Only) -->
+<button class="fab-create d-md-none" onclick="showCreateModal()">
+    <i class="bi bi-plus"></i>
+</button>
+
+<!-- Mobile Create Modal -->
+<div class="modal fade" id="createPlanModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Create Daily Plan" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="mobileCreateForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="create_plan" value="1">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Select Project" %}</label>
+                        <select name="project_id" class="form-select" required style="height: 48px; font-size: 16px;">
+                            <option value="">-- {% trans "Choose Project" %} --</option>
+                            {% for project in active_projects %}
+                            <option value="{{ project.id }}">{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Plan Date" %}</label>
+                        <input type="date" name="plan_date" class="form-control" min="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}" required style="height: 48px; font-size: 16px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" style="height: 48px; font-size: 16px;">
+                        <i class="bi bi-plus-circle"></i> {% trans "Create Plan" %}
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showCreateModal() {
+    const modal = new bootstrap.Modal(document.getElementById('createPlanModal'));
+    modal.show();
+}
+</script>
 {% endblock %}

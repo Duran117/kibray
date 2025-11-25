@@ -1,0 +1,14 @@
+{# Ultra-simple card component to avoid recursion #}
+{% if close_card %}
+    </div></div>
+{% elif open_card %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    {% if title %}<div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+        {% if icon %}<i class="bi bi-{{ icon }} text-kibray-600 text-xl"></i>{% endif %}
+        <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+    </div>{% endif %}
+    <div class="p-6">
+{% else %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6">
+{% endif %}

@@ -1,0 +1,133 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_admin' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item active">Daily Logs</li>
+    </ol>
+  </nav>
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-journal-text"></i> Daily Logs - {{ project.name }}</h2>
+    {% if can_create %}
+    <a href="{% url 'daily_log_create' project.id %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> Crear Daily Log
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Alert Info -->
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    <strong>Daily Logs:</strong> Reportes diarios del progreso del proyecto. 
+    Visible para PM, diseñadores, cliente y owner. Los empleados NO pueden ver estos reportes.
+  </div>
+
+  <!-- Logs List -->
+  <div class="row">
+    {% for log in logs %}
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100 border-0 shadow-sm {% if not log.is_published %}border-warning{% endif %}">
+        <div class="card-header bg-white border-bottom">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="bi bi-calendar-date"></i> {{ log.date|date:"M d, Y" }}
+            </h5>
+            {% if not log.is_published %}
+            <span class="badge bg-warning">Borrador</span>
+            {% else %}
+            <span class="badge bg-success">Publicado</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Weather & Crew -->
+          <div class="mb-2">
+            {% if log.weather %}
+            <div class="small text-muted">
+              <i class="bi bi-cloud-sun"></i> {{ log.weather }}
+            </div>
+            {% endif %}
+            <div class="small text-muted">
+              <i class="bi bi-people"></i> {{ log.crew_count }} personas trabajando
+            </div>
+          </div>
+
+          <!-- Schedule Progress -->
+          {% if log.schedule_item %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="fw-bold">{{ log.schedule_item.title }}</small>
+              <small class="text-muted">{{ log.schedule_progress_percent }}%</small>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar bg-success" style="width: {{ log.schedule_progress_percent }}%;"></div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Completed Tasks -->
+          {% with task_count=log.completed_tasks.count %}
+          {% if task_count > 0 %}
+          <div class="mb-2">
+            <i class="bi bi-check2-square text-success"></i>
+            <strong>{{ task_count }}</strong> tarea{{ task_count|pluralize }} completada{{ task_count|pluralize }}
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          <!-- Photos Count -->
+          {% with photo_count=log.photos.count %}
+          {% if photo_count > 0 %}
+          <div class="mb-2">
+            <i class="bi bi-camera text-primary"></i>
+            <strong>{{ photo_count }}</strong> foto{{ photo_count|pluralize }}
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          <!-- Accomplishments Preview -->
+          {% if log.accomplishments %}
+          <div class="mb-2">
+            <small class="text-muted">{{ log.accomplishments|truncatewords:15 }}</small>
+          </div>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-white border-top">
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+              <i class="bi bi-person"></i> {{ log.created_by.username }}
+            </small>
+            <a href="{% url 'daily_log_detail' log.id %}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye"></i> Ver Detalle
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-journal-x" style="font-size: 3rem; color: #dee2e6;"></i>
+          <h5 class="mt-3 mb-2">No hay Daily Logs aún</h5>
+          <p class="text-muted mb-3">Crea el primer reporte diario del proyecto</p>
+          {% if can_create %}
+          <a href="{% url 'daily_log_create' project.id %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Primer Daily Log
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

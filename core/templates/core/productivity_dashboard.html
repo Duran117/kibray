@@ -1,0 +1,315 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Productivity Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .metric-value {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 16px 0;
+    }
+    
+    .metric-label {
+        color: #6b7280;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+    }
+    
+    .employee-table {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .employee-row {
+        padding: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .employee-row:hover {
+        background: #f9fafb;
+    }
+    
+    .employee-rank {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 16px;
+    }
+    
+    .rank-1 { background: #ffd700; color: #000; }
+    .rank-2 { background: #c0c0c0; color: #000; }
+    .rank-3 { background: #cd7f32; color: #fff; }
+    .rank-other { background: #e5e7eb; color: #6b7280; }
+    
+    .progress-bar {
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981, #059669);
+        transition: width 0.3s;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        min-height: 400px;
+    }
+    
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-graph-up"></i> {% trans "Productivity Dashboard" %}</h1>
+            <p class="text-muted">{% trans "Employee performance and efficiency metrics" %}</p>
+        </div>
+    </div>
+    
+    <!-- Date Filter -->
+    <div class="row">
+        <div class="col-12">
+            <div class="filter-card">
+                <form method="get" class="row align-items-end">
+                    <div class="col-md-4">
+                        <label>{% trans "Start Date" %}</label>
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label>{% trans "End Date" %}</label>
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel"></i> {% trans "Filter" %}
+                        </button>
+                        <a href="{% url 'productivity_dashboard' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> {% trans "Reset" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overall Metrics -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="metric-label">{% trans "Total Hours" %}</div>
+                <div class="metric-value">{{ total_hours|floatformat:1 }}</div>
+                <small class="text-muted">{% trans "All employees" %}</small>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="metric-label">{% trans "Billable Hours" %}</div>
+                <div class="metric-value text-success">{{ billable_hours|floatformat:1 }}</div>
+                <small class="text-muted">{% trans "Assigned to COs" %}</small>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="metric-label">{% trans "Productivity Rate" %}</div>
+                <div class="metric-value {% if productivity_rate >= 80 %}text-success{% elif productivity_rate >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                    {{ productivity_rate|floatformat:1 }}%
+                </div>
+                <small class="text-muted">{% trans "Target: 80%" %}</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Productivity Trend Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <h4><i class="bi bi-graph-up"></i> {% trans "Productivity Trend" %}</h4>
+                <canvas id="productivityTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Performers -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="employee-table">
+                <h4><i class="bi bi-trophy text-warning"></i> {% trans "Top 10 Performers" %}</h4>
+                <p class="text-muted mb-4">{% trans "Highest productivity rates" %}</p>
+                
+                {% for employee in top_performers %}
+                <div class="employee-row">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <div class="employee-rank rank-{% if forloop.counter <= 3 %}{{ forloop.counter }}{% else %}other{% endif %}">
+                            {{ forloop.counter }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ employee.productivity }}%"></div>
+                            </div>
+                            <small class="text-muted">
+                                {{ employee.billable_hours|floatformat:1 }}h billable / {{ employee.total_hours|floatformat:1 }}h total
+                            </small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <h5 class="mb-0 text-success">{{ employee.productivity|floatformat:1 }}%</h5>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4">{% trans "No data available" %}</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Bottom Performers (Need Support) -->
+        <div class="col-md-6">
+            <div class="employee-table">
+                <h4><i class="bi bi-exclamation-triangle text-warning"></i> {% trans "Need Support" %}</h4>
+                <p class="text-muted mb-4">{% trans "Employees with lower productivity" %}</p>
+                
+                {% for employee in bottom_performers %}
+                <div class="employee-row">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <div class="flex-grow-1">
+                            <strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ employee.productivity }}%; background: #ef4444;"></div>
+                            </div>
+                            <small class="text-muted">
+                                {{ employee.billable_hours|floatformat:1 }}h billable / {{ employee.total_hours|floatformat:1 }}h total
+                            </small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <h5 class="mb-0 text-danger">{{ employee.productivity|floatformat:1 }}%</h5>
+                        <small class="text-muted">{% trans "Needs training" %}</small>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4">{% trans "All employees performing well!" %}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="employee-table">
+                <h4><i class="bi bi-lightning"></i> {% trans "Quick Actions" %}</h4>
+                <div class="btn-group mt-3" role="group">
+                    <a href="{% url 'financial_dashboard' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-graph-up-arrow"></i> {% trans "Financial Dashboard" %}
+                    </a>
+                    <a href="{% url 'employee_performance_list' %}" class="btn btn-outline-success">
+                        <i class="bi bi-star"></i> {% trans "Performance Reviews" %}
+                    </a>
+                    <a href="{% url 'export_financial_data' %}?type=timeentries" class="btn btn-outline-info">
+                        <i class="bi bi-download"></i> {% trans "Export Time Data" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Productivity Trend Chart
+const trendData = {{ productivity_trend|safe }};
+const ctx = document.getElementById('productivityTrendChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: trendData.labels,
+        datasets: [
+            {
+                label: 'Total Hours',
+                data: trendData.total_hours,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Billable Hours',
+                data: trendData.billable_hours,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + 'h';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value + 'h';
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

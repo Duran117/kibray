@@ -1,54 +1,185 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="{{ request.session.lang|default:'en' }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kibray</title>
-    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Kibray">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kibray">
+    <meta name="format-detection" content="telephone=yes">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="description" content="Professional construction project management system for painting contractors">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'icons/icon-512x512.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/icon-192x192.png' %}">
+    
+    <title>{% block title %}Kibray - Construction Management{% endblock %}</title>
     {% load i18n %}
-  <link rel="stylesheet" href="{% static 'styles.css' %}">
-  <link rel="stylesheet" href="{% static 'theme.css' %}">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'theme.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
+      /* ===== RESPONSIVE UTILITIES ===== */
+      @media (max-width: 767px) {
+        .navbar-brand img { height: 28px !important; }
+        .container-fluid { padding: 0 12px; }
+        h1 { font-size: 1.75rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.25rem; }
+      }
+      
+      @media (min-width: 768px) and (max-width: 1024px) {
+        /* iPad optimizations */
+        .navbar-brand img { height: 30px !important; }
+      }
+      
+      /* ===== NAVBAR ENHANCEMENTS ===== */
+      .kb-navbar {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        padding: 0.75rem 0;
+      }
+      
+      .navbar-brand {
+        font-weight: 600;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: opacity 0.2s;
+      }
+      
+      .navbar-brand:hover {
+        opacity: 0.85;
+      }
+      
+      .navbar-brand img {
+        transition: transform 0.3s ease;
+      }
+      
+      .navbar-brand:hover img {
+        transform: scale(1.05);
+      }
+      
+      /* Navigation icons - larger touch targets */
+      .kb-nav-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(13, 110, 253, 0.08);
+        color: #0d6efd;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        position: relative;
+        font-size: 1.1rem;
+      }
+      
+      .kb-nav-icon:hover {
+        background: rgba(13, 110, 253, 0.15);
+        transform: scale(1.05);
+      }
+      
+      .kb-nav-icon .badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        font-size: 0.65rem;
+        padding: 2px 5px;
+        min-width: 18px;
+      }
+      
+      /* Mobile navigation improvements */
+      @media (max-width: 991px) {
+        .navbar-collapse {
+          background: white;
+          padding: 1rem;
+          border-radius: 12px;
+          margin-top: 0.5rem;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .nav-item.d-flex {
+          justify-content: center;
+          margin: 12px 0;
+        }
+        
+        .dropdown-menu {
+          border: none;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+      }
+      
+      /* ===== FAB (Floating Action Button) ===== */
+      /* ===== FAB (Floating Action Button) ===== */
       .fab-container {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
+        bottom: 20px;
+        right: 20px;
         z-index: 1050;
       }
+      
+      @media (max-width: 767px) {
+        .fab-container {
+          bottom: 16px;
+          right: 16px;
+        }
+        .fab-main {
+          width: 52px !important;
+          height: 52px !important;
+        }
+      }
+      
       .fab-main {
-        width: 56px;
-        height: 56px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        transition: all 0.3s ease;
+        font-size: 26px;
+        box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
       }
-      .fab-main:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      
+      .fab-main:hover, .fab-main:focus {
+        transform: scale(1.1) rotate(45deg);
+        box-shadow: 0 8px 24px rgba(13, 110, 253, 0.5);
       }
+      
       .fab-actions {
         position: absolute;
-        bottom: 70px;
+        bottom: 75px;
         right: 0;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 14px;
         opacity: 0;
         visibility: hidden;
-        transition: all 0.3s ease;
+        transform: translateY(20px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
+      
       .fab-container:hover .fab-actions,
       .fab-container:focus-within .fab-actions {
         opacity: 1;
         visibility: visible;
-        bottom: 70px;
+        transform: translateY(0);
       }
+      
       .fab-action {
         display: flex;
         align-items: center;
@@ -56,41 +187,142 @@
         text-decoration: none;
         transition: all 0.2s ease;
       }
+      
       .fab-action:hover {
-        transform: translateX(-4px);
+        transform: translateX(-6px);
       }
+      
       .fab-action-btn {
-        width: 48px;
-        height: 48px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        font-size: 18px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+        font-size: 20px;
+        transition: all 0.2s ease;
       }
+      
+      .fab-action-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      }
+      
       .fab-label {
         background: white;
-        padding: 6px 12px;
-        border-radius: 4px;
+        padding: 8px 14px;
+        border-radius: 8px;
         font-size: 14px;
+        font-weight: 500;
         white-space: nowrap;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+        opacity: 0;
+        transform: translateX(10px);
+        transition: all 0.2s ease;
+      }
+      
+      .fab-action:hover .fab-label {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      @media (max-width: 767px) {
+        .fab-label {
+          display: none; /* Hide labels on mobile to save space */
+        }
+        .fab-action-btn {
+          width: 48px;
+          height: 48px;
+          font-size: 18px;
+        }
+      }
+      
+      /* ===== UTILITY CLASSES ===== */
+      .touch-target {
+        min-width: 44px;
+        min-height: 44px;
+      }
+      
+      .btn {
+        min-height: 44px;
+        padding: 0.5rem 1rem;
+      }
+      
+      @media (max-width: 767px) {
+        .btn-sm {
+          min-height: 38px;
+          font-size: 0.9rem;
+        }
+      }
+      
+      /* Improved form controls for touch */
+      .form-control, .form-select {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+      
+      @media (max-width: 767px) {
+        .table {
+          font-size: 0.9rem;
+        }
+        .table td, .table th {
+          padding: 0.5rem 0.25rem;
+        }
       }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg kb-navbar navbar-light mb-3">
       <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">
-          <img src="{% static 'brand/kibray-logo.png' %}" alt="Kibray" height="32" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));"> Kibray
+        <a class="navbar-brand" href="{% url 'dashboard' %}" aria-label="Kibray Home">
+          <img src="{% static 'brand/kibray-logo.png' %}" alt="Kibray Logo" height="32" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));" onerror="this.style.display='none'">
+          <span>Kibray</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             {% if user.is_authenticated %}
+              <!-- Global Search -->
+              <li class="nav-item me-3" style="min-width: 300px;">
+                <div class="position-relative">
+                  <input 
+                    type="text" 
+                    id="globalSearch" 
+                    class="form-control form-control-sm" 
+                    placeholder="🔍 Buscar proyectos, COs, facturas... (Ctrl+K)"
+                    autocomplete="off"
+                    style="border-radius: 20px; padding-left: 16px; padding-right: 40px; border: 1px solid #dee2e6; transition: all 0.2s;"
+                  >
+                  <button 
+                    type="button" 
+                    id="clearSearch" 
+                    class="btn btn-link btn-sm position-absolute top-50 end-0 translate-middle-y text-muted" 
+                    style="display: none; padding: 0 12px; text-decoration: none;"
+                  >
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                  <!-- Search Results Dropdown -->
+                  <div 
+                    id="searchResults" 
+                    class="dropdown-menu w-100 shadow-lg" 
+                    style="max-height: 500px; overflow-y: auto; border-radius: 12px; display: none; margin-top: 4px;"
+                  >
+                    <div class="p-2 text-center text-muted" id="searchLoading" style="display: none;">
+                      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                      Buscando...
+                    </div>
+                    <div class="p-3 text-center text-muted" id="searchEmpty" style="display: none;">
+                      <i class="bi bi-search fs-3 d-block mb-2"></i>
+                      No se encontraron resultados
+                    </div>
+                    <div id="searchResultsContent"></div>
+                  </div>
+                </div>
+              </li>
+              
               <li class="nav-item d-flex align-items-center gap-2 me-2">
                 <a class="kb-nav-icon" href="{% url 'notifications_list' %}" title="{% trans 'Notificaciones' %}" aria-label="Notificaciones" data-bs-toggle="tooltip" data-bs-placement="bottom">
                   <i class="bi bi-bell"></i>
@@ -204,6 +436,12 @@
     document.addEventListener('DOMContentLoaded',()=>{
       document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el=> new bootstrap.Tooltip(el));
       document.addEventListener('keydown', function(e){
+        // Global Search (Ctrl+K or Cmd+K)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          document.getElementById('globalSearch').focus();
+        }
+        
         if(e.altKey){
           switch(e.key){
             case '1': window.location.href = '{% url 'dashboard' %}'; break;
@@ -214,8 +452,9 @@
             case '6': window.location.href = '{% url 'dashboard_superintendent' %}'; break;
           }
         }
-        // Esc cierra popovers y modales
+        // Esc cierra popovers, modales y búsqueda
         if(e.key === 'Escape'){
+          document.getElementById('searchResults').style.display = 'none';
           document.querySelectorAll('.popover.show').forEach(p => p.remove());
           document.querySelectorAll('.modal.show').forEach(m => {
             const inst = bootstrap.Modal.getInstance(m) || new bootstrap.Modal(m);
@@ -223,8 +462,380 @@
           });
         }
       });
+      
+      // ===== GLOBAL SEARCH FUNCTIONALITY =====
+      const searchInput = document.getElementById('globalSearch');
+      const searchResults = document.getElementById('searchResults');
+      const searchResultsContent = document.getElementById('searchResultsContent');
+      const searchLoading = document.getElementById('searchLoading');
+      const searchEmpty = document.getElementById('searchEmpty');
+      const clearBtn = document.getElementById('clearSearch');
+      let searchTimeout = null;
+      
+      if (searchInput) {
+        // Show/hide clear button
+        searchInput.addEventListener('input', function() {
+          clearBtn.style.display = this.value ? 'block' : 'none';
+          
+          // Debounce search
+          clearTimeout(searchTimeout);
+          
+          if (this.value.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+          }
+          
+          searchLoading.style.display = 'block';
+          searchEmpty.style.display = 'none';
+          searchResultsContent.innerHTML = '';
+          searchResults.style.display = 'block';
+          
+          searchTimeout = setTimeout(() => {
+            performSearch(this.value);
+          }, 300); // Wait 300ms after typing stops
+        });
+        
+        // Clear button
+        clearBtn.addEventListener('click', function() {
+          searchInput.value = '';
+          searchResults.style.display = 'none';
+          clearBtn.style.display = 'none';
+          searchInput.focus();
+        });
+        
+        // Click outside to close
+        document.addEventListener('click', function(e) {
+          if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+          }
+        });
+      }
+      
+      async function performSearch(query) {
+        try {
+          const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}`);
+          const data = await response.json();
+          
+          searchLoading.style.display = 'none';
+          
+          if (data.total_count === 0) {
+            searchEmpty.style.display = 'block';
+            searchResultsContent.innerHTML = '';
+            return;
+          }
+          
+          searchEmpty.style.display = 'none';
+          renderSearchResults(data);
+        } catch (error) {
+          console.error('Search error:', error);
+          searchLoading.style.display = 'none';
+          searchResultsContent.innerHTML = '<div class="p-3 text-danger">Error al buscar</div>';
+        }
+      }
+      
+      function renderSearchResults(data) {
+        let html = '';
+        
+        // Projects
+        if (data.results.projects.length > 0) {
+          html += '<div class="dropdown-header fw-bold text-primary"><i class="bi bi-building me-2"></i>Proyectos</div>';
+          data.results.projects.forEach(item => {
+            html += renderSearchItem(item);
+          });
+          html += '<div class="dropdown-divider"></div>';
+        }
+        
+        // Change Orders
+        if (data.results.change_orders.length > 0) {
+          html += '<div class="dropdown-header fw-bold text-warning"><i class="bi bi-file-earmark-diff me-2"></i>Change Orders</div>';
+          data.results.change_orders.forEach(item => {
+            html += renderSearchItem(item);
+          });
+          html += '<div class="dropdown-divider"></div>';
+        }
+        
+        // Invoices
+        if (data.results.invoices.length > 0) {
+          html += '<div class="dropdown-header fw-bold text-success"><i class="bi bi-receipt me-2"></i>Facturas</div>';
+          data.results.invoices.forEach(item => {
+            html += renderSearchItem(item);
+          });
+          html += '<div class="dropdown-divider"></div>';
+        }
+        
+        // Employees
+        if (data.results.employees.length > 0) {
+          html += '<div class="dropdown-header fw-bold text-info"><i class="bi bi-person-circle me-2"></i>Empleados</div>';
+          data.results.employees.forEach(item => {
+            html += renderSearchItem(item);
+          });
+          html += '<div class="dropdown-divider"></div>';
+        }
+        
+        // Tasks
+        if (data.results.tasks.length > 0) {
+          html += '<div class="dropdown-header fw-bold text-secondary"><i class="bi bi-check-square me-2"></i>Tareas</div>';
+          data.results.tasks.forEach(item => {
+            html += renderSearchItem(item);
+          });
+        }
+        
+        // Total count footer
+        html += `<div class="dropdown-header text-muted small text-end">
+          ${data.total_count} resultado${data.total_count !== 1 ? 's' : ''} encontrado${data.total_count !== 1 ? 's' : ''}
+        </div>`;
+        
+        searchResultsContent.innerHTML = html;
+      }
+      
+      function renderSearchItem(item) {
+        const badgeHtml = item.badge ? `<span class="badge bg-secondary ms-2 small">${item.badge}</span>` : '';
+        return `
+          <a href="${item.url}" class="dropdown-item py-2 px-3" style="transition: all 0.2s;">
+            <div class="d-flex align-items-center gap-2">
+              <i class="${item.icon} fs-5"></i>
+              <div class="flex-grow-1">
+                <div class="fw-semibold">${item.title}${badgeHtml}</div>
+                <div class="small text-muted">${item.subtitle}</div>
+              </div>
+              <i class="bi bi-arrow-right-short text-muted"></i>
+            </div>
+          </a>
+        `;
+      }
     });
+    
+    // ===== PWA SERVICE WORKER REGISTRATION =====
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/service-worker.js')
+          .then((registration) => {
+            console.log('[PWA] Service Worker registered:', registration.scope);
+            
+            // Check for updates every hour
+            setInterval(() => {
+              registration.update();
+            }, 60 * 60 * 1000);
+            
+            // Listen for updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // New service worker available
+                  if (confirm('Nueva versión disponible. ¿Actualizar ahora?')) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    window.location.reload();
+                  }
+                }
+              });
+            });
+          })
+          .catch((error) => {
+            console.error('[PWA] Service Worker registration failed:', error);
+          });
+        
+        // Listen for controller change (new SW activated)
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        });
+      });
+      
+      // ===== PWA INSTALL PROMPT =====
+      let deferredPrompt;
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show custom install button/banner
+        showInstallPromotion();
+      });
+      
+      window.addEventListener('appinstalled', () => {
+        console.log('[PWA] App installed successfully');
+        deferredPrompt = null;
+        hideInstallPromotion();
+      });
+      
+      function showInstallPromotion() {
+        // Create install banner if not exists
+        if (document.getElementById('pwa-install-banner')) return;
+        
+        const banner = document.createElement('div');
+        banner.id = 'pwa-install-banner';
+        banner.className = 'alert alert-info alert-dismissible fade show position-fixed bottom-0 start-50 translate-middle-x mb-3';
+        banner.style.cssText = 'z-index: 9999; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);';
+        banner.innerHTML = `
+          <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-download fs-3"></i>
+            <div class="flex-grow-1">
+              <strong>Instalar Kibray</strong>
+              <p class="mb-0 small">Accede más rápido instalando la app en tu dispositivo</p>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="pwa-install-btn">
+              Instalar
+            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
+        
+        document.body.appendChild(banner);
+        
+        // Install button click
+        document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+          if (!deferredPrompt) return;
+          
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log('[PWA] Install prompt outcome:', outcome);
+          
+          deferredPrompt = null;
+          hideInstallPromotion();
+        });
+      }
+      
+      function hideInstallPromotion() {
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner) banner.remove();
+      }
+    }
     </script>
+    
+    <!-- OneSignal Push Notifications -->
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
+    <script>
+      // OneSignal Initialization
+      window.OneSignal = window.OneSignal || [];
+      OneSignal.push(function() {
+        OneSignal.init({
+          appId: "{{ ONESIGNAL_APP_ID|default:'YOUR_APP_ID_HERE' }}",
+          safari_web_id: "{{ ONESIGNAL_SAFARI_WEB_ID|default:'' }}",
+          notifyButton: {
+            enable: false, // We'll use custom UI
+          },
+          allowLocalhostAsSecureOrigin: true, // For development
+          promptOptions: {
+            slidedown: {
+              enabled: true,
+              actionMessage: "¿Quieres recibir notificaciones sobre actualizaciones de tus proyectos?",
+              acceptButtonText: "Permitir",
+              cancelButtonText: "No, gracias",
+              categories: {
+                tags: [
+                  {
+                    tag: "invoices",
+                    label: "Facturas y Pagos",
+                  },
+                  {
+                    tag: "projects",
+                    label: "Actualizaciones de Proyectos",
+                  },
+                  {
+                    tag: "tasks",
+                    label: "Tareas y Touch-ups",
+                  },
+                  {
+                    tag: "materials",
+                    label: "Materiales e Inventario",
+                  },
+                  {
+                    tag: "budget",
+                    label: "Alertas de Presupuesto",
+                  }
+                ]
+              }
+            }
+          }
+        });
+        
+        // Set user ID for targeting (Django user ID)
+        {% if user.is_authenticated %}
+        OneSignal.setExternalUserId("{{ user.id }}");
+        
+        // Set user tags for segmentation
+        OneSignal.sendTags({
+          username: "{{ user.username }}",
+          role: "{{ user.groups.first.name|default:'employee' }}",
+          is_staff: "{{ user.is_staff|yesno:'true,false' }}"
+        });
+        {% endif %}
+        
+        // Log subscription status
+        OneSignal.isPushNotificationsEnabled(function(isEnabled) {
+          if (isEnabled) {
+            console.log('[Push] Notifications enabled');
+          } else {
+            console.log('[Push] Notifications not enabled yet');
+          }
+        });
+        
+        // Handle permission changes
+        OneSignal.on('subscriptionChange', function (isSubscribed) {
+          console.log('[Push] Subscription changed:', isSubscribed);
+          if (isSubscribed) {
+            // User subscribed - show success message
+            showNotificationSuccess();
+          }
+        });
+        
+        // Handle notification clicks
+        OneSignal.on('notificationDisplay', function(event) {
+          console.log('[Push] Notification displayed:', event);
+        });
+      });
+      
+      // Show notification subscription success
+      function showNotificationSuccess() {
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+        toast.setAttribute('role', 'alert');
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+          <div class="d-flex">
+            <div class="toast-body">
+              <i class="bi bi-check-circle me-2"></i>
+              ¡Notificaciones activadas correctamente!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+          </div>
+        `;
+        document.body.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        setTimeout(() => toast.remove(), 5000);
+      }
+      
+      // Custom function to prompt for notifications (call when appropriate)
+      function askForNotificationPermission() {
+        if (window.OneSignal) {
+          OneSignal.push(function() {
+            OneSignal.showSlidedownPrompt();
+          });
+        }
+      }
+      
+      // Auto-prompt after user has been on site for 30 seconds and taken an action
+      let userInteracted = false;
+      document.addEventListener('click', function() {
+        userInteracted = true;
+      }, { once: true });
+      
+      setTimeout(function() {
+        if (userInteracted && window.OneSignal) {
+          OneSignal.push(function() {
+            OneSignal.isPushNotificationsEnabled(function(isEnabled) {
+              if (!isEnabled) {
+                // Only show if not already subscribed
+                askForNotificationPermission();
+              }
+            });
+          });
+        }
+      }, 30000); // 30 seconds after first interaction
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

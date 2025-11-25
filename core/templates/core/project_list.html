@@ -1,22 +1,306 @@
 {% extends "core/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Projects" %} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== ESTILO PROFESIONAL PARA PROJECT LIST ===== */
+    .project-container {
+        padding: 24px;
+        background: #f8fafc;
+        min-height: calc(100vh - 60px);
+    }
+    
+    .project-header {
+        background: white;
+        padding: 24px 32px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    .project-header h2 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 24px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .project-table-wrapper {
+        background: white;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .project-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    
+    .project-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .project-table thead th {
+        padding: 16px;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: left;
+        border-bottom: 2px solid #5a67d8;
+    }
+    
+    .project-table thead th:last-child {
+        text-align: right;
+    }
+    
+    .project-table tbody tr {
+        border-bottom: 1px solid #e2e8f0;
+        transition: background 0.2s ease;
+    }
+    
+    .project-table tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+    
+    .project-table tbody tr:nth-child(odd) {
+        background: #ffffff;
+    }
+    
+    .project-table tbody tr:hover {
+        background: #eff6ff !important;
+        cursor: pointer;
+    }
+    
+    .project-table tbody td {
+        padding: 16px;
+        color: #334155;
+        vertical-align: middle;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .project-table tbody td:last-child {
+        text-align: right;
+    }
+    
+    /* Project ID */
+    .project-id {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: #1e40af;
+        background: #dbeafe;
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        font-size: 13px;
+    }
+    
+    /* Project Name */
+    .project-name {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 2px;
+    }
+    
+    .project-description {
+        font-size: 11px;
+        color: #64748b;
+    }
+    
+    /* Client */
+    .project-client {
+        font-size: 13px;
+        color: #475569;
+    }
+    
+    /* Status Badges */
+    .project-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .project-status.active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .project-status.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .project-status.completed {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .project-status.on-hold {
+        background: #e9d5ff;
+        color: #6b21a8;
+    }
+    
+    /* Budget */
+    .project-budget {
+        font-weight: 700;
+        color: #059669;
+        font-size: 15px;
+    }
+    
+    /* Actions */
+    .project-table .btn-sm {
+        font-size: 11px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        padding: 60px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 16px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .project-table-wrapper {
+            overflow-x: auto;
+        }
+        
+        .project-table {
+            min-width: 900px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h3>Projects</h3>
-<table class="table table-sm">
-  <thead><tr><th>ID</th><th>Name</th><th>Actions</th></tr></thead>
-  <tbody>
-  {% for p in projects %}
-    <tr>
-      <td>{{ p.id }}</td>
-      <td>{{ p.name|default:p }}</td>
-      <td>
-  <a class="btn btn-outline-primary btn-sm" href="{% url 'project_overview' p.id %}">Dashboard</a>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'budget_lines' p.id %}">Budget</a>
-      </td>
-    </tr>
-  {% empty %}
-    <tr><td colspan="3">No projects yet. Create one in admin.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-<p><a class="btn btn-sm btn-success" href="/admin/">Go to Admin</a></p>
+<div class="project-container">
+    <!-- Header -->
+    <div class="project-header d-flex justify-content-between align-items-center">
+        <h2>
+            <i class="bi bi-folder2-open"></i> {% trans "Projects" %}
+        </h2>
+        {% if user.is_staff %}
+        <a class="btn btn-success" href="/admin/core/project/add/">
+            <i class="bi bi-plus-circle"></i> {% trans "New Project" %}
+        </a>
+        {% endif %}
+    </div>
+    
+    {% if projects %}
+    <!-- Tabla de Proyectos -->
+    <div class="project-table-wrapper">
+        <table class="project-table">
+            <thead>
+                <tr>
+                    <th><i class="bi bi-hash"></i> ID</th>
+                    <th><i class="bi bi-folder"></i> {% trans "Project Name" %}</th>
+                    <th><i class="bi bi-building"></i> {% trans "Client" %}</th>
+                    <th><i class="bi bi-flag"></i> {% trans "Status" %}</th>
+                    <th><i class="bi bi-currency-dollar"></i> {% trans "Budget" %}</th>
+                    <th><i class="bi bi-gear"></i> {% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in projects %}
+                <tr>
+                    <!-- ID -->
+                    <td>
+                        <span class="project-id">#{{ p.id }}</span>
+                    </td>
+                    
+                    <!-- Project Name / Description -->
+                    <td>
+                        <div class="project-name">{{ p.name|default:p }}</div>
+                        {% if p.description %}
+                        <div class="project-description">{{ p.description|truncatewords:10 }}</div>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Client -->
+                    <td>
+                        <span class="project-client">{{ p.client|default:"—" }}</span>
+                    </td>
+                    
+                    <!-- Status -->
+                    <td>
+                        {% if p.status %}
+                        <span class="project-status {{ p.status }}">
+                            {% if p.status == 'active' %}
+                                <i class="bi bi-play-circle"></i> {{ p.get_status_display|default:p.status }}
+                            {% elif p.status == 'pending' %}
+                                <i class="bi bi-clock"></i> {{ p.get_status_display|default:p.status }}
+                            {% elif p.status == 'completed' %}
+                                <i class="bi bi-check-circle"></i> {{ p.get_status_display|default:p.status }}
+                            {% else %}
+                                <i class="bi bi-dash-circle"></i> {{ p.get_status_display|default:p.status }}
+                            {% endif %}
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                    
+                    <!-- Budget -->
+                    <td>
+                        {% if p.budget_total %}
+                        <span class="project-budget">${{ p.budget_total|floatformat:2 }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    
+                    <!-- Actions -->
+                    <td>
+                        <a class="btn btn-sm btn-primary" href="{% url 'project_overview' p.id %}" title="{% trans 'Dashboard' %}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                        <a class="btn btn-sm btn-secondary" href="{% url 'budget_lines' p.id %}" title="{% trans 'Budget' %}">
+                            <i class="bi bi-wallet2"></i> Presupuesto
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="project-table-wrapper">
+        <div class="empty-state">
+            <i class="bi bi-folder-x"></i>
+            <h4>{% trans "No projects yet" %}</h4>
+            <p>{% trans "Create your first project to get started" %}</p>
+            {% if user.is_staff %}
+            <a class="btn btn-primary mt-2" href="/admin/core/project/add/">
+                <i class="bi bi-plus-circle"></i> {% trans "Create Project" %}
+            </a>
+            {% else %}
+            <p class="text-muted">{% trans "Contact your administrator to create projects" %}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

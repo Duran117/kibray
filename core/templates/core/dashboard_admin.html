@@ -1,31 +1,39 @@
 {% extends "core/base.html" %}
 {% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Admin Dashboard" %} - Kibray{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-3 py-md-4">
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard Admin</h2>
-    <div class="text-muted">{{ today|date:"D, M d, Y" }}</div>
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
+    <h2 class="mb-0 h3 h-md-2">
+      <i class="bi bi-speedometer2 text-primary"></i> 
+      {% trans "Admin Dashboard" %}
+    </h2>
+    <div class="text-muted small">{{ today|date:"D, M d, Y" }}</div>
   </div>
 
   <!-- === ALERTAS CRÍTICAS === -->
-  <div class="row g-3 mb-4">
+  <div class="row g-2 g-md-3 mb-3 mb-md-4">
     <!-- Tiempo sin CO -->
-        <div class="col-md-2">
-          <a href="{% url 'pm_select_project' 'overview' %}" class="btn btn-outline-dark w-100">
-            <i class="bi bi-journal-text"></i> Minutas
-          </a>
-        </div>
-              <h6 class="text-muted mb-1">Tiempo sin CO</h6>
-              <h3 class="mb-0">{{ unassigned_time_count }}</h3>
-              <small class="text-muted">{{ unassigned_time_hours|floatformat:1 }}h sin asignar</small>
+    <div class="col-6 col-md-3">
+      <div class="card border-{% if unassigned_time_count > 0 %}danger{% else %}success{% endif %} h-100 shadow-sm">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="flex-grow-1">
+              <h6 class="text-muted mb-1 small">{% trans "Unassigned Time" %}</h6>
+              <h3 class="mb-0 h4 h-md-3">{{ unassigned_time_count }}</h3>
+              <small class="text-muted d-none d-sm-block">{{ unassigned_time_hours|floatformat:1 }}h {% trans "sin asignar" %}</small>
             </div>
-            <i class="bi bi-clock-history fs-2 text-{% if unassigned_time_count > 0 %}danger{% else %}success{% endif %}"></i>
+            <i class="bi bi-clock-history fs-3 text-{% if unassigned_time_count > 0 %}danger{% else %}success{% endif %} d-none d-md-block"></i>
           </div>
           {% if unassigned_time_count > 0 %}
-          <a href="{% url 'unassigned_timeentries' %}" class="btn btn-sm btn-outline-danger mt-2 w-100">
-            Asignar ahora →
+          <a href="{% url 'unassigned_timeentries' %}" class="btn btn-sm btn-outline-danger w-100 mt-2">
+            <i class="bi bi-arrow-right-short"></i>
+            <span class="d-none d-sm-inline">{% trans "Assign now" %}</span>
+            <span class="d-sm-none">{% trans "Assign" %}</span>
           </a>
           {% endif %}
         </div>
@@ -33,20 +41,22 @@
     </div>
 
     <!-- Solicitudes Cliente -->
-    <div class="col-md-3">
-      <div class="card border-{% if pending_client_requests > 0 %}warning{% else %}success{% endif %} h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <h6 class="text-muted mb-1">Solicitudes Cliente</h6>
-              <h3 class="mb-0">{{ pending_client_requests }}</h3>
-              <small class="text-muted">Pendientes aprobación</small>
+    <div class="col-6 col-md-3">
+      <div class="card border-{% if pending_client_requests > 0 %}warning{% else %}success{% endif %} h-100 shadow-sm">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="flex-grow-1">
+              <h6 class="text-muted mb-1 small">{% trans "Client Requests" %}</h6>
+              <h3 class="mb-0 h4 h-md-3">{{ pending_client_requests }}</h3>
+              <small class="text-muted d-none d-sm-block">{% trans "Pending approval" %}</small>
             </div>
-            <i class="bi bi-person-plus fs-2 text-{% if pending_client_requests > 0 %}warning{% else %}success{% endif %}"></i>
+            <i class="bi bi-person-plus fs-3 text-{% if pending_client_requests > 0 %}warning{% else %}success{% endif %} d-none d-md-block"></i>
           </div>
           {% if pending_client_requests > 0 %}
-          <a href="{% url 'client_requests_list_all' %}" class="btn btn-sm btn-outline-warning mt-2 w-100">
-            Revisar →
+          <a href="{% url 'client_requests_list_all' %}" class="btn btn-sm btn-outline-warning w-100 mt-2">
+            <i class="bi bi-arrow-right-short"></i>
+            <span class="d-none d-sm-inline">{% trans "Review" %}</span>
+            <span class="d-sm-none">{% trans "View" %}</span>
           </a>
           {% endif %}
         </div>
@@ -54,20 +64,22 @@
     </div>
 
     <!-- COs Pendientes -->
-    <div class="col-md-3">
-      <div class="card border-{% if pending_cos > 0 %}info{% else %}success{% endif %} h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <h6 class="text-muted mb-1">Change Orders</h6>
-              <h3 class="mb-0">{{ pending_cos }}</h3>
-              <small class="text-muted">Esperando aprobación</small>
+    <div class="col-6 col-md-3">
+      <div class="card border-{% if pending_cos > 0 %}info{% else %}success{% endif %} h-100 shadow-sm">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="flex-grow-1">
+              <h6 class="text-muted mb-1 small">Change Orders</h6>
+              <h3 class="mb-0 h4 h-md-3">{{ pending_cos }}</h3>
+              <small class="text-muted d-none d-sm-block">{% trans "Awaiting approval" %}</small>
             </div>
-            <i class="bi bi-file-earmark-text fs-2 text-{% if pending_cos > 0 %}info{% else %}success{% endif %}"></i>
+            <i class="bi bi-file-earmark-text fs-3 text-{% if pending_cos > 0 %}info{% else %}success{% endif %} d-none d-md-block"></i>
           </div>
           {% if pending_cos > 0 %}
-          <a href="{% url 'changeorder_board' %}" class="btn btn-sm btn-outline-info mt-2 w-100">
-            Aprobar →
+          <a href="{% url 'changeorder_board' %}" class="btn btn-sm btn-outline-info w-100 mt-2">
+            <i class="bi bi-arrow-right-short"></i>
+            <span class="d-none d-sm-inline">{% trans "Approve" %}</span>
+            <span class="d-sm-none">{% trans "View" %}</span>
           </a>
           {% endif %}
         </div>
@@ -75,20 +87,22 @@
     </div>
 
     <!-- Facturas Pendientes -->
-    <div class="col-md-3">
-      <div class="card border-{% if pending_invoices > 0 %}primary{% else %}success{% endif %} h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <h6 class="text-muted mb-1">Facturas Pendientes</h6>
-              <h3 class="mb-0">{{ pending_invoices }}</h3>
-              <small class="text-muted">${{ pending_invoice_amount|floatformat:2 }}</small>
+    <div class="col-6 col-md-3">
+      <div class="card border-{% if pending_invoices > 0 %}primary{% else %}success{% endif %} h-100 shadow-sm">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="flex-grow-1">
+              <h6 class="text-muted mb-1 small">{% trans "Pending Invoices" %}</h6>
+              <h3 class="mb-0 h4 h-md-3">{{ pending_invoices }}</h3>
+              <small class="text-muted d-none d-sm-block">${{ pending_invoice_amount|floatformat:2 }}</small>
             </div>
-            <i class="bi bi-receipt fs-2 text-{% if pending_invoices > 0 %}primary{% else %}success{% endif %}"></i>
+            <i class="bi bi-receipt fs-3 text-{% if pending_invoices > 0 %}primary{% else %}success{% endif %} d-none d-md-block"></i>
           </div>
           {% if pending_invoices > 0 %}
-          <a href="{% url 'invoice_payment_dashboard' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">
-            Ver pagos →
+          <a href="{% url 'invoice_payment_dashboard' %}" class="btn btn-sm btn-outline-primary w-100 mt-2">
+            <i class="bi bi-arrow-right-short"></i>
+            <span class="d-none d-sm-inline">{% trans "View payments" %}</span>
+            <span class="d-sm-none">{% trans "Payments" %}</span>
           </a>
           {% endif %}
         </div>
@@ -97,28 +111,43 @@
   </div>
 
   <!-- === MÉTRICAS FINANCIERAS === -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card bg-success text-white h-100">
-        <div class="card-body">
-          <h6 class="text-white-50 mb-1">Ingresos Totales</h6>
-          <h2 class="mb-0">${{ total_income|floatformat:2 }}</h2>
+  <div class="row g-2 g-md-3 mb-3 mb-md-4">
+    <div class="col-12 col-md-4">
+      <div class="card bg-success text-white h-100 shadow">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h6 class="text-white-50 mb-1 small">{% trans "Total Income" %}</h6>
+              <h2 class="mb-0 h3 h-md-2">${{ total_income|floatformat:2 }}</h2>
+            </div>
+            <i class="bi bi-cash-stack fs-1 opacity-50 d-none d-md-block"></i>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card bg-danger text-white h-100">
-        <div class="card-body">
-          <h6 class="text-white-50 mb-1">Gastos Totales</h6>
-          <h2 class="mb-0">${{ total_expense|floatformat:2 }}</h2>
+    <div class="col-12 col-md-4">
+      <div class="card bg-danger text-white h-100 shadow">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h6 class="text-white-50 mb-1 small">{% trans "Total Expenses" %}</h6>
+              <h2 class="mb-0 h3 h-md-2">${{ total_expense|floatformat:2 }}</h2>
+            </div>
+            <i class="bi bi-credit-card fs-1 opacity-50 d-none d-md-block"></i>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card bg-{% if net_profit >= 0 %}primary{% else %}warning{% endif %} text-white h-100">
-        <div class="card-body">
-          <h6 class="text-white-50 mb-1">Utilidad Neta</h6>
-          <h2 class="mb-0">${{ net_profit|floatformat:2 }}</h2>
+    <div class="col-12 col-md-4">
+      <div class="card bg-{% if net_profit >= 0 %}primary{% else %}warning{% endif %} text-white h-100 shadow">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h6 class="text-white-50 mb-1 small">{% trans "Net Profit" %}</h6>
+              <h2 class="mb-0 h3 h-md-2">${{ net_profit|floatformat:2 }}</h2>
+            </div>
+            <i class="bi bi-graph-up-arrow fs-1 opacity-50 d-none d-md-block"></i>
+          </div>
         </div>
       </div>
     </div>
@@ -126,47 +155,65 @@
 
   <!-- === PROYECTOS CON ALERTAS === -->
   {% if projects_with_alerts %}
-  <div class="card mb-4">
+  <div class="card mb-3 mb-md-4 shadow-sm">
     <div class="card-header bg-danger text-white">
-      <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Proyectos con Alertas</h5>
+      <h5 class="mb-0">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {% trans "Projects with Alerts" %}
+      </h5>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm">
-          <thead>
+        <table class="table table-sm table-hover align-middle mb-0">
+          <thead class="table-light">
             <tr>
-              <th>Proyecto</th>
-              <th>Alertas</th>
-              <th class="text-end">SPI</th>
-              <th class="text-end">CPI</th>
-              <th>Acciones</th>
+              <th class="ps-3">{% trans "Project" %}</th>
+              <th>{% trans "Alerts" %}</th>
+              <th class="text-end d-none d-md-table-cell">SPI</th>
+              <th class="text-end d-none d-md-table-cell">CPI</th>
+              <th class="text-end pe-3">{% trans "Actions" %}</th>
             </tr>
           </thead>
           <tbody>
             {% for item in projects_with_alerts %}
             <tr>
-              <td><strong>{{ item.project.name }}</strong></td>
-              <td>
-                {% for alert_type, alert_msg in item.alerts %}
-                <span class="badge bg-{{ alert_type }} me-1">{{ alert_msg }}</span>
-                {% endfor %}
+              <td class="ps-3">
+                <strong class="d-block">{{ item.project.name }}</strong>
+                <small class="text-muted d-md-none">
+                  {% if item.metrics.SPI %}
+                    SPI: <span class="badge bg-{% if item.metrics.SPI < 0.9 %}danger{% elif item.metrics.SPI < 1 %}warning{% else %}success{% endif %} badge-sm">{{ item.metrics.SPI|floatformat:2 }}</span>
+                  {% endif %}
+                  {% if item.metrics.CPI %}
+                    CPI: <span class="badge bg-{% if item.metrics.CPI < 0.9 %}danger{% elif item.metrics.CPI < 1 %}warning{% else %}success{% endif %} badge-sm">{{ item.metrics.CPI|floatformat:2 }}</span>
+                  {% endif %}
+                </small>
               </td>
-              <td class="text-end">
+              <td>
+                <div class="d-flex flex-wrap gap-1">
+                  {% for alert_type, alert_msg in item.alerts %}
+                  <span class="badge bg-{{ alert_type }} small">{{ alert_msg }}</span>
+                  {% endfor %}
+                </div>
+              </td>
+              <td class="text-end d-none d-md-table-cell">
                 {% if item.metrics.SPI %}
                 <span class="badge bg-{% if item.metrics.SPI < 0.9 %}danger{% elif item.metrics.SPI < 1 %}warning{% else %}success{% endif %}">
                   {{ item.metrics.SPI|floatformat:2 }}
                 </span>
                 {% else %}—{% endif %}
               </td>
-              <td class="text-end">
+              <td class="text-end d-none d-md-table-cell">
                 {% if item.metrics.CPI %}
                 <span class="badge bg-{% if item.metrics.CPI < 0.9 %}danger{% elif item.metrics.CPI < 1 %}warning{% else %}success{% endif %}">
                   {{ item.metrics.CPI|floatformat:2 }}
                 </span>
                 {% else %}—{% endif %}
               </td>
-              <td>
-                <a href="{% url 'project_overview' item.project.id %}" class="btn btn-sm btn-outline-primary">Dashboard</a>
+              <td class="text-end pe-3">
+                <a href="{% url 'project_overview' item.project.id %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-speedometer2 d-md-none"></i>
+                  <span class="d-none d-md-inline">Dashboard</span>
+                </a>
               </td>
             </tr>
             {% endfor %}
@@ -177,27 +224,41 @@
   </div>
   {% endif %}
 
-  <div class="row g-3 mb-4">
+  <div class="row g-2 g-md-3 mb-3 mb-md-4">
     <!-- === APROBACIONES PENDIENTES === -->
-    <div class="col-lg-6">
-      <div class="card h-100">
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 shadow-sm">
         <div class="card-header bg-warning">
-          <h5 class="mb-0"><i class="bi bi-check-circle"></i> Aprobaciones Pendientes</h5>
+          <h5 class="mb-0">
+            <i class="bi bi-check-circle me-2"></i>
+            {% trans "Pending Approvals" %}
+          </h5>
         </div>
         <div class="card-body">
           <!-- COs -->
           {% if pending_cos_list %}
-          <h6 class="text-muted mb-2">Change Orders ({{ pending_cos }})</h6>
+          <h6 class="text-muted mb-2 small">
+            <i class="bi bi-file-earmark-text me-1"></i>
+            Change Orders ({{ pending_cos }})
+          </h6>
           <ul class="list-group mb-3">
             {% for co in pending_cos_list %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <strong>CO #{{ co.id }}</strong> - {{ co.project.name }}<br>
-                <small class="text-muted">{{ co.description|truncatewords:10 }}</small>
-              </div>
-              <div class="text-end">
-                <div class="fw-bold text-success">${{ co.amount|floatformat:2 }}</div>
-                <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-outline-primary">Aprobar</a>
+            <li class="list-group-item p-2 p-md-3">
+              <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                <div class="flex-grow-1">
+                  <strong class="d-block">CO #{{ co.id }}</strong>
+                  <span class="text-muted small">{{ co.project.name }}</span>
+                  <div class="d-none d-md-block">
+                    <small class="text-muted">{{ co.description|truncatewords:10 }}</small>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 w-100 w-md-auto">
+                  <div class="fw-bold text-success flex-grow-1 flex-md-grow-0">${{ co.amount|floatformat:2 }}</div>
+                  <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-check-lg d-md-none"></i>
+                    <span class="d-none d-md-inline">{% trans "Approve" %}</span>
+                  </a>
+                </div>
               </div>
             </li>
             {% endfor %}
@@ -206,16 +267,25 @@
 
           <!-- Solicitudes Cliente -->
           {% if pending_requests_list %}
-          <h6 class="text-muted mb-2">Solicitudes Cliente ({{ pending_client_requests }})</h6>
+          <h6 class="text-muted mb-2 small">
+            <i class="bi bi-person-plus me-1"></i>
+            {% trans "Client Requests" %} ({{ pending_client_requests }})
+          </h6>
           <ul class="list-group">
             {% for req in pending_requests_list %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <strong>CR #{{ req.id }}</strong> - {{ req.project.name }}<br>
-                <small class="text-muted">{{ req.title }}</small>
-              </div>
-              <div>
-                <a href="{% url 'client_request_convert' req.id %}" class="btn btn-sm btn-outline-success">Convertir</a>
+            <li class="list-group-item p-2 p-md-3">
+              <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                <div class="flex-grow-1">
+                  <strong class="d-block">CR #{{ req.id }}</strong>
+                  <span class="text-muted small">{{ req.project.name }}</span>
+                  <div class="d-none d-md-block">
+                    <small class="text-muted">{{ req.title }}</small>
+                  </div>
+                </div>
+                <a href="{% url 'client_request_convert' req.id %}" class="btn btn-sm btn-outline-success w-100 w-md-auto">
+                  <i class="bi bi-arrow-repeat d-md-none"></i>
+                  <span class="d-none d-md-inline">{% trans "Convert" %}</span>
+                </a>
               </div>
             </li>
             {% endfor %}
@@ -223,58 +293,79 @@
           {% endif %}
 
           {% if not pending_cos_list and not pending_requests_list %}
-          <p class="text-muted mb-0">Sin aprobaciones pendientes.</p>
+          <div class="text-center py-4">
+            <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
+            <p class="text-muted mb-0">{% trans "No pending approvals" %}</p>
+          </div>
           {% endif %}
         </div>
       </div>
     </div>
 
     <!-- === NÓMINA Y TIEMPO === -->
-    <div class="col-lg-6">
-      <div class="card h-100">
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 shadow-sm">
         <div class="card-header bg-info text-white">
-          <h5 class="mb-0"><i class="bi bi-calendar-week"></i> Nómina y Tiempo</h5>
+          <h5 class="mb-0">
+            <i class="bi bi-calendar-week me-2"></i>
+            {% trans "Payroll & Time" %}
+          </h5>
         </div>
         <div class="card-body">
           {% if latest_payroll_period %}
-          <h6 class="text-muted">Último Periodo de Nómina</h6>
+          <h6 class="text-muted small">{% trans "Latest Payroll Period" %}</h6>
           <div class="mb-3 p-3 bg-light rounded">
-            <div class="d-flex justify-content-between mb-2">
-              <span>Semana:</span>
-              <strong>{{ latest_payroll_period.week_start|date:"M d" }} - {{ latest_payroll_period.week_end|date:"M d, Y" }}</strong>
+            <div class="row g-2 small">
+              <div class="col-12 col-sm-6">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">{% trans "Week" %}:</span>
+                  <strong>{{ latest_payroll_period.week_start|date:"M d" }} - {{ latest_payroll_period.week_end|date:"M d" }}</strong>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">{% trans "Status" %}:</span>
+                  <span class="badge bg-{{ latest_payroll_period.status }}">{{ latest_payroll_period.get_status_display }}</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">{% trans "Total" %}:</span>
+                  <strong>${{ latest_payroll_period.total_payroll|floatformat:2 }}</strong>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">{% trans "Paid" %}:</span>
+                  <strong class="text-success">${{ latest_payroll_period.total_paid|floatformat:2 }}</strong>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">{% trans "Pending" %}:</span>
+                  <strong class="text-danger">${{ payroll_balance|floatformat:2 }}</strong>
+                </div>
+              </div>
             </div>
-            <div class="d-flex justify-content-between mb-2">
-              <span>Estado:</span>
-              <span class="badge bg-{{ latest_payroll_period.status }}">{{ latest_payroll_period.get_status_display }}</span>
-            </div>
-            <div class="d-flex justify-content-between mb-2">
-              <span>Total Nómina:</span>
-              <strong>${{ latest_payroll_period.total_payroll|floatformat:2 }}</strong>
-            </div>
-            <div class="d-flex justify-content-between mb-2">
-              <span>Pagado:</span>
-              <strong class="text-success">${{ latest_payroll_period.total_paid|floatformat:2 }}</strong>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span>Pendiente:</span>
-              <strong class="text-danger">${{ payroll_balance|floatformat:2 }}</strong>
-            </div>
-            <a href="{% url 'payroll_weekly_review' %}" class="btn btn-sm btn-primary w-100 mt-2">Revisar Nómina</a>
+            <a href="{% url 'payroll_weekly_review' %}" class="btn btn-sm btn-primary w-100 mt-2">
+              <i class="bi bi-calendar-check me-1"></i>
+              {% trans "Review Payroll" %}
+            </a>
           </div>
           {% endif %}
 
-          <h6 class="text-muted mt-3">Tiempo Registrado</h6>
+          <h6 class="text-muted mt-3 small">{% trans "Time Recorded" %}</h6>
           <div class="row g-2">
             <div class="col-6">
               <div class="p-3 bg-light rounded text-center">
-                <small class="text-muted d-block">Hoy</small>
+                <small class="text-muted d-block">{% trans "Today" %}</small>
                 <h4 class="mb-0">{{ today_hours|floatformat:1 }}h</h4>
                 <small class="text-muted">${{ today_labor_cost|floatformat:2 }}</small>
               </div>
             </div>
             <div class="col-6">
               <div class="p-3 bg-light rounded text-center">
-                <small class="text-muted d-block">Esta Semana</small>
+                <small class="text-muted d-block">{% trans "This Week" %}</small>
                 <h4 class="mb-0">{{ week_hours|floatformat:1 }}h</h4>
               </div>
             </div>
@@ -307,62 +398,96 @@
   <!-- === GRÁFICOS === -->
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0"><i class="bi bi-graph-up"></i> Ingresos vs Gastos (Últimos 30 días)</h5>
+  <!-- === CHARTS ROW === -->
+  <div class="row g-2 g-md-3 mb-3 mb-md-4">
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 h6 h-md-5">
+            <i class="bi bi-graph-up text-primary me-2"></i>
+            {% trans "Income vs Expenses" %} <span class="d-none d-md-inline">({% trans "Last 30 days" %})</span>
+          </h5>
         </div>
-        <div class="card-body">
-          <canvas id="incomeExpenseChart" height="200"></canvas>
+        <div class="card-body p-2 p-md-3">
+          <div style="position: relative; height: 250px;">
+            <canvas id="incomeExpenseChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Distribución de Alertas</h5>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 h6 h-md-5">
+            <i class="bi bi-pie-chart text-warning me-2"></i>
+            {% trans "Alerts Distribution" %}
+          </h5>
         </div>
-        <div class="card-body">
-          <canvas id="alertsChart" height="200"></canvas>
+        <div class="card-body p-2 p-md-3">
+          <div style="position: relative; height: 250px;">
+            <canvas id="alertsChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- === ACCIONES RÁPIDAS === -->
-  <div class="card">
-    <div class="card-header">
-      <h5 class="mb-0"><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
+  <!-- === QUICK ACTIONS === -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-white">
+      <h5 class="mb-0 h6 h-md-5">
+        <i class="bi bi-lightning-charge text-warning me-2"></i>
+        {% trans "Quick Actions" %}
+      </h5>
     </div>
-    <div class="card-body">
+    <div class="card-body p-2 p-md-3">
       <div class="row g-2">
-        <div class="col-md-2">
-          <a href="{% url 'project_list' %}" class="btn btn-outline-primary w-100">
-            <i class="bi bi-folder"></i> Proyectos
+        <!-- Projects -->
+        <div class="col-6 col-sm-4 col-md-2">
+          <a href="{% url 'project_list' %}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-1 py-3">
+            <i class="bi bi-folder fs-3 d-none d-md-block"></i>
+            <i class="bi bi-folder fs-5 d-md-none"></i>
+            <span class="small">{% trans "Projects" %}</span>
           </a>
         </div>
-        <div class="col-md-2">
-          <a href="{% url 'invoice_list' %}" class="btn btn-outline-success w-100">
-            <i class="bi bi-receipt"></i> Facturas
+        <!-- Invoices -->
+        <div class="col-6 col-sm-4 col-md-2">
+          <a href="{% url 'invoice_list' %}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3">
+            <i class="bi bi-receipt fs-3 d-none d-md-block"></i>
+            <i class="bi bi-receipt fs-5 d-md-none"></i>
+            <span class="small">{% trans "Invoices" %}</span>
           </a>
         </div>
-        <div class="col-md-2">
-          <a href="{% url 'payroll_weekly_review' %}" class="btn btn-outline-info w-100">
-            <i class="bi bi-cash-stack"></i> Nómina
+        <!-- Payroll -->
+        <div class="col-6 col-sm-4 col-md-2">
+          <a href="{% url 'payroll_weekly_review' %}" class="btn btn-outline-info w-100 d-flex flex-column align-items-center gap-1 py-3">
+            <i class="bi bi-cash-stack fs-3 d-none d-md-block"></i>
+            <i class="bi bi-cash-stack fs-5 d-md-none"></i>
+            <span class="small">{% trans "Payroll" %}</span>
           </a>
         </div>
-        <div class="col-md-2">
-          <a href="{% url 'changeorder_board' %}" class="btn btn-outline-warning w-100">
-            <i class="bi bi-file-earmark-text"></i> COs
+        <!-- Change Orders -->
+        <div class="col-6 col-sm-4 col-md-2">
+          <a href="{% url 'changeorder_board' %}" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center gap-1 py-3">
+            <i class="bi bi-file-earmark-text fs-3 d-none d-md-block"></i>
+            <i class="bi bi-file-earmark-text fs-5 d-md-none"></i>
+            <span class="small">{% trans "COs" %}</span>
           </a>
         </div>
-        <div class="col-md-2">
-          <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary w-100">
-            <i class="bi bi-calendar-check"></i> Planning
+        <!-- Planning -->
+        <div class="col-6 col-sm-4 col-md-2">
+          <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary w-100 d-flex flex-column align-items-center gap-1 py-3">
+            <i class="bi bi-calendar-check fs-3 d-none d-md-block"></i>
+            <i class="bi bi-calendar-check fs-5 d-md-none"></i>
+            <span class="small">{% trans "Planning" %}</span>
           </a>
         </div>
-        <div class="col-md-2">
-          <a href="#" onclick="alert('Selecciona un proyecto primero'); return false;" class="btn btn-outline-dark w-100">
-            <i class="bi bi-journal-text"></i> Minutas
+        <!-- Minutes -->
+        <div class="col-6 col-sm-4 col-md-2">
+          <a href="#" onclick="alert('{% trans "Select a project first" %}'); return false;" class="btn btn-outline-dark w-100 d-flex flex-column align-items-center gap-1 py-3">
+            <i class="bi bi-journal-text fs-3 d-none d-md-block"></i>
+            <i class="bi bi-journal-text fs-5 d-md-none"></i>
+            <span class="small">{% trans "Minutes" %}</span>
           </a>
         </div>
       </div>
@@ -372,13 +497,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Gráfico Ingresos vs Gastos
+// Income vs Expenses Chart
 const ctx1 = document.getElementById('incomeExpenseChart');
 if (ctx1) {
   new Chart(ctx1, {
     type: 'bar',
     data: {
-      labels: ['Ingresos', 'Gastos', 'Utilidad'],
+      labels: ['{% trans "Income" %}', '{% trans "Expenses" %}', '{% trans "Profit" %}'],
       datasets: [{
         label: 'USD',
         data: [
@@ -426,18 +551,18 @@ if (ctx1) {
   });
 }
 
-// Gráfico de Alertas
+// Alerts Distribution Chart
 const ctx2 = document.getElementById('alertsChart');
 if (ctx2) {
   new Chart(ctx2, {
     type: 'doughnut',
     data: {
       labels: [
-        'Tiempo sin CO ({{ unassigned_time_count }})',
-        'Solicitudes Cliente ({{ pending_client_requests }})',
-        'COs Pendientes ({{ pending_cos }})',
-        'Facturas ({{ pending_invoices }})',
-        'Materiales ({{ pending_materials }})'
+        '{% trans "Unassigned Time" %} ({{ unassigned_time_count }})',
+        '{% trans "Client Requests" %} ({{ pending_client_requests }})',
+        '{% trans "Pending COs" %} ({{ pending_cos }})',
+        '{% trans "Invoices" %} ({{ pending_invoices }})',
+        '{% trans "Materials" %} ({{ pending_materials }})'
       ],
       datasets: [{
         data: [
@@ -463,8 +588,11 @@ if (ctx2) {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'right',
-          labels: { padding: 15, font: { size: 11 } }
+          position: window.innerWidth < 768 ? 'bottom' : 'right',
+          labels: { 
+            padding: window.innerWidth < 768 ? 8 : 15, 
+            font: { size: window.innerWidth < 768 ? 10 : 11 }
+          }
         }
       }
     }

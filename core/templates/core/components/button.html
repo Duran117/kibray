@@ -1,0 +1,36 @@
+{% load i18n %}
+
+{#
+  Button Component
+  
+  Usage:
+  {% include "core/components/button.html" with text="Save" icon="check" variant="primary" type="submit" %}
+  
+  Parameters:
+  - text: button label (required)
+  - variant: primary|secondary|danger|success (default: secondary)
+  - icon: bootstrap icon name (optional)
+  - type: button|submit|reset (default: button)
+  - extra_classes: additional CSS classes
+  - attrs: additional HTML attributes as string, e.g. 'data-id="123" disabled'
+#}
+
+<button type="{{ type|default:'button' }}" 
+        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all
+               {% if variant == 'primary' %}
+               bg-kibray-600 hover:bg-kibray-700 text-white shadow-sm hover:shadow-md
+               {% elif variant == 'danger' %}
+               bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow-md
+               {% elif variant == 'success' %}
+               bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md
+               {% else %}
+               bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300
+               {% endif %}
+               disabled:opacity-50 disabled:cursor-not-allowed
+               {{ extra_classes|default:'' }}"
+        {{ attrs|safe }}>
+    {% if icon %}
+    <i class="bi bi-{{ icon }}"></i>
+    {% endif %}
+    <span>{{ text }}</span>
+</button>

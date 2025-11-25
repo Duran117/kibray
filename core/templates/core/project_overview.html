@@ -25,32 +25,155 @@
           </p>
         </div>
         <div class="col-lg-6 text-lg-end mt-3 mt-lg-0">
-          <div class="btn-group" role="group">
-            <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-outline-secondary">
+          <!-- Grupo 1: Navegación Principal -->
+          <div class="btn-group mb-2" role="group">
+            <a href="{% url 'floor_plan_list' project.id %}" class="btn btn-outline-info btn-sm">
+              <i class="bi bi-blueprint"></i> Planos 2D
+            </a>
+            <a href="{% url 'touchup_plans_list' project.id %}" class="btn btn-outline-warning btn-sm">
+              <i class="bi bi-brush"></i> Touch-ups
+            </a>
+            <a href="{% url 'damage_report_list' project.id %}" class="btn btn-outline-danger btn-sm">
+              <i class="bi bi-exclamation-diamond"></i> Daños
+            </a>
+            <a href="{% url 'changeorder_board' %}" class="btn btn-outline-success btn-sm">
+              <i class="bi bi-kanban"></i> CO Board
+            </a>
+            <a href="{% url 'project_files' project.id %}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-folder2-open"></i> Archivos
+            </a>
+            <a href="{% url 'daily_log' project.id %}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-journal-text"></i> Daily Logs
+            </a>
+          </div>
+          
+          <!-- Grupo 2: Herramientas y Reportes -->
+          <div class="btn-group mb-2 ms-lg-2" role="group">
+            <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-outline-secondary btn-sm">
               <i class="bi bi-journal-text"></i> Minutas
             </a>
-            <a href="{% url 'project_profit_dashboard' project.id %}" class="btn btn-outline-info">
+            <a href="{% url 'inventory_view' project.id %}" class="btn btn-outline-warning btn-sm">
+              <i class="bi bi-box-seam"></i> Inventario
+            </a>
+            <a href="{% url 'project_profit_dashboard' project.id %}" class="btn btn-outline-info btn-sm">
               <i class="bi bi-graph-up"></i> Profit
             </a>
-            <a href="{% url 'project_ev' project.id %}" class="btn btn-outline-primary">
+            <a href="{% url 'project_ev' project.id %}" class="btn btn-outline-primary btn-sm">
               <i class="bi bi-speedometer2"></i> EV
             </a>
           </div>
-          <div class="btn-group ms-2" role="group">
-            <a href="{% url 'changeorder_create' %}" class="btn btn-warning">
+          
+          <!-- Grupo 3: Acciones Rápidas -->
+          <div class="btn-group ms-lg-2" role="group">
+            <a href="{% url 'changeorder_create' %}" class="btn btn-warning btn-sm">
               <i class="bi bi-file-earmark-plus"></i> Nuevo CO
             </a>
-            <a href="{% url 'invoice_builder' project.id %}" class="btn btn-success">
+            <a href="{% url 'invoice_builder' project.id %}" class="btn btn-success btn-sm">
               <i class="bi bi-receipt"></i> Nueva Factura
             </a>
             {% if can_manage %}
-            <a href="{% url 'task_list' project.id %}#crear" class="btn btn-outline-primary">
-              <i class="bi bi-check2-square"></i> Nueva Tarea
+            <a href="{% url 'task_list' project.id %}#crear" class="btn btn-primary btn-sm">
+              <i class="bi bi-plus-circle"></i> Nueva Tarea
             </a>
             {% endif %}
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Calendar & Timeline Widget -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-calendar-range"></i> Timeline del Proyecto</h5>
+      <a href="{% url 'project_schedule' project.id %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-calendar3"></i> Ver Calendario Completo
+      </a>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <!-- Project Dates -->
+          <div class="mb-3">
+            <div class="d-flex align-items-center mb-2">
+              <i class="bi bi-calendar-check text-success me-2"></i>
+              <strong>Inicio:</strong>
+              <span class="ms-2">
+                {% if project.start_date %}{{ project.start_date|date:"M d, Y" }}{% else %}<span class="text-muted">No definido</span>{% endif %}
+              </span>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+              <i class="bi bi-calendar-x text-danger me-2"></i>
+              <strong>Fin estimado:</strong>
+              <span class="ms-2">
+                {% if project.end_date %}{{ project.end_date|date:"M d, Y" }}{% else %}<span class="text-muted">No definido</span>{% endif %}
+              </span>
+            </div>
+            {% if project.start_date and project.end_date %}
+            <div class="d-flex align-items-center">
+              <i class="bi bi-clock-history text-primary me-2"></i>
+              <strong>Duración total:</strong>
+              <span class="ms-2">{{ project.end_date|timeuntil:project.start_date }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <!-- Progress Indicator -->
+          <div class="mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small"><strong>Progreso del Proyecto</strong></span>
+              <span class="small text-muted">{% if project.progress %}{{ project.progress }}%{% else %}0%{% endif %}</span>
+            </div>
+            <div class="progress" style="height: 25px;">
+              <div class="progress-bar bg-success" role="progressbar" 
+                   style="width: {% if project.progress %}{{ project.progress }}{% else %}0{% endif %}%;" 
+                   aria-valuenow="{% if project.progress %}{{ project.progress }}{% else %}0{% endif %}" 
+                   aria-valuemin="0" aria-valuemax="100">
+                {% if project.progress %}{{ project.progress }}%{% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Quick Stats -->
+          <div class="row g-2 mt-2">
+            <div class="col-6">
+              <div class="small bg-light p-2 rounded text-center">
+                <i class="bi bi-calendar-event"></i><br>
+                <strong>{{ upcoming_schedules|length }}</strong> eventos próximos
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="small bg-light p-2 rounded text-center">
+                <i class="bi bi-check2-square"></i><br>
+                <strong>{{ recent_tasks|length }}</strong> tareas recientes
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Upcoming Events Timeline -->
+      {% if upcoming_schedules %}
+      <hr class="my-3">
+      <h6 class="mb-3"><i class="bi bi-clock-history"></i> Próximos Eventos</h6>
+      <div class="timeline-container" style="max-height: 200px; overflow-y: auto;">
+        {% for s in upcoming_schedules|slice:":5" %}
+        <div class="d-flex mb-2 pb-2 border-bottom">
+          <div class="me-3 text-center" style="min-width: 60px;">
+            <div class="badge bg-primary">{{ s.start_datetime|date:"M d" }}</div>
+            <small class="text-muted d-block">{{ s.start_datetime|date:"H:i" }}</small>
+          </div>
+          <div class="flex-grow-1">
+            <strong>{{ s.title }}</strong>
+            {% if s.description %}
+            <p class="small text-muted mb-0">{{ s.description|truncatewords:15 }}</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -95,6 +218,229 @@
   </div>
 
   <div class="row g-3">
+    <!-- Widget Floor Plans -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-blueprint"></i> Planos 2D</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <a href="{% url 'floor_plan_list' project.id %}" class="btn btn-outline-primary">
+              <i class="bi bi-list"></i> Ver Todo
+            </a>
+            {% if can_manage %}
+            <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-outline-success">
+              <i class="bi bi-plus-circle"></i> Crear
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="small bg-light p-2 rounded text-center">
+                <i class="bi bi-map"></i><br>
+                <strong>{{ total_floor_plans }}</strong> planos
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="small bg-light p-2 rounded text-center">
+                <i class="bi bi-pin-map"></i><br>
+                <strong>{{ total_pins }}</strong> pines totales
+              </div>
+            </div>
+          </div>
+          {% if floor_plans %}
+            <div class="list-group list-group-flush">
+              {% for plan in floor_plans %}
+                <a href="{% url 'floor_plan_detail' plan.id %}" class="list-group-item list-group-item-action border-0 px-0">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ plan.name }}</strong>
+                      <div class="small text-muted">Nivel {{ plan.level }} · {{ plan.pins.count }} pines</div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-muted text-center py-3">
+              <i class="bi bi-blueprint fs-1 opacity-25"></i>
+              <p class="mb-0 mt-2">Sin planos</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Widget Touch-ups -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-brush"></i> Touch-ups</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <a href="{% url 'touchup_plans_list' project.id %}" class="btn btn-outline-primary">
+              <i class="bi bi-list"></i> Ver Panel
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 mb-3">
+            <div class="col-4">
+              <div class="small bg-warning bg-opacity-10 p-2 rounded text-center border border-warning">
+                <i class="bi bi-clock-history text-warning"></i><br>
+                <strong>{{ touchups_pending }}</strong><br>
+                <small>Pendientes</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="small bg-primary bg-opacity-10 p-2 rounded text-center border border-primary">
+                <i class="bi bi-arrow-repeat text-primary"></i><br>
+                <strong>{{ touchups_in_progress }}</strong><br>
+                <small>En Proceso</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="small bg-success bg-opacity-10 p-2 rounded text-center border border-success">
+                <i class="bi bi-check-circle text-success"></i><br>
+                <strong>{{ touchups_completed }}</strong><br>
+                <small>Completados</small>
+              </div>
+            </div>
+          </div>
+          {% if recent_touchups %}
+            <div class="list-group list-group-flush">
+              {% for touchup in recent_touchups %}
+                <div class="list-group-item border-0 px-0">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <strong>{{ touchup.title|default:"Touch-up" }}</strong>
+                      <div class="small text-muted">
+                        {{ touchup.floor_plan.name }} · 
+                        {% if touchup.assigned_to %}{{ touchup.assigned_to.get_full_name }}{% else %}Sin asignar{% endif %}
+                      </div>
+                    </div>
+                    <span class="badge bg-{% if touchup.status == 'completed' %}success{% elif touchup.status == 'in_progress' %}primary{% else %}warning{% endif %}">
+                      {{ touchup.get_status_display }}
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-muted text-center py-3">
+              <i class="bi bi-brush fs-1 opacity-25"></i>
+              <p class="mb-0 mt-2">Sin touch-ups</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Widget CO Summary -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-kanban"></i> Change Orders</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <a href="{% url 'changeorder_board' %}" class="btn btn-outline-primary">
+              <i class="bi bi-kanban"></i> Ver Board
+            </a>
+            {% if can_manage %}
+            <a href="{% url 'changeorder_create' %}" class="btn btn-outline-success">
+              <i class="bi bi-plus-circle"></i> Crear
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 mb-3">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small"><strong>Total COs:</strong></span>
+                <span class="badge bg-primary">{{ total_cos }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="small bg-secondary bg-opacity-10 p-2 rounded border border-secondary">
+                <i class="bi bi-pencil text-secondary"></i>
+                <strong>{{ cos_draft }}</strong> Draft
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="small bg-warning bg-opacity-10 p-2 rounded border border-warning">
+                <i class="bi bi-eye text-warning"></i>
+                <strong>{{ cos_review }}</strong> Review
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="small bg-success bg-opacity-10 p-2 rounded border border-success">
+                <i class="bi bi-check-circle text-success"></i>
+                <strong>{{ cos_approved }}</strong> Approved
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="small bg-primary bg-opacity-10 p-2 rounded border border-primary">
+                <i class="bi bi-arrow-repeat text-primary"></i>
+                <strong>{{ cos_in_progress }}</strong> In Progress
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="small bg-info bg-opacity-10 p-2 rounded border border-info">
+                <i class="bi bi-check-all text-info"></i>
+                <strong>{{ cos_completed }}</strong> Completed
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Widget Damage Reports (actualizado) -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-exclamation-diamond"></i> Reportes de Daño</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <a href="{% url 'damage_report_list' project.id %}" class="btn btn-outline-danger">
+              <i class="bi bi-eye"></i> Ver Todo
+            </a>
+            {% if can_manage %}
+            <a href="{% url 'damage_report_list' project.id %}#crear" class="btn btn-outline-success">
+              <i class="bi bi-plus-circle"></i> Crear
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body">
+          {% if recent_issues %}
+            <div class="list-group list-group-flush">
+              {% for i in recent_issues %}
+                <div class="list-group-item border-0 px-0">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1">
+                        <i class="bi bi-flag text-danger me-2"></i>
+                        {{ i.title|default:"Reporte" }}
+                      </h6>
+                      <small class="text-muted">{{ i.created_at|date:"M d, Y" }} · {{ i.status|default:"open" }}</small>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-muted text-center py-3">
+              <i class="bi bi-shield-check fs-1 opacity-25"></i>
+              <p class="mb-0 mt-2">Sin reportes</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-bottom">
@@ -205,53 +551,11 @@
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-exclamation-triangle"></i> Alertas / Daños</span>
-          <div class="btn-group btn-group-sm" role="group">
-            <a href="{% url 'issue_list' project.id %}" class="btn btn-outline-warning">
-              <i class="bi bi-eye"></i> Ver Todo
-            </a>
-            {% if can_manage %}
-            <a href="{% url 'issue_list' project.id %}#crear" class="btn btn-outline-success">
-              <i class="bi bi-plus-circle"></i> Crear
-            </a>
-            {% endif %}
-          </div>
-        </div>
-        <div class="card-body">
-          {% if recent_issues %}
-            <div class="list-group list-group-flush">
-              {% for i in recent_issues %}
-                <div class="list-group-item border-0 px-0">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                      <h6 class="mb-1">
-                        <i class="bi bi-flag text-warning me-2"></i>
-                        {{ i.title|default:"Issue" }}
-                      </h6>
-                      <small class="text-muted">{{ i.created_at|date:"M d, Y" }} · {{ i.status|default:"open" }}</small>
-                    </div>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="text-muted text-center py-3">
-              <i class="bi bi-shield-check fs-1 opacity-25"></i>
-              <p class="mb-0 mt-2">Sin reportes</p>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
           <span><i class="bi bi-journal-text"></i> Daily Logs</span>
           <div class="btn-group btn-group-sm" role="group">
-            <a href="{% url 'daily_log' project.id %}" class="btn btn-outline-primary"><i class="bi bi-list"></i></a>
+            <a href="{% url 'daily_log' project.id %}" class="btn btn-outline-primary"><i class="bi bi-list"></i> Ver Todo</a>
             {% if can_manage %}
-            <a href="{% url 'daily_log' project.id %}#crear" class="btn btn-outline-success"><i class="bi bi-plus"></i></a>
+            <a href="{% url 'daily_log' project.id %}#crear" class="btn btn-outline-success"><i class="bi bi-plus"></i> Crear</a>
             {% endif %}
           </div>
         </div>

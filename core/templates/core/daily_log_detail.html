@@ -1,0 +1,295 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_admin' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}">Daily Logs</a></li>
+      <li class="breadcrumb-item active">{{ log.date|date:"M d, Y" }}</li>
+    </ol>
+  </nav>
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-journal-text"></i> Daily Log</h2>
+      <h4 class="text-muted">{{ log.date|date:"l, F j, Y" }}</h4>
+    </div>
+    <div>
+      {% if log.is_published %}
+      <span class="badge bg-success fs-6"><i class="bi bi-eye"></i> Publicado</span>
+      {% else %}
+      <span class="badge bg-warning fs-6"><i class="bi bi-eye-slash"></i> Borrador</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+      <!-- Basic Info Card -->
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-cloud-sun fs-3 text-primary me-3"></i>
+                <div>
+                  <div class="small text-muted">Clima</div>
+                  <div class="fw-bold">{{ log.weather|default:"No especificado" }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-people fs-3 text-info me-3"></i>
+                <div>
+                  <div class="small text-muted">Equipo</div>
+                  <div class="fw-bold">{{ log.crew_count }} persona{{ log.crew_count|pluralize }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-person-circle fs-3 text-success me-3"></i>
+                <div>
+                  <div class="small text-muted">Creado por</div>
+                  <div class="fw-bold">{{ log.created_by.username }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule Progress Card -->
+      {% if log.schedule_item %}
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> Progreso del Schedule</h5>
+        </div>
+        <div class="card-body">
+          <h4 class="mb-3">{{ log.schedule_item.title }}</h4>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span>Progreso de esta actividad</span>
+            <span class="fs-4 fw-bold text-success">{{ log.schedule_progress_percent }}%</span>
+          </div>
+          <div class="progress" style="height: 30px;">
+            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                 style="width: {{ log.schedule_progress_percent }}%;">
+              {{ log.schedule_progress_percent }}%
+            </div>
+          </div>
+          {% if log.schedule_item.description %}
+          <p class="mt-3 text-muted small">{{ log.schedule_item.description }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Completed Tasks Card -->
+      {% if log.completed_tasks.count > 0 %}
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-check2-square"></i> Tareas Completadas</h5>
+          <span class="badge bg-white text-info">{{ log.completed_tasks.count }}</span>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            {% for task in log.completed_tasks.all %}
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+              <div>
+                <i class="bi bi-check-circle text-success me-2"></i>
+                <strong>{{ task.title }}</strong>
+                {% if task.assigned_to %}
+                <div class="small text-muted ms-4">
+                  <i class="bi bi-person"></i> {{ task.assigned_to }}
+                </div>
+                {% endif %}
+              </div>
+              <span class="badge {% if task.status == 'completed' %}bg-success{% elif task.status == 'in_progress' %}bg-warning{% else %}bg-secondary{% endif %}">
+                {{ task.get_status_display }}
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Accomplishments -->
+      {% if log.accomplishments %}
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0"><i class="bi bi-trophy"></i> Logros del Día</h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-0" style="white-space: pre-wrap;">{{ log.accomplishments }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Photos Gallery -->
+      {% if log.photos.count > 0 %}
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-camera"></i> Fotos del Día</h5>
+          <span class="badge bg-dark">{{ log.photos.count }}</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            {% for photo in log.photos.all %}
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100">
+                <img src="{{ photo.image.url }}" class="card-img-top" style="height: 250px; object-fit: cover;" 
+                     data-bs-toggle="modal" data-bs-target="#photoModal{{ photo.id }}" style="cursor: pointer;">
+                {% if photo.caption %}
+                <div class="card-body p-2">
+                  <small class="text-muted">{{ photo.caption }}</small>
+                </div>
+                {% endif %}
+                <div class="card-footer p-2 small text-muted">
+                  <i class="bi bi-clock"></i> {{ photo.uploaded_at|date:"h:i A" }}
+                  {% if photo.uploaded_by %}· {{ photo.uploaded_by.username }}{% endif %}
+                </div>
+              </div>
+
+              <!-- Photo Modal -->
+              <div class="modal fade" id="photoModal{{ photo.id }}" tabindex="-1">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">{{ photo.caption|default:"Foto" }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                      <img src="{{ photo.image.url }}" class="img-fluid" style="max-height: 70vh;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Add More Photos Form -->
+          {% if can_edit %}
+          <hr class="my-4">
+          <h6><i class="bi bi-camera-fill"></i> Agregar Más Fotos</h6>
+          <form method="post" enctype="multipart/form-data" class="mt-3">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-md-8 mb-2">
+                <input type="file" name="photos" class="form-control" accept="image/*" multiple required>
+              </div>
+              <div class="col-md-4 mb-2">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="bi bi-upload"></i> Subir
+                </button>
+              </div>
+            </div>
+            <input type="text" name="caption" class="form-control" placeholder="Descripción...">
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Progress Notes -->
+      {% if log.progress_notes %}
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> Notas de Progreso</h6>
+        </div>
+        <div class="card-body">
+          <p class="mb-0" style="white-space: pre-wrap;">{{ log.progress_notes }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Safety Incidents -->
+      {% if log.safety_incidents %}
+      <div class="card mb-4 border-danger border-0 shadow-sm">
+        <div class="card-header bg-danger text-white">
+          <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Incidentes de Seguridad</h6>
+        </div>
+        <div class="card-body">
+          <p class="mb-0" style="white-space: pre-wrap;">{{ log.safety_incidents }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Delays -->
+      {% if log.delays %}
+      <div class="card mb-4 border-warning border-0 shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h6 class="mb-0"><i class="bi bi-clock-history"></i> Retrasos o Problemas</h6>
+        </div>
+        <div class="card-body">
+          <p class="mb-0" style="white-space: pre-wrap;">{{ log.delays }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Next Day Plan -->
+      {% if log.next_day_plan %}
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h6 class="mb-0"><i class="bi bi-calendar-plus"></i> Plan para Mañana</h6>
+        </div>
+        <div class="card-body">
+          <p class="mb-0" style="white-space: pre-wrap;">{{ log.next_day_plan }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Metadata -->
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-2">
+            <small class="text-muted">Creado:</small>
+            <div>{{ log.created_at|date:"M d, Y h:i A" }}</div>
+          </div>
+          <div class="mb-2">
+            <small class="text-muted">Última actualización:</small>
+            <div>{{ log.updated_at|date:"M d, Y h:i A" }}</div>
+          </div>
+          <div>
+            <small class="text-muted">Estado:</small>
+            <div>
+              {% if log.is_published %}
+              <span class="badge bg-success">Visible para Cliente/Owner</span>
+              {% else %}
+              <span class="badge bg-warning">Solo visible para PM/Staff</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-grid gap-2">
+        <a href="{% url 'daily_log' project.id %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Volver a Lista
+        </a>
+        {% if can_edit %}
+        <a href="#" class="btn btn-outline-primary">
+          <i class="bi bi-pencil"></i> Editar Daily Log
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

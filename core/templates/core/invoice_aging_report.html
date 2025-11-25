@@ -1,0 +1,253 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Invoice Aging Report" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .aging-bucket {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .bucket-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .bucket-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+    
+    .bucket-total {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .bucket-current { border-left: 4px solid #10b981; }
+    .bucket-30-60 { border-left: 4px solid #f59e0b; }
+    .bucket-60-90 { border-left: 4px solid #ef4444; }
+    .bucket-over-90 { border-left: 4px solid #991b1b; }
+    
+    .invoice-item {
+        padding: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .invoice-item:hover {
+        background: #f9fafb;
+    }
+    
+    .invoice-info {
+        flex: 1;
+    }
+    
+    .invoice-amount {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .days-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 12px;
+    }
+    
+    .days-current { background: #d1fae5; color: #065f46; }
+    .days-warning { background: #fed7aa; color: #92400e; }
+    .days-danger { background: #fecaca; color: #991b1b; }
+    
+    .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .summary-value {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 16px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-clock-history"></i> {% trans "Invoice Aging Report" %}</h1>
+            <p class="text-muted">{% trans "Outstanding invoices by age" %} - {{ report_date|date:"F j, Y" }}</p>
+        </div>
+    </div>
+    
+    <!-- Summary -->
+    <div class="row">
+        <div class="col-12">
+            <div class="summary-card">
+                <h3>{% trans "Total Outstanding" %}</h3>
+                <div class="summary-value">${{ grand_total|floatformat:2 }}</div>
+                <p>{% trans "Across all aging buckets" %}</p>
+                <a href="{% url 'export_financial_data' %}?type=invoices&status=unpaid" class="btn btn-light mt-3">
+                    <i class="bi bi-download"></i> {% trans "Export Report" %}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current (0-30 days) -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="aging-bucket bucket-current">
+                <div class="bucket-header">
+                    <div>
+                        <div class="bucket-title">{% trans "Current (0-30 days)" %}</div>
+                        <small class="text-muted">{{ aging_buckets.current|length }} {% trans "invoices" %}</small>
+                    </div>
+                    <div class="bucket-total text-success">
+                        ${{ totals.current|floatformat:2 }}
+                    </div>
+                </div>
+                
+                {% for invoice in aging_buckets.current %}
+                <div class="invoice-item">
+                    <div class="invoice-info">
+                        <strong>{{ invoice.invoice_number }}</strong> - {{ invoice.project.name }}
+                        <br>
+                        <small class="text-muted">{{ invoice.date_issued|date:"M j, Y" }}</small>
+                        {% with days=(report_date|timesince:invoice.date_issued)|slice:":2" %}
+                        <span class="days-badge days-current">{{ days }} days</span>
+                        {% endwith %}
+                    </div>
+                    <div class="invoice-amount text-success">
+                        ${{ invoice.total_amount|floatformat:2 }}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4">{% trans "No invoices in this bucket" %}</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- 31-60 days -->
+        <div class="col-md-6">
+            <div class="aging-bucket bucket-30-60">
+                <div class="bucket-header">
+                    <div>
+                        <div class="bucket-title">{% trans "31-60 days" %}</div>
+                        <small class="text-muted">{{ aging_buckets.30_60|length }} {% trans "invoices" %}</small>
+                    </div>
+                    <div class="bucket-total text-warning">
+                        ${{ totals.30_60|floatformat:2 }}
+                    </div>
+                </div>
+                
+                {% for invoice in aging_buckets.30_60 %}
+                <div class="invoice-item">
+                    <div class="invoice-info">
+                        <strong>{{ invoice.invoice_number }}</strong> - {{ invoice.project.name }}
+                        <br>
+                        <small class="text-muted">{{ invoice.date_issued|date:"M j, Y" }}</small>
+                        <span class="days-badge days-warning">31-60 days</span>
+                    </div>
+                    <div class="invoice-amount text-warning">
+                        ${{ invoice.total_amount|floatformat:2 }}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4">{% trans "No invoices in this bucket" %}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 61-90 days -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="aging-bucket bucket-60-90">
+                <div class="bucket-header">
+                    <div>
+                        <div class="bucket-title">{% trans "61-90 days" %}</div>
+                        <small class="text-muted">{{ aging_buckets.60_90|length }} {% trans "invoices" %}</small>
+                    </div>
+                    <div class="bucket-total text-danger">
+                        ${{ totals.60_90|floatformat:2 }}
+                    </div>
+                </div>
+                
+                {% for invoice in aging_buckets.60_90 %}
+                <div class="invoice-item">
+                    <div class="invoice-info">
+                        <strong>{{ invoice.invoice_number }}</strong> - {{ invoice.project.name }}
+                        <br>
+                        <small class="text-muted">{{ invoice.date_issued|date:"M j, Y" }}</small>
+                        <span class="days-badge days-danger">61-90 days</span>
+                    </div>
+                    <div class="invoice-amount text-danger">
+                        ${{ invoice.total_amount|floatformat:2 }}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4">{% trans "No invoices in this bucket" %}</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Over 90 days -->
+        <div class="col-md-6">
+            <div class="aging-bucket bucket-over-90">
+                <div class="bucket-header">
+                    <div>
+                        <div class="bucket-title">{% trans "Over 90 days" %}</div>
+                        <small class="text-muted">{{ aging_buckets.over_90|length }} {% trans "invoices" %}</small>
+                    </div>
+                    <div class="bucket-total" style="color: #991b1b;">
+                        ${{ totals.over_90|floatformat:2 }}
+                    </div>
+                </div>
+                
+                {% for invoice in aging_buckets.over_90 %}
+                <div class="invoice-item">
+                    <div class="invoice-info">
+                        <strong>{{ invoice.invoice_number }}</strong> - {{ invoice.project.name }}
+                        <br>
+                        <small class="text-muted">{{ invoice.date_issued|date:"M j, Y" }}</small>
+                        <span class="days-badge" style="background: #7f1d1d; color: white;">90+ days</span>
+                    </div>
+                    <div class="invoice-amount" style="color: #991b1b;">
+                        ${{ invoice.total_amount|floatformat:2 }}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4">{% trans "No invoices in this bucket" %}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Back Button -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'financial_dashboard' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Financial Dashboard" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

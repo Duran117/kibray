@@ -1,44 +1,322 @@
 {% extends 'core/base.html' %}
+{% load static %}
+
 {% block content %}
-<div class="container mt-3">
-  <h2>Reportes de Daños: {{ project.name }}</h2>
-  <div class="mb-3 d-flex gap-2">
-    <a href="?" class="btn btn-sm btn-outline-secondary{% if not filter_status and not filter_severity %} active{% endif %}">Todos</a>
-    <div class="dropdown">
-      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Estado</button>
-      <div class="dropdown-menu">
-        <a class="dropdown-item" href="?status=open">Abierto</a>
-        <a class="dropdown-item" href="?status=in_progress">En Progreso</a>
-        <a class="dropdown-item" href="?status=resolved">Resuelto</a>
-      </div>
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-exclamation-triangle-fill text-danger"></i> Reportes de Daños</h2>
+      <p class="text-muted mb-0">{{ project.name }}</p>
     </div>
-    <div class="dropdown">
-      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Severidad</button>
-      <div class="dropdown-menu">
-        <a class="dropdown-item" href="?severity=low">Bajo</a>
-        <a class="dropdown-item" href="?severity=medium">Medio</a>
-        <a class="dropdown-item" href="?severity=high">Alto</a>
-        <a class="dropdown-item" href="?severity=critical">Crítico</a>
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createReportModal">
+      <i class="bi bi-plus-circle"></i> Nuevo Reporte
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body">
+      <div class="d-flex flex-wrap gap-2">
+        <a href="?" class="btn btn-sm btn-outline-secondary{% if not filter_status and not filter_severity %} active{% endif %}">
+          <i class="bi bi-list"></i> Todos
+        </a>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-funnel"></i> Estado
+          </button>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="?status=open">🔴 Abierto</a>
+            <a class="dropdown-item" href="?status=in_progress">🟡 En Progreso</a>
+            <a class="dropdown-item" href="?status=resolved">🟢 Resuelto</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-exclamation-triangle"></i> Severidad
+          </button>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="?severity=low">🟢 Bajo</a>
+            <a class="dropdown-item" href="?severity=medium">🟡 Medio</a>
+            <a class="dropdown-item" href="?severity=high">🟠 Alto</a>
+            <a class="dropdown-item" href="?severity=critical">🔴 Crítico</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <table class="table table-sm table-hover align-middle">
-    <thead>
-      <tr><th>Título</th><th>Severidad</th><th>Estado</th><th>Reportado</th><th>Acciones</th></tr>
-    </thead>
-    <tbody>
-      {% for r in reports %}
-      <tr>
-        <td>{{ r.title }}</td>
-        <td><span class="badge bg-danger">{{ r.get_severity_display }}</span></td>
-        <td><span class="badge bg-info text-dark">{{ r.get_status_display }}</span></td>
-        <td>{{ r.reported_at|date:'Y-m-d H:i' }}</td>
-        <td><a href="{% url 'damage_report_detail' r.id %}" class="btn btn-sm btn-outline-primary">Ver</a></td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5" class="text-center text-muted">Sin reportes.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
+  <!-- Reports Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Categoría</th>
+              <th>Severidad</th>
+              <th>Estado</th>
+              <th>Costo Est.</th>
+              <th>Fotos</th>
+              <th>Reportado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reports %}
+            <tr>
+              <td>
+                <strong>{{ r.title }}</strong>
+                {% if r.description %}
+                <br><small class="text-muted">{{ r.description|truncatewords:10 }}</small>
+                {% endif %}
+                {% if r.linked_touchup %}
+                <br><small class="badge badge-sm bg-warning">🎨 Touch-up</small>
+                {% endif %}
+                {% if r.linked_co %}
+                <br><small class="badge badge-sm bg-success">📄 CO</small>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-secondary">{{ r.get_category_display }}</span>
+              </td>
+              <td>
+                {% if r.severity == 'critical' %}
+                <span class="badge bg-danger">🔴 {{ r.get_severity_display }}</span>
+                {% elif r.severity == 'high' %}
+                <span class="badge bg-warning">🟠 {{ r.get_severity_display }}</span>
+                {% elif r.severity == 'medium' %}
+                <span class="badge bg-info">🟡 {{ r.get_severity_display }}</span>
+                {% else %}
+                <span class="badge bg-success">🟢 {{ r.get_severity_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if r.status == 'resolved' %}
+                <span class="badge bg-success">{{ r.get_status_display }}</span>
+                {% elif r.status == 'in_progress' %}
+                <span class="badge bg-warning text-dark">{{ r.get_status_display }}</span>
+                {% else %}
+                <span class="badge bg-danger">{{ r.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if r.estimated_cost %}
+                <span class="fw-bold text-success">${{ r.estimated_cost|floatformat:2 }}</span>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-secondary">
+                  <i class="bi bi-camera"></i> {{ r.photos.count }}
+                </span>
+              </td>
+              <td>
+                <small>{{ r.reported_at|date:'d/m/Y H:i' }}</small>
+                {% if r.reported_by %}
+                <br><small class="text-muted">{{ r.reported_by.username }}</small>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'damage_report_detail' r.id %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-eye"></i> Ver
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-3">Sin reportes de daños</p>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createReportModal">
+                  <i class="bi bi-plus-circle"></i> Crear Primer Reporte
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Create Report Modal -->
+<div class="modal fade" id="createReportModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-exclamation-triangle-fill"></i> Nuevo Reporte de Daño
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <!-- Main Info -->
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Título del Daño *</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <div class="text-danger small">{{ form.title.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold">Descripción Detallada *</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="text-danger small">{{ form.description.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold">Categoría *</label>
+                {{ form.category }}
+                <small class="form-text text-muted">{{ form.category.help_text }}</small>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold">Costo Estimado (Opcional)</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  {{ form.estimated_cost }}
+                </div>
+                <small class="form-text text-muted">{{ form.estimated_cost.help_text }}</small>
+              </div>
+            </div>
+            
+            <!-- Status and Location -->
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Severidad *</label>
+                {{ form.severity }}
+                <small class="form-text text-muted">{{ form.severity.help_text }}</small>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold">Estado</label>
+                {{ form.status }}
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold">Plano (Opcional)</label>
+                {{ form.plan }}
+                <small class="form-text text-muted">{{ form.plan.help_text }}</small>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold">Pin (Opcional)</label>
+                {{ form.pin }}
+                <small class="form-text text-muted">{{ form.pin.help_text }}</small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Linking Section -->
+          <div class="border-top pt-3 mt-3">
+            <h6 class="fw-bold mb-3">
+              <i class="bi bi-link-45deg"></i> Vinculaciones (Opcional)
+            </h6>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Touch-up Relacionado</label>
+                  {{ form.linked_touchup }}
+                  <small class="form-text text-muted">{{ form.linked_touchup.help_text }}</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Change Order Relacionado</label>
+                  {{ form.linked_co }}
+                  <small class="form-text text-muted">{{ form.linked_co.help_text }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Photos Section -->
+          <div class="border-top pt-3 mt-3">
+            <h6 class="fw-bold mb-3">
+              <i class="bi bi-camera-fill"></i> Fotos del Daño
+            </h6>
+            <div class="mb-3">
+              <label class="form-label">Subir Fotos (Múltiples)</label>
+              <input type="file" 
+                     name="photos" 
+                     class="form-control" 
+                     accept="image/*" 
+                     multiple 
+                     id="photoInput"
+                     onchange="previewPhotos(event)">
+              <small class="form-text text-muted">
+                <i class="bi bi-info-circle"></i> Puedes seleccionar múltiples fotos. Formatos: JPG, PNG
+              </small>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Notas sobre las fotos (opcional)</label>
+              <input type="text" 
+                     name="photo_notes" 
+                     class="form-control" 
+                     placeholder="Ej: Vista desde diferentes ángulos">
+            </div>
+            
+            <!-- Photo Preview -->
+            <div id="photoPreview" class="row g-2"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </button>
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-check-circle"></i> Crear Reporte
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function previewPhotos(event) {
+  const preview = document.getElementById('photoPreview');
+  preview.innerHTML = '';
+  
+  const files = event.target.files;
+  if (files.length === 0) return;
+  
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!file.type.startsWith('image/')) continue;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const col = document.createElement('div');
+      col.className = 'col-6 col-md-4';
+      col.innerHTML = `
+        <div class="card">
+          <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+          <div class="card-body p-2">
+            <small class="text-muted">${file.name}</small>
+          </div>
+        </div>
+      `;
+      preview.appendChild(col);
+    };
+    reader.readAsDataURL(file);
+  }
+  
+  // Show count
+  const label = document.querySelector('label[for="photoInput"]');
+  label.textContent = `Subir Fotos (${files.length} seleccionada${files.length !== 1 ? 's' : ''})`;
+}
+</script>
 {% endblock %}

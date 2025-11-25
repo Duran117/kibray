@@ -1,0 +1,577 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-folder2-open"></i> Archivos del Proyecto</h2>
+      <p class="text-muted mb-0">{{ project.name }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+        <i class="bi bi-plus-circle"></i> Nueva Categoría
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-8">
+          <input type="text" 
+                 name="q" 
+                 class="form-control form-control-lg" 
+                 placeholder="Buscar archivos por nombre, descripción o tags..."
+                 value="{{ search_query }}">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary btn-lg w-100">
+            <i class="bi bi-search"></i> Buscar
+          </button>
+        </div>
+        <div class="col-md-2">
+          <a href="{% url 'project_files' project.id %}" class="btn btn-outline-secondary btn-lg w-100">
+            <i class="bi bi-x-circle"></i> Limpiar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Categories Sidebar -->
+    <div class="col-lg-3 mb-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-folder-fill"></i> Categorías</h5>
+        </div>
+        <div class="list-group list-group-flush">
+          <a href="?q={{ search_query }}" 
+             class="list-group-item list-group-item-action {% if not selected_category_id %}active{% endif %}">
+            <i class="bi bi-grid-3x3-gap"></i> Todos los archivos
+            <span class="badge bg-secondary float-end">{{ files.count }}</span>
+          </a>
+          {% for category in categories %}
+          <a href="?category={{ category.id }}&q={{ search_query }}" 
+             class="list-group-item list-group-item-action {% if selected_category_id|stringformat:'s' == category.id|stringformat:'s' %}active{% endif %}">
+            <i class="{{ category.icon }} text-{{ category.color }}"></i> {{ category.name }}
+            <span class="badge bg-{{ category.color }} float-end">{{ category.file_count }}</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Category Stats -->
+      <div class="card mt-3 border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title"><i class="bi bi-bar-chart"></i> Estadísticas</h6>
+          <div class="mb-2">
+            <small class="text-muted">Total Archivos</small>
+            <div class="fs-4 fw-bold text-primary">{{ files.count }}</div>
+          </div>
+          <div class="mb-2">
+            <small class="text-muted">Categorías</small>
+            <div class="fs-4 fw-bold text-success">{{ categories.count }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Files Grid -->
+    <div class="col-lg-9">
+      {% if selected_category_id %}
+      {% with category=categories|filter_by_id:selected_category_id %}
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>
+          <i class="{{ category.icon }} text-{{ category.color }}"></i> {{ category.name }}
+        </h4>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+          <i class="bi bi-cloud-upload"></i> Subir Archivo
+        </button>
+      </div>
+      {% if category.description %}
+      <p class="text-muted">{{ category.description }}</p>
+      {% endif %}
+      {% endwith %}
+      {% endif %}
+
+      <!-- Files Grid -->
+      <div class="row g-3">
+        {% for file in files %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+              <!-- File Icon -->
+              <div class="text-center mb-3">
+                {% if file.file_type == 'image' %}
+                <img src="{{ file.file.url }}" class="img-fluid rounded" style="max-height: 150px; object-fit: cover;">
+                {% else %}
+                <i class="{{ file.get_icon }} display-1 text-{{ file.category.color }}"></i>
+                {% endif %}
+              </div>
+
+              <!-- File Info -->
+              <h6 class="card-title text-truncate" title="{{ file.name }}">
+                {{ file.name }}
+              </h6>
+              
+              <div class="small text-muted mb-2">
+                <i class="bi bi-folder"></i> {{ file.category.name }}
+              </div>
+
+              {% if file.description %}
+              <p class="small text-muted">{{ file.description|truncatewords:15 }}</p>
+              {% endif %}
+
+              <!-- Tags -->
+              {% if file.tags %}
+              <div class="mb-2">
+                {% for tag in file.tags.split:',' %}
+                <span class="badge bg-light text-dark">{{ tag.strip }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              <!-- Metadata -->
+              <div class="small text-muted mb-3">
+                <div><i class="bi bi-hdd"></i> {{ file.get_size_display }}</div>
+                <div><i class="bi bi-clock"></i> {{ file.uploaded_at|date:"d/m/Y H:i" }}</div>
+                {% if file.uploaded_by %}
+                <div><i class="bi bi-person"></i> {{ file.uploaded_by.username }}</div>
+                {% endif %}
+                {% if file.version %}
+                <div><i class="bi bi-file-code"></i> {{ file.version }}</div>
+                {% endif %}
+                {% if file.is_public %}
+                <div><span class="badge bg-success"><i class="bi bi-eye"></i> Público</span></div>
+                {% endif %}
+              </div>
+
+              <!-- Actions -->
+              <div class="d-grid gap-2">
+                <button type="button" class="btn btn-sm btn-outline-info" 
+                        onclick="previewFile('{{ file.id }}', '{{ file.name }}', '{{ file.file.url }}', '{{ file.file_type }}')">
+                  <i class="bi bi-eye"></i> Vista Previa
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        onclick="editFileMetadata('{{ file.id }}', '{{ file.name }}', '{{ file.description }}', '{{ file.tags }}', '{{ file.version }}')">
+                  <i class="bi bi-pencil"></i> Editar
+                </button>
+                <a href="{% url 'file_download' file.id %}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-download"></i> Descargar
+                </a>
+                <form method="post" action="{% url 'file_delete' file.id %}" 
+                      onsubmit="return confirm('¿Eliminar este archivo?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="text-center py-5">
+            <i class="bi bi-inbox display-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No hay archivos en esta categoría</h4>
+            {% if selected_category_id %}
+            <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+              <i class="bi bi-cloud-upload"></i> Subir Primer Archivo
+            </button>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Category Modal -->
+<div class="modal fade" id="createCategoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'file_category_create' project.id %}">
+        {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-folder-plus"></i> Nueva Categoría
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nombre *</label>
+            {{ category_form.name }}
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Tipo de Categoría</label>
+            {{ category_form.category_type }}
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Descripción</label>
+            {{ category_form.description }}
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Icono Bootstrap</label>
+                {{ category_form.icon }}
+                <small class="form-text text-muted">Ej: bi-folder, bi-file-pdf</small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Color</label>
+                {{ category_form.color }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Orden</label>
+            {{ category_form.order }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle"></i> Crear Categoría
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Upload File Modal -->
+{% if selected_category_id %}
+<div class="modal fade" id="uploadFileModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" action="{% url 'file_upload' project.id selected_category_id %}" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-cloud-upload"></i> Subir Archivo
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Drag & Drop Zone -->
+          <div id="dropZone" class="border border-2 border-dashed rounded p-5 text-center mb-4" style="background-color: #f8f9fa; cursor: pointer;">
+            <i class="bi bi-cloud-upload display-1 text-muted"></i>
+            <h5 class="mt-3">Arrastra archivos aquí</h5>
+            <p class="text-muted">o haz clic para seleccionar</p>
+            <input type="file" id="fileInput" name="file" style="display: none;" multiple>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+              <i class="bi bi-folder2-open"></i> Seleccionar Archivos
+            </button>
+          </div>
+          
+          <!-- File Preview List -->
+          <div id="filePreviewList" class="mb-3"></div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nombre del Archivo *</label>
+            {{ file_form.name }}
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Descripción</label>
+            {{ file_form.description }}
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Tags</label>
+                {{ file_form.tags }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Versión</label>
+                {{ file_form.version }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-check">
+            {{ file_form.is_public }}
+            <label class="form-check-label">
+              Archivo público (visible para clientes)
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-upload"></i> Subir Archivo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- File Preview Modal -->
+<div class="modal fade" id="filePreviewModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="previewModalTitle">Vista Previa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="previewModalBody" style="min-height: 400px;">
+        <!-- Preview content will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <a href="#" id="previewDownloadBtn" class="btn btn-primary" download>
+          <i class="bi bi-download"></i> Descargar
+        </a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Metadata Modal -->
+<div class="modal fade" id="editMetadataModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="editMetadataForm">
+        {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-pencil"></i> Editar Metadata
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="edit_file_id" name="file_id">
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nombre</label>
+            <input type="text" class="form-control" id="edit_name" name="name" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Descripción</label>
+            <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Tags (separados por comas)</label>
+            <input type="text" class="form-control" id="edit_tags" name="tags" placeholder="tag1, tag2, tag3">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Versión</label>
+            <input type="text" class="form-control" id="edit_version" name="version">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle"></i> Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DRAG & DROP ====================
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const filePreviewList = document.getElementById('filePreviewList');
+
+// Click to select files
+if (dropZone) {
+  dropZone.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') {
+      fileInput.click();
+    }
+  });
+
+  // Prevent default drag behaviors
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  // Highlight drop zone when dragging over
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.add('border-primary', 'bg-light');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.remove('border-primary', 'bg-light');
+    });
+  });
+
+  // Handle dropped files
+  dropZone.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    handleFiles(files);
+  });
+
+  // Handle selected files
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+  });
+
+  function handleFiles(files) {
+    filePreviewList.innerHTML = '';
+    Array.from(files).forEach(file => {
+      const previewItem = document.createElement('div');
+      previewItem.className = 'alert alert-info d-flex justify-content-between align-items-center';
+      previewItem.innerHTML = `
+        <div>
+          <i class="bi bi-file-earmark"></i>
+          <strong>${file.name}</strong>
+          <small class="text-muted ms-2">(${(file.size / 1024 / 1024).toFixed(2)} MB)</small>
+        </div>
+        <span class="badge bg-success">Listo para subir</span>
+      `;
+      filePreviewList.appendChild(previewItem);
+      
+      // Auto-fill filename
+      const nameInput = document.querySelector('input[name="name"]');
+      if (!nameInput.value && files.length === 1) {
+        nameInput.value = file.name;
+      }
+    });
+  }
+}
+
+// ==================== FILE PREVIEW ====================
+function previewFile(fileId, fileName, fileUrl, fileType) {
+  const modal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
+  const modalTitle = document.getElementById('previewModalTitle');
+  const modalBody = document.getElementById('previewModalBody');
+  const downloadBtn = document.getElementById('previewDownloadBtn');
+  
+  modalTitle.textContent = fileName;
+  downloadBtn.href = fileUrl;
+  
+  // Clear previous content
+  modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+  
+  // Show appropriate preview based on file type
+  setTimeout(() => {
+    if (fileType === 'image') {
+      modalBody.innerHTML = `
+        <div class="text-center">
+          <img src="${fileUrl}" class="img-fluid" style="max-height: 70vh;">
+        </div>
+      `;
+    } else if (fileType === 'pdf') {
+      modalBody.innerHTML = `
+        <iframe src="${fileUrl}" style="width: 100%; height: 70vh; border: none;"></iframe>
+      `;
+    } else if (fileType === 'document') {
+      // Try to use Google Docs Viewer for Office documents
+      modalBody.innerHTML = `
+        <iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true" 
+                style="width: 100%; height: 70vh; border: none;"></iframe>
+      `;
+    } else {
+      modalBody.innerHTML = `
+        <div class="text-center py-5">
+          <i class="bi bi-file-earmark display-1 text-muted"></i>
+          <h5 class="mt-3">Vista previa no disponible</h5>
+          <p class="text-muted">Este tipo de archivo no se puede previsualizar en el navegador</p>
+          <a href="${fileUrl}" class="btn btn-primary" download>
+            <i class="bi bi-download"></i> Descargar Archivo
+          </a>
+        </div>
+      `;
+    }
+  }, 300);
+  
+  modal.show();
+}
+
+// ==================== EDIT METADATA ====================
+function editFileMetadata(fileId, fileName, description, tags, version) {
+  const modal = new bootstrap.Modal(document.getElementById('editMetadataModal'));
+  const form = document.getElementById('editMetadataForm');
+  
+  // Set form action
+  form.action = `/files/${fileId}/edit/`;
+  
+  // Fill form fields
+  document.getElementById('edit_file_id').value = fileId;
+  document.getElementById('edit_name').value = fileName;
+  document.getElementById('edit_description').value = description || '';
+  document.getElementById('edit_tags').value = tags || '';
+  document.getElementById('edit_version').value = version || '';
+  
+  modal.show();
+}
+
+// Handle edit form submission
+document.getElementById('editMetadataForm')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  const fileId = document.getElementById('edit_file_id').value;
+  
+  try {
+    const response = await fetch(`/files/${fileId}/edit/`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Close modal and reload page
+      bootstrap.Modal.getInstance(document.getElementById('editMetadataModal')).hide();
+      location.reload();
+    } else {
+      alert('Error: ' + (data.error || 'No se pudo actualizar el archivo'));
+    }
+  } catch (error) {
+    alert('Error de conexión: ' + error.message);
+  }
+});
+
+// Auto-fill filename from uploaded file (legacy support)
+document.querySelector('input[type="file"]')?.addEventListener('change', function(e) {
+  const filename = e.target.files[0]?.name;
+  if (filename) {
+    const nameInput = document.querySelector('input[name="name"]');
+    if (!nameInput.value) {
+      nameInput.value = filename;
+    }
+  }
+});
+</script>
+{% endblock %}

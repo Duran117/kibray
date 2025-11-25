@@ -2,17 +2,21 @@ from decimal import Decimal
 from django import forms
 from django.forms import inlineformset_factory
 from django.apps import apps
+from django.contrib.auth.models import User
 
 from .models import (
     Schedule, Expense, Income, TimeEntry, Project, PayrollRecord, PayrollPeriod, PayrollPayment,
-    Invoice, InvoiceLine, ChangeOrder, CostCode, BudgetLine,
-    Estimate, EstimateLine, Proposal, DailyLog, RFI, Issue, Risk,
+    Invoice, InvoiceLine, ChangeOrder, ChangeOrderPhoto, CostCode, BudgetLine,
+    Estimate, EstimateLine, Proposal, DailyLog, DailyLogPhoto, RFI, Issue, Risk,
     BudgetProgress, MaterialRequest, MaterialRequestItem,
     SitePhoto, InventoryItem, InventoryMovement, InventoryLocation, ProjectInventory,
     ActivityTemplate,
     ColorSample,
     FloorPlan, PlanPin, Task,
-    ScheduleCategory, ScheduleItem
+    ScheduleCategory, ScheduleItem,
+    DamageReport, DamagePhoto,
+    FileCategory, ProjectFile,
+    TouchUpPin, TouchUpCompletionPhoto, Profile
 )
 
 class ActivityTemplateForm(forms.ModelForm):
@@ -166,10 +170,138 @@ class EstimateForm(forms.ModelForm):
         fields = ["markup_material", "markup_labor", "overhead_pct", "target_profit_pct", "notes"]
 
 class DailyLogForm(forms.ModelForm):
+    """
+    Formulario para crear/editar Daily Logs.
+    Incluye selector de tareas completadas y actividad del schedule.
+    """
     class Meta:
         model = DailyLog
-        fields = ["date", "weather", "crew_count", "progress_notes", "safety_incidents", "delays"]
-        widgets = {"date": forms.DateInput(attrs={"type": "date", "class": "form-control"})}
+        fields = [
+            "date", 
+            "weather", 
+            "crew_count", 
+            "schedule_item",
+            "schedule_progress_percent",
+            "completed_tasks",
+            "accomplishments",
+            "progress_notes", 
+            "safety_incidents", 
+            "delays",
+            "next_day_plan",
+            "is_published"
+        ]
+        widgets = {
+            "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "weather": forms.TextInput(attrs={"class": "form-control", "placeholder": "ej: Soleado, 75°F"}),
+            "crew_count": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+            "schedule_item": forms.Select(attrs={"class": "form-select"}),
+            "schedule_progress_percent": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "100", "step": "0.01"}),
+            "completed_tasks": forms.CheckboxSelectMultiple(),
+            "accomplishments": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Logros del día..."}),
+            "progress_notes": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Notas generales..."}),
+            "safety_incidents": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "Incidentes de seguridad..."}),
+            "delays": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "Retrasos o problemas..."}),
+            "next_day_plan": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Plan para mañana..."}),
+            "is_published": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+        help_texts = {
+            "schedule_item": "Actividad principal del calendario (ej: Cubrir y Preparar)",
+            "schedule_progress_percent": "Porcentaje de progreso de esta actividad",
+            "completed_tasks": "Selecciona las tareas que se completaron o avanzaron hoy",
+            "is_published": "Marcar para que sea visible para cliente y owner",
+        }
+    
+    def __init__(self, *args, **kwargs):
+        project = kwargs.pop('project', None)
+        super().__init__(*args, **kwargs)
+        
+        if project:
+            # Filtrar schedule items del proyecto
+            self.fields['schedule_item'].queryset = Schedule.objects.filter(project=project).order_by('start_datetime')
+            
+            # Filtrar tareas del proyecto
+            self.fields['completed_tasks'].queryset = Task.objects.filter(
+                project=project
+            ).select_related('assigned_to').order_by('-created_at')
+
+
+class DailyLogPhotoForm(forms.ModelForm):
+    """Formulario para agregar fotos a un Daily Log"""
+    class Meta:
+        model = DailyLogPhoto
+        fields = ['image', 'caption']
+        widgets = {
+            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'caption': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descripción de la foto...'}),
+        }
+
+class DamageReportForm(forms.ModelForm):
+    """Form for creating damage reports with multiple photos"""
+    
+    class Meta:
+        model = DamageReport
+        fields = ['title', 'description', 'category', 'severity', 'status', 'estimated_cost', 'plan', 'pin', 'linked_touchup', 'linked_co']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Grieta en pared del baño principal'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Describe el daño con el mayor detalle posible...'
+            }),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'severity': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'estimated_cost': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '0.00',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'plan': forms.Select(attrs={'class': 'form-select'}),
+            'pin': forms.Select(attrs={'class': 'form-select'}),
+            'linked_touchup': forms.Select(attrs={'class': 'form-select'}),
+            'linked_co': forms.Select(attrs={'class': 'form-select'}),
+        }
+    
+    def __init__(self, project=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Filter floor plans and pins by project
+        if project:
+            self.fields['plan'].queryset = FloorPlan.objects.filter(project=project)
+            self.fields['pin'].queryset = PlanPin.objects.filter(plan__project=project)
+            self.fields['linked_touchup'].queryset = TouchUpPin.objects.filter(floor_plan__project=project)
+            self.fields['linked_co'].queryset = ChangeOrder.objects.filter(project=project)
+        else:
+            self.fields['plan'].queryset = FloorPlan.objects.none()
+            self.fields['pin'].queryset = PlanPin.objects.none()
+            self.fields['linked_touchup'].queryset = TouchUpPin.objects.none()
+            self.fields['linked_co'].queryset = ChangeOrder.objects.none()
+        
+        # Make optional fields
+        self.fields['plan'].required = False
+        self.fields['pin'].required = False
+        self.fields['estimated_cost'].required = False
+        self.fields['linked_touchup'].required = False
+        self.fields['linked_co'].required = False
+        
+        # Empty labels
+        self.fields['plan'].empty_label = "Sin plano asociado"
+        self.fields['pin'].empty_label = "Sin pin asociado"
+        self.fields['linked_touchup'].empty_label = "Sin touch-up vinculado"
+        self.fields['linked_co'].empty_label = "Sin CO vinculado"
+        
+        # Add help texts
+        self.fields['category'].help_text = "Tipo de daño reportado"
+        self.fields['severity'].help_text = "Nivel de urgencia del daño"
+        self.fields['estimated_cost'].help_text = "Costo estimado de reparación (opcional)"
+        self.fields['plan'].help_text = "Plano donde se encuentra el daño (opcional)"
+        self.fields['pin'].help_text = "Pin específico si aplica (opcional)"
+        self.fields['linked_touchup'].help_text = "Touch-up relacionado (opcional)"
+        self.fields['linked_co'].help_text = "Change Order relacionado (opcional)"
 
 class RFIForm(forms.ModelForm):
     class Meta:
@@ -218,13 +350,25 @@ class TaskForm(forms.ModelForm):
 class ChangeOrderForm(forms.ModelForm):
     class Meta:
         model = ChangeOrder
-        fields = ["project", "description", "amount", "status", "notes"]
+        fields = ["project", "description", "amount", "status", "notes", "color", "reference_code"]
         widgets = {
             "project": forms.Select(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
             "amount": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
             "notes": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
+            "color": forms.TextInput(attrs={"type": "color", "class": "form-control"}),
+            "reference_code": forms.TextInput(attrs={"class": "form-control", "placeholder": "Código de referencia del color"}),
+        }
+
+class ChangeOrderPhotoForm(forms.ModelForm):
+    class Meta:
+        model = ChangeOrderPhoto
+        fields = ["image", "description", "order"]
+        widgets = {
+            "image": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
+            "description": forms.TextInput(attrs={"class": "form-control", "placeholder": "Descripción de la foto"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "value": 0}),
         }
 
 class ChangeOrderStatusForm(forms.ModelForm):
@@ -455,9 +599,31 @@ class ColorSampleReviewForm(forms.ModelForm):
 class FloorPlanForm(forms.ModelForm):
     class Meta:
         model = FloorPlan
-        fields = ['project','name','image']
+        fields = ['project', 'name', 'level', 'level_identifier', 'image']
         widgets = {
-            'project': forms.Select(attrs={'class':'form-control'}),
+            'project': forms.Select(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Planta Baja, Primer Piso, Ático...'
+            }),
+            'level': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '-5',
+                'max': '50',
+                'placeholder': '0'
+            }),
+            'level_identifier': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Level 0, Ground Floor, Basement...'
+            }),
+            'image': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+        }
+        help_texts = {
+            'level': 'Número del nivel: 0=Planta Baja, 1=Nivel 1, -1=Sótano 1, etc.',
+            'level_identifier': 'Identificador adicional opcional para este nivel'
         }
 
 class PlanPinForm(forms.ModelForm):
@@ -544,3 +710,191 @@ class ScheduleItemForm(forms.ModelForm):
         
         # Note: category validation is handled in the view since new_category_name is not part of the form
         return cleaned
+
+
+# ========================================================================================
+# FILE ORGANIZATION FORMS
+# ========================================================================================
+
+class FileCategoryForm(forms.ModelForm):
+    """Form for creating/editing file categories"""
+    class Meta:
+        model = FileCategory
+        fields = ['name', 'category_type', 'description', 'icon', 'color', 'order']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Contratos, Planos, Fotos...'
+            }),
+            'category_type': forms.Select(attrs={'class': 'form-select'}),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Descripción de esta categoría...'
+            }),
+            'icon': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'bi-folder'
+            }),
+            'color': forms.Select(attrs={'class': 'form-select'}, choices=[
+                ('primary', 'Azul'),
+                ('success', 'Verde'),
+                ('danger', 'Rojo'),
+                ('warning', 'Amarillo'),
+                ('info', 'Cyan'),
+                ('secondary', 'Gris'),
+                ('dark', 'Negro'),
+            ]),
+            'order': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0'
+            }),
+        }
+
+
+class ProjectFileForm(forms.ModelForm):
+    """Form for uploading files to a category"""
+    class Meta:
+        model = ProjectFile
+        fields = ['name', 'description', 'file', 'tags', 'is_public', 'version']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del archivo...'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Descripción opcional...'
+            }),
+            'file': forms.FileInput(attrs={
+                'class': 'form-control'
+            }),
+            'tags': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'contrato, firmado, importante (separados por coma)'
+            }),
+            'is_public': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'version': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'v1.0, Rev A, etc.'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['description'].required = False
+        self.fields['tags'].required = False
+        self.fields['version'].required = False
+        self.fields['is_public'].help_text = 'Marcar si el archivo debe ser visible para clientes'
+
+
+# ========================================================================================
+# TOUCH-UP FORMS
+# ========================================================================================
+
+class TouchUpPinForm(forms.ModelForm):
+    """Form for creating/editing touch-up pins"""
+    
+    class Meta:
+        model = TouchUpPin
+        fields = [
+            'plan', 'x', 'y', 'task_name', 'description',
+            'approved_color', 'custom_color_name', 'sheen', 'details',
+            'assigned_to', 'status'
+        ]
+        widgets = {
+            'plan': forms.HiddenInput(),
+            'x': forms.HiddenInput(),
+            'y': forms.HiddenInput(),
+            'task_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Pintura techo sala principal'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Descripción detallada del touch-up...'
+            }),
+            'approved_color': forms.Select(attrs={'class': 'form-select'}),
+            'custom_color_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del color (si no usa color aprobado)'
+            }),
+            'sheen': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Matte, Satin, Semi-gloss, Gloss'
+            }),
+            'details': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Detalles adicionales sobre técnica, herramientas, etc.'
+            }),
+            'assigned_to': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'task_name': 'Nombre de la Tarea',
+            'description': 'Descripción',
+            'approved_color': 'Color Aprobado',
+            'custom_color_name': 'Color Personalizado',
+            'sheen': 'Brillo',
+            'details': 'Detalles Adicionales',
+            'assigned_to': 'Asignar a',
+            'status': 'Estado',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        project = kwargs.pop('project', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filter color samples by project
+        if project:
+            self.fields['approved_color'].queryset = ColorSample.objects.filter(
+                project=project
+            ).order_by('name')
+        
+        # Filter assigned_to by project employees
+        if project:
+            # Get users with employee profiles in this project
+            employee_profiles = Profile.objects.filter(
+                role__in=['employee', 'painter', 'project_manager']
+            )
+            employee_ids = [p.user_id for p in employee_profiles if p.user]
+            self.fields['assigned_to'].queryset = User.objects.filter(
+                id__in=employee_ids
+            ).order_by('first_name', 'last_name')
+        
+        # Make some fields optional
+        self.fields['description'].required = False
+        self.fields['approved_color'].required = False
+        self.fields['custom_color_name'].required = False
+        self.fields['sheen'].required = False
+        self.fields['details'].required = False
+        self.fields['assigned_to'].required = False
+
+
+class TouchUpCompletionForm(forms.Form):
+    """Form for closing a touch-up with completion photos"""
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Notas sobre la finalización del trabajo (opcional)...'
+        }),
+        label='Notas de Finalización'
+    )
+    photos = forms.FileField(
+        required=True,
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*',
+        }),
+        label='Fotos de Finalización',
+        help_text='Sube al menos una foto mostrando el trabajo completado'
+    )
+
+

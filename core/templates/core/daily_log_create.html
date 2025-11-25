@@ -1,0 +1,254 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_admin' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}">Daily Logs</a></li>
+      <li class="breadcrumb-item active">Crear</li>
+    </ol>
+  </nav>
+
+  <h2 class="mb-4"><i class="bi bi-journal-plus"></i> Crear Daily Log</h2>
+
+  <form method="post" enctype="multipart/form-data" id="dailyLogForm">
+    {% csrf_token %}
+    
+    <div class="row">
+      <!-- Left Column: Main Info -->
+      <div class="col-lg-8">
+        <!-- Basic Info Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-calendar-day"></i> Información Básica</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                {{ form.date }}
+                {% if form.date.help_text %}<small class="form-text text-muted">{{ form.date.help_text }}</small>{% endif %}
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Clima</label>
+                {{ form.weather }}
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Personas Trabajando</label>
+                {{ form.crew_count }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Progress Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> Progreso del Schedule</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted small">
+              <i class="bi bi-info-circle"></i>
+              Selecciona la actividad principal del calendario que se trabajó hoy (ej: Cubrir y Preparar = 10% del proyecto total)
+            </p>
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label class="form-label">Actividad del Schedule</label>
+                {{ form.schedule_item }}
+                {% if form.schedule_item.help_text %}<small class="form-text text-muted">{{ form.schedule_item.help_text }}</small>{% endif %}
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Progreso (%)</label>
+                {{ form.schedule_progress_percent }}
+                {% if form.schedule_progress_percent.help_text %}<small class="form-text text-muted">{{ form.schedule_progress_percent.help_text }}</small>{% endif %}
+              </div>
+            </div>
+
+            <!-- Active Schedules Reference -->
+            {% if active_schedules %}
+            <div class="mt-3">
+              <h6 class="small text-muted">Actividades Recientes:</h6>
+              <div class="list-group list-group-flush">
+                {% for sched in active_schedules|slice:":5" %}
+                <div class="list-group-item px-0 py-2 small">
+                  <i class="bi bi-calendar-event"></i> <strong>{{ sched.title }}</strong>
+                  <span class="text-muted">- {{ sched.start_datetime|date:"M d" }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Completed Tasks Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-check2-square"></i> Tareas Completadas Hoy</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted small">
+              <i class="bi bi-info-circle"></i>
+              Selecciona las tareas que se completaron o avanzaron significativamente hoy.
+              Estas tareas son parte de las actividades principales del schedule.
+            </p>
+            
+            <div class="mb-3">
+              {{ form.completed_tasks }}
+            </div>
+
+            <!-- Pending Tasks Reference -->
+            {% if pending_tasks %}
+            <div class="mt-3">
+              <h6 class="small text-muted">Tareas Activas del Proyecto:</h6>
+              <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                {% for task in pending_tasks|slice:":10" %}
+                <div class="list-group-item px-0 py-2 small">
+                  <i class="bi bi-circle{% if task.status == 'in_progress' %}-half text-warning{% else %} text-secondary{% endif %}"></i>
+                  <strong>{{ task.title }}</strong>
+                  {% if task.assigned_to %}
+                  <span class="text-muted">- {{ task.assigned_to }}</span>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Photos Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="bi bi-camera"></i> Fotos del Día</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted small">
+              <i class="bi bi-info-circle"></i>
+              Sube fotos del progreso del día. Puedes seleccionar múltiples archivos.
+            </p>
+            <div class="mb-3">
+              <label class="form-label">Fotos</label>
+              <input type="file" name="photos" class="form-control" accept="image/*" multiple>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descripción de Fotos</label>
+              <input type="text" name="photo_caption" class="form-control" placeholder="Descripción general de las fotos...">
+            </div>
+            <div id="photoPreview" class="row g-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Notes & Details -->
+      <div class="col-lg-4">
+        <!-- Accomplishments Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom">
+            <h6 class="mb-0"><i class="bi bi-trophy"></i> Logros del Día</h6>
+          </div>
+          <div class="card-body">
+            {{ form.accomplishments }}
+          </div>
+        </div>
+
+        <!-- Progress Notes Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom">
+            <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> Notas de Progreso</h6>
+          </div>
+          <div class="card-body">
+            {{ form.progress_notes }}
+          </div>
+        </div>
+
+        <!-- Safety & Issues Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom">
+            <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Seguridad e Incidentes</h6>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label small">Incidentes de Seguridad</label>
+              {{ form.safety_incidents }}
+            </div>
+            <div class="mb-0">
+              <label class="form-label small">Retrasos o Problemas</label>
+              {{ form.delays }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Next Day Plan Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom">
+            <h6 class="mb-0"><i class="bi bi-calendar-plus"></i> Plan para Mañana</h6>
+          </div>
+          <div class="card-body">
+            {{ form.next_day_plan }}
+          </div>
+        </div>
+
+        <!-- Publish Options Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom">
+            <h6 class="mb-0"><i class="bi bi-eye"></i> Visibilidad</h6>
+          </div>
+          <div class="card-body">
+            <div class="form-check">
+              {{ form.is_published }}
+              <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                <strong>Publicar para Cliente/Owner</strong>
+                <div class="small text-muted">Si se marca, será visible para el cliente y owner del proyecto</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-save"></i> Crear Daily Log
+          </button>
+          <a href="{% url 'daily_log' project.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+// Photo preview
+document.querySelector('input[name="photos"]').addEventListener('change', function(e) {
+  const previewDiv = document.getElementById('photoPreview');
+  previewDiv.innerHTML = '';
+  
+  Array.from(e.target.files).forEach(file => {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const col = document.createElement('div');
+        col.className = 'col-6';
+        col.innerHTML = `
+          <div class="card">
+            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+            <div class="card-body p-2">
+              <small class="text-muted">${file.name}</small>
+            </div>
+          </div>
+        `;
+        previewDiv.appendChild(col);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#1e3a8a" rx="80"/>
+  
+  <!-- Letter K -->
+  <g fill="#ffffff">
+    <!-- Main vertical bar of K -->
+    <rect x="100" y="120" width="60" height="272" rx="10"/>
+    
+    <!-- Upper diagonal of K -->
+    <path d="M 160 200 L 380 120 L 400 130 L 400 180 L 220 240 Z" />
+    
+    <!-- Lower diagonal of K -->
+    <path d="M 220 272 L 400 332 L 400 382 L 380 392 L 160 312 Z" />
+  </g>
+  
+  <!-- Construction accent - paint brush -->
+  <g>
+    <!-- Brush handle -->
+    <rect x="340" y="300" width="40" height="120" fill="#fbbf24" rx="5" transform="rotate(-45 360 360)"/>
+    
+    <!-- Brush bristles -->
+    <ellipse cx="392" cy="408" rx="20" ry="30" fill="#f87171" transform="rotate(-45 392 408)"/>
+    
+    <!-- Brush ferrule -->
+    <rect x="360" y="340" width="40" height="20" fill="#94a3b8" rx="3" transform="rotate(-45 380 350)"/>
+  </g>
+</svg>

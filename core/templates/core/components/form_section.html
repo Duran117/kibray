@@ -1,0 +1,46 @@
+{% load i18n %}
+
+{#
+    Form Section Component
+
+    Correct Usage (pass content via context variables instead of unsupported endinclude pattern):
+    Example: include this component and pass a "content" variable containing HTML or form fields.
+    (Removed invalid example that tried to use a closing endinclude tag.)
+#}
+
+<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5 {{ extra_classes|default:'' }}">
+    {# Section Header #}
+    {% if title %}
+    <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+        {% if icon %}
+        <div class="w-10 h-10 rounded-lg bg-kibray-50 flex items-center justify-center">
+            <i class="bi bi-{{ icon }} text-kibray-600 text-lg"></i>
+        </div>
+        {% endif %}
+        <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+            {% if description %}
+            <p class="text-sm text-gray-600 mt-0.5">{{ description }}</p>
+            {% endif %}
+        </div>
+        {% if header_action %}
+        <div>{{ header_action|safe }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {# Form Fields Content #}
+    <div class="space-y-4">
+        {% if content %}
+        {{ content|safe }}
+        {% endif %}
+        {% block form_fields %}{% endblock %}
+    </div>
+    
+    {# Optional Footer #}
+    {% if footer %}
+    <div class="pt-4 border-t border-gray-100">
+        {{ footer|safe }}
+    </div>
+    {% endif %}
+</div>

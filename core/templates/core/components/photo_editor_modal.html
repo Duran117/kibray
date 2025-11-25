@@ -1,0 +1,193 @@
+{% load i18n %}
+{# 
+Photo Editor Modal Component
+
+Full-screen modal with canvas-based photo annotation tools.
+Supports drawing, arrows, text, color selection, undo/clear.
+
+Required JavaScript globals:
+- openPhotoEditor(imageUrl, photoId, annotations) 
+- closePhotoEditor()
+- setDrawingMode(mode)
+- setDrawingColor(color, element)
+- undoDrawing()
+- clearDrawing()
+- saveAnnotations()
+
+These functions should be defined in the parent template's extra_js block.
+#}
+
+<div class="photo-editor-modal hidden" id="photoEditorModal">
+    <div class="photo-editor-content bg-white flex flex-col h-full">
+        <!-- Header -->
+        <div class="photo-editor-header flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
+            <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <i class="bi bi-pencil-square text-indigo-600"></i> 
+                {% trans "Editor de Fotos" %}
+            </h3>
+            <button type="button" 
+                    class="btn-close hover:bg-slate-200 rounded-full p-2 transition"
+                    onclick="closePhotoEditor()" 
+                    aria-label="{% trans "Cerrar" %}">
+                <i class="bi bi-x-lg text-xl text-slate-600"></i>
+            </button>
+        </div>
+        
+        <!-- Drawing Tools -->
+        <div class="drawing-tools flex flex-wrap items-center gap-3 p-4 bg-slate-100 border-b border-slate-200">
+            <!-- Mode Buttons -->
+            <button type="button" 
+                    class="tool-btn active bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2" 
+                    onclick="setDrawingMode('draw')" 
+                    id="drawBtn">
+                <i class="bi bi-pencil-fill"></i> 
+                <span class="hidden sm:inline">{% trans "Dibujar" %}</span>
+            </button>
+            <button type="button" 
+                    class="tool-btn bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium transition flex items-center gap-2" 
+                    onclick="setDrawingMode('arrow')" 
+                    id="arrowBtn">
+                <i class="bi bi-arrow-up-right"></i> 
+                <span class="hidden sm:inline">{% trans "Flecha" %}</span>
+            </button>
+            <button type="button" 
+                    class="tool-btn bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium transition flex items-center gap-2" 
+                    onclick="setDrawingMode('text')" 
+                    id="textBtn">
+                <i class="bi bi-fonts"></i> 
+                <span class="hidden sm:inline">{% trans "Texto" %}</span>
+            </button>
+            
+            <div class="w-px h-8 bg-slate-300 hidden sm:block"></div>
+            
+            <!-- Action Buttons -->
+            <button type="button" 
+                    class="tool-btn bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium transition flex items-center gap-2" 
+                    onclick="undoDrawing()">
+                <i class="bi bi-arrow-counterclockwise"></i> 
+                <span class="hidden sm:inline">{% trans "Deshacer" %}</span>
+            </button>
+            <button type="button" 
+                    class="tool-btn bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg font-medium transition flex items-center gap-2" 
+                    onclick="clearDrawing()">
+                <i class="bi bi-trash3"></i> 
+                <span class="hidden sm:inline">{% trans "Limpiar" %}</span>
+            </button>
+            
+            <div class="w-px h-8 bg-slate-300 ml-auto hidden sm:block"></div>
+            
+            <!-- Color Selector -->
+            <div class="color-selector flex items-center gap-2">
+                <span class="text-sm font-medium text-slate-700 hidden sm:inline">{% trans "Color:" %}</span>
+                <div class="flex gap-1">
+                    <div class="color-swatch active w-8 h-8 rounded-full border-2 border-slate-400 cursor-pointer hover:scale-110 transition" 
+                         style="background:#dc2626;" 
+                         onclick="setDrawingColor('#dc2626', this)" 
+                         title="{% trans 'Rojo' %}"></div>
+                    <div class="color-swatch w-8 h-8 rounded-full border-2 border-transparent cursor-pointer hover:scale-110 transition" 
+                         style="background:#2563eb;" 
+                         onclick="setDrawingColor('#2563eb', this)" 
+                         title="{% trans 'Azul' %}"></div>
+                    <div class="color-swatch w-8 h-8 rounded-full border-2 border-transparent cursor-pointer hover:scale-110 transition" 
+                         style="background:#16a34a;" 
+                         onclick="setDrawingColor('#16a34a', this)" 
+                         title="{% trans 'Verde' %}"></div>
+                    <div class="color-swatch w-8 h-8 rounded-full border-2 border-transparent cursor-pointer hover:scale-110 transition" 
+                         style="background:#f59e0b;" 
+                         onclick="setDrawingColor('#f59e0b', this)" 
+                         title="{% trans 'Amarillo' %}"></div>
+                    <div class="color-swatch w-8 h-8 rounded-full border-2 border-transparent cursor-pointer hover:scale-110 transition" 
+                         style="background:#000000;" 
+                         onclick="setDrawingColor('#000000', this)" 
+                         title="{% trans 'Negro' %}"></div>
+                    <div class="color-swatch w-8 h-8 rounded-full border-2 border-slate-300 cursor-pointer hover:scale-110 transition" 
+                         style="background:#ffffff;" 
+                         onclick="setDrawingColor('#ffffff', this)" 
+                         title="{% trans 'Blanco' %}"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Canvas Container -->
+        <div class="canvas-container flex-1 overflow-auto bg-slate-200 flex items-center justify-center p-4">
+            <canvas id="drawingCanvas" class="max-w-full max-h-full shadow-xl bg-white"></canvas>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="editor-actions flex gap-3 p-4 border-t border-slate-200 bg-slate-50">
+            <button type="button" 
+                    class="btn btn-secondary flex-1 sm:flex-initial bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-6 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2" 
+                    onclick="closePhotoEditor()">
+                <i class="bi bi-x-circle"></i> 
+                {% trans "Cancelar" %}
+            </button>
+            <button type="button" 
+                    class="btn btn-success flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2" 
+                    onclick="saveAnnotations()">
+                <i class="bi bi-check-circle-fill"></i> 
+                {% trans "Guardar" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Photo Editor Modal Styles */
+.photo-editor-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
+
+.photo-editor-modal.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.photo-editor-modal:not(.hidden) {
+    opacity: 1;
+}
+
+.photo-editor-content {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+@media (min-width: 768px) {
+    .photo-editor-content {
+        width: 95vw;
+        height: 95vh;
+        max-width: 1600px;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+}
+
+/* Tool Button Active State */
+.tool-btn.active {
+    background: rgb(79, 70, 229) !important;
+    color: white !important;
+}
+
+/* Color Swatch Active State */
+.color-swatch.active {
+    border-color: rgb(59, 130, 246) !important;
+    border-width: 3px !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Canvas Cursor */
+#drawingCanvas {
+    cursor: crosshair;
+}
+</style>

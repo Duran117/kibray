@@ -1,92 +1,663 @@
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0"><i class="bi bi-file-earmark-text"></i> Change Orders</h2>
+{% extends 'core/base.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block extra_css %}
+<style>
+    /* =================================
+       CHANGE ORDER BOARD - DISEÑO PROFESIONAL
+       ================================= */
+    
+    * {
+        box-sizing: border-box;
+    }
+    
+    .co-board-container {
+        padding: 20px;
+        max-width: 100%;
+        margin: 0 auto;
+        background: #f8fafc;
+    }
+    
+    /* Header */
+    .co-header {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .co-header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    /* Filtros */
+    .co-filters-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    /* Stats Bar */
+    .stats-bar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .stat-item {
+        text-align: center;
+        color: white;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+    
+    /* Scroll Indicator */
+    .scroll-indicator {
+        display: none;
+        text-align: center;
+        padding: 10px;
+        background: #e0f2fe;
+        color: #0369a1;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 13px;
+    }
+    
+    /* ===== TABLA SIMPLE - SIN GRID, PURO TABLE ===== */
+    .kanban-board {
+        width: 100% !important;
+        background: white !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+    }
+    
+    /* Table Real */
+    .co-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    
+    .co-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .co-table thead th {
+        padding: 16px;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: left;
+        border-bottom: 2px solid #5a67d8;
+    }
+    
+    .co-table thead th:last-child {
+        text-align: right;
+    }
+    
+    .co-table tbody tr {
+        border-bottom: 1px solid #e2e8f0;
+        transition: background 0.2s ease;
+    }
+    
+    .co-table tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+    
+    .co-table tbody tr:nth-child(odd) {
+        background: #ffffff;
+    }
+    
+    .co-table tbody tr:hover {
+        background: #eff6ff !important;
+        cursor: pointer;
+    }
+    
+    .co-table tbody td {
+        padding: 16px;
+        color: #334155;
+        vertical-align: middle;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .co-table tbody td:last-child {
+        text-align: right;
+    }
+    
+    /* CO Number */
+    .co-cell-number {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: #1e40af;
+        background: #dbeafe;
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        font-size: 13px;
+    }
+    
+    /* Amount */
+    .co-cell-amount {
+        font-weight: 700;
+        color: #059669;
+        font-size: 15px;
+    }
+    
+    /* Project */
+    .co-cell-project-name {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 4px;
+    }
+    
+    .co-cell-description {
+        font-size: 11px;
+        color: #64748b;
+    }
+    
+    /* Status Badges */
+    .co-cell-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .co-cell-status.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .co-cell-status.approved {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .co-cell-status.sent {
+        background: #e9d5ff;
+        color: #6b21a8;
+    }
+    
+    .co-cell-status.billed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .co-cell-status.paid {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    /* Date */
+    .co-cell-date {
+        font-size: 12px;
+        color: #64748b;
+    }
+    
+    /* Actions */
+    .co-cell-actions .btn-sm {
+        font-size: 11px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+    
+    /* Ocultar elementos antiguos */
+    .table-header,
+    .co-row,
+    .kanban-column,
+    .column-header,
+    .column-content {
+        display: none !important;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .kanban-board {
+            overflow-x: auto;
+        }
+        
+        .co-table {
+            min-width: 900px;
+        }
+    }
+    
+    /* ===== TARJETAS CO - DISEÑO ZEBRA ===== */
+    .co-card {
+        background: #ffffff !important;
+        border: 2px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        padding: 14px !important;
+        margin-bottom: 10px !important;
+        transition: all 0.25s ease !important;
+        cursor: pointer !important;
+        position: relative !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
+    }
+    
+    .co-card:nth-child(even) {
+        background: #f1f5f9 !important;
+        border-color: #94a3b8 !important;
+    }
+    
+    .co-card:nth-child(odd) {
+        background: #ffffff !important;
+        border-color: #cbd5e1 !important;
+    }
+    
+    .co-card:hover {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3) !important;
+        transform: translateY(-3px) scale(1.02) !important;
+        z-index: 10 !important;
+    }
+    
+    /* Header de la card */
+    .co-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .co-number {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1e40af;
+        font-family: 'Courier New', monospace;
+        background: #dbeafe;
+        padding: 5px 10px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .co-amount {
+        font-size: 16px;
+        font-weight: 800;
+        color: #059669;
+        background: #d1fae5;
+        padding: 5px 12px;
+        border-radius: 6px;
+    }
+    
+    /* Proyecto */
+    .co-project {
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 10px;
+        padding: 8px 10px;
+        background: #f8fafc;
+        border-left: 3px solid #3b82f6;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    /* Descripción */
+    .co-description {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        padding: 10px;
+        background: #fafafa;
+        border: 1px dashed #cbd5e1;
+        border-radius: 6px;
+        min-height: 50px;
+        max-height: 80px;
+        overflow: hidden;
+    }
+    
+    /* Metadata */
+    .co-meta {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .co-meta-item {
+        font-size: 11px;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    /* Acciones */
+    .co-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: stretch;
+    }
+    
+    .co-actions .btn-sm {
+        font-size: 11px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        flex: 1;
+        white-space: nowrap;
+    }
+    
+    .co-actions .btn-outline-primary {
+        flex: 2;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1400px) {
+        .kanban-board {
+            overflow-x: auto !important;
+        }
+        
+        .kanban-column {
+            flex: 0 0 300px !important;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .scroll-indicator {
+            display: block;
+        }
+        
+        .co-board-container {
+            padding: 12px;
+        }
+        
+        .kanban-column {
+            flex: 0 0 85vw !important;
+        }
+        
+        .stat-item {
+            font-size: 11px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- VERSION: 2025-11-14 15:05 - FLEX LAYOUT CON BORDES AZULES -->
+<div class="co-board-container">
+    <!-- Header Profesional -->
+    <div class="co-header d-flex justify-content-between align-items-center">
+        <h2>
+            <i class="bi bi-kanban"></i> Change Orders
+        </h2>
         <div class="d-flex gap-2">
-            <a href="{% url 'dashboard_admin' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
-            <a href="{% url 'changeorder_create' %}" class="btn btn-warning"><i class="bi bi-plus-circle"></i> Nuevo</a>
+            <a href="{% url 'dashboard_admin' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <a href="{% url 'changeorder_create' %}" class="btn btn-warning">
+                <i class="bi bi-plus-circle"></i> Nuevo CO
+            </a>
         </div>
     </div>
-    <form method="get" class="row g-2 mb-3">
-        <div class="col-md-3">
-            <select name="project" class="form-select">
-                <option value="">Todos los proyectos</option>
-                {% for p in projects %}
-                <option value="{{ p.id }}" {% if filter_project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select name="status" class="form-select">
-                <option value="">Todos los estados</option>
-                <option value="pending" {% if filter_status=='pending' %}selected{% endif %}>Pendiente</option>
-                <option value="approved" {% if filter_status=='approved' %}selected{% endif %}>Aprobado</option>
-                <option value="sent" {% if filter_status=='sent' %}selected{% endif %}>Enviado</option>
-                <option value="billed" {% if filter_status=='billed' %}selected{% endif %}>Facturado</option>
-                <option value="paid" {% if filter_status=='paid' %}selected{% endif %}>Pagado</option>
-            </select>
-        </div>
-        <div class="col-md-3 d-flex align-items-center">
-            <button class="btn btn-primary w-100">Filtrar</button>
-        </div>
-        <div class="col-md-3 d-flex align-items-center">
-            <div class="alert alert-info mb-0 w-100 py-2"><strong>Total:</strong> ${{ total_amount|floatformat:2 }}</div>
+    
+    <!-- Filtros Simplificados -->
+    <form method="get" class="co-filters-bar">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-5">
+                <label class="small fw-semibold text-muted mb-1">Proyecto</label>
+                <select name="project" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los proyectos</option>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}" {% if filter_project == p.id|stringformat:'s' %}selected{% endif %}>
+                        {{ p.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="small fw-semibold text-muted mb-1">Estado</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    <option value="draft" {% if filter_status == 'draft' %}selected{% endif %}>Borrador</option>
+                    <option value="review" {% if filter_status == 'review' %}selected{% endif %}>En Revisión</option>
+                    <option value="approved" {% if filter_status == 'approved' %}selected{% endif %}>Aprobado</option>
+                    <option value="in_progress" {% if filter_status == 'in_progress' %}selected{% endif %}>En Progreso</option>
+                    <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>Completado</option>
+                    <option value="rejected" {% if filter_status == 'rejected' %}selected{% endif %}>Rechazado</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="small fw-semibold text-muted mb-1 d-block">&nbsp;</label>
+                <a href="{% url 'changeorder_board' %}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </a>
+            </div>
         </div>
     </form>
-    <div class="row">
-        {% for co in changeorders %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow">
-                <div class="card-header bg-warning">
-                    <strong>{{ co.project.name }}</strong>
-                    <span class="badge bg-secondary float-end">{{ co.get_status_display }}</span>
+    
+    <!-- Stats Bar Profesional -->
+    <div class="stats-bar">
+        <div class="row g-3">
+            <div class="col-6 col-md-2">
+                <div class="stat-item">
+                    <div class="stat-label">Total COs</div>
+                    <div class="stat-value">{{ changeorders|length }}</div>
                 </div>
-                <div class="card-body">
-                    <p><strong>Description:</strong> {{ co.description }}</p>
-                    <p><strong>Date:</strong> {{ co.date_created }}</p>
-                    <hr>
-                    <h6>Time Entries:</h6>
-                    {% if co.time_entries.all %}
-                        <ul class="list-group list-group-flush">
-                        {% for te in co.time_entries.all %}
-                            <li class="list-group-item">
-                                <strong>{{ te.employee.first_name }} {{ te.employee.last_name }}</strong><br>
-                                {{ te.date }} | {{ te.start_time }} - {{ te.end_time }} ({{ te.hours_worked }} hrs)
-                                {% if te.notes %}<br><em>{{ te.notes }}</em>{% endif %}
-                            </li>
-                        {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">No time entries.</p>
-                    {% endif %}
-                    <hr>
-                    <h6>Expenses:</h6>
-                    {% if co.expenses.all %}
-                        <ul class="list-group list-group-flush">
-                        {% for ex in co.expenses.all %}
-                            <li class="list-group-item">
-                                <strong>{{ ex.category }}</strong>: ${{ ex.amount }}<br>
-                                {{ ex.date }} - {{ ex.description }}
-                                {% if ex.invoice %}
-                                    <br><a href="{{ ex.invoice.url }}" target="_blank">Invoice</a>
-                                {% endif %}
-                                {% if ex.receipt %}
-                                    <br><a href="{{ ex.receipt.url }}" target="_blank">Receipt</a>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">No expenses.</p>
-                    {% endif %}
-                                        <div class="mt-3 d-flex gap-2">
-                                            <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
-                                            <a href="{% url 'project_overview' co.project.id %}" class="btn btn-sm btn-outline-secondary">Proyecto</a>
-                                        </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="stat-item">
+                    <div class="stat-label">Monto Total</div>
+                    <div class="stat-value">${{ total_amount|floatformat:0|default:"0" }}</div>
+                </div>
+            </div>
+            <div class="col-4 col-md-2">
+                <div class="stat-item">
+                    <div class="stat-label">Borrador</div>
+                    <div class="stat-value">{{ changeorders|filter_by_status:'draft'|length }}</div>
+                </div>
+            </div>
+            <div class="col-4 col-md-2">
+                <div class="stat-item">
+                    <div class="stat-label">En Revisión</div>
+                    <div class="stat-value">{{ changeorders|filter_by_status:'review'|length }}</div>
+                </div>
+            </div>
+            <div class="col-4 col-md-2">
+                <div class="stat-item">
+                    <div class="stat-label">Aprobado</div>
+                    <div class="stat-value">{{ changeorders|filter_by_status:'approved'|length }}</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-2">
+                <div class="stat-item">
+                    <div class="stat-label">Completado</div>
+                    <div class="stat-value">{{ changeorders|filter_by_status:'completed'|length }}</div>
                 </div>
             </div>
         </div>
-        {% empty %}
-            <p>No change orders found.</p>
-        {% endfor %}
+    </div>
+    <!-- Tabla HTML Real - Simple y Limpia -->
+    <div class="kanban-board">
+        <table class="co-table">
+            <thead>
+                <tr>
+                    <th><i class="bi bi-hash"></i> CO#</th>
+                    <th><i class="bi bi-currency-dollar"></i> Monto</th>
+                    <th><i class="bi bi-building"></i> Proyecto / Descripción</th>
+                    <th><i class="bi bi-flag"></i> Estado</th>
+                    <th><i class="bi bi-calendar3"></i> Fecha</th>
+                    <th><i class="bi bi-gear"></i> Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for co in changeorders %}
+                <tr>
+                    <!-- CO Number -->
+                    <td>
+                        <span class="co-cell-number">CO-{{ co.id|stringformat:"04d" }}</span>
+                    </td>
+                    
+                    <!-- Amount -->
+                    <td>
+                        <span class="co-cell-amount">${{ co.amount|floatformat:0 }}</span>
+                    </td>
+                    
+                    <!-- Project / Description -->
+                    <td>
+                        <div class="co-cell-project-name">{{ co.project.name|truncatewords:8 }}</div>
+                        <div class="co-cell-description">{{ co.description|truncatewords:12 }}</div>
+                    </td>
+                    
+                    <!-- Status -->
+                    <td>
+                        {% if co.status == 'pending' %}
+                            <span class="co-cell-status pending">
+                                <i class="bi bi-clock"></i> Pendiente
+                            </span>
+                        {% elif co.status == 'approved' %}
+                            <span class="co-cell-status approved">
+                                <i class="bi bi-check-circle"></i> Aprobado
+                            </span>
+                        {% elif co.status == 'sent' %}
+                            <span class="co-cell-status sent">
+                                <i class="bi bi-send"></i> Enviado
+                            </span>
+                        {% elif co.status == 'billed' %}
+                            <span class="co-cell-status billed">
+                                <i class="bi bi-receipt"></i> Facturado
+                            </span>
+                        {% elif co.status == 'paid' %}
+                            <span class="co-cell-status paid">
+                                <i class="bi bi-cash"></i> Pagado
+                            </span>
+                        {% else %}
+                            {{ co.get_status_display }}
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Date -->
+                    <td>
+                        <span class="co-cell-date">{{ co.date_created|date:"d/m/Y" }}</span>
+                    </td>
+                    
+                    <!-- Actions -->
+                    <td>
+                        <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-primary" title="Ver detalles">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
+                        <a href="{% url 'changeorder_edit' co.id %}" class="btn btn-sm btn-secondary" title="Editar">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        {% if co.status == 'pending' %}
+                        <a href="{% url 'changeorder_delete' co.id %}" class="btn btn-sm btn-danger" 
+                           onclick="return confirm('¿Estás seguro de eliminar este Change Order?')" 
+                           title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                        {% endif %}
+                        {% if co.status == 'approved' %}
+                        <button class="btn btn-sm btn-success" 
+                                onclick="sendToClient({{ co.id }})" 
+                                title="Enviar al cliente">
+                            <i class="bi bi-send"></i> Enviar
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 60px; text-align: center; color: #94a3b8;">
+                        <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p style="margin-top: 16px; font-size: 14px;">No hay Change Orders para mostrar</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ===== SEND TO CLIENT FUNCTION =====
+function sendToClient(coId) {
+    if (!confirm('¿Enviar este Change Order al cliente para firma?')) {
+        return;
+    }
+    
+    fetch(`/api/changeorders/${coId}/send-to-client/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Change Order enviado al cliente correctamente');
+            location.reload();
+        } else {
+            alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('❌ Error al enviar al cliente');
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -8,6 +8,11 @@ from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError
 from decimal import Decimal, ROUND_HALF_UP
 from django.apps import apps
+from django.utils import timezone
+from typing import TYPE_CHECKING, Callable
+
+if TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
 
 # ---------------------
 # Modelo de Empleado
@@ -34,6 +39,8 @@ class Employee(models.Model):
 # ---------------------
 # Modelo de Proyecto
 # ---------------------
+# Modelo de Proyecto
+# ---------------------
 class Project(models.Model):
     name = models.CharField(max_length=100)
     client = models.CharField(max_length=100, blank=True, null=True)
@@ -46,15 +53,19 @@ class Project(models.Model):
     stains_or_finishes = models.TextField(blank=True, help_text="Ejemplo: Milesi Butternut 072 - 2 coats")
     number_of_rooms_or_areas = models.IntegerField(blank=True, null=True)
     number_of_paint_defects = models.IntegerField(blank=True, null=True, help_text="Número de manchas o imperfecciones detectadas")
-    total_income = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_income = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     reflection_notes = models.TextField(blank=True, help_text="Notas sobre aprendizajes, errores o mejoras para próximos proyectos")
     created_at = models.DateTimeField(auto_now_add=True)
     # Presupuesto
-    budget_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto total asignado al proyecto")
-    budget_labor = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto para mano de obra")
-    budget_materials = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto para materiales")
-    budget_other = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Presupuesto para otros gastos (seguros, almacenamiento, etc.)")
+    budget_total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Presupuesto total asignado al proyecto")
+    budget_labor = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Presupuesto para mano de obra")
+    budget_materials = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Presupuesto para materiales")
+    budget_other = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Presupuesto para otros gastos (seguros, almacenamiento, etc.)")
+
+    if TYPE_CHECKING:
+        id: int
+        estimates: 'RelatedManager[Estimate]'
 
     def profit(self):
         return round(self.total_income - self.total_expenses, 2)
@@ -222,6 +233,10 @@ class Schedule(models.Model):
 # ---------------------
 class ScheduleCategory(models.Model):
     """Categorías de cronograma por proyecto, con posibilidad de jerarquía."""
+    if TYPE_CHECKING:
+        items: "RelatedManager[ScheduleItem]"
+        children: "RelatedManager[ScheduleCategory]"
+
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='schedule_categories')
     name = models.CharField(max_length=200)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
@@ -263,6 +278,9 @@ class ScheduleItem(models.Model):
     ]
 
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='schedule_items')
+    if TYPE_CHECKING:
+        tasks: "RelatedManager[Task]"
+
     category = models.ForeignKey(ScheduleCategory, on_delete=models.CASCADE, related_name='items')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -462,9 +480,12 @@ class ClientProjectAccess(models.Model):
 # Modelo de Orden de Cambio
 # ---------------------
 class ChangeOrder(models.Model):
+    if TYPE_CHECKING:
+        id: int
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='change_orders')
     description = models.TextField()
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     date_created = models.DateField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pendiente'),
@@ -474,15 +495,35 @@ class ChangeOrder(models.Model):
         ('paid', 'Pagado'),
     ], default='pending')
     notes = models.TextField(blank=True)
+    color = models.CharField(max_length=7, blank=True, null=True, help_text="Color hex (ej: #FF5733)")
+    reference_code = models.CharField(max_length=50, blank=True, null=True, help_text="Código de referencia o color")
 
     def __str__(self):
         return f"CO {self.id} | {self.project.name} | ${self.amount:.2f}"
+
+class ChangeOrderPhoto(models.Model):
+    """Fotos asociadas a un Change Order con anotaciones"""
+    change_order = models.ForeignKey(ChangeOrder, on_delete=models.CASCADE, related_name='photos')
+    image = models.ImageField(upload_to='changeorders/photos/')
+    description = models.CharField(max_length=255, blank=True)
+    annotations = models.TextField(blank=True, help_text="JSON con anotaciones dibujadas")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'uploaded_at']
+
+    def __str__(self):
+        return f"Foto {self.id} - CO {self.change_order.id}"
 
 # ---------------------
 # Modelo de Registro de Nómina Semanal (mejorado)
 # ---------------------
 class PayrollPeriod(models.Model):
     """Período de nómina semanal para revisión y aprobación"""
+    if TYPE_CHECKING:
+        records: "RelatedManager[PayrollRecord]"
+
     week_start = models.DateField()
     week_end = models.DateField()
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -518,16 +559,19 @@ class PayrollPeriod(models.Model):
 class PayrollRecord(models.Model):
     """Registro individual de nómina por empleado por semana"""
     period = models.ForeignKey(PayrollPeriod, related_name='records', on_delete=models.CASCADE, null=True, blank=True)
+    if TYPE_CHECKING:
+        payments: "RelatedManager[PayrollPayment]"
+
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     week_start = models.DateField()
     week_end = models.DateField()
     
     # Campos calculados pero editables
-    total_hours = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    total_hours = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal("0"))
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2)
     adjusted_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, 
                                         help_text="Tasa ajustada para esta semana (override)")
-    total_pay = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     
     # Estado y notas
     reviewed = models.BooleanField(default=False)
@@ -625,11 +669,14 @@ class Invoice(models.Model):
         ('CANCELLED', 'Cancelada'),
     ]
     
+    if TYPE_CHECKING:
+        project_id: int
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='invoices')
     invoice_number = models.CharField(max_length=40, unique=True, editable=False, help_text="Referencia amigable; si hay Estimate aprobado: usa su código + secuencia")
     date_issued = models.DateField(auto_now_add=True)
     due_date = models.DateField(null=True, blank=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # default=0 para primer save
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))  # default=0 para primer save
     
     # Status tracking (NEW)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
@@ -640,7 +687,7 @@ class Invoice(models.Model):
     sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices_sent')
     
     # Payment tracking (NEW)
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     
     # Legacy fields (keep for backward compatibility)
     is_paid = models.BooleanField(default=False)
@@ -869,12 +916,12 @@ class BudgetLine(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='budget_lines')
     cost_code = models.ForeignKey(CostCode, on_delete=models.PROTECT, related_name='budget_lines')
     description = models.CharField(max_length=200, blank=True)
-    qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    qty = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
     unit = models.CharField(max_length=20, blank=True)
-    unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
     allowance = models.BooleanField(default=False)
-    baseline_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
-    revised_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    baseline_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0"))
+    revised_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0"))
     planned_start = models.DateField(null=True, blank=True)
     planned_finish = models.DateField(null=True, blank=True)
     weight_override = models.DecimalField(
@@ -902,6 +949,9 @@ class BudgetLine(models.Model):
 
 # --- Estimating / Proposals ---
 class Estimate(models.Model):
+    if TYPE_CHECKING:
+        project_id: int
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='estimates')
     version = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -909,10 +959,10 @@ class Estimate(models.Model):
     # Business-facing code: KP + client abbreviation + sequence starting at 1000
     code = models.CharField(max_length=40, unique=True, blank=True, help_text="KP + siglas del cliente + secuencia (desde 1000)")
     takeoff_link = models.URLField(blank=True, help_text="Link a Dropbox/Drive con el takeoff o soporte")
-    markup_material = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # %
-    markup_labor = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    overhead_pct = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    target_profit_pct = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    markup_material = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))  # %
+    markup_labor = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))
+    overhead_pct = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))
+    target_profit_pct = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))
     notes = models.TextField(blank=True)
     class Meta:
         unique_together = ('project','version')
@@ -961,9 +1011,9 @@ class EstimateLine(models.Model):
     description = models.CharField(max_length=200, blank=True)
     qty = models.DecimalField(max_digits=12, decimal_places=2)
     unit = models.CharField(max_length=20, blank=True)
-    labor_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    material_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    other_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    labor_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
+    material_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
+    other_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
     def direct_cost(self):
         return (self.qty or 0) * (self.labor_unit_cost + self.material_unit_cost + self.other_unit_cost)
     def __str__(self): return f"{self.estimate} | {self.cost_code.code}"
@@ -979,18 +1029,69 @@ class Proposal(models.Model):
 
 # --- Field Communication ---
 class DailyLog(models.Model):
+    """
+    Daily Log - Reporte diario del PM sobre el progreso del proyecto.
+    Muestra qué tareas se completaron hoy y el progreso general.
+    Visible para PM, diseñadores, cliente, owner (NO empleados).
+    """
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='daily_logs')
     date = models.DateField()
-    weather = models.CharField(max_length=120, blank=True)
-    crew_count = models.PositiveIntegerField(default=0)
-    progress_notes = models.TextField(blank=True)
-    safety_incidents = models.TextField(blank=True)
-    delays = models.TextField(blank=True)
+    weather = models.CharField(max_length=120, blank=True, help_text="Condiciones climáticas del día")
+    crew_count = models.PositiveIntegerField(default=0, help_text="Número de personas trabajando")
+    
+    # Tareas completadas ese día (muchos a muchos)
+    completed_tasks = models.ManyToManyField('Task', blank=True, related_name='daily_logs', 
+                                            help_text="Tareas completadas o con progreso este día")
+    
+    # Notas y detalles
+    progress_notes = models.TextField(blank=True, help_text="Notas generales de progreso")
+    accomplishments = models.TextField(blank=True, help_text="Logros específicos del día")
+    safety_incidents = models.TextField(blank=True, help_text="Incidentes de seguridad")
+    delays = models.TextField(blank=True, help_text="Retrasos o problemas encontrados")
+    next_day_plan = models.TextField(blank=True, help_text="Plan para el siguiente día")
+    
+    # Progreso del Schedule principal
+    schedule_item = models.ForeignKey('Schedule', on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='daily_logs',
+                                     help_text="Actividad principal del schedule (ej: Cubrir y Preparar)")
+    schedule_progress_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0,
+                                                    help_text="Progreso de la actividad principal (%)")
+    
+    # Fotos del día
+    photos = models.ManyToManyField('DailyLogPhoto', blank=True, related_name='logs')
+    
+    # Metadata
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_published = models.BooleanField(default=False, help_text="Visible para cliente/owner")
+    
     class Meta:
-        unique_together = ('project','date')
+        unique_together = ('project', 'date')
         ordering = ['-date']
-    def __str__(self): return f"{self.project.name} {self.date}"
+        permissions = [
+            ('view_dailylog_client', 'Can view daily log as client'),
+        ]
+    
+    def __str__(self):
+        return f"{self.project.name} - {self.date}"
+    
+    def task_completion_summary(self):
+        """Resumen de tareas completadas vs total"""
+        total_tasks = self.completed_tasks.count()
+        fully_completed = self.completed_tasks.filter(status='completed').count()
+        return {'total': total_tasks, 'completed': fully_completed}
+
+
+class DailyLogPhoto(models.Model):
+    """Fotos adjuntas a un Daily Log"""
+    image = models.ImageField(upload_to='daily_logs/photos/')
+    caption = models.CharField(max_length=255, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    def __str__(self):
+        return f"Photo {self.id} - {self.caption[:30]}"
 
 class RFI(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='rfis')
@@ -1029,8 +1130,8 @@ class Risk(models.Model):
 class BudgetProgress(models.Model):
     budget_line = models.ForeignKey(BudgetLine, on_delete=models.CASCADE, related_name='progress_points')
     date = models.DateField()
-    qty_completed = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    percent_complete = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # 0–100
+    qty_completed = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
+    percent_complete = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))  # 0–100
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:
@@ -1078,6 +1179,10 @@ class MaterialRequest(models.Model):
         ("cancelled", "Cancelada"),
         ("purchased_lead", "Compra directa (líder)"),  # permite flujo de compra directa
     ]
+    if TYPE_CHECKING:
+        id: int
+        get_status_display: Callable[[], str]
+
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="material_requests")
     requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     needed_when = models.CharField(max_length=20, choices=NEEDED_WHEN_CHOICES, default="now")
@@ -1100,6 +1205,10 @@ class ClientRequest(models.Model):
         ("converted", "Convertida a CO"),
         ("rejected", "Rechazada"),
     ]
+    if TYPE_CHECKING:
+        id: int
+        get_status_display: Callable[[], str]
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="client_requests")
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -1112,6 +1221,10 @@ class ClientRequest(models.Model):
         return f"CR#{self.id} · {self.project.name} · {self.title} · {self.get_status_display()}"
 
 class MaterialRequestItem(models.Model):
+    if TYPE_CHECKING:
+        get_unit_display: Callable[[], str]
+        get_category_display: Callable[[], str]
+    
     CATEGORY_CHOICES = [
         # Pinturas / acabados
         ("paint", "Pintura"),
@@ -1192,11 +1305,11 @@ class MaterialRequestItem(models.Model):
     comments = models.CharField(max_length=255, blank=True)
 
     inventory_item = models.ForeignKey("core.InventoryItem", null=True, blank=True, on_delete=models.SET_NULL)
-    qty_requested = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    qty_ordered = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    qty_received = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    qty_consumed = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    qty_returned = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    qty_requested = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    qty_ordered = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    qty_received = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    qty_consumed = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    qty_returned = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     item_status = models.CharField(max_length=20, choices=[
         ("pending", "Pending"),
         ("ordered", "Ordered"),
@@ -1259,6 +1372,32 @@ class SitePhoto(models.Model):
     coats = models.PositiveSmallIntegerField(default=1)
     annotations = models.JSONField(default=dict, blank=True)
     notes = models.TextField(blank=True)
+    
+    # NUEVOS CAMPOS: Before/After comparison
+    photo_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('before', 'Before'),
+            ('progress', 'Progress'),
+            ('after', 'After'),
+            ('defect', 'Defect'),
+            ('reference', 'Reference'),
+        ],
+        default='progress',
+        help_text="Type of photo for better organization"
+    )
+    paired_with = models.ForeignKey(
+        'self', 
+        null=True, 
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="Link before/after photos together"
+    )
+    ai_defects_detected = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="AI-detected defects in this photo"
+    )
 
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1364,16 +1503,28 @@ class ColorSample(models.Model):
 class FloorPlan(models.Model):
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='floor_plans')
     name = models.CharField(max_length=120, help_text='Nivel o descripción: Planta Baja, Nivel 2, etc.')
+    level = models.IntegerField(
+        default=0,
+        help_text='Nivel numérico: 0=Planta Baja, 1=Nivel 1, 2=Nivel 2, -1=Sótano, etc.'
+    )
+    level_identifier = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text='Identificador adicional: "Level 0", "Ground Floor", "Basement", etc.'
+    )
     image = models.ImageField(upload_to='floor_plans/')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['name']
-        unique_together = ('project', 'name')
+        ordering = ['level', 'name']
+        indexes = [
+            models.Index(fields=['project', 'level']),
+        ]
 
     def __str__(self):
-        return f"{self.project.name} · {self.name}"
+        level_display = f"Nivel {self.level}" if self.level >= 0 else f"Sótano {abs(self.level)}"
+        return f"{self.project.name} · {level_display} · {self.name}"
 
 class PlanPin(models.Model):
     PIN_TYPES = [
@@ -1418,6 +1569,9 @@ class PlanPin(models.Model):
         super().save(*args, **kwargs)
 
 class PlanPinAttachment(models.Model):
+    if TYPE_CHECKING:
+        pin_id: int
+    
     pin = models.ForeignKey(PlanPin, on_delete=models.CASCADE, related_name='attachments')
     image = models.ImageField(upload_to='floor_plans/pins/', null=True, blank=True)
     annotations = models.JSONField(default=dict, blank=True)
@@ -1430,11 +1584,24 @@ class PlanPinAttachment(models.Model):
 # Reportes de daños
 # ---------------------
 class DamageReport(models.Model):
+    if TYPE_CHECKING:
+        get_severity_display: Callable[[], str]
+        get_category_display: Callable[[], str]
+    
     SEVERITY_CHOICES = [
         ('low','Bajo'),
         ('medium','Medio'),
         ('high','Alto'),
         ('critical','Crítico'),
+    ]
+    CATEGORY_CHOICES = [
+        ('structural', 'Estructural'),
+        ('cosmetic', 'Cosmético'),
+        ('safety', 'Seguridad'),
+        ('electrical', 'Eléctrico'),
+        ('plumbing', 'Plomería'),
+        ('hvac', 'HVAC'),
+        ('other', 'Otro'),
     ]
     STATUS_CHOICES = [
         ('open','Abierto'),
@@ -1446,10 +1613,15 @@ class DamageReport(models.Model):
     pin = models.OneToOneField(PlanPin, on_delete=models.SET_NULL, null=True, blank=True, related_name='damage_report')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='other', help_text="Categoría del daño")
     severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='medium')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Costo estimado de reparación")
+    linked_touchup = models.ForeignKey('TouchUpPin', on_delete=models.SET_NULL, null=True, blank=True, related_name='damage_reports', help_text="Touch-up vinculado si aplica")
+    linked_co = models.ForeignKey('ChangeOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='damage_reports', help_text="Change Order vinculado si aplica")
     reported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     reported_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True, help_text="Fecha de resolución")
 
     class Meta:
         ordering = ['-reported_at']
@@ -1458,6 +1630,9 @@ class DamageReport(models.Model):
         return f"Damage: {self.title} ({self.get_severity_display()})"
 
 class DamagePhoto(models.Model):
+    if TYPE_CHECKING:
+        report_id: int
+    
     report = models.ForeignKey(DamageReport, on_delete=models.CASCADE, related_name='photos')
     image = models.ImageField(upload_to='damage_reports/')
     notes = models.CharField(max_length=255, blank=True)
@@ -1470,6 +1645,9 @@ class DamagePhoto(models.Model):
 # Chat de diseño colaborativo
 # ---------------------
 class DesignChatMessage(models.Model):
+    if TYPE_CHECKING:
+        project_id: int
+    
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='design_messages')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     message = models.TextField()
@@ -1507,6 +1685,10 @@ class ChatChannel(models.Model):
         return f"[{self.project}] {self.name}"
 
 class ChatMessage(models.Model):
+    if TYPE_CHECKING:
+        id: int
+        channel_id: int
+    
     channel = models.ForeignKey(ChatChannel, on_delete=models.CASCADE, related_name='messages')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     message = models.TextField(blank=True)
@@ -1558,6 +1740,9 @@ class Notification(models.Model):
             self.is_read = True
             self.save(update_fields=['is_read'])
 class InventoryItem(models.Model):
+    if TYPE_CHECKING:
+        get_category_display: Callable[[], str]
+
     CATEGORY_CHOICES = [
         ("MATERIAL", "Material"),
         ("PINTURA", "Pintura"),
@@ -1593,9 +1778,12 @@ class InventoryLocation(models.Model):
 
 
 class ProjectInventory(models.Model):
+    if TYPE_CHECKING:
+        id: int
+    
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE)
     location = models.ForeignKey(InventoryLocation, on_delete=models.CASCADE, related_name="stocks")
-    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     threshold_override = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
 
     class Meta:
@@ -1643,14 +1831,14 @@ class InventoryMovement(models.Model):
                 stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.from_location)
                 stock.quantity -= self.quantity
                 if stock.quantity < 0:
-                    stock.quantity = 0  # o lanzar error
+                    stock.quantity = Decimal("0")  # o lanzar error
                 stock.save()
         elif self.movement_type == "TRANSFER":
             if self.from_location:
                 s_from, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.from_location)
                 s_from.quantity -= self.quantity
                 if s_from.quantity < 0:
-                    s_from.quantity = 0
+                    s_from.quantity = Decimal("0")
                 s_from.save()
             if self.to_location:
                 s_to, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
@@ -1662,7 +1850,7 @@ class InventoryMovement(models.Model):
                 stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
                 stock.quantity += self.quantity
                 if stock.quantity < 0:
-                    stock.quantity = 0
+                    stock.quantity = Decimal("0")
                 stock.save()
 
     def __str__(self):
@@ -1678,6 +1866,9 @@ class ActivityTemplate(models.Model):
     SOP (Standard Operating Procedure) - Template for common activities
     Used to standardize tasks and educate team
     """
+    if TYPE_CHECKING:
+        get_category_display: Callable[[], str]
+    
     CATEGORY_CHOICES = [
         ('PREP', 'Preparation'),
         ('COVER', 'Covering'),
@@ -1723,6 +1914,35 @@ class ActivityTemplate(models.Model):
         help_text="URLs or paths to reference photos"
     )
     video_url = models.URLField(blank=True, help_text="YouTube or training video URL")
+    
+    # NUEVOS CAMPOS: Gamification & Training
+    difficulty_level = models.CharField(
+        max_length=20,
+        choices=[
+            ('beginner', 'Beginner'),
+            ('intermediate', 'Intermediate'),
+            ('advanced', 'Advanced'),
+        ],
+        default='beginner',
+        help_text="Skill level required"
+    )
+    completion_points = models.IntegerField(
+        default=10,
+        help_text="Points awarded for completing this SOP"
+    )
+    badge_awarded = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Badge name if special achievement"
+    )
+    required_tools = models.JSONField(
+        default=list,
+        help_text="Specific tools needed (for checklist)"
+    )
+    safety_warnings = models.TextField(
+        blank=True,
+        help_text="Important safety information"
+    )
     
     # Metadata
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_templates')
@@ -1809,6 +2029,9 @@ class PlannedActivity(models.Model):
         ('BLOCKED', 'Blocked'),
     ]
     
+    if TYPE_CHECKING:
+        id: int
+
     daily_plan = models.ForeignKey(DailyPlan, on_delete=models.CASCADE, related_name='activities')
     
     # Optional link to Schedule item
@@ -1888,9 +2111,14 @@ class PlannedActivity(models.Model):
         """
         Check if required materials are available in inventory
         Sets materials_checked and material_shortage flags
+        
+        IMPROVED: Added comprehensive error handling for malformed data
         """
-        from decimal import Decimal
+        from decimal import Decimal, InvalidOperation
         from django.db.models import Q
+        import logging
+        
+        logger = logging.getLogger(__name__)
 
         # Defensive: empty list => trivially OK
         if not self.materials_needed:
@@ -1899,79 +2127,129 @@ class PlannedActivity(models.Model):
             self.save(update_fields=["materials_checked", "material_shortage"])
             return
 
-        project = self.daily_plan.project
-        shortages = []
-        parsed_items = []  # (key, required_qty)
+        try:
+            project = self.daily_plan.project
+            shortages = []
+            parsed_items = []  # (key, required_qty)
 
-        # Expected simple syntax examples inside JSON list:
-        #   "Paint:Sherwin-Williams:2gal"
-        #   "Tape:3roll"
-        #   "Lija grano 120:10unit"
-        # If no quantity suffix, assume 1 unit. Quantity parsing: final token may contain number + unit.
-        for raw in self.materials_needed:
-            if not isinstance(raw, str):
-                continue
-            parts = [p.strip() for p in raw.split(":") if p.strip()]
-            required_qty = Decimal("1")
-            name_key = None
-            if len(parts) == 1:
-                name_key = parts[0].lower()
-            else:
-                # Last part may contain quantity e.g. 2gal / 3roll / 5unit
-                *name_tokens, qty_token = parts
-                qty_parsed = False
-                # detect leading digits in qty_token
-                import re
-                m = re.match(r"^(?P<num>\d+(?:\.\d+)?)(?P<unit>[a-zA-Z_]*)$", qty_token)
-                if m:
-                    required_qty = Decimal(m.group("num"))
-                    qty_parsed = True
-                    unit_suffix = m.group("unit") or "unit"
-                else:
-                    name_tokens.append(qty_token)  # treat as part of name
-                    unit_suffix = "unit"
-                name_key = ":".join(t.lower() for t in name_tokens)
-            parsed_items.append((name_key, required_qty))
+            # Expected simple syntax examples inside JSON list:
+            #   "Paint:Sherwin-Williams:2gal"
+            #   "Tape:3roll"
+            #   "Lija grano 120:10unit"
+            # If no quantity suffix, assume 1 unit. Quantity parsing: final token may contain number + unit.
+            for raw in self.materials_needed:
+                try:
+                    if not isinstance(raw, str):
+                        logger.warning(f"PlannedActivity {self.id}: Non-string material entry: {raw}")
+                        continue
+                    
+                    if not raw.strip():
+                        continue
+                    
+                    parts = [p.strip() for p in raw.split(":") if p.strip()]
+                    required_qty = Decimal("1")
+                    name_key = None
+                    
+                    if len(parts) == 1:
+                        name_key = parts[0].lower()
+                    else:
+                        # Last part may contain quantity e.g. 2gal / 3roll / 5unit
+                        *name_tokens, qty_token = parts
+                        
+                        # detect leading digits in qty_token with improved regex
+                        import re
+                        m = re.match(r"^(?P<num>\d+(?:\.\d+)?)(?P<unit>[a-zA-Z_]*)$", qty_token.strip())
+                        
+                        if m:
+                            try:
+                                required_qty = Decimal(m.group("num"))
+                                unit_suffix = m.group("unit") or "unit"
+                            except (InvalidOperation, ValueError) as e:
+                                logger.warning(f"PlannedActivity {self.id}: Invalid quantity '{m.group('num')}' in '{raw}': {e}")
+                                required_qty = Decimal("1")
+                        else:
+                            name_tokens.append(qty_token)  # treat as part of name
+                            unit_suffix = "unit"
+                        
+                        name_key = ":".join(t.lower() for t in name_tokens)
+                    
+                    if name_key:
+                        parsed_items.append((name_key, required_qty))
+                        
+                except Exception as e:
+                    logger.error(f"PlannedActivity {self.id}: Error parsing material '{raw}': {e}")
+                    continue
 
-        # Build quick lookup for inventory by item name (case-insensitive contains)
-        from .models import InventoryItem, ProjectInventory, InventoryLocation
+            # Build quick lookup for inventory by item name (case-insensitive contains)
+            try:
+                from .models import InventoryItem, ProjectInventory, InventoryLocation
+            except ImportError:
+                # Fallback if circular import
+                InventoryItem = apps.get_model("core", "InventoryItem")
+                ProjectInventory = apps.get_model("core", "ProjectInventory")
+                InventoryLocation = apps.get_model("core", "InventoryLocation")
 
-        # Prefer project-specific locations first; fallback to any storage location
-        project_locations = InventoryLocation.objects.filter(Q(project=project) | Q(project__isnull=True))
-        location_ids = list(project_locations.values_list("id", flat=True))
-        stocks = ProjectInventory.objects.filter(location_id__in=location_ids).select_related("item", "location")
+            # Prefer project-specific locations first; fallback to any storage location
+            project_locations = InventoryLocation.objects.filter(Q(project=project) | Q(project__isnull=True))
+            location_ids = list(project_locations.values_list("id", flat=True))
+            stocks = ProjectInventory.objects.filter(location_id__in=location_ids).select_related("item", "location")
 
-        # Aggregate available quantities per lowercase item name
-        available_map = {}
-        for s in stocks:
-            key = s.item.name.lower()
-            available_map[key] = available_map.get(key, Decimal("0")) + (s.quantity or Decimal("0"))
+            # Aggregate available quantities per lowercase item name
+            available_map = {}
+            for s in stocks:
+                try:
+                    key = s.item.name.lower()  # type: ignore[attr-defined]
+                    available_map[key] = available_map.get(key, Decimal("0")) + (s.quantity or Decimal("0"))  # type: ignore[attr-defined]
+                except Exception as e:
+                    logger.warning(f"PlannedActivity {self.id}: Error processing stock item {s.id}: {e}")  # type: ignore[attr-defined]
+                    continue
 
-        for key, required in parsed_items:
-            # Find closest match: direct key or contains logic
-            qty_available = None
-            if key in available_map:
-                qty_available = available_map[key]
-            else:
-                # fuzzy contains
-                matches = [k for k in available_map.keys() if key in k or k in key]
-                if matches:
-                    qty_available = sum(available_map[m] for m in matches)
-            if qty_available is None or qty_available < required:
-                shortages.append({"material": key, "required": str(required), "available": str(qty_available or 0)})
+            for key, required in parsed_items:
+                try:
+                    # Find closest match: direct key or contains logic
+                    qty_available = None
+                    if key in available_map:
+                        qty_available = available_map[key]
+                    else:
+                        # fuzzy contains
+                        matches = [k for k in available_map.keys() if key in k or k in key]
+                        if matches:
+                            qty_available = sum(available_map[m] for m in matches)
+                    
+                    if qty_available is None or qty_available < required:
+                        shortages.append({
+                            "material": key, 
+                            "required": str(required), 
+                            "available": str(qty_available or 0)
+                        })
+                except Exception as e:
+                    logger.error(f"PlannedActivity {self.id}: Error checking availability for '{key}': {e}")
+                    continue
 
-        self.materials_checked = True
-        self.material_shortage = bool(shortages)
-        # Persist shortage details in description tail if shortage present (non‑destructive append)
-        if shortages:
-            import json
-            shortage_text = f"\n[MATERIAL SHORTAGE]\n" + json.dumps(shortages, ensure_ascii=False)
-            if shortage_text not in (self.description or ""):
-                self.description = (self.description or "") + shortage_text
+            self.materials_checked = True
+            self.material_shortage = bool(shortages)
+            
+            # Persist shortage details in description tail if shortage present (non‑destructive append)
+            if shortages:
+                import json
+                try:
+                    shortage_text = f"\n[MATERIAL SHORTAGE]\n" + json.dumps(shortages, ensure_ascii=False, indent=2)
+                    if shortage_text not in (self.description or ""):
+                        self.description = (self.description or "") + shortage_text
+                except Exception as e:
+                    logger.error(f"PlannedActivity {self.id}: Error serializing shortages: {e}")
+            
+            # Save changes
+            if shortages:
                 self.save(update_fields=["materials_checked", "material_shortage", "description"])
             else:
                 self.save(update_fields=["materials_checked", "material_shortage"])
-        else:
+                    
+        except Exception as e:
+            # Catch-all to prevent complete failure
+            logger.error(f"PlannedActivity {self.id}: Critical error in check_materials(): {e}", exc_info=True)
+            self.materials_checked = False
+            self.material_shortage = False
             self.save(update_fields=["materials_checked", "material_shortage"])
 
 
@@ -2081,6 +2359,9 @@ class ProjectMinute(models.Model):
         ('note', 'Nota'),
     ]
     
+    if TYPE_CHECKING:
+        get_event_type_display: Callable[[], str]
+
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='minutes')
     event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES, default='note')
     title = models.CharField(max_length=200, help_text="Resumen breve del evento")
@@ -2107,3 +2388,1206 @@ class ProjectMinute(models.Model):
     
     def __str__(self):
         return f"{self.project.name} - {self.get_event_type_display()} - {self.title}"
+
+
+# ===========================
+# EARNED VALUE SNAPSHOTS
+# ===========================
+
+class EVSnapshot(models.Model):
+    """
+    Daily snapshot of Earned Value metrics for trending and forecasting.
+    Generated automatically by Celery task at 6 PM after employee clock out.
+    """
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='ev_snapshots')
+    date = models.DateField(help_text="Date of this snapshot")
+    
+    # Core EV metrics
+    planned_value = models.DecimalField(max_digits=12, decimal_places=2, help_text="PV - Budgeted cost of work scheduled")
+    earned_value = models.DecimalField(max_digits=12, decimal_places=2, help_text="EV - Budgeted cost of work performed")
+    actual_cost = models.DecimalField(max_digits=12, decimal_places=2, help_text="AC - Actual cost of work performed")
+    
+    # Performance indices
+    spi = models.DecimalField(max_digits=5, decimal_places=3, help_text="Schedule Performance Index (EV/PV)")
+    cpi = models.DecimalField(max_digits=5, decimal_places=3, help_text="Cost Performance Index (EV/AC)")
+    
+    # Variances
+    schedule_variance = models.DecimalField(max_digits=12, decimal_places=2, help_text="SV = EV - PV")
+    cost_variance = models.DecimalField(max_digits=12, decimal_places=2, help_text="CV = EV - AC")
+    
+    # Forecasts
+    estimate_at_completion = models.DecimalField(max_digits=12, decimal_places=2, help_text="EAC - Forecasted final cost")
+    estimate_to_complete = models.DecimalField(max_digits=12, decimal_places=2, help_text="ETC - Remaining cost")
+    variance_at_completion = models.DecimalField(max_digits=12, decimal_places=2, help_text="VAC = BAC - EAC")
+    
+    # Completion estimates
+    percent_complete = models.DecimalField(max_digits=5, decimal_places=2, help_text="% of project complete")
+    percent_spent = models.DecimalField(max_digits=5, decimal_places=2, help_text="% of budget spent")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-date']
+        unique_together = ['project', 'date']
+        verbose_name = "EV Snapshot"
+        verbose_name_plural = "EV Snapshots"
+        indexes = [
+            models.Index(fields=['project', '-date']),
+        ]
+    
+    def __str__(self):
+        return f"{self.project.name} - {self.date} (SPI:{self.spi}, CPI:{self.cpi})"
+
+
+# ===========================
+# QUALITY CONTROL
+# ===========================
+
+class QualityInspection(models.Model):
+    """
+    Quality control inspections with automated workflows and AI defect detection.
+    """
+    INSPECTION_TYPE_CHOICES = [
+        ('initial', 'Initial Inspection'),
+        ('progress', 'Progress Inspection'),
+        ('final', 'Final Inspection'),
+        ('warranty', 'Warranty Inspection'),
+        ('defect_followup', 'Defect Follow-up'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('scheduled', 'Scheduled'),
+        ('in_progress', 'In Progress'),
+        ('passed', 'Passed'),
+        ('failed', 'Failed'),
+        ('conditional', 'Conditional Pass'),
+    ]
+    
+    if TYPE_CHECKING:
+        get_inspection_type_display: Callable[[], str]
+
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='quality_inspections')
+    inspection_type = models.CharField(max_length=20, choices=INSPECTION_TYPE_CHOICES)
+    scheduled_date = models.DateField()
+    completed_date = models.DateField(null=True, blank=True)
+    
+    inspector = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='inspections_performed')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
+    
+    # AI-assisted scoring
+    overall_score = models.IntegerField(null=True, blank=True, help_text="0-100 quality score")
+    ai_defect_count = models.IntegerField(default=0, help_text="Defects detected by AI")
+    manual_defect_count = models.IntegerField(default=0, help_text="Defects found manually")
+    
+    notes = models.TextField(blank=True)
+    checklist_data = models.JSONField(default=dict, blank=True, help_text="Inspection checklist results")
+    
+    # Warranty tracking
+    warranty_expiration = models.DateField(null=True, blank=True)
+    warranty_notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-scheduled_date']
+        verbose_name = "Quality Inspection"
+        verbose_name_plural = "Quality Inspections"
+    
+    def __str__(self):
+        return f"{self.project.name} - {self.get_inspection_type_display()} - {self.scheduled_date}"
+
+
+class QualityDefect(models.Model):
+    """
+    Individual defects found during inspections with AI pattern detection.
+    """
+    SEVERITY_CHOICES = [
+        ('minor', 'Minor'),
+        ('moderate', 'Moderate'),
+        ('major', 'Major'),
+        ('critical', 'Critical'),
+    ]
+    
+    if TYPE_CHECKING:
+        get_severity_display: Callable[[], str]
+
+    inspection = models.ForeignKey(QualityInspection, on_delete=models.CASCADE, related_name='defects')
+    detected_by_ai = models.BooleanField(default=False)
+    
+    severity = models.CharField(max_length=20, choices=SEVERITY_CHOICES)
+    category = models.CharField(max_length=100, help_text="e.g., Paint finish, Trim alignment, etc.")
+    description = models.TextField()
+    location = models.CharField(max_length=200, help_text="Room/area where defect was found")
+    
+    # AI data
+    ai_confidence = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="AI confidence % (0-100)")
+    ai_pattern_match = models.CharField(max_length=100, blank=True, help_text="Pattern matched by AI")
+    
+    # Resolution
+    resolved = models.BooleanField(default=False)
+    resolved_date = models.DateField(null=True, blank=True)
+    resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='defects_resolved')
+    resolution_notes = models.TextField(blank=True)
+    
+    # Photos
+    photo = models.ImageField(upload_to='quality/defects/%Y/%m/', null=True, blank=True)
+    resolution_photo = models.ImageField(upload_to='quality/resolutions/%Y/%m/', null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Quality Defect"
+        verbose_name_plural = "Quality Defects"
+    
+    def __str__(self):
+        return f"{self.inspection.project.name} - {self.category} ({self.get_severity_display()})"
+
+
+# ===========================
+# RECURRING TASKS
+# ===========================
+
+class RecurringTask(models.Model):
+    """
+    Template for tasks that repeat on a schedule.
+    Auto-generates Task instances based on frequency.
+    """
+    if TYPE_CHECKING:
+        get_frequency_display: Callable[[], str]
+
+    FREQUENCY_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('biweekly', 'Bi-weekly'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+    ]
+    
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='recurring_tasks')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)
+    start_date = models.DateField(help_text="When to start generating tasks")
+    end_date = models.DateField(null=True, blank=True, help_text="When to stop (null = no end)")
+    
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_tasks_assigned')
+    cost_code = models.ForeignKey('CostCode', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Template data
+    checklist = models.JSONField(default=list, blank=True, help_text="Checklist items for auto-generated tasks")
+    estimated_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    
+    active = models.BooleanField(default=True)
+    last_generated = models.DateField(null=True, blank=True, help_text="Last date a task was generated")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Recurring Task"
+        verbose_name_plural = "Recurring Tasks"
+    
+    def __str__(self):
+        return f"{self.project.name} - {self.title} ({self.get_frequency_display()})"
+
+
+# ===========================
+# EMPLOYEE GPS CHECK-IN/OUT
+# ===========================
+
+class GPSCheckIn(models.Model):
+    """
+    GPS-validated employee check-ins for time tracking accuracy.
+    """
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='gps_checkins')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='gps_checkins')
+    time_entry = models.ForeignKey('TimeEntry', on_delete=models.SET_NULL, null=True, blank=True, related_name='gps_checkin')
+    
+    check_in_time = models.DateTimeField()
+    check_in_latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    check_in_longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    check_in_accuracy = models.DecimalField(max_digits=5, decimal_places=2, help_text="GPS accuracy in meters")
+    
+    check_out_time = models.DateTimeField(null=True, blank=True)
+    check_out_latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    check_out_longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    check_out_accuracy = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    
+    # Validation
+    within_geofence = models.BooleanField(default=True, help_text="Was check-in within project geofence?")
+    distance_from_project = models.DecimalField(max_digits=8, decimal_places=2, help_text="Distance in meters")
+    flagged_for_review = models.BooleanField(default=False)
+    review_notes = models.TextField(blank=True)
+    
+    # Auto-break detection
+    auto_break_detected = models.BooleanField(default=False)
+    auto_break_minutes = models.IntegerField(default=0)
+    
+    class Meta:
+        ordering = ['-check_in_time']
+        verbose_name = "GPS Check-In"
+        verbose_name_plural = "GPS Check-Ins"
+    
+    def __str__(self):
+        return f"{self.employee} - {self.project.name} - {self.check_in_time.date()}"
+
+
+# ===========================
+# OCR EXPENSE RECEIPTS
+# ===========================
+
+class ExpenseOCRData(models.Model):
+    """
+    OCR-extracted data from expense receipts using pytesseract + OpenCV.
+    """
+    expense = models.OneToOneField('Expense', on_delete=models.CASCADE, related_name='ocr_data')
+    
+    # Extracted fields
+    vendor_name = models.CharField(max_length=200, blank=True)
+    transaction_date = models.DateField(null=True, blank=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Line items
+    line_items = models.JSONField(default=list, blank=True, help_text="Extracted line items from receipt")
+    
+    # OCR metadata
+    ocr_confidence = models.DecimalField(max_digits=5, decimal_places=2, help_text="OCR confidence % (0-100)")
+    raw_text = models.TextField(blank=True, help_text="Full raw OCR text")
+    
+    # Auto-categorization
+    suggested_category = models.CharField(max_length=100, blank=True)
+    suggested_cost_code = models.ForeignKey('CostCode', on_delete=models.SET_NULL, null=True, blank=True)
+    ai_suggestion_confidence = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    
+    # Review
+    verified = models.BooleanField(default=False)
+    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    verification_notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Expense OCR Data"
+        verbose_name_plural = "Expense OCR Data"
+    
+    def __str__(self):
+        return f"OCR for {self.expense} - {self.vendor_name}"
+
+
+# ===========================
+# INVOICE AUTOMATION
+# ===========================
+
+class InvoiceAutomation(models.Model):
+    """
+    Automation settings for recurring invoices and email reminders.
+    """
+    invoice = models.OneToOneField('Invoice', on_delete=models.CASCADE, related_name='automation')
+    
+    # Recurring settings
+    is_recurring = models.BooleanField(default=False)
+    recurrence_frequency = models.CharField(
+        max_length=20,
+        choices=[
+            ('weekly', 'Weekly'),
+            ('biweekly', 'Bi-weekly'),
+            ('monthly', 'Monthly'),
+            ('quarterly', 'Quarterly'),
+        ],
+        blank=True
+    )
+    next_recurrence_date = models.DateField(null=True, blank=True)
+    recurrence_end_date = models.DateField(null=True, blank=True, help_text="When to stop auto-generating")
+    
+    # Email automation
+    auto_send_on_creation = models.BooleanField(default=False)
+    auto_remind_before_due = models.IntegerField(default=3, help_text="Days before due date to send reminder")
+    auto_remind_after_due = models.BooleanField(default=True, help_text="Send reminders for overdue invoices")
+    reminder_frequency_days = models.IntegerField(default=7, help_text="How often to remind after due")
+    
+    # Late fees
+    apply_late_fees = models.BooleanField(default=False)
+    late_fee_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('1.5'), help_text="% per month")
+    late_fee_grace_days = models.IntegerField(default=5, help_text="Days after due before applying fee")
+    
+    # Payment gateway
+    stripe_payment_intent_id = models.CharField(max_length=200, blank=True)
+    payment_link = models.URLField(blank=True, help_text="Direct payment link for client")
+    
+    last_reminder_sent = models.DateField(null=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Invoice Automation"
+        verbose_name_plural = "Invoice Automations"
+    
+    def __str__(self):
+        return f"Automation for {self.invoice}"
+
+
+# ===========================
+# BARCODE INVENTORY
+# ===========================
+
+class InventoryBarcode(models.Model):
+    """
+    Barcode tracking for inventory items using python-barcode + pyzbar.
+    """
+    item = models.ForeignKey('InventoryItem', on_delete=models.CASCADE, related_name='barcodes')
+    
+    barcode_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('CODE128', 'Code 128'),
+            ('CODE39', 'Code 39'),
+            ('EAN13', 'EAN-13'),
+            ('UPC', 'UPC'),
+            ('QR', 'QR Code'),
+        ],
+        default='CODE128'
+    )
+    barcode_value = models.CharField(max_length=100, unique=True)
+    barcode_image = models.ImageField(upload_to='inventory/barcodes/', blank=True)
+    
+    # Auto-reorder
+    enable_auto_reorder = models.BooleanField(default=False)
+    reorder_point = models.DecimalField(max_digits=10, decimal_places=2, help_text="Trigger reorder when stock below this")
+    reorder_quantity = models.DecimalField(max_digits=10, decimal_places=2, help_text="How much to reorder")
+    preferred_vendor = models.CharField(max_length=200, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Inventory Barcode"
+        verbose_name_plural = "Inventory Barcodes"
+    
+    def __str__(self):
+        return f"{self.item.name} - {self.barcode_value}"
+    if TYPE_CHECKING:
+        get_unit_display: Callable[[], str]
+        get_category_display: Callable[[], str]
+
+
+# ===========================
+# NUEVAS FUNCIONALIDADES 2025
+# ===========================
+
+# ---------------------
+# Punch List (Quality Control)
+# ---------------------
+class PunchListItem(models.Model):
+    """
+    Digital punch list for final quality control.
+    Track defects/issues that need to be fixed before project completion.
+    """
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='punchlist_items')
+    location = models.CharField(max_length=200, help_text="e.g., 'Living Room - North Wall'")
+    description = models.TextField()
+    priority = models.CharField(
+        max_length=20,
+        choices=[
+            ('critical', 'Critical'),
+            ('high', 'High'),
+            ('medium', 'Medium'),
+            ('low', 'Low'),
+        ],
+        default='medium'
+    )
+    category = models.CharField(
+        max_length=50,
+        choices=[
+            ('paint', 'Paint'),
+            ('trim', 'Trim'),
+            ('cleanup', 'Cleanup'),
+            ('repair', 'Repair'),
+            ('touch_up', 'Touch Up'),
+            ('other', 'Other'),
+        ],
+        default='paint'
+    )
+    assigned_to = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_punchlist_items')
+    photo = models.ImageField(upload_to='punchlist/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_punchlist_items')
+    completed_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_punchlist_items')
+    verified_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('open', 'Open'),
+            ('in_progress', 'In Progress'),
+            ('completed', 'Completed'),
+            ('verified', 'Verified'),
+        ],
+        default='open'
+    )
+    notes = models.TextField(blank=True)
+    
+    class Meta:
+        verbose_name = "Punch List Item"
+        verbose_name_plural = "Punch List Items"
+        ordering = ['-priority', 'created_at']
+    
+    def __str__(self):
+        return f"{self.project.name} - {self.location}: {self.description[:50]}"
+
+
+# ---------------------
+# Subcontractor Management
+# ---------------------
+class Subcontractor(models.Model):
+    """
+    Manage subcontractors and their information.
+    Track credentials, ratings, and compliance.
+    """
+    company_name = models.CharField(max_length=200)
+    contact_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    address = models.TextField(blank=True)
+    
+    specialty = models.CharField(
+        max_length=50,
+        choices=[
+            ('electrical', 'Electrical'),
+            ('plumbing', 'Plumbing'),
+            ('hvac', 'HVAC'),
+            ('flooring', 'Flooring'),
+            ('drywall', 'Drywall'),
+            ('carpentry', 'Carpentry'),
+            ('roofing', 'Roofing'),
+            ('landscaping', 'Landscaping'),
+            ('other', 'Other'),
+        ]
+    )
+    
+    if TYPE_CHECKING:
+        get_specialty_display: Callable[[], str]
+    
+    hourly_rate = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=Decimal("5.0"), help_text="0-5 stars")
+    
+    # Compliance
+    insurance_verified = models.BooleanField(default=False)
+    insurance_expires = models.DateField(null=True, blank=True)
+    w9_on_file = models.BooleanField(default=False)
+    license_number = models.CharField(max_length=100, blank=True)
+    
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Subcontractor"
+        verbose_name_plural = "Subcontractors"
+        ordering = ['company_name']
+    
+    def __str__(self):
+        return f"{self.company_name} ({self.get_specialty_display()})"
+
+
+class SubcontractorAssignment(models.Model):
+    """
+    Assign subcontractors to specific projects.
+    Track scope, timeline, and payments.
+    """
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='subcontractor_assignments')
+    subcontractor = models.ForeignKey('Subcontractor', on_delete=models.CASCADE, related_name='assignments')
+    
+    scope_of_work = models.TextField()
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    
+    contract_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('active', 'Active'),
+            ('completed', 'Completed'),
+            ('cancelled', 'Cancelled'),
+        ],
+        default='pending'
+    )
+    
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Subcontractor Assignment"
+        verbose_name_plural = "Subcontractor Assignments"
+    
+    def __str__(self):
+        return f"{self.subcontractor.company_name} - {self.project.name}"
+    
+    @property
+    def balance_due(self):
+        return self.contract_amount - self.amount_paid
+
+
+# ---------------------
+# Employee Performance Tracking (para bonos)
+# ---------------------
+class EmployeePerformanceMetric(models.Model):
+    """
+    Track employee performance metrics automatically.
+    Used for annual bonus evaluation.
+    """
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='performance_metrics')
+    
+    # Period
+    year = models.IntegerField()
+    month = models.IntegerField(null=True, blank=True, help_text="Leave blank for annual metrics")
+    
+    # Auto-calculated metrics
+    total_hours_worked = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    billable_hours = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    productivity_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0.00"), help_text="% billable hours")
+    
+    # Quality metrics
+    defects_created = models.IntegerField(default=0, help_text="Touch-ups/rework assigned to this employee")
+    tasks_completed = models.IntegerField(default=0)
+    tasks_on_time = models.IntegerField(default=0)
+    
+    # Attendance
+    days_worked = models.IntegerField(default=0)
+    days_late = models.IntegerField(default=0)
+    days_absent = models.IntegerField(default=0)
+    
+    # Manual ratings (PM/Admin inputs)
+    quality_rating = models.IntegerField(null=True, blank=True, help_text="1-5 stars")
+    attitude_rating = models.IntegerField(null=True, blank=True, help_text="1-5 stars")
+    teamwork_rating = models.IntegerField(null=True, blank=True, help_text="1-5 stars")
+    
+    # Bonus
+    bonus_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    bonus_notes = models.TextField(blank=True)
+    bonus_paid = models.BooleanField(default=False)
+    bonus_paid_date = models.DateField(null=True, blank=True)
+    
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Employee Performance Metric"
+        verbose_name_plural = "Employee Performance Metrics"
+        unique_together = ['employee', 'year', 'month']
+        ordering = ['-year', '-month']
+    
+    def __str__(self):
+        period = f"{self.year}" if not self.month else f"{self.year}-{self.month:02d}"
+        return f"{self.employee} - {period}"
+    
+    @property
+    def overall_score(self):
+        """Calculate overall performance score (0-100)"""
+        scores = []
+        
+        # Productivity (30%)
+        if self.productivity_rate:
+            scores.append(float(self.productivity_rate) * 0.3)
+        
+        # Quality (25%)
+        if self.quality_rating:
+            scores.append((self.quality_rating / 5 * 100) * 0.25)
+        
+        # Attitude (25%)
+        if self.attitude_rating:
+            scores.append((self.attitude_rating / 5 * 100) * 0.25)
+        
+        # Attendance (20%)
+        if self.days_worked > 0:
+            attendance_score = ((self.days_worked - self.days_late - self.days_absent) / self.days_worked * 100) * 0.2
+            scores.append(attendance_score)
+        
+        return sum(scores) if scores else 0
+
+
+# ---------------------
+# Employee Certifications & Skills
+# ---------------------
+class EmployeeCertification(models.Model):
+    """
+    Track employee certifications and skill levels.
+    Supports internal training programs and gamification.
+    """
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='certifications')
+    certification_name = models.CharField(max_length=100)
+    
+    skill_category = models.CharField(
+        max_length=50,
+        choices=[
+            ('painting', 'Painting'),
+            ('drywall', 'Drywall'),
+            ('carpentry', 'Carpentry'),
+            ('safety', 'Safety'),
+            ('equipment', 'Equipment Operation'),
+            ('leadership', 'Leadership'),
+            ('customer_service', 'Customer Service'),
+        ]
+    )
+    
+    date_earned = models.DateField(auto_now_add=True)
+    expires_at = models.DateField(null=True, blank=True)
+    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    certificate_number = models.CharField(max_length=50, unique=True)
+    
+    notes = models.TextField(blank=True)
+    
+    class Meta:
+        verbose_name = "Employee Certification"
+        verbose_name_plural = "Employee Certifications"
+        ordering = ['-date_earned']
+    
+    def __str__(self):
+        return f"{self.employee} - {self.certification_name}"
+    
+    @property
+    def is_expired(self):
+        if not self.expires_at:
+            return False
+        return datetime.now().date() > self.expires_at
+
+
+class EmployeeSkillLevel(models.Model):
+    """
+    Track employee skill progression.
+    Supports gamification and training programs.
+    """
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='skill_levels')
+    skill = models.CharField(max_length=100)
+    level = models.IntegerField(default=1, help_text="1-5 (Beginner to Expert)")
+    
+    assessments_passed = models.IntegerField(default=0)
+    total_points = models.IntegerField(default=0)
+    
+    last_assessment_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Employee Skill Level"
+        verbose_name_plural = "Employee Skill Levels"
+        unique_together = ['employee', 'skill']
+    
+    def __str__(self):
+        return f"{self.employee} - {self.skill} (Level {self.level})"
+
+
+# ---------------------
+# Enhanced SOP (with gamification)
+# ---------------------
+class SOPCompletion(models.Model):
+    """
+    Track SOP completions for gamification.
+    Award points and badges.
+    """
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='sop_completions')
+    sop = models.ForeignKey('ActivityTemplate', on_delete=models.CASCADE, related_name='completions')
+    
+    completed_at = models.DateTimeField(auto_now_add=True)
+    time_taken = models.DurationField(null=True, blank=True)
+    
+    score = models.IntegerField(null=True, blank=True, help_text="Quiz score if applicable")
+    passed = models.BooleanField(default=True)
+    
+    points_awarded = models.IntegerField(default=10)
+    badge_awarded = models.CharField(max_length=50, blank=True)
+    
+    notes = models.TextField(blank=True)
+    
+    class Meta:
+        verbose_name = "SOP Completion"
+        verbose_name_plural = "SOP Completions"
+        unique_together = ['employee', 'sop']
+    
+    
+    def __str__(self):
+        return f"{self.employee} completed {self.sop.name}"
+
+
+# ---------------------
+# Paint Leftovers / Sobras de Pintura
+# ---------------------
+class PaintLeftover(models.Model):
+    """
+    Registro de sobras de pintura al final de proyecto.
+    Permite rastrear cantidad restante y ubicación para reutilización.
+    """
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+        related_name='paint_leftovers'
+    )
+    color_sample = models.ForeignKey(
+        'ColorSample',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='leftovers'
+    )
+    brand = models.CharField(max_length=100, help_text="Marca de pintura (ej: Sherwin Williams)")
+    color_name = models.CharField(max_length=200, help_text="Nombre del color (ej: SW 7008 Alabaster)")
+    color_code = models.CharField(max_length=100, blank=True, help_text="Código del color")
+    finish = models.CharField(
+        max_length=50,
+        choices=[
+            ('flat', 'Flat'),
+            ('matte', 'Matte'),
+            ('eggshell', 'Eggshell'),
+            ('satin', 'Satin'),
+            ('semi_gloss', 'Semi-Gloss'),
+            ('gloss', 'Gloss'),
+        ],
+        default='flat'
+    )
+    quantity_gallons = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        help_text="Cantidad en galones"
+    )
+    container_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('gallon', '1 Galón'),
+            ('quart', 'Cuarto'),
+            ('pint', 'Pinta'),
+            ('other', 'Otro'),
+        ],
+        default='gallon'
+    )
+    num_containers = models.IntegerField(default=1, help_text="Número de contenedores")
+    location = models.ForeignKey(
+        'InventoryLocation',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Ubicación donde se almacena"
+    )
+    location_notes = models.CharField(max_length=255, blank=True, help_text="Notas de ubicación específica")
+    condition = models.CharField(
+        max_length=50,
+        choices=[
+            ('excellent', 'Excelente'),
+            ('good', 'Buena'),
+            ('fair', 'Regular'),
+            ('poor', 'Mala - No usar'),
+        ],
+        default='good'
+    )
+    date_stored = models.DateField(auto_now_add=True)
+    expiration_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='paint_leftovers_created'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-date_stored']
+        verbose_name = "Paint Leftover"
+        verbose_name_plural = "Paint Leftovers"
+    
+    def __str__(self):
+        return f"{self.brand} - {self.color_name} ({self.quantity_gallons}gal)"
+    
+    def is_expired(self):
+        if self.expiration_date:
+            return timezone.now().date() > self.expiration_date
+        return False
+
+
+# ========================================================================================
+# FILE ORGANIZATION SYSTEM
+# ========================================================================================
+
+class FileCategory(models.Model):
+    """Categories for organizing project files"""
+    if TYPE_CHECKING:
+        id: int
+        files: "RelatedManager[ProjectFile]"
+    
+    CATEGORY_TYPES = [
+        ('daily_logs', 'Daily Logs Photos'),
+        ('documents', 'Documents'),
+        ('datasheets', 'Datasheets'),
+        ('cos_signed', 'COs Firmados'),
+        ('invoices', 'Invoices'),
+        ('contracts', 'Contracts'),
+        ('permits', 'Permits'),
+        ('drawings', 'Drawings'),
+        ('photos', 'Project Photos'),
+        ('reports', 'Reports'),
+        ('other', 'Other'),
+    ]
+    
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+        related_name='file_categories'
+    )
+    name = models.CharField(max_length=100)
+    category_type = models.CharField(
+        max_length=20,
+        choices=CATEGORY_TYPES,
+        default='other'
+    )
+    description = models.TextField(blank=True)
+    icon = models.CharField(
+        max_length=50,
+        default='bi-folder',
+        help_text='Bootstrap icon class (e.g., bi-folder, bi-file-earmark)'
+    )
+    color = models.CharField(
+        max_length=20,
+        default='primary',
+        help_text='Bootstrap color (primary, success, danger, etc.)'
+    )
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    
+    class Meta:
+        ordering = ['order', 'name']
+        unique_together = ['project', 'name']
+        verbose_name = "File Category"
+        verbose_name_plural = "File Categories"
+    
+    def __str__(self):
+        return f"{self.project.name} - {self.name}"
+    
+    def file_count(self):
+        """Count files in this category"""
+        return self.files.count()
+    
+    def total_size(self):
+        """Calculate total size of files in bytes"""
+        return sum(f.file.size for f in self.files.all() if f.file)
+
+
+class ProjectFile(models.Model):
+    """Files organized by categories within projects"""
+    if TYPE_CHECKING:
+        id: int
+    
+    FILE_TYPES = [
+        ('pdf', 'PDF Document'),
+        ('image', 'Image'),
+        ('spreadsheet', 'Spreadsheet'),
+        ('word', 'Word Document'),
+        ('cad', 'CAD Drawing'),
+        ('other', 'Other'),
+    ]
+    
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+        related_name='files'
+    )
+    category = models.ForeignKey(
+        FileCategory,
+        on_delete=models.CASCADE,
+        related_name='files'
+    )
+    file = models.FileField(upload_to='project_files/%Y/%m/')
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    file_type = models.CharField(
+        max_length=20,
+        choices=FILE_TYPES,
+        default='other'
+    )
+    file_size = models.BigIntegerField(default=0, help_text='Size in bytes')
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='uploaded_files'
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Optional metadata
+    tags = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Comma-separated tags'
+    )
+    is_public = models.BooleanField(
+        default=False,
+        help_text='Visible to clients'
+    )
+    version = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text='Document version (e.g., v1.0, Rev A)'
+    )
+    
+    class Meta:
+        ordering = ['-uploaded_at']
+        verbose_name = "Project File"
+        verbose_name_plural = "Project Files"
+    
+    def __str__(self):
+        return f"{self.name} ({self.category.name})"
+    
+    def save(self, *args, **kwargs):
+        # Auto-set file size and detect file type
+        if self.file:
+            self.file_size = self.file.size
+            
+            # Auto-detect file type from extension
+            ext = self.file.name.split('.')[-1].lower()
+            type_map = {
+                'pdf': 'pdf',
+                'jpg': 'image', 'jpeg': 'image', 'png': 'image', 'gif': 'image',
+                'xls': 'spreadsheet', 'xlsx': 'spreadsheet', 'csv': 'spreadsheet',
+                'doc': 'word', 'docx': 'word',
+                'dwg': 'cad', 'dxf': 'cad',
+            }
+            self.file_type = type_map.get(ext, 'other')
+        
+        super().save(*args, **kwargs)
+    
+    def get_icon(self):
+        """Get Bootstrap icon based on file type"""
+        icons = {
+            'pdf': 'bi-file-pdf',
+            'image': 'bi-file-image',
+            'spreadsheet': 'bi-file-spreadsheet',
+            'word': 'bi-file-word',
+            'cad': 'bi-file-ruled',
+            'other': 'bi-file-earmark',
+        }
+        return icons.get(self.file_type, 'bi-file-earmark')
+    
+    def get_size_display(self):
+        """Human-readable file size"""
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024.0:
+                return f"{size:.1f} {unit}"
+            size /= 1024.0
+        return f"{size:.1f} TB"
+
+
+# ========================================================================================
+# TOUCH-UP SYSTEM (Separate from Info Pins)
+# ========================================================================================
+
+class TouchUpPin(models.Model):
+    """
+    Touch-up pins for paint/finishing work - separate workflow from info pins
+    - PM/Admin creates and assigns to employee
+    - Employee can only view and close with completion photo
+    - Closed pins move to history and are removed from active view
+    """
+    if TYPE_CHECKING:
+        id: int
+        completion_photos: "RelatedManager[TouchUpCompletionPhoto]"
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('in_progress', 'En Progreso'),
+        ('completed', 'Completado'),
+        ('archived', 'Archivado'),
+    ]
+    
+    APPROVAL_CHOICES = [
+        ('pending_review', 'Pendiente de Revisión'),
+        ('approved', 'Aprobado'),
+        ('rejected', 'Rechazado'),
+    ]
+    
+    # Location
+    plan = models.ForeignKey(
+        FloorPlan,
+        on_delete=models.CASCADE,
+        related_name='touchup_pins'
+    )
+    x = models.DecimalField(
+        max_digits=6,
+        decimal_places=4,
+        help_text='Normalized X coordinate (0..1)'
+    )
+    y = models.DecimalField(
+        max_digits=6,
+        decimal_places=4,
+        help_text='Normalized Y coordinate (0..1)'
+    )
+    
+    # Task info
+    task_name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    
+    # Paint/Color details
+    approved_color = models.ForeignKey(
+        'ColorSample',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='touchup_pins'
+    )
+    custom_color_name = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='If not using approved color'
+    )
+    sheen = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text='Brillo: Matte, Satin, Semi-gloss, Gloss'
+    )
+    details = models.TextField(
+        blank=True,
+        help_text='Additional details about the touch-up'
+    )
+    
+    # Assignment
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_touchups'
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_touchups'
+    )
+    
+    # Status tracking
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    approval_status = models.CharField(
+        max_length=20,
+        choices=APPROVAL_CHOICES,
+        default='pending_review',
+        help_text='Estado de aprobación de la completion'
+    )
+    rejection_reason = models.TextField(
+        blank=True,
+        help_text='Motivo del rechazo si aplica'
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_touchups',
+        help_text='PM/Admin que revisó el completion'
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='closed_touchups'
+    )
+    
+    # Visual
+    pin_color = models.CharField(
+        max_length=7,
+        default='#dc3545',
+        help_text='Red for touch-ups by default'
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'assigned_to']),
+            models.Index(fields=['plan', 'status']),
+        ]
+    
+    def __str__(self):
+        return f"Touch-up: {self.task_name} ({self.get_status_display()})"
+    
+    def can_edit(self, user):
+        """PM/Admin/Client/Designer/Owner can edit"""
+        profile = getattr(user, 'profile', None)
+        return user.is_staff or (profile and profile.role in [
+            'project_manager', 'admin', 'superuser', 'client', 'designer', 'owner'
+        ])
+    
+    def can_close(self, user):
+        """Assigned employee or authorized users can close"""
+        if self.can_edit(user):
+            return True
+        return self.assigned_to == user
+    
+    def close_touchup(self, user):
+        """Mark as completed and archive"""
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        self.closed_by = user
+        self.save()
+
+
+class TouchUpCompletionPhoto(models.Model):
+    """Photos uploaded when closing a touch-up"""
+    if TYPE_CHECKING:
+        id: int
+        touchup_id: int
+    
+    touchup = models.ForeignKey(
+        TouchUpPin,
+        on_delete=models.CASCADE,
+        related_name='completion_photos'
+    )
+    image = models.ImageField(upload_to='touchups/completion/')
+    annotations = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Canvas annotations if photo was edited'
+    )
+    notes = models.CharField(max_length=255, blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Completion photo for touchup #{self.touchup_id}"
+
+
+# ---------------------
+# Enhanced SitePhoto (Before/After)
+# ---------------------
+# Extend existing SitePhoto with new fields - agregar migration
+# NOTE: Esto requiere modificar el modelo SitePhoto existente
+# Ver líneas ~450-480 en models.py
+
+
+
+
+
+
+
+

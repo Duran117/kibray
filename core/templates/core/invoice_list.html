@@ -1,30 +1,315 @@
 {% extends "core/base.html" %}
+
+{% block extra_css %}
+<style>
+    /* ===== ESTILO PROFESIONAL PARA INVOICE LIST ===== */
+    .invoice-container {
+        padding: 24px;
+        background: #f8fafc;
+        min-height: calc(100vh - 60px);
+    }
+    
+    .invoice-header {
+        background: white;
+        padding: 24px 32px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    .invoice-header h2 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 24px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .invoice-table-wrapper {
+        background: white;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    
+    .invoice-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .invoice-table thead th {
+        padding: 16px;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: left;
+        border-bottom: 2px solid #5a67d8;
+    }
+    
+    .invoice-table thead th:last-child {
+        text-align: right;
+    }
+    
+    .invoice-table tbody tr {
+        border-bottom: 1px solid #e2e8f0;
+        transition: background 0.2s ease;
+    }
+    
+    .invoice-table tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+    
+    .invoice-table tbody tr:nth-child(odd) {
+        background: #ffffff;
+    }
+    
+    .invoice-table tbody tr:hover {
+        background: #eff6ff !important;
+        cursor: pointer;
+    }
+    
+    .invoice-table tbody td {
+        padding: 16px;
+        color: #334155;
+        vertical-align: middle;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .invoice-table tbody td:last-child {
+        text-align: right;
+    }
+    
+    /* Invoice Number */
+    .invoice-number {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: #1e40af;
+        background: #dbeafe;
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        font-size: 13px;
+    }
+    
+    /* Amount */
+    .invoice-amount {
+        font-weight: 700;
+        color: #059669;
+        font-size: 15px;
+    }
+    
+    /* Status Badges */
+    .invoice-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .invoice-status.paid {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .invoice-status.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    /* Project/Client */
+    .invoice-project {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 2px;
+    }
+    
+    .invoice-client {
+        font-size: 11px;
+        color: #64748b;
+    }
+    
+    /* Date */
+    .invoice-date {
+        font-size: 12px;
+        color: #64748b;
+    }
+    
+    /* Actions */
+    .invoice-table .btn-sm {
+        font-size: 11px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        padding: 60px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 16px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .invoice-table-wrapper {
+            overflow-x: auto;
+        }
+        
+        .invoice-table {
+            min-width: 900px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-  <h2>Facturas</h2>
-  {# Link deprecated: creation via invoice builder per project. Removed to avoid 404. #}
-  <table>
-    <tr>
-      <th>No.</th>
-      <th>Proyecto</th>
-      <th>Cliente</th>
-      <th>Fecha</th>
-      <th>Monto</th>
-      <th>Pagada</th>
-      <th>Acciones</th>
-    </tr>
-    {% for invoice in invoices %}
-    <tr>
-      <td>{{ invoice.invoice_number }}</td>
-      <td>{{ invoice.project.name }}</td>
-      <td>{{ invoice.project.client }}</td>
-      <td>{{ invoice.date_issued }}</td>
-      <td>${{ invoice.total_amount|floatformat:2 }}</td>
-      <td>{% if invoice.is_paid %}✔️{% else %}❌{% endif %}</td>
-      <td>
-        <a href="{% url 'invoice_detail' pk=invoice.pk %}">Ver</a> |
-        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank">PDF</a>
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
+<div class="invoice-container">
+    <!-- Header -->
+    <div class="invoice-header d-flex justify-content-between align-items-center">
+        <h2>
+            <i class="bi bi-receipt"></i> Facturas
+        </h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInvoiceModal">
+            <i class="bi bi-plus-circle"></i> Crear Factura
+        </button>
+    </div>
+    
+    <!-- Tabla de Facturas -->
+    <div class="invoice-table-wrapper">
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th><i class="bi bi-hash"></i> No.</th>
+                    <th><i class="bi bi-building"></i> Proyecto / Cliente</th>
+                    <th><i class="bi bi-calendar3"></i> Fecha</th>
+                    <th><i class="bi bi-currency-dollar"></i> Monto</th>
+                    <th><i class="bi bi-flag"></i> Estado</th>
+                    <th><i class="bi bi-gear"></i> Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <!-- Invoice Number -->
+                    <td>
+                        <span class="invoice-number">{{ invoice.invoice_number }}</span>
+                    </td>
+                    
+                    <!-- Project / Client -->
+                    <td>
+                        <div class="invoice-project">{{ invoice.project.name }}</div>
+                        <div class="invoice-client">{{ invoice.project.client }}</div>
+                    </td>
+                    
+                    <!-- Date -->
+                    <td>
+                        <span class="invoice-date">{{ invoice.date_issued|date:"d/m/Y" }}</span>
+                    </td>
+                    
+                    <!-- Amount -->
+                    <td>
+                        <span class="invoice-amount">${{ invoice.total_amount|floatformat:2|intcomma }}</span>
+                    </td>
+                    
+                    <!-- Status -->
+                    <td>
+                        {% if invoice.is_paid %}
+                            <span class="invoice-status paid">
+                                <i class="bi bi-check-circle"></i> Pagada
+                            </span>
+                        {% else %}
+                            <span class="invoice-status pending">
+                                <i class="bi bi-clock"></i> Pendiente
+                            </span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Actions -->
+                    <td>
+                        <a href="{% url 'invoice_detail' pk=invoice.pk %}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
+                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn btn-sm btn-danger">
+                            <i class="bi bi-file-pdf"></i> PDF
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>No hay facturas aún. Crea tu primera factura usando el botón de arriba.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+  <!-- Modal para seleccionar proyecto -->
+  <div class="modal fade" id="createInvoiceModal" tabindex="-1" aria-labelledby="createInvoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createInvoiceModalLabel">
+            <i class="bi bi-plus-circle"></i> Crear Nueva Factura
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted">Selecciona el proyecto para el cual deseas crear una factura:</p>
+          <form id="projectSelectForm">
+            <div class="mb-3">
+              <label for="projectSelect" class="form-label">Proyecto</label>
+              <select class="form-select" id="projectSelect" required>
+                <option value="">-- Selecciona un proyecto --</option>
+                {% for project in projects %}
+                <option value="{{ project.id }}">{{ project.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="goToInvoiceBuilder()">
+            <i class="bi bi-arrow-right"></i> Continuar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function goToInvoiceBuilder() {
+      const projectId = document.getElementById('projectSelect').value;
+      if (projectId) {
+        window.location.href = `/invoices/builder/${projectId}/`;
+      } else {
+        alert('Por favor selecciona un proyecto');
+      }
+    }
+  </script>
 {% endblock %}

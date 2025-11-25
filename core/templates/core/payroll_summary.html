@@ -1,35 +1,187 @@
 {% load static %}
-<div class="container py-4">
-    <div class="text-center mb-4">
+
+<style>
+    /* ===== ESTILO PROFESIONAL PARA PAYROLL SUMMARY ===== */
+    .payroll-container {
+        padding: 24px;
+        background: #f8fafc;
+        min-height: calc(100vh - 60px);
+    }
+    
+    .payroll-header {
+        background: white;
+        padding: 24px 32px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+    
+    .payroll-header h2 {
+        margin: 12px 0 0 0;
+        color: #1e293b;
+        font-size: 24px;
+        font-weight: 700;
+    }
+    
+    .payroll-filters {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    .payroll-table-wrapper {
+        background: white;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        overflow-x: auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .payroll-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        min-width: 1200px;
+    }
+    
+    .payroll-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .payroll-table thead th {
+        padding: 14px 10px;
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        text-align: center;
+        border-bottom: 2px solid #5a67d8;
+        white-space: nowrap;
+    }
+    
+    .payroll-table tbody tr {
+        border-bottom: 1px solid #e2e8f0;
+        transition: background 0.2s ease;
+    }
+    
+    .payroll-table tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+    
+    .payroll-table tbody tr:nth-child(odd) {
+        background: #ffffff;
+    }
+    
+    .payroll-table tbody tr:hover {
+        background: #eff6ff !important;
+    }
+    
+    .payroll-table tbody td {
+        padding: 12px 10px;
+        color: #334155;
+        vertical-align: middle;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: center;
+    }
+    
+    .payroll-table tbody td:first-child {
+        text-align: left;
+        font-weight: 600;
+        color: #1e293b;
+    }
+    
+    .payroll-table .form-control {
+        font-size: 12px;
+        padding: 4px 8px;
+        text-align: center;
+        border-radius: 4px;
+    }
+    
+    .payroll-table input[type="number"] {
+        max-width: 60px;
+    }
+    
+    .payroll-table input[type="date"],
+    .payroll-table input[type="text"] {
+        max-width: 120px;
+    }
+    
+    .badge-paid {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .total-pay {
+        font-weight: 700;
+        color: #059669;
+        font-size: 14px;
+    }
+</style>
+
+<div class="payroll-container">
+    <!-- Header -->
+    <div class="payroll-header">
         <img src="{% static 'kibray-logo.png' %}" alt="Logo" style="height:60px;">
         <h2>Payroll Summary</h2>
     </div>
-    <form method="get" class="mb-3">
-        <div class="row justify-content-center">
-            <div class="col-md-4 mb-2">
-                <select name="employee" class="form-control">
-                    <option value="">All Employees</option>
-                    {% for emp in employees %}
-                        <option value="{{ emp.id }}" {% if emp.id == selected_employee %}selected{% endif %}>{{ emp.first_name }} {{ emp.last_name }}</option>
-                    {% endfor %}
-                </select>
+    
+    <!-- Filtros -->
+    <div class="payroll-filters">
+        <form method="get">
+            <div class="row justify-content-center g-3">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Employee</label>
+                    <select name="employee" class="form-select form-select-sm">
+                        <option value="">All Employees</option>
+                        {% for emp in employees %}
+                            <option value="{{ emp.id }}" {% if emp.id == selected_employee %}selected{% endif %}>
+                                {{ emp.first_name }} {{ emp.last_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Week Start</label>
+                    <input type="date" name="week_start" class="form-control form-control-sm" value="{{ selected_week }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Week End</label>
+                    <input type="date" name="week_end" class="form-control form-control-sm" value="{{ selected_week_end }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-search"></i> Show
+                    </button>
+                </div>
             </div>
-            <div class="col-md-4 mb-2">
-                <input type="date" name="week_start" class="form-control" value="{{ selected_week }}">
-            </div>
-            <div class="col-md-4 mb-2">
-                <input type="date" name="week_end" class="form-control" value="{{ selected_week_end }}">
-            </div>
-            <div class="col-md-2 mb-2">
-                <button type="submit" class="btn btn-primary w-100">Show</button>
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
+    
+    <!-- Tabla -->
     <form method="post">
         {% csrf_token %}
-        <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle">
-                <thead class="table-light">
+        <div class="payroll-table-wrapper">
+            <table class="payroll-table">
+                <thead>
                     <tr>
                         <th>Employee</th>
                         <th>Week Period</th>
@@ -55,27 +207,42 @@
                         <td>{{ row.week_period }}</td>
                         {% for h in row.hours_by_day %}
                             <td>
-                                <input type="number" name="hours_{{ row.employee.id }}_{{ forloop.counter0 }}" value="{{ h|default_if_none:'' }}" min="0" step="0.25" class="form-control" />
+                                <input type="number" 
+                                       name="hours_{{ row.employee.id }}_{{ forloop.counter0 }}" 
+                                       value="{{ h|default_if_none:'' }}" 
+                                       min="0" 
+                                       step="0.25" 
+                                       class="form-control" />
                             </td>
                         {% endfor %}
                         <td>
-                            <input type="number" name="total_hours_{{ row.employee.id }}" value="{{ row.total_hours }}" min="0" step="0.25" class="form-control" />
+                            <input type="number" 
+                                   name="total_hours_{{ row.employee.id }}" 
+                                   value="{{ row.total_hours }}" 
+                                   min="0" 
+                                   step="0.25" 
+                                   class="form-control" />
                         </td>
                         <td>${{ row.hourly_rate }}</td>
-                        <td>${{ row.total_pay }}</td>
-                        <!-- Removido campo editable Paid -->
+                        <td class="total-pay">${{ row.total_pay }}</td>
                         <td>
                             {% if row.form.instance.paid %}
-                                <span class="badge bg-success">Pagado</span>
+                                <span class="badge-paid">Pagado</span>
                             {% else %}
-                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                <span class="badge-pending">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
-                            <input type="date" name="pay_date_{{ row.employee.id }}" value="{{ row.form.pay_date }}" class="form-control" />
+                            <input type="date" 
+                                   name="pay_date_{{ row.employee.id }}" 
+                                   value="{{ row.form.pay_date }}" 
+                                   class="form-control" />
                         </td>
                         <td>
-                            <input type="text" name="check_number_{{ row.employee.id }}" value="{{ row.form.check_number }}" class="form-control" />
+                            <input type="text" 
+                                   name="check_number_{{ row.employee.id }}" 
+                                   value="{{ row.form.check_number }}" 
+                                   class="form-control" />
                         </td>
                     </tr>
                     {% empty %}

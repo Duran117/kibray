@@ -1,0 +1,318 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load core_extras %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header mejorado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold">
+                                <i class="bi {% if model_name == 'projects' %}bi-folder-fill{% elif model_name == 'expenses' %}bi-cash-stack{% elif model_name == 'income' %}bi-wallet2{% else %}bi-database{% endif %} me-2"></i>
+                                {{ title }}
+                            </h1>
+                            <p class="mb-0 opacity-75">
+                                <i class="bi bi-bar-chart-fill me-1"></i>
+                                {% trans "Total" %}: <strong>{{ total_count }}</strong> {% trans "registros" %}
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            {% if model_name == 'projects' %}
+                                <a href="{% url 'admin_project_create' %}" class="btn btn-light shadow-sm">
+                                    <i class="bi bi-plus-circle-fill me-2"></i>{% trans "Crear Proyecto" %}
+                                </a>
+                            {% elif model_name == 'expenses' %}
+                                <a href="{% url 'admin_expense_create' %}" class="btn btn-light shadow-sm">
+                                    <i class="bi bi-plus-circle-fill me-2"></i>{% trans "Crear Gasto" %}
+                                </a>
+                            {% elif model_name == 'income' %}
+                                <a href="{% url 'admin_income_create' %}" class="btn btn-light shadow-sm">
+                                    <i class="bi bi-plus-circle-fill me-2"></i>{% trans "Crear Ingreso" %}
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'admin_panel_main' %}" class="btn btn-outline-light">
+                                <i class="bi bi-arrow-left me-2"></i>{% trans "Volver" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Búsqueda mejorada -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <form method="get" class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" 
+                               placeholder="{% trans 'Buscar por nombre, cliente, descripción...' %}" value="{{ search }}">
+                        <button type="submit" class="btn btn-primary">
+                            {% trans "Buscar" %}
+                        </button>
+                        {% if search %}
+                        <a href="?" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de datos mejorada -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    {% if objects %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                                <tr>
+                                    <th class="ps-4 fw-bold">#</th>
+                                    {% for field in fields %}
+                                    <th class="fw-bold">
+                                        <i class="bi bi-{% if field == 'name' %}tag{% elif field == 'amount' or field == 'budget_total' %}cash{% elif field == 'date' or field == 'start_date' %}calendar{% elif field == 'status' %}info-circle{% else %}file-text{% endif %} me-1 text-primary"></i>
+                                        {{ field|title }}
+                                    </th>
+                                    {% endfor %}
+                                    <th class="text-end pe-4 fw-bold">{% trans "Acciones" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for obj in objects %}
+                                <tr class="border-bottom">
+                                    <td class="ps-4">
+                                        <span class="badge rounded-pill" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            {{ obj.id }}
+                                        </span>
+                                    </td>
+                                    {% for field in fields %}
+                                    <td>
+                                        {% with value=obj|getattribute:field %}
+                                            {% if value %}
+                                                {% if field == 'date' or field == 'start_date' or field == 'end_date' or field == 'due_date' or field == 'created_at' %}
+                                                    <span class="badge bg-light text-dark border">
+                                                        <i class="bi bi-calendar3 me-1"></i>{{ value|date:"d/m/Y" }}
+                                                    </span>
+                                                {% elif field == 'amount' or field == 'total_income' or field == 'total_expenses' or field == 'budget_total' %}
+                                                    <span class="fw-bold text-success">
+                                                        <i class="bi bi-currency-dollar"></i>{{ value|floatformat:2 }}
+                                                    </span>
+                                                {% elif field == 'status' %}
+                                                    <span class="badge rounded-pill 
+                                                        {% if value == 'completed' %}bg-success
+                                                        {% elif value == 'in_progress' %}bg-primary
+                                                        {% elif value == 'pending' %}bg-warning
+                                                        {% else %}bg-info{% endif %}">
+                                                        <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>{{ value }}
+                                                    </span>
+                                                {% elif field == 'priority' %}
+                                                    <span class="badge rounded-pill
+                                                        {% if value == 'high' %}bg-danger
+                                                        {% elif value == 'medium' %}bg-warning
+                                                        {% else %}bg-secondary{% endif %}">
+                                                        <i class="bi bi-flag-fill me-1"></i>{{ value }}
+                                                    </span>
+                                                {% elif field == 'name' %}
+                                                    <strong class="text-primary">{{ value|truncatewords:8 }}</strong>
+                                                {% else %}
+                                                    {{ value|truncatewords:10 }}
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    {% endfor %}
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group shadow-sm" role="group">
+                                            {% if model_name == 'projects' %}
+                                                <a href="{% url 'admin_project_edit' obj.id %}" 
+                                                   class="btn btn-sm btn-outline-primary" 
+                                                   title="{% trans 'Editar' %}"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        onclick="confirmDelete({{ obj.id }}, '{{ obj.name|escapejs }}')"
+                                                        title="{% trans 'Eliminar' %}"
+                                                        data-bs-toggle="tooltip">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            {% elif model_name == 'expenses' %}
+                                                <a href="{% url 'admin_expense_edit' obj.id %}" 
+                                                   class="btn btn-sm btn-outline-primary" 
+                                                   title="{% trans 'Editar Gasto' %}"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="confirmDeleteExpense({{ obj.id }}, '{{ obj.project_name|escapejs }}')"
+                                                        title="{% trans 'Eliminar' %}"
+                                                        data-bs-toggle="tooltip">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            {% elif model_name == 'income' %}
+                                                <a href="{% url 'admin_income_edit' obj.id %}"
+                                                   class="btn btn-sm btn-outline-primary"
+                                                   title="{% trans 'Editar Ingreso' %}"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="confirmDeleteIncome({{ obj.id }}, '{{ obj.project_name|escapejs }}')"
+                                                        title="{% trans 'Eliminar' %}"
+                                                        data-bs-toggle="tooltip">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-outline-secondary btn-sm" disabled title="{% trans 'Edición no disponible aún' %}">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if objects.has_other_pages %}
+                    <div class="card-footer bg-light">
+                        <nav aria-label="{% trans 'Paginación' %}">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if objects.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ objects.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                                        {% trans "Anterior" %}
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">{% trans "Anterior" %}</span>
+                                </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        {% trans "Página" %} {{ objects.number }} {% trans "de" %} {{ objects.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if objects.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ objects.next_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                                        {% trans "Siguiente" %}
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">{% trans "Siguiente" %}</span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-inbox display-1 text-muted opacity-50"></i>
+                        </div>
+                        <h5 class="text-muted">{% trans "No hay registros" %}</h5>
+                        <p class="text-muted">
+                            {% if search %}
+                                {% trans "No se encontraron resultados que coincidan con tu búsqueda" %}
+                            {% else %}
+                                {% trans "Comienza creando tu primer registro" %}
+                            {% endif %}
+                        </p>
+                        {% if search %}
+                        <a href="?" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>{% trans "Ver todos" %}
+                        </a>
+                        {% else %}
+                            {% if model_name == 'projects' %}
+                                <a href="{% url 'admin_project_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle-fill me-2"></i>{% trans "Crear Primer Proyecto" %}
+                                </a>
+                            {% elif model_name == 'expenses' %}
+                                <a href="{% url 'admin_expense_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle-fill me-2"></i>{% trans "Crear Primer Gasto" %}
+                                </a>
+                            {% elif model_name == 'income' %}
+                                <a href="{% url 'admin_income_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle-fill me-2"></i>{% trans "Crear Primer Ingreso" %}
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<form id="deleteForm" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<script>
+// Inicializar tooltips de Bootstrap
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+function confirmDelete(projectId, projectName) {
+    if (confirm('🗑️ ¿Eliminar el proyecto "' + projectName + '"?\n\n⚠️ Si tiene ingresos, gastos u otros datos relacionados necesitarás confirmar nuevamente.')) {
+        const form = document.getElementById('deleteForm');
+        form.action = '{% url "admin_project_delete" 0 %}'.replace('0', projectId);
+        let input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'confirm';
+        input.value = 'true';
+        form.appendChild(input);
+        form.submit();
+    }
+}
+
+function confirmDeleteExpense(expenseId, expenseName) {
+    if (confirm('🗑️ ¿Eliminar el gasto "' + expenseName + '"?\n\nEsta acción no se puede deshacer.')) {
+        const form = document.getElementById('deleteForm');
+        form.action = '{% url "admin_expense_delete" 0 %}'.replace('0', expenseId);
+        form.submit();
+    }
+}
+
+function confirmDeleteIncome(incomeId, incomeName) {
+    if (confirm('🗑️ ¿Eliminar el ingreso "' + incomeName + '"?\n\nEsta acción no se puede deshacer.')) {
+        const form = document.getElementById('deleteForm');
+        form.action = '{% url "admin_income_delete" 0 %}'.replace('0', incomeId);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

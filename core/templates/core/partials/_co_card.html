@@ -1,0 +1,51 @@
+<!-- Change Order Card - Diseño Profesional tipo Blueprint -->
+<div class="co-card" data-co-id="{{ co.id }}">
+    <!-- Header con número y monto -->
+    <div class="co-card-header">
+        <div class="co-number">
+            <i class="bi bi-file-earmark-text"></i> CO-{{ co.id|stringformat:"04d" }}
+        </div>
+        <div class="co-amount">
+            ${{ co.amount|floatformat:0 }}
+        </div>
+    </div>
+    
+    <!-- Proyecto -->
+    <div class="co-project">
+        <i class="bi bi-building"></i>
+        {{ co.project.name|truncatewords:10 }}
+    </div>
+    
+    <!-- Descripción -->
+    <div class="co-description">
+        {{ co.description|truncatewords:15 }}
+    </div>
+    
+    <!-- Metadata -->
+    <div class="co-meta">
+        <div class="co-meta-item">
+            <i class="bi bi-calendar3"></i>
+            {{ co.date_created|date:"d/m/Y" }}
+        </div>
+        {% if co.time_entries.count > 0 %}
+        <div class="co-meta-item">
+            <i class="bi bi-clock-history"></i>
+            {{ co.time_entries.count }}h
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Acciones -->
+    <div class="co-actions">
+        <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-eye"></i> Ver
+        </a>
+        {% if co.status != 'sent' and co.status != 'billed' and co.status != 'paid' %}
+        <button class="btn btn-sm btn-outline-success" 
+                onclick="event.stopPropagation(); sendToClient({{ co.id }})" 
+                title="Enviar al cliente para aprobación">
+            <i class="bi bi-send"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>

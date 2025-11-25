@@ -1,5 +1,6 @@
 from django.db.models import Q
 from django.utils import timezone
+from django.conf import settings
 
 
 def company(request):
@@ -13,6 +14,14 @@ def company(request):
             "email": "jduran@kibraypainting.net",
             "logo_path": "brand/logo.svg",
         }
+    }
+
+
+def onesignal_config(request):
+    """Injects OneSignal configuration into templates."""
+    return {
+        'ONESIGNAL_APP_ID': getattr(settings, 'ONESIGNAL_APP_ID', ''),
+        'ONESIGNAL_SAFARI_WEB_ID': getattr(settings, 'ONESIGNAL_SAFARI_WEB_ID', ''),
     }
 
 

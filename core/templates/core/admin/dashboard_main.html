@@ -1,0 +1,261 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Panel Administrativo" %} - Kibray{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">
+        <i class="bi bi-gear-fill text-primary"></i>
+        {% trans "Panel Administrativo Avanzado" %}
+      </h2>
+      <p class="text-muted small mb-0">{% trans "Gestión CRUD de usuarios, proyectos, finanzas, permisos y logs del sistema" %}</p>
+    </div>
+    <div>
+      <a href="{% url 'dashboard_admin' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-speedometer2 me-2"></i>
+        <span class="d-none d-md-inline">{% trans "Dashboard Operativo" %}</span>
+        <span class="d-md-none">{% trans "Dashboard" %}</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Descripción de funcionalidad -->
+  <div class="alert alert-info border-0 mb-4">
+    <div class="d-flex align-items-start">
+      <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
+      <div>
+        <h6 class="mb-1">{% trans "¿Qué puedes hacer aquí?" %}</h6>
+        <ul class="mb-0 small">
+          <li>{% trans "Crear, editar y eliminar usuarios, grupos y permisos" %}</li>
+          <li>{% trans "Gestión CRUD completa de proyectos, gastos, ingresos, time entries" %}</li>
+          <li>{% trans "Ver logs de auditoría y actividad del sistema" %}</li>
+          <li>{% trans "Configurar datos maestros y parámetros del sistema" %}</li>
+        </ul>
+        <p class="mb-0 mt-2 text-muted">
+          <i class="bi bi-lightbulb me-1"></i>
+          <strong>Tip:</strong> {% trans "Para operaciones diarias (aprobaciones, métricas, alertas), usa el" %} 
+          <a href="{% url 'dashboard_admin' %}">{% trans "Dashboard Operativo" %}</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas rápidas -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-primary shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-1 small">{% trans "Total Usuarios" %}</h6>
+              <h3 class="mb-0">{{ total_users }}</h3>
+              <small class="text-success">{{ active_users }} {% trans "activos" %}</small>
+            </div>
+            <i class="bi bi-people-fill fs-1 text-primary opacity-25"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card border-success shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-1 small">{% trans "Proyectos" %}</h6>
+              <h3 class="mb-0">{{ total_projects }}</h3>
+              <small class="text-success">{{ active_projects }} {% trans "activos" %}</small>
+            </div>
+            <i class="bi bi-folder-fill fs-1 text-success opacity-25"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card border-info shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-1 small">{% trans "Clientes" %}</h6>
+              <h3 class="mb-0">{{ total_clients }}</h3>
+            </div>
+            <i class="bi bi-person-badge-fill fs-1 text-info opacity-25"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card border-warning shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-1 small">{% trans "Change Orders" %}</h6>
+              <h3 class="mb-0">{{ total_changeorders }}</h3>
+            </div>
+            <i class="bi bi-file-earmark-text-fill fs-1 text-warning opacity-25"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secciones principales -->
+  <div class="row g-4 mb-4">
+    <!-- Gestión de Usuarios -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-people-fill me-2"></i>
+            {% trans "Gestión de Usuarios" %}
+          </h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small">{% trans "Administra usuarios, roles, permisos y grupos del sistema." %}</p>
+          <div class="d-grid gap-2">
+            <a href="{% url 'admin_users_list' %}" class="btn btn-outline-primary">
+              <i class="bi bi-list-ul me-2"></i>{% trans "Ver todos los usuarios" %}
+            </a>
+            <a href="{% url 'client_create' %}" class="btn btn-success">
+              <i class="bi bi-person-plus-fill me-2"></i>{% trans "Crear nuevo cliente" %}
+            </a>
+            <a href="{% url 'admin_user_create' %}" class="btn btn-outline-primary">
+              <i class="bi bi-person-plus me-2"></i>{% trans "Crear usuario interno" %}
+            </a>
+            <a href="{% url 'admin_groups_list' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-diagram-3 me-2"></i>{% trans "Gestionar grupos" %}
+            </a>
+          </div>
+        </div>
+        <div class="card-footer bg-light">
+          <small class="text-muted">
+            <i class="bi bi-clock me-1"></i>
+            {% trans "Últimos registros:" %}
+          </small>
+          <ul class="list-unstyled mb-0 mt-2">
+            {% for user in recent_users %}
+            <li class="py-1 border-bottom">
+              <a href="{% url 'admin_user_detail' user.id %}" class="text-decoration-none small">
+                {{ user.username }} - {{ user.date_joined|date:"d M Y" }}
+              </a>
+            </li>
+            {% empty %}
+            <li class="text-muted small">{% trans "No hay usuarios recientes" %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gestión de Datos -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-database-fill me-2"></i>
+            {% trans "Gestión de Datos" %}
+          </h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small">{% trans "Accede y administra todos los modelos del sistema." %}</p>
+          <div class="d-grid gap-2">
+            <a href="{% url 'admin_model_list' 'projects' %}" class="btn btn-outline-success btn-sm">
+              <i class="bi bi-folder me-2"></i>{% trans "Proyectos" %}
+            </a>
+            <a href="{% url 'admin_model_list' 'clients' %}" class="btn btn-outline-success btn-sm">
+              <i class="bi bi-person-badge me-2"></i>{% trans "Clientes" %}
+            </a>
+            <a href="{% url 'admin_model_list' 'expenses' %}" class="btn btn-outline-success btn-sm">
+              <i class="bi bi-cash-stack me-2"></i>{% trans "Gastos" %}
+            </a>
+            <a href="{% url 'admin_model_list' 'income' %}" class="btn btn-outline-success btn-sm">
+              <i class="bi bi-wallet2 me-2"></i>{% trans "Ingresos" %}
+            </a>
+            <a href="{% url 'admin_model_list' 'timeentries' %}" class="btn btn-outline-success btn-sm">
+              <i class="bi bi-clock-history me-2"></i>{% trans "Tiempo" %}
+            </a>
+            <a href="{% url 'admin_model_list' 'changeorders' %}" class="btn btn-outline-success btn-sm">
+              <i class="bi bi-file-earmark-text me-2"></i>{% trans "Change Orders" %}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auditoría y Logs -->
+    <div class="col-md-12 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="bi bi-activity me-2"></i>
+            {% trans "Auditoría y Logs" %}
+          </h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small">{% trans "Monitorea la actividad del sistema y cambios realizados." %}</p>
+          <a href="{% url 'admin_activity_logs' %}" class="btn btn-outline-warning w-100 mb-3">
+            <i class="bi bi-list-columns me-2"></i>{% trans "Ver logs completos" %}
+          </a>
+          <div class="border-top pt-3">
+            <small class="text-muted fw-bold">{% trans "Actividad reciente:" %}</small>
+            <ul class="list-unstyled mt-2 small">
+              {% for log in recent_activity %}
+              <li class="py-1 border-bottom">
+                <strong>{{ log.user.username }}</strong>:
+                {{ log.get_action_flag_display }}
+                <span class="text-muted">{{ log.content_type.model }}</span>
+                <br>
+                <small class="text-muted">{{ log.action_time|timesince }} {% trans "ago" %}</small>
+              </li>
+              {% empty %}
+              <li class="text-muted">{% trans "No hay actividad reciente" %}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accesos rápidos adicionales -->
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">
+        <i class="bi bi-lightning-charge-fill me-2"></i>
+        {% trans "Accesos Rápidos" %}
+      </h5>
+    </div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-6 col-md-3">
+          <a href="/admin/" target="_blank" class="btn btn-outline-dark w-100">
+            <i class="bi bi-gear-fill me-2"></i>{% trans "Django Admin" %}
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="{% url 'admin_model_list' 'schedules' %}" class="btn btn-outline-primary w-100">
+            <i class="bi bi-calendar-week me-2"></i>{% trans "Cronograma" %}
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="{% url 'admin_model_list' 'tasks' %}" class="btn btn-outline-info w-100">
+            <i class="bi bi-check2-square me-2"></i>{% trans "Tareas" %}
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="{% url 'admin_model_list' 'floorplans' %}" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-map me-2"></i>{% trans "Floor Plans" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

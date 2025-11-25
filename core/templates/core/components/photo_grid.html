@@ -1,0 +1,71 @@
+{% load i18n %}
+
+{#
+  Photo Grid Component with square thumbnails
+  
+  Usage:
+  {% include "core/components/photo_grid.html" with photos=changeorder.photos.all %}
+  
+  Required:
+  - photos: queryset of photo objects with .id, .image.url, .annotations, .description
+  
+  JavaScript hooks:
+  - .photo-edit-btn with data-photo-id and data-image-url
+  - .photo-delete-btn with data-photo-id
+  - .photo-annotations-data script tag with JSON
+  
+  Event handlers attached by kibray-core.js PhotoGallery module
+#}
+
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+    {% for photo in photos %}
+    <div class="group relative bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:shadow-md hover:border-kibray-300 transition-all" 
+         data-photo-id="{{ photo.id }}"
+         style="aspect-ratio: 1/1;">
+        
+        {# Annotations data - read by JS #}
+        <script type="application/json" class="photo-annotations-data">{{ photo.annotations|safe }}</script>
+        
+        {# Image (absolute positioned to fill container) #}
+        <img src="{{ photo.image.url }}" 
+             alt="{{ photo.description|default:'Photo' }}"
+             class="absolute inset-0 w-full h-full object-cover"
+             loading="lazy">
+        
+        {# Canvas for annotations overlay #}
+        <canvas class="photo-annotations-canvas absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+        
+        {# Action Buttons (show on hover) #}
+        <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+            {# Edit Button #}
+            <button type="button" 
+                    class="photo-edit-btn bg-kibray-600 hover:bg-kibray-700 text-white p-2 rounded-md text-xs font-semibold shadow-md transition"
+                    data-photo-id="{{ photo.id }}" 
+                    data-image-url="{{ photo.image.url }}"
+                    title="{% trans 'Edit' %}">
+                <i class="bi bi-pencil"></i>
+            </button>
+            
+            {# Delete Button #}
+            <button type="button" 
+                    class="photo-delete-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs font-semibold shadow-md transition"
+                    data-photo-id="{{ photo.id }}"
+                    title="{% trans 'Delete' %}">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+        
+        {# Optional: Description overlay at bottom #}
+        {% if photo.description and show_descriptions %}
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white text-xs truncate">
+            {{ photo.description }}
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 text-gray-500">
+        <i class="bi bi-images text-4xl mb-2 block"></i>
+        <p class="text-sm">{% trans "No photos yet" %}</p>
+    </div>
+    {% endfor %}
+</div>

@@ -3,10 +3,15 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.request import Request
 from django.contrib.auth import get_user_model
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
-    FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem
+    FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem,
+    ChangeOrderPhoto
 )
 from .serializers import (
     NotificationSerializer, ChatChannelSerializer, ChatMessageSerializer,
@@ -188,3 +193,186 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(updated_items, many=True)
         return Response(serializer.data)
 
+
+# ===== GLOBAL SEARCH API =====
+from django.db.models import Q
+from core.models import ChangeOrder, Invoice, TimeEntry
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def global_search(request):
+    """
+    Universal search across all major entities.
+    GET /api/search/?q=query
+    
+    Returns results from:
+    - Projects (name, address, client)
+    - Change Orders (number, description, project)
+    - Invoices (number, project, client)
+    - Employees (name, position, phone)
+    - Tasks (title, description, project)
+    """
+    query = request.GET.get('q', '').strip()
+    
+    if not query or len(query) < 2:
+        return Response({
+            'query': query,
+            'results': {
+                'projects': [],
+                'change_orders': [],
+                'invoices': [],
+                'employees': [],
+                'tasks': []
+            },
+            'total_count': 0
+        })
+    
+    # Search Projects
+    projects = Project.objects.filter(
+        Q(name__icontains=query) |
+        Q(address__icontains=query) |
+        Q(client__company_name__icontains=query) |
+        Q(client__first_name__icontains=query) |
+        Q(client__last_name__icontains=query)
+    ).select_related('client')[:10]
+    
+    project_results = [{
+        'id': p.id,
+        'type': 'project',
+        'title': p.name,
+        'subtitle': f"{p.client.get_full_name() if p.client else 'No Client'} • {p.address}",
+        'url': f'/projects/{p.id}/',
+        'icon': 'bi-building',
+        'badge': p.status.upper() if hasattr(p, 'status') else None
+    } for p in projects]
+    
+    # Search Change Orders
+    change_orders = ChangeOrder.objects.filter(
+        Q(co_number__icontains=query) |
+        Q(description__icontains=query) |
+        Q(project__name__icontains=query)
+    ).select_related('project')[:10]
+    
+    co_results = [{
+        'id': co.id,
+        'type': 'change_order',
+        'title': f"CO-{co.co_number}",
+        'subtitle': f"{co.project.name} • ${co.amount:,.2f}",
+        'url': f'/change-orders/{co.id}/',
+        'icon': 'bi-file-earmark-diff',
+        'badge': co.status.upper()
+    } for co in change_orders]
+    
+    # Search Invoices
+    invoices = Invoice.objects.filter(
+        Q(invoice_number__icontains=query) |
+        Q(project__name__icontains=query) |
+        Q(project__client__company_name__icontains=query)
+    ).select_related('project', 'project__client')[:10]
+    
+    invoice_results = [{
+        'id': inv.id,
+        'type': 'invoice',
+        'title': f"Invoice #{inv.invoice_number}",
+        'subtitle': f"{inv.project.name if inv.project else 'No Project'} • ${inv.total_amount:,.2f}",
+        'url': f'/invoices/{inv.id}/',
+        'icon': 'bi-receipt',
+        'badge': inv.status.upper()
+    } for inv in invoices]
+    
+    # Search Employees
+    employees = User.objects.filter(
+        Q(first_name__icontains=query) |
+        Q(last_name__icontains=query) |
+        Q(email__icontains=query) |
+        Q(phone__icontains=query) |
+        Q(profile__position__icontains=query)
+    ).select_related('profile')[:10]
+    
+    employee_results = [{
+        'id': emp.id,
+        'type': 'employee',
+        'title': emp.get_full_name(),
+        'subtitle': f"{emp.profile.position if hasattr(emp, 'profile') and emp.profile else 'No Position'} • {emp.email}",
+        'url': f'/employees/{emp.id}/',
+        'icon': 'bi-person-circle',
+        'badge': None
+    } for emp in employees]
+    
+    # Search Tasks
+    tasks = Task.objects.filter(
+        Q(title__icontains=query) |
+        Q(description__icontains=query) |
+        Q(project__name__icontains=query)
+    ).select_related('project', 'assigned_to')[:10]
+    
+    task_results = [{
+        'id': task.id,
+        'type': 'task',
+        'title': task.title,
+        'subtitle': f"{task.project.name if task.project else 'No Project'} • {task.assigned_to.get_full_name() if task.assigned_to else 'Unassigned'}",
+        'url': f'/tasks/{task.id}/',
+        'icon': 'bi-check-square',
+        'badge': task.status.upper() if hasattr(task, 'status') else None
+    } for task in tasks]
+    
+    total_count = (
+        len(project_results) +
+        len(co_results) +
+        len(invoice_results) +
+        len(employee_results) +
+        len(task_results)
+    )
+    
+    return Response({
+        'query': query,
+        'results': {
+            'projects': project_results,
+            'change_orders': co_results,
+            'invoices': invoice_results,
+            'employees': employee_results,
+            'tasks': task_results
+        },
+        'total_count': total_count
+    })
+
+# ChangeOrder Photo Annotations
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_changeorder_photo_annotations(request, photo_id):
+    """Save annotations (drawings) to a ChangeOrderPhoto"""
+    try:
+        photo = get_object_or_404(ChangeOrderPhoto, id=photo_id)
+        annotations = request.data.get('annotations', [])
+        
+        # Store annotations as JSON
+        photo.annotations = annotations
+        photo.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Annotations saved successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_changeorder_photo(request, photo_id):
+    """Delete a ChangeOrderPhoto"""
+    try:
+        photo = get_object_or_404(ChangeOrderPhoto, id=photo_id)
+        photo.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Photo deleted successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)

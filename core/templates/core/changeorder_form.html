@@ -1,13 +1,202 @@
-<!-- core/templates/core/changeorder_form.html -->
 {% extends "core/base.html" %}
+
+{% block title %}{% if is_edit %}Editar{% else %}Crear{% endif %} Change Order - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+    .co-form-container {
+        padding: 24px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .co-form-header {
+        background: white;
+        padding: 24px 32px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    .co-form-header h2 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 24px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .co-form-card {
+        background: white;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .form-group {
+        margin-bottom: 24px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .form-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .form-buttons .btn {
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    
+    .form-buttons .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        flex: 1;
+    }
+    
+    .form-buttons .btn-secondary {
+        flex: 1;
+    }
+    
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0 0;
+    }
+    
+    .errorlist li {
+        color: #dc2626;
+        font-size: 13px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2>Create Change Order</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+<div class="co-form-container">
+    <div class="co-form-header">
+        <h2>
+            <i class="bi bi-{% if is_edit %}pencil-square{% else %}plus-circle{% endif %}"></i>
+            {% if is_edit %}Editar Change Order #{{ changeorder.id }}{% else %}Crear Nuevo Change Order{% endif %}
+        </h2>
+    </div>
+    
+    <div class="co-form-card">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.project.id_for_label }}">
+                    <i class="bi bi-building"></i> Proyecto *
+                </label>
+                {{ form.project }}
+                {% if form.project.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.project.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">
+                    <i class="bi bi-file-text"></i> Descripción *
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.description.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.amount.id_for_label }}">
+                    <i class="bi bi-currency-dollar"></i> Monto *
+                </label>
+                {{ form.amount }}
+                {% if form.amount.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.amount.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.status.id_for_label }}">
+                    <i class="bi bi-flag"></i> Estado *
+                </label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.status.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.notes.id_for_label }}">
+                    <i class="bi bi-sticky"></i> Notas
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.notes.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-buttons">
+                <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> {% if is_edit %}Actualizar{% else %}Crear{% endif %} Change Order
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

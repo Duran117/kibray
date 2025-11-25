@@ -7,6 +7,7 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from core import views
 from core import views_notifications as notif_views
+from core import views_financial as fin_views
 from django.views.i18n import set_language as dj_set_language
 
 urlpatterns = [
@@ -104,14 +105,20 @@ urlpatterns = [
 
     # Vista cliente
     path("proyecto/<int:project_id>/", views.client_project_view, name="client_project_view"),
-    path("proyecto/<int:project_id>/agregar_tarea/", views.agregar_tarea, name="agregar_tarea"),
+    path("proyecto/<int:project_id>/agregar_tarea/", views.agregar_tarea, name="agregar_tarea"),  # type: ignore[arg-type]
     path("proyecto/<int:project_id>/agregar_comentario/", views.agregar_comentario, name="agregar_comentario"),
 
     # Change Orders
     path("changeorder/<int:changeorder_id>/", views.changeorder_detail_view, name="changeorder_detail"),
     path("changeorder/add/", views.changeorder_create_view, name="changeorder_create"),
+    path("changeorder/<int:co_id>/edit/", views.changeorder_edit_view, name="changeorder_edit"),
+    path("changeorder/<int:co_id>/delete/", views.changeorder_delete_view, name="changeorder_delete"),
     path("changeorders/board/", views.changeorder_board_view, name="changeorder_board"),
     path("changeorders/unassigned-time/", views.unassigned_timeentries_view, name="unassigned_timeentries"),
+    path("changeorder/photo/<int:photo_id>/annotations/", views.save_photo_annotations, name="save_photo_annotations"),
+    path("changeorder/photo/<int:photo_id>/delete/", views.delete_changeorder_photo, name="delete_changeorder_photo"),
+    path("changeorder/photo-editor/", views.photo_editor_standalone_view, name="photo_editor_standalone"),
+
 
     # Client Requests
     path("projects/<int:project_id>/client-requests/new/", views.client_request_create, name="client_request_create"),
@@ -122,6 +129,7 @@ urlpatterns = [
     # Payroll
     # Nuevo sistema de nómina
     path("payroll/week/", views.payroll_weekly_review, name="payroll_weekly_review"),
+    path("payroll/summary/", views.payroll_summary_view, name="payroll_summary"),
     path("payroll/record/<int:record_id>/pay/", views.payroll_record_payment, name="payroll_record_payment"),
     path("payroll/history/", views.payroll_payment_history, name="payroll_payment_history"),
     path("payroll/history/employee/<int:employee_id>/", views.payroll_payment_history, name="payroll_payment_history_employee"),
@@ -139,6 +147,11 @@ urlpatterns = [
     path("invoices/<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),
     path("ajax/changeorders/", views.changeorders_ajax, name="changeorders_ajax"),
     path("ajax/changeorder_lines/", views.changeorder_lines_ajax, name="changeorder_lines_ajax"),
+    
+    # Change Order API endpoints
+    path("api/changeorders/<int:co_id>/update-status/", views.changeorder_update_status, name="changeorder_update_status"),
+    path("api/changeorders/<int:co_id>/send-to-client/", views.changeorder_send_to_client, name="changeorder_send_to_client"),
+    path("api/projects/<int:project_id>/approved-colors/", views.get_approved_colors, name="get_approved_colors"),
 
     # Cost codes / presupuesto
     path("cost-codes/", views.costcode_list_view, name="costcode_list"),
@@ -151,10 +164,37 @@ urlpatterns = [
 
     # Daily log / RFIs / Issues / Risks
     path("projects/<int:project_id>/daily-log/", views.daily_log_view, name="daily_log"),
+    path("projects/<int:project_id>/daily-log/create/", views.daily_log_create, name="daily_log_create"),
+    path("daily-log/<int:log_id>/", views.daily_log_detail, name="daily_log_detail"),
     path("projects/<int:project_id>/rfis/", views.rfi_list_view, name="rfi_list"),
     path("rfis/<int:rfi_id>/answer/", views.rfi_answer_view, name="rfi_answer"),
     path("projects/<int:project_id>/issues/", views.issue_list_view, name="issue_list"),
     path("projects/<int:project_id>/risks/", views.risk_list_view, name="risk_list"),
+    
+    # File Organization
+    path("projects/<int:project_id>/files/", views.project_files_view, name="project_files"),
+    path("projects/<int:project_id>/files/category/create/", views.file_category_create, name="file_category_create"),
+    path("projects/<int:project_id>/files/<int:category_id>/upload/", views.file_upload, name="file_upload"),
+    path("files/<int:file_id>/delete/", views.file_delete, name="file_delete"),
+    path("files/<int:file_id>/download/", views.file_download, name="file_download"),
+    path("files/<int:file_id>/edit/", views.file_edit_metadata, name="file_edit_metadata"),
+    
+    # Touch-up Pins
+    path("projects/<int:project_id>/touchup-plans/", views.touchup_plans_list, name="touchup_plans_list"),
+    path("plans/<int:plan_id>/touchups/", views.touchup_plan_detail, name="touchup_plan_detail"),
+    path("plans/<int:plan_id>/touchups/create/", views.touchup_create, name="touchup_create"),
+    path("touchups/<int:touchup_id>/", views.touchup_detail_ajax, name="touchup_detail_ajax"),
+    path("touchups/<int:touchup_id>/update/", views.touchup_update, name="touchup_update"),
+    path("touchups/<int:touchup_id>/complete/", views.touchup_complete, name="touchup_complete"),
+    path("touchups/<int:touchup_id>/delete/", views.touchup_delete, name="touchup_delete"),
+    path("touchups/<int:touchup_id>/approve/", views.touchup_approve, name="touchup_approve"),
+    path("touchups/<int:touchup_id>/reject/", views.touchup_reject, name="touchup_reject"),
+    
+    # Info Pins (Regular floor plan pins)
+    path("pins/<int:pin_id>/info/", views.pin_info_ajax, name="pin_info_ajax"),
+    path("pins/<int:pin_id>/update/", views.pin_update, name="pin_update"),
+    path("pins/<int:pin_id>/add-photo/", views.pin_add_photo, name="pin_add_photo"),
+    path("pins/attachments/<int:attachment_id>/delete/", views.pin_delete_photo, name="pin_delete_photo"),
 
     # Earned Value + export
     path("projects/<int:project_id>/earned-value/", views.project_ev_view, name="project_ev"),
@@ -202,6 +242,15 @@ urlpatterns = [
     path("notifications/", notif_views.notifications_list, name="notifications_list"),
     path("notifications/<int:notification_id>/mark-read/", notif_views.notification_mark_read, name="notification_mark_read"),
     path("notifications/mark-all-read/", notif_views.notifications_mark_all_read, name="notifications_mark_all_read"),
+    
+    # NUEVAS FUNCIONALIDADES FINANCIERAS 2025
+    path("financial/dashboard/", fin_views.financial_dashboard, name="financial_dashboard"),
+    path("financial/aging-report/", fin_views.invoice_aging_report, name="invoice_aging_report"),
+    path("financial/productivity/", fin_views.productivity_dashboard, name="productivity_dashboard"),
+    path("financial/export/", fin_views.export_financial_data, name="export_financial_data"),
+    path("financial/performance/", fin_views.employee_performance_review, name="employee_performance_list"),
+    path("financial/performance/<int:employee_id>/", fin_views.employee_performance_review, name="employee_performance_review"),
+    
     # Task detail & my tasks (added to fix broken dashboard links)
     path("tasks/<int:task_id>/", views.task_detail, name="task_detail"),
     path("tasks/my/", views.task_list_all, name="task_list_all"),
