@@ -371,3 +371,85 @@ class InstantiatePlannedTemplatesSerializer(serializers.Serializer):
                 raise serializers.ValidationError("Employee does not exist")
         return value
 
+
+# ============================================================================
+# PHASE 2: Daily Plans (Module 12)
+# ============================================================================
+
+class EmployeeMiniSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source='get_full_name', read_only=True)
+    class Meta:
+        model = User
+        fields = ['id', 'full_name']
+
+
+class PlannedActivitySerializer(serializers.ModelSerializer):
+    assigned_employee_ids = serializers.ListField(child=serializers.IntegerField(), required=False, write_only=True)
+    assigned_employee_names = serializers.SerializerMethodField()
+    schedule_item_title = serializers.CharField(source='schedule_item.title', read_only=True, allow_null=True)
+    activity_template_name = serializers.CharField(source='activity_template.name', read_only=True, allow_null=True)
+    converted_task_id = serializers.IntegerField(source='converted_task.id', read_only=True)
+
+    class Meta:
+        from core.models import PlannedActivity
+        model = PlannedActivity
+        fields = [
+            'id', 'daily_plan', 'title', 'description', 'order',
+            'assigned_employee_ids', 'assigned_employee_names', 'is_group_activity',
+            'estimated_hours', 'actual_hours',
+            'materials_needed', 'materials_checked', 'material_shortage',
+            'status', 'progress_percentage',
+            'schedule_item', 'schedule_item_title',
+            'activity_template', 'activity_template_name',
+            'converted_task', 'converted_task_id',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['daily_plan', 'materials_checked', 'material_shortage', 'created_at', 'updated_at', 'converted_task']
+
+    def get_assigned_employee_names(self, obj):
+        return [f"{e.first_name} {e.last_name}".strip() for e in obj.assigned_employees.all()]
+
+    def create(self, validated_data):
+        from core.models import Employee
+        employee_ids = validated_data.pop('assigned_employee_ids', [])
+        activity = super().create(validated_data)
+        if employee_ids:
+            employees = Employee.objects.filter(id__in=employee_ids)
+            activity.assigned_employees.set(employees)
+        return activity
+
+    def update(self, instance, validated_data):
+        from core.models import Employee
+        employee_ids = validated_data.pop('assigned_employee_ids', None)
+        activity = super().update(instance, validated_data)
+        if employee_ids is not None:
+            employees = Employee.objects.filter(id__in=employee_ids)
+            activity.assigned_employees.set(employees)
+        return activity
+
+
+class DailyPlanSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    is_overdue = serializers.SerializerMethodField()
+    activities = PlannedActivitySerializer(many=True, read_only=True)
+    productivity_score = serializers.SerializerMethodField()
+
+    class Meta:
+        from core.models import DailyPlan
+        model = DailyPlan
+        fields = [
+            'id', 'project', 'project_name', 'plan_date', 'status',
+            'completion_deadline', 'weather_data', 'weather_fetched_at',
+            'no_planning_reason', 'admin_approved', 'approved_by', 'approved_at',
+            'actual_hours_worked', 'estimated_hours_total',
+            'is_overdue', 'activities', 'created_at', 'updated_at',
+            'productivity_score'
+        ]
+        read_only_fields = ['weather_fetched_at', 'created_at', 'updated_at', 'is_overdue', 'productivity_score']
+
+    def get_is_overdue(self, obj):
+        return obj.is_overdue()
+
+    def get_productivity_score(self, obj):
+        return obj.calculate_productivity_score()
+

@@ -20,7 +20,7 @@ from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
     FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem,
     ChangeOrderPhoto, Income, Expense, CostCode, BudgetLine, DailyLog,
-    TaskTemplate, WeatherSnapshot, Employee
+    TaskTemplate, WeatherSnapshot, Employee, DailyPlan, PlannedActivity
 )
 from .serializers import (
     NotificationSerializer, ChatChannelSerializer, ChatMessageSerializer,
@@ -30,7 +30,7 @@ from .serializers import (
     ProjectSerializer, IncomeSerializer, ExpenseSerializer,
     CostCodeSerializer, BudgetLineSerializer, ProjectBudgetSummarySerializer,
     DailyLogPlanningSerializer, TaskTemplateSerializer, WeatherSnapshotSerializer,
-    InstantiatePlannedTemplatesSerializer
+    InstantiatePlannedTemplatesSerializer, DailyPlanSerializer, PlannedActivitySerializer
 )
 from .filters import IncomeFilter, ExpenseFilter, ProjectFilter
 from .pagination import StandardResultsSetPagination
@@ -1153,6 +1153,80 @@ class TaskTemplateViewSet(viewsets.ModelViewSet):
             TaskSerializer(task).data,
             status=status.HTTP_201_CREATED
         )
+
+
+# ============================================================================
+# PHASE 2: Daily Plans (Module 12)
+# ============================================================================
+
+class DailyPlanViewSet(viewsets.ModelViewSet):
+    """ViewSet for DailyPlan (Module 12)"""
+    queryset = DailyPlan.objects.all().select_related('project', 'created_by').prefetch_related('activities')
+    serializer_class = DailyPlanSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'plan_date', 'status', 'admin_approved']
+    search_fields = ['project__name', 'no_planning_reason']
+    ordering_fields = ['plan_date', 'created_at', 'updated_at']
+    ordering = ['-plan_date']
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def fetch_weather(self, request, pk=None):
+        """Fetch and attach weather data to the plan"""
+        plan = self.get_object()
+        data = plan.fetch_weather()
+        if data is None:
+            return Response({'message': 'Weather not available'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'weather': data, 'weather_fetched_at': plan.weather_fetched_at})
+
+    @action(detail=True, methods=['post'])
+    def convert_activities(self, request, pk=None):
+        """Convert planned activities to real project tasks"""
+        plan = self.get_object()
+        tasks = plan.convert_activities_to_tasks(user=request.user)
+        return Response({
+            'created_count': len(tasks),
+            'tasks': TaskSerializer(tasks, many=True).data
+        })
+
+    @action(detail=True, methods=['get'])
+    def productivity(self, request, pk=None):
+        plan = self.get_object()
+        score = plan.calculate_productivity_score()
+        return Response({'productivity_score': score})
+
+    @action(detail=True, methods=['post'])
+    def add_activity(self, request, pk=None):
+        plan = self.get_object()
+        serializer = PlannedActivitySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        activity = serializer.save(daily_plan=plan)
+        return Response(PlannedActivitySerializer(activity).data, status=status.HTTP_201_CREATED)
+
+
+class PlannedActivityViewSet(viewsets.ModelViewSet):
+    """CRUD for PlannedActivity with material checks"""
+    queryset = PlannedActivity.objects.all().select_related('daily_plan', 'schedule_item', 'activity_template').prefetch_related('assigned_employees')
+    serializer_class = PlannedActivitySerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['daily_plan', 'status']
+    search_fields = ['title', 'description']
+    ordering_fields = ['order', 'created_at', 'updated_at']
+    ordering = ['order']
+
+    @action(detail=True, methods=['post'])
+    def check_materials(self, request, pk=None):
+        activity = self.get_object()
+        activity.check_materials()
+        return Response({
+            'materials_checked': activity.materials_checked,
+            'material_shortage': activity.material_shortage,
+            'description': activity.description
+        })
 
 
 class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):

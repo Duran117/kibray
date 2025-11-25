@@ -7,6 +7,7 @@ from .views import (
     ColorSampleViewSet, ProjectViewSet, ScheduleCategoryViewSet, ScheduleItemViewSet,
     IncomeViewSet, ExpenseViewSet, CostCodeViewSet, BudgetLineViewSet,
     DailyLogPlanningViewSet, TaskTemplateViewSet, WeatherSnapshotViewSet,
+    DailyPlanViewSet, PlannedActivityViewSet,
     global_search, save_changeorder_photo_annotations, delete_changeorder_photo,
     update_changeorder_photo_image
 )
@@ -43,6 +44,8 @@ router.register(r'budget-lines', BudgetLineViewSet, basename='budget-line')
 router.register(r'daily-logs', DailyLogPlanningViewSet, basename='daily-log')
 router.register(r'task-templates', TaskTemplateViewSet, basename='task-template')
 router.register(r'weather-snapshots', WeatherSnapshotViewSet, basename='weather-snapshot')
+router.register(r'daily-plans', DailyPlanViewSet, basename='daily-plan')
+router.register(r'planned-activities', PlannedActivityViewSet, basename='planned-activity')
 
 urlpatterns = [
     # JWT Auth
