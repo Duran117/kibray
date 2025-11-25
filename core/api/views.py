@@ -943,21 +943,191 @@ class DailyLogPlanningViewSet(viewsets.ModelViewSet):
 
 
 class TaskTemplateViewSet(viewsets.ModelViewSet):
-    """ViewSet for TaskTemplate (Module 29)"""
+    """ViewSet for TaskTemplate (Module 29)
+    
+    Features:
+    - Fuzzy search with PostgreSQL trigram
+    - Filter by category, tags, favorites, SOP
+    - Sort by usage, recent use, creation
+    - Bulk import CSV/JSON templates
+    """
     queryset = TaskTemplate.objects.filter(is_active=True)
     serializer_class = TaskTemplateSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['category', 'is_favorite', 'created_by']
     search_fields = ['title', 'description', 'tags']
-    ordering_fields = ['created_at', 'title']
-    ordering = ['-created_at']
+    ordering_fields = ['created_at', 'title', 'usage_count', 'last_used']
+    ordering = ['-usage_count', '-created_at']
+    
+    def get_queryset(self):
+        """Custom filtering for tags and SOP"""
+        from django.db import connection
+        import json
+        qs = super().get_queryset()
+        
+        # Filter by tag (supports multiple via comma)
+        # Uses JSONField contains for PostgreSQL, text search for SQLite
+        tags = self.request.query_params.get('tags')
+        if tags:
+            tag_list = [t.strip() for t in tags.split(',')]
+            
+            if connection.vendor == 'postgresql':
+                # PostgreSQL: use JSONField contains
+                for tag in tag_list:
+                    qs = qs.filter(tags__contains=[tag])
+            else:
+                # SQLite: filter by checking tags field as text
+                for tag in tag_list:
+                    # This will work for SQLite by checking JSON text representation
+                    # Filter templates where tags field contains the tag string
+                    qs = qs.extra(
+                        where=["tags LIKE %s"],
+                        params=[f'%"{tag}"%']
+                    )
+        
+        # Filter by has_sop (boolean)
+        has_sop = self.request.query_params.get('has_sop')
+        if has_sop is not None:
+            if has_sop.lower() in ('true', '1', 'yes'):
+                qs = qs.exclude(sop_reference='').exclude(sop_reference__isnull=True)
+            else:
+                qs = qs.filter(Q(sop_reference='') | Q(sop_reference__isnull=True))
+        
+        return qs
+        
+        return qs
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
     
+    @action(detail=False, methods=['get'])
+    def fuzzy_search(self, request):
+        """Advanced fuzzy search using PostgreSQL trigram similarity
+        
+        Query params:
+        - q: search query (min 2 chars)
+        - limit: max results (default 20)
+        """
+        query = request.query_params.get('q', '').strip()
+        limit = int(request.query_params.get('limit', 20))
+        
+        if not query or len(query) < 2:
+            return Response(
+                {'error': 'Query must be at least 2 characters'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        results = TaskTemplate.fuzzy_search(query, limit=limit)
+        serializer = self.get_serializer(results, many=True)
+        return Response({
+            'count': len(results),
+            'query': query,
+            'results': serializer.data
+        })
+    
+    @action(detail=False, methods=['post'])
+    def bulk_import(self, request):
+        """Bulk import templates from CSV or JSON
+        
+        Expected format (JSON array):
+        [
+            {
+                "title": "Prepare walls",
+                "description": "Sand and prime walls",
+                "category": "preparation",
+                "default_priority": "Medium",
+                "estimated_hours": 4.0,
+                "tags": ["sanding", "priming"],
+                "checklist": ["Check surface", "Apply primer"],
+                "sop_reference": "https://..."
+            }
+        ]
+        
+        CSV format:
+        title,description,category,default_priority,estimated_hours,tags,checklist,sop_reference
+        "Prepare walls","Sand...","preparation","Medium",4.0,"sanding,priming","Check,Prime","https://..."
+        """
+        import csv
+        import io
+        
+        data_format = request.data.get('format', 'json')  # 'json' or 'csv'
+        
+        if data_format == 'json':
+            templates_data = request.data.get('templates', [])
+            if not isinstance(templates_data, list):
+                return Response(
+                    {'error': 'templates must be a list'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        elif data_format == 'csv':
+            csv_file = request.FILES.get('file')
+            if not csv_file:
+                return Response(
+                    {'error': 'file is required for CSV import'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Parse CSV
+            decoded_file = csv_file.read().decode('utf-8')
+            csv_reader = csv.DictReader(io.StringIO(decoded_file))
+            templates_data = []
+            for row in csv_reader:
+                # Convert CSV strings to proper types
+                template = {
+                    'title': row.get('title', '').strip(),
+                    'description': row.get('description', '').strip(),
+                    'category': row.get('category', 'other').strip(),
+                    'default_priority': row.get('default_priority', 'Medium').strip(),
+                    'estimated_hours': float(row.get('estimated_hours', 0)) if row.get('estimated_hours') else None,
+                    'tags': [t.strip() for t in row.get('tags', '').split(',') if t.strip()],
+                    'checklist': [c.strip() for c in row.get('checklist', '').split(',') if c.strip()],
+                    'sop_reference': row.get('sop_reference', '').strip(),
+                }
+                templates_data.append(template)
+        else:
+            return Response(
+                {'error': 'format must be json or csv'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate and create
+        created = []
+        errors = []
+        
+        for idx, template_data in enumerate(templates_data):
+            serializer = self.get_serializer(data=template_data)
+            if serializer.is_valid():
+                serializer.save(created_by=request.user)
+                created.append(serializer.data)
+            else:
+                errors.append({
+                    'index': idx,
+                    'data': template_data,
+                    'errors': serializer.errors
+                })
+        
+        return Response({
+            'created': len(created),
+            'failed': len(errors),
+            'created_templates': created,
+            'errors': errors
+        }, status=status.HTTP_201_CREATED if created else status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'])
+    def toggle_favorite(self, request, pk=None):
+        """Toggle is_favorite status"""
+        template = self.get_object()
+        template.is_favorite = not template.is_favorite
+        template.save(update_fields=['is_favorite'])
+        return Response({
+            'id': template.id,
+            'is_favorite': template.is_favorite
+        })
+    
     @action(detail=True, methods=['post'])
     def create_task(self, request, pk=None):
-        """Create a task from this template"""
+        """Create a task from this template (updates usage stats automatically)"""
         template = self.get_object()
         project_id = request.data.get('project_id')
         assigned_to_id = request.data.get('assigned_to_id')

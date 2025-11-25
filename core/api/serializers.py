@@ -41,7 +41,7 @@ class TaskSerializer(serializers.ModelSerializer):
     total_hours = serializers.FloatField(read_only=True)
     time_tracked_hours = serializers.SerializerMethodField()
     dependencies_ids = serializers.SerializerMethodField()
-    reopen_events_count = serializers.IntegerField(source='reopen_events_count', read_only=True)
+    reopen_events_count = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = Task
@@ -298,14 +298,18 @@ class ProjectBudgetSummarySerializer(serializers.Serializer):
 
 class TaskTemplateSerializer(serializers.ModelSerializer):
     """Serializer for TaskTemplate (Module 29)"""
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    
     class Meta:
         model = TaskTemplate
         fields = [
             'id', 'title', 'description', 'default_priority',
             'estimated_hours', 'tags', 'checklist', 'is_active',
+            'category', 'category_display', 'sop_reference',
+            'usage_count', 'last_used', 'is_favorite',
             'created_by', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_by', 'created_at', 'updated_at']
+        read_only_fields = ['created_by', 'created_at', 'updated_at', 'usage_count', 'last_used']
 
 
 class WeatherSnapshotSerializer(serializers.ModelSerializer):

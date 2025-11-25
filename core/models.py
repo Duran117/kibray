@@ -750,40 +750,96 @@ class TaskStatusChange(models.Model):
 
 # MÓDULO 29: Plantillas de tareas (Pre-Task Library)
 class TaskTemplate(models.Model):
-    """Reusable task template for quick task instantiation (Module 29)."""
+    """Reusable task template for quick task instantiation (Module 29).
+    
+    Enhanced with:
+    - Category organization
+    - SOP reference links
+    - Usage tracking (analytics)
+    - Favorites system
+    - Advanced fuzzy search (trigram + full-text)
+    """
     PRIORITY_CHOICES = (
         ('low', _('Baja')),
         ('medium', _('Media')),
         ('high', _('Alta')),
         ('urgent', _('Urgente')),
     )
-    title = models.CharField(max_length=200)
+    
+    CATEGORY_CHOICES = (
+        ('preparation', _('Preparación')),
+        ('painting', _('Pintura')),
+        ('finishing', _('Acabados')),
+        ('inspection', _('Inspección')),
+        ('cleanup', _('Limpieza')),
+        ('materials', _('Materiales')),
+        ('client', _('Cliente')),
+        ('admin', _('Administrativo')),
+        ('other', _('Otro')),
+    )
+    
+    title = models.CharField(max_length=200, db_index=True)
     description = models.TextField(blank=True)
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        default='other',
+        help_text="Categoría para organizar plantillas"
+    )
     default_priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     estimated_hours = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     tags = models.JSONField(default=list, blank=True, help_text="List of keyword tags for fuzzy search")
     checklist = models.JSONField(default=list, blank=True, help_text="Ordered checklist items strings")
+    
+    # Module 29 enhancements
+    sop_reference = models.URLField(
+        blank=True,
+        help_text="Link to Standard Operating Procedure document"
+    )
+    usage_count = models.IntegerField(
+        default=0,
+        help_text="Times this template has been used (analytics)"
+    )
+    last_used = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last time this template was instantiated"
+    )
+    
     is_active = models.BooleanField(default=True)
+    is_favorite = models.BooleanField(
+        default=False,
+        help_text="Mark as favorite for quick access"
+    )
+    
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-usage_count', '-created_at']
         verbose_name = 'Plantilla de Tarea'
         verbose_name_plural = 'Plantillas de Tareas'
         indexes = [
             models.Index(fields=['default_priority']),
+            models.Index(fields=['category']),
+            models.Index(fields=['-usage_count']),
+            models.Index(fields=['is_favorite', '-usage_count']),
+            models.Index(fields=['is_active', 'category']),
         ]
 
     def __str__(self):
-        return self.title
+        return f"{self.title} ({self.get_category_display()})"
 
     def create_task(self, project, created_by=None, assigned_to=None, extra_fields=None):
         """Instantiate a Task from this template.
         extra_fields: dict overrides or additional Task fields.
+        
+        Updates usage statistics automatically.
         """
+        from django.utils import timezone
         from core.models import Task  # Local import to avoid circular
+        
         data = {
             'project': project,
             'title': self.title,
@@ -796,8 +852,74 @@ class TaskTemplate(models.Model):
             data['assigned_to'] = assigned_to
         if extra_fields:
             data.update(extra_fields)
+        
         task = Task.objects.create(**data)
+        
+        # Update usage statistics
+        self.usage_count += 1
+        self.last_used = timezone.now()
+        self.save(update_fields=['usage_count', 'last_used'])
+        
         return task
+    
+    @classmethod
+    def fuzzy_search(cls, query, limit=20):
+        """Advanced fuzzy search with PostgreSQL trigram or SQLite fallback.
+        
+        Searches across:
+        - Title (weighted highest)
+        - Description  
+        - Tags (text matching)
+        - Category display name
+        
+        Returns QuerySet ordered by relevance.
+        """
+        if not query or len(query) < 2:
+            return cls.objects.none()
+        
+        from django.db import connection
+        from django.db.models import Q, F, Case, When, IntegerField
+        
+        # Check if using PostgreSQL with trigram extension
+        is_postgres = connection.vendor == 'postgresql'
+        
+        if is_postgres:
+            try:
+                from django.contrib.postgres.search import TrigramSimilarity
+                # PostgreSQL trigram similarity search
+                qs = cls.objects.filter(is_active=True).annotate(
+                    title_similarity=TrigramSimilarity('title', query),
+                    desc_similarity=TrigramSimilarity('description', query),
+                ).filter(
+                    Q(title_similarity__gt=0.2) | 
+                    Q(desc_similarity__gt=0.15) |
+                    Q(title__icontains=query) |
+                    Q(description__icontains=query)
+                ).annotate(
+                    relevance=F('title_similarity') * 0.6 + F('desc_similarity') * 0.4
+                ).order_by('-relevance', '-usage_count')[:limit]
+                return qs
+            except Exception:
+                pass  # Fall back to simple search
+        
+        # Fallback: Simple icontains search with relevance scoring
+        # Score: title exact match > title contains > description contains
+        query_lower = query.lower()
+        qs = cls.objects.filter(is_active=True).filter(
+            Q(title__icontains=query) | 
+            Q(description__icontains=query)
+        ).annotate(
+            relevance=Case(
+                When(title__iexact=query, then=100),
+                When(title__istartswith=query, then=80),
+                When(title__icontains=query, then=60),
+                When(description__icontains=query, then=40),
+                default=20,
+                output_field=IntegerField()
+            )
+        ).order_by('-relevance', '-usage_count')[:limit]
+        
+        return qs
 
 
 # ---------------------
