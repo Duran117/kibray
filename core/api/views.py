@@ -104,7 +104,13 @@ class TaskViewSet(viewsets.ModelViewSet):
             qs = qs.filter(is_touchup=True)
         assigned_to_me = self.request.query_params.get('assigned_to_me')
         if assigned_to_me == 'true':
-            qs = qs.filter(assigned_to=self.request.user)
+            # Note: assigned_to is Employee; map current user to employee if exists
+            from core.models import Employee
+            emp = Employee.objects.filter(user=self.request.user).first()
+            if emp:
+                qs = qs.filter(assigned_to=emp)
+            else:
+                qs = qs.none()
         return qs
     
     @action(detail=True, methods=['post'])
@@ -203,6 +209,74 @@ class TaskViewSet(viewsets.ModelViewSet):
         caption = request.data.get('caption', '')
         new_image = task.add_image(image_file=img, uploaded_by=request.user, caption=caption)
         return Response({'status': 'ok', 'image_id': new_image.id, 'version': new_image.version})
+
+    @action(detail=False, methods=['get'])
+    def touchup_board(self, request: Request):
+        """Return a kanban-style board for touch-up tasks grouped by status.
+        Filters:
+          - project: Project ID
+          - status: one or more status values
+          - priority: one or more priority values
+          - assigned_to: Employee ID
+          - assigned_to_me: true|false (maps current user to Employee)
+        Response:
+          {
+            columns: [
+              {key: 'Pendiente', title: 'Pendiente', count: N, items: [...]},
+              {key: 'En Progreso', title: 'En Progreso', count: M, items: [...]},
+              {key: 'Completada', title: 'Completada', count: K, items: [...]}
+            ],
+            totals: { total: T, pending: N, in_progress: M, completed: K }
+          }
+        """
+        qs = Task.objects.select_related('project', 'assigned_to').filter(is_touchup=True)
+        project_id = request.query_params.get('project')
+        if project_id:
+            qs = qs.filter(project_id=project_id)
+        # status filter (accept multiple via comma or repeated param)
+        status_param = request.query_params.getlist('status') or (
+            request.query_params.get('status', '').split(',') if request.query_params.get('status') else []
+        )
+        if status_param:
+            qs = qs.filter(status__in=[s for s in status_param if s])
+        # priority filter
+        priority_param = request.query_params.getlist('priority') or (
+            request.query_params.get('priority', '').split(',') if request.query_params.get('priority') else []
+        )
+        if priority_param:
+            qs = qs.filter(priority__in=[p for p in priority_param if p])
+        # assigned_to (Employee id)
+        assigned_to = request.query_params.get('assigned_to')
+        if assigned_to:
+            qs = qs.filter(assigned_to_id=assigned_to)
+        # assigned_to_me maps current user -> Employee
+        assigned_to_me = request.query_params.get('assigned_to_me')
+        if assigned_to_me == 'true':
+            from core.models import Employee
+            emp = Employee.objects.filter(user=request.user).first()
+            if emp:
+                qs = qs.filter(assigned_to=emp)
+            else:
+                qs = qs.none()
+
+        # Group by status columns
+        statuses = ['Pendiente', 'En Progreso', 'Completada']
+        columns = []
+        counts = {'pending': 0, 'in_progress': 0, 'completed': 0}
+        for s in statuses:
+            items_qs = qs.filter(status=s).order_by('-priority', '-created_at')
+            items = self.get_serializer(items_qs, many=True).data
+            count = len(items)
+            if s == 'Pendiente':
+                counts['pending'] = count
+            elif s == 'En Progreso':
+                counts['in_progress'] = count
+            elif s == 'Completada':
+                counts['completed'] = count
+            columns.append({'key': s, 'title': s, 'count': count, 'items': items})
+
+        totals = {'total': sum(counts.values()), **counts}
+        return Response({'columns': columns, 'totals': totals})
 
 # Damage Reports
 class DamageReportViewSet(viewsets.ModelViewSet):
