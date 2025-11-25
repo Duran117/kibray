@@ -112,6 +112,11 @@ class TaskViewSet(viewsets.ModelViewSet):
         task = self.get_object()
         new_status = request.data.get('status')
         if new_status:
+            # Module 28: Prevent completing touch-up without photo evidence
+            if task.is_touchup and str(new_status).lower() in ['completada', 'completed']:
+                # Ensure at least one image exists
+                if not task.images.exists():
+                    return Response({'error': 'Touch-up requires a photo before completion'}, status=status.HTTP_400_BAD_REQUEST)
             task.status = new_status
             task.save()
             return Response({'status': 'updated'})
