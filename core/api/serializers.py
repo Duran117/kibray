@@ -478,3 +478,152 @@ class DailyPlanSerializer(serializers.ModelSerializer):
     def get_productivity_score(self, obj):
         return obj.calculate_productivity_score()
 
+
+# ============================================================================
+# PHASE 2: Module 14 - Materials & Inventory
+# ============================================================================
+
+class InventoryItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        from core.models import InventoryItem
+        model = InventoryItem
+        fields = [
+            'id', 'name', 'category', 'unit', 'is_equipment', 'track_serial',
+            'low_stock_threshold', 'default_threshold', 'sku',
+            'valuation_method', 'average_cost', 'last_purchase_cost',
+            'active', 'no_threshold', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['average_cost', 'last_purchase_cost', 'created_at', 'updated_at']
+
+
+class InventoryLocationSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source='project.name', read_only=True, allow_null=True)
+
+    class Meta:
+        from core.models import InventoryLocation
+        model = InventoryLocation
+        fields = ['id', 'name', 'project', 'project_name', 'is_storage']
+
+
+class ProjectInventorySerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(source='item.name', read_only=True)
+    location_name = serializers.CharField(source='location.__str__', read_only=True)
+    is_below = serializers.BooleanField(source='is_below', read_only=True)
+
+    class Meta:
+        from core.models import ProjectInventory
+        model = ProjectInventory
+        fields = ['id', 'item', 'item_name', 'location', 'location_name', 'quantity', 'is_below']
+        read_only_fields = ['quantity', 'is_below']
+
+
+class InventoryMovementSerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(source='item.name', read_only=True)
+    from_location_name = serializers.CharField(source='from_location.__str__', read_only=True)
+    to_location_name = serializers.CharField(source='to_location.__str__', read_only=True)
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True, allow_null=True)
+
+    class Meta:
+        from core.models import InventoryMovement
+        model = InventoryMovement
+        fields = [
+            'id', 'item', 'item_name', 'from_location', 'from_location_name', 'to_location',
+            'to_location_name', 'movement_type', 'quantity', 'reason', 'note',
+            'related_task', 'related_project', 'created_by', 'created_by_name',
+            'created_at', 'unit_cost', 'expense', 'applied'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'applied']
+
+    def create(self, validated_data):
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        movement = super().create(validated_data)
+        try:
+            movement.apply()
+        except DjangoValidationError as e:
+            # surface as DRF validation error
+            raise serializers.ValidationError({'detail': str(e)})
+        return movement
+
+
+class MaterialRequestItemSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    unit_display = serializers.CharField(source='get_unit_display', read_only=True)
+    remaining_quantity = serializers.SerializerMethodField()
+    is_fully_received = serializers.SerializerMethodField()
+
+    class Meta:
+        from core.models import MaterialRequestItem
+        model = MaterialRequestItem
+        fields = [
+            'id', 'request', 'category', 'category_display', 'brand', 'brand_text',
+            'product_name', 'color_name', 'color_code', 'finish', 'gloss', 'formula',
+            'reference_image', 'quantity', 'unit', 'unit_display', 'comments',
+            'inventory_item', 'qty_requested', 'qty_ordered', 'qty_received',
+            'qty_consumed', 'qty_returned', 'received_quantity', 'item_status',
+            'item_notes', 'unit_cost', 'remaining_quantity', 'is_fully_received'
+        ]
+        read_only_fields = ['qty_received', 'qty_consumed', 'qty_returned', 'remaining_quantity', 'is_fully_received']
+
+    def get_remaining_quantity(self, obj):
+        try:
+            return float(obj.get_remaining_quantity())
+        except Exception:
+            return None
+
+    def get_is_fully_received(self, obj):
+        return obj.is_fully_received()
+
+
+class MaterialRequestSerializer(serializers.ModelSerializer):
+    requested_by_name = serializers.CharField(source='requested_by.get_full_name', read_only=True, allow_null=True)
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    items = MaterialRequestItemSerializer(many=True)
+
+    class Meta:
+        from core.models import MaterialRequest
+        model = MaterialRequest
+        fields = [
+            'id', 'project', 'project_name', 'requested_by', 'requested_by_name',
+            'needed_when', 'needed_date', 'notes', 'status',
+            'approved_by', 'approved_at', 'expected_delivery_date', 'partial_receipt_notes',
+            'created_at', 'updated_at', 'items'
+        ]
+        read_only_fields = ['requested_by', 'approved_by', 'approved_at', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        from core.models import MaterialRequestItem as MRI
+        items_data = validated_data.pop('items', [])
+        req = super().create(validated_data)
+        for item in items_data:
+            data = item if isinstance(item, dict) else {}
+            data['request'] = req
+            MRI.objects.create(**data)
+        return req
+
+    def update(self, instance, validated_data):
+        from core.models import MaterialRequestItem as MRI
+        items_data = validated_data.pop('items', None)
+        req = super().update(instance, validated_data)
+        if items_data is not None:
+            # replace all items
+            instance.items.all().delete()
+            for item in items_data:
+                data = item if isinstance(item, dict) else {}
+                data['request'] = req
+                MRI.objects.create(**data)
+        return req
+
+
+class MaterialCatalogSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source='project.name', read_only=True, allow_null=True)
+
+    class Meta:
+        from core.models import MaterialCatalog
+        model = MaterialCatalog
+        fields = [
+            'id', 'project', 'project_name', 'category', 'brand_text', 'product_name',
+            'color_name', 'color_code', 'finish', 'gloss', 'formula', 'default_unit',
+            'reference_image', 'is_active', 'created_by', 'created_at'
+        ]
+        read_only_fields = ['created_by', 'created_at']
+

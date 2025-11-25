@@ -20,7 +20,9 @@ from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
     FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem,
     ChangeOrderPhoto, Income, Expense, CostCode, BudgetLine, DailyLog,
-    TaskTemplate, WeatherSnapshot, Employee, DailyPlan, PlannedActivity, TimeEntry
+    TaskTemplate, WeatherSnapshot, Employee, DailyPlan, PlannedActivity, TimeEntry,
+    MaterialRequest, MaterialRequestItem, MaterialCatalog,
+    InventoryItem, InventoryLocation, ProjectInventory, InventoryMovement
 )
 from .serializers import (
     NotificationSerializer, ChatChannelSerializer, ChatMessageSerializer,
@@ -31,7 +33,10 @@ from .serializers import (
     CostCodeSerializer, BudgetLineSerializer, ProjectBudgetSummarySerializer,
     DailyLogPlanningSerializer, TaskTemplateSerializer, WeatherSnapshotSerializer,
     InstantiatePlannedTemplatesSerializer, DailyPlanSerializer, PlannedActivitySerializer,
-    TimeEntrySerializer
+    TimeEntrySerializer,
+    InventoryItemSerializer, InventoryLocationSerializer, ProjectInventorySerializer,
+    InventoryMovementSerializer, MaterialRequestSerializer, MaterialRequestItemSerializer,
+    MaterialCatalogSerializer
 )
 from .filters import IncomeFilter, ExpenseFilter, ProjectFilter
 from .pagination import StandardResultsSetPagination
@@ -1354,4 +1359,129 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
                 row['total_hours'] = str(row['total_hours'])
             normalized.append(row)
         return Response(normalized)
+
+
+# ============================================================================
+# Module 14: Materials & Inventory API
+# ============================================================================
+
+class InventoryItemViewSet(viewsets.ModelViewSet):
+    queryset = InventoryItem.objects.all().order_by('name')
+    serializer_class = InventoryItemSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['category', 'active', 'is_equipment']
+    search_fields = ['name', 'sku']
+    ordering_fields = ['name', 'created_at']
+
+
+class InventoryLocationViewSet(viewsets.ModelViewSet):
+    queryset = InventoryLocation.objects.select_related('project').all().order_by('-is_storage', 'name')
+    serializer_class = InventoryLocationSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'is_storage']
+    search_fields = ['name', 'project__name']
+    ordering_fields = ['name']
+
+
+class ProjectInventoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ProjectInventory.objects.select_related('item', 'location', 'location__project').all()
+    serializer_class = ProjectInventorySerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['item', 'location', 'location__project']
+    search_fields = ['item__name', 'location__name', 'location__project__name']
+    ordering_fields = ['quantity']
+    ordering = ['-quantity']
+
+
+class InventoryMovementViewSet(viewsets.ModelViewSet):
+    queryset = InventoryMovement.objects.select_related('item', 'from_location', 'to_location', 'related_task', 'related_project').all().order_by('-created_at')
+    serializer_class = InventoryMovementSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['item', 'movement_type', 'related_project', 'from_location', 'to_location']
+    search_fields = ['item__name', 'reason', 'note']
+    ordering_fields = ['created_at', 'quantity']
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class MaterialCatalogViewSet(viewsets.ModelViewSet):
+    queryset = MaterialCatalog.objects.select_related('project').all().order_by('-created_at')
+    serializer_class = MaterialCatalogSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'category', 'is_active']
+    search_fields = ['brand_text', 'product_name', 'color_name', 'color_code']
+    ordering_fields = ['created_at', 'brand_text', 'product_name']
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class MaterialRequestViewSet(viewsets.ModelViewSet):
+    queryset = MaterialRequest.objects.select_related('project', 'requested_by', 'approved_by').prefetch_related('items').all().order_by('-created_at')
+    serializer_class = MaterialRequestSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'status', 'approved_by']
+    search_fields = ['project__name', 'notes']
+    ordering_fields = ['created_at', 'status']
+
+    def perform_create(self, serializer):
+        serializer.save(requested_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def submit(self, request, pk=None):
+        mr = self.get_object()
+        ok = mr.submit_for_approval(user=request.user)
+        return Response({'status': mr.status, 'ok': ok})
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        mr = self.get_object()
+        if not request.user.is_staff:
+            return Response({'detail': 'Admin only'}, status=status.HTTP_403_FORBIDDEN)
+        ok = mr.approve(admin_user=request.user)
+        return Response({'status': mr.status, 'ok': ok})
+
+    @action(detail=True, methods=['post'])
+    def mark_ordered(self, request, pk=None):
+        mr = self.get_object()
+        ok = mr.mark_ordered(user=request.user)
+        return Response({'status': mr.status, 'ok': ok})
+
+    @action(detail=True, methods=['post'])
+    def receive(self, request, pk=None):
+        """Payload: {"items": [{"id": <item_id>, "received_quantity": <qty>}, ...]}"""
+        mr = self.get_object()
+        items = request.data.get('items', [])
+        mapping = {}
+        for it in items:
+            try:
+                iid = int(it.get('id'))
+                qty = Decimal(str(it.get('received_quantity', 0)))
+                if qty > 0:
+                    mapping[iid] = qty
+            except Exception:
+                continue
+        ok, msg = mr.receive_materials(mapping, user=request.user)
+        return Response({'ok': ok, 'message': msg, 'status': mr.status})
+
+    @action(detail=True, methods=['post'])
+    def direct_purchase_expense(self, request, pk=None):
+        """Create an expense for this request and receive all items directly.
+        Payload: {"total_amount": 123.45}
+        """
+        mr = self.get_object()
+        try:
+            total = Decimal(str(request.data.get('total_amount')))
+        except Exception:
+            return Response({'detail': 'total_amount required'}, status=status.HTTP_400_BAD_REQUEST)
+        expense = mr.create_direct_purchase_expense(total_amount=total, user=request.user)
+        return Response({'expense_id': expense.id, 'status': mr.status})
+
 
