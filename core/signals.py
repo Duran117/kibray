@@ -79,6 +79,9 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.contrib.sessions.models import Session
+from django.core.cache import cache
 
 User = get_user_model()
 
@@ -257,3 +260,51 @@ def handle_task_image_versioning(sender, instance, created, **kwargs):
     if not instance.is_current:
         instance.is_current = True
         instance.save(update_fields=['is_current'])
+
+
+# ======================================================
+# SECURITY: Single active session per user
+# ======================================================
+
+def _active_session_cache_key(user_id: int) -> str:
+    return f"active_session:{user_id}"
+
+
+def _revoke_session(session_key: str) -> None:
+    if not session_key:
+        return
+    try:
+        Session.objects.filter(session_key=session_key).delete()
+    except Exception:
+        # If session backend is not DB-backed, ignore
+        pass
+
+
+def handle_user_logged_in(sender, request, user, **kwargs):
+    """Ensure user has only one active session: revoke any previous key."""
+    try:
+        new_key = getattr(request.session, 'session_key', None)
+        if not new_key:
+            # Ensure the session is saved to get a key
+            request.session.save()
+            new_key = request.session.session_key
+        cache_key = _active_session_cache_key(user.id)
+        old_key = cache.get(cache_key)
+        if old_key and old_key != new_key:
+            _revoke_session(old_key)
+        cache.set(cache_key, new_key, timeout=None)
+    except Exception:
+        # Non-fatal: if cache or session backend unavailable, skip
+        pass
+
+
+def handle_user_logged_out(sender, request, user, **kwargs):
+    try:
+        cache_key = _active_session_cache_key(user.id)
+        cache.delete(cache_key)
+    except Exception:
+        pass
+
+
+user_logged_in.connect(handle_user_logged_in)
+user_logged_out.connect(handle_user_logged_out)
