@@ -32,20 +32,14 @@ def task_capture_old_status(sender, instance: Task, **kwargs):
 def task_post_save(sender, instance: Task, created, **kwargs):
     old_status = getattr(instance, '_old_status', None)
 
-    # Nuevo cambio de estado (excluimos creación inicial si no hay old_status)
-    if old_status and old_status != instance.status:
-        TaskStatusChange.objects.create(
-            task=instance,
-            old_status=old_status,
-            new_status=instance.status,
-            changed_by=getattr(instance, '_current_user', None),
-            notes='Cambio automático por actualización de estado'
-        )
+    # Nota: La creación de TaskStatusChange se maneja en el receiver con dispatch_uid
+    # create_task_status_change más abajo, para evitar duplicados. Aquí solo
+    # mantenemos lógica de completed_at y recálculo de progreso.
 
     # Marcar fecha de completado
     if instance.status == 'Completada' and instance.completed_at is None:
-        instance.completed_at = timezone.now()
-        instance.save(update_fields=['completed_at'])
+        # Evitar re-disparar señales y clobber de _old_status: usar update() directo
+        Task.objects.filter(pk=instance.pk).update(completed_at=timezone.now())
 
     # Recalcular progreso del ScheduleItem si hay vínculo
     if instance.schedule_item:
