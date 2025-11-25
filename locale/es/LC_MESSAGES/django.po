@@ -6103,7 +6103,7 @@ msgstr "Tiempo trabajado"
 
 #: core/templates/core/task_detail.html:66
 msgid "Seguimiento de tiempo"
-msgstr "Movimiento de inventario"
+msgstr "Seguimiento de tiempo"
 
 #: core/templates/core/task_detail.html:67
 msgid "Registra el tiempo que trabajas en esta tarea"
@@ -6111,11 +6111,11 @@ msgstr "Registra el tiempo que trabajas en esta tarea"
 
 #: core/templates/core/task_detail.html:77
 msgid "Sesión actual"
-msgstr ""
+msgstr "Sesión actual"
 
 #: core/templates/core/task_detail.html:86
 msgid "Iniciar"
-msgstr "Iniciar sesión"
+msgstr "Iniciar"
 
 #: core/templates/core/task_detail.html:89
 msgid "Detener"
@@ -6132,34 +6132,35 @@ msgstr "Sin seguimiento activo"
 
 #: core/templates/core/task_detail.html:106
 msgid "Dependencias"
-msgstr ""
+msgstr "Dependencias"
 
 #: core/templates/core/task_detail.html:109
 msgid "Esta tarea depende de las siguientes tareas"
-msgstr ""
+msgstr "Esta tarea depende de las siguientes tareas"
 
 #: core/templates/core/task_detail.html:128
 msgid ""
 "No puedes iniciar esta tarea hasta que se completen todas las dependencias"
 msgstr ""
+"No puedes iniciar esta tarea hasta que se completen todas las dependencias"
 
 #: core/templates/core/task_detail.html:139
 #, fuzzy
 #| msgid "Historial de movimientos"
 msgid "Historial de tiempo"
-msgstr "Historial de movimientos"
+msgstr "Historial de tiempo"
 
 #: core/templates/core/task_detail.html:145
 #, fuzzy
 #| msgid "Total Usuarios"
 msgid "Total acumulado"
-msgstr "Total Usuarios"
+msgstr "Total acumulado"
 
 #: core/templates/core/task_detail.html:150
 #, fuzzy
 #| msgid "Registra el tiempo que trabajas en esta tarea"
 msgid "Tiempo total trabajado en esta tarea"
-msgstr "Registra el tiempo que trabajas en esta tarea"
+msgstr "Tiempo total trabajado en esta tarea"
 
 #: core/templates/core/task_detail.html:223
 msgid "Seguimiento activo"
@@ -6173,7 +6174,7 @@ msgstr "Error al iniciar seguimiento"
 #, fuzzy
 #| msgid "Minutes"
 msgid "minutos"
-msgstr "Minutos"
+msgstr "minutos"
 
 #: core/templates/core/task_detail.html:325
 msgid "Error al detener seguimiento"

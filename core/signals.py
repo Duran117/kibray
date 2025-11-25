@@ -16,31 +16,46 @@ User = get_user_model()
 # TASK STATUS CHANGE AUTO-TRACKING
 # ============================================================================
 
-@receiver(pre_save, sender='core.Task')
-def track_task_status_change(sender, instance, **kwargs):
+@receiver(pre_save, sender='core.Task', dispatch_uid='track_task_changes_pre_save')
+def track_task_changes(sender, instance, **kwargs):
     """
-    Crea TaskStatusChange cuando cambia el status de una tarea.
-    Se ejecuta antes de guardar para capturar el valor anterior.
+    Consolida todos los cambios pre-save para Task:
+    1. Detecta cambios de status para crear TaskStatusChange
+    2. Auto-status cuando se inicia time tracking
+    3. Validación de dependencias
     """
     if not instance.pk:
-        # Es una nueva tarea, no hay cambio de status
+        # Es una nueva tarea, no hay cambio de status ni tracking
         return
     
     try:
-        # Obtener el valor anterior del status
+        # Obtener el valor anterior
         from core.models import Task
         old_task = Task.objects.get(pk=instance.pk)
         
+        # ====================================
+        # 1. TIME TRACKING AUTO-STATUS
+        # ====================================
+        # Si se acaba de iniciar tracking, cambiar status a 'En Progreso'
+        if not old_task.started_at and instance.started_at:
+            if instance.status != 'En Progreso':
+                instance.status = 'En Progreso'
+        
+        # ====================================
+        # 2. DETECT STATUS CHANGE
+        # ====================================
+        # Detectar si el status cambió (después de aplicar auto-status)
         if old_task.status != instance.status:
-            # Guardar el cambio en el contexto de la instancia
-            # para procesar en post_save
-            instance._status_changed = True
-            instance._old_status = old_task.status
+            # Solo marcar si no está ya marcado
+            if not hasattr(instance, '_status_changed') or not instance._status_changed:
+                instance._status_changed = True
+                instance._old_status = old_task.status
+                
     except Task.DoesNotExist:
         pass
 
 
-@receiver(post_save, sender='core.Task')
+@receiver(post_save, sender='core.Task', dispatch_uid='create_task_status_change_post_save')
 def create_task_status_change(sender, instance, created, **kwargs):
     """
     Crea registro de TaskStatusChange después de guardar.
@@ -59,6 +74,13 @@ def create_task_status_change(sender, instance, created, **kwargs):
     if not hasattr(instance, '_old_status'):
         return
     
+    # Prevenir ejecuciones duplicadas
+    if hasattr(instance, '_status_change_processed'):
+        return
+    
+    # Marcar como procesado
+    instance._status_change_processed = True
+    
     # Crear registro de cambio
     TaskStatusChange.objects.create(
         task=instance,
@@ -72,8 +94,12 @@ def create_task_status_change(sender, instance, created, **kwargs):
     old_status_value = instance._old_status
     
     # Limpiar flags temporales
-    delattr(instance, '_status_changed')
-    delattr(instance, '_old_status')
+    if hasattr(instance, '_status_changed'):
+        delattr(instance, '_status_changed')
+    if hasattr(instance, '_old_status'):
+        delattr(instance, '_old_status')
+    if hasattr(instance, '_status_change_processed'):
+        delattr(instance, '_status_change_processed')
     
     # ========================================
     # NOTIFICACIONES (Q11.10)
@@ -135,7 +161,7 @@ def send_task_status_notification(task, old_status, new_status):
 # TASK IMAGE VERSIONING
 # ============================================================================
 
-@receiver(post_save, sender='core.TaskImage')
+@receiver(post_save, sender='core.TaskImage', dispatch_uid='handle_task_image_versioning_post_save')
 def handle_task_image_versioning(sender, instance, created, **kwargs):
     """
     Maneja el versionado de imágenes de tareas.
@@ -160,46 +186,3 @@ def handle_task_image_versioning(sender, instance, created, **kwargs):
     if not instance.is_current:
         instance.is_current = True
         instance.save(update_fields=['is_current'])
-
-
-# ============================================================================
-# TASK TIME TRACKING AUTO-STATUS
-# ============================================================================
-
-@receiver(pre_save, sender='core.Task')
-def auto_status_on_time_tracking(sender, instance, **kwargs):
-    """
-    Cambia automáticamente el status a 'En Progreso' cuando se inicia time tracking.
-    Q11.13: "Cuando se inicia el tracking, cambiar status a 'En Progreso'"
-    """
-    # Solo procesar si started_at cambió (se inició tracking)
-    if not instance.pk:
-        return
-    
-    try:
-        from core.models import Task
-        old_task = Task.objects.get(pk=instance.pk)
-        
-        # Si se acaba de iniciar tracking y no está en progreso
-        if not old_task.started_at and instance.started_at:
-            if instance.status != 'En Progreso':
-                instance.status = 'En Progreso'
-                instance._status_changed = True
-                instance._old_status = old_task.status
-    except Task.DoesNotExist:
-        pass
-
-
-# ============================================================================
-# TASK DEPENDENCY VALIDATION
-# ============================================================================
-
-@receiver(pre_save, sender='core.Task')
-def validate_task_dependencies(sender, instance, **kwargs):
-    """
-    Valida que no haya dependencias circulares.
-    Ejecuta full_clean() que incluye Task.clean().
-    """
-    # Ya implementado en Task.clean() + Task.save()
-    # Este signal es redundante pero se mantiene por claridad
-    pass
