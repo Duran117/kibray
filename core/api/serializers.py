@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
     FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem,
-    Income, Expense, CostCode, BudgetLine
+    Income, Expense, CostCode, BudgetLine, DailyLog, TaskTemplate, WeatherSnapshot
 )
 
 User = get_user_model()
@@ -42,9 +42,9 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'project', 'project_name',
             'assigned_to', 'assigned_to_name', 'status', 'is_touchup',
-            'created_at', 'updated_at'
+            'created_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+    read_only_fields = ['created_at']
 
 class DamageReportSerializer(serializers.ModelSerializer):
     reported_by_name = serializers.CharField(source='reported_by.get_full_name', read_only=True, allow_null=True)
@@ -276,3 +276,80 @@ class ProjectBudgetSummarySerializer(serializers.Serializer):
     budget_remaining = serializers.DecimalField(max_digits=14, decimal_places=2)
     percent_spent = serializers.DecimalField(max_digits=5, decimal_places=2)
     is_over_budget = serializers.BooleanField()
+
+
+# ============================================================================
+# PHASE 1: DailyLog Planning Serializers
+# ============================================================================
+
+class TaskTemplateSerializer(serializers.ModelSerializer):
+    """Serializer for TaskTemplate (Module 29)"""
+    class Meta:
+        model = TaskTemplate
+        fields = [
+            'id', 'title', 'description', 'default_priority',
+            'estimated_hours', 'tags', 'checklist', 'is_active',
+            'created_by', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+
+class WeatherSnapshotSerializer(serializers.ModelSerializer):
+    """Serializer for WeatherSnapshot (Module 30)"""
+    is_stale = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = WeatherSnapshot
+        fields = [
+            'id', 'project', 'date', 'source',
+            'temperature_max', 'temperature_min', 'conditions_text',
+            'precipitation_mm', 'wind_kph', 'humidity_percent',
+            'fetched_at', 'is_stale', 'latitude', 'longitude'
+        ]
+        read_only_fields = ['fetched_at']
+    
+    def get_is_stale(self, obj):
+        return obj.is_stale()
+
+
+class DailyLogPlanningSerializer(serializers.ModelSerializer):
+    """Serializer for DailyLog with planning fields"""
+    planned_templates = TaskTemplateSerializer(many=True, read_only=True)
+    planned_tasks = TaskSerializer(many=True, read_only=True)
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    completion_summary = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = DailyLog
+        fields = [
+            'id', 'project', 'project_name', 'date', 'weather',
+            'crew_count', 'planned_templates', 'planned_tasks',
+            'is_complete', 'incomplete_reason', 'auto_weather',
+            'created_at', 'updated_at', 'completion_summary'
+        ]
+        read_only_fields = ['created_at', 'updated_at', 'is_complete', 'incomplete_reason']
+    
+    def get_completion_summary(self, obj):
+        total = obj.planned_tasks.count()
+        if total == 0:
+            return {'total': 0, 'completed': 0, 'percent': 0}
+        completed = obj.planned_tasks.filter(status='Completada').count()
+        percent = round((completed / total) * 100, 1) if total > 0 else 0
+        return {
+            'total': total,
+            'completed': completed,
+            'percent': percent
+        }
+
+
+class InstantiatePlannedTemplatesSerializer(serializers.Serializer):
+    """Serializer for instantiate_planned_templates action"""
+    assigned_to_id = serializers.IntegerField(required=False, allow_null=True)
+    
+    def validate_assigned_to_id(self, value):
+        if value is not None:
+            from core.models import Employee
+            if not Employee.objects.filter(pk=value).exists():
+                raise serializers.ValidationError("Employee does not exist")
+        return value
+

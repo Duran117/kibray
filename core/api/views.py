@@ -19,7 +19,8 @@ import base64, re
 from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
     FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem,
-    ChangeOrderPhoto, Income, Expense, CostCode, BudgetLine
+    ChangeOrderPhoto, Income, Expense, CostCode, BudgetLine, DailyLog,
+    TaskTemplate, WeatherSnapshot, Employee
 )
 from .serializers import (
     NotificationSerializer, ChatChannelSerializer, ChatMessageSerializer,
@@ -27,7 +28,9 @@ from .serializers import (
     PlanPinSerializer, ColorSampleSerializer, ProjectListSerializer,
     ScheduleCategorySerializer, ScheduleItemSerializer,
     ProjectSerializer, IncomeSerializer, ExpenseSerializer,
-    CostCodeSerializer, BudgetLineSerializer, ProjectBudgetSummarySerializer
+    CostCodeSerializer, BudgetLineSerializer, ProjectBudgetSummarySerializer,
+    DailyLogPlanningSerializer, TaskTemplateSerializer, WeatherSnapshotSerializer,
+    InstantiatePlannedTemplatesSerializer
 )
 from .filters import IncomeFilter, ExpenseFilter, ProjectFilter
 from .pagination import StandardResultsSetPagination
@@ -781,3 +784,157 @@ class BudgetLineViewSet(viewsets.ModelViewSet):
             'by_cost_code': list(by_cost_code),
             'line_count': queryset.count()
         })
+
+
+# ============================================================================
+# PHASE 1: DailyLog Planning API
+# ============================================================================
+
+class DailyLogPlanningViewSet(viewsets.ModelViewSet):
+    """ViewSet for DailyLog with planning capabilities"""
+    queryset = DailyLog.objects.all().prefetch_related(
+        'planned_templates', 'planned_tasks', 'project'
+    )
+    serializer_class = DailyLogPlanningSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['project', 'date', 'is_complete']
+    ordering_fields = ['date', 'created_at']
+    ordering = ['-date']
+    
+    @action(detail=True, methods=['post'])
+    def instantiate_templates(self, request, pk=None):
+        """Instantiate planned templates into tasks"""
+        daily_log = self.get_object()
+        serializer = InstantiatePlannedTemplatesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        assigned_to_id = serializer.validated_data.get('assigned_to_id')
+        assigned_to = None
+        if assigned_to_id:
+            assigned_to = get_object_or_404(Employee, pk=assigned_to_id)
+        
+        created_tasks = daily_log.instantiate_planned_templates(
+            created_by=request.user,
+            assigned_to=assigned_to
+        )
+        
+        return Response({
+            'status': 'ok',
+            'created_count': len(created_tasks),
+            'tasks': TaskSerializer(created_tasks, many=True).data
+        })
+    
+    @action(detail=True, methods=['post'])
+    def evaluate_completion(self, request, pk=None):
+        """Evaluate if daily plan is complete"""
+        daily_log = self.get_object()
+        is_complete = daily_log.evaluate_completion()
+        
+        return Response({
+            'status': 'ok',
+            'is_complete': is_complete,
+            'incomplete_reason': daily_log.incomplete_reason,
+            'summary': {
+                'total': daily_log.planned_tasks.count(),
+                'completed': daily_log.planned_tasks.filter(status='Completada').count()
+            }
+        })
+    
+    @action(detail=True, methods=['get'])
+    def weather(self, request, pk=None):
+        """Get weather snapshot for this daily log date"""
+        daily_log = self.get_object()
+        
+        # Try to get existing snapshot
+        snapshot = WeatherSnapshot.objects.filter(
+            project=daily_log.project,
+            date=daily_log.date
+        ).first()
+        
+        if snapshot:
+            return Response(WeatherSnapshotSerializer(snapshot).data)
+        else:
+            return Response({
+                'message': 'No weather data available for this date'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+class TaskTemplateViewSet(viewsets.ModelViewSet):
+    """ViewSet for TaskTemplate (Module 29)"""
+    queryset = TaskTemplate.objects.filter(is_active=True)
+    serializer_class = TaskTemplateSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['title', 'description', 'tags']
+    ordering_fields = ['created_at', 'title']
+    ordering = ['-created_at']
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=True, methods=['post'])
+    def create_task(self, request, pk=None):
+        """Create a task from this template"""
+        template = self.get_object()
+        project_id = request.data.get('project_id')
+        assigned_to_id = request.data.get('assigned_to_id')
+        
+        if not project_id:
+            return Response(
+                {'error': 'project_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        project = get_object_or_404(Project, pk=project_id)
+        assigned_to = None
+        if assigned_to_id:
+            assigned_to = get_object_or_404(Employee, pk=assigned_to_id)
+        
+        task = template.create_task(
+            project=project,
+            created_by=request.user,
+            assigned_to=assigned_to
+        )
+        
+        return Response(
+            TaskSerializer(task).data,
+            status=status.HTTP_201_CREATED
+        )
+
+
+class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for WeatherSnapshot (Module 30)"""
+    queryset = WeatherSnapshot.objects.all()
+    serializer_class = WeatherSnapshotSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['project', 'date', 'source']
+    ordering_fields = ['date', 'fetched_at']
+    ordering = ['-date']
+    
+    @action(detail=False, methods=['get'])
+    def by_project_date(self, request):
+        """Get weather snapshot for specific project and date"""
+        project_id = request.query_params.get('project_id')
+        date = request.query_params.get('date')
+        
+        if not project_id or not date:
+            return Response(
+                {'error': 'project_id and date are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        snapshot = WeatherSnapshot.objects.filter(
+            project_id=project_id,
+            date=date
+        ).first()
+        
+        if snapshot:
+            return Response(WeatherSnapshotSerializer(snapshot).data)
+        else:
+            return Response(
+                {'message': 'No weather data available'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+

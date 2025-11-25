@@ -705,13 +705,14 @@ class TaskStatusChange(models.Model):
 class TaskTemplate(models.Model):
     """Reusable task template for quick task instantiation (Module 29)."""
     PRIORITY_CHOICES = (
-        ('Alta', 'Alta'),
-        ('Media', 'Media'),
-        ('Baja', 'Baja'),
+        ('low', _('Baja')),
+        ('medium', _('Media')),
+        ('high', _('Alta')),
+        ('urgent', _('Urgente')),
     )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    default_priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='Media')
+    default_priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     estimated_hours = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     tags = models.JSONField(default=list, blank=True, help_text="List of keyword tags for fuzzy search")
     checklist = models.JSONField(default=list, blank=True, help_text="Ordered checklist items strings")

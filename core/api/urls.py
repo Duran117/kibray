@@ -6,6 +6,7 @@ from .views import (
     TaskViewSet, DamageReportViewSet, FloorPlanViewSet, PlanPinViewSet,
     ColorSampleViewSet, ProjectViewSet, ScheduleCategoryViewSet, ScheduleItemViewSet,
     IncomeViewSet, ExpenseViewSet, CostCodeViewSet, BudgetLineViewSet,
+    DailyLogPlanningViewSet, TaskTemplateViewSet, WeatherSnapshotViewSet,
     global_search, save_changeorder_photo_annotations, delete_changeorder_photo,
     update_changeorder_photo_image
 )
@@ -37,6 +38,11 @@ router.register(r'incomes', IncomeViewSet, basename='income')
 router.register(r'expenses', ExpenseViewSet, basename='expense')
 router.register(r'cost-codes', CostCodeViewSet, basename='cost-code')
 router.register(r'budget-lines', BudgetLineViewSet, basename='budget-line')
+
+# Phase 1: Planning & Weather (NEW)
+router.register(r'daily-logs', DailyLogPlanningViewSet, basename='daily-log')
+router.register(r'task-templates', TaskTemplateViewSet, basename='task-template')
+router.register(r'weather-snapshots', WeatherSnapshotViewSet, basename='weather-snapshot')
 
 urlpatterns = [
     # JWT Auth
