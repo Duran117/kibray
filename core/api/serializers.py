@@ -562,7 +562,7 @@ class MaterialRequestItemSerializer(serializers.ModelSerializer):
             'qty_consumed', 'qty_returned', 'received_quantity', 'item_status',
             'item_notes', 'unit_cost', 'remaining_quantity', 'is_fully_received'
         ]
-        read_only_fields = ['qty_received', 'qty_consumed', 'qty_returned', 'remaining_quantity', 'is_fully_received']
+        read_only_fields = ['request', 'qty_received', 'qty_consumed', 'qty_returned', 'remaining_quantity', 'is_fully_received']
 
     def get_remaining_quantity(self, obj):
         try:
