@@ -20,7 +20,7 @@ if not SECRET_KEY:
 DEBUG = os.getenv('DEBUG', 'False') == 'False'
 
 # 🌍 Hosts permitidos
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'kibray-backend.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'kibray-backend.onrender.com', 'testserver']
 
 # 📦 Aplicaciones instaladas
 INSTALLED_APPS = [
@@ -94,7 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # 🌐 Internacionalización
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = 'es'
 TIME_ZONE = 'America/Denver'
 USE_I18N = True
 USE_TZ = True
@@ -112,7 +112,11 @@ LOCALE_PATHS = [BASE_DIR / 'locale']
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'core', 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+if DEBUG:
+    # Simpler storage in development/test to avoid manifest hash lookups
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # 📁 Media: S3 en producción, local en desarrollo
 USE_S3 = os.getenv('USE_S3', 'False') == 'True'

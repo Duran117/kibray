@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %}
 {% load core_extras %}
+{% load i18n %}
 
 {% block extra_css %}
 <style>
@@ -424,14 +425,14 @@
     <!-- Header Profesional -->
     <div class="co-header d-flex justify-content-between align-items-center">
         <h2>
-            <i class="bi bi-kanban"></i> Change Orders
+            <i class="bi bi-kanban"></i> {% trans "Change Orders" %}
         </h2>
         <div class="d-flex gap-2">
             <a href="{% url 'dashboard_admin' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Volver
+                <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
             </a>
             <a href="{% url 'changeorder_create' %}" class="btn btn-warning">
-                <i class="bi bi-plus-circle"></i> Nuevo CO
+                <i class="bi bi-plus-circle"></i> {% trans "Nuevo CO" %}
             </a>
         </div>
     </div>
@@ -440,9 +441,9 @@
     <form method="get" class="co-filters-bar">
         <div class="row g-3 align-items-center">
             <div class="col-md-5">
-                <label class="small fw-semibold text-muted mb-1">Proyecto</label>
+                <label class="small fw-semibold text-muted mb-1">{% trans "Proyecto" %}</label>
                 <select name="project" class="form-select" onchange="this.form.submit()">
-                    <option value="">Todos los proyectos</option>
+                    <option value="">{% trans "Todos los proyectos" %}</option>
                     {% for p in projects %}
                     <option value="{{ p.id }}" {% if filter_project == p.id|stringformat:'s' %}selected{% endif %}>
                         {{ p.name }}
@@ -451,21 +452,21 @@
                 </select>
             </div>
             <div class="col-md-5">
-                <label class="small fw-semibold text-muted mb-1">Estado</label>
+                <label class="small fw-semibold text-muted mb-1">{% trans "Estado" %}</label>
                 <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">Todos los estados</option>
-                    <option value="draft" {% if filter_status == 'draft' %}selected{% endif %}>Borrador</option>
-                    <option value="review" {% if filter_status == 'review' %}selected{% endif %}>En Revisión</option>
-                    <option value="approved" {% if filter_status == 'approved' %}selected{% endif %}>Aprobado</option>
-                    <option value="in_progress" {% if filter_status == 'in_progress' %}selected{% endif %}>En Progreso</option>
-                    <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>Completado</option>
-                    <option value="rejected" {% if filter_status == 'rejected' %}selected{% endif %}>Rechazado</option>
+                    <option value="">{% trans "Todos los estados" %}</option>
+                    <option value="draft" {% if filter_status == 'draft' %}selected{% endif %}>{% trans "Borrador" %}</option>
+                    <option value="review" {% if filter_status == 'review' %}selected{% endif %}>{% trans "En Revisión" %}</option>
+                    <option value="approved" {% if filter_status == 'approved' %}selected{% endif %}>{% trans "Aprobado" %}</option>
+                    <option value="in_progress" {% if filter_status == 'in_progress' %}selected{% endif %}>{% trans "En Progreso" %}</option>
+                    <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>{% trans "Completado" %}</option>
+                    <option value="rejected" {% if filter_status == 'rejected' %}selected{% endif %}>{% trans "Rechazado" %}</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label class="small fw-semibold text-muted mb-1 d-block">&nbsp;</label>
                 <a href="{% url 'changeorder_board' %}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-x-circle"></i> Limpiar
+                    <i class="bi bi-x-circle"></i> {% trans "Limpiar" %}
                 </a>
             </div>
         </div>
@@ -476,37 +477,37 @@
         <div class="row g-3">
             <div class="col-6 col-md-2">
                 <div class="stat-item">
-                    <div class="stat-label">Total COs</div>
+                    <div class="stat-label">{% trans "Total COs" %}</div>
                     <div class="stat-value">{{ changeorders|length }}</div>
                 </div>
             </div>
             <div class="col-6 col-md-2">
                 <div class="stat-item">
-                    <div class="stat-label">Monto Total</div>
+                    <div class="stat-label">{% trans "Monto Total" %}</div>
                     <div class="stat-value">${{ total_amount|floatformat:0|default:"0" }}</div>
                 </div>
             </div>
             <div class="col-4 col-md-2">
                 <div class="stat-item">
-                    <div class="stat-label">Borrador</div>
+                    <div class="stat-label">{% trans "Borrador" %}</div>
                     <div class="stat-value">{{ changeorders|filter_by_status:'draft'|length }}</div>
                 </div>
             </div>
             <div class="col-4 col-md-2">
                 <div class="stat-item">
-                    <div class="stat-label">En Revisión</div>
+                    <div class="stat-label">{% trans "En Revisión" %}</div>
                     <div class="stat-value">{{ changeorders|filter_by_status:'review'|length }}</div>
                 </div>
             </div>
             <div class="col-4 col-md-2">
                 <div class="stat-item">
-                    <div class="stat-label">Aprobado</div>
+                    <div class="stat-label">{% trans "Aprobado" %}</div>
                     <div class="stat-value">{{ changeorders|filter_by_status:'approved'|length }}</div>
                 </div>
             </div>
             <div class="col-12 col-md-2">
                 <div class="stat-item">
-                    <div class="stat-label">Completado</div>
+                    <div class="stat-label">{% trans "Completado" %}</div>
                     <div class="stat-value">{{ changeorders|filter_by_status:'completed'|length }}</div>
                 </div>
             </div>
@@ -517,12 +518,12 @@
         <table class="co-table">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> CO#</th>
-                    <th><i class="bi bi-currency-dollar"></i> Monto</th>
-                    <th><i class="bi bi-building"></i> Proyecto / Descripción</th>
-                    <th><i class="bi bi-flag"></i> Estado</th>
-                    <th><i class="bi bi-calendar3"></i> Fecha</th>
-                    <th><i class="bi bi-gear"></i> Acciones</th>
+                    <th><i class="bi bi-hash"></i> {% trans "CO#" %}</th>
+                    <th><i class="bi bi-currency-dollar"></i> {% trans "Monto" %}</th>
+                    <th><i class="bi bi-building"></i> {% trans "Proyecto / Descripción" %}</th>
+                    <th><i class="bi bi-flag"></i> {% trans "Estado" %}</th>
+                    <th><i class="bi bi-calendar3"></i> {% trans "Fecha" %}</th>
+                    <th><i class="bi bi-gear"></i> {% trans "Acciones" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -548,23 +549,23 @@
                     <td>
                         {% if co.status == 'pending' %}
                             <span class="co-cell-status pending">
-                                <i class="bi bi-clock"></i> Pendiente
+                                <i class="bi bi-clock"></i> {% trans "Pendiente" %}
                             </span>
                         {% elif co.status == 'approved' %}
                             <span class="co-cell-status approved">
-                                <i class="bi bi-check-circle"></i> Aprobado
+                                <i class="bi bi-check-circle"></i> {% trans "Aprobado" %}
                             </span>
                         {% elif co.status == 'sent' %}
                             <span class="co-cell-status sent">
-                                <i class="bi bi-send"></i> Enviado
+                                <i class="bi bi-send"></i> {% trans "Enviado" %}
                             </span>
                         {% elif co.status == 'billed' %}
                             <span class="co-cell-status billed">
-                                <i class="bi bi-receipt"></i> Facturado
+                                <i class="bi bi-receipt"></i> {% trans "Facturado" %}
                             </span>
                         {% elif co.status == 'paid' %}
                             <span class="co-cell-status paid">
-                                <i class="bi bi-cash"></i> Pagado
+                                <i class="bi bi-cash"></i> {% trans "Pagado" %}
                             </span>
                         {% else %}
                             {{ co.get_status_display }}
@@ -578,24 +579,24 @@
                     
                     <!-- Actions -->
                     <td>
-                        <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-primary" title="Ver detalles">
-                            <i class="bi bi-eye"></i> Ver
+                        <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-primary" title="{% trans 'Ver detalles' %}">
+                            <i class="bi bi-eye"></i> {% trans "Ver" %}
                         </a>
-                        <a href="{% url 'changeorder_edit' co.id %}" class="btn btn-sm btn-secondary" title="Editar">
-                            <i class="bi bi-pencil"></i> Editar
+                        <a href="{% url 'changeorder_edit' co.id %}" class="btn btn-sm btn-secondary" title="{% trans 'Editar' %}">
+                            <i class="bi bi-pencil"></i> {% trans "Editar" %}
                         </a>
                         {% if co.status == 'pending' %}
-                        <a href="{% url 'changeorder_delete' co.id %}" class="btn btn-sm btn-danger" 
-                           onclick="return confirm('¿Estás seguro de eliminar este Change Order?')" 
-                           title="Eliminar">
+                                <a href="{% url 'changeorder_delete' co.id %}" class="btn btn-sm btn-danger" 
+                                    onclick="return confirm('{% trans "¿Estás seguro de eliminar este Change Order?" %}')" 
+                                    title="{% trans 'Eliminar' %}">
                             <i class="bi bi-trash"></i>
                         </a>
                         {% endif %}
                         {% if co.status == 'approved' %}
                         <button class="btn btn-sm btn-success" 
                                 onclick="sendToClient({{ co.id }})" 
-                                title="Enviar al cliente">
-                            <i class="bi bi-send"></i> Enviar
+                                title="{% trans 'Enviar al cliente' %}">
+                            <i class="bi bi-send"></i> {% trans "Enviar" %}
                         </button>
                         {% endif %}
                     </td>
@@ -604,7 +605,7 @@
                 <tr>
                     <td colspan="6" style="padding: 60px; text-align: center; color: #94a3b8;">
                         <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p style="margin-top: 16px; font-size: 14px;">No hay Change Orders para mostrar</p>
+                        <p style="margin-top: 16px; font-size: 14px;">{% trans "No hay Change Orders para mostrar" %}</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -618,7 +619,7 @@
 <script>
 // ===== SEND TO CLIENT FUNCTION =====
 function sendToClient(coId) {
-    if (!confirm('¿Enviar este Change Order al cliente para firma?')) {
+    if (!confirm('{% trans "¿Enviar este Change Order al cliente para firma?" %}')) {
         return;
     }
     
@@ -632,15 +633,15 @@ function sendToClient(coId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('✅ Change Order enviado al cliente correctamente');
+            alert('{% trans "✅ Change Order enviado al cliente correctamente" %}');
             location.reload();
         } else {
-            alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
+            alert('❌ ' + '{% trans "Error:" %}' + ' ' + (data.error || '{% trans "No se pudo enviar" %}'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('❌ Error al enviar al cliente');
+        alert('❌ ' + '{% trans "Error al enviar al cliente" %}');
     });
 }
 

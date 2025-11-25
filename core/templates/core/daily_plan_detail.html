@@ -1,0 +1,101 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Daily Plan Detail" %}{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">{% trans "Daily Plan" %}: {{ plan.plan_date }}</h2>
+    <div>
+      <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> {% trans "Edit" %}</a>
+      <a href="{% url 'daily_plan_list' %}" class="btn btn-sm btn-outline-secondary ms-1"><i class="bi bi-list"></i></a>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-8">
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>{% trans "Activities" %} ({{ activities.count }})</span>
+          {% if can_convert %}
+          <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}" onsubmit="return confirm('{% trans 'Convert all planned activities to tasks?' %}');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-warning"><i class="bi bi-arrow-repeat"></i> {% trans "Convert to Tasks" %}</button>
+          </form>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            {% for a in activities %}
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <strong>{{ a.title }}</strong>
+                  {% if a.activity_template %}<span class="badge bg-info ms-1">SOP</span>{% endif %}
+                  {% if a.schedule_item %}<span class="badge bg-success ms-1"><i class="bi bi-calendar"></i> {{ a.schedule_item.title }}</span>{% endif %}
+                  {% if a.estimated_hours %}<span class="badge bg-warning text-dark ms-1"><i class="bi bi-clock"></i> {{ a.estimated_hours }}h</span>{% endif %}
+                  {% if a.actual_hours %}<span class="badge bg-primary ms-1">{{ a.actual_hours }}h {% trans "actual" %}</span>{% endif %}
+                  <div class="small text-muted">{{ a.description|default:"" }}</div>
+                  <div class="mt-1">
+                    {% for emp in a.assigned_employees.all %}<span class="badge bg-secondary">{{ emp.first_name }}</span>{% empty %}<span class="text-muted small">{% trans "Unassigned" %}</span>{% endfor %}
+                  </div>
+                  {% if a.materials_needed %}
+                  <div class="small mt-1">
+                    <strong>{% trans "Materials" %}:</strong> {{ a.materials_needed|length }} · {% if a.materials_checked %}{% if a.material_shortage %}<span class="text-danger">{% trans "Shortage" %}</span>{% else %}<span class="text-success">OK</span>{% endif %}{% else %}<span class="text-muted">{% trans "Not checked" %}</span>{% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="text-end" style="min-width:110px;">
+                  <span class="badge bg-{% if a.status == 'COMPLETED' %}success{% elif a.status == 'IN_PROGRESS' %}primary{% elif a.status == 'BLOCKED' %}danger{% else %}secondary{% endif %}">{{ a.get_status_display }}</span>
+                  {% if a.progress_percentage %}<div class="small text-muted">{{ a.progress_percentage }}%</div>{% endif %}
+                  {% with variance=a.get_time_variance %}{% if variance %}<div class="small {% if variance.is_efficient %}text-success{% else %}text-danger{% endif %}">
+                    {{ variance.variance_hours }}h / {{ variance.variance_percentage }}%
+                  </div>{% endif %}{% endwith %}
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="list-group-item text-center text-muted py-4">{% trans "No activities planned" %}</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-header">{% trans "Summary" %}</div>
+        <div class="card-body small">
+          <p><strong>{% trans "Project" %}:</strong> {{ plan.project.name }}</p>
+          <p><strong>{% trans "Status" %}:</strong> {{ plan.get_status_display }}</p>
+          <p><strong>{% trans "Deadline" %}:</strong> {{ plan.completion_deadline|date:"M d, H:i" }}</p>
+          <p><strong>{% trans "Estimated" %}:</strong> {{ plan.estimated_hours_total|default:'0' }}h</p>
+          <p><strong>{% trans "Actual" %}:</strong> {{ plan.actual_hours_worked|default:'0' }}h</p>
+          <p><strong>{% trans "Productivity" %}:</strong> {% if productivity_score %}{{ productivity_score }}%{% else %}—{% endif %}</p>
+          {% if weather %}
+          <p><strong>{% trans "Weather" %}:</strong> {{ weather.condition }} · {{ weather.temp }}° · {{ weather.humidity }}%</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">{% trans "Actions" %}</div>
+        <div class="card-body">
+          {% if can_start %}
+          <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}" class="mb-2">
+            {% csrf_token %}
+            <button class="btn btn-outline-primary w-100"><i class="bi bi-play-circle"></i> {% trans "Start Work" %}</button>
+          </form>
+          {% endif %}
+          {% if can_complete %}
+          <form method="post" action="{% url 'daily_plan_edit' plan.id %}">
+            {% csrf_token %}
+            <button name="transition" value="COMPLETED" class="btn btn-outline-success w-100"><i class="bi bi-flag"></i> {% trans "Complete" %}</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{% url 'daily_plan_fetch_weather' plan.id %}" class="mt-2">
+            {% csrf_token %}
+            <button class="btn btn-outline-info w-100"><i class="bi bi-cloud"></i> {% trans "Refresh Weather" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -42,7 +42,7 @@
                   {% elif level > 0 %}
                     Nivel {{ level }}
                   {% else %}
-                    Sótano {{ level|add:"-1"|abs }}
+                    Sótano {{ level|add:"-1"|abs_value }}
                   {% endif %}
                 </h4>
                 <small>{{ plans_by_level|get_item:level|length }} plano(s) en este nivel</small>
@@ -77,7 +77,7 @@
                     <!-- Level Badge -->
                     <span class="position-absolute top-0 start-0 m-2 badge 
                                  {% if level >= 0 %}bg-primary{% else %}bg-secondary{% endif %}">
-                      {% if level >= 0 %}L{{ level }}{% else %}B{{ level|add:"-1"|abs }}{% endif %}
+                      {% if level >= 0 %}L{{ level }}{% else %}B{{ level|add:"-1"|abs_value }}{% endif %}
                     </span>
                   </div>
                 </a>
@@ -104,10 +104,15 @@
                 </div>
                 
                 <div class="card-footer bg-transparent">
-                  <div class="d-grid">
-                    <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-eye"></i> Ver Plano
+                  <div class="btn-group d-flex" role="group">
+                    <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-sm btn-outline-primary flex-fill">
+                      <i class="bi bi-eye"></i> Ver
                     </a>
+                    {% if can_edit_pins %}
+                    <a href="{% url 'floor_plan_detail' plan.id %}?mode=edit" class="btn btn-sm btn-success flex-fill" title="Abrir editor de pines">
+                      <i class="bi bi-pin-map"></i> Agregar Pin
+                    </a>
+                    {% endif %}
                   </div>
                 </div>
               </div>

@@ -295,8 +295,8 @@
         
         <div class="language-selector">
             <small class="text-muted">{% trans "Language" %}:</small>
-            <a href="?lang=en" class="{% if request.session.lang == 'en' or not request.session.lang %}active{% endif %}">English</a>
-            <a href="?lang=es" class="{% if request.session.lang == 'es' %}active{% endif %}">Español</a>
+            <a href="?lang=en" class="{% if request.session.lang == 'en' or not request.session.lang %}active{% endif %}">{% trans "English" %}</a>
+            <a href="?lang=es" class="{% if request.session.lang == 'es' %}active{% endif %}">{% trans "Español" %}</a>
         </div>
     </div>
     

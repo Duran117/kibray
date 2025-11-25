@@ -5148,6 +5148,38 @@ def inventory_adjust(request, item_id, location_id):
 from core.models import DailyPlan, PlannedActivity, ActivityTemplate, ActivityCompletion
 
 @login_required
+def daily_plan_list(request):
+    """List daily plans with optional status filter (Module 12.7)."""
+    if not _is_staffish(request.user):
+        return HttpResponseForbidden("Access denied")
+    status = request.GET.get('status')
+    qs = DailyPlan.objects.select_related('project', 'created_by').order_by('-plan_date')
+    if status and status in ['DRAFT','PUBLISHED','IN_PROGRESS','COMPLETED','SKIPPED']:
+        qs = qs.filter(status=status)
+    return render(request, 'core/daily_plan_list.html', {
+        'plans': qs[:200],  # safety cap
+        'filter_status': status,
+    })
+
+@login_required
+def daily_plan_detail(request, plan_id):
+    """Detail view for a daily plan with productivity and weather (Module 12.7)."""
+    if not _is_staffish(request.user):
+        return HttpResponseForbidden("Access denied")
+    plan = get_object_or_404(DailyPlan.objects.select_related('project','created_by'), pk=plan_id)
+    activities = plan.activities.select_related('activity_template','schedule_item').prefetch_related('assigned_employees').order_by('order')
+    productivity = plan.calculate_productivity_score()
+    return render(request, 'core/daily_plan_detail.html', {
+        'plan': plan,
+        'activities': activities,
+        'productivity_score': productivity,
+        'weather': plan.weather_data,
+        'can_convert': plan.status == 'PUBLISHED',
+        'can_start': plan.status == 'PUBLISHED',
+        'can_complete': plan.status == 'IN_PROGRESS',
+    })
+
+@login_required
 def daily_planning_dashboard(request):
     """
     Main dashboard for daily planning - shows all plans and overdue alerts
@@ -5267,79 +5299,63 @@ def daily_plan_create(request, project_id):
 
 @login_required
 def daily_plan_edit(request, plan_id):
-    """
-    Edit a daily plan and its activities
-    """
+    """Edit a daily plan and its activities using forms and inline formset (Modules 12.5-12.7)."""
     if not _is_staffish(request.user):
         return HttpResponseForbidden("Access denied")
-    
-    plan = get_object_or_404(
-        DailyPlan.objects.select_related('project'),
-        pk=plan_id
-    )
-    
+
+    from django.utils.translation import gettext as _
+    from core.forms import DailyPlanForm, make_planned_activity_formset
+    plan = get_object_or_404(DailyPlan.objects.select_related('project'), pk=plan_id)
+
+    # Instantiate forms
     if request.method == 'POST':
-        action = request.POST.get('action')
-
-        if action == 'submit':
-            plan.status = 'SUBMITTED'
-            plan.save()
-            messages.success(request, "Plan submitted successfully!")
-            return redirect('daily_planning_dashboard')
-
-        elif action == 'add_activity':
-            title = request.POST.get('title')
-            description = request.POST.get('description', '')
-            template_id = request.POST.get('activity_template')
-            schedule_id = request.POST.get('schedule_item')
-            estimated_hours = request.POST.get('estimated_hours')
-
-            if not title:
-                messages.error(request, "Activity title is required")
-                return redirect('daily_plan_edit', plan_id=plan.id)
-
-            # Get next order number
-            max_order = plan.activities.aggregate(Max('order'))['order__max'] or 0
-
-            activity = PlannedActivity.objects.create(
-                daily_plan=plan,
-                title=title,
-                description=description,
-                order=max_order + 1,
-                estimated_hours=Decimal(estimated_hours) if estimated_hours else None,
-                activity_template_id=template_id if template_id else None,
-                schedule_item_id=schedule_id if schedule_id else None,
-            )
-
-            # Assign employees
-            employee_ids = request.POST.getlist('assigned_employees')
-            if employee_ids:
-                activity.assigned_employees.set(employee_ids)
-
-            messages.success(request, f"Activity '{title}' added")
+        form = DailyPlanForm(request.POST, instance=plan)
+        formset = make_planned_activity_formset(plan, data=request.POST, files=request.FILES)
+        if form.is_valid() and formset.is_valid():
+            form.save()  # Handles weather fetch + estimated hours recalculation
+            formset.save()
+            messages.success(request, _('Plan actualizado'))
+            # Workflow quick actions via hidden field 'transition'
+            transition = request.POST.get('transition')
+            if transition:
+                # Attempt state transition
+                try:
+                    desired = transition
+                    current = plan.status
+                    allowed = {
+                        'DRAFT': ['PUBLISHED', 'SKIPPED'],
+                        'PUBLISHED': ['IN_PROGRESS', 'SKIPPED'],
+                        'IN_PROGRESS': ['COMPLETED'],
+                    }
+                    if desired != current and desired in allowed.get(current, []):
+                        plan.status = desired
+                        plan.save(update_fields=['status'])
+                        messages.success(request, _('Transición de estado exitosa'))
+                    else:
+                        messages.warning(request, _('Transición inválida'))
+                except Exception:
+                    messages.error(request, _('Error aplicando transición de estado'))
             return redirect('daily_plan_edit', plan_id=plan.id)
+        else:
+            messages.error(request, _('Revisa errores en el formulario'))
+    else:
+        form = DailyPlanForm(instance=plan)
+        formset = make_planned_activity_formset(plan)
 
-        elif action == 'check_materials':
-            # Check all activities in this plan
-            for activity in plan.activities.all():
-                activity.check_materials()
-            messages.success(request, "Material availability checked for all activities.")
-            return redirect('daily_plan_edit', plan_id=plan.id)
-    
-    # GET request
+    # For display contexts
+    productivity = plan.calculate_productivity_score()
     activities = plan.activities.prefetch_related('assigned_employees').order_by('order')
-    available_templates = ActivityTemplate.objects.filter(is_active=True).order_by('category', 'name')
-    schedule_items = Schedule.objects.filter(project=plan.project).order_by('start_datetime')
-    employees = Employee.objects.filter(is_active=True).order_by('first_name', 'last_name')
-    
+
     context = {
         'plan': plan,
+        'form': form,
+        'formset': formset,
         'activities': activities,
-        'available_templates': available_templates,
-        'schedule_items': schedule_items,
-        'employees': employees,
+        'productivity_score': productivity,
+        'can_convert': plan.status == 'PUBLISHED',
+        'can_start': plan.status == 'PUBLISHED',
+        'can_complete': plan.status == 'IN_PROGRESS',
     }
-    
     return render(request, 'core/daily_plan_edit.html', context)
 
 

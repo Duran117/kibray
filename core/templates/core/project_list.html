@@ -205,7 +205,7 @@
             <i class="bi bi-folder2-open"></i> {% trans "Projects" %}
         </h2>
         {% if user.is_staff %}
-        <a class="btn btn-success" href="/admin/core/project/add/">
+        <a class="btn btn-success" href="{% url 'project_create' %}">
             <i class="bi bi-plus-circle"></i> {% trans "New Project" %}
         </a>
         {% endif %}
@@ -272,12 +272,19 @@
                     
                     <!-- Actions -->
                     <td>
-                        <a class="btn btn-sm btn-primary" href="{% url 'project_overview' p.id %}" title="{% trans 'Dashboard' %}">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                        <a class="btn btn-sm btn-secondary" href="{% url 'budget_lines' p.id %}" title="{% trans 'Budget' %}">
-                            <i class="bi bi-wallet2"></i> Presupuesto
-                        </a>
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-sm btn-primary" href="{% url 'project_overview' p.id %}" title="{% trans 'Dashboard' %}">
+                                <i class="bi bi-speedometer2"></i>
+                            </a>
+                            {% if user.is_staff %}
+                            <a class="btn btn-sm btn-secondary" href="{% url 'project_edit' p.id %}" title="{% trans 'Editar' %}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a class="btn btn-sm btn-danger" href="{% url 'project_delete' p.id %}" title="{% trans 'Eliminar' %}">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -293,7 +300,7 @@
             <h4>{% trans "No projects yet" %}</h4>
             <p>{% trans "Create your first project to get started" %}</p>
             {% if user.is_staff %}
-            <a class="btn btn-primary mt-2" href="/admin/core/project/add/">
+            <a class="btn btn-primary mt-2" href="{% url 'project_create' %}">
                 <i class="bi bi-plus-circle"></i> {% trans "Create Project" %}
             </a>
             {% else %}

@@ -1,0 +1,208 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirmar Eliminación de Proyecto" %} - Kibray{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'dashboard_admin' %}">
+                            <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'project_list' %}">{% trans "Proyectos" %}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'project_overview' project.id %}">{{ project.name }}</a>
+                    </li>
+                    <li class="breadcrumb-item active">{% trans "Eliminar" %}</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% trans "Confirmar Eliminación de Proyecto" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-shield-exclamation me-2"></i>
+                            {% trans "¡ADVERTENCIA!" %}
+                        </h6>
+                        <p class="mb-0">
+                            {% trans "Estás a punto de eliminar PERMANENTEMENTE el proyecto" %}:
+                            <strong>{{ project.name }}</strong>
+                        </p>
+                    </div>
+
+                    <!-- Información del Proyecto -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">{% trans "Información del Proyecto" %}</h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">{% trans "Nombre:" %}</dt>
+                                <dd class="col-sm-8">{{ project.name }}</dd>
+
+                                <dt class="col-sm-4">{% trans "Cliente:" %}</dt>
+                                <dd class="col-sm-8">{{ project.client|default:"N/A" }}</dd>
+
+                                <dt class="col-sm-4">{% trans "Dirección:" %}</dt>
+                                <dd class="col-sm-8">{{ project.address|default:"N/A" }}</dd>
+
+                                <dt class="col-sm-4">{% trans "Fecha de inicio:" %}</dt>
+                                <dd class="col-sm-8">{{ project.start_date|date:"d M Y" }}</dd>
+
+                                <dt class="col-sm-4">{% trans "Estado:" %}</dt>
+                                <dd class="col-sm-8">
+                                    {% if project.end_date %}
+                                        <span class="badge bg-success">
+                                            {% trans "Completado" %} ({{ project.end_date|date:"d M Y" }})
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{% trans "Activo" %}</span>
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Datos Asociados -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title text-warning">
+                                <i class="bi bi-database me-2"></i>
+                                {% trans "Datos Asociados que se Eliminarán" %}
+                            </h6>
+                            <div class="row text-center g-3">
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded">
+                                        <h3 class="mb-1 {% if expense_count > 0 %}text-danger{% else %}text-muted{% endif %}">
+                                            {{ expense_count }}
+                                        </h3>
+                                        <small class="text-muted">{% trans "Gastos" %}</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded">
+                                        <h3 class="mb-1 {% if income_count > 0 %}text-danger{% else %}text-muted{% endif %}">
+                                            {{ income_count }}
+                                        </h3>
+                                        <small class="text-muted">{% trans "Ingresos" %}</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded">
+                                        <h3 class="mb-1 {% if timeentry_count > 0 %}text-danger{% else %}text-muted{% endif %}">
+                                            {{ timeentry_count }}
+                                        </h3>
+                                        <small class="text-muted">{% trans "Time Entries" %}</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded">
+                                        <h3 class="mb-1 {% if co_count > 0 %}text-danger{% else %}text-muted{% endif %}">
+                                            {{ co_count }}
+                                        </h3>
+                                        <small class="text-muted">{% trans "Change Orders" %}</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded">
+                                        <h3 class="mb-1 {% if task_count > 0 %}text-warning{% else %}text-muted{% endif %}">
+                                            {{ task_count }}
+                                        </h3>
+                                        <small class="text-muted">{% trans "Tareas" %}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if has_data %}
+                    <!-- Advertencia si tiene datos financieros -->
+                    <div class="alert alert-danger" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-x-circle me-2"></i>
+                            {% trans "No se puede eliminar este proyecto" %}
+                        </h6>
+                        <p class="mb-0">
+                            {% trans "Este proyecto tiene datos financieros asociados (gastos, ingresos, time entries o change orders). No se puede eliminar para mantener la integridad de los registros financieros." %}
+                        </p>
+                    </div>
+
+                    <div class="alert alert-info mb-0" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-lightbulb me-2"></i>
+                            {% trans "Alternativas Recomendadas" %}
+                        </h6>
+                        <ul class="mb-0">
+                            <li>{% trans "Marca el proyecto como completado estableciendo una fecha de finalización" %}</li>
+                            <li>{% trans "Archiva el proyecto para sacarlo de las vistas principales" %}</li>
+                            <li>{% trans "Exporta los datos del proyecto antes de considerar su eliminación" %}</li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <!-- Confirmación si no tiene datos -->
+                    <div class="alert alert-warning" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {% trans "Información Importante" %}
+                        </h6>
+                        <ul class="mb-0">
+                            <li>{% trans "Esta acción NO se puede deshacer" %}</li>
+                            <li>{% trans "Se eliminarán todas las tareas asociadas" %}</li>
+                            <li>{% trans "Se perderán todos los archivos y documentos del proyecto" %}</li>
+                            <li>{% trans "Los accesos de clientes a este proyecto serán revocados" %}</li>
+                        </ul>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>
+                                {% trans "Cancelar" %}
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg"
+                                    onclick="return confirm('{% trans "¿Estás ABSOLUTAMENTE SEGURO? Esta acción es PERMANENTE y NO se puede deshacer." %}')">
+                                <i class="bi bi-trash me-2"></i>
+                                {% trans "SÍ, ELIMINAR PROYECTO PERMANENTEMENTE" %}
+                            </button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+                
+                {% if has_data %}
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            {% trans "Volver al Proyecto" %}
+                        </a>
+                        <form method="post" action="{% url 'project_status_toggle' project.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="complete">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {% trans "Marcar como Completado" %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Designer Dashboard" %} - Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-brush text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">{% trans "Designer Dashboard" %}</h1>
+            <p class="text-slate-600 mt-1">{% trans "Consolidated view of projects, color samples, and plans" %}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- My Projects -->
+{% include "core/components/card.html" with title=_("My Projects") icon="folder" %}
+    {% if projects %}
+    <div class="space-y-2">
+        {% for p in projects %}
+        <a href="{% url 'project_overview' p.id %}" 
+           class="flex justify-between items-center p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition group">
+            <div>
+                <div class="font-semibold text-slate-900 group-hover:text-indigo-600">{{ p.name }}</div>
+                <div class="text-sm text-slate-600 mt-1">{% trans "Client" %}: {{ p.client }}</div>
+            </div>
+            <span class="px-3 py-1 bg-cyan-100 text-cyan-800 rounded text-sm font-medium">
+                {{ p.status }}
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-slate-600 text-center py-8">{% trans "No projects assigned" %}</p>
+    {% endif %}
+{% include "core/components/card.html" with close_card=True only %}
+
+<!-- Color Samples & Floor Plans -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Color Samples -->
+    {% include "core/components/card.html" %}
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+            <h6 class="text-lg font-semibold text-purple-900 flex items-center gap-2">
+                <i class="bi bi-palette"></i>
+                {% trans "Recent Color Samples" %}
+            </h6>
+        </div>
+        {% if color_samples %}
+        <div class="space-y-2">
+            {% for cs in color_samples %}
+            <a href="{% url 'color_sample_detail' cs.id %}" 
+               class="block p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-semibold text-slate-900">{{ cs.name }} ({{ cs.brand }})</div>
+                        <div class="text-sm text-slate-600 mt-1">{{ cs.project.name }}</div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium {% if cs.status == 'approved' %}bg-green-100 text-green-800{% elif cs.status == 'rejected' %}bg-red-100 text-red-800{% elif cs.status == 'review' %}bg-yellow-100 text-yellow-800{% else %}bg-slate-100 text-slate-800{% endif %}">
+                        {{ cs.get_status_display }}
+                    </span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-slate-600 text-center py-8">{% trans "No color samples available" %}</p>
+        {% endif %}
+    {% include "core/components/card.html" with close_card=True only %}
+
+    <!-- Floor Plans -->
+    {% include "core/components/card.html" %}
+        <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-3 mb-4">
+            <h6 class="text-lg font-semibold text-cyan-900 flex items-center gap-2">
+                <i class="bi bi-map"></i>
+                {% trans "Recent Floor Plans" %}
+            </h6>
+        </div>
+        {% if plans %}
+        <div class="space-y-2">
+            {% for plan in plans %}
+            <a href="{% url 'floor_plan_detail' plan.id %}" 
+               class="block p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+                <div class="font-semibold text-slate-900">{{ plan.name }}</div>
+                <div class="text-sm text-slate-600 mt-1">
+                    {{ plan.project.name }} · {{ plan.uploaded_at|date:"M d, Y" }}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-slate-600 text-center py-8">{% trans "No floor plans available" %}</p>
+        {% endif %}
+    {% include "core/components/card.html" with close_card=True only %}
+</div>
+
+<!-- Upcoming Schedule -->
+{% include "core/components/card.html" %}
+    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+        <h6 class="text-lg font-semibold text-green-900 flex items-center gap-2">
+            <i class="bi bi-calendar-event"></i>
+            {% trans "Upcoming Schedule" %}
+        </h6>
+    </div>
+    {% if schedules %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Project" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Activity" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">{% trans "Start" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">{% trans "End" %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                {% for s in schedules %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3 text-slate-900">{{ s.project.name }}</td>
+                    <td class="px-4 py-3 text-slate-900">{{ s.title }}</td>
+                    <td class="px-4 py-3 text-slate-600 hidden md:table-cell">{{ s.start_datetime|date:"M d, Y" }}</td>
+                    <td class="px-4 py-3 text-slate-600 hidden md:table-cell">{{ s.end_datetime|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-slate-600 text-center py-8">{% trans "No upcoming schedule" %}</p>
+    {% endif %}
+{% include "core/components/card.html" with close_card=True only %}
+{% endblock %}

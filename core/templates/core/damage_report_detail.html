@@ -1,7 +1,18 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 {% block content %}
 <div class="container mt-3">
-  <a href="{% url 'damage_report_list' project.id %}" class="btn btn-link">← Volver</a>
+  <div class="d-flex justify-content-between align-items-start mb-2">
+  <a href="{% url 'damage_report_list' project.id %}" class="btn btn-link">← {% trans "Volver" %}</a>
+    <div class="btn-group">
+      <a href="{% url 'damage_report_edit' report.id %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
+        <i class="bi bi-pencil"></i> {% trans "Editar" %}
+      </a>
+      <a href="{% url 'damage_report_delete' report.id %}" class="btn btn-sm btn-outline-danger" title="{% trans 'Eliminar' %}">
+        <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+      </a>
+    </div>
+  </div>
   <h3>{{ report.title }}</h3>
   <p class="text-muted">{{ report.get_severity_display }} · {{ report.get_status_display }} · {{ report.reported_at|date:'Y-m-d H:i' }}</p>
   <p>{{ report.description|default:'(Sin descripción)' }}</p>
@@ -9,25 +20,28 @@
   <p>Plano: <a href="{% url 'floor_plan_detail' report.plan.id %}">{{ report.plan.name }}</a></p>
   {% endif %}
   <hr>
-  <h5>Fotos ({{ report.photos.count }})</h5>
+  {# Pluralized photo count #}
+  <h5>
+    {% blocktrans count photo_count=report.photos.count %}{{ photo_count }} Foto{% plural %}{{ photo_count }} Fotos{% endblocktrans %}
+  </h5>
   
   <!-- Upload Form -->
   <div class="card mb-3">
     <div class="card-body">
-      <h6 class="card-title"><i class="bi bi-camera"></i> Agregar Fotos</h6>
+  <h6 class="card-title"><i class="bi bi-camera"></i> {% trans "Agregar Fotos" %}</h6>
       <form method="post" enctype="multipart/form-data" id="photoUploadForm" action="{% url 'damage_report_add_photos' report.id %}">
         {% csrf_token %}
         <div class="mb-3">
-          <label for="photos" class="form-label">Seleccionar fotos</label>
+          <label for="photos" class="form-label">{% trans "Seleccionar fotos" %}</label>
           <input type="file" class="form-control" id="photos" name="photos" accept="image/*" multiple required>
-          <div class="form-text">Puedes seleccionar múltiples archivos</div>
+          <div class="form-text">{% trans "Puedes seleccionar múltiples archivos" %}</div>
         </div>
         <div class="mb-3">
-          <label for="notes" class="form-label">Notas (opcional)</label>
-          <input type="text" class="form-control" id="notes" name="notes" placeholder="Descripción de las fotos">
+          <label for="notes" class="form-label">{% trans "Notas (opcional)" %}</label>
+          <input type="text" class="form-control" id="notes" name="notes" placeholder="{% trans "Descripción de las fotos" %}">
         </div>
         <button type="submit" class="btn btn-primary">
-          <i class="bi bi-upload"></i> Subir Fotos
+          <i class="bi bi-upload"></i> {% trans "Subir Fotos" %}
         </button>
       </form>
       <div id="uploadStatus" class="mt-2"></div>
@@ -50,7 +64,7 @@
     {% empty %}
     <div class="col-12">
       <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> No hay fotos aún. Usa el formulario de arriba para agregar fotos.
+  <i class="bi bi-info-circle"></i> {% trans "No hay fotos aún. Usa el formulario de arriba para agregar fotos." %}
       </div>
     </div>
     {% endfor %}
@@ -63,7 +77,7 @@ document.getElementById('photoUploadForm').addEventListener('submit', async func
   const statusDiv = document.getElementById('uploadStatus');
   const formData = new FormData(this);
   
-  statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Subiendo...</span></div> Subiendo fotos...';
+  statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visualmente-hidden">{% trans "Subiendo..." %}</span></div> {% trans "Subiendo fotos..." %}';
   
   try {
     const response = await fetch(this.action, {
@@ -81,10 +95,10 @@ document.getElementById('photoUploadForm').addEventListener('submit', async func
       // Reload page after 1 second to show new photos
       setTimeout(() => window.location.reload(), 1000);
     } else {
-      statusDiv.innerHTML = '<div class="alert alert-danger">Error: ' + (data.error || 'Error desconocido') + '</div>';
+  statusDiv.innerHTML = '<div class="alert alert-danger">{% trans "Error:" %} ' + (data.error || '{% trans "Error desconocido" %}') + '</div>';
     }
   } catch (error) {
-    statusDiv.innerHTML = '<div class="alert alert-danger">Error al subir fotos: ' + error.message + '</div>';
+  statusDiv.innerHTML = '<div class="alert alert-danger">{% trans "Error al subir fotos:" %} ' + error.message + '</div>';
   }
 });
 </script>

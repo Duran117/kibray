@@ -1,0 +1,146 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}JavaScript i18n Demo{% endblock %}
+
+{% block extra_head %}
+<!-- Load Django's JavaScript translation catalog -->
+<script src="{% url 'javascript-catalog' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-code-square"></i> {% trans "JavaScript i18n Demo" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>{% trans "Demo:" %}</strong>
+                        {% trans "This page demonstrates how to use Django's JavaScript translation catalog." %}
+                    </div>
+
+                    <h5 class="mb-3">{% trans "Test Buttons" %}</h5>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success" onclick="testGreeting()">
+                            <i class="bi bi-chat-dots"></i> {% trans "Show Greeting" %}
+                        </button>
+                        
+                        <button type="button" class="btn btn-warning" onclick="testConfirm()">
+                            <i class="bi bi-question-circle"></i> {% trans "Test Confirm Dialog" %}
+                        </button>
+                        
+                        <button type="button" class="btn btn-danger" onclick="testDelete()">
+                            <i class="bi bi-trash"></i> {% trans "Test Delete Confirmation" %}
+                        </button>
+                        
+                        <button type="button" class="btn btn-info" onclick="testPluralization()">
+                            <i class="bi bi-123"></i> {% trans "Test Pluralization" %}
+                        </button>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">{% trans "Implementation Example" %}</h5>
+                    <pre class="bg-light p-3 rounded"><code>// 1. Include the catalog in your template:
+&lt;script src="{% url 'javascript-catalog' %}"&gt;&lt;/script&gt;
+
+// 2. Use gettext() for simple translations:
+const message = gettext('Hello World');
+alert(message);
+
+// 3. Use ngettext() for pluralization:
+const count = 5;
+const msg = ngettext(
+    '%s project',
+    '%s projects',
+    count
+);
+alert(interpolate(msg, [count]));
+
+// 4. Use interpolate() for string formatting:
+const name = 'John';
+const greeting = interpolate(
+    gettext('Welcome, %s!'),
+    [name]
+);
+alert(greeting);</code></pre>
+
+                    <div class="alert alert-success mt-3">
+                        <strong>{% trans "Current Language:" %}</strong> 
+                        <span class="badge bg-success">{{ LANGUAGE_CODE }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Hidden translations for JavaScript - these will be extracted by makemessages #}
+<div style="display:none;">
+    {% trans "Hello! Welcome to the system." %}
+    {% trans "Are you sure you want to continue?" %}
+    {% trans "Operation confirmed successfully" %}
+    {% trans "Operation cancelled" %}
+    {% trans "Are you sure you want to delete this item?" %}
+    {% trans "This action cannot be undone." %}
+    {% trans "Item deleted successfully" %}
+    {% trans "%s project found" %}
+    {% trans "%s projects found" %}
+</div>
+
+<script>
+// Example translation functions using Django's JavaScript i18n
+
+function testGreeting() {
+    const message = gettext('Hello! Welcome to the system.');
+    alert(message);
+}
+
+function testConfirm() {
+    const confirmMsg = gettext('Are you sure you want to continue?');
+    if (confirm(confirmMsg)) {
+        const successMsg = gettext('Operation confirmed successfully');
+        alert('✅ ' + successMsg);
+    } else {
+        const cancelMsg = gettext('Operation cancelled');
+        alert('❌ ' + cancelMsg);
+    }
+}
+
+function testDelete() {
+    const deleteMsg = gettext('Are you sure you want to delete this item?');
+    const warningMsg = gettext('This action cannot be undone.');
+    
+    if (confirm(deleteMsg + '\n\n' + warningMsg)) {
+        const deletedMsg = gettext('Item deleted successfully');
+        alert('✅ ' + deletedMsg);
+    }
+}
+
+function testPluralization() {
+    let counts = [0, 1, 2, 5];
+    let results = [];
+    
+    counts.forEach(count => {
+        // ngettext(singular, plural, count)
+        const msg = ngettext(
+            '%s project found',
+            '%s projects found',
+            count
+        );
+        // interpolate() replaces %s with actual values
+        const formatted = interpolate(msg, [count]);
+        results.push(formatted);
+    });
+    
+    alert(results.join('\n'));
+}
+</script>
+{% endblock %}

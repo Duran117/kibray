@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load i18n %}
 {% load static %}
+{% load core_extras %}
 
 {% block title %}{% if income %}{% trans "Edit Income" %}{% else %}{% trans "Add Income" %}{% endif %} - Kibray{% endblock %}
 
@@ -65,7 +66,7 @@
                       {{ field.help_text }}
                     </label>
                   </div>
-                {% elif field.field.widget.input_type == 'textarea' or 'textarea' in field.field.widget.__class__.__name__|lower %}
+                {% elif field.field.widget.input_type == 'textarea' or 'textarea' in field.field.widget|class_name|lower %}
                   <textarea 
                     name="{{ field.name }}" 
                     id="{{ field.id_for_label }}"
@@ -75,7 +76,7 @@
                     {% if field.field.required %}required{% endif %}
                     {% if field.name == 'notes' %}placeholder="{% trans 'Additional notes or details' %}"{% endif %}
                   >{{ field.value|default:'' }}</textarea>
-                {% elif 'select' in field.field.widget.__class__.__name__|lower %}
+                {% elif 'select' in field.field.widget|class_name|lower %}
                   <select 
                     name="{{ field.name }}" 
                     id="{{ field.id_for_label }}"

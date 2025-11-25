@@ -8,14 +8,19 @@
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">Planos</a></li>
-      <li class="breadcrumb-item active">Subir Nuevo Plano</li>
+      <li class="breadcrumb-item active">{% if is_edit %}Editar Plano{% else %}Subir Nuevo Plano{% endif %}</li>
     </ol>
   </nav>
 
   <!-- Header -->
   <div class="mb-4">
-    <h2><i class="bi bi-cloud-upload"></i> Subir Plano 2D Multi-Nivel</h2>
-    <p class="text-muted">Agrega un nuevo plano e indica a qué nivel pertenece</p>
+    {% if is_edit %}
+      <h2><i class="bi bi-pencil-square"></i> Editar Plano 2D</h2>
+      <p class="text-muted">Actualiza el nombre, nivel o imagen del plano</p>
+    {% else %}
+      <h2><i class="bi bi-cloud-upload"></i> Subir Plano 2D Multi-Nivel</h2>
+      <p class="text-muted">Agrega un nuevo plano e indica a qué nivel pertenece</p>
+    {% endif %}
   </div>
 
   <!-- Form Card -->
@@ -117,7 +122,7 @@
         <div class="border-top pt-4 mt-4">
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-success btn-lg">
-              <i class="bi bi-check-circle"></i> Subir Plano
+              <i class="bi bi-check-circle"></i> {% if is_edit %}Guardar Cambios{% else %}Subir Plano{% endif %}
             </button>
             <a href="{% url 'floor_plan_list' project.id %}" class="btn btn-outline-secondary btn-lg">
               <i class="bi bi-x-circle"></i> Cancelar

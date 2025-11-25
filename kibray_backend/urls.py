@@ -9,6 +9,7 @@ from core import views
 from core import views_notifications as notif_views
 from core import views_financial as fin_views
 from django.views.i18n import set_language as dj_set_language
+from django.views.i18n import JavaScriptCatalog
 
 urlpatterns = [
     # Home
@@ -30,9 +31,16 @@ urlpatterns = [
     path("dashboard/client/", views.dashboard_client, name="dashboard_client"),
     path("dashboard/designer/", views.dashboard_designer, name="dashboard_designer"),
     path("dashboard/superintendent/", views.dashboard_superintendent, name="dashboard_superintendent"),
+    
+    # Demo/Testing
+    path("demo/js-i18n/", views.js_i18n_demo, name="js_i18n_demo"),
 
-    # Project list
+    # Project list & CRUD
     path("projects/", views.project_list, name="project_list"),
+    path("projects/create/", views.project_create, name="project_create"),
+    path("projects/<int:project_id>/edit/", views.project_edit, name="project_edit"),
+    path("projects/<int:project_id>/delete/", views.project_delete, name="project_delete"),
+    path("projects/<int:project_id>/toggle-status/", views.project_status_toggle, name="project_status_toggle"),
 
     # Project overview + acciones
     path("projects/<int:project_id>/overview/", views.project_overview, name="project_overview"),
@@ -68,6 +76,8 @@ urlpatterns = [
     path("projects/<int:project_id>/colors/", views.color_sample_list, name="color_sample_list"),
     path("projects/<int:project_id>/colors/new/", views.color_sample_create, name="color_sample_create"),
     path("colors/sample/<int:sample_id>/", views.color_sample_detail, name="color_sample_detail"),
+    path("colors/sample/<int:sample_id>/edit/", views.color_sample_edit, name="color_sample_edit"),
+    path("colors/sample/<int:sample_id>/delete/", views.color_sample_delete, name="color_sample_delete"),
     path("colors/sample/<int:sample_id>/review/", views.color_sample_review, name="color_sample_review"),
     path("colors/sample/<int:sample_id>/quick-action/", views.color_sample_quick_action, name="color_sample_quick_action"),
     
@@ -75,6 +85,8 @@ urlpatterns = [
     path("projects/<int:project_id>/plans/", views.floor_plan_list, name="floor_plan_list"),
     path("projects/<int:project_id>/plans/new/", views.floor_plan_create, name="floor_plan_create"),
     path("plans/<int:plan_id>/", views.floor_plan_detail, name="floor_plan_detail"),
+    path("plans/<int:plan_id>/edit/", views.floor_plan_edit, name="floor_plan_edit"),
+    path("plans/<int:plan_id>/delete/", views.floor_plan_delete, name="floor_plan_delete"),
     path("plans/<int:plan_id>/add-pin/", views.floor_plan_add_pin, name="floor_plan_add_pin"),
     path("pins/<int:pin_id>/detail.json", views.pin_detail_ajax, name="pin_detail_ajax"),
 
@@ -85,6 +97,8 @@ urlpatterns = [
     # Damage reports
     path("projects/<int:project_id>/damages/", views.damage_report_list, name="damage_report_list"),
     path("damages/<int:report_id>/", views.damage_report_detail, name="damage_report_detail"),
+    path("damages/<int:report_id>/edit/", views.damage_report_edit, name="damage_report_edit"),
+    path("damages/<int:report_id>/delete/", views.damage_report_delete, name="damage_report_delete"),
     path("damages/<int:report_id>/add-photos/", views.damage_report_add_photos, name="damage_report_add_photos"),
     path("damages/<int:report_id>/update-status/", views.damage_report_update_status, name="damage_report_update_status"),
 
@@ -102,6 +116,15 @@ urlpatterns = [
     path("expense/add/", views.expense_create_view, name="expense_create"),
     path("income/add/", views.income_create_view, name="income_create"),
     path("timeentry/add/", views.timeentry_create_view, name="timeentry_create"),
+    path("timeentry/<int:entry_id>/edit/", views.timeentry_edit_view, name="timeentry_edit"),
+    path("timeentry/<int:entry_id>/delete/", views.timeentry_delete_view, name="timeentry_delete"),
+    # Income/Expense lists & CRUD
+    path("incomes/", views.income_list, name="income_list"),
+    path("incomes/<int:income_id>/edit/", views.income_edit_view, name="income_edit"),
+    path("incomes/<int:income_id>/delete/", views.income_delete_view, name="income_delete"),
+    path("expenses/", views.expense_list, name="expense_list"),
+    path("expenses/<int:expense_id>/edit/", views.expense_edit_view, name="expense_edit"),
+    path("expenses/<int:expense_id>/delete/", views.expense_delete_view, name="expense_delete"),
 
     # Vista cliente
     path("proyecto/<int:project_id>/", views.client_project_view, name="client_project_view"),
@@ -115,8 +138,7 @@ urlpatterns = [
     path("changeorder/<int:co_id>/delete/", views.changeorder_delete_view, name="changeorder_delete"),
     path("changeorders/board/", views.changeorder_board_view, name="changeorder_board"),
     path("changeorders/unassigned-time/", views.unassigned_timeentries_view, name="unassigned_timeentries"),
-    path("changeorder/photo/<int:photo_id>/annotations/", views.save_photo_annotations, name="save_photo_annotations"),
-    path("changeorder/photo/<int:photo_id>/delete/", views.delete_changeorder_photo, name="delete_changeorder_photo"),
+    # Deprecated legacy photo annotation endpoints removed (use /api/v1/changeorder-photo/<id>/...)
     path("changeorder/photo-editor/", views.photo_editor_standalone_view, name="photo_editor_standalone"),
 
 
@@ -168,8 +190,14 @@ urlpatterns = [
     path("daily-log/<int:log_id>/", views.daily_log_detail, name="daily_log_detail"),
     path("projects/<int:project_id>/rfis/", views.rfi_list_view, name="rfi_list"),
     path("rfis/<int:rfi_id>/answer/", views.rfi_answer_view, name="rfi_answer"),
+    path("rfis/<int:rfi_id>/edit/", views.rfi_edit_view, name="rfi_edit"),
+    path("rfis/<int:rfi_id>/delete/", views.rfi_delete_view, name="rfi_delete"),
     path("projects/<int:project_id>/issues/", views.issue_list_view, name="issue_list"),
+    path("issues/<int:issue_id>/edit/", views.issue_edit_view, name="issue_edit"),
+    path("issues/<int:issue_id>/delete/", views.issue_delete_view, name="issue_delete"),
     path("projects/<int:project_id>/risks/", views.risk_list_view, name="risk_list"),
+    path("risks/<int:risk_id>/edit/", views.risk_edit_view, name="risk_edit"),
+    path("risks/<int:risk_id>/delete/", views.risk_delete_view, name="risk_delete"),
     
     # File Organization
     path("projects/<int:project_id>/files/", views.project_files_view, name="project_files"),
@@ -222,6 +250,17 @@ urlpatterns = [
     path("materials/requests/<int:request_id>/", views.materials_request_detail_view, name="materials_request_detail"),
     path("materials/requests/<int:request_id>/mark-ordered/", views.materials_mark_ordered_view, name="materials_mark_ordered"),
     
+    # ACTIVITY 2: Material Request Workflow (Q14.4, Q14.10, Q14.6)
+    path("materials/requests/<int:request_id>/submit/", views.materials_request_submit, name="materials_request_submit"),
+    path("materials/requests/<int:request_id>/approve/", views.materials_request_approve, name="materials_request_approve"),
+    path("materials/requests/<int:request_id>/reject/", views.materials_request_reject, name="materials_request_reject"),
+    path("materials/requests/<int:request_id>/receive-partial/", views.materials_receive_partial, name="materials_receive_partial"),
+    path("materials/requests/<int:request_id>/create-expense/", views.materials_create_expense, name="materials_create_expense"),
+    
+    # ACTIVITY 2: Inventory Management (Q15.5, Q15.11)
+    path("inventory/low-stock/", views.inventory_low_stock_alert, name="inventory_low_stock"),
+    path("inventory/adjust/<int:item_id>/<int:location_id>/", views.inventory_adjust, name="inventory_adjust"),
+    
     # Daily Planning System
     path("planning/", views.daily_planning_dashboard, name="daily_planning_dashboard"),
     path("planning/project/<int:project_id>/create/", views.daily_plan_create, name="daily_plan_create"),
@@ -255,11 +294,38 @@ urlpatterns = [
     path("tasks/<int:task_id>/", views.task_detail, name="task_detail"),
     path("tasks/my/", views.task_list_all, name="task_list_all"),
     
+    # ACTIVITY 1: Task time tracking (Q11.13)
+    path("tasks/<int:task_id>/start-tracking/", views.task_start_tracking, name="task_start_tracking"),
+    path("tasks/<int:task_id>/stop-tracking/", views.task_stop_tracking, name="task_stop_tracking"),
+    
+    # ACTIVITY 1: Daily plan enhancements (Q12.2, Q12.5, Q12.8)
+    path("planning/<int:plan_id>/fetch-weather/", views.daily_plan_fetch_weather, name="daily_plan_fetch_weather"),
+    path("planning/<int:plan_id>/convert-activities/", views.daily_plan_convert_activities, name="daily_plan_convert_activities"),
+    path("planning/<int:plan_id>/productivity/", views.daily_plan_productivity, name="daily_plan_productivity"),
+    
+    # ===== GESTIÓN DE CLIENTES =====
+    path("clients/", views.client_list, name="client_list"),
+    path("clients/create/", views.client_create, name="client_create"),
+    path("clients/<int:user_id>/", views.client_detail, name="client_detail"),
+    path("clients/<int:user_id>/edit/", views.client_edit, name="client_edit"),
+    path("clients/<int:user_id>/delete/", views.client_delete, name="client_delete"),
+    path("clients/<int:user_id>/reset-password/", views.client_reset_password, name="client_reset_password"),
+    path("clients/<int:user_id>/assign-project/", views.client_assign_project, name="client_assign_project"),
+    
+    # ===== ADMINISTRACIÓN AVANZADA =====
+    # Dashboard principal admin
+    path("admin-panel/", include("core.urls_admin")),
+    
     # REST API v1 (mobile, integrations)
     path("api/v1/", include("core.api.urls")),
     
-    # Language switch (simple session-based)
-    path("lang/<str:code>/", views.set_language_view, name="set_language"),
+    # Language switchers
+    # Django standard i18n endpoint (expects POST with 'language' and optional 'next')
+    path("i18n/setlang/", dj_set_language, name="set_language"),
+    # JavaScript translation catalog
+    path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
+    # Legacy simple session-based (kept for compatibility)
+    path("lang/<str:code>/", views.set_language_view, name="set_language_code"),
 ]
 
 # Media/Static en desarrollo

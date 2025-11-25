@@ -680,8 +680,11 @@
                     </div>
                     <div class="existing-photos-grid">
                     {% for photo in changeorder.photos.all %}
-                    <div class="existing-photo-item" data-photo-id="{{ photo.id }}">
-                        <img src="{{ photo.image.url }}" alt="{{ photo.description }}">
+                                        <div class="existing-photo-item" data-photo-id="{{ photo.id }}" data-annotations="{{ photo.annotations|escapejs }}">
+                                            <div style="position:relative;">
+                                                <img src="{{ photo.image.url }}" alt="{{ photo.description }}" class="photo-thumb-base">
+                                                <canvas class="photo-annotations-canvas" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
+                                            </div>
                         <div class="photo-actions">
                             <button type="button" class="edit-btn" onclick="openPhotoEditorInNewTab('{{ photo.image.url }}', {{ photo.id }}, '{{ photo.annotations|escapejs }}')">
                                 <i class="bi bi-pencil"></i> Editar
@@ -1152,6 +1155,17 @@
             if (annotations && annotations.trim() !== '') {
                 try {
                     parsedAnnotations = typeof annotations === 'string' ? JSON.parse(annotations) : annotations;
+                    // Handle double-encoded case: result is still a string containing JSON
+                    if (typeof parsedAnnotations === 'string') {
+                        try {
+                            const secondParse = JSON.parse(parsedAnnotations);
+                            if (Array.isArray(secondParse) || typeof secondParse === 'object') {
+                                parsedAnnotations = secondParse;
+                            }
+                        } catch (e2) {
+                            console.warn('Second parse failed, keeping original string');
+                        }
+                    }
                     console.log('Parsed annotations:', parsedAnnotations);
                 } catch (e) {
                     console.error('Error parsing annotations:', e);
@@ -1336,12 +1350,24 @@
                     case 'line':
                         ctx.beginPath();
                         ctx.moveTo(ann.x1, ann.y1);
-                        ctx.lineTo(ann.x2, ann.y2);
-                        ctx.stroke();
+                    // Persist annotated image composite
+                    const dataUrl = document.getElementById('drawingCanvas').toDataURL('image/png');
+                    return fetch(`/api/v1/changeorder-photo/${currentPhotoId}/annotated-image/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                        body: JSON.stringify({ image_data: dataUrl })
+                    });
                         break;
                     case 'arrow':
                         drawArrow(ann.x1, ann.y1, ann.x2, ann.y2, ann.color, ann.width);
                         break;
+            .then(r => r ? r.json() : null)
+            .then(imgResp => {
+                if (imgResp && imgResp.success) {
+                    window.postMessage({ type: 'photoAnnotationsSaved', photoId: currentPhotoId, annotations: currentAnnotations }, '*');
+                    alert('Foto anotada guardada');
+                }
+            })
                     case 'circle':
                         const radius = Math.sqrt(Math.pow(ann.x2 - ann.x1, 2) + Math.pow(ann.y2 - ann.y1, 2));
                         ctx.beginPath();
@@ -1393,21 +1419,21 @@
         }
 
         function saveAnnotations() {
-            const annotationsJSON = JSON.stringify(currentAnnotations);
-            
             if (currentPhotoId) {
-                // Save to existing photo via AJAX
-                fetch(`/changeorder/photo/${currentPhotoId}/annotations/`, {
+                // Send raw array (backend will JSON-dump once)
+                fetch(`/api/v1/changeorder-photo/${currentPhotoId}/annotations/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': '{{ csrf_token }}'
                     },
-                    body: JSON.stringify({ annotations: annotationsJSON })
+                    body: JSON.stringify({ annotations: currentAnnotations })
                 }).then(response => response.json())
                   .then(data => {
                       if (data.success) {
                           alert('Anotaciones guardadas exitosamente');
+                          // Reload parent page to reflect updated annotations
+                          try { window.opener && window.opener.location && window.opener.location.reload(); } catch (e) { console.warn('Could not reload opener:', e); }
                           closePhotoEditor();
                       }
                   });
@@ -1426,6 +1452,74 @@
             currentAnnotations = [];
             currentImageUrl = null;
         }
+        // Thumbnail annotations overlay initialization
+        function initThumbnailAnnotations() {
+            document.querySelectorAll('.existing-photo-item').forEach(item => {
+                const raw = item.getAttribute('data-annotations');
+                if (!raw || !raw.trim()) return;
+                let anns = [];
+                try { anns = JSON.parse(raw); } catch(e){
+                    try { const inner = JSON.parse(JSON.parse(raw)); if(Array.isArray(inner)) anns = inner; } catch(e2) {}
+                }
+                if (!Array.isArray(anns) || !anns.length) return;
+                const img = item.querySelector('img.photo-thumb-base');
+                const canvas = item.querySelector('canvas.photo-annotations-canvas');
+                if (!img || !canvas) return;
+                const draw = () => {
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    const cctx = canvas.getContext('2d');
+                    cctx.clearRect(0,0,canvas.width,canvas.height);
+                    anns.forEach(ann => {
+                        const color = ann.color || '#ff0000';
+                        const width = ann.width || 2;
+                        cctx.strokeStyle = color;
+                        cctx.fillStyle = color;
+                        cctx.lineWidth = width;
+                        if (ann.type === 'line' || ann.type === 'pencil') {
+                            cctx.beginPath(); cctx.moveTo(ann.x1, ann.y1); cctx.lineTo(ann.x2, ann.y2); cctx.stroke();
+                        } else if (ann.type === 'arrow') {
+                            cctx.beginPath(); cctx.moveTo(ann.x1, ann.y1); cctx.lineTo(ann.x2, ann.y2); cctx.stroke();
+                            const headlen=12; const angle=Math.atan2(ann.y2-ann.y1, ann.x2-ann.x1);
+                            cctx.beginPath(); cctx.moveTo(ann.x2, ann.y2);
+                            cctx.lineTo(ann.x2 - headlen*Math.cos(angle - Math.PI/6), ann.y2 - headlen*Math.sin(angle - Math.PI/6));
+                            cctx.lineTo(ann.x2 - headlen*Math.cos(angle + Math.PI/6), ann.y2 - headlen*Math.sin(angle + Math.PI/6));
+                            cctx.closePath(); cctx.fill();
+                        } else if (ann.type === 'rect') {
+                            cctx.strokeRect(ann.x1, ann.y1, ann.x2 - ann.x1, ann.y2 - ann.y1);
+                        } else if (ann.type === 'text' && ann.text) {
+                            cctx.font = `${ann.fontSize || 16}px sans-serif`; cctx.fillText(ann.text, ann.x1, ann.y1);
+                        }
+                    });
+                    const rect = img.getBoundingClientRect();
+                    canvas.style.width = rect.width + 'px';
+                    canvas.style.height = rect.height + 'px';
+                };
+                if (img.complete) draw(); else img.addEventListener('load', draw, {once:true});
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initThumbnailAnnotations);
+        // Listen for annotation updates from standalone editor
+        window.addEventListener('message', evt => {
+            if (!evt.data || evt.data.type !== 'photoAnnotationsSaved' || !evt.data.photoId) return;
+            const item = document.querySelector(`.existing-photo-item[data-photo-id='${evt.data.photoId}']`);
+            if (!item) return;
+            item.setAttribute('data-annotations', JSON.stringify(evt.data.annotations));
+            const img = item.querySelector('img.photo-thumb-base');
+            const canvas = item.querySelector('canvas.photo-annotations-canvas');
+            if (img && canvas) {
+                canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+                const cctx = canvas.getContext('2d'); cctx.clearRect(0,0,canvas.width,canvas.height);
+                evt.data.annotations.forEach(ann => {
+                    cctx.strokeStyle = ann.color || '#ff0000'; cctx.fillStyle = ann.color || '#ff0000'; cctx.lineWidth = ann.width || 2;
+                    if (ann.type === 'line' || ann.type === 'pencil') { cctx.beginPath(); cctx.moveTo(ann.x1, ann.y1); cctx.lineTo(ann.x2, ann.y2); cctx.stroke(); }
+                    else if (ann.type === 'arrow') { cctx.beginPath(); cctx.moveTo(ann.x1, ann.y1); cctx.lineTo(ann.x2, ann.y2); cctx.stroke(); const headlen=12; const angle=Math.atan2(ann.y2-ann.y1, ann.x2-ann.x1); cctx.beginPath(); cctx.moveTo(ann.x2, ann.y2); cctx.lineTo(ann.x2 - headlen*Math.cos(angle - Math.PI/6), ann.y2 - headlen*Math.sin(angle - Math.PI/6)); cctx.lineTo(ann.x2 - headlen*Math.cos(angle + Math.PI/6), ann.y2 - headlen*Math.sin(angle + Math.PI/6)); cctx.closePath(); cctx.fill(); }
+                    else if (ann.type === 'rect') { cctx.strokeRect(ann.x1, ann.y1, ann.x2 - ann.x1, ann.y2 - ann.y1); }
+                    else if (ann.type === 'text' && ann.text) { cctx.font = `${ann.fontSize || 16}px sans-serif`; cctx.fillText(ann.text, ann.x1, ann.y1); }
+                });
+                const rect = img.getBoundingClientRect(); canvas.style.width = rect.width + 'px'; canvas.style.height = rect.height + 'px';
+            }
+        });
 
         function deletePhoto(photoId) {
             console.log('deletePhoto called with photoId:', photoId);
@@ -1434,9 +1528,9 @@
                 return;
             }
             
-            console.log('Sending delete request to:', `/changeorder/photo/${photoId}/delete/`);
+            console.log('Sending delete request to:', `/api/v1/changeorder-photo/${photoId}/delete/`);
             
-            fetch(`/changeorder/photo/${photoId}/delete/`, {
+            fetch(`/api/v1/changeorder-photo/${photoId}/delete/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}'

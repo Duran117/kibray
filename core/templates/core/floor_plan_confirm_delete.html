@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">{% trans "Planos" %}</a></li>
+      <li class="breadcrumb-item active">{% trans "Eliminar Plano" %}</li>
+    </ol>
+  </nav>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <div class="text-center mb-3">
+        <i class="bi bi-exclamation-triangle text-danger" style="font-size:3rem;"></i>
+      </div>
+      <h3 class="text-center mb-3">{% trans "¿Estás seguro de eliminar este plano?" %}</h3>
+      <div class="alert alert-warning">
+        <i class="bi bi-info-circle"></i>
+        {% trans "Esta acción no se puede deshacer. Todos los pines asociados a este plano también serán eliminados." %}
+      </div>
+      <div class="mb-3">
+        <p class="mb-1"><strong>{% trans "Plano" %}:</strong> {{ plan.name }}</p>
+        <p class="mb-0"><strong>{% trans "Nivel" %}:</strong> {{ plan.level }} {% if plan.level_identifier %}({{ plan.level_identifier }}){% endif %}</p>
+      </div>
+      <form method="post" class="d-flex gap-2 justify-content-end">
+        {% csrf_token %}
+        <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-outline-secondary">
+          {% trans "Cancelar" %}
+        </a>
+        <button type="submit" class="btn btn-danger">
+          <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

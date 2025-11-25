@@ -1,390 +1,154 @@
-{% extends 'core/base.html' %}{% extends 'core/base.html' %}
-
-{% load i18n %}{% load i18n %}
-
+{% extends 'core/base.html' %}
+{% load i18n %}
 {% block content %}
-
-{% block extra_css %}<div class="container-fluid mt-3">
-
-<style>  <div class="d-flex justify-content-between align-items-center mb-3">
-
-    /* ===== MOBILE-FIRST TOUCHUP BOARD ===== */    <h2>Touch-Ups: {{ project.name }}</h2>
-
-    .touchup-container {    <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary">{% trans "Volver al proyecto" %}</a>
-
-        padding: 12px;  </div>
-
-        background: #f8f9fa;
-
-        min-height: 100vh;  <!-- Advanced Filters -->
-
-    }  <div class="card mb-3">
-
-        <div class="card-body">
-
-    @media (min-width: 768px) {      <form method="get" class="row g-3" id="filterForm">
-
-        .touchup-container {        <div class="col-md-2">
-
-            padding: 24px;          <label class="form-label">Estado</label>
-
-        }          <select name="status" class="form-select form-select-sm">
-
-    }            <option value="">{% trans "Todos" %}</option>
-
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Touch-Ups: {{ project.name }}</h2>
+        <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans "Volver al proyecto" %}</a>
+    </div>
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-2">
+            <label class="form-label">Estado</label>
+            <select name="status" class="form-select form-select-sm">
+                <option value="">{% trans "Todos" %}</option>
                 <option value="Pendiente" {% if filter_status == 'Pendiente' %}selected{% endif %}>Pendiente</option>
-
-    /* ===== HEADER ===== */            <option value="En Progreso" {% if filter_status == 'En Progreso' %}selected{% endif %}>En Progreso</option>
-
-    .touchup-header {            <option value="Completada" {% if filter_status == 'Completada' %}selected{% endif %}>Completada</option>
-
-        background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);          </select>
-
-        color: white;        </div>
-
-        padding: 20px 16px;        <div class="col-md-2">
-
-        border-radius: 12px;          <label class="form-label">Asignado</label>
-
-        margin-bottom: 16px;          <select name="assigned" class="form-select form-select-sm">
-
-    }            <option value="">{% trans "Todos" %}</option>
-
+                <option value="En Progreso" {% if filter_status == 'En Progreso' %}selected{% endif %}>En Progreso</option>
+                <option value="Completada" {% if filter_status == 'Completada' %}selected{% endif %}>Completada</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Asignado</label>
+            <select name="assigned" class="form-select form-select-sm">
+                <option value="">{% trans "Todos" %}</option>
                 <option value="unassigned" {% if filter_assigned == 'unassigned' %}selected{% endif %}>Sin asignar</option>
-
-    .touchup-header h1 {            {% for emp in employees %}
-
-        font-size: 20px;              <option value="{{ emp.id }}" {% if filter_assigned == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.username }}</option>
-
-        margin: 0 0 4px 0;            {% endfor %}
-
-        font-weight: 700;          </select>
-
-    }        </div>
-
-            <div class="col-md-2">
-
-    .touchup-header .project {          <label class="form-label">Desde</label>
-
-        font-size: 14px;          <input type="date" name="date_from" class="form-control form-control-sm" value="{{ filter_date_from }}">
-
-        opacity: 0.9;        </div>
-
-    }        <div class="col-md-2">
-
-              <label class="form-label">Hasta</label>
-
-    /* ===== FILTER CHIPS (MOBILE) ===== */          <input type="date" name="date_to" class="form-control form-control-sm" value="{{ filter_date_to }}">
-
-    .filter-chips {        </div>
-
-        display: flex;        <div class="col-md-2">
-
-        gap: 8px;          <label class="form-label">Ordenar</label>
-
-        overflow-x: auto;          <select name="sort" class="form-select form-select-sm">
-
-        padding: 8px 0;            <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Más reciente</option>
-
-        margin-bottom: 16px;            <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Más antiguo</option>
-
-        scrollbar-width: none;            <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Estado (A-Z)</option>
-
-        -ms-overflow-style: none;            <option value="-status" {% if sort_by == '-status' %}selected{% endif %}>Estado (Z-A)</option>
-
-    }          </select>
-
-            </div>
-
-    .filter-chips::-webkit-scrollbar {        <div class="col-md-2 d-flex align-items-end gap-2">
-
-        display: none;          <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-
-    }          <a href="{% url 'touchup_board' project.id %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
-
-            </div>
-
-    .filter-chip {      </form>
-
-        background: white;    </div>
-
-        border: 2px solid #e5e7eb;  </div>
-
-        padding: 8px 16px;
-
-        border-radius: 20px;  <!-- Touch-Ups Table -->
-
-        font-size: 14px;  <div class="table-responsive">
-
-        white-space: nowrap;    <table class="table table-sm table-hover align-middle">
-
-        cursor: pointer;      <thead class="table-light">
-
-        transition: all 0.2s;        <tr>
-
-        flex-shrink: 0;          <th>Título</th>
-
-    }          <th>Estado</th>
-
-              <th>Asignado</th>
-
-    .filter-chip.active {          <th>Creado</th>
-
-        background: #3b82f6;          <th>Imagen</th>
-
-        color: white;          <th>Acciones</th>
-
-        border-color: #3b82f6;        </tr>
-
-    }      </thead>
-
-          <tbody>
-
-    /* ===== ADVANCED FILTERS (COLLAPSED ON MOBILE) ===== */        {% for t in page_obj %}
-
-    .advanced-filters {        <tr data-task-id="{{ t.id }}">
-
-        background: white;          <td>
-
-        border-radius: 12px;            <strong>{{ t.title }}</strong>
-
-        padding: 16px;            {% if t.description %}<br><small class="text-muted">{{ t.description|truncatewords:10 }}</small>{% endif %}
-
-        margin-bottom: 16px;          </td>
-
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);          <td>
-
-    }            <select class="form-select form-select-sm status-select" data-task-id="{{ t.id }}" style="width:140px;">
-
-                  <option value="Pendiente" {% if t.status == 'Pendiente' %}selected{% endif %}>Pendiente</option>
-
-    .filters-toggle {              <option value="En Progreso" {% if t.status == 'En Progreso' %}selected{% endif %}>En Progreso</option>
-
-        background: none;              <option value="Completada" {% if t.status == 'Completada' %}selected{% endif %}>Completada</option>
-
-        border: none;            </select>
-
-        width: 100%;          </td>
-
-        text-align: left;          <td>
-
-        padding: 0;            <select class="form-select form-select-sm assign-select" data-task-id="{{ t.id }}" style="width:150px;">
-
-        font-weight: 600;              <option value="">Sin asignar</option>
-
-        color: #1f2937;              {% for emp in employees %}
-
-        display: flex;                <option value="{{ emp.id }}" {% if t.assigned_to.id == emp.id %}selected{% endif %}>{{ emp.username }}</option>
-
-        justify-content: space-between;              {% endfor %}
-
-        align-items: center;            </select>
-
-        cursor: pointer;          </td>
-
-    }          <td><small>{{ t.created_at|date:'Y-m-d H:i' }}</small></td>
-
-              <td>
-
-    .filters-toggle i {            {% if t.image %}
-
-        transition: transform 0.2s;              <a href="{{ t.image.url }}" target="_blank">
-
-    }                <img src="{{ t.image.url }}" style="height:50px;width:50px;object-fit:cover;border-radius:4px;"/>
-
-                  </a>
-
-    .filters-toggle[aria-expanded="true"] i {            {% else %}
-
-        transform: rotate(180deg);              <span class="text-muted">—</span>
-
-    }            {% endif %}
-
-              </td>
-
-    .advanced-filters select,          <td>
-
-    .advanced-filters input {            <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary" title="Ver detalle">
-
-        font-size: 16px;              <i class="bi bi-eye"></i>
-
-        height: 48px;            </a>
-
-        border: 2px solid #e5e7eb;          </td>
-
-        border-radius: 8px;        </tr>
-
-    }        {% empty %}
-
-            <tr>
-
-    /* ===== TOUCHUP CARDS ===== */          <td colspan="6" class="text-center text-muted py-4">No hay touch-ups con estos filtros.</td>
-
-    .touchup-card {        </tr>
-
-        background: white;        {% endfor %}
-
-        border-radius: 12px;      </tbody>
-
-        padding: 16px;    </table>
-
-        margin-bottom: 12px;  </div>
-
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-
-        position: relative;  <!-- Pagination -->
-
-        overflow: hidden;  {% if page_obj.has_other_pages %}
-
-        transition: transform 0.2s, box-shadow 0.2s;  <nav>
-
-    }    <ul class="pagination pagination-sm justify-content-center">
-
-          {% if page_obj.has_previous %}
-
-    .touchup-card:active {        <li class="page-item">
-
-        transform: scale(0.98);          <a class="page-link" href="?page=1{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_assigned %}&assigned={{ filter_assigned }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Primera</a>
-
-    }        </li>
-
-            <li class="page-item">
-
-    /* Status Indicator Stripe */          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_assigned %}&assigned={{ filter_assigned }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Anterior</a>
-
-    .status-stripe {        </li>
-
-        position: absolute;      {% endif %}
-
-        top: 0;      
-
-        left: 0;      <li class="page-item active">
-
-        width: 4px;        <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-
-        height: 100%;      </li>
-
-    }      
-
-          {% if page_obj.has_next %}
-
-    .status-stripe.pendiente {        <li class="page-item">
-
-        background: #f59e0b;          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_assigned %}&assigned={{ filter_assigned }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Siguiente</a>
-
-    }        </li>
-
-            <li class="page-item">
-
-    .status-stripe.en-progreso {          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_assigned %}&assigned={{ filter_assigned }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Última</a>
-
-        background: #3b82f6;        </li>
-
-    }      {% endif %}
-
+                {% for emp in employees %}
+                    <option value="{{ emp.id }}" {% if filter_assigned == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Desde</label>
+            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ filter_date_from }}" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Hasta</label>
+            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ filter_date_to }}" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Ordenar</label>
+            <select name="sort" class="form-select form-select-sm">
+                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Más reciente</option>
+                <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Más antiguo</option>
+                <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Estado (A-Z)</option>
+                <option value="-status" {% if sort_by == '-status' %}selected{% endif %}>Estado (Z-A)</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+            <a href="{% url 'touchup_board' project.id %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+        </div>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Título</th>
+                    <th>Estado</th>
+                    <th>Asignado</th>
+                    <th>Creado</th>
+                    <th>Imagen</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in page_obj %}
+                <tr data-task-id="{{ t.id }}">
+                    <td>
+                        <strong>{{ t.title }}</strong>
+                        {% if t.description %}<br><small class="text-muted">{{ t.description|truncatewords:10 }}</small>{% endif %}
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm status-select" data-task-id="{{ t.id }}" style="width:140px;">
+                            <option value="Pendiente" {% if t.status == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="En Progreso" {% if t.status == 'En Progreso' %}selected{% endif %}>En Progreso</option>
+                            <option value="Completada" {% if t.status == 'Completada' %}selected{% endif %}>Completada</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm assign-select" data-task-id="{{ t.id }}" style="width:150px;">
+                            <option value="">Sin asignar</option>
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}" {% if t.assigned_to.id == emp.id %}selected{% endif %}>{{ emp.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><small>{{ t.created_at|date:'Y-m-d H:i' }}</small></td>
+                    <td>
+                        {% if t.image %}
+                            <a href="{{ t.image.url }}" target="_blank">
+                                <img src="{{ t.image.url }}" style="height:50px;width:50px;object-fit:cover;border-radius:4px;"/>
+                            </a>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary" title="Ver detalle"><i class="bi bi-eye"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No hay touch-ups con estos filtros.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <nav>
+        <ul class="pagination pagination-sm justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">Primera</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a></li>
+            {% endif %}
         </ul>
-
-    .status-stripe.completada {  </nav>
-
-        background: #10b981;  {% endif %}
-
-    }</div>
-
-    
-
-    .touchup-content {<script>
-
-        margin-left: 12px;// AJAX Quick Updates
-
-    }document.addEventListener('DOMContentLoaded', function() {
-
-      // Status updates
-
-    .touchup-title {  document.querySelectorAll('.status-select').forEach(select => {
-
-        font-size: 16px;    select.addEventListener('change', function() {
-
-        font-weight: 600;      const taskId = this.dataset.taskId;
-
-        color: #1f2937;      const newStatus = this.value;
-
-        margin: 0 0 4px 0;      
-
-    }      fetch(`/touchups/quick-update/${taskId}/`, {
-
+    </nav>
+    {% endif %}
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function postQuickUpdate(taskId, body) {
+        return fetch(`/touchups/quick-update/${taskId}/`, {
             method: 'POST',
-
-    .touchup-description {        headers: {
-
-        font-size: 14px;          'Content-Type': 'application/x-www-form-urlencoded',
-
-        color: #6b7280;          'X-CSRFToken': '{{ csrf_token }}'
-
-        margin: 0 0 12px 0;        },
-
-        line-height: 1.4;        body: `action=status&status=${encodeURIComponent(newStatus)}`
-
-    }      })
-
-          .then(res => res.json())
-
-    .touchup-meta {      .then(data => {
-
-        display: flex;        if (data.success) {
-
-        gap: 12px;          // Optional: show toast notification
-
-        flex-wrap: wrap;          console.log('Estado actualizado:', data.status);
-
-        margin-bottom: 12px;        } else {
-
-    }          alert('Error: ' + (data.error || 'No se pudo actualizar'));
-
-              location.reload();
-
-    .meta-item {        }
-
-        display: flex;      })
-
-        align-items: center;      .catch(err => {
-
-        gap: 4px;        console.error(err);
-
-        font-size: 13px;        alert('Error de conexión');
-
-        color: #6b7280;        location.reload();
-
-    }      });
-
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: body
+        }).then(r => r.json());
+    }
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const taskId = this.dataset.taskId;
+            const newStatus = this.value;
+            postQuickUpdate(taskId, `action=status&status=${encodeURIComponent(newStatus)}`)
+                .then(data => { if (!data.success) console.warn('Fallo status', data); });
         });
-
-    .meta-item i {  });
-
-        font-size: 14px;
-
-    }  // Assignment updates
-
-      document.querySelectorAll('.assign-select').forEach(select => {
-
-    /* Image Thumbnail */    select.addEventListener('change', function() {
-
-    .touchup-image {      const taskId = this.dataset.taskId;
-
-        width: 80px;      const employeeId = this.value;
-
-        height: 80px;      
-
-        border-radius: 8px;      fetch(`/touchups/quick-update/${taskId}/`, {
-
-        object-fit: cover;        method: 'POST',
-
-        margin-bottom: 12px;        headers: {
-
-        cursor: pointer;          'Content-Type': 'application/x-www-form-urlencoded',
-
-        border: 2px solid #e5e7eb;          'X-CSRFToken': '{{ csrf_token }}'
-
-    }        },
+    });
+    document.querySelectorAll('.assign-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const taskId = this.dataset.taskId;
+            const empId = this.value;
+            postQuickUpdate(taskId, `action=assign&employee_id=${encodeURIComponent(empId)}`)
+                .then(data => { if (!data.success) console.warn('Fallo asignación', data); });
+        });
+    });
+});
+</script>
+{% endblock %}
 
             body: `action=assign&employee_id=${employeeId}`
 

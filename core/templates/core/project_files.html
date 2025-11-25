@@ -133,8 +133,8 @@
               <!-- Tags -->
               {% if file.tags %}
               <div class="mb-2">
-                {% for tag in file.tags.split:',' %}
-                <span class="badge bg-light text-dark">{{ tag.strip }}</span>
+                {% for tag in file.tags.split %}
+                <span class="badge bg-light text-dark">{{ tag }}</span>
                 {% endfor %}
               </div>
               {% endif %}

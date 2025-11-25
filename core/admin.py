@@ -12,7 +12,7 @@ from .models import Notification
 from .models import (
     InventoryItem, InventoryLocation, ProjectInventory, InventoryMovement,
 )
-from .models import ActivityTemplate, DailyPlan, PlannedActivity, ActivityCompletion, SOPReferenceFile
+from .models import ActivityTemplate, DailyPlan, PlannedActivity, ActivityCompletion, SOPReferenceFile, ScheduleItem
 from .models import (
     EVSnapshot, QualityInspection, QualityDefect, RecurringTask,
     GPSCheckIn, ExpenseOCRData, InvoiceAutomation, InventoryBarcode,
@@ -78,6 +78,14 @@ class ScheduleAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description', 'delay_reason', 'advance_reason')
     date_hierarchy = 'start_datetime'
     ordering = ('-start_datetime',)
+
+# Cronograma jerárquico (ScheduleItem)
+@admin.register(ScheduleItem)
+class ScheduleItemAdmin(admin.ModelAdmin):
+    list_display = ('title', 'project', 'category', 'status', 'percent_complete', 'order', 'is_milestone')
+    list_filter = ('project', 'status', 'is_milestone', 'category')
+    search_fields = ('title', 'project__name', 'category__name')
+    ordering = ('project', 'category__id', 'order')
 
 # Perfil de Usuario
 @admin.register(Profile)

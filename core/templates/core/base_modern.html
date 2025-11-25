@@ -1,0 +1,91 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}Kibray{% endblock %}</title>
+    
+    {# Tailwind CSS CDN for rapid prototyping #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    {# Bootstrap Icons #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    {# Tailwind Config - Kibray Theme #}
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kibray: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#6366f1',
+                            700: '#4f46e5',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    {# Custom CSS overrides #}
+    <style>
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Prevent FOUC */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-900 antialiased">
+    {# Header/Navbar #}
+    {% include "core/components/header.html" %}
+    
+    {# Main Layout #}
+    <div class="flex min-h-[calc(100vh-64px)]">
+        {# Sidebar (optional) #}
+        {% if show_sidebar %}
+        {% include "core/components/sidebar.html" %}
+        {% endif %}
+        
+        {# Main Content #}
+        <main class="flex-1 {% if show_sidebar %}ml-0 lg:ml-64{% endif %} transition-all duration-300">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 fade-in">
+                {# Page Header (optional breadcrumbs, title, actions) #}
+                {% block page_header %}{% endblock %}
+                
+                {# Main Content Area #}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    {# Toast/Alert Container #}
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    {# Core JavaScript #}
+    <script src="{% static 'core/js/kibray-core.js' %}"></script>
+    
+    {# Page-specific JavaScript #}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

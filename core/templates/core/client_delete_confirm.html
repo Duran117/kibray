@@ -1,0 +1,120 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirmar Eliminación" %} - Kibray{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'dashboard_admin' %}">
+                            <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'client_list' %}">{% trans "Clientes" %}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'client_detail' client.id %}">{{ client.get_full_name }}</a>
+                    </li>
+                    <li class="breadcrumb-item active">{% trans "Eliminar" %}</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% trans "Desactivar o Eliminar Cliente" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-shield-exclamation me-2"></i>
+                            {% trans "¡Atención!" %}
+                        </h6>
+                        <p class="mb-0">
+                            {% trans "Estás a punto de desactivar o eliminar al cliente" %}: 
+                            <strong>{{ client.get_full_name }}</strong> ({{ client.email }})
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>{% trans "Opciones:" %}</h6>
+                        <div class="list-group">
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <i class="bi bi-pause-circle text-warning me-2"></i>
+                                            {% trans "Desactivar Usuario" %}
+                                        </h6>
+                                        <small class="text-muted">
+                                            {% trans "El usuario no podrá iniciar sesión pero se mantienen todos sus datos" %}
+                                        </small>
+                                    </div>
+                                    <form method="post" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="deactivate">
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="bi bi-pause me-1"></i>
+                                            {% trans "Desactivar" %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <i class="bi bi-trash text-danger me-2"></i>
+                                            {% trans "Eliminar Permanentemente" %}
+                                        </h6>
+                                        <small class="text-muted">
+                                            {% trans "Se eliminará el usuario y toda su información. Esta acción NO se puede deshacer" %}
+                                        </small>
+                                    </div>
+                                    <form method="post" style="display: inline;" 
+                                          onsubmit="return confirm('{% trans "¿Estás seguro? Esta acción es PERMANENTE y NO se puede deshacer." %}')">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="bi bi-trash me-1"></i>
+                                            {% trans "Eliminar" %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mb-0" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {% trans "Recomendación" %}
+                        </h6>
+                        <p class="mb-0">
+                            {% trans "En la mayoría de los casos es mejor desactivar el usuario en lugar de eliminarlo, para mantener el historial y registros del sistema." %}
+                        </p>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'client_detail' client.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            {% trans "Cancelar" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

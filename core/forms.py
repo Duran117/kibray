@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django import forms
 from django.forms import inlineformset_factory
+from django.db.models import Sum
 from django.apps import apps
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -18,7 +19,8 @@ from .models import (
     ScheduleCategory, ScheduleItem,
     DamageReport, DamagePhoto,
     FileCategory, ProjectFile,
-    TouchUpPin, TouchUpCompletionPhoto, Profile
+    TouchUpPin, TouchUpCompletionPhoto, Profile,
+    DailyPlan, PlannedActivity
 )
 
 class ActivityTemplateForm(forms.ModelForm):
@@ -760,6 +762,241 @@ class ScheduleItemForm(forms.ModelForm):
         
         # Note: category validation is handled in the view since new_category_name is not part of the form
         return cleaned
+
+# ========================================================================================
+# DAILY PLAN & PLANNED ACTIVITIES (Module 12.5, 12.6, 12.7)
+# ========================================================================================
+
+class DailyPlanForm(forms.ModelForm):
+    """Formulario para crear/editar Daily Plans.
+    Incluye validación de transiciones de estado y cálculo automático de deadline.
+    - completion_deadline: se calcula como (plan_date - 1 día) a las 17:00 si no se provee.
+    - status workflow permitido: DRAFT -> PUBLISHED -> IN_PROGRESS -> COMPLETED
+      Se permite marcar SKIPPED solo desde DRAFT.
+    - fetch_weather opcional (checkbox) para disparar actualización al guardar.
+    """
+
+    fetch_weather = forms.BooleanField(
+        required=False,
+        initial=False,
+        help_text=_("Marcar para actualizar clima al guardar"),
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"})
+    )
+
+    class Meta:
+        model = DailyPlan
+        fields = [
+            'project', 'plan_date', 'status', 'completion_deadline',
+            'no_planning_reason', 'admin_approved', 'actual_hours_worked',
+            'estimated_hours_total'
+        ]
+        widgets = {
+            'project': forms.Select(attrs={'class': 'form-control'}),
+            'plan_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'completion_deadline': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'no_planning_reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'actual_hours_worked': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'estimated_hours_total': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+        }
+        help_texts = {
+            'estimated_hours_total': _('Suma manual (se recalcula al guardar si hay actividades).'),
+            'actual_hours_worked': _('Horas reales del día (se puede llenar al finalizar).'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # deadline automático si instancia nueva
+        if not self.instance.pk:
+            plan_date_val = None
+            if self.is_bound:
+                # plan_date puede venir como string
+                plan_date_val = self.data.get('plan_date')
+            else:
+                plan_date_val = self.initial.get('plan_date')
+            from datetime import datetime, date, time, timedelta
+            from django.utils import timezone
+            try:
+                if plan_date_val and isinstance(plan_date_val, str):
+                    # Parse YYYY-MM-DD
+                    plan_dt = datetime.strptime(plan_date_val, '%Y-%m-%d').date()
+                elif isinstance(plan_date_val, date):
+                    plan_dt = plan_date_val
+                else:
+                    plan_dt = None
+                if plan_dt:
+                    deadline_date = plan_dt - timedelta(days=1)
+                    # 17:00 local timezone
+                    deadline_dt = datetime.combine(deadline_date, time(hour=17, minute=0))
+                    # No usar timezone.localize para simplicidad; Django asumirá TZ configurada
+                    self.fields['completion_deadline'].initial = deadline_dt
+            except Exception:
+                pass
+
+        # Si el estado es SKIPPED, hacer obligatorio el motivo
+        if self.instance and self.instance.status == 'SKIPPED':
+            self.fields['no_planning_reason'].required = True
+        else:
+            self.fields['no_planning_reason'].required = False
+
+    def clean_status(self):
+        new_status = self.cleaned_data.get('status')
+        if not self.instance or not self.instance.pk:
+            # Nuevo plan: permitir solo DRAFT o SKIPPED inicialmente
+            if new_status not in ['DRAFT', 'SKIPPED']:
+                raise ValidationError(_('Nuevo plan debe iniciar como Draft o Skipped.'))
+            return new_status
+        current = self.instance.status
+        allowed_transitions = {
+            'DRAFT': ['PUBLISHED', 'SKIPPED'],
+            'PUBLISHED': ['IN_PROGRESS', 'SKIPPED'],
+            'IN_PROGRESS': ['COMPLETED'],
+            'COMPLETED': [],
+            'SKIPPED': [],
+        }
+        if new_status == current:
+            return new_status
+        if new_status not in allowed_transitions.get(current, []):
+            raise ValidationError(_(f'Transición inválida desde {current} a {new_status}'))
+        return new_status
+
+    def clean_completion_deadline(self):
+        deadline = self.cleaned_data.get('completion_deadline')
+        plan_date = self.cleaned_data.get('plan_date') or (self.instance.plan_date if self.instance else None)
+        from django.utils import timezone
+        if deadline and plan_date:
+            # Deadline debe ser antes de plan_date
+            if deadline.date() >= plan_date:
+                raise ValidationError(_('Deadline debe ser antes del día planificado.'))
+        return deadline
+
+    def clean(self):
+        cleaned = super().clean()
+        status = cleaned.get('status')
+        reason = cleaned.get('no_planning_reason')
+        if status == 'SKIPPED' and not reason:
+            self.add_error('no_planning_reason', _('Debes indicar motivo si el día se omite.'))
+        return cleaned
+
+    def save(self, commit=True):
+        inst: DailyPlan = super().save(commit=False)
+        # Recalcular estimated_hours_total basado en actividades si existen
+        if inst.pk:
+            total = inst.activities.aggregate(Sum('estimated_hours')).get('estimated_hours__sum') or Decimal('0')
+            inst.estimated_hours_total = total
+        if commit:
+            inst.save()
+            # Actualizar clima si se solicitó
+            if self.cleaned_data.get('fetch_weather'):
+                try:
+                    inst.fetch_weather()
+                except Exception:
+                    pass
+        return inst
+
+
+class PlannedActivityForm(forms.ModelForm):
+    """Formulario para actividades planificadas dentro de un DailyPlan.
+    - materials_needed: Entrada como líneas (una por material) convertidas a lista JSON.
+    - Filtra schedule_item y activity_template por proyecto.
+    """
+
+    materials_text = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('Ej: Paint:Sherwin-Williams:2gal\nTape:3roll')}),
+        help_text=_('Una línea por material. Formato opcional cantidad al final (ej: Paint:Brand:2gal).')
+    )
+
+    class Meta:
+        model = PlannedActivity
+        exclude = ['daily_plan', 'converted_task', 'materials_needed', 'created_at', 'updated_at']
+        widgets = {
+            'schedule_item': forms.Select(attrs={'class': 'form-control'}),
+            'activity_template': forms.Select(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'assigned_employees': forms.SelectMultiple(attrs={'class': 'form-control', 'size': '5'}),
+            'is_group_activity': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'estimated_hours': forms.NumberInput(attrs={'step': '0.25', 'class': 'form-control'}),
+            'actual_hours': forms.NumberInput(attrs={'step': '0.25', 'class': 'form-control'}),
+            'materials_checked': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'material_shortage': forms.CheckboxInput(attrs={'class': 'form-check-input', 'disabled': 'disabled'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'progress_percentage': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '100'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        daily_plan = kwargs.pop('daily_plan', None)
+        super().__init__(*args, **kwargs)
+        if daily_plan:
+            # Limitar schedule items del mismo proyecto
+            self.fields['schedule_item'].queryset = ScheduleItem.objects.filter(project=daily_plan.project).order_by('order')
+            # Limitar activity templates activos
+            self.fields['activity_template'].queryset = ActivityTemplate.objects.filter(is_active=True, is_latest_version=True)
+            # Limitar empleados (a través de Employee) – si existe relación de proyecto filtrar; de momento todos activos
+            self.fields['assigned_employees'].queryset = apps.get_model('core', 'Employee').objects.filter(is_active=True).order_by('first_name')
+
+        # Pre-cargar materials_text desde JSON lista
+        if self.instance and self.instance.pk and self.instance.materials_needed:
+            try:
+                if isinstance(self.instance.materials_needed, list):
+                    self.initial['materials_text'] = "\n".join(self.instance.materials_needed)
+            except Exception:
+                pass
+
+    def clean_progress_percentage(self):
+        pct = self.cleaned_data.get('progress_percentage') or 0
+        if pct < 0 or pct > 100:
+            raise ValidationError(_('El progreso debe estar entre 0 y 100.'))
+        return pct
+
+    def clean(self):
+        cleaned = super().clean()
+        est = cleaned.get('estimated_hours')
+        act = cleaned.get('actual_hours')
+        if act and est and act < 0:
+            self.add_error('actual_hours', _('Horas reales no pueden ser negativas.'))
+        if est and est < 0:
+            self.add_error('estimated_hours', _('Horas estimadas no pueden ser negativas.'))
+        return cleaned
+
+    def save(self, commit=True):
+        inst: PlannedActivity = super().save(commit=False)
+        # Convert materials_text -> materials_needed list
+        txt = self.cleaned_data.get('materials_text')
+        if txt is not None:
+            lines = [l.strip() for l in txt.splitlines() if l.strip()]
+            inst.materials_needed = lines
+        if commit:
+            inst.save()
+            self.save_m2m()
+            # Si se marcó materials_checked, ejecutar verificación (solo si no se ha corrido)
+            if self.cleaned_data.get('materials_checked') and not inst.materials_checked:
+                try:
+                    inst.check_materials()
+                except Exception:
+                    pass
+        return inst
+
+
+PlannedActivityFormSet = inlineformset_factory(
+    DailyPlan,
+    PlannedActivity,
+    form=PlannedActivityForm,
+    extra=1,
+    can_delete=True
+)
+
+def make_planned_activity_formset(daily_plan, data=None, files=None, **kwargs):
+    """Helper para crear un formset con contexto del daily_plan (filtrado de queryset)."""
+    FormSet = PlannedActivityFormSet
+    fs = FormSet(data=data, files=files, instance=daily_plan, **kwargs)
+    for form in fs.forms:
+        if hasattr(form, 'fields'):
+            # Reinyectar daily_plan en cada form para filtrado
+            form.__init__(data=form.data if form.is_bound else None, daily_plan=daily_plan, instance=form.instance)
+    return fs
 
 
 # ========================================================================================

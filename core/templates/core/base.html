@@ -1,9 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="{{ request.session.lang|default:'en' }}">
+<html lang="{{ request.session.lang|default:request.LANGUAGE_CODE|default:'en' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="csrf-token" content="{{ csrf_token }}">
     
     <!-- PWA Meta Tags -->
     <meta name="application-name" content="Kibray">
@@ -276,7 +277,7 @@
     <nav class="navbar navbar-expand-lg kb-navbar navbar-light mb-3">
       <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'dashboard' %}" aria-label="Kibray Home">
-          <img src="{% static 'brand/kibray-logo.png' %}" alt="Kibray Logo" height="32" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));" onerror="this.style.display='none'">
+          <img src="{% static 'brand/kibray-logo.png' %}" alt="Kibray Logo" height="32" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));" onerror="this.onerror=null; this.src='{% static 'kibray-logo.png' %}';">
           <span>Kibray</span>
         </a>
         <button class="navbar-toggler border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -292,7 +293,7 @@
                     type="text" 
                     id="globalSearch" 
                     class="form-control form-control-sm" 
-                    placeholder="🔍 Buscar proyectos, COs, facturas... (Ctrl+K)"
+                    placeholder="{% trans '🔍 Buscar proyectos, COs, facturas... (Ctrl+K)' %}"
                     autocomplete="off"
                     style="border-radius: 20px; padding-left: 16px; padding-right: 40px; border: 1px solid #dee2e6; transition: all 0.2s;"
                   >
@@ -312,11 +313,11 @@
                   >
                     <div class="p-2 text-center text-muted" id="searchLoading" style="display: none;">
                       <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                      Buscando...
+                      {% trans "Buscando..." %}
                     </div>
                     <div class="p-3 text-center text-muted" id="searchEmpty" style="display: none;">
                       <i class="bi bi-search fs-3 d-block mb-2"></i>
-                      No se encontraron resultados
+                      {% trans "No se encontraron resultados" %}
                     </div>
                     <div id="searchResultsContent"></div>
                   </div>
@@ -342,11 +343,26 @@
               </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  {% if request.session.lang == 'es' %}ES{% else %}EN{% endif %}
+                  {% get_current_language as LANGUAGE_CODE %}
+                  {% if LANGUAGE_CODE == 'es' %}ES{% else %}EN{% endif %}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
-                  <li><a class="dropdown-item" href="{% url 'set_language' 'en' %}">English</a></li>
-                  <li><a class="dropdown-item" href="{% url 'set_language' 'es' %}">Español</a></li>
+                  <li>
+                    <form action="{% url 'set_language' %}" method="post" class="px-3 py-1">
+                      {% csrf_token %}
+                      <input type="hidden" name="language" value="en">
+                      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                      <button type="submit" class="dropdown-item">English</button>
+                    </form>
+                  </li>
+                  <li>
+                    <form action="{% url 'set_language' %}" method="post" class="px-3 py-1">
+                      {% csrf_token %}
+                      <input type="hidden" name="language" value="es">
+                      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                      <button type="submit" class="dropdown-item">Español</button>
+                    </form>
+                  </li>
                 </ul>
               </li>
               <li class="nav-item dropdown">
@@ -354,19 +370,19 @@
                   <i class="bi bi-person-circle me-1"></i> {{ user.username }}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown" style="border-radius:14px;">
-                  <li class="dropdown-header">Paneles</li>
-                  <li><a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-grid me-1"></i> Dashboard General</a></li>
+                  <li class="dropdown-header">{% trans "Paneles" %}</li>
+                  <li><a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-grid me-1"></i> {% trans "Dashboard General" %}</a></li>
                   {% if user.is_staff %}
-                    <li><a class="dropdown-item" href="{% url 'dashboard_pm' %}"><i class="bi bi-kanban me-1"></i> PM / Líder</a></li>
-                    <li><a class="dropdown-item" href="{% url 'dashboard_admin' %}"><i class="bi bi-shield-lock me-1"></i> Admin</a></li>
+                    <li><a class="dropdown-item" href="{% url 'dashboard_pm' %}"><i class="bi bi-kanban me-1"></i> {% trans "PM / Líder" %}</a></li>
+                    <li><a class="dropdown-item" href="{% url 'dashboard_admin' %}"><i class="bi bi-shield-lock me-1"></i> {% trans "Admin" %}</a></li>
                   {% endif %}
-                  <li><a class="dropdown-item" href="{% url 'dashboard_employee' %}"><i class="bi bi-person-workspace me-1"></i> Empleado</a></li>
-                  <li><a class="dropdown-item" href="{% url 'dashboard_client' %}"><i class="bi bi-building me-1"></i> Cliente / Builder / Superintendente</a></li>
-                  <li><a class="dropdown-item" href="{% url 'dashboard_designer' %}"><i class="bi bi-brush me-1"></i> Diseñador / Owner</a></li>
+                  <li><a class="dropdown-item" href="{% url 'dashboard_employee' %}"><i class="bi bi-person-workspace me-1"></i> {% trans "Empleado" %}</a></li>
+                  <li><a class="dropdown-item" href="{% url 'dashboard_client' %}"><i class="bi bi-building me-1"></i> {% trans "Cliente / Builder / Superintendente" %}</a></li>
+                  <li><a class="dropdown-item" href="{% url 'dashboard_designer' %}"><i class="bi bi-brush me-1"></i> {% trans "Diseñador / Owner" %}</a></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li class="dropdown-header">Cuenta</li>
+                  <li class="dropdown-header">{% trans "Cuenta" %}</li>
                   {% if user.is_staff %}
-                    <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-1"></i> Admin Site</a></li>
+                    <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-1"></i> {% trans "Admin Site" %}</a></li>
                   {% endif %}
                   <li>
                     <form action="{% url 'logout' %}" method="post" style="margin:0;">
@@ -406,19 +422,19 @@
     <div class="fab-container">
       <div class="fab-actions">
         <a href="{% url 'project_minute_create' project.id %}" class="fab-action">
-          <span class="fab-label">Nueva Minuta</span>
+          <span class="fab-label">{% trans "Nueva Minuta" %}</span>
           <div class="fab-action-btn btn btn-info text-white">
             <i class="bi bi-journal-plus"></i>
           </div>
         </a>
         <a href="{% url 'changeorder_create' %}" class="fab-action">
-          <span class="fab-label">Nuevo Change Order</span>
+          <span class="fab-label">{% trans "Nuevo Change Order" %}</span>
           <div class="fab-action-btn btn btn-warning text-white">
             <i class="bi bi-file-earmark-plus"></i>
           </div>
         </a>
         <a href="{% url 'materials_request' project.id %}" class="fab-action">
-          <span class="fab-label">Solicitar Materiales</span>
+          <span class="fab-label">{% trans "Solicitar Materiales" %}</span>
           <div class="fab-action-btn btn btn-success text-white">
             <i class="bi bi-box-seam"></i>
           </div>
@@ -529,7 +545,7 @@
         } catch (error) {
           console.error('Search error:', error);
           searchLoading.style.display = 'none';
-          searchResultsContent.innerHTML = '<div class="p-3 text-danger">Error al buscar</div>';
+          searchResultsContent.innerHTML = '<div class="p-3 text-danger">{% trans "Error al buscar" %}</div>';
         }
       }
       
@@ -538,7 +554,7 @@
         
         // Projects
         if (data.results.projects.length > 0) {
-          html += '<div class="dropdown-header fw-bold text-primary"><i class="bi bi-building me-2"></i>Proyectos</div>';
+          html += '<div class="dropdown-header fw-bold text-primary"><i class="bi bi-building me-2"></i>{% trans "Proyectos" %}</div>';
           data.results.projects.forEach(item => {
             html += renderSearchItem(item);
           });
@@ -547,7 +563,7 @@
         
         // Change Orders
         if (data.results.change_orders.length > 0) {
-          html += '<div class="dropdown-header fw-bold text-warning"><i class="bi bi-file-earmark-diff me-2"></i>Change Orders</div>';
+          html += '<div class="dropdown-header fw-bold text-warning"><i class="bi bi-file-earmark-diff me-2"></i>{% trans "Change Orders" %}</div>';
           data.results.change_orders.forEach(item => {
             html += renderSearchItem(item);
           });
@@ -556,7 +572,7 @@
         
         // Invoices
         if (data.results.invoices.length > 0) {
-          html += '<div class="dropdown-header fw-bold text-success"><i class="bi bi-receipt me-2"></i>Facturas</div>';
+          html += '<div class="dropdown-header fw-bold text-success"><i class="bi bi-receipt me-2"></i>{% trans "Facturas" %}</div>';
           data.results.invoices.forEach(item => {
             html += renderSearchItem(item);
           });
@@ -565,7 +581,7 @@
         
         // Employees
         if (data.results.employees.length > 0) {
-          html += '<div class="dropdown-header fw-bold text-info"><i class="bi bi-person-circle me-2"></i>Empleados</div>';
+          html += '<div class="dropdown-header fw-bold text-info"><i class="bi bi-person-circle me-2"></i>{% trans "Empleados" %}</div>';
           data.results.employees.forEach(item => {
             html += renderSearchItem(item);
           });
@@ -574,7 +590,7 @@
         
         // Tasks
         if (data.results.tasks.length > 0) {
-          html += '<div class="dropdown-header fw-bold text-secondary"><i class="bi bi-check-square me-2"></i>Tareas</div>';
+          html += '<div class="dropdown-header fw-bold text-secondary"><i class="bi bi-check-square me-2"></i>{% trans "Tareas" %}</div>';
           data.results.tasks.forEach(item => {
             html += renderSearchItem(item);
           });
@@ -582,7 +598,7 @@
         
         // Total count footer
         html += `<div class="dropdown-header text-muted small text-end">
-          ${data.total_count} resultado${data.total_count !== 1 ? 's' : ''} encontrado${data.total_count !== 1 ? 's' : ''}
+          ${data.total_count} {% trans "resultado" %}${data.total_count !== 1 ? 's' : ''} {% trans "encontrado" %}${data.total_count !== 1 ? 's' : ''}
         </div>`;
         
         searchResultsContent.innerHTML = html;
@@ -605,102 +621,37 @@
       }
     });
     
-    // ===== PWA SERVICE WORKER REGISTRATION =====
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/static/service-worker.js')
-          .then((registration) => {
-            console.log('[PWA] Service Worker registered:', registration.scope);
-            
-            // Check for updates every hour
-            setInterval(() => {
-              registration.update();
-            }, 60 * 60 * 1000);
-            
-            // Listen for updates
-            registration.addEventListener('updatefound', () => {
-              const newWorker = registration.installing;
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New service worker available
-                  if (confirm('Nueva versión disponible. ¿Actualizar ahora?')) {
-                    newWorker.postMessage({ type: 'SKIP_WAITING' });
-                    window.location.reload();
+    // ===== PWA SERVICE WORKER REGISTRATION (disabled on localhost) =====
+    (function(){
+      const isLocalhost = ['localhost','127.0.0.1'].includes(location.hostname) || location.hostname.endsWith('.local');
+      if ('serviceWorker' in navigator) {
+        if (isLocalhost) {
+          // Ensure no stale SW interferes with dev (cache or fetch handlers)
+          navigator.serviceWorker.getRegistrations().then(regs => { regs.forEach(r => r.unregister()); });
+          return; // Skip registration in development/local
+        }
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/static/service-worker.js')
+            .then((registration) => {
+              console.log('[PWA] Service Worker registered:', registration.scope);
+              setInterval(() => { registration.update(); }, 60 * 60 * 1000);
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    if (confirm('Nueva versión disponible. ¿Actualizar ahora?')) {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      window.location.reload();
+                    }
                   }
-                }
+                });
               });
-            });
-          })
-          .catch((error) => {
-            console.error('[PWA] Service Worker registration failed:', error);
-          });
-        
-        // Listen for controller change (new SW activated)
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          window.location.reload();
-        });
-      });
-      
-      // ===== PWA INSTALL PROMPT =====
-      let deferredPrompt;
-      
-      window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent the mini-infobar from appearing on mobile
-        e.preventDefault();
-        deferredPrompt = e;
-        
-        // Show custom install button/banner
-        showInstallPromotion();
-      });
-      
-      window.addEventListener('appinstalled', () => {
-        console.log('[PWA] App installed successfully');
-        deferredPrompt = null;
-        hideInstallPromotion();
-      });
-      
-      function showInstallPromotion() {
-        // Create install banner if not exists
-        if (document.getElementById('pwa-install-banner')) return;
-        
-        const banner = document.createElement('div');
-        banner.id = 'pwa-install-banner';
-        banner.className = 'alert alert-info alert-dismissible fade show position-fixed bottom-0 start-50 translate-middle-x mb-3';
-        banner.style.cssText = 'z-index: 9999; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);';
-        banner.innerHTML = `
-          <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-download fs-3"></i>
-            <div class="flex-grow-1">
-              <strong>Instalar Kibray</strong>
-              <p class="mb-0 small">Accede más rápido instalando la app en tu dispositivo</p>
-            </div>
-            <button type="button" class="btn btn-primary btn-sm" id="pwa-install-btn">
-              Instalar
-            </button>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        `;
-        
-        document.body.appendChild(banner);
-        
-        // Install button click
-        document.getElementById('pwa-install-btn').addEventListener('click', async () => {
-          if (!deferredPrompt) return;
-          
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log('[PWA] Install prompt outcome:', outcome);
-          
-          deferredPrompt = null;
-          hideInstallPromotion();
+            })
+            .catch((error) => { console.error('[PWA] Service Worker registration failed:', error); });
+          navigator.serviceWorker.addEventListener('controllerchange', () => { window.location.reload(); });
         });
       }
-      
-      function hideInstallPromotion() {
-        const banner = document.getElementById('pwa-install-banner');
-        if (banner) banner.remove();
-      }
-    }
+    })();
     </script>
     
     <!-- OneSignal Push Notifications -->
@@ -708,10 +659,17 @@
     <script>
       // OneSignal Initialization
       window.OneSignal = window.OneSignal || [];
-      OneSignal.push(function() {
-        OneSignal.init({
-          appId: "{{ ONESIGNAL_APP_ID|default:'YOUR_APP_ID_HERE' }}",
-          safari_web_id: "{{ ONESIGNAL_SAFARI_WEB_ID|default:'' }}",
+        const ONE_SIGNAL_APP_ID = "{{ ONESIGNAL_APP_ID|default:'YOUR_APP_ID_HERE' }}";
+        const ONE_SIGNAL_SAFARI_ID = "{{ ONESIGNAL_SAFARI_WEB_ID|default:'' }}";
+        const isPlaceholderAppId = !ONE_SIGNAL_APP_ID || ONE_SIGNAL_APP_ID === 'YOUR_APP_ID_HERE';
+        const isLocalhost = ['localhost','127.0.0.1'].includes(window.location.hostname);
+        if (isPlaceholderAppId) {
+          console.warn('[OneSignal] Skipping initialization: missing valid APP ID');
+        } else {
+          OneSignal.push(function() {
+            OneSignal.init({
+            appId: ONE_SIGNAL_APP_ID,
+            safari_web_id: ONE_SIGNAL_SAFARI_ID,
           notifyButton: {
             enable: false, // We'll use custom UI
           },
@@ -719,30 +677,30 @@
           promptOptions: {
             slidedown: {
               enabled: true,
-              actionMessage: "¿Quieres recibir notificaciones sobre actualizaciones de tus proyectos?",
-              acceptButtonText: "Permitir",
-              cancelButtonText: "No, gracias",
+              actionMessage: "{% trans '¿Quieres recibir notificaciones sobre actualizaciones de tus proyectos?' %}",
+              acceptButtonText: "{% trans 'Permitir' %}",
+              cancelButtonText: "{% trans 'No, gracias' %}",
               categories: {
                 tags: [
                   {
                     tag: "invoices",
-                    label: "Facturas y Pagos",
+                    label: "{% trans 'Facturas y Pagos' %}",
                   },
                   {
                     tag: "projects",
-                    label: "Actualizaciones de Proyectos",
+                    label: "{% trans 'Actualizaciones de Proyectos' %}",
                   },
                   {
                     tag: "tasks",
-                    label: "Tareas y Touch-ups",
+                    label: "{% trans 'Tareas y Touch-ups' %}",
                   },
                   {
                     tag: "materials",
-                    label: "Materiales e Inventario",
+                    label: "{% trans 'Materiales e Inventario' %}",
                   },
                   {
                     tag: "budget",
-                    label: "Alertas de Presupuesto",
+                    label: "{% trans 'Alertas de Presupuesto' %}",
                   }
                 ]
               }
@@ -751,16 +709,17 @@
         });
         
         // Set user ID for targeting (Django user ID)
-        {% if user.is_authenticated %}
-        OneSignal.setExternalUserId("{{ user.id }}");
-        
-        // Set user tags for segmentation
-        OneSignal.sendTags({
-          username: "{{ user.username }}",
-          role: "{{ user.groups.first.name|default:'employee' }}",
-          is_staff: "{{ user.is_staff|yesno:'true,false' }}"
-        });
-        {% endif %}
+        const isAuthenticated = {{ user.is_authenticated|yesno:'true,false' }};
+        if (isAuthenticated) {
+          try {
+            OneSignal.setExternalUserId("{{ user.id }}");
+            OneSignal.sendTags({
+              username: "{{ user.username }}",
+              role: "{{ user.groups.first.name|default:'employee' }}",
+              is_staff: "{{ user.is_staff|yesno:'true,false' }}"
+            });
+          } catch(e) { console.warn('[OneSignal] Tagging skipped:', e); }
+        }
         
         // Log subscription status
         OneSignal.isPushNotificationsEnabled(function(isEnabled) {
@@ -785,6 +744,7 @@
           console.log('[Push] Notification displayed:', event);
         });
       });
+    }
       
       // Show notification subscription success
       function showNotificationSuccess() {
@@ -796,7 +756,7 @@
           <div class="d-flex">
             <div class="toast-body">
               <i class="bi bi-check-circle me-2"></i>
-              ¡Notificaciones activadas correctamente!
+              {% trans '¡Notificaciones activadas correctamente!' %}
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
           </div>

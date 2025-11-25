@@ -3614,10 +3614,10 @@ class DailyPlan(models.Model):
         Q12.5: Calcula score de productividad: horas reales vs estimadas.
         Retorna porcentaje (100% = según lo planeado, >100% = más eficiente).
         """
-        if not self.estimated_hours_total or not self.actual_hours_worked:
+        if not self.estimated_hours_total:
             return None
         
-        if self.actual_hours_worked == 0:
+        if not self.actual_hours_worked or self.actual_hours_worked == 0:
             return 100.0
         
         # Score: estimated / actual * 100
@@ -3700,13 +3700,13 @@ class PlannedActivity(models.Model):
 
     daily_plan = models.ForeignKey(DailyPlan, on_delete=models.CASCADE, related_name='activities')
     
-    # Optional link to Schedule item
+    # Optional link to hierarchical ScheduleItem (updated Nov 2025 to reflect new structure)
     schedule_item = models.ForeignKey(
-        Schedule, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        ScheduleItem,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        help_text="Link to parent schedule item if this is a sub-task"
+        help_text="Link to schedule item (phase/milestone) if applicable"
     )
     
     # Optional link to Activity Template (SOP)

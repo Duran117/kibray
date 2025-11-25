@@ -1,0 +1,162 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Touch-Ups: {{ project.name }}</h2>
+    <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans "Volver al proyecto" %}</a>
+  </div>
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-2">
+      <label class="form-label">Estado</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">{% trans "Todos" %}</option>
+        <option value="Pendiente" {% if filter_status == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+        <option value="En Progreso" {% if filter_status == 'En Progreso' %}selected{% endif %}>En Progreso</option>
+        <option value="Completada" {% if filter_status == 'Completada' %}selected{% endif %}>Completada</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Prioridad</label>
+      <select name="priority" class="form-select form-select-sm">
+        <option value="">Todas</option>
+        {% for code,label in priority_choices %}
+          <option value="{{ code }}" {% if filter_priority == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Asignado</label>
+      <select name="assigned" class="form-select form-select-sm">
+        <option value="">{% trans "Todos" %}</option>
+        <option value="unassigned" {% if filter_assigned == 'unassigned' %}selected{% endif %}>Sin asignar</option>
+        {% for emp in employees %}
+          <option value="{{ emp.id }}" {% if filter_assigned == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Desde</label>
+      <input type="date" name="date_from" class="form-control form-control-sm" value="{{ filter_date_from }}" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Hasta</label>
+      <input type="date" name="date_to" class="form-control form-control-sm" value="{{ filter_date_to }}" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Ordenar</label>
+      <select name="sort" class="form-select form-select-sm">
+        <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Más reciente</option>
+        <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Más antiguo</option>
+        <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Estado (A-Z)</option>
+        <option value="-status" {% if sort_by == '-status' %}selected{% endif %}>Estado (Z-A)</option>
+        <option value="priority" {% if sort_by == 'priority' %}selected{% endif %}>Prioridad (Asc)</option>
+        <option value="-priority" {% if sort_by == '-priority' %}selected{% endif %}>Prioridad (Desc)</option>
+      </select>
+    </div>
+    <div class="col-md-12 mt-2 d-flex align-items-center gap-2">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="overdue" value="1" id="chkOverdue" {% if show_overdue %}checked{% endif %}>
+        <label class="form-check-label" for="chkOverdue">Atrasadas</label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+      <a href="{% url 'touchup_board' project.id %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+    </div>
+  </form>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Título</th>
+          <th>Estado</th>
+          <th>Prioridad</th>
+          <th>Asignado</th>
+          <th>Creado</th>
+          <th>Fecha límite</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in page_obj %}
+        <tr data-task-id="{{ t.id }}">
+          <td>
+            <strong>{{ t.title }}</strong>
+            {% if t.description %}<br><small class="text-muted">{{ t.description|truncatewords:10 }}</small>{% endif %}
+          </td>
+          <td>
+            <select class="form-select form-select-sm status-select" data-task-id="{{ t.id }}" style="width:140px;">
+              <option value="Pendiente" {% if t.status == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+              <option value="En Progreso" {% if t.status == 'En Progreso' %}selected{% endif %}>En Progreso</option>
+              <option value="Completada" {% if t.status == 'Completada' %}selected{% endif %}>Completada</option>
+              <option value="Cancelada" {% if t.status == 'Cancelada' %}selected{% endif %}>Cancelada</option>
+            </select>
+          </td>
+          <td>{{ t.get_priority_display }}</td>
+          <td>
+            <select class="form-select form-select-sm assign-select" data-task-id="{{ t.id }}" style="width:150px;">
+              <option value="">Sin asignar</option>
+              {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if t.assigned_to.id == emp.id %}selected{% endif %}>{{ emp.username }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><small>{{ t.created_at|date:'Y-m-d H:i' }}</small></td>
+          <td>{% if t.due_date %}{{ t.due_date|date:'Y-m-d' }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td>
+            <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary" title="Ver detalle"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No hay touch-ups con estos filtros.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <nav>
+    <ul class="pagination pagination-sm justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page=1">Primera</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+      {% endif %}
+      <li class="page-item active"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+<script>
+// AJAX quick updates
+document.addEventListener('DOMContentLoaded', function() {
+  function postQuickUpdate(taskId, body) {
+    return fetch(`/touchups/quick-update/${taskId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: body
+    }).then(r => r.json());
+  }
+  document.querySelectorAll('.status-select').forEach(select => {
+    select.addEventListener('change', function() {
+      const taskId = this.dataset.taskId;
+      const newStatus = this.value;
+      postQuickUpdate(taskId, `action=status&status=${encodeURIComponent(newStatus)}`)
+        .then(data => { if (!data.success) console.warn('Fallo status', data); });
+    });
+  });
+  document.querySelectorAll('.assign-select').forEach(select => {
+    select.addEventListener('change', function() {
+      const taskId = this.dataset.taskId;
+      const empId = this.value;
+      postQuickUpdate(taskId, `action=assign&employee_id=${encodeURIComponent(empId)}`)
+        .then(data => { if (!data.success) console.warn('Fallo asignación', data); });
+    });
+  });
+});
+</script>
+{% endblock %}

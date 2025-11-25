@@ -2,7 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
-    FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem
+    FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem,
+    Income, Expense, CostCode, BudgetLine
 )
 
 User = get_user_model()
@@ -130,3 +131,148 @@ class ScheduleItemSerializer(serializers.ModelSerializer):
         if obj.dependencies:
             return ','.join(str(dep.id) for dep in obj.dependencies.all())
         return ''
+
+
+# =============================================================================
+# FINANCIAL SERIALIZERS
+# =============================================================================
+
+class ProjectSerializer(serializers.ModelSerializer):
+    """Complete project serializer with financial summary"""
+    profit = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    budget_remaining = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    income_count = serializers.SerializerMethodField()
+    expense_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Project
+        fields = [
+            'id', 'name', 'client', 'address', 'start_date', 'end_date',
+            'description', 'paint_colors', 'paint_codes', 'stains_or_finishes',
+            'number_of_rooms_or_areas', 'number_of_paint_defects',
+            'total_income', 'total_expenses', 'profit',
+            'budget_total', 'budget_labor', 'budget_materials', 'budget_other',
+            'budget_remaining', 'reflection_notes', 'created_at',
+            'income_count', 'expense_count'
+        ]
+        read_only_fields = ['created_at', 'total_income', 'total_expenses', 'profit', 'budget_remaining']
+    
+    def get_income_count(self, obj):
+        return obj.incomes.count()
+    
+    def get_expense_count(self, obj):
+        return obj.expenses.count()
+
+
+class IncomeSerializer(serializers.ModelSerializer):
+    """Income serializer with project details"""
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    project_client = serializers.CharField(source='project.client', read_only=True)
+    
+    class Meta:
+        model = Income
+        fields = [
+            'id', 'project', 'project_name', 'project_client',
+            'project_name', 'amount', 'date', 'payment_method',
+            'category', 'description', 'invoice', 'notes'
+        ]
+        read_only_fields = []
+    
+    def validate_amount(self, value):
+        """Ensure amount is positive"""
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero.")
+        return value
+    
+    def validate_date(self, value):
+        """Ensure date is not in the future"""
+        from datetime import date
+        if value > date.today():
+            raise serializers.ValidationError("Date cannot be in the future.")
+        return value
+
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    """Expense serializer with project and cost code details"""
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    cost_code_name = serializers.CharField(source='cost_code.name', read_only=True, allow_null=True)
+    change_order_number = serializers.CharField(source='change_order.number', read_only=True, allow_null=True)
+    
+    class Meta:
+        model = Expense
+        fields = [
+            'id', 'project', 'project_name', 'amount', 'project_name',
+            'date', 'category', 'description', 'receipt', 'invoice',
+            'change_order', 'change_order_number', 'cost_code', 'cost_code_name'
+        ]
+        read_only_fields = []
+    
+    def validate_amount(self, value):
+        """Ensure amount is positive"""
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero.")
+        return value
+    
+    def validate_date(self, value):
+        """Ensure date is not in the future"""
+        from datetime import date
+        if value > date.today():
+            raise serializers.ValidationError("Date cannot be in the future.")
+        return value
+
+
+class CostCodeSerializer(serializers.ModelSerializer):
+    """Cost code serializer"""
+    expense_count = serializers.SerializerMethodField()
+    total_expenses = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CostCode
+        fields = [
+            'id', 'code', 'name', 'category', 'active',
+            'expense_count', 'total_expenses'
+        ]
+        read_only_fields = ['expense_count', 'total_expenses']
+    
+    def get_expense_count(self, obj):
+        return obj.expenses.count()
+    
+    def get_total_expenses(self, obj):
+        from django.db.models import Sum
+        total = obj.expenses.aggregate(total=Sum('amount'))['total']
+        return total or 0
+
+
+class BudgetLineSerializer(serializers.ModelSerializer):
+    """Budget line serializer with cost code details"""
+    cost_code_name = serializers.CharField(source='cost_code.name', read_only=True)
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    total_amount = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = BudgetLine
+        fields = [
+            'id', 'project', 'project_name', 'cost_code', 'cost_code_name',
+            'description', 'qty', 'unit', 'unit_cost', 'allowance',
+            'baseline_amount', 'revised_amount', 'total_amount',
+            'planned_start', 'planned_finish', 'weight_override'
+        ]
+        read_only_fields = ['baseline_amount', 'total_amount']
+    
+    def get_total_amount(self, obj):
+        """Return revised amount if set, otherwise baseline"""
+        return obj.revised_amount if obj.revised_amount else obj.baseline_amount
+
+
+class ProjectBudgetSummarySerializer(serializers.Serializer):
+    """Summary serializer for project budget tracking"""
+    project_id = serializers.IntegerField()
+    project_name = serializers.CharField()
+    budget_total = serializers.DecimalField(max_digits=14, decimal_places=2)
+    budget_labor = serializers.DecimalField(max_digits=14, decimal_places=2)
+    budget_materials = serializers.DecimalField(max_digits=14, decimal_places=2)
+    budget_other = serializers.DecimalField(max_digits=14, decimal_places=2)
+    total_expenses = serializers.DecimalField(max_digits=14, decimal_places=2)
+    budget_remaining = serializers.DecimalField(max_digits=14, decimal_places=2)
+    percent_spent = serializers.DecimalField(max_digits=5, decimal_places=2)
+    is_over_budget = serializers.BooleanField()

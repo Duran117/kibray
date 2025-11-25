@@ -1,0 +1,373 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Admin Dashboard" %} - Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-speedometer2 text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">{% trans "Admin Dashboard" %}</h1>
+            <p class="text-slate-600 mt-1">{{ today|date:"D, M d, Y" }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Panel Administrativo Avanzado -->
+<a href="{% url 'admin_panel_main' %}" class="block mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+    <div class="flex flex-col md:flex-row items-stretch">
+        <!-- Left side - Info -->
+        <div class="flex-1 p-6 bg-gradient-to-br from-slate-50 to-white">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                    <i class="bi bi-shield-lock text-indigo-600 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-1">
+                        {% trans "Panel Administrativo Avanzado" %}
+                    </h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        {% trans "Gestión completa de usuarios, permisos, grupos y logs. Todas las funciones del Django Admin con interfaz moderna." %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right side - Button -->
+        <div class="flex items-center justify-center p-6 bg-gradient-to-br from-indigo-500 to-purple-600 md:w-64">
+            <div class="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 font-semibold rounded-lg shadow-lg">
+                <i class="bi bi-gear-fill"></i>
+                <span>{% trans "Abrir Panel" %}</span>
+                <i class="bi bi-arrow-right"></i>
+            </div>
+        </div>
+    </div>
+</a>
+
+<!-- Critical Alerts -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <!-- Unassigned Time -->
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if unassigned_time_count > 0 %}border-red-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex justify-between items-start mb-3">
+            <div>
+                <p class="text-sm text-slate-600 mb-1">{% trans "Unassigned Time" %}</p>
+                <h3 class="text-2xl font-bold text-slate-900">{{ unassigned_time_count }}</h3>
+                <p class="text-xs text-slate-500 mt-1">{{ unassigned_time_hours|floatformat:1 }}h {% trans "sin asignar" %}</p>
+            </div>
+            <i class="bi bi-clock-history text-3xl {% if unassigned_time_count > 0 %}text-red-500{% else %}text-green-500{% endif %}"></i>
+        </div>
+        {% if unassigned_time_count > 0 %}
+        <a href="{% url 'unassigned_timeentries' %}" class="block w-full text-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-medium rounded-lg transition">
+            {% trans "Assign now" %}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Client Requests -->
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_client_requests > 0 %}border-yellow-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex justify-between items-start mb-3">
+            <div>
+                <p class="text-sm text-slate-600 mb-1">{% trans "Client Requests" %}</p>
+                <h3 class="text-2xl font-bold text-slate-900">{{ pending_client_requests }}</h3>
+                <p class="text-xs text-slate-500 mt-1">{% trans "Pending approval" %}</p>
+            </div>
+            <i class="bi bi-person-plus text-3xl {% if pending_client_requests > 0 %}text-yellow-500{% else %}text-green-500{% endif %}"></i>
+        </div>
+        {% if pending_client_requests > 0 %}
+        <a href="{% url 'client_requests_list_all' %}" class="block w-full text-center px-3 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-sm font-medium rounded-lg transition">
+            {% trans "Review" %}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Change Orders -->
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_cos > 0 %}border-cyan-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex justify-between items-start mb-3">
+            <div>
+                <p class="text-sm text-slate-600 mb-1">Change Orders</p>
+                <h3 class="text-2xl font-bold text-slate-900">{{ pending_cos }}</h3>
+                <p class="text-xs text-slate-500 mt-1">{% trans "Awaiting approval" %}</p>
+            </div>
+            <i class="bi bi-file-earmark-text text-3xl {% if pending_cos > 0 %}text-cyan-500{% else %}text-green-500{% endif %}"></i>
+        </div>
+        {% if pending_cos > 0 %}
+        <a href="{% url 'changeorder_board' %}" class="block w-full text-center px-3 py-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-sm font-medium rounded-lg transition">
+            {% trans "Approve" %}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Pending Invoices -->
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_invoices > 0 %}border-indigo-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex justify-between items-start mb-3">
+            <div>
+                <p class="text-sm text-slate-600 mb-1">{% trans "Pending Invoices" %}</p>
+                <h3 class="text-2xl font-bold text-slate-900">{{ pending_invoices }}</h3>
+                <p class="text-xs text-slate-500 mt-1">${{ pending_invoice_amount|floatformat:2 }}</p>
+            </div>
+            <i class="bi bi-receipt text-3xl {% if pending_invoices > 0 %}text-indigo-500{% else %}text-green-500{% endif %}"></i>
+        </div>
+        {% if pending_invoices > 0 %}
+        <a href="{% url 'invoice_payment_dashboard' %}" class="block w-full text-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg transition">
+            {% trans "View payments" %}
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Financial Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-green-100 text-sm mb-2">{% trans "Total Income" %}</p>
+                <h2 class="text-3xl font-bold">${{ total_income|floatformat:2 }}</h2>
+            </div>
+            <i class="bi bi-cash-stack text-5xl opacity-50"></i>
+        </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-red-100 text-sm mb-2">{% trans "Total Expenses" %}</p>
+                <h2 class="text-3xl font-bold">${{ total_expense|floatformat:2 }}</h2>
+            </div>
+            <i class="bi bi-credit-card text-5xl opacity-50"></i>
+        </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-{% if net_profit >= 0 %}indigo-500 to-indigo-600{% else %}yellow-500 to-yellow-600{% endif %} text-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-white/80 text-sm mb-2">{% trans "Net Profit" %}</p>
+                <h2 class="text-3xl font-bold">${{ net_profit|floatformat:2 }}</h2>
+            </div>
+            <i class="bi bi-graph-up-arrow text-5xl opacity-50"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Projects with Alerts -->
+{% if projects_with_alerts %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <i class="bi bi-exclamation-triangle text-kibray-600 text-xl"></i>
+            <h3 class="text-lg font-semibold text-gray-900">{% trans "Projects with Alerts" %}</h3>
+        </div>
+    </div>
+    <div class="p-6">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Project" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Alerts" %}</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">SPI</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">CPI</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                {% for item in projects_with_alerts %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3">
+                        <div class="font-semibold text-slate-900">{{ item.project.name }}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap gap-1">
+                            {% for alert_type, alert_msg in item.alerts %}
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-{{ alert_type }}-100 text-{{ alert_type }}-800">
+                                {{ alert_msg }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-right hidden md:table-cell">
+                        {% if item.metrics.SPI %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-{% if item.metrics.SPI < 0.9 %}red{% elif item.metrics.SPI < 1 %}yellow{% else %}green{% endif %}-100 text-{% if item.metrics.SPI < 0.9 %}red{% elif item.metrics.SPI < 1 %}yellow{% else %}green{% endif %}-800">
+                            {{ item.metrics.SPI|floatformat:2 }}
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-right hidden md:table-cell">
+                        {% if item.metrics.CPI %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-{% if item.metrics.CPI < 0.9 %}red{% elif item.metrics.CPI < 1 %}yellow{% else %}green{% endif %}-100 text-{% if item.metrics.CPI < 0.9 %}red{% elif item.metrics.CPI < 1 %}yellow{% else %}green{% endif %}-800">
+                            {{ item.metrics.CPI|floatformat:2 }}
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <a href="{% url 'project_overview' item.project.id %}" class="inline-flex items-center px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+                            Dashboard
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Pending Approvals and Payroll -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Pending Approvals -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-check-circle text-kibray-600 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">{% trans "Pending Approvals" %}</h3>
+                </div>
+            </div>
+            <div class="p-6">
+        {% if pending_cos_list %}
+        <h6 class="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+            <i class="bi bi-file-earmark-text"></i>
+            Change Orders ({{ pending_cos }})
+        </h6>
+        <div class="space-y-2 mb-4">
+            {% for co in pending_cos_list %}
+            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                <div class="flex-1">
+                    <div class="font-semibold text-slate-900">CO #{{ co.id }}</div>
+                    <div class="text-xs text-slate-600">{{ co.project.name }}</div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="font-bold text-green-600">${{ co.amount|floatformat:2 }}</div>
+                    <a href="{% url 'changeorder_detail' co.id %}" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition">
+                        {% trans "Approve" %}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if pending_requests_list %}
+        <h6 class="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+            <i class="bi bi-person-plus"></i>
+            {% trans "Client Requests" %} ({{ pending_client_requests }})
+        </h6>
+        <div class="space-y-2">
+            {% for req in pending_requests_list %}
+            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                <div class="flex-1">
+                    <div class="font-semibold text-slate-900">CR #{{ req.id }}</div>
+                    <div class="text-xs text-slate-600">{{ req.project.name }}</div>
+                </div>
+                <a href="{% url 'client_request_convert' req.id %}" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition">
+                    {% trans "Convert" %}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if not pending_cos_list and not pending_requests_list %}
+        <div class="text-center py-8">
+            <i class="bi bi-check-circle-fill text-green-500 text-5xl mb-3"></i>
+            <p class="text-slate-600">{% trans "No pending approvals" %}</p>
+        </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Payroll & Time -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-calendar-week text-kibray-600 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">{% trans "Payroll & Time" %}</h3>
+                </div>
+            </div>
+            <div class="p-6">
+        {% if latest_payroll_period %}
+        <h6 class="text-sm font-semibold text-slate-600 mb-3">{% trans "Latest Payroll Period" %}</h6>
+        <div class="p-4 bg-slate-50 rounded-lg mb-4">
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-slate-600">{% trans "Week" %}:</span>
+                    <span class="font-semibold">{{ latest_payroll_period.week_start|date:"M d" }} - {{ latest_payroll_period.week_end|date:"M d" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-600">{% trans "Status" %}:</span>
+                    <span class="px-2 py-0.5 bg-{{ latest_payroll_period.status }}-100 text-{{ latest_payroll_period.status }}-800 rounded text-xs font-medium">{{ latest_payroll_period.get_status_display }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-600">{% trans "Total" %}:</span>
+                    <span class="font-semibold">${{ latest_payroll_period.total_payroll|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-600">{% trans "Paid" %}:</span>
+                    <span class="font-semibold text-green-600">${{ latest_payroll_period.total_paid|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between col-span-2">
+                    <span class="text-slate-600">{% trans "Pending" %}:</span>
+                    <span class="font-semibold text-red-600">${{ payroll_balance|floatformat:2 }}</span>
+                </div>
+            </div>
+            <a href="{% url 'payroll_weekly_review' %}" class="block w-full mt-3 text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+                <i class="bi bi-calendar-check mr-1"></i>
+                {% trans "Review Payroll" %}
+            </a>
+        </div>
+        {% endif %}
+
+        <h6 class="text-sm font-semibold text-slate-600 mb-3">{% trans "Time Recorded" %}</h6>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="p-4 bg-slate-50 rounded-lg text-center">
+                <p class="text-xs text-slate-600 mb-1">{% trans "Today" %}</p>
+                <p class="text-2xl font-bold text-slate-900">{{ today_hours|floatformat:1 }}h</p>
+                <p class="text-xs text-slate-600 mt-1">${{ today_labor_cost|floatformat:2 }}</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-lg text-center">
+                <p class="text-xs text-slate-600 mb-1">{% trans "This Week" %}</p>
+                <p class="text-2xl font-bold text-slate-900">{{ week_hours|floatformat:1 }}h</p>
+            </div>
+                </div>
+            </div>
+        </div>
+</div>
+
+<!-- Project Summary -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-folder text-kibray-600 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">{% trans "Active Projects" %}</h3>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="text-center py-6">
+                        <h1 class="text-5xl font-bold text-indigo-600 mb-2">{{ active_projects }}</h1>
+                        <p class="text-slate-600">{% trans "Active Projects" %}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-check-circle text-kibray-600 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">{% trans "Completed Projects" %}</h3>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="text-center py-6">
+                        <h1 class="text-5xl font-bold text-slate-400 mb-2">{{ completed_projects }}</h1>
+                        <p class="text-slate-600">{% trans "Completed Projects" %}</p>
+                </div>
+            </div>
+        </div>
+</div>
+{% endblock %}

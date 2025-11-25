@@ -120,9 +120,17 @@
                 {% endif %}
               </td>
               <td>
-                <a href="{% url 'damage_report_detail' r.id %}" class="btn btn-sm btn-outline-primary">
-                  <i class="bi bi-eye"></i> Ver
-                </a>
+                <div class="btn-group">
+                  <a href="{% url 'damage_report_detail' r.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye"></i> Ver
+                  </a>
+                  <a href="{% url 'damage_report_edit' r.id %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil"></i> Editar
+                  </a>
+                  <a href="{% url 'damage_report_delete' r.id %}" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </a>
+                </div>
               </td>
             </tr>
             {% empty %}

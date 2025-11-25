@@ -1,0 +1,949 @@
+{% extends "core/base_modern.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% if is_edit %}{% trans "Editar" %}{% else %}{% trans "Crear" %}{% endif %} Change Order - Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-{% if is_edit %}pencil-square{% else %}plus-circle-fill{% endif %} text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">
+                {% if is_edit %}
+                    {% blocktrans with co_id=changeorder.id %}Editar Change Order #{{ co_id }}{% endblocktrans %}
+                {% else %}
+                    {% trans "Nuevo Change Order" %}
+                {% endif %}
+            </h1>
+            <p class="text-sm text-slate-600 mt-1">
+                {% if is_edit %}
+                    {% trans "Actualice los campos necesarios del change order" %}
+                {% else %}
+                    {% trans "Complete la información del change order" %}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    {% if is_edit %}
+    <a href="{% url 'changeorder_detail' changeorder.id %}"
+       class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition">
+        <i class="bi bi-arrow-left"></i>
+        <span class="hidden sm:inline">{% trans "Volver al CO" %}</span>
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="max-w-5xl mx-auto space-y-8">
+    {% csrf_token %}
+    
+    <!-- Basic Information -->
+    {% include "core/components/form_section.html" with icon="info-circle-fill" title=_("Información Básica") %}
+        <div class="space-y-6">
+            <!-- Project Selection -->
+            {% if not is_edit or user.is_staff %}
+            <div>
+                <label for="{{ form.project.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Proyecto" %} <span class="text-red-600">*</span>
+                </label>
+                {{ form.project }}
+                {% if form.project.errors %}
+                    <div class="mt-2 text-sm text-red-600">
+                        {% for error in form.project.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Description -->
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Descripción" %} <span class="text-red-600">*</span>
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="mt-2 text-sm text-red-600">
+                        {% for error in form.description.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Amount and Status -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.amount.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                        {% trans "Monto" %} <span class="text-red-600">*</span>
+                    </label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                        <div class="mt-2 text-sm text-red-600">
+                            {% for error in form.amount.errors %}<p>{{ error }}</p>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                        {% trans "Estado" %} <span class="text-red-600">*</span>
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="mt-2 text-sm text-red-600">
+                            {% for error in form.status.errors %}<p>{{ error }}</p>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Notes -->
+            <div>
+                <label for="{{ form.notes.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Notas" %}
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div class="mt-2 text-sm text-red-600">
+                        {% for error in form.notes.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% include "core/components/form_section.html" with close_section=True only %}
+    
+    <!-- Color Selection -->
+    {% include "core/components/form_section.html" with icon="palette-fill" title=_("Selección de Color") %}
+        <div class="space-y-6">
+            <!-- Approved Colors Dropdown (populated via JavaScript) -->
+            <div id="approvedColorsGroup" style="{% if approved_colors %}display:block;{% else %}display:none;{% endif %}">
+                <label for="approvedColorSelect" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Colores Aprobados del Proyecto" %}
+                </label>
+                <select id="approvedColorSelect" 
+                        class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        onchange="selectApprovedColor(this)">
+                    <option value="">{% trans "-- Seleccionar color aprobado --" %}</option>
+                    {% for color_sample in approved_colors %}
+                    <option value="{{ color_sample.code }}" 
+                            data-brand="{{ color_sample.brand }}"
+                            data-name="{{ color_sample.name }}">
+                        {{ color_sample.code }}{% if color_sample.name %} - {{ color_sample.name }}{% endif %}
+                        {% if color_sample.brand %} ({{ color_sample.brand }}){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+                <p class="mt-1 text-xs text-slate-500">
+                    {% trans "Seleccione un color aprobado para este proyecto" %}
+                </p>
+            </div>
+            
+            <!-- No Colors Message -->
+            <div id="noColorsMessage" style="{% if not approved_colors %}display:block;{% else %}display:none;{% endif %}">
+                <div class="flex gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <i class="bi bi-info-circle text-yellow-600 text-lg flex-shrink-0 mt-0.5"></i>
+                    <div class="text-sm text-yellow-800">
+                        <strong>{% trans "Este proyecto no tiene colores aprobados." %}</strong><br>
+                        {% trans "Puede usar el selector de color manual a continuación." %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Manual Color Picker -->
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-start">
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.color.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                            {% trans "Color (Hex)" %}
+                        </label>
+                        {{ form.color }}
+                        <p class="mt-1 text-xs text-slate-500">
+                            {% trans "Escriba un código hex manualmente (ej: #FF5733)" %}
+                        </p>
+                        {% if form.color.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.color.errors %}<p>{{ error }}</p>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.reference_code.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                            {% trans "Código de Referencia o Material" %}
+                        </label>
+                        {{ form.reference_code }}
+                        <p class="mt-1 text-xs text-slate-500">
+                            {% trans "Para hacer match con madera, metal u otro material (ej: \"Madera X\", \"Metal Z\")" %}
+                        </p>
+                        {% if form.reference_code.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.reference_code.errors %}<p>{{ error }}</p>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Color Preview Box -->
+                <div id="colorPreview" 
+                     class="w-20 h-20 rounded-xl border-2 border-slate-300 cursor-pointer hover:scale-105 transition shadow-md"
+                     style="background: linear-gradient(135deg, #ffffff, #f1f5f9);"
+                     onclick="document.getElementById('{{ form.color.id_for_label }}').click()"
+                     title="{% trans 'Clic para seleccionar color' %}">
+                </div>
+            </div>
+        </div>
+    {% include "core/components/form_section.html" with close_section=True only %}
+    
+    <!-- Photos Section -->
+    {% include "core/components/form_section.html" with icon="camera-fill" title=_("Fotos del Proyecto") %}
+        <!-- Instructions -->
+        <div class="flex gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
+            <i class="bi bi-info-circle-fill text-blue-600 text-lg flex-shrink-0 mt-0.5"></i>
+            <div class="text-sm text-blue-900">
+                <strong>{% trans "Cómo subir fotos:" %}</strong>
+                <ol class="mt-2 ml-4 space-y-1 list-decimal">
+                    <li>{% trans "Haga clic en el área azul para seleccionar fotos" %}</li>
+                    <li>{% trans "Verá miniaturas de las fotos seleccionadas" %}</li>
+                    <li>{% trans "Opcional: Haga clic en \"Editar\" para anotar/dibujar sobre una foto" %}</li>
+                    <li>{% trans "Opcional: Agregue descripciones en los campos de texto" %}</li>
+                    <li>
+                        {% if is_edit %}
+                            {% blocktrans %}Haga clic en <strong>"Guardar Cambios"</strong> al final del formulario para subir las fotos{% endblocktrans %}
+                        {% else %}
+                            {% blocktrans %}Haga clic en <strong>"Crear Change Order"</strong> al final del formulario para subir las fotos{% endblocktrans %}
+                        {% endif %}
+                    </li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- Existing Photos (Edit Mode) -->
+        {% if is_edit and changeorder.photos.all %}
+        <div class="mb-8">
+            <p class="text-sm font-semibold text-slate-700 mb-4">{% trans "Fotos Existentes:" %}</p>
+            {% include "core/components/photo_grid.html" with photos=changeorder.photos.all is_existing=True %}
+        </div>
+        {% endif %}
+        
+        <!-- Upload Area -->
+        <div class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-indigo-300/70 hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer py-12 bg-indigo-50/30" 
+             onclick="document.getElementById('photoInput').click()">
+            <i class="bi bi-cloud-upload text-indigo-600 text-6xl mb-4"></i>
+            <p class="text-slate-700 font-semibold text-lg">{% trans "Haga clic para subir fotos" %}</p>
+            <p class="text-xs text-slate-500 mt-2">
+                {% trans "Puede seleccionar múltiples archivos (JPG, PNG, HEIC) - Máx 10MB por foto" %}
+            </p>
+        </div>
+        
+        <input type="file" 
+               id="photoInput" 
+               name="photos" 
+               accept="image/*" 
+               multiple 
+               capture="environment" 
+               class="hidden">
+        
+        <div id="photoErrorMessage" class="hidden mt-3 text-sm text-red-600"></div>
+        
+        <!-- New Photo Previews -->
+        <div id="photoPreviewGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mt-6"></div>
+        
+        <!-- Photo Count Badge -->
+        <div id="photoCountBadge" class="hidden mt-6 px-4 py-3 bg-indigo-50 border border-indigo-300 rounded-lg text-center font-semibold text-indigo-700 flex items-center justify-center gap-2">
+            <i class="bi bi-check-circle-fill text-green-600"></i>
+            <span id="photoCountText">0 {% trans "fotos" %}</span> 
+            {% trans "seleccionadas - Haga clic en \"Guardar\" al final para subirlas" %}
+        </div>
+    {% include "core/components/form_section.html" with close_section=True only %}
+    
+    <!-- Form Actions -->
+    <div class="flex flex-col sm:flex-row gap-4 pt-8 border-t border-slate-200">
+        <a href="{% if is_edit %}{% url 'changeorder_detail' changeorder.id %}{% else %}{% url 'changeorder_board' %}{% endif %}"
+           class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 px-6 py-3 text-sm font-semibold shadow-sm transition">
+            <i class="bi bi-x-circle mr-2"></i> 
+            {% trans "Cancelar" %}
+        </a>
+        <button type="submit" 
+                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-sm font-semibold shadow-sm transition flex-1 sm:flex-initial">
+            <i class="bi bi-check-circle-fill mr-2"></i> 
+            {% if is_edit %}{% trans "Guardar Cambios" %}{% else %}{% trans "Crear Change Order" %}{% endif %}
+        </button>
+    </div>
+</form>
+
+<!-- Photo Editor Modal -->
+{% include "core/components/photo_editor_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'core/js/kibray-core.js' %}"></script>
+<script>
+// Form Variables
+const colorInput = document.getElementById('{{ form.color.id_for_label }}');
+const colorPreview = document.getElementById('colorPreview');
+const referenceCodeInput = document.getElementById('{{ form.reference_code.id_for_label }}');
+const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
+
+console.log('[CO Form] Initializing...', {colorInput, colorPreview, projectSelect});
+
+// Update color preview
+if (colorInput && colorPreview) {
+    function updateColorPreview() {
+        const color = colorInput.value || '#000000';
+        colorPreview.style.background = color;
+    }
+    colorInput.addEventListener('input', updateColorPreview);
+    updateColorPreview();
+}
+
+// Load approved colors when project changes
+if (projectSelect) {
+    projectSelect.addEventListener('change', function() {
+        const projectId = this.value;
+        console.log('[CO Form] Project changed:', projectId);
+        if (projectId) {
+            loadApprovedColors(projectId);
+        } else {
+            const approvedColorsGroup = document.getElementById('approvedColorsGroup');
+            const noColorsMessage = document.getElementById('noColorsMessage');
+            if (approvedColorsGroup) approvedColorsGroup.style.display = 'none';
+            if (noColorsMessage) noColorsMessage.style.display = 'none';
+        }
+    });
+    
+    // Load colors on page load if project is already selected (edit mode)
+    if (projectSelect.value) {
+        loadApprovedColors(projectSelect.value);
+    }
+}
+
+function loadApprovedColors(projectId) {
+    console.log('[CO Form] Loading approved colors for project:', projectId);
+    fetch(`/api/projects/${projectId}/approved-colors/`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('[CO Form] Approved colors received:', data);
+            const approvedColorsGroup = document.getElementById('approvedColorsGroup');
+            const approvedColorSelect = document.getElementById('approvedColorSelect');
+            const noColorsMessage = document.getElementById('noColorsMessage');
+            
+            if (data.colors && data.colors.length > 0) {
+                approvedColorSelect.innerHTML = '<option value="">{% trans "-- Seleccionar color aprobado --" %}</option>';
+                data.colors.forEach(color => {
+                    const option = document.createElement('option');
+                    option.value = color.code || '';
+                    option.setAttribute('data-brand', color.brand || '');
+                    option.setAttribute('data-name', color.name || '');
+                    option.textContent = color.code || '';
+                    if (color.name) option.textContent += ' - ' + color.name;
+                    if (color.brand) option.textContent += ' (' + color.brand + ')';
+                    approvedColorSelect.appendChild(option);
+                });
+                if (approvedColorsGroup) approvedColorsGroup.style.display = 'block';
+                if (noColorsMessage) noColorsMessage.style.display = 'none';
+            } else {
+                if (approvedColorsGroup) approvedColorsGroup.style.display = 'none';
+                if (noColorsMessage) noColorsMessage.style.display = 'block';
+            }
+        })
+        .catch(err => {
+            console.error('[CO Form] Error loading approved colors:', err);
+            const approvedColorsGroup = document.getElementById('approvedColorsGroup');
+            const noColorsMessage = document.getElementById('noColorsMessage');
+            if (approvedColorsGroup) approvedColorsGroup.style.display = 'none';
+            if (noColorsMessage) noColorsMessage.style.display = 'block';
+        });
+}
+
+function selectApprovedColor(selectElement) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const code = selectedOption.value;
+    const brand = selectedOption.getAttribute('data-brand');
+    const name = selectedOption.getAttribute('data-name');
+    
+    if (code && colorInput) {
+        if (code.startsWith('#')) {
+            colorInput.value = code;
+        }
+        if (referenceCodeInput) {
+            let refText = code;
+            if (brand) refText += ` - ${brand}`;
+            if (name) refText += ` (${name})`;
+            referenceCodeInput.value = refText;
+        }
+        updateColorPreview();
+    }
+}
+
+// ===== PHOTO UPLOAD & PREVIEW =====
+const photoInput = document.getElementById('photoInput');
+const photoPreviewGrid = document.getElementById('photoPreviewGrid');
+const photoCountBadge = document.getElementById('photoCountBadge');
+const photoCountText = document.getElementById('photoCountText');
+const photoErrorMessage = document.getElementById('photoErrorMessage');
+
+let selectedFiles = [];
+let currentPhotoId = null;
+let currentPhotoIndex = null;
+let currentAnnotations = [];
+let drawingHistory = [];
+let currentImageUrl = null;
+let canvas = null;
+let ctx = null;
+let isDrawing = false;
+let drawingMode = 'draw';
+let drawingColor = '#dc2626';
+let startX = 0;
+let startY = 0;
+
+console.log('[CO Form] Photo elements:', {photoInput, photoPreviewGrid});
+
+photoInput.addEventListener('change', function(e) {
+    console.log('[CO Form] Photo input changed, files:', e.target.files.length);
+    
+    if (photoErrorMessage) {
+        photoErrorMessage.classList.add('hidden');
+        photoErrorMessage.textContent = '';
+    }
+    
+    if (!e.target.files || e.target.files.length === 0) {
+        return;
+    }
+    
+    // Validate files
+    const validImages = [];
+    for (const file of e.target.files) {
+        if (!file.type.startsWith('image/')) {
+            console.warn('[CO Form] Skipping non-image file:', file.name);
+            continue;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            console.warn('[CO Form] Skipping large file (>10MB):', file.name);
+            if (photoErrorMessage) {
+                photoErrorMessage.classList.remove('hidden');
+                photoErrorMessage.textContent = '{% trans "Algún archivo supera el límite de 10MB y fue omitido." %}';
+            }
+            continue;
+        }
+        validImages.push(file);
+    }
+    
+    if (validImages.length === 0) {
+        return;
+    }
+    
+    // Add files to selectedFiles array
+    validImages.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            selectedFiles.push({
+                file: file,
+                dataUrl: e.target.result,
+                description: '',
+                annotations: []
+            });
+            renderPhotoPreview();
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    photoInput.value = '';
+});
+
+function renderPhotoPreview() {
+    console.log('[CO Form] Rendering preview, selectedFiles:', selectedFiles.length);
+    
+    if (!photoPreviewGrid) return;
+    
+    photoPreviewGrid.innerHTML = '';
+    
+    if (selectedFiles.length > 0) {
+        photoPreviewGrid.classList.remove('hidden');
+        if (photoCountBadge) {
+            photoCountBadge.classList.remove('hidden');
+            if (photoCountText) {
+                photoCountText.textContent = `${selectedFiles.length} {% trans "foto" %}${selectedFiles.length !== 1 ? 's' : ''}`;
+            }
+        }
+    } else {
+        photoPreviewGrid.classList.add('hidden');
+        if (photoCountBadge) photoCountBadge.classList.add('hidden');
+    }
+    
+    selectedFiles.forEach((fileObj, index) => {
+        const div = document.createElement('div');
+        div.className = 'relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-md hover:border-indigo-400 transition';
+        
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'relative w-full h-full';
+        
+        const img = document.createElement('img');
+        img.src = fileObj.dataUrl;
+        img.alt = `Foto ${index + 1}`;
+        img.className = 'w-full h-full object-cover cursor-pointer';
+        img.onclick = () => openPhotoEditorNew(fileObj.dataUrl, index, false);
+        
+        const actions = document.createElement('div');
+        actions.className = 'absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition';
+        actions.innerHTML = `
+            <button type="button" 
+                    class="bg-indigo-600/90 hover:bg-indigo-700 text-white p-2 rounded-lg backdrop-blur-sm transition"
+                    onclick="openPhotoEditorNew('${fileObj.dataUrl}', ${index}, false)"
+                    title="{% trans 'Editar' %}">
+                <i class="bi bi-pencil text-sm"></i>
+            </button>
+            <button type="button" 
+                    class="bg-red-600/90 hover:bg-red-700 text-white p-2 rounded-lg backdrop-blur-sm transition"
+                    onclick="removePhoto(${index})"
+                    title="{% trans 'Eliminar' %}">
+                <i class="bi bi-trash text-sm"></i>
+            </button>
+        `;
+        
+        const descInput = document.createElement('div');
+        descInput.className = 'absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent';
+        descInput.innerHTML = `
+            <input type="text" 
+                   class="w-full px-2 py-1 text-xs text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded placeholder-white/70 focus:bg-white/30 focus:outline-none focus:ring-1 focus:ring-white/50"
+                   name="photo_description_${index}" 
+                   placeholder="{% trans 'Descripción...' %}"
+                   value="${fileObj.description || ''}"
+                   onchange="updatePhotoDescription(${index}, this.value)">
+        `;
+        
+        imgContainer.appendChild(img);
+        imgContainer.appendChild(actions);
+        imgContainer.appendChild(descInput);
+        div.appendChild(imgContainer);
+        photoPreviewGrid.appendChild(div);
+    });
+    
+    updateFileInput();
+}
+
+function updatePhotoDescription(index, description) {
+    if (selectedFiles[index]) {
+        selectedFiles[index].description = description;
+    }
+}
+
+function removePhoto(index) {
+    if (confirm('{% trans "¿Eliminar esta foto?" %}')) {
+        selectedFiles.splice(index, 1);
+        renderPhotoPreview();
+    }
+}
+
+function updateFileInput() {
+    const dt = new DataTransfer();
+    selectedFiles.forEach(fileObj => {
+        if (fileObj.file) {
+            dt.items.add(fileObj.file);
+        }
+    });
+    photoInput.files = dt.files;
+}
+
+// ===== PHOTO EDITOR FUNCTIONS (for existing photos) =====
+function openPhotoEditor(imageUrl, photoId, annotations) {
+    currentPhotoId = photoId;
+    currentPhotoIndex = null;
+    const modal = document.getElementById('photoEditorModal');
+    modal.classList.remove('hidden');
+    
+    document.addEventListener('keydown', editorKeyHandler);
+    
+    canvas = document.getElementById('drawingCanvas');
+    ctx = canvas.getContext('2d');
+    currentImageUrl = imageUrl;
+    
+    const img = new Image();
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        if (annotations) {
+            let parsed = [];
+            try { parsed = JSON.parse(annotations); } catch(e) { parsed = []; }
+            currentAnnotations = parsed;
+            redrawAnnotations();
+        } else {
+            currentAnnotations = [];
+        }
+        drawingHistory = [currentAnnotations.slice()];
+    };
+    img.src = imageUrl;
+    
+    setupCanvasEvents();
+}
+
+function openPhotoEditorNew(imageUrl, index, isNewPhoto) {
+    currentPhotoId = null;
+    currentPhotoIndex = index;
+    const modal = document.getElementById('photoEditorModal');
+    modal.classList.remove('hidden');
+    
+    document.addEventListener('keydown', editorKeyHandler);
+    
+    canvas = document.getElementById('drawingCanvas');
+    ctx = canvas.getContext('2d');
+    currentImageUrl = imageUrl;
+    
+    const img = new Image();
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        const fileObj = selectedFiles[index];
+        if (fileObj && fileObj.annotations) {
+            currentAnnotations = fileObj.annotations;
+            redrawAnnotations();
+        } else {
+            currentAnnotations = [];
+        }
+        drawingHistory = [currentAnnotations.slice()];
+    };
+    img.src = imageUrl;
+    
+    setupCanvasEvents();
+}
+
+function setupCanvasEvents() {
+    canvas.onmousedown = startDrawing;
+    canvas.onmousemove = draw;
+    canvas.onmouseup = stopDrawing;
+    canvas.onmouseleave = stopDrawing;
+    
+    canvas.ontouchstart = function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    };
+    
+    canvas.ontouchmove = function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    };
+    
+    canvas.ontouchend = function(e) {
+        e.preventDefault();
+        const mouseEvent = new MouseEvent('mouseup', {});
+        canvas.dispatchEvent(mouseEvent);
+    };
+}
+
+function getCanvasCoordinates(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+    };
+}
+
+function startDrawing(e) {
+    isDrawing = true;
+    const coords = getCanvasCoordinates(e);
+    startX = coords.x;
+    startY = coords.y;
+    
+    if (drawingMode === 'text') {
+        const text = prompt('{% trans "Escriba el texto:" %}');
+        if (text) {
+            currentAnnotations.push({
+                type: 'text',
+                x: startX,
+                y: startY,
+                text: text,
+                color: drawingColor,
+                fontSize: 24
+            });
+            redrawAnnotations();
+            drawingHistory.push(currentAnnotations.slice());
+        }
+        isDrawing = false;
+    }
+}
+
+function draw(e) {
+    if (!isDrawing || drawingMode === 'text') return;
+    
+    const coords = getCanvasCoordinates(e);
+    
+    if (drawingMode === 'draw') {
+        currentAnnotations.push({
+            type: 'line',
+            x1: startX,
+            y1: startY,
+            x2: coords.x,
+            y2: coords.y,
+            color: drawingColor,
+            lineWidth: 3
+        });
+        startX = coords.x;
+        startY = coords.y;
+        redrawAnnotations();
+    }
+}
+
+function stopDrawing(e) {
+    if (!isDrawing) return;
+    
+    if (drawingMode === 'arrow') {
+        const coords = getCanvasCoordinates(e);
+        currentAnnotations.push({
+            type: 'arrow',
+            x1: startX,
+            y1: startY,
+            x2: coords.x,
+            y2: coords.y,
+            color: drawingColor,
+            lineWidth: 3
+        });
+        redrawAnnotations();
+        drawingHistory.push(currentAnnotations.slice());
+    } else if (drawingMode === 'draw') {
+        drawingHistory.push(currentAnnotations.slice());
+    }
+    
+    isDrawing = false;
+}
+
+function redrawAnnotations() {
+    const img = new Image();
+    img.onload = function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        currentAnnotations.forEach(ann => {
+            ctx.strokeStyle = ann.color || drawingColor;
+            ctx.fillStyle = ann.color || drawingColor;
+            ctx.lineWidth = ann.lineWidth || 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            if (ann.type === 'line') {
+                ctx.beginPath();
+                ctx.moveTo(ann.x1, ann.y1);
+                ctx.lineTo(ann.x2, ann.y2);
+                ctx.stroke();
+            } else if (ann.type === 'arrow') {
+                drawArrow(ctx, ann.x1, ann.y1, ann.x2, ann.y2);
+            } else if (ann.type === 'text') {
+                ctx.font = `${ann.fontSize || 24}px Arial`;
+                ctx.fillText(ann.text, ann.x, ann.y);
+            }
+        });
+    };
+    img.src = currentImageUrl;
+}
+
+function drawArrow(ctx, x1, y1, x2, y2) {
+    const headLength = 20;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+}
+
+function setDrawingMode(mode) {
+    drawingMode = mode;
+    document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+    const modeBtn = document.getElementById(mode + 'Btn');
+    if (modeBtn) modeBtn.classList.add('active');
+}
+
+function setDrawingColor(color, element) {
+    drawingColor = color;
+    document.querySelectorAll('.color-swatch').forEach(sw => sw.classList.remove('active'));
+    element.classList.add('active');
+}
+
+function undoDrawing() {
+    if (drawingHistory.length > 1) {
+        drawingHistory.pop();
+        currentAnnotations = drawingHistory[drawingHistory.length - 1].slice();
+        redrawAnnotations();
+    }
+}
+
+function clearDrawing() {
+    if (confirm('{% trans "¿Eliminar todas las anotaciones?" %}')) {
+        currentAnnotations = [];
+        drawingHistory = [[]];
+        redrawAnnotations();
+    }
+}
+
+function closePhotoEditor() {
+    document.getElementById('photoEditorModal').classList.add('hidden');
+    document.removeEventListener('keydown', editorKeyHandler);
+}
+
+function editorKeyHandler(e) {
+    if (e.key === 'Escape') {
+        closePhotoEditor();
+    } else if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z') {
+            e.preventDefault();
+            undoDrawing();
+        } else if (e.key === 's') {
+            e.preventDefault();
+            saveAnnotations();
+        }
+    }
+}
+
+function saveAnnotations() {
+    if (currentPhotoId) {
+        // Saving to existing photo
+        fetch(`/api/v1/changeorder-photo/${currentPhotoId}/annotations/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                annotations: JSON.stringify(currentAnnotations)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const annotatedImageData = canvas.toDataURL('image/png');
+                return fetch(`/api/v1/changeorder-photo/${currentPhotoId}/annotated-image/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        image_data: annotatedImageData
+                    })
+                });
+            } else {
+                throw new Error('Failed to save annotations');
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Kibray.PhotoGallery.redrawThumbnail(currentPhotoId, currentAnnotations);
+                closePhotoEditor();
+                Kibray.Toast.show('{% trans "Anotaciones guardadas exitosamente" %}', 'success');
+            }
+        })
+        .catch(err => {
+            console.error('[CO Form] Error saving annotations:', err);
+            Kibray.Toast.show('{% trans "Error al guardar anotaciones" %}', 'error');
+        });
+    } else if (currentPhotoIndex !== null) {
+        // Saving to new photo (before upload)
+        selectedFiles[currentPhotoIndex].annotations = currentAnnotations;
+        closePhotoEditor();
+        Kibray.Toast.show('{% trans "Anotaciones guardadas. Se aplicarán al enviar el formulario." %}', 'info');
+    }
+}
+
+function redrawThumbnail(photoId, annotations) {
+    const photoItem = document.querySelector(`[data-photo-id="${photoId}"]`);
+    if (!photoItem) return;
+    
+    const canvas = photoItem.querySelector('.photo-annotations-canvas');
+    const img = photoItem.querySelector('img');
+    if (!canvas || !img) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.naturalWidth || img.width || 500;
+    canvas.height = img.naturalHeight || img.height || 500;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (!annotations || annotations.length === 0) return;
+    
+    annotations.forEach(ann => {
+        ctx.strokeStyle = ann.color || '#dc2626';
+        ctx.fillStyle = ann.color || '#dc2626';
+        ctx.lineWidth = ann.lineWidth || 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        if (ann.type === 'line') {
+            ctx.beginPath();
+            ctx.moveTo(ann.x1, ann.y1);
+            ctx.lineTo(ann.x2, ann.y2);
+            ctx.stroke();
+        } else if (ann.type === 'arrow') {
+            const headLength = 20;
+            const angle = Math.atan2(ann.y2 - ann.y1, ann.x2 - ann.x1);
+            ctx.beginPath();
+            ctx.moveTo(ann.x1, ann.y1);
+            ctx.lineTo(ann.x2, ann.y2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(ann.x2, ann.y2);
+            ctx.lineTo(ann.x2 - headLength * Math.cos(angle - Math.PI / 6), ann.y2 - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(ann.x2 - headLength * Math.cos(angle + Math.PI / 6), ann.y2 - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+        } else if (ann.type === 'text') {
+            ctx.font = `${ann.fontSize || 24}px Arial`;
+            ctx.fillText(ann.text, ann.x, ann.y);
+        }
+    });
+}
+
+// Delete photo (for existing photos)
+function deletePhoto(photoId) {
+    if (!confirm('{% trans "¿Eliminar esta foto permanentemente?" %}')) {
+        return;
+    }
+    
+    fetch(`/api/v1/changeorder-photo/${photoId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const photoItem = document.querySelector(`[data-photo-id="${photoId}"]`);
+            if (photoItem) photoItem.remove();
+            Kibray.Toast.show('{% trans "Foto eliminada exitosamente" %}', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to delete photo');
+        }
+    })
+    .catch(err => {
+        console.error('[CO Form] Error deleting photo:', err);
+        Kibray.Toast.show('{% trans "Error al eliminar foto" %}', 'error');
+    });
+}
+
+console.log('[CO Form] JavaScript initialized');
+</script>
+{% endblock %}

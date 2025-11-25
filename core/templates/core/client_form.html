@@ -1,0 +1,253 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    {% if is_create %}
+        {% trans "Crear Nuevo Cliente" %}
+    {% else %}
+        {% trans "Editar Cliente" %}
+    {% endif %} - Kibray
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Botón de regreso -->
+            <div class="mb-3">
+                <a href="{% url 'client_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    {% trans "Volver a Clientes" %}
+                </a>
+            </div>
+
+            <!-- Header -->
+            <div class="mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'dashboard_admin' %}">
+                                <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'client_list' %}">{% trans "Clientes" %}</a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            {% if is_create %}
+                                {% trans "Crear" %}
+                            {% else %}
+                                {% trans "Editar" %}
+                            {% endif %}
+                        </li>
+                    </ol>
+                </nav>
+                
+                <h1 class="h3">
+                    {% if is_create %}
+                        <i class="bi bi-person-plus-fill text-primary me-2"></i>
+                        {% trans "Crear Nuevo Cliente" %}
+                    {% else %}
+                        <i class="bi bi-pencil text-primary me-2"></i>
+                        {% trans "Editar Cliente" %}: {{ client.get_full_name }}
+                    {% endif %}
+                </h1>
+            </div>
+
+            <!-- Formulario -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información Personal -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-person-circle me-2"></i>
+                                {% trans "Información Personal" %}
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                        {{ form.first_name.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.first_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                        {{ form.last_name.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.last_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información de Contacto -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-envelope me-2"></i>
+                                {% trans "Información de Contacto" %}
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        {{ form.email.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                    {% if is_create %}
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        {% trans "Se usará como nombre de usuario" %}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                        {{ form.phone.label }}
+                                    </label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.phone.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información Adicional -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-building me-2"></i>
+                                {% trans "Información Adicional" %}
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.company.id_for_label }}" class="form-label">
+                                        {{ form.company.label }}
+                                    </label>
+                                    {{ form.company }}
+                                    {% if form.company.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.company.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.language.id_for_label }}" class="form-label">
+                                        {{ form.language.label }}
+                                    </label>
+                                    {{ form.language }}
+                                    {% if form.language.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.language.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="{{ form.address.id_for_label }}" class="form-label">
+                                        {{ form.address.label }}
+                                    </label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.address.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configuración -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-gear me-2"></i>
+                                {% trans "Configuración" %}
+                            </h5>
+                            
+                            {% if is_create %}
+                            <div class="form-check">
+                                {{ form.send_welcome_email }}
+                                <label class="form-check-label" for="{{ form.send_welcome_email.id_for_label }}">
+                                    {{ form.send_welcome_email.label }}
+                                </label>
+                                <small class="d-block text-muted ms-4">
+                                    {% trans "El cliente recibirá un correo con sus credenciales de acceso" %}
+                                </small>
+                            </div>
+                            {% else %}
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    {{ form.is_active.label }}
+                                </label>
+                                <small class="d-block text-muted ms-4">
+                                    {% trans "Los usuarios inactivos no pueden iniciar sesión" %}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% if is_create %}{% url 'client_list' %}{% else %}{% url 'client_detail' client.id %}{% endif %}" 
+                               class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-2"></i>
+                                {% trans "Cancelar" %}
+                            </a>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {% if is_create %}
+                                    {% trans "Crear Cliente" %}
+                                {% else %}
+                                    {% trans "Guardar Cambios" %}
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Ayuda -->
+            {% if is_create %}
+            <div class="alert alert-info mt-4" role="alert">
+                <h6 class="alert-heading">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "Información Importante" %}
+                </h6>
+                <ul class="mb-0">
+                    <li>{% trans "Se generará automáticamente una contraseña temporal segura" %}</li>
+                    <li>{% trans "El cliente puede cambiar su contraseña después del primer inicio de sesión" %}</li>
+                    <li>{% trans "Puedes resetear la contraseña en cualquier momento desde el panel de administración" %}</li>
+                    <li>{% trans "Recuerda asignar proyectos al cliente después de crearlo" %}</li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

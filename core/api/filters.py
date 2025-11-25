@@ -109,13 +109,13 @@ class ChangeOrderFilter(django_filters.FilterSet):
 
 class InvoiceFilter(django_filters.FilterSet):
     """
-    Filter invoices by project, status, date
+    Filter invoices by project, status, date_issued
     """
     project = django_filters.NumberFilter(field_name='project__id')
     status = django_filters.CharFilter(field_name='status')
-    date__gte = django_filters.DateFilter(field_name='date', lookup_expr='gte')
-    date__lte = django_filters.DateFilter(field_name='date', lookup_expr='lte')
+    date_issued__gte = django_filters.DateFilter(field_name='date_issued', lookup_expr='gte')
+    date_issued__lte = django_filters.DateFilter(field_name='date_issued', lookup_expr='lte')
     
     class Meta:
         model = Invoice
-        fields = ['project', 'status', 'date']
+        fields = ['project', 'status']

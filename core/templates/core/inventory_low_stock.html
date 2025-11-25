@@ -1,0 +1,87 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Alertas de Stock Bajo" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-exclamation-triangle text-warning"></i> {% trans "Alertas de Stock Bajo" %}</h2>
+                <a href="{% url 'project_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> {% trans "Volver a Proyectos" %}
+                </a>
+            </div>
+
+            {% if low_stock_items %}
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle"></i> 
+                {% blocktrans count counter=low_stock_items|length %}
+                Hay {{ counter }} artículo con stock bajo.
+                {% plural %}
+                Hay {{ counter }} artículos con stock bajo.
+                {% endblocktrans %}
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Artículo" %}</th>
+                                <th>{% trans "Ubicación" %}</th>
+                                <th>{% trans "Stock Actual" %}</th>
+                                <th>{% trans "Umbral" %}</th>
+                                <th>{% trans "Estado" %}</th>
+                                <th>{% trans "Acciones" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in low_stock_items %}
+                            <tr>
+                                <td>
+                                    <strong>{{ entry.item.name }}</strong><br>
+                                    <small class="text-muted">{{ entry.item.get_category_display }}</small>
+                                </td>
+                                <td>
+                                    {{ entry.location.name }}<br>
+                                    <small class="text-muted">{{ entry.location.project.name }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{% if entry.quantity <= 0 %}danger{% elif entry.quantity < entry.threshold %}warning{% else %}success{% endif %}">
+                                        {{ entry.quantity }} {{ entry.item.unit }}
+                                    </span>
+                                </td>
+                                <td>{{ entry.threshold }} {{ entry.item.unit }}</td>
+                                <td>
+                                    {% if entry.quantity <= 0 %}
+                                    <span class="badge badge-danger">{% trans "SIN STOCK" %}</span>
+                                    {% elif entry.quantity < entry.threshold %}
+                                    <span class="badge badge-warning">{% trans "BAJO" %}</span>
+                                    {% else %}
+                                    <span class="badge badge-success">{% trans "OK" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'materials_request_create' %}?item={{ entry.item.id }}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-shopping-cart"></i> {% trans "Solicitar" %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> 
+                {% trans "¡Excelente! No hay artículos con stock bajo en este momento." %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

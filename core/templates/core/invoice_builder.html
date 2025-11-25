@@ -191,7 +191,7 @@
                 <!-- CHANGE ORDERS -->
                 <div class="card mb-3">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">🔧 Change Orders (Sin Facturar)</h5>
+                        <h5 class="mb-0">🔧 {% trans "Change Orders (Sin Facturar)" %}</h5>
                     </div>
                     <div class="card-body">
                         {% if unbilled_cos %}
@@ -203,12 +203,12 @@
                                         <span class="badge bg-{{ co.status|default:'secondary' }}">{{ co.get_status_display }}</span>
                                     </label>
                                     <div class="ms-4 small">
-                                        💵 Monto: <strong>${{ co.amount|floatformat:2 }}</strong> | {{ co.date_created|date:"M d, Y" }}
+                                        💵 {% trans "Monto" %}: <strong>${{ co.amount|floatformat:2 }}</strong> | {{ co.date_created|date:"M d, Y" }}
                                     </div>
                                 </div>
                             {% endfor %}
                         {% else %}
-                            <p class="text-muted mb-0">✅ No hay change orders pendientes de facturar.</p>
+                            <p class="text-muted mb-0">✅ {% trans "No hay change orders pendientes de facturar." %}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -216,29 +216,29 @@
                 <!-- TIME & MATERIALS (General) -->
                 <div class="card mb-3">
                     <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">⏱️ Tiempo & Materiales (General)</h5>
+                        <h5 class="mb-0">⏱️ {% trans "Tiempo & Materiales (General)" %}</h5>
                     </div>
                     <div class="card-body">
                         {% if time_general %}
                             <div class="form-check mb-2">
                                 <input class="form-check-input time-checkbox" type="checkbox" name="include_time_general" id="include_time_general" checked>
                                 <label class="form-check-label" for="include_time_general">
-                                    <strong>{{ general_hours }} horas</strong> de trabajo no vinculadas a COs
+                                    <strong>{{ general_hours }} {% trans "horas" %}</strong> {% trans "de trabajo no vinculadas a COs" %}
                                 </label>
                                 <div class="ms-4 small">
-                                    💵 Facturar: <strong>${{ time_general_total|floatformat:2 }}</strong> ({{ general_hours }} hrs × ${{ tm_rate }}/hr)
+                                    💵 {% trans "Facturar" %}: <strong>${{ time_general_total|floatformat:2 }}</strong> ({{ general_hours }} {% trans "hrs" %} × ${{ tm_rate }}/{% trans "hr" %})
                                 </div>
                             </div>
                             <div class="ms-4 mt-2">
                                 <details>
-                                    <summary class="small text-muted" style="cursor: pointer;">Ver detalle de entradas ({{ time_general|length }})</summary>
+                                    <summary class="small text-muted" style="cursor: pointer;">{% trans "Ver detalle de entradas" %} ({{ time_general|length }})</summary>
                                     <table class="table table-sm table-bordered mt-2">
                                         <thead>
                                             <tr>
-                                                <th>Fecha</th>
-                                                <th>Empleado</th>
-                                                <th>Horas</th>
-                                                <th>Costo Labor</th>
+                                                <th>{% trans "Fecha" %}</th>
+                                                <th>{% trans "Empleado" %}</th>
+                                                <th>{% trans "Horas" %}</th>
+                                                <th>{% trans "Costo Labor" %}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -255,7 +255,7 @@
                                 </details>
                             </div>
                         {% else %}
-                            <p class="text-muted mb-0">✅ No hay tiempo general sin facturar.</p>
+                            <p class="text-muted mb-0">✅ {% trans "No hay tiempo general sin facturar." %}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -264,7 +264,7 @@
                 {% if time_by_co %}
                 <div class="card mb-3">
                     <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">⏱️ Tiempo Extra en Change Orders</h5>
+                        <h5 class="mb-0">⏱️ {% trans "Tiempo Extra en Change Orders" %}</h5>
                     </div>
                     <div class="card-body">
                         {% for co_data in time_by_co %}
@@ -274,19 +274,19 @@
                                     <strong>CO #{{ co_data.co.id }}</strong>: {{ co_data.co.description|truncatewords:10 }}
                                 </label>
                                 <div class="ms-4 small">
-                                    ⏱️ {{ co_data.total_hours }} horas | 💵 Facturar: <strong>${{ co_data.billable_amount|floatformat:2 }}</strong>
+                                    ⏱️ {{ co_data.total_hours }} {% trans "horas" %} | 💵 {% trans "Facturar" %}: <strong>${{ co_data.billable_amount|floatformat:2 }}</strong>
                                 </div>
                             </div>
                             <div class="ms-4 mt-1 mb-3">
                                 <details>
-                                    <summary class="small text-muted" style="cursor: pointer;">Ver {{ co_data.entries|length }} entradas de tiempo</summary>
+                                    <summary class="small text-muted" style="cursor: pointer;">{% blocktrans with count=co_data.entries|length %}Ver {{ count }} entradas de tiempo{% endblocktrans %}</summary>
                                     <table class="table table-sm table-bordered mt-2">
                                         <thead>
                                             <tr>
-                                                <th>Fecha</th>
-                                                <th>Empleado</th>
-                                                <th>Horas</th>
-                                                <th>Notas</th>
+                                                <th>{% trans "Fecha" %}</th>
+                                                <th>{% trans "Empleado" %}</th>
+                                                <th>{% trans "Horas" %}</th>
+                                                <th>{% trans "Notas" %}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -320,56 +320,56 @@
                             <tbody>
                                 {% if estimate %}
                                 <tr id="summary-estimate" class="estimate-summary">
-                                    <td>Contrato Base</td>
+                                    <td>{% trans "Contrato Base" %}</td>
                                     <td class="text-end"><strong>${{ estimate_total|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 
                                 {% if unbilled_cos %}
                                 <tr id="summary-cos" class="co-summary">
-                                    <td>Change Orders</td>
+                                    <td>{% trans "Change Orders" %}</td>
                                     <td class="text-end"><strong>${{ co_total|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 
                                 {% if time_general %}
                                 <tr id="summary-time-general" class="time-summary">
-                                    <td>T&M General</td>
+                                    <td>{% trans "T&M General" %}</td>
                                     <td class="text-end"><strong>${{ time_general_total|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 
                                 {% if time_by_co %}
                                 <tr id="summary-time-cos" class="time-co-summary">
-                                    <td>T&M (COs)</td>
+                                    <td>{% trans "T&M (COs)" %}</td>
                                     <td class="text-end"><strong>${{ time_co_total|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 
                                 <tr class="table-active">
-                                    <td><strong>TOTAL</strong></td>
+                                    <td><strong>{% trans "TOTAL" %}</strong></td>
                                     <td class="text-end"><h4 class="mb-0" id="grand-total">${{ grand_total|floatformat:2 }}</h4></td>
                                 </tr>
                             </tbody>
                         </table>
 
                         <div class="mb-3">
-                            <label for="due_date" class="form-label">Fecha de Vencimiento</label>
+                            <label for="due_date" class="form-label">{% trans "Fecha de Vencimiento" %}</label>
                             <input type="date" class="form-control" name="due_date" id="due_date" value="{{ due_date|default:'' }}">
-                            <small class="text-muted">Default: Net 30 días</small>
+                            <small class="text-muted">{% trans "Default: Net 30 días" %}</small>
                         </div>
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success btn-lg">
-                                ✅ Generar Factura
+                                ✅ {% trans "Generar Factura" %}
                             </button>
                             <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
-                                Cancelar
+                                {% trans "Cancelar" %}
                             </a>
                         </div>
 
                         <div class="alert alert-info mt-3 small">
-                            <strong>💡 Nota:</strong> Esta factura se creará en estado <strong>BORRADOR</strong>. Podrás editarla y marcarla como "Enviada" después.
+                            <strong>💡 {% trans "Nota:" %}</strong> {% trans "Esta factura se creará en estado Borrador. Podrás editarla y marcarla como \"Enviada\" después." %}
                         </div>
                     </div>
                 </div>

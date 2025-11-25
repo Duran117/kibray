@@ -1,0 +1,248 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "PM Dashboard" %} - Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-kanban text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">{% trans "PM Dashboard" %}</h1>
+            <p class="text-slate-600 mt-1">{{ today|date:"D, M d, Y" }}</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-2">
+    <a href="/i18n/setlang/?language=es" 
+           class="px-3 py-1.5 {% if request.session.lang == 'es' %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700{% endif %} rounded-lg text-sm font-medium transition">
+            ES
+        </a>
+    <a href="/i18n/setlang/?language=en" 
+           class="px-3 py-1.5 {% if request.session.lang != 'es' %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700{% endif %} rounded-lg text-sm font-medium transition">
+            EN
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Operational Alerts -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if unassigned_time_count > 0 %}border-red-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex items-center gap-3 mb-3">
+            <i class="bi bi-clock-history text-2xl {% if unassigned_time_count > 0 %}text-red-500{% else %}text-green-500{% endif %}"></i>
+            <p class="text-sm text-slate-600">{% trans "Unassigned Time" %}</p>
+        </div>
+        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ unassigned_time_count }}</h3>
+        {% if unassigned_time_count > 0 %}
+        <a href="{% url 'unassigned_timeentries' %}" 
+           class="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700 font-medium">
+            {% trans "Assign" %} <i class="bi bi-arrow-right"></i>
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_materials > 0 %}border-yellow-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex items-center gap-3 mb-3">
+            <i class="bi bi-box-seam text-2xl {% if pending_materials > 0 %}text-yellow-500{% else %}text-green-500{% endif %}"></i>
+            <p class="text-sm text-slate-600">{% trans "Pending Materials" %}</p>
+        </div>
+        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ pending_materials }}</h3>
+        {% if pending_materials > 0 %}
+        <a href="{% url 'materials_requests_list_all' %}" 
+           class="inline-flex items-center gap-1 text-sm text-yellow-600 hover:text-yellow-700 font-medium">
+            {% trans "Review" %} <i class="bi bi-arrow-right"></i>
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if open_issues > 0 %}border-orange-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex items-center gap-3 mb-3">
+            <i class="bi bi-exclamation-triangle text-2xl {% if open_issues > 0 %}text-orange-500{% else %}text-green-500{% endif %}"></i>
+            <p class="text-sm text-slate-600">{% trans "Open Issues" %}</p>
+        </div>
+        <h3 class="text-3xl font-bold text-slate-900">{{ open_issues }}</h3>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if open_rfis > 0 %}border-cyan-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex items-center gap-3 mb-3">
+            <i class="bi bi-question-circle text-2xl {% if open_rfis > 0 %}text-cyan-500{% else %}text-green-500{% endif %}"></i>
+            <p class="text-sm text-slate-600">{% trans "Open RFIs" %}</p>
+        </div>
+        <h3 class="text-3xl font-bold text-slate-900">{{ open_rfis }}</h3>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+    <a href="{% url 'daily_planning_dashboard' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-calendar-check text-3xl text-indigo-600"></i>
+        <span class="text-sm font-medium text-slate-900">{% trans "Daily Planning" %}</span>
+    </a>
+    <a href="{% url 'pm_select_project' 'materials' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-box text-3xl text-yellow-600"></i>
+        <span class="text-sm font-medium text-slate-900">{% trans "Materials" %}</span>
+    </a>
+    <a href="{% url 'changeorder_board' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-file-earmark-text text-3xl text-cyan-600"></i>
+        <span class="text-sm font-medium text-slate-900">Change Orders</span>
+    </a>
+    <a href="{% url 'pm_select_project' 'overview' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-folder text-3xl text-green-600"></i>
+        <span class="text-sm font-medium text-slate-900">{% trans "Projects" %}</span>
+    </a>
+    <a href="{% url 'pm_select_project' 'touchups' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-brush text-3xl text-purple-600"></i>
+        <span class="text-sm font-medium text-slate-900">Touch-Ups</span>
+    </a>
+    <a href="{% url 'pm_select_project' 'damages' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-shield-exclamation text-3xl text-red-600"></i>
+        <span class="text-sm font-medium text-slate-900">{% trans "Damages" %}</span>
+    </a>
+    <a href="{% url 'pm_select_project' 'chat' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-chat-dots text-3xl text-blue-600"></i>
+        <span class="text-sm font-medium text-slate-900">Chat</span>
+    </a>
+    <a href="{% url 'notifications_list' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition relative">
+        <i class="bi bi-bell text-3xl text-indigo-600"></i>
+        <span class="text-sm font-medium text-slate-900">{% trans "Notifications" %}</span>
+        {% if badges.unread_notifications_count > 0 %}
+        <span class="absolute top-2 right-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+            {{ badges.unread_notifications_count }}
+        </span>
+        {% endif %}
+    </a>
+    <a href="{% url 'pm_select_project' 'plans' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-map text-3xl text-teal-600"></i>
+        <span class="text-sm font-medium text-slate-900">{% trans "Plans" %}</span>
+    </a>
+    <a href="{% url 'pm_select_project' 'colors' %}" 
+       class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-slate-50 rounded-lg shadow-sm hover:shadow-md transition">
+        <i class="bi bi-palette text-3xl text-pink-600"></i>
+        <span class="text-sm font-medium text-slate-900">{% trans "Colors" %}</span>
+    </a>
+</div>
+
+<!-- Content Sections -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Pending Materials -->
+    {% include "core/components/card.html" %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <h5 class="text-lg font-semibold text-yellow-900 flex items-center gap-2">
+                <i class="bi bi-box-seam"></i>
+                {% trans "Pending Materials" %}
+            </h5>
+        </div>
+        {% if pending_materials_list %}
+        <div class="space-y-3">
+            {% for req in pending_materials_list %}
+            <div class="flex justify-between items-start p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                <div>
+                    <div class="font-semibold text-slate-900">{{ req.project.name }}</div>
+                    <div class="text-sm text-slate-600">{{ req.items.count }} items - {{ req.get_status_display }}</div>
+                    <div class="text-xs text-slate-500 mt-1">{{ req.created_at|date:"M d, g:i A" }}</div>
+                </div>
+                <a href="{% url 'materials_request_detail' req.id %}" 
+                   class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition">
+                    {% trans "View" %}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-slate-600 text-center py-8">{% trans "No pending materials" %}</p>
+        {% endif %}
+    {% include "core/components/card.html" with close_card=True only %}
+
+    <!-- Active Issues -->
+    {% include "core/components/card.html" %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <h5 class="text-lg font-semibold text-red-900 flex items-center gap-2">
+                <i class="bi bi-exclamation-triangle"></i>
+                {% trans "Active Issues" %}
+            </h5>
+        </div>
+        {% if active_issues %}
+        <div class="space-y-3">
+            {% for issue in active_issues %}
+            <div class="flex justify-between items-start p-3 bg-slate-50 rounded-lg">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-2 py-0.5 bg-{{ issue.severity }}-100 text-{{ issue.severity }}-800 rounded text-xs font-medium">
+                            {{ issue.get_severity_display }}
+                        </span>
+                        <span class="font-semibold text-slate-900">{{ issue.title }}</span>
+                    </div>
+                    <div class="text-sm text-slate-600">{{ issue.project.name }}</div>
+                </div>
+                <span class="px-2 py-0.5 bg-{{ issue.status }}-100 text-{{ issue.status }}-800 rounded text-xs font-medium">
+                    {{ issue.get_status_display }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-slate-600 text-center py-8">{% trans "No active issues" %}</p>
+        {% endif %}
+    {% include "core/components/card.html" with close_card=True only %}
+</div>
+
+<!-- Active Projects -->
+{% include "core/components/card.html" with title=_("Active Projects") icon="folder" %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Project" %}</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">{% trans "Progress" %}</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">{% trans "Hours Today" %}</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                {% for item in project_summary %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3">
+                        <div class="font-semibold text-slate-900 truncate">{{ item.project.name }}</div>
+                    </td>
+                    <td class="px-4 py-3 hidden md:table-cell">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-slate-200 rounded-full h-5 overflow-hidden">
+                                <div class="h-full {% if item.progress_pct < 30 %}bg-cyan-500{% elif item.progress_pct < 70 %}bg-indigo-500{% else %}bg-green-500{% endif %} rounded-full flex items-center justify-center text-xs text-white font-bold" 
+                                     style="width: {{ item.progress_pct }}%">
+                                    {{ item.progress_pct }}%
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-right hidden md:table-cell">
+                        <span class="font-semibold text-slate-900">{{ item.hours_today|floatformat:1 }}h</span>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <a href="{% url 'project_overview' item.project.id %}" 
+                           class="inline-flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+                            Dashboard
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-4 py-8 text-center text-slate-600">{% trans "No active projects" %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+{% endblock %}

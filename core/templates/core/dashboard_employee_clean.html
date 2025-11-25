@@ -1,0 +1,254 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Employee Dashboard" %} - Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-person-workspace text-2xl"></i>
+        </div>
+        <div>
+            {% if employee %}
+            <h1 class="text-3xl font-bold text-slate-900">{% trans "Hello" %}, {{ employee.first_name }}!</h1>
+            {% else %}
+            <h1 class="text-3xl font-bold text-slate-900">{% trans "Employee Dashboard" %}</h1>
+            {% endif %}
+            <p class="text-slate-600 mt-1">{{ today|date:"l, F d, Y" }} · {{ now|date:"g:i A" }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if not employee %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-red-600 text-2xl"></i>
+        <div>
+            <h5 class="text-red-900 font-semibold">{% trans "Not Linked to Employee" %}</h5>
+            <p class="text-red-700 text-sm mt-1">{% trans "Please ask your admin to assign you to an employee profile" %}</p>
+        </div>
+    </div>
+</div>
+{% else %}
+
+<!-- Clock In/Out Card -->
+{% include "core/components/card.html" %}
+    <div class="text-center py-6">
+        {% if open_entry %}
+        <i class="bi bi-clock-fill text-green-500 text-6xl mb-4"></i>
+        <h4 class="text-2xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
+        <p class="text-slate-600 mb-6">{% trans "Clock in" %}: {{ open_entry.start_time|date:"g:i A" }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_out">
+            <button type="submit" class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition">
+                <i class="bi bi-box-arrow-right mr-2"></i>
+                {% trans "Clock Out" %}
+            </button>
+        </form>
+        {% else %}
+        <i class="bi bi-clock text-indigo-500 text-6xl mb-4"></i>
+        <h4 class="text-2xl font-bold text-slate-900 mb-6">{% trans "Clock In" %}</h4>
+        <form method="post" class="max-w-2xl mx-auto">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_in">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Project" %}:</label>
+                    {{ form.project }}
+                </div>
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Cost Code:</label>
+                    {{ form.cost_code }}
+                </div>
+            </div>
+            <div class="mb-6 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Notes" %} ({% trans "optional" %}):</label>
+                {{ form.notes }}
+            </div>
+            <button type="submit" class="w-full md:w-auto px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition">
+                <i class="bi bi-box-arrow-in-right mr-2"></i>
+                {% trans "Clock In" %}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+
+<!-- My Touch-Ups -->
+{% if my_touchups %}
+{% include "core/components/card.html" %}
+    <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+        <h5 class="text-lg font-semibold text-purple-900 flex items-center gap-2">
+            <i class="bi bi-brush"></i>
+            {% trans "My Assigned Touch-Ups" %}
+        </h5>
+    </div>
+    <div class="space-y-3">
+        {% for task in my_touchups %}
+        <div class="flex justify-between items-start p-3 bg-slate-50 rounded-lg">
+            <div class="flex-1">
+                <h6 class="font-semibold text-slate-900 mb-1">{{ task.title }}</h6>
+                <p class="text-sm text-slate-600">{{ task.project.name }}</p>
+                {% if task.description %}
+                <p class="text-sm text-slate-600 mt-2">{{ task.description|truncatewords:15 }}</p>
+                {% endif %}
+            </div>
+            <div class="flex flex-col items-end gap-2">
+                <span class="px-2 py-0.5 rounded text-xs font-medium {% if task.status == 'Pendiente' %}bg-slate-100 text-slate-800{% elif task.status == 'En Progreso' %}bg-indigo-100 text-indigo-800{% else %}bg-green-100 text-green-800{% endif %}">
+                    {{ task.status }}
+                </span>
+                <a href="{% url 'task_detail' task.id %}" 
+                   class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition">
+                    {% trans "View" %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+{% endif %}
+
+<!-- Hours Summary -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-xl shadow-lg p-6 text-center">
+        <i class="bi bi-calendar-week text-5xl opacity-50 mb-3"></i>
+        <h3 class="text-4xl font-bold mb-2">{{ week_hours|floatformat:1 }}h</h3>
+        <p class="text-white/80">{% trans "This Week" %}</p>
+    </div>
+    <div class="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6 text-center">
+        <i class="bi bi-list-check text-5xl opacity-50 mb-3"></i>
+        <h3 class="text-4xl font-bold mb-2">{{ my_activities|length }}</h3>
+        <p class="text-white/80">{% trans "Tasks Pending Today" %}</p>
+    </div>
+</div>
+
+<!-- What to Do Today -->
+{% if my_activities %}
+{% include "core/components/card.html" %}
+    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+        <h5 class="text-lg font-semibold text-green-900 flex items-center gap-2">
+            <i class="bi bi-list-task"></i>
+            {% trans "What to Do Today" %}
+        </h5>
+    </div>
+    <div class="space-y-3">
+        {% for item in my_activities %}
+        <div class="flex justify-between items-start p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+            <div class="flex-1">
+                <h6 class="font-semibold text-slate-900 mb-1">{{ item.activity.title }}</h6>
+                <p class="text-sm text-slate-600">{{ item.project.name }}</p>
+                {% if item.activity.description %}
+                <p class="text-sm text-slate-600 mt-2">{{ item.activity.description }}</p>
+                {% endif %}
+            </div>
+            <a href="{% url 'activity_complete' item.activity.id %}" 
+               class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition flex items-center gap-1">
+                <i class="bi bi-check-circle"></i>
+                {% trans "Complete" %}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+{% endif %}
+
+<!-- My Schedule Today -->
+{% if my_schedule %}
+{% include "core/components/card.html" %}
+    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-4">
+        <h5 class="text-lg font-semibold text-indigo-900 flex items-center gap-2">
+            <i class="bi bi-calendar-event"></i>
+            {% trans "My Schedule Today" %}
+        </h5>
+    </div>
+    <div class="space-y-3">
+        {% for sched in my_schedule %}
+        <div class="p-3 bg-slate-50 rounded-lg">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <h6 class="font-semibold text-slate-900">{{ sched.title }}</h6>
+                    <p class="text-sm text-slate-600">{{ sched.project.name }}</p>
+                </div>
+                <span class="px-2 py-1 bg-cyan-100 text-cyan-800 rounded text-sm font-medium">
+                    {{ sched.start_datetime|date:"g:i A" }}
+                </span>
+            </div>
+            {% if sched.description %}
+            <p class="text-sm text-slate-600 mt-2">{{ sched.description }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+{% endif %}
+
+<!-- Quick Actions -->
+{% include "core/components/card.html" with title=_("Quick Actions") icon="lightning" %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <a href="{% url 'employee_morning_dashboard' %}" 
+           class="flex items-center justify-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+            <i class="bi bi-sun text-3xl text-yellow-600"></i>
+            <span class="font-medium text-slate-900">{% trans "Morning Plan" %}</span>
+        </a>
+        <a href="{% url 'notifications_list' %}" 
+           class="flex items-center justify-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition relative">
+            <i class="bi bi-bell text-3xl text-indigo-600"></i>
+            <span class="font-medium text-slate-900">{% trans "Notifications" %}</span>
+            {% if badges.unread_notifications_count > 0 %}
+            <span class="absolute top-2 right-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                {{ badges.unread_notifications_count }}
+            </span>
+            {% endif %}
+        </a>
+        <a href="{% url 'task_list_all' %}" 
+           class="flex items-center justify-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+            <i class="bi bi-list-check text-3xl text-green-600"></i>
+            <span class="font-medium text-slate-900">{% trans "My Tasks" %}</span>
+        </a>
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+
+<!-- Recent Entries -->
+{% include "core/components/card.html" with title=_("Recent Entries") icon="clock-history" %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Date" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Project" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Start" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "End" %}</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">{% trans "Hours" %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                {% for r in recent %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3 text-slate-900">{{ r.date|date:"M d" }}</td>
+                    <td class="px-4 py-3 text-slate-900">{% if r.project %}{{ r.project.name }}{% else %}—{% endif %}</td>
+                    <td class="px-4 py-3 text-slate-900">{{ r.start_time|date:"g:i A" }}</td>
+                    <td class="px-4 py-3 text-slate-900">{{ r.end_time|date:"g:i A"|default:"—" }}</td>
+                    <td class="px-4 py-3 text-right">
+                        {% if r.hours_worked %}
+                        <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-sm font-semibold">
+                            {{ r.hours_worked|floatformat:1 }}h
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-slate-600">{% trans "No recent records" %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+
+{% endif %}
+{% endblock %}

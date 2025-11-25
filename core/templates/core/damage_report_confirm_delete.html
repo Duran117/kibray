@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'damage_report_list' project.id %}">{% trans "Reportes de Daños" %}</a></li>
+      <li class="breadcrumb-item active">{% trans "Eliminar Reporte" %}</li>
+    </ol>
+  </nav>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <div class="text-center mb-3">
+        <i class="bi bi-exclamation-triangle text-danger" style="font-size:3rem;"></i>
+      </div>
+      <h3 class="text-center mb-3">{% trans "¿Estás seguro de eliminar este reporte?" %}</h3>
+      <div class="alert alert-warning">
+        <i class="bi bi-info-circle"></i>
+        {% trans "Esta acción no se puede deshacer. Las fotos asociadas también serán eliminadas." %}
+      </div>
+      <div class="mb-3">
+        <p class="mb-1"><strong>{% trans "Título" %}:</strong> {{ report.title }}</p>
+        <p class="mb-0"><strong>{% trans "Severidad" %}:</strong> {{ report.get_severity_display }} — <strong>{% trans "Estado" %}:</strong> {{ report.get_status_display }}</p>
+      </div>
+      <form method="post" class="d-flex gap-2 justify-content-end">
+        {% csrf_token %}
+        <a href="{% url 'damage_report_detail' report.id %}" class="btn btn-outline-secondary">
+          {% trans "Cancelar" %}
+        </a>
+        <button type="submit" class="btn btn-danger">
+          <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

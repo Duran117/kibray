@@ -1,673 +1,159 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}{% if is_edit %}Editar{% else %}Crear{% endif %} Change Order - Kibray{% endblock %}
+{% block title %}{% if is_edit %}{% trans "Editar" %}{% else %}{% trans "Crear" %}{% endif %} Change Order - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* ===== CHANGE ORDER FORM MODERN STYLES ===== */
-    .co-modern-container {
-        max-width: 1000px;
-        margin: 0 auto;
+    /* ===== CHANGE ORDER FORM REFINED (Clean Minimal) ===== */
+    :root {
+        --co-bg: #ffffff;
+        --co-surface: #f8fafc;
+        --co-border: #e2e8f0;
+        --co-border-strong: #cbd5e1;
+        --co-accent: #6366f1; /* Indigo */
+        --co-accent-alt: #4f46e5;
+        --co-danger: #dc2626;
+        --co-success: #16a34a;
+        --co-text: #1e293b;
+        --co-text-soft: #64748b;
+        --co-radius-lg: 16px;
+        --co-radius-md: 10px;
+        --co-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+        --co-shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --co-shadow-lg: 0 10px 30px rgba(0,0,0,0.10);
+        --co-transition: 0.18s cubic-bezier(.4,.0,.2,1);
     }
-    
-    .co-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .co-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 2px solid #e2e8f0;
-    }
-    
-    .co-header-icon {
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.75rem;
-    }
-    
-    .co-header-content h1 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0;
-    }
-    
-    .co-header-content p {
-        margin: 0;
-        color: #64748b;
-        font-size: 0.9rem;
-    }
-    
-    .form-section {
-        margin-bottom: 2rem;
-    }
-    
-    .form-section-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #334155;
-        margin-bottom: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        background: #f8fafc;
-        border-radius: 8px;
-    }
-    
-    .form-section-title i {
-        color: #667eea;
-        font-size: 1.3rem;
-    }
-    
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    .form-group label {
-        display: block;
-        font-weight: 600;
-        color: #475569;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-    }
-    
-    .form-group label.required::after {
-        content: " *";
-        color: #dc2626;
-    }
-    
-    .form-control, .form-select {
-        min-height: 46px;
-        border: 1.5px solid #cbd5e1;
-        border-radius: 10px;
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
-        transition: all 0.2s;
-        width: 100%;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        outline: none;
-    }
-    
-    textarea.form-control {
-        min-height: 100px;
-        resize: vertical;
-    }
-    
+    .co-modern-container {max-width: 1000px;margin: 0 auto;}
+    .co-card {background: var(--co-bg);border-radius: var(--co-radius-lg);border:1px solid var(--co-border);box-shadow: var(--co-shadow-md);padding: 1.75rem 1.75rem 2.25rem;margin-bottom: 1.75rem;}
+    .co-header {display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--co-border);}
+    .co-header-icon {width:52px;height:52px;background:var(--co-accent);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow: var(--co-shadow-sm);}
+    .co-header-content h1 {font-size:1.6rem;font-weight:600;color:var(--co-text);margin:0;}
+    .co-header-content p {margin:0;color:var(--co-text-soft);font-size:0.85rem;}
+    .form-section {margin-bottom:1.75rem;}
+    .form-section-title {font-size:0.95rem;font-weight:600;color:var(--co-text);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0.75rem;background:var(--co-surface);border:1px solid var(--co-border);border-radius: var(--co-radius-md);}
+    .form-section-title i {color:var(--co-accent);font-size:1.1rem;}
+    .form-group {margin-bottom:1.25rem;}
+    .form-group label {display:block;font-weight:600;color:var(--co-text-soft);margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:.3px;text-transform:uppercase;}
+    .form-group label.required::after {content:" *";color:var(--co-danger);}
+    .form-control,.form-select {min-height:44px;border:1px solid var(--co-border-strong);border-radius: var(--co-radius-md);padding:0.6rem 0.85rem;font-size:0.9rem;transition:var(--co-transition);background:#fff;}
+    .form-control:focus,.form-select:focus {border-color:var(--co-accent);box-shadow:0 0 0 3px rgba(99,102,241,.25);outline:none;}
+    textarea.form-control {min-height:110px;resize:vertical;}
     /* Color Picker */
-    .color-picker-wrapper {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 1rem;
-    }
-    
-    .color-preview-box {
-        width: 80px;
-        height: 80px;
-        border-radius: 12px;
-        border: 2px solid #e2e8f0;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-    
-    .color-preview-box:hover {
-        transform: scale(1.05);
-    }
-    
-    .color-input-group {
-        flex: 1;
-    }
-    
-    .color-help-text {
-        font-size: 0.85rem;
-        color: #64748b;
-        margin-top: 0.5rem;
-    }
-    
-    /* Photo Upload Area */
-    .photo-upload-area {
-        border: 2px dashed #cbd5e1;
-        border-radius: 12px;
-        padding: 3rem 2rem;
-        text-align: center;
-        background: #f8fafc;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-bottom: 1.5rem;
-    }
-    
-    .photo-upload-area:hover {
-        border-color: #667eea;
-        background: #f0f3ff;
-    }
-    
-    .photo-upload-area i {
-        font-size: 3rem;
-        color: #667eea;
-        display: block;
-        margin-bottom: 1rem;
-    }
-    
-    .photo-upload-area p {
-        margin: 0.5rem 0;
-        color: #475569;
-    }
-    
-    .photo-upload-area .upload-hint {
-        font-size: 0.85rem;
-        color: #94a3b8;
-    }
-    
-    #photoInput {
-        display: none;
-    }
-    
-    /* Photo Preview Grid - Compact Thumbnails */
-    .photo-preview-grid {
-        display: none;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 1rem;
-        margin-top: 1.5rem;
-    }
-    
-    .photo-preview-grid.has-photos {
-        display: grid;
-    }
-    
-    .photo-preview-item {
-        position: relative;
-        border-radius: 10px;
-        overflow: hidden;
-        border: 2px solid #e2e8f0;
-        background: white;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        transition: all 0.2s;
-    }
-    
-    .photo-preview-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-        border-color: #667eea;
-    }
-    
-    .photo-preview-item img {
-        width: 100%;
-        height: 140px;
-        object-fit: cover;
-        display: block;
-        cursor: pointer;
-    }
-    
-    .photo-preview-item .photo-info {
-        padding: 0.5rem;
-        background: #f8fafc;
-    }
-    
-    .photo-preview-item input.photo-description {
-        width: 100%;
-        padding: 0.4rem 0.5rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        font-size: 0.75rem;
-    }
-    
-    .photo-preview-item .remove-photo {
-        position: absolute;
-        top: 0.4rem;
-        right: 0.4rem;
-        background: rgba(220, 38, 38, 0.95);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        line-height: 1;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        transition: all 0.2s;
-        z-index: 10;
-    }
-    
-    .photo-preview-item .remove-photo:hover {
-        background: #b91c1c;
-        transform: scale(1.15);
-    }
-    
-    .photo-preview-item .edit-photo-btn {
-        position: absolute;
-        top: 0.4rem;
-        left: 0.4rem;
-        background: rgba(102, 126, 234, 0.95);
-        color: white;
-        border: none;
-        border-radius: 16px;
-        padding: 0.3rem 0.7rem;
-        cursor: pointer;
-        font-size: 0.7rem;
-        font-weight: 600;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        transition: all 0.2s;
-        z-index: 10;
-    }
-    
-    .photo-preview-item .edit-photo-btn:hover {
-        background: #5568d3;
-        transform: scale(1.05);
-    }
-    
-    .photo-preview-item .edit-photo-btn i {
-        font-size: 0.7rem;
-    }
-    
-    /* Existing Photos (Edit Mode) */
-    .existing-photos {
-        margin-bottom: 1.5rem;
-    }
-    
-    .existing-photo-item {
-        position: relative;
-        display: inline-block;
-        margin: 0.5rem;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1.5px solid #e2e8f0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    
-    .existing-photo-item img {
-        width: 200px;
-        height: 200px;
-        object-fit: cover;
-        display: block;
-    }
-    
-    .existing-photo-item .photo-actions {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .existing-photo-item .photo-actions button {
-        background: rgba(0,0,0,0.7);
-        color: white;
-        border: none;
-        padding: 0.4rem 0.7rem;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        transition: background 0.2s;
-    }
-    
-    .existing-photo-item .photo-actions button:hover {
-        background: rgba(0,0,0,0.9);
-    }
-    
-    /* Photo Editor Modal - Fullscreen Experience */
-    .photo-editor-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.98);
-        z-index: 10000;
-        display: none;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .photo-editor-modal.active {
-        display: flex;
-    }
-    
-    .photo-editor-content {
-        background: #0f172a;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-    
-    .photo-editor-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.25rem 2rem;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border-bottom: 2px solid #334155;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    
-    .photo-editor-header h3 {
-        margin: 0;
-        color: #f1f5f9;
-        font-size: 1.3rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .photo-editor-header .btn-close {
-        background: transparent;
-        border: none;
-        color: #94a3b8;
-        font-size: 1.75rem;
-        cursor: pointer;
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        transition: all 0.2s;
-    }
-    
-    .photo-editor-header .btn-close:hover {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-        transform: scale(1.1);
-    }
-    
-    .canvas-container {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: auto;
-        background: #020617;
-        padding: 2rem;
-    }
-    
-    #drawingCanvas {
-        max-width: 100%;
-        max-height: 100%;
-        border: 3px solid #334155;
-        border-radius: 12px;
-        cursor: crosshair;
-        background: white;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-    }
-    
-    .drawing-tools {
-        display: flex;
-        gap: 0.75rem;
-        padding: 1.25rem 2rem;
-        background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
-        border-bottom: 2px solid #334155;
-        flex-wrap: wrap;
-        align-items: center;
-        box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
-    }
-    
-    .tool-btn {
-        padding: 0.75rem 1.5rem;
-        border: 2px solid #475569;
-        background: #1e293b;
-        color: #e2e8f0;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.2s;
-        font-size: 0.95rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .tool-btn:hover {
-        border-color: #667eea;
-        background: #334155;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-    
-    .tool-btn.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-color: #667eea;
-        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5);
-    }
-    
-    .tool-btn i {
-        font-size: 1.1rem;
-    }
-    
-    .color-selector {
-        display: flex;
-        gap: 0.75rem;
-        align-items: center;
-        margin-left: auto;
-        padding: 0.5rem 1rem;
-        background: rgba(30, 41, 59, 0.5);
-        border-radius: 10px;
-    }
-    
-    .color-selector span {
-        color: #e2e8f0;
-        font-weight: 600;
-        font-size: 0.95rem;
-        margin-right: 0.5rem;
-    }
-    
-    .color-swatch {
-        width: 42px;
-        height: 42px;
-        border: 3px solid #475569;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        position: relative;
-    }
-    
-    .color-swatch:hover {
-        transform: scale(1.15);
-        border-color: #cbd5e1;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    
-    .color-swatch.active {
-        border-color: white;
-        border-width: 4px;
-        box-shadow: 0 0 0 3px #667eea, 0 4px 16px rgba(102, 126, 234, 0.6);
-        transform: scale(1.1);
-    }
-    
-    .color-swatch.active::after {
-        content: '✓';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 1.2rem;
-        font-weight: bold;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    }
-    
-    .editor-actions {
-        display: flex;
-        gap: 1rem;
-        padding: 1.5rem 2rem;
-        background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
-        border-top: 2px solid #334155;
-        box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
-    }
-    
-    .editor-actions .btn {
-        padding: 1rem 2rem;
-        font-weight: 600;
-        font-size: 1.05rem;
-        border-radius: 10px;
-        min-height: 52px;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-    
-    .editor-actions .btn-secondary {
-        flex: 1;
-        background: #475569;
-        border: 2px solid #64748b;
-        color: white;
-    }
-    
-    .editor-actions .btn-secondary:hover {
-        background: #64748b;
-        border-color: #94a3b8;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.4);
-    }
-    
-    .editor-actions .btn-success {
-        flex: 2;
-        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-        border: none;
-        color: white;
-    }
-    
-    .editor-actions .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(22, 163, 74, 0.5);
-    }
-    
+    .color-picker-wrapper {display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start;}
+    .color-preview-box {width:72px;height:72px;border-radius:12px;border:2px solid var(--co-border);cursor:pointer;transition:var(--co-transition);box-shadow:var(--co-shadow-sm);background:linear-gradient(135deg,#ffffff,#f1f5f9);}
+    .color-preview-box:hover {transform:scale(1.04);border-color:var(--co-accent);}
+    .color-help-text {font-size:0.7rem;color:var(--co-text-soft);margin-top:0.35rem;}
+    /* Upload Area */
+    .photo-upload-area {border:2px dashed var(--co-border-strong);border-radius: var(--co-radius-md);padding:2.25rem 1.5rem;text-align:center;background:var(--co-surface);cursor:pointer;transition:var(--co-transition);margin-bottom:1.25rem;}
+    .photo-upload-area:hover {border-color:var(--co-accent);background:#eef2ff;}
+    .photo-upload-area i {font-size:2.75rem;color:var(--co-accent);margin-bottom:0.75rem;}
+    .photo-upload-area p {margin:0.4rem 0;color:var(--co-text);font-size:0.85rem;}
+    .photo-upload-area .upload-hint {font-size:0.7rem;color:var(--co-text-soft);}
+    #photoInput {display:none;}
+    /* New Photo Grid */
+    .photo-preview-grid {display:none;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.75rem;margin-top:1.25rem;}
+    .photo-preview-grid.has-photos {display:grid;}
+    .photo-preview-item {position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--co-border);background:#fff;box-shadow:var(--co-shadow-sm);transition:var(--co-transition);}
+    .photo-preview-item:hover {box-shadow:var(--co-shadow-md);transform:translateY(-2px);border-color:var(--co-accent);}
+    .photo-preview-item img {width:100%;height:120px;object-fit:cover;display:block;}
+    .photo-preview-item .photo-info {padding:0.4rem;background:var(--co-surface);}
+    .photo-preview-item input.photo-description {width:100%;padding:0.35rem 0.45rem;border:1px solid var(--co-border);border-radius:6px;font-size:0.65rem;background:#fff;}
+    .photo-preview-item .remove-photo,.photo-preview-item .edit-photo-btn {position:absolute;top:0.35rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;line-height:1;border-radius:6px;padding:0.3rem 0.55rem;font-weight:600;letter-spacing:.5px;box-shadow:var(--co-shadow-sm);transition:var(--co-transition);}
+    .photo-preview-item .remove-photo {right:0.35rem;background:var(--co-danger);color:#fff;}
+    .photo-preview-item .remove-photo:hover {background:#b91c1c;transform:scale(1.08);}
+    .photo-preview-item .edit-photo-btn {left:0.35rem;background:var(--co-accent);color:#fff;}
+    .photo-preview-item .edit-photo-btn:hover {background:var(--co-accent-alt);transform:scale(1.05);}
+    /* Existing Photos */
+    .existing-photos {margin-bottom:1.25rem;}
+    .existing-photo-item {position:relative;border:1px solid var(--co-border);border-radius:12px;overflow:hidden;background:#fff;box-shadow:var(--co-shadow-sm);transition:var(--co-transition);display:block;}
+    .existing-photo-item:hover {box-shadow:var(--co-shadow-md);border-color:var(--co-accent);}
+    .existing-photo-item .photo-actions {position:absolute;top:0.5rem;right:0.5rem;display:flex;gap:0.25rem;z-index:20;}
+    .existing-photo-item .photo-actions button {background:rgba(99,102,241,0.8);color:#fff;border:none;padding:0.5rem;border-radius:0.375rem;font-size:10px;font-weight:600;cursor:pointer;transition:var(--co-transition);backdrop-filter:blur(4px);}
+    .existing-photo-item .photo-actions button:hover {background:rgba(79,70,229,1);}
+    .existing-photo-item .photo-actions .delete-btn {background:rgba(220,38,38,0.8);}
+    .existing-photo-item .photo-actions .delete-btn:hover {background:rgba(185,28,28,1);}
+    .existing-photos-grid {display:grid;gap:1rem;grid-template-columns:repeat(2,1fr);}
+    @media (min-width: 640px) { .existing-photos-grid {grid-template-columns:repeat(3,1fr);} }
+    @media (min-width: 768px) { .existing-photos-grid {grid-template-columns:repeat(4,1fr);} }
+    @media (min-width: 1024px) { .existing-photos-grid {grid-template-columns:repeat(5,1fr);} }
+    @media (min-width: 1280px) { .existing-photos-grid {grid-template-columns:repeat(6,1fr);} }
+    /* Modal */
+    .photo-editor-modal {position:fixed;inset:0;width:100vw;height:100vh;background:rgba(0,0,0,.85);z-index:10000;display:none;align-items:center;justify-content:center;}
+    .photo-editor-modal.active {display:flex;}
+    .photo-editor-content {background:#ffffff;width:100%;height:100%;display:flex;flex-direction:column;}
+    .photo-editor-header {display:flex;justify-content:space-between;align-items:center;padding:0.85rem 1.25rem;background:#fff;border-bottom:1px solid var(--co-border);}
+    .photo-editor-header h3 {margin:0;color:var(--co-text);font-size:1rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;}
+    .photo-editor-header .btn-close {background:transparent;border:none;color:var(--co-text-soft);font-size:1.4rem;cursor:pointer;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:var(--co-transition);}
+    .photo-editor-header .btn-close:hover {background:#fee2e2;color:var(--co-danger);}
+    .canvas-container {flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;background:var(--co-surface);padding:1rem;}
+    #drawingCanvas {max-width:100%;max-height:100%;border:2px solid var(--co-border);border-radius:12px;background:#fff;box-shadow:var(--co-shadow-sm);}
+    .drawing-tools {display:flex;gap:0.5rem;padding:0.6rem 0.75rem;background:#fff;border-top:1px solid var(--co-border);flex-wrap:wrap;align-items:center;}
+    .tool-btn {padding:0.55rem 0.9rem;border:1px solid var(--co-border-strong);background:var(--co-surface);color:var(--co-text);border-radius:8px;cursor:pointer;font-weight:600;transition:var(--co-transition);font-size:0.75rem;display:flex;align-items:center;gap:0.4rem;}
+    .tool-btn:hover {background:#eef2ff;border-color:var(--co-accent);}
+    .tool-btn.active {background:var(--co-accent);color:#fff;border-color:var(--co-accent);}
+    .tool-btn i {font-size:0.85rem;}
+    .color-selector {display:flex;gap:0.4rem;align-items:center;margin-left:auto;padding:0.4rem 0.6rem;background:var(--co-surface);border-radius:8px;border:1px solid var(--co-border);}
+    .color-selector span {color:var(--co-text-soft);font-weight:600;font-size:0.65rem;margin-right:0.25rem;text-transform:uppercase;letter-spacing:.5px;}
+    .color-swatch {width:30px;height:30px;border:2px solid var(--co-border-strong);border-radius:6px;cursor:pointer;transition:var(--co-transition);position:relative;}
+    .color-swatch:hover {transform:scale(1.08);border-color:var(--co-accent);}
+    .color-swatch.active {border-color:var(--co-accent);box-shadow:0 0 0 2px rgba(99,102,241,.4);}
+    .color-swatch.active::after {content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.9rem;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.4);}
+    .editor-actions {display:flex;gap:0.6rem;padding:0.75rem 0.9rem;background:#fff;border-top:1px solid var(--co-border);}
+    .editor-actions .btn {padding:0.65rem 1rem;font-weight:600;font-size:0.75rem;border-radius:8px;min-height:42px;transition:var(--co-transition);display:flex;align-items:center;justify-content:center;gap:0.4rem;}
+    .editor-actions .btn-secondary {flex:1;background:var(--co-surface);border:1px solid var(--co-border);color:var(--co-text-soft);}
+    .editor-actions .btn-secondary:hover {background:#f1f5f9;color:var(--co-text);}
+    .editor-actions .btn-success {flex:2;background:var(--co-success);border:1px solid var(--co-success);color:#fff;}
+    .editor-actions .btn-success:hover {filter:brightness(1.08);}
     /* Form Actions */
-    .form-actions {
-        display: flex;
-        gap: 1rem;
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 2px solid #e2e8f0;
-    }
-    
-    .form-actions .btn {
-        flex: 1;
-        padding: 0.9rem 1.5rem;
-        font-weight: 600;
-        font-size: 1rem;
-        border-radius: 10px;
-        min-height: 50px;
-    }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-    }
-    
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    
-    .errorlist {
-        list-style: none;
-        padding: 0;
-        margin: 0.5rem 0 0 0;
-    }
-    
-    .errorlist li {
-        color: #dc2626;
-        font-size: 0.85rem;
-        padding: 0.5rem;
-        background: #fee2e2;
-        border-radius: 6px;
-        margin-top: 0.25rem;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .co-card {
-            padding: 1.5rem;
-        }
-        
-        .co-header-icon {
-            width: 48px;
-            height: 48px;
-            font-size: 1.5rem;
-        }
-        
-        .co-header-content h1 {
-            font-size: 1.5rem;
-        }
-        
-        .color-picker-wrapper {
-            grid-template-columns: 1fr;
-        }
-        
-        .photo-preview-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        }
-        
-        .form-actions {
-            flex-direction: column;
-        }
-    }
+    .form-actions {display:flex;gap:0.75rem;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--co-border);}
+    .form-actions .btn {flex:1;padding:0.75rem 1rem;font-weight:600;font-size:0.85rem;border-radius:8px;min-height:44px;}
+    .btn-primary {background:var(--co-accent);border:none;}
+    .btn-primary:hover {background:var(--co-accent-alt);}
+    .errorlist {list-style:none;padding:0;margin:0.4rem 0 0;}
+    .errorlist li {color:var(--co-danger);font-size:0.7rem;padding:0.4rem;background:#fee2e2;border-radius:6px;margin-top:0.25rem;}
+    @media (max-width:768px){.co-card{padding:1.25rem}.photo-preview-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.form-actions{flex-direction:column}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="co-modern-container">
-    <div class="co-card">
+<div class="co-modern-container max-w-5xl mx-auto px-4 lg:px-8">
+    <div class="co-card relative bg-white rounded-2xl shadow-md ring-1 ring-slate-200/70">
+        {% if is_edit %}
+        <a href="{% url 'changeorder_detail' changeorder.id %}"
+           class="absolute top-4 right-4 z-10 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white/90 hover:bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
+            <i class="bi bi-arrow-left"></i>
+            {% trans "Volver al CO" %}
+        </a>
+        {% endif %}
         <div class="co-header">
             <div class="co-header-icon">
                 <i class="bi bi-{% if is_edit %}pencil-square{% else %}plus-circle-fill{% endif %}"></i>
             </div>
             <div class="co-header-content">
-                <h1>{% if is_edit %}Editar Change Order #{{ changeorder.id }}{% else %}Nuevo Change Order{% endif %}</h1>
-                <p>Complete la información del change order{% if is_edit %} y actualice los campos necesarios{% endif %}</p>
+                {% if is_edit %}
+                <h1>{% blocktrans with co_id=changeorder.id %}Editar Change Order #{{ co_id }}{% endblocktrans %}</h1>
+                <p>{% trans "Complete la información del change order y actualice los campos necesarios" %}</p>
+                {% else %}
+                <h1>{% trans "Nuevo Change Order" %}</h1>
+                <p>{% trans "Complete la información del change order" %}</p>
+                {% endif %}
             </div>
         </div>
-        
-        <form method="post" enctype="multipart/form-data" id="changeOrderForm">
+
+    <form method="post" enctype="multipart/form-data" class="space-y-10">
             {% csrf_token %}
             
-            <!-- Basic Info Section -->
-            <div class="form-section">
+            <!-- Basic Information Section -->
+            <div class="form-section bg-white/80 backdrop-blur-sm rounded-xl p-6 mb-8 shadow-sm ring-1 ring-slate-200 space-y-6">
                 <div class="form-section-title">
                     <i class="bi bi-info-circle-fill"></i>
-                    Información Básica
+                    {% trans "Información Básica" %}
                 </div>
                 
                 <div class="form-group">
-                    <label for="{{ form.project.id_for_label }}" class="required">Proyecto</label>
-                    {{ form.project }}
-                    {% if form.project.errors %}
-                        <ul class="errorlist">
-                            {% for error in form.project.errors %}<li>{{ error }}</li>{% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    <label for="{{ form.description.id_for_label }}" class="required">Descripción</label>
+                    <label for="{{ form.description.id_for_label }}" class="required">{% trans "Descripción" %}</label>
                     {{ form.description }}
                     {% if form.description.errors %}
                         <ul class="errorlist">
@@ -679,7 +165,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="{{ form.amount.id_for_label }}" class="required">Monto</label>
+                            <label for="{{ form.amount.id_for_label }}" class="required">{% trans "Monto" %}</label>
                             {{ form.amount }}
                             {% if form.amount.errors %}
                                 <ul class="errorlist">
@@ -690,7 +176,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="{{ form.status.id_for_label }}" class="required">Estado</label>
+                            <label for="{{ form.status.id_for_label }}" class="required">{% trans "Estado" %}</label>
                             {{ form.status }}
                             {% if form.status.errors %}
                                 <ul class="errorlist">
@@ -702,7 +188,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="{{ form.notes.id_for_label }}">Notas</label>
+                    <label for="{{ form.notes.id_for_label }}">{% trans "Notas" %}</label>
                     {{ form.notes }}
                     {% if form.notes.errors %}
                         <ul class="errorlist">
@@ -713,19 +199,19 @@
             </div>
             
             <!-- Color Selection Section -->
-            <div class="form-section">
+            <div class="form-section bg-white/80 backdrop-blur-sm rounded-xl p-6 mb-8 shadow-sm ring-1 ring-slate-200 space-y-6">
                 <div class="form-section-title">
                     <i class="bi bi-palette-fill"></i>
-                    Selección de Color
+                    {% trans "Selección de Color" %}
                 </div>
                 
                 <div class="color-picker-wrapper">
                     <div class="color-input-group">
                         {# Server-side fallback: show dropdown immediately if approved_colors exist #}
                         <div class="form-group" id="approvedColorsGroup" style="{% if approved_colors %}display:block;{% else %}display:none;{% endif %}">
-                            <label for="approvedColorSelect">Colores Aprobados del Proyecto</label>
+                            <label for="approvedColorSelect">{% trans "Colores Aprobados del Proyecto" %}</label>
                             <select id="approvedColorSelect" class="form-select" onchange="selectApprovedColor(this)">
-                                <option value="">-- Seleccionar color aprobado --</option>
+                                <option value="">{% trans "-- Seleccionar color aprobado --" %}</option>
                                 {% for color_sample in approved_colors %}
                                 <option value="{{ color_sample.code }}" 
                                         data-brand="{{ color_sample.brand }}"
@@ -735,22 +221,22 @@
                                 </option>
                                 {% endfor %}
                             </select>
-                            <p class="color-help-text">Seleccione un color aprobado para este proyecto</p>
+                            <p class="color-help-text">{% trans "Seleccione un color aprobado para este proyecto" %}</p>
                         </div>
                         
                         {# Server-side fallback: show message if no approved colors #}
                         <div class="form-group" id="noColorsMessage" style="{% if not approved_colors %}display:block;{% else %}display:none;{% endif %}">
                             <div class="alert alert-warning" role="alert">
                                 <i class="bi bi-info-circle"></i> 
-                                <strong>Este proyecto no tiene colores aprobados.</strong><br>
-                                Puede usar el selector de color manual a continuación.
+                                <strong>{% trans "Este proyecto no tiene colores aprobados." %}</strong><br>
+                                {% trans "Puede usar el selector de color manual a continuación." %}
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="{{ form.color.id_for_label }}">Color (Hex) - Manual</label>
+                            <label for="{{ form.color.id_for_label }}">{% trans "Color (Hex) - Manual" %}</label>
                             {{ form.color }}
-                            <p class="color-help-text">O escriba un código hex manualmente (ej: #FF5733)</p>
+                            <p class="color-help-text">{% trans "O escriba un código hex manualmente (ej: #FF5733)" %}</p>
                             {% if form.color.errors %}
                                 <ul class="errorlist">
                                     {% for error in form.color.errors %}<li>{{ error }}</li>{% endfor %}
@@ -759,9 +245,9 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="{{ form.reference_code.id_for_label }}">Código de Referencia o Material</label>
+                            <label for="{{ form.reference_code.id_for_label }}">{% trans "Código de Referencia o Material" %}</label>
                             {{ form.reference_code }}
-                            <p class="color-help-text">Para hacer match con madera, metal u otro material (ej: "Madera X", "Metal Z")</p>
+                            <p class="color-help-text">{% trans "Para hacer match con madera, metal u otro material (ej: \"Madera X\", \"Metal Z\")" %}</p>
                             {% if form.reference_code.errors %}
                                 <ul class="errorlist">
                                     {% for error in form.reference_code.errors %}<li>{{ error }}</li>{% endfor %}
@@ -775,77 +261,93 @@
             </div>
             
             <!-- Photos Section -->
-            <div class="form-section">
+            <div class="form-section bg-white/80 backdrop-blur-sm rounded-xl p-6 mb-10 shadow-sm ring-1 ring-slate-200 space-y-6">
                 <div class="form-section-title">
                     <i class="bi bi-camera-fill"></i>
-                    Fotos del Proyecto
+                    {% trans "Fotos del Proyecto" %}
                 </div>
                 
-                <div class="alert alert-info d-flex align-items-start gap-2" role="alert" style="font-size:0.9rem;">
+                <div class="alert alert-info d-flex align-items-start gap-2 rounded-lg shadow-sm" role="alert" style="font-size:0.9rem;">
                     <i class="bi bi-info-circle-fill" style="font-size:1.2rem; margin-top:0.1rem;"></i>
                     <div>
-                        <strong>Cómo subir fotos:</strong>
+                        <strong>{% trans "Cómo subir fotos:" %}</strong>
                         <ol style="margin:0.5rem 0 0 0; padding-left:1.2rem;">
-                            <li>Haga clic en el área azul para seleccionar fotos</li>
-                            <li>Verá miniaturas de las fotos seleccionadas</li>
-                            <li>Opcional: Haga clic en "Editar" para anotar/dibujar sobre una foto</li>
-                            <li>Opcional: Agregue descripciones en los campos de texto</li>
-                            <li>Haga clic en <strong>"{% if is_edit %}Guardar Cambios{% else %}Crear Change Order{% endif %}"</strong> al final del formulario para subir las fotos</li>
+                            <li>{% trans "Haga clic en el área azul para seleccionar fotos" %}</li>
+                            <li>{% trans "Verá miniaturas de las fotos seleccionadas" %}</li>
+                            <li>{% trans "Opcional: Haga clic en \"Editar\" para anotar/dibujar sobre una foto" %}</li>
+                            <li>{% trans "Opcional: Agregue descripciones en los campos de texto" %}</li>
+                            {% if is_edit %}
+                            <li>{% blocktrans %}Haga clic en <strong>"Guardar Cambios"</strong> al final del formulario para subir las fotos{% endblocktrans %}</li>
+                            {% else %}
+                            <li>{% blocktrans %}Haga clic en <strong>"Crear Change Order"</strong> al final del formulario para subir las fotos{% endblocktrans %}</li>
+                            {% endif %}
                         </ol>
                     </div>
                 </div>
                 
                 {% if is_edit and changeorder.photos.all %}
-                <div class="existing-photos">
-                    <p style="font-weight: 600; margin-bottom: 1rem; color: #475569;">Fotos Existentes:</p>
-                    {% for photo in changeorder.photos.all %}
-                    <div class="existing-photo-item" data-photo-id="{{ photo.id }}">
-                        <img src="{{ photo.image.url }}" alt="{{ photo.description }}">
-                        <div class="photo-actions">
-                            <button type="button" class="edit-btn" onclick="openPhotoEditor('{{ photo.image.url }}', {{ photo.id }}, '{{ photo.annotations|escapejs }}')">
-                                <i class="bi bi-pencil"></i> Editar
-                            </button>
-                            <button type="button" class="delete-btn" onclick="deletePhoto({{ photo.id }})">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                <div class="existing-photos mt-6">
+                    <p style="font-weight: 600; margin-bottom: 0.75rem; color: #475569;">{% trans "Fotos Existentes:" %}</p>
+                    <div class="existing-photos-grid">
+                        {% for photo in changeorder.photos.all %}
+                        <div class="existing-photo-item" data-photo-id="{{ photo.id }}" style="aspect-ratio: 1/1; min-height: 0;">
+                            <script type="application/json" class="photo-annotations-data">{{ photo.annotations|safe }}</script>
+                            <div style="position: relative; width: 100%; height: 100%;">
+                                <img src="{{ photo.image.url }}" alt="{{ photo.description }}" class="photo-thumb-base" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                                <canvas class="photo-annotations-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+                                <div class="photo-actions">
+                                    <button type="button" class="edit-btn" data-photo-id="{{ photo.id }}" data-image-url="{{ photo.image.url }}">
+                                        <i class="bi bi-pencil"></i><span style="display: none;">{% trans "Editar" %}</span>
+                                    </button>
+                                    <button type="button" class="delete-btn" data-photo-id="{{ photo.id }}">
+                                        <i class="bi bi-trash"></i><span class="sr-only">{% trans "Eliminar" %}</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        {% if photo.description %}
-                        <p style="padding: 0.5rem; font-size: 0.85rem; color: #64748b;">{{ photo.description }}</p>
-                        {% endif %}
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
                 {% endif %}
                 
-                <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
-                    <i class="bi bi-cloud-upload"></i>
-                    <p><strong>Haga clic para subir fotos</strong></p>
-                    <p class="upload-hint">Puede seleccionar múltiples archivos (JPG, PNG, HEIC) - Máx 10MB por foto</p>
+                <div class="photo-upload-area relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-indigo-300/70 hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer py-10" onclick="document.getElementById('photoInput').click()">
+                    <i class="bi bi-cloud-upload text-indigo-600 text-5xl mb-3"></i>
+                    <p class="text-slate-700 font-semibold"><strong>{% trans "Haga clic para subir fotos" %}</strong></p>
+                    <p class="upload-hint text-xs text-slate-500 mt-1">{% trans "Puede seleccionar múltiples archivos (JPG, PNG, HEIC) - Máx 10MB por foto" %}</p>
                 </div>
                 {# Photo input: ensure proper attributes; name as photos to allow getlist; add capture for mobile #}
                 <input type="file" id="photoInput" name="photos" accept="image/*" multiple capture="environment">
                 <div id="photoErrorMessage" style="display:none; color:#b91c1c; font-size:0.85rem; margin-top:0.5rem;"></div>
                 
-                <div id="photoPreviewGrid" class="photo-preview-grid"></div>
+                <div id="photoPreviewGrid" class="photo-preview-grid grid gap-4 mt-6"></div>
                 
-                <div id="photoCountBadge" style="display:none; margin-top:1rem; padding:0.75rem; background:#dbeafe; border:1px solid #3b82f6; border-radius:8px; text-align:center; font-weight:600; color:#1e40af;">
+                <div id="photoCountBadge" style="display:none;" class="mt-4 px-4 py-3 bg-indigo-50 border border-indigo-300 rounded-lg text-center font-semibold text-indigo-700 flex items-center justify-center gap-2">
                     <i class="bi bi-check-circle-fill" style="color:#16a34a;"></i>
-                    <span id="photoCountText">0 fotos</span> seleccionadas - Haga clic en "Guardar" al final para subirlas
+                    <span id="photoCountText">{% trans "0 fotos" %}</span> {% trans "seleccionadas - Haga clic en \"Guardar\" al final para subirlas" %}
                 </div>
             </div>
             
             <!-- Form Actions -->
-            <div class="form-actions">
-                <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancelar
+            <div class="form-actions flex flex-col sm:flex-row gap-4 pt-8 border-t border-slate-200">
+                <a href="{% url 'changeorder_board' %}" class="btn btn-secondary inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 px-5 py-3 text-sm font-semibold shadow-sm">
+                    <i class="bi bi-x-circle mr-2"></i> {% trans "Cancelar" %}
                 </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle"></i> {% if is_edit %}Guardar Cambios{% else %}Crear Change Order{% endif %}
+                <button type="submit" class="btn btn-primary inline-flex items-center justify-center rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 text-sm font-semibold shadow-sm">
+                    <i class="bi bi-check-circle mr-2"></i> {% if is_edit %}{% trans "Guardar Cambios" %}{% else %}{% trans "Crear Change Order" %}{% endif %}
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+{% if is_edit %}
+<!-- Floating back button for mobile -->
+<a href="{% url 'changeorder_detail' changeorder.id %}"
+     class="md:hidden fixed bottom-5 right-5 z-50 inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg px-4 py-3">
+        <i class="bi bi-arrow-left text-lg"></i>
+        <span class="sr-only">{% trans "Volver al CO" %}</span>
+    </a>
+{% endif %}
 
 <!-- Photo Editor Modal - Fullscreen -->
 <div class="photo-editor-modal" id="photoEditorModal">
@@ -853,38 +355,38 @@
         <div class="photo-editor-header">
             <h3>
                 <i class="bi bi-pencil-square"></i> 
-                Editor de Fotos
+                {% trans "Editor de Fotos" %}
             </h3>
-            <button type="button" class="btn-close" onclick="closePhotoEditor()" aria-label="Cerrar">
+            <button type="button" class="btn-close" onclick="closePhotoEditor()" aria-label="{% trans "Cerrar" %}">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
         
         <div class="drawing-tools">
             <button type="button" class="tool-btn active" onclick="setDrawingMode('draw')" id="drawBtn">
-                <i class="bi bi-pencil-fill"></i> Dibujar
+                <i class="bi bi-pencil-fill"></i> {% trans "Dibujar" %}
             </button>
             <button type="button" class="tool-btn" onclick="setDrawingMode('arrow')" id="arrowBtn">
-                <i class="bi bi-arrow-up-right"></i> Flecha
+                <i class="bi bi-arrow-up-right"></i> {% trans "Flecha" %}
             </button>
             <button type="button" class="tool-btn" onclick="setDrawingMode('text')" id="textBtn">
-                <i class="bi bi-fonts"></i> Texto
+                <i class="bi bi-fonts"></i> {% trans "Texto" %}
             </button>
             <button type="button" class="tool-btn" onclick="undoDrawing()">
-                <i class="bi bi-arrow-counterclockwise"></i> Deshacer
+                <i class="bi bi-arrow-counterclockwise"></i> {% trans "Deshacer" %}
             </button>
             <button type="button" class="tool-btn" onclick="clearDrawing()">
-                <i class="bi bi-trash3"></i> Limpiar Todo
+                <i class="bi bi-trash3"></i> {% trans "Limpiar Todo" %}
             </button>
             
             <div class="color-selector">
-                <span>Color:</span>
-                <div class="color-swatch active" style="background:#dc2626;" onclick="setDrawingColor('#dc2626', this)" title="Rojo"></div>
-                <div class="color-swatch" style="background:#2563eb;" onclick="setDrawingColor('#2563eb', this)" title="Azul"></div>
-                <div class="color-swatch" style="background:#16a34a;" onclick="setDrawingColor('#16a34a', this)" title="Verde"></div>
-                <div class="color-swatch" style="background:#f59e0b;" onclick="setDrawingColor('#f59e0b', this)" title="Amarillo"></div>
-                <div class="color-swatch" style="background:#000000;" onclick="setDrawingColor('#000000', this)" title="Negro"></div>
-                <div class="color-swatch" style="background:#ffffff; border-color:#94a3b8;" onclick="setDrawingColor('#ffffff', this)" title="Blanco"></div>
+                <span>{% trans "Color:" %}</span>
+                <div class="color-swatch active" style="background:#dc2626;" onclick="setDrawingColor('#dc2626', this)" title="{% trans 'Rojo' %}"></div>
+                <div class="color-swatch" style="background:#2563eb;" onclick="setDrawingColor('#2563eb', this)" title="{% trans 'Azul' %}"></div>
+                <div class="color-swatch" style="background:#16a34a;" onclick="setDrawingColor('#16a34a', this)" title="{% trans 'Verde' %}"></div>
+                <div class="color-swatch" style="background:#f59e0b;" onclick="setDrawingColor('#f59e0b', this)" title="{% trans 'Amarillo' %}"></div>
+                <div class="color-swatch" style="background:#000000;" onclick="setDrawingColor('#000000', this)" title="{% trans 'Negro' %}"></div>
+                <div class="color-swatch" style="background:#ffffff; border-color:#94a3b8;" onclick="setDrawingColor('#ffffff', this)" title="{% trans 'Blanco' %}"></div>
             </div>
         </div>
         
@@ -894,10 +396,10 @@
         
         <div class="editor-actions">
             <button type="button" class="btn btn-secondary" onclick="closePhotoEditor()">
-                <i class="bi bi-x-circle"></i> Cancelar
+                <i class="bi bi-x-circle"></i> {% trans "Cancelar" %}
             </button>
             <button type="button" class="btn btn-success" onclick="saveAnnotations()">
-                <i class="bi bi-check-circle-fill"></i> Guardar Anotaciones
+                <i class="bi bi-check-circle-fill"></i> {% trans "Guardar Anotaciones" %}
             </button>
         </div>
     </div>
@@ -1185,12 +687,10 @@ function openPhotoEditor(imageUrl, photoId, annotations) {
         ctx.drawImage(img, 0, 0);
         
         if (annotations) {
-            try {
-                currentAnnotations = JSON.parse(annotations);
-                redrawAnnotations();
-            } catch(e) {
-                currentAnnotations = [];
-            }
+            let parsed = [];
+            try { parsed = JSON.parse(annotations); } catch (e) { parsed = []; }
+            currentAnnotations = parsed;
+            redrawAnnotations();
         } else {
             currentAnnotations = [];
         }
@@ -1454,6 +954,27 @@ function saveAnnotations() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // After saving annotations, also save the annotated image
+                const annotatedImageData = canvas.toDataURL('image/png');
+                return fetch(`/api/v1/changeorder-photo/${currentPhotoId}/annotated-image/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        image_data: annotatedImageData
+                    })
+                });
+            } else {
+                throw new Error('Failed to save annotations');
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Refresh the thumbnail with the new annotated image
+                redrawThumbnail(currentPhotoId, currentAnnotations);
                 closePhotoEditor();
                 // Show success message
                 const toast = document.createElement('div');
@@ -1482,6 +1003,97 @@ function saveAnnotations() {
     }
 }
 
+// Helper function to redraw annotations on thumbnail canvas
+function redrawThumbnail(photoId, annotations) {
+    const photoItem = document.querySelector(`[data-photo-id="${photoId}"]`);
+    if (!photoItem) return;
+    
+    const canvas = photoItem.querySelector('.photo-annotations-canvas');
+    const img = photoItem.querySelector('img');
+    if (!canvas || !img) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.naturalWidth || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (!annotations || annotations.length === 0) return;
+    
+    annotations.forEach(ann => {
+        if (ann.type === 'draw') {
+            ctx.strokeStyle = ann.color || '#dc2626';
+            ctx.lineWidth = ann.lineWidth || 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ann.points.forEach((pt, i) => {
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.stroke();
+        } else if (ann.type === 'text') {
+            ctx.font = `${ann.fontSize || 24}px Arial`;
+            ctx.fillStyle = ann.color || '#dc2626';
+            ctx.fillText(ann.text, ann.x, ann.y);
+        } else if (ann.type === 'arrow') {
+            ctx.strokeStyle = ann.color || '#dc2626';
+            ctx.lineWidth = ann.lineWidth || 3;
+            ctx.fillStyle = ann.color || '#dc2626';
+            const headLength = 20;
+            const angle = Math.atan2(ann.y2 - ann.y1, ann.x2 - ann.x1);
+            ctx.beginPath();
+            ctx.moveTo(ann.x1, ann.y1);
+            ctx.lineTo(ann.x2, ann.y2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(ann.x2, ann.y2);
+            ctx.lineTo(ann.x2 - headLength * Math.cos(angle - Math.PI / 6), ann.y2 - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(ann.x2 - headLength * Math.cos(angle + Math.PI / 6), ann.y2 - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+        }
+    });
+}
+
+// Initialize thumbnails with annotations on page load
+function initThumbnails() {
+    document.querySelectorAll('[data-photo-id]').forEach(photoItem => {
+        const photoId = photoItem.dataset.photoId;
+    const scriptTag = photoItem.querySelector('.photo-annotations-data');
+    if (scriptTag && scriptTag.textContent.trim()) {
+            let annotations = null;
+            try { annotations = JSON.parse(scriptTag.textContent); } catch (e) { annotations = null; console.error('Failed to parse annotations for photo', photoId, e); }
+            if (Array.isArray(annotations) && annotations.length > 0) {
+                redrawThumbnail(photoId, annotations);
+            }
+        }
+    });
+}
+
+// Initialize thumbnails when page loads
+window.addEventListener('DOMContentLoaded', initThumbnails);
+
+// Attach event listeners to existing photo buttons
+window.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.existing-photo-item .edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const photoId = this.getAttribute('data-photo-id');
+            const imageUrl = this.getAttribute('data-image-url');
+            const photoItem = this.closest('.existing-photo-item');
+            const scriptTag = photoItem.querySelector('.photo-annotations-data');
+            const annotations = scriptTag ? scriptTag.textContent : '[]';
+            openPhotoEditor(imageUrl, photoId, annotations);
+        });
+    });
+    
+    document.querySelectorAll('.existing-photo-item .delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const photoId = this.getAttribute('data-photo-id');
+            deletePhoto(photoId);
+        });
+    });
+});
+
 function deletePhoto(photoId) {
     if (!confirm('¿Eliminar esta foto permanentemente?')) return;
     
@@ -1502,5 +1114,26 @@ function deletePhoto(photoId) {
         alert('Error al eliminar la foto');
     });
 }
+
+// Verify functions are available
+console.log('Photo editor functions available:', {
+    openPhotoEditor: typeof openPhotoEditor,
+    deletePhoto: typeof deletePhoto,
+    openPhotoEditorNew: typeof openPhotoEditorNew
+});
+
+// Ensure functions are globally accessible for inline onclick handlers
+window.openPhotoEditor = openPhotoEditor;
+window.openPhotoEditorNew = openPhotoEditorNew;
+window.deletePhoto = deletePhoto;
+window.saveAnnotations = saveAnnotations;
+window.closePhotoEditor = closePhotoEditor;
+window.setDrawingMode = setDrawingMode;
+window.setDrawingColor = setDrawingColor;
+window.undoDrawing = undoDrawing;
+window.clearDrawing = clearDrawing;
+window.removePhoto = removePhoto;
+window.updatePhotoDescription = updatePhotoDescription;
+console.log('Photo editor functions bound to window');
 </script>
 {% endblock %}

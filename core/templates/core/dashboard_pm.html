@@ -10,10 +10,10 @@
   <!-- Language switch pill -->
   <div class="d-flex align-items-center mb-3">
     <div class="btn-group" role="group" aria-label="Language switch">
-      <a class="btn {% if request.session.lang == 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}"
-         href="{% url 'set_language' 'es' %}">ES</a>
-      <a class="btn {% if request.session.lang != 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}"
-         href="{% url 'set_language' 'en' %}">EN</a>
+    <a class="btn {% if request.session.lang == 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+      href="/i18n/setlang/?language=es">ES</a>
+    <a class="btn {% if request.session.lang != 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+      href="/i18n/setlang/?language=en">EN</a>
     </div>
   </div>
 

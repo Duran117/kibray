@@ -1,0 +1,77 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'damage_report_list' project.id %}">{% trans "Reportes de Daños" %}</a></li>
+      <li class="breadcrumb-item active">{% if is_edit %}{% trans "Editar Reporte" %}{% else %}{% trans "Nuevo Reporte" %}{% endif %}</li>
+    </ol>
+  </nav>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label fw-bold">{% trans "Título" %} *</label>
+              {{ form.title }}
+              {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">{% trans "Descripción" %} *</label>
+              {{ form.description }}
+              {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">{% trans "Categoría" %}</label>
+              {{ form.category }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">{% trans "Costo Estimado" %}</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                {{ form.estimated_cost }}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label fw-bold">{% trans "Severidad" %}</label>
+              {{ form.severity }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">{% trans "Estado" %}</label>
+              {{ form.status }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">{% trans "Plano" %}</label>
+              {{ form.plan }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">{% trans "Pin" %}</label>
+              {{ form.pin }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{% trans "Touch-up Relacionado" %}</label>
+              {{ form.linked_touchup }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{% trans "Change Order Relacionado" %}</label>
+              {{ form.linked_co }}
+            </div>
+          </div>
+        </div>
+        <div class="border-top pt-3 mt-3 d-flex gap-2 justify-content-end">
+          <a href="{% if report %}{% url 'damage_report_detail' report.id %}{% else %}{% url 'damage_report_list' project.id %}{% endif %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
+          <button type="submit" class="btn btn-danger">{% if is_edit %}{% trans "Guardar Cambios" %}{% else %}{% trans "Crear" %}{% endif %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

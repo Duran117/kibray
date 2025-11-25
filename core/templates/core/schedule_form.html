@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load i18n %}
 {% load static %}
+{% load core_extras %}
 
 {% block title %}{% if schedule %}{% trans "Edit Event" %}{% else %}{% trans "Add Event" %}{% endif %} - Kibray{% endblock %}
 
@@ -59,7 +60,7 @@
                       {{ field.help_text }}
                     </label>
                   </div>
-                {% elif field.field.widget.input_type == 'textarea' or 'textarea' in field.field.widget.__class__.__name__|lower %}
+                {% elif field.field.widget.input_type == 'textarea' or 'textarea' in field.field.widget|class_name|lower %}
                   <textarea 
                     name="{{ field.name }}" 
                     id="{{ field.id_for_label }}"
@@ -68,7 +69,7 @@
                     style="min-height: 100px; font-size: 16px;"
                     {% if field.field.required %}required{% endif %}
                   >{{ field.value|default:'' }}</textarea>
-                {% elif 'select' in field.field.widget.__class__.__name__|lower %}
+                {% elif 'select' in field.field.widget|class_name|lower %}
                   <select 
                     name="{{ field.name }}" 
                     id="{{ field.id_for_label }}"
