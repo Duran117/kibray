@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+from django.contrib.postgres.indexes import GinIndex
 from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError
 from decimal import Decimal, ROUND_HALF_UP
@@ -3285,13 +3287,165 @@ class ActivityTemplate(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True, help_text="Hide inactive templates")
     
+    # ACTIVITY 2: Versioning System (Q29.4)
+    version = models.PositiveIntegerField(default=1, help_text="Template version number")
+    parent_template = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='versions',
+        help_text="Original template if this is a versioned copy"
+    )
+    is_latest_version = models.BooleanField(default=True, help_text="Is this the most recent version?")
+    version_notes = models.TextField(blank=True, help_text="Changes in this version")
+    
     class Meta:
         ordering = ['category', 'name']
         verbose_name = "Activity Template (SOP)"
         verbose_name_plural = "Activity Templates (SOPs)"
+        indexes = [
+            models.Index(fields=['category', 'is_active']),
+            models.Index(fields=['is_latest_version']),
+            models.Index(fields=['name', 'category']),  # For search optimization
+        ]
     
     def __str__(self):
-        return f"{self.get_category_display()} - {self.name}"
+        version_str = f" (v{self.version})" if self.version > 1 else ""
+        return f"{self.get_category_display()} - {self.name}{version_str}"
+    
+    # ACTIVITY 2: Factory methods for common templates (Q29.5-Q29.7)
+    @classmethod
+    def create_prep_template(cls, name, creator, **kwargs):
+        """Factory: Create standardized PREP template"""
+        defaults = {
+            'category': 'PREP',
+            'description': 'Surface preparation template',
+            'steps': [
+                'Clear and protect area',
+                'Remove fixtures and hardware',
+                'Clean surfaces thoroughly',
+                'Repair damages (holes, cracks)',
+                'Sand surfaces smooth',
+                'Prime if needed'
+            ],
+            'materials_list': ['Drop cloths', 'Plastic sheeting', 'Tape', 'Spackle', 'Primer'],
+            'tools_list': ['Screwdrivers', 'Putty knife', 'Sandpaper', 'Vacuum'],
+            'time_estimate': 4.0,
+            'difficulty_level': 'beginner',
+            'created_by': creator,
+        }
+        defaults.update(kwargs)
+        defaults['name'] = name
+        return cls.objects.create(**defaults)
+    
+    @classmethod
+    def create_paint_template(cls, name, creator, **kwargs):
+        """Factory: Create standardized PAINT template"""
+        defaults = {
+            'category': 'PAINT',
+            'description': 'Interior painting template',
+            'steps': [
+                'Stir paint thoroughly',
+                'Cut in edges and corners',
+                'Roll first coat on walls',
+                'Allow proper dry time',
+                'Apply second coat',
+                'Touch up as needed'
+            ],
+            'materials_list': ['Paint', 'Primer (if needed)', 'Tape', 'Drop cloths'],
+            'tools_list': ['Brushes', 'Rollers', 'Paint tray', 'Extension pole'],
+            'time_estimate': 6.0,
+            'difficulty_level': 'intermediate',
+            'created_by': creator,
+        }
+        defaults.update(kwargs)
+        defaults['name'] = name
+        return cls.objects.create(**defaults)
+    
+    @classmethod
+    def create_cleanup_template(cls, name, creator, **kwargs):
+        """Factory: Create standardized CLEANUP template"""
+        defaults = {
+            'category': 'CLEANUP',
+            'description': 'Site cleanup and restoration template',
+            'steps': [
+                'Remove all tape and protection',
+                'Clean brushes and tools',
+                'Dispose of waste properly',
+                'Vacuum or sweep area',
+                'Replace fixtures and hardware',
+                'Final walkthrough'
+            ],
+            'materials_list': ['Trash bags', 'Cleaning supplies', 'Brush cleaner'],
+            'tools_list': ['Vacuum', 'Broom', 'Mop'],
+            'time_estimate': 2.0,
+            'difficulty_level': 'beginner',
+            'created_by': creator,
+        }
+        defaults.update(kwargs)
+        defaults['name'] = name
+        return cls.objects.create(**defaults)
+    
+    def create_new_version(self, updated_by, version_notes=''):
+        """Create a new version of this template"""
+        # Mark current version as not latest
+        self.is_latest_version = False
+        self.save(update_fields=['is_latest_version'])
+        
+        # Create new version
+        new_version = ActivityTemplate.objects.create(
+            name=self.name,
+            category=self.category,
+            description=self.description,
+            time_estimate=self.time_estimate,
+            steps=self.steps.copy() if isinstance(self.steps, list) else self.steps,
+            materials_list=self.materials_list.copy() if isinstance(self.materials_list, list) else self.materials_list,
+            tools_list=self.tools_list.copy() if isinstance(self.tools_list, list) else self.tools_list,
+            tips=self.tips,
+            common_errors=self.common_errors,
+            reference_photos=self.reference_photos.copy() if isinstance(self.reference_photos, list) else self.reference_photos,
+            video_url=self.video_url,
+            difficulty_level=self.difficulty_level,
+            completion_points=self.completion_points,
+            badge_awarded=self.badge_awarded,
+            required_tools=self.required_tools.copy() if isinstance(self.required_tools, list) else self.required_tools,
+            safety_warnings=self.safety_warnings,
+            created_by=updated_by,
+            is_active=self.is_active,
+            version=self.version + 1,
+            parent_template=self.parent_template or self,
+            is_latest_version=True,
+            version_notes=version_notes
+        )
+        return new_version
+    
+    @classmethod
+    def search(cls, query, category=None, active_only=True):
+        """
+        Fuzzy full-text search (Q29.1-Q29.3)
+        Uses case-insensitive contains for Django 4.2 compatibility
+        For PostgreSQL full-text search, upgrade to Django 5.0+ and use SearchVector
+        """
+        from django.db.models import Q
+        
+        queryset = cls.objects.all()
+        
+        if active_only:
+            queryset = queryset.filter(is_active=True, is_latest_version=True)
+        
+        if category:
+            queryset = queryset.filter(category=category)
+        
+        if query:
+            # Multi-field case-insensitive search
+            q_objects = Q(name__icontains=query) | \
+                       Q(description__icontains=query) | \
+                       Q(tips__icontains=query) | \
+                       Q(common_errors__icontains=query)
+            queryset = queryset.filter(q_objects).distinct()
+        
+        return queryset
 
 
 class DailyPlan(models.Model):
