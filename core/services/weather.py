@@ -116,45 +116,143 @@ class OpenWeatherMapProvider(WeatherProvider):
 
 
 class WeatherService:
-    """
-    Main weather service - manages providers and caching
-    Singleton pattern for app-wide configuration
+    """Weather service with in-memory cache, rate limiting y circuit breaker.
+
+    Características clave:
+    - Cache TTL (por lat/lon redondeado a 3 decimales)
+    - Rate limit simple (token bucket light) para evitar exceso de llamadas externas
+    - Circuit breaker después de N fallos consecutivos
+    - Fallback a datos cache si proveedor falla o circuito abierto
     """
     _instance = None
     _provider: WeatherProvider = None
-    
+
+    # Configuración
+    CACHE_TTL_SECONDS = 3600  # 60 min
+    MAX_CALLS_PER_HOUR = 100
+    CIRCUIT_THRESHOLD = 5
+    CIRCUIT_COOLDOWN_SECONDS = 600
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            # Default to mock provider
-            cls._instance._provider = MockWeatherProvider()
+            inst = cls._instance
+            inst._provider = MockWeatherProvider()
+            inst._cache = {}
+            inst._hour_window_start = timezone.now()
+            inst._calls_in_window = 0
+            inst._failure_count = 0
+            inst._circuit_opened_at = None
         return cls._instance
-    
+
+    # -----------------
+    # Provider management
+    # -----------------
     def set_provider(self, provider: WeatherProvider):
-        """Set the weather provider to use"""
         self._provider = provider
-    
+
     def get_provider(self) -> WeatherProvider:
-        """Get current weather provider"""
         return self._provider
-    
-    def get_weather(self, latitude: float, longitude: float, date: Optional[datetime] = None) -> Dict:
-        """
-        Get weather data using configured provider
-        
-        Args:
-            latitude: Location latitude
-            longitude: Location longitude
-            date: Optional date for forecast/historical
-            
-        Returns:
-            Weather data dict
-        """
+
+    # -----------------
+    # Internals
+    # -----------------
+    def _cache_key(self, lat: float, lon: float) -> str:
+        return f"{round(lat,3)}:{round(lon,3)}"
+
+    def _is_stale(self, payload: Dict[str, Any]) -> bool:
+        fetched_at_str = payload.get('fetched_at')
+        if not fetched_at_str:
+            return True
+        try:
+            fetched_at = datetime.fromisoformat(fetched_at_str.replace('Z',''))
+        except Exception:
+            return True
+        return (timezone.now() - fetched_at).total_seconds() > self.CACHE_TTL_SECONDS
+
+    def _rate_limit_allow(self) -> bool:
+        now = timezone.now()
+        if (now - self._hour_window_start).total_seconds() >= 3600:
+            self._hour_window_start = now
+            self._calls_in_window = 0
+        if self._calls_in_window < self.MAX_CALLS_PER_HOUR:
+            self._calls_in_window += 1
+            return True
+        return False
+
+    def _circuit_open(self) -> bool:
+        if self._circuit_opened_at is None:
+            return False
+        # Si cooldown ya pasó, cerrar circuito
+        if (timezone.now() - self._circuit_opened_at).total_seconds() > self.CIRCUIT_COOLDOWN_SECONDS:
+            self._circuit_opened_at = None
+            self._failure_count = 0
+            return False
+        return True
+
+    def _record_failure(self):
+        self._failure_count += 1
+        if self._failure_count >= self.CIRCUIT_THRESHOLD and not self._circuit_open():
+            self._circuit_opened_at = timezone.now()
+
+    def _record_success(self):
+        self._failure_count = 0
+        self._circuit_opened_at = None
+
+    def _normalize(self, raw: Dict[str, Any], lat: float, lon: float) -> Dict[str, Any]:
+        # Asegurar llaves requeridas por snapshot logic
+        now_iso = timezone.now().isoformat()
+        return {
+            'temperature': raw.get('temperature') or raw.get('temp_c') or raw.get('temperature_c') or raw.get('temperature') or 0.0,
+            'condition': raw.get('condition') or raw.get('weather') or raw.get('description') or 'Unknown',
+            'humidity': raw.get('humidity', 0),
+            'wind_speed': raw.get('wind_speed', raw.get('wind_kph', 0.0)),
+            'description': raw.get('description') or raw.get('condition') or 'N/A',
+            'icon': raw.get('icon'),
+            'provider': raw.get('provider', 'mock'),
+            'fetched_at': now_iso,
+            'lat': lat,
+            'lon': lon,
+        }
+
+    # -----------------
+    # Public API
+    # -----------------
+    def get_weather(self, latitude: float, longitude: float, date: Optional[datetime] = None, force_refresh: bool = False) -> Dict[str, Any]:
         if not self._provider:
             raise RuntimeError("Weather provider not configured")
-        
-        return self._provider.get_weather(latitude, longitude, date)
-    
+        key = self._cache_key(latitude, longitude)
+        cached = self._cache.get(key)
+
+        # Circuit open -> devolver cache si existe
+        if self._circuit_open():
+            if cached:
+                return {**cached, 'stale': self._is_stale(cached), 'fallback': True}
+            raise RuntimeError("Weather circuit open y sin datos cache disponibles")
+
+        # Cache válido y no force_refresh
+        if cached and not force_refresh and not self._is_stale(cached):
+            return {**cached, 'stale': False, 'fallback': False}
+
+        # Rate limit
+        if not self._rate_limit_allow():
+            if cached:
+                return {**cached, 'stale': self._is_stale(cached), 'fallback': True, 'rate_limited': True}
+            raise RuntimeError("Weather rate limit excedido y sin cache")
+
+        # Llamar proveedor
+        try:
+            raw = self._provider.get_weather(latitude, longitude, date)
+            normalized = self._normalize(raw, latitude, longitude)
+            self._cache[key] = normalized
+            self._record_success()
+            return {**normalized, 'stale': False, 'fallback': False}
+        except Exception as e:
+            self._record_failure()
+            if cached:
+                return {**cached, 'stale': self._is_stale(cached), 'fallback': True, 'error': str(e)}
+            raise
+
     @classmethod
     def configure_for_production(cls):
         """Configure service for production use with OpenWeatherMap"""
