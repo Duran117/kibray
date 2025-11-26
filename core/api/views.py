@@ -1793,6 +1793,75 @@ class InvoiceDashboardView(APIView):
         })
 
 
+class InvoiceTrendsView(APIView):
+    """Monthly invoice trends and aging report"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request):
+        from core.models import Invoice
+        from django.db.models import Sum, Count
+        from django.utils import timezone
+        from datetime import timedelta
+        from dateutil.relativedelta import relativedelta
+
+        # Monthly trends (last 6 months)
+        today = timezone.now().date()
+        monthly_trends = []
+        for i in range(6):
+            month_start = (today.replace(day=1) - relativedelta(months=i))
+            month_end = (month_start + relativedelta(months=1) - timedelta(days=1))
+            
+            month_invoices = Invoice.objects.filter(date_issued__range=[month_start, month_end])
+            total_invoiced = month_invoices.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+            total_paid = month_invoices.filter(status='PAID').aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+            total_overdue = month_invoices.filter(status='OVERDUE').aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+            
+            monthly_trends.append({
+                'month': month_start.strftime('%Y-%m'),
+                'month_label': month_start.strftime('%B %Y'),
+                'total_invoiced': total_invoiced,
+                'total_paid': total_paid,
+                'total_overdue': total_overdue,
+                'invoice_count': month_invoices.count(),
+            })
+        
+        monthly_trends.reverse()  # Oldest first
+
+        # Aging report (outstanding invoices by days overdue)
+        outstanding = Invoice.objects.filter(status__in=['SENT', 'VIEWED', 'APPROVED', 'PARTIAL', 'OVERDUE'])
+        aging_buckets = {
+            '0-30': Decimal('0.00'),
+            '31-60': Decimal('0.00'),
+            '61-90': Decimal('0.00'),
+            '90+': Decimal('0.00'),
+        }
+        
+        for inv in outstanding:
+            balance = inv.balance_due
+            if balance <= 0:
+                continue
+            
+            if inv.due_date:
+                days_overdue = (today - inv.due_date).days
+                if days_overdue <= 30:
+                    aging_buckets['0-30'] += balance
+                elif days_overdue <= 60:
+                    aging_buckets['31-60'] += balance
+                elif days_overdue <= 90:
+                    aging_buckets['61-90'] += balance
+                else:
+                    aging_buckets['90+'] += balance
+            else:
+                # No due date, count as current
+                aging_buckets['0-30'] += balance
+
+        return Response({
+            'monthly_trends': monthly_trends,
+            'aging_report': aging_buckets,
+        })
+
+
+
 class MaterialsDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1823,5 +1892,337 @@ class MaterialsDashboardView(APIView):
             'recent_movements': recent_movements,
             'items_by_category': by_category,
         })
+
+
+class MaterialsUsageAnalyticsView(APIView):
+    """Materials usage analytics: top consumed, consumption by project, turnover, reorder suggestions"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request):
+        from core.models import InventoryItem, InventoryMovement, ProjectInventory
+        from django.db.models import Sum, Q, Count
+        from django.utils import timezone
+        from datetime import timedelta
+
+        # Top consumed items (ISSUE and CONSUME movements)
+        consumption_movements = InventoryMovement.objects.filter(
+            movement_type__in=['ISSUE', 'CONSUME']
+        )
+        top_consumed = list(
+            consumption_movements.values('item__name', 'item__id')
+            .annotate(total_consumed=Sum('quantity'))
+            .order_by('-total_consumed')[:10]
+        )
+
+        # Consumption breakdown by project
+        project_consumption = list(
+            consumption_movements.filter(related_project__isnull=False)
+            .values('related_project__name', 'related_project__id')
+            .annotate(total_consumed=Sum('quantity'), item_count=Count('item', distinct=True))
+            .order_by('-total_consumed')[:10]
+        )
+
+        # Stock turnover calculation (consumption in last 30 days / average stock)
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        recent_consumption = consumption_movements.filter(created_at__gte=thirty_days_ago)
+        
+        turnover_items = []
+        for item in InventoryItem.objects.filter(active=True):
+            consumed = recent_consumption.filter(item=item).aggregate(total=Sum('quantity'))['total'] or Decimal('0')
+            # Average stock across all locations
+            avg_stock = ProjectInventory.objects.filter(item=item).aggregate(avg=Sum('quantity'))['avg'] or Decimal('0')
+            
+            if avg_stock > 0:
+                turnover_rate = (consumed / avg_stock) if avg_stock != 0 else Decimal('0')
+                turnover_items.append({
+                    'item_id': item.id,
+                    'item_name': item.name,
+                    'consumed_30d': consumed,
+                    'average_stock': avg_stock,
+                    'turnover_rate': turnover_rate,
+                })
+        
+        # Sort by turnover rate descending
+        turnover_items.sort(key=lambda x: x['turnover_rate'], reverse=True)
+        turnover_items = turnover_items[:15]  # Top 15
+
+        # Reorder suggestions (items below threshold + high consumption rate)
+        reorder_suggestions = []
+        for stock in ProjectInventory.objects.select_related('item', 'location').all():
+            if stock.is_below:
+                # Calculate consumption rate (last 30 days)
+                location_filter = Q(from_location=stock.location) | Q(to_location=stock.location)
+                consumed = recent_consumption.filter(
+                    location_filter,
+                    item=stock.item
+                ).aggregate(total=Sum('quantity'))['total'] or Decimal('0')
+                
+                consumption_rate = consumed / 30 if consumed > 0 else Decimal('0')
+                # Days until depleted
+                days_until_depleted = (stock.quantity / consumption_rate) if consumption_rate > 0 else None
+                
+                threshold = stock.threshold()
+                reorder_suggestions.append({
+                    'item_id': stock.item.id,
+                    'item_name': stock.item.name,
+                    'location_name': stock.location.name if stock.location else 'N/A',
+                    'current_quantity': stock.quantity,
+                    'threshold': threshold,
+                    'consumption_rate_per_day': consumption_rate,
+                    'days_until_depleted': days_until_depleted,
+                    'suggested_order_qty': max(threshold * 2, consumed) if consumed > 0 else threshold * 2,
+                })
+        
+        # Sort by urgency (days until depleted)
+        reorder_suggestions.sort(key=lambda x: x['days_until_depleted'] if x['days_until_depleted'] else 9999)
+
+        return Response({
+            'top_consumed': top_consumed,
+            'consumption_by_project': project_consumption,
+            'stock_turnover': turnover_items,
+            'reorder_suggestions': reorder_suggestions,
+        })
+
+
+class FinancialDashboardView(APIView):
+    """Per-project financial summary with EV metrics and budget tracking"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request):
+        from core.models import Project, Income, Expense
+        from django.db.models import Sum, Q
+        from datetime import datetime, date
+        
+        # Filters
+        project_id = request.query_params.get('project')
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        
+        qs = Project.objects.all()
+        if project_id:
+            qs = qs.filter(id=project_id)
+        
+        # Date filters for aggregates
+        income_filter = Q()
+        expense_filter = Q()
+        if date_from:
+            try:
+                df = datetime.strptime(date_from, '%Y-%m-%d').date()
+                income_filter &= Q(date__gte=df)
+                expense_filter &= Q(date__gte=df)
+            except Exception:
+                pass
+        if date_to:
+            try:
+                dt = datetime.strptime(date_to, '%Y-%m-%d').date()
+                income_filter &= Q(date__lte=dt)
+                expense_filter &= Q(date__lte=dt)
+            except Exception:
+                pass
+        
+        projects_data = []
+        for proj in qs:
+            income_total = proj.incomes.filter(income_filter).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            expense_total = proj.expenses.filter(expense_filter).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            profit = income_total - expense_total
+            budget_used_pct = round((expense_total / proj.budget_total * 100) if proj.budget_total > 0 else 0, 2)
+            
+            # EV metrics (if available)
+            ev_summary = None
+            try:
+                ev_summary = proj.earned_value_summary()
+            except Exception:
+                pass
+            
+            projects_data.append({
+                'project_id': proj.id,
+                'project_name': proj.name,
+                'client': proj.client,
+                'total_income': income_total,
+                'total_expenses': expense_total,
+                'profit': profit,
+                'budget_total': proj.budget_total,
+                'budget_used_percent': budget_used_pct,
+                'is_over_budget': expense_total > proj.budget_total,
+                'ev_metrics': ev_summary,
+            })
+        
+        return Response({
+            'projects': projects_data,
+            'total_projects': len(projects_data),
+        })
+
+
+class PayrollDashboardView(APIView):
+    """Weekly payroll overview: periods, totals, outstanding"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request):
+        from core.models import PayrollPeriod, PayrollRecord, PayrollPayment, Employee
+        from django.db.models import Sum, Count
+        
+        periods = PayrollPeriod.objects.all().order_by('-week_start')[:8]
+        periods_data = []
+        total_cost = Decimal('0.00')
+        total_outstanding = Decimal('0.00')
+        
+        for period in periods:
+            records = period.records.all()
+            period_total = records.aggregate(total=Sum('total_pay'))['total'] or Decimal('0.00')
+            # Payments are linked to PayrollRecord, not PayrollPeriod
+            paid_total = PayrollPayment.objects.filter(payroll_record__period=period).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            outstanding = period_total - paid_total
+            
+            periods_data.append({
+                'period_id': period.id,
+                'week_start': period.week_start.isoformat(),
+                'week_end': period.week_end.isoformat(),
+                'status': period.status,
+                'employee_count': records.count(),
+                'total_payroll': period_total,
+                'paid': paid_total,
+                'outstanding': outstanding,
+            })
+            
+            total_cost += period_total
+            total_outstanding += outstanding
+        
+        # Employee breakdown (top by hours)
+        top_employees = list(
+            PayrollRecord.objects.values('employee__first_name', 'employee__last_name')
+            .annotate(total_hours=Sum('total_hours'), total_pay=Sum('total_pay'))
+            .order_by('-total_hours')[:10]
+        )
+        
+        return Response({
+            'recent_periods': periods_data,
+            'total_payroll_cost': total_cost,
+            'total_outstanding': total_outstanding,
+            'top_employees': top_employees,
+        })
+
+
+class AdminDashboardView(APIView):
+    """Company-wide consolidated dashboard: projects, employees, financial health, recent activity"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request):
+        from core.models import (
+            Project, Employee, Invoice, Income, Expense,
+            Task, TimeEntry, InventoryItem, PayrollPeriod, DailyLog
+        )
+        from django.db.models import Sum, Count, Q
+        from django.utils import timezone
+        from datetime import timedelta
+
+        # Project summary
+        active_projects = Project.objects.filter(end_date__isnull=True).count()
+        total_projects = Project.objects.count()
+        completed_projects = Project.objects.filter(end_date__isnull=False).count()
+
+        # Employee summary
+        active_employees = Employee.objects.filter(is_active=True).count()
+        total_employees = Employee.objects.count()
+
+        # Financial summary
+        total_income = Income.objects.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        total_expenses = Expense.objects.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        net_profit = total_income - total_expenses
+        profit_margin = (net_profit / total_income * 100) if total_income > 0 else Decimal('0.00')
+
+        # Invoice summary
+        total_invoiced = Invoice.objects.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+        total_paid = Invoice.objects.filter(status='PAID').aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+        outstanding_invoices = total_invoiced - total_paid
+        overdue_invoices = Invoice.objects.filter(status='OVERDUE').count()
+
+        # Inventory summary
+        total_inventory_items = InventoryItem.objects.filter(active=True).count()
+        
+        # Recent activity feed (last 10 items)
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        recent_activity = []
+
+        # Recent projects
+        for proj in Project.objects.order_by('-created_at')[:3]:
+            recent_activity.append({
+                'type': 'project',
+                'date': proj.created_at.isoformat() if proj.created_at else None,
+                'description': f"Project created: {proj.name}",
+                'project_id': proj.id,
+            })
+
+        # Recent tasks
+        for task in Task.objects.order_by('-created_at')[:3]:
+            recent_activity.append({
+                'type': 'task',
+                'date': task.created_at.isoformat() if task.created_at else None,
+                'description': f"Task: {task.title}",
+                'project_id': task.project_id if hasattr(task, 'project_id') else None,
+            })
+
+        # Recent invoices
+        for inv in Invoice.objects.order_by('-date_issued')[:3]:
+            recent_activity.append({
+                'type': 'invoice',
+                'date': inv.date_issued.isoformat(),
+                'description': f"Invoice {inv.invoice_number}: ${inv.total_amount}",
+                'project_id': inv.project_id,
+            })
+
+        # Recent daily logs
+        for log in DailyLog.objects.order_by('-date')[:3]:
+            recent_activity.append({
+                'type': 'daily_log',
+                'date': log.date.isoformat(),
+                'description': f"Daily log: {log.progress_notes[:50] if log.progress_notes else 'No notes'}",
+                'project_id': log.project_id,
+            })
+
+        # Sort by date descending and limit to 10
+        recent_activity.sort(key=lambda x: x['date'] if x['date'] else '', reverse=True)
+        recent_activity = recent_activity[:10]
+
+        # Financial health score (0-100)
+        # Based on: profit margin, invoice collection rate, budget adherence
+        collection_rate = (total_paid / total_invoiced * 100) if total_invoiced > 0 else Decimal('100')
+        
+        # Weighted health score
+        health_score = Decimal('0')
+        health_score += max(min(profit_margin, 50), 0)  # Max 50 points for profit margin (0-50%)
+        health_score += collection_rate * Decimal('0.5')  # Max 50 points for collection (100% = 50 pts)
+        health_score = min(health_score, Decimal('100'))
+
+        return Response({
+            'projects': {
+                'active': active_projects,
+                'completed': completed_projects,
+                'total': total_projects,
+            },
+            'employees': {
+                'active': active_employees,
+                'total': total_employees,
+            },
+            'financial': {
+                'total_income': total_income,
+                'total_expenses': total_expenses,
+                'net_profit': net_profit,
+                'profit_margin': profit_margin,
+                'total_invoiced': total_invoiced,
+                'total_paid': total_paid,
+                'outstanding': outstanding_invoices,
+                'overdue_count': overdue_invoices,
+                'collection_rate': collection_rate,
+            },
+            'inventory': {
+                'total_items': total_inventory_items,
+            },
+            'recent_activity': recent_activity,
+            'health_score': health_score,
+        })
+
+
+
+
 
 

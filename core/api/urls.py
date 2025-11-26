@@ -15,7 +15,8 @@ from .views import (
     PayrollPeriodViewSet, PayrollRecordViewSet, PayrollPaymentViewSet,
     global_search, save_changeorder_photo_annotations, delete_changeorder_photo,
     update_changeorder_photo_image,
-    InvoiceDashboardView, MaterialsDashboardView
+    InvoiceDashboardView, MaterialsDashboardView, FinancialDashboardView, PayrollDashboardView,
+    InvoiceTrendsView, MaterialsUsageAnalyticsView, AdminDashboardView
 )
 
 router = DefaultRouter()
@@ -85,5 +86,10 @@ urlpatterns = [
     path('', include(router.urls)),
     # Dashboards
     path('dashboards/invoices/', InvoiceDashboardView.as_view(), name='dashboard-invoices'),
+    path('dashboards/invoices/trends/', InvoiceTrendsView.as_view(), name='dashboard-invoice-trends'),
     path('dashboards/materials/', MaterialsDashboardView.as_view(), name='dashboard-materials'),
+    path('dashboards/materials/usage/', MaterialsUsageAnalyticsView.as_view(), name='dashboard-materials-usage'),
+    path('dashboards/financial/', FinancialDashboardView.as_view(), name='dashboard-financial'),
+    path('dashboards/payroll/', PayrollDashboardView.as_view(), name='dashboard-payroll'),
+    path('dashboards/admin/', AdminDashboardView.as_view(), name='dashboard-admin'),
 ]
