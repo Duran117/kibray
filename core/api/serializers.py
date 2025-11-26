@@ -207,19 +207,33 @@ class DamagePhotoSerializer(serializers.ModelSerializer):
 
 class DamageReportSerializer(serializers.ModelSerializer):
     reported_by_name = serializers.CharField(source='reported_by.get_full_name', read_only=True, allow_null=True)
+    assigned_to_name = serializers.CharField(source='assigned_to.get_full_name', read_only=True, allow_null=True)
     project_name = serializers.CharField(source='project.name', read_only=True)
+    plan_name = serializers.CharField(source='plan.name', read_only=True, allow_null=True)
+    auto_task_id = serializers.IntegerField(source='auto_task.id', read_only=True, allow_null=True)
+    linked_co_id = serializers.IntegerField(source='linked_co.id', read_only=True, allow_null=True)
+    linked_touchup_id = serializers.IntegerField(source='linked_touchup.id', read_only=True, allow_null=True)
+    photo_count = serializers.SerializerMethodField()
     photos = DamagePhotoSerializer(many=True, read_only=True)
     
     class Meta:
         model = DamageReport
         fields = [
-            'id', 'project', 'project_name', 'title', 'description',
-            'category', 'severity', 'status', 'estimated_cost',
-            'reported_by', 'reported_by_name', 'assigned_to',
-            'reported_at', 'in_progress_at', 'resolved_at',
-            'location_detail', 'root_cause', 'auto_task', 'photos'
+            'id', 'project', 'project_name', 'plan', 'plan_name', 'pin',
+            'title', 'description', 'category', 'severity', 'status',
+            'estimated_cost', 'reported_by', 'reported_by_name',
+            'assigned_to', 'assigned_to_name', 'reported_at',
+            'in_progress_at', 'resolved_at', 'location_detail', 'root_cause',
+            'auto_task_id', 'linked_co_id', 'linked_touchup_id',
+            'photo_count', 'photos'
         ]
-        read_only_fields = ['reported_by', 'reported_at', 'in_progress_at', 'resolved_at', 'auto_task']
+        read_only_fields = [
+            'reported_by', 'reported_at', 'in_progress_at', 'resolved_at',
+            'auto_task_id', 'linked_co_id', 'linked_touchup_id'
+        ]
+    
+    def get_photo_count(self, obj):
+        return obj.photos.count()
 
 class ColorSampleSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source='project.name', read_only=True)

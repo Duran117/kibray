@@ -791,16 +791,44 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 # Damage Reports
 class DamageReportViewSet(viewsets.ModelViewSet):
+    """
+    API ViewSet for Damage Reports with workflow management.
+    
+    Endpoints:
+    - GET /api/v1/damage-reports/ - List all damage reports
+    - POST /api/v1/damage-reports/ - Create new damage report
+    - GET /api/v1/damage-reports/{id}/ - Retrieve single report
+    - PATCH /api/v1/damage-reports/{id}/ - Update report
+    - DELETE /api/v1/damage-reports/{id}/ - Delete report
+    - POST /api/v1/damage-reports/{id}/add-photo/ - Upload photo
+    - POST /api/v1/damage-reports/{id}/assign/ - Assign to user
+    - POST /api/v1/damage-reports/{id}/assess/ - Assess damage (update severity/cost)
+    - POST /api/v1/damage-reports/{id}/approve/ - Approve for repair
+    - POST /api/v1/damage-reports/{id}/start-work/ - Mark as in_progress
+    - POST /api/v1/damage-reports/{id}/resolve/ - Mark as resolved
+    - POST /api/v1/damage-reports/{id}/convert-to-co/ - Create Change Order
+    - GET /api/v1/damage-reports/analytics/ - Get analytics data
+    
+    Query Parameters:
+    - project={id} - Filter by project
+    - status=open|in_progress|resolved
+    - severity=low|medium|high|critical
+    - category=structural|cosmetic|safety|electrical|plumbing|hvac|other
+    - assigned_to={user_id} - Filter by assignee
+    """
     serializer_class = DamageReportSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['project', 'status', 'severity', 'category']
+    filterset_fields = ['project', 'status', 'severity', 'category', 'assigned_to']
     search_fields = ['title', 'description', 'location_detail', 'root_cause']
     pagination_class = None
     
     def get_queryset(self):
-        return DamageReport.objects.select_related('project', 'reported_by', 'assigned_to').order_by('-reported_at')
+        return DamageReport.objects.select_related(
+            'project', 'reported_by', 'assigned_to', 'plan', 'pin', 
+            'linked_touchup', 'linked_co', 'auto_task'
+        ).prefetch_related('photos').order_by('-reported_at')
     
     def perform_create(self, serializer):
         serializer.save(reported_by=self.request.user)
@@ -816,6 +844,189 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         from .serializers import DamagePhotoSerializer
         photo = DamagePhoto.objects.create(report=report, image=image, notes=notes)
         return Response(DamagePhotoSerializer(photo, context={'request': request}).data, status=201)
+    
+    @action(detail=True, methods=['post'])
+    def assign(self, request, pk=None):
+        """
+        Assign damage report to a user for resolution.
+        Body: {"assigned_to": user_id}
+        """
+        report = self.get_object()
+        user_id = request.data.get('assigned_to')
+        
+        if not user_id:
+            return Response({'error': 'assigned_to is required'}, status=400)
+        
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            assigned_user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+        
+        report.assigned_to = assigned_user
+        report.save(update_fields=['assigned_to'])
+        
+        # Q21.8: Notify assigned user
+        from core.models import Notification
+        Notification.objects.create(
+            user=assigned_user,
+            title=f'Damage Assigned: {report.title}',
+            message=f'You have been assigned to resolve damage report #{report.id}. Severity: {report.get_severity_display()}',
+            notification_type='damage_assigned',
+            link_url=f'/damage-reports/{report.id}/'
+        )
+        
+        return Response(self.get_serializer(report).data)
+    
+    @action(detail=True, methods=['post'])
+    def assess(self, request, pk=None):
+        """
+        Assess damage report (update severity, estimated_cost, notes).
+        Body: {"severity": "high", "estimated_cost": 5000.00, "notes": "Additional notes"}
+        """
+        report = self.get_object()
+        severity = request.data.get('severity')
+        cost = request.data.get('estimated_cost')
+        
+        old_severity = report.severity
+        
+        if severity and severity in dict(DamageReport.SEVERITY_CHOICES).keys():
+            report.severity = severity
+            # Q21.7: Track severity changes
+            if severity != old_severity:
+                from django.utils import timezone
+                report.severity_changed_at = timezone.now()
+                report.severity_changed_by = request.user
+        
+        if cost:
+            try:
+                from decimal import Decimal
+                report.estimated_cost = Decimal(str(cost))
+            except (ValueError, TypeError):
+                return Response({'error': 'Invalid cost value'}, status=400)
+        
+        report.save()
+        
+        # Q21.5: Update auto-task priority if severity changed
+        if report.auto_task and severity != old_severity:
+            report.auto_task.priority = 'high' if severity in ['high', 'critical'] else 'medium'
+            report.auto_task.save(update_fields=['priority'])
+        
+        return Response(self.get_serializer(report).data)
+    
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """
+        Approve damage for repair (admin/staff only).
+        Marks status as 'in_progress' if assigned_to exists.
+        """
+        if not request.user.is_staff:
+            return Response({'error': 'Staff permission required'}, status=403)
+        
+        report = self.get_object()
+        
+        if report.status == 'resolved':
+            return Response({'error': 'Cannot approve resolved damage'}, status=400)
+        
+        # Auto-start if assigned
+        if report.assigned_to:
+            from django.utils import timezone
+            report.status = 'in_progress'
+            report.in_progress_at = timezone.now()
+        
+        report.save()
+        
+        return Response(self.get_serializer(report).data)
+    
+    @action(detail=True, methods=['post'], url_path='start-work')
+    def start_work(self, request, pk=None):
+        """
+        Mark damage as in_progress (work started).
+        """
+        report = self.get_object()
+        
+        if report.status == 'resolved':
+            return Response({'error': 'Damage already resolved'}, status=400)
+        
+        from django.utils import timezone
+        report.status = 'in_progress'
+        report.in_progress_at = timezone.now()
+        report.save(update_fields=['status', 'in_progress_at'])
+        
+        return Response(self.get_serializer(report).data)
+    
+    @action(detail=True, methods=['post'])
+    def resolve(self, request, pk=None):
+        """
+        Mark damage as resolved.
+        Body: {"resolution_notes": "Fixed and painted"}
+        """
+        report = self.get_object()
+        
+        if report.status == 'resolved':
+            return Response({'error': 'Damage already resolved'}, status=400)
+        
+        from django.utils import timezone
+        report.status = 'resolved'
+        report.resolved_at = timezone.now()
+        report.save(update_fields=['status', 'resolved_at'])
+        
+        # Q21.6: Update auto-task status
+        if report.auto_task:
+            report.auto_task.status = 'Completada'
+            report.auto_task.save(update_fields=['status'])
+        
+        # Notify reporter
+        if report.reported_by:
+            from core.models import Notification
+            Notification.objects.create(
+                user=report.reported_by,
+                title=f'Damage Resolved: {report.title}',
+                message=f'Damage report #{report.id} has been resolved.',
+                notification_type='damage_resolved',
+                link_url=f'/damage-reports/{report.id}/'
+            )
+        
+        return Response(self.get_serializer(report).data)
+    
+    @action(detail=True, methods=['post'], url_path='convert-to-co')
+    def convert_to_co(self, request, pk=None):
+        """
+        Convert damage report to Change Order.
+        Body: {"co_title": "Repair Water Damage", "co_description": "..."}
+        """
+        if not request.user.is_staff:
+            return Response({'error': 'Staff permission required'}, status=403)
+        
+        report = self.get_object()
+        
+        if report.linked_co:
+            return Response({'error': 'Change Order already created'}, status=400)
+        
+        co_title = request.data.get('co_title') or f"Repair: {report.title}"
+        co_description = request.data.get('co_description') or report.description
+        
+        from core.models import ChangeOrder
+        from decimal import Decimal
+        
+        co = ChangeOrder.objects.create(
+            project=report.project,
+            title=co_title,
+            description=co_description,
+            status='draft',
+            amount=report.estimated_cost or Decimal('0.00'),
+            created_by=request.user
+        )
+        
+        report.linked_co = co
+        report.save(update_fields=['linked_co'])
+        
+        from .serializers import ChangeOrderSerializer
+        return Response({
+            'damage_report': self.get_serializer(report).data,
+            'change_order': ChangeOrderSerializer(co, context={'request': request}).data
+        }, status=201)
     
     @action(detail=False, methods=['get'])
     def analytics(self, request):
