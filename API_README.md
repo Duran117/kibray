@@ -156,8 +156,9 @@ curl -X POST http://localhost:8000/api/v1/auth/refresh/ \
     "channel": 1,
     "user": 3,
     "user_name": "John Smith",
-    "message": "The drywall is complete.",
-    "timestamp": "2025-01-15T09:45:00Z"
+    "content": "The drywall is complete.",
+    "created_at": "2025-01-15T09:45:00Z",
+    "attachment": null
   }
 ]
 ```
@@ -169,11 +170,25 @@ curl -X POST http://localhost:8000/api/v1/auth/refresh/ \
 ```json
 {
   "channel": 1,
-  "message": "All clear on floor 2"
+  "content": "All clear on floor 2"
 }
 ```
 
 **Response**: `201 Created` with created message object
+
+---
+
+### Site Photos (Visual & Collaboration)
+
+#### Upload Site Photo
+**POST** `/api/v1/site-photos/`
+
+Supports `multipart/form-data` or JSON. Fields: `project` (id), `image` (file), optional `caption`, `location_lat`, `location_lng`, `location_accuracy_m`, `damage_report` (id), `photo_type`.
+
+#### List Site Photos
+**GET** `/api/v1/site-photos/?project={id}&damage_report={id}&photo_type=before|progress|after|defect|reference&start=YYYY-MM-DD&end=YYYY-MM-DD`
+
+Response: array of photos. Pagination disabled for simplicity.
 
 ---
 
@@ -223,7 +238,7 @@ curl -X POST http://localhost:8000/api/v1/auth/refresh/ \
 ### Damage Reports
 
 #### List Damage Reports
-**GET** `/api/v1/damage-reports/`
+**GET** `/api/v1/damage-reports/?project={id}&status=open|in_progress|resolved&severity=low|medium|high|critical&category=...`
 
 **Response**:
 ```json
@@ -236,39 +251,30 @@ curl -X POST http://localhost:8000/api/v1/auth/refresh/ \
     "reported_by_name": "Tom Anderson",
     "title": "Cracked tile in bathroom 3B",
     "description": "Large crack in floor tile",
-    "location": "Unit 3B - Master Bath",
-    "photo": "https://s3.amazonaws.com/kibray-media/damages/photo123.jpg",
-    "status": "reported",
-    "severity": "medium",
-    "reported_at": "2025-01-14T11:30:00Z"
+  "category": "cosmetic",
+  "status": "open",
+  "severity": "medium",
+  "reported_at": "2025-01-14T11:30:00Z",
+  "in_progress_at": null,
+  "resolved_at": null,
+  "auto_task": 123,
+  "photos": []
   }
 ]
 ```
 
-#### Create Damage Report (with photo upload)
-**POST** `/api/v1/damage-reports/`
+#### Create Damage Report
+**POST** `/api/v1/damage-reports/` (multipart or JSON)
 
-**Content-Type**: `multipart/form-data`
+Fields: `project` (id), `title`, optional `description`, `category`, `severity`, optional `assigned_to`, `location_detail`, `estimated_cost`.
 
-**Form Fields**:
-- `project` (int, required): Project ID
-- `title` (string, required): Report title
-- `description` (string, optional): Detailed description
-- `location` (string, optional): Location description
-- `severity` (string, optional): `low`, `medium`, `high`
-- `photo` (file, optional): Image file
+#### Add Evidence Photo
+**POST** `/api/v1/damage-reports/{id}/add_photo/`
 
-**Example with curl**:
-```bash
-curl -X POST http://localhost:8000/api/v1/damage-reports/ \
-  -H "Authorization: Bearer <token>" \
-  -F "project=2" \
-  -F "title=Water damage in hallway" \
-  -F "description=Ceiling leak detected" \
-  -F "location=2nd floor hallway" \
-  -F "severity=high" \
-  -F "photo=@/path/to/photo.jpg"
-```
+`multipart/form-data` with `image` (file) and optional `notes`.
+
+#### Analytics
+**GET** `/api/v1/damage-reports/analytics/?project={id}` → `{ severity, status, category, total }`
 
 ---
 
@@ -306,9 +312,14 @@ curl -X POST http://localhost:8000/api/v1/damage-reports/ \
 ```
 
 #### List Plan Pins (for a specific plan)
-**GET** `/api/v1/plan-pins/?plan={plan_id}`
+**GET** `/api/v1/plan-pins/?plan={plan_id}&pin_type=note|touchup|color|alert|damage`
 
 **Response**: Array of pin objects (see nested structure above)
+
+#### Comment on Pin
+**POST** `/api/v1/plan-pins/{id}/comment/`
+
+Body: `{ "comment": "Please fix ASAP" }`
 
 ---
 
@@ -332,11 +343,23 @@ curl -X POST http://localhost:8000/api/v1/damage-reports/ \
     "color_code": "#E5E7EB",
     "location": "Main Lobby",
     "photo": "https://s3.amazonaws.com/kibray-media/colors/sample7.jpg",
-    "status": "pending",
-    "submitted_at": "2025-01-13T14:20:00Z"
+    "status": "proposed",
+    "sample_number": "ACMEM10001",
+    "approved_by": null,
+    "approved_at": null
   }
 ]
 ```
+
+#### Approve Sample
+**POST** `/api/v1/color-samples/{id}/approve/`
+
+Body: `{ "signature_ip": "203.0.113.10" }` (optional)
+
+#### Reject Sample
+**POST** `/api/v1/color-samples/{id}/reject/`
+
+Body: `{ "reason": "Does not match spec" }`
 
 ---
 
