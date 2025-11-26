@@ -11,6 +11,7 @@ from .views import (
     DailyPlanViewSet, PlannedActivityViewSet, TimeEntryViewSet,
     MaterialRequestViewSet, MaterialCatalogViewSet,
     InventoryItemViewSet, InventoryLocationViewSet, ProjectInventoryViewSet, InventoryMovementViewSet,
+    InvoiceViewSet,
     PayrollPeriodViewSet, PayrollRecordViewSet, PayrollPaymentViewSet,
     global_search, save_changeorder_photo_annotations, delete_changeorder_photo,
     update_changeorder_photo_image
@@ -43,6 +44,7 @@ router.register(r'incomes', IncomeViewSet, basename='income')
 router.register(r'expenses', ExpenseViewSet, basename='expense')
 router.register(r'cost-codes', CostCodeViewSet, basename='cost-code')
 router.register(r'budget-lines', BudgetLineViewSet, basename='budget-line')
+router.register(r'invoices', InvoiceViewSet, basename='invoice')
 
 # Phase 1: Planning & Weather (NEW)
 router.register(r'daily-logs', DailyLogPlanningViewSet, basename='daily-log')

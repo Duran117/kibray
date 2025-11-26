@@ -257,6 +257,87 @@ class CostCodeSerializer(serializers.ModelSerializer):
         return total or 0
 
 
+# -------------------------------
+# Invoices (Module 6) - API
+# -------------------------------
+
+class InvoiceLineAPISerializer(serializers.ModelSerializer):
+    class Meta:
+        from core.models import InvoiceLine
+        model = InvoiceLine
+        fields = ['id', 'description', 'amount', 'time_entry', 'expense']
+
+
+class InvoicePaymentAPISerializer(serializers.ModelSerializer):
+    recorded_by_name = serializers.CharField(source='recorded_by.get_full_name', read_only=True, allow_null=True)
+
+    class Meta:
+        from core.models import InvoicePayment
+        model = InvoicePayment
+        fields = [
+            'id', 'invoice', 'amount', 'payment_date', 'payment_method',
+            'reference', 'notes', 'recorded_by', 'recorded_by_name', 'recorded_at'
+        ]
+        read_only_fields = ['recorded_by', 'recorded_at']
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    balance_due = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    payment_progress = serializers.SerializerMethodField()
+    lines = InvoiceLineAPISerializer(many=True, required=False)
+    payments = InvoicePaymentAPISerializer(many=True, read_only=True)
+
+    class Meta:
+        from core.models import Invoice
+        model = Invoice
+        fields = [
+            'id', 'project', 'project_name', 'invoice_number',
+            'date_issued', 'due_date', 'status', 'notes',
+            'total_amount', 'amount_paid', 'balance_due', 'payment_progress',
+            'sent_date', 'viewed_date', 'approved_date', 'paid_date',
+            'lines', 'payments'
+        ]
+        read_only_fields = [
+            'invoice_number', 'date_issued', 'amount_paid', 'balance_due', 'payment_progress',
+            'sent_date', 'viewed_date', 'approved_date', 'paid_date'
+        ]
+
+    def get_payment_progress(self, obj):
+        try:
+            return float(obj.payment_progress)
+        except Exception:
+            return 0
+
+    def create(self, validated_data):
+        from core.models import InvoiceLine
+        lines_data = validated_data.pop('lines', [])
+        invoice = super().create(validated_data)
+        total = 0
+        for ld in lines_data:
+            il = InvoiceLine.objects.create(invoice=invoice, **ld)
+            total += il.amount
+        if total:
+            invoice.total_amount = total
+            invoice.save(update_fields=['total_amount'])
+        return invoice
+
+    def update(self, instance, validated_data):
+        from core.models import InvoiceLine
+        lines_data = validated_data.pop('lines', None)
+        invoice = super().update(instance, validated_data)
+        if lines_data is not None:
+            # Replace all lines with provided set
+            instance.lines.all().delete()
+            total = 0
+            for ld in lines_data:
+                il = InvoiceLine.objects.create(invoice=invoice, **ld)
+                total += il.amount
+            invoice.total_amount = total
+            invoice.save(update_fields=['total_amount'])
+        return invoice
+
+
 class BudgetLineSerializer(serializers.ModelSerializer):
     """Budget line serializer with cost code details"""
     cost_code_name = serializers.CharField(source='cost_code.name', read_only=True)

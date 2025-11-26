@@ -38,11 +38,12 @@ from .serializers import (
     InventoryItemSerializer, InventoryLocationSerializer, ProjectInventorySerializer,
     InventoryMovementSerializer, MaterialRequestSerializer, MaterialRequestItemSerializer,
     MaterialCatalogSerializer,
+    InvoiceSerializer, InvoiceLineAPISerializer, InvoicePaymentAPISerializer,
     PayrollPeriodSerializer, PayrollRecordSerializer, PayrollPaymentSerializer,
     TwoFactorSetupSerializer, TwoFactorEnableSerializer, TwoFactorDisableSerializer,
     TwoFactorTokenObtainPairSerializer
 )
-from .filters import IncomeFilter, ExpenseFilter, ProjectFilter
+from .filters import IncomeFilter, ExpenseFilter, ProjectFilter, InvoiceFilter
 from .pagination import StandardResultsSetPagination
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -96,6 +97,60 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+# Invoices (Module 6) - DRF API
+class InvoiceViewSet(viewsets.ModelViewSet):
+    serializer_class = InvoiceSerializer
+    permission_classes = [IsAuthenticated]
+    # Module 6 tests expect an unpaginated list response for list endpoints
+    pagination_class = None
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_class = InvoiceFilter
+    ordering = ['-date_issued', '-id']
+    search_fields = ['invoice_number', 'project__name', 'project__client']
+
+    def get_queryset(self):
+        from core.models import Invoice
+        return Invoice.objects.select_related('project').prefetch_related('lines', 'payments').order_by('-date_issued', '-id')
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    @action(detail=True, methods=['post'])
+    def mark_sent(self, request, pk=None):
+        from django.utils import timezone
+        invoice = self.get_object()
+        if invoice.status == 'DRAFT':
+            invoice.status = 'SENT'
+            invoice.sent_date = timezone.now()
+            invoice.sent_by = request.user if hasattr(invoice, 'sent_by') else None
+            invoice.save(update_fields=['status', 'sent_date', 'sent_by'])
+            return Response({'status': invoice.status, 'sent_date': invoice.sent_date})
+        return Response({'detail': f'Invoice already {invoice.get_status_display()}.'}, status=400)
+
+    @action(detail=True, methods=['post'])
+    def mark_approved(self, request, pk=None):
+        from django.utils import timezone
+        invoice = self.get_object()
+        if invoice.status in ['DRAFT', 'SENT', 'VIEWED']:
+            invoice.status = 'APPROVED'
+            invoice.approved_date = timezone.now()
+            invoice.save(update_fields=['status', 'approved_date'])
+            return Response({'status': invoice.status, 'approved_date': invoice.approved_date})
+        return Response({'detail': f'Invoice status not eligible for approval: {invoice.status}'}, status=400)
+
+    @action(detail=True, methods=['post'])
+    def record_payment(self, request, pk=None):
+        from core.models import InvoicePayment
+        invoice = self.get_object()
+        serializer = InvoicePaymentAPISerializer(data={
+            **request.data,
+            'invoice': invoice.id,
+        })
+        serializer.is_valid(raise_exception=True)
+        payment = serializer.save(recorded_by=request.user)
+        return Response(InvoicePaymentAPISerializer(payment).data, status=201)
 
 # Touch-ups / Tasks
 class TaskViewSet(viewsets.ModelViewSet):
