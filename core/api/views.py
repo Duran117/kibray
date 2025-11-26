@@ -1819,6 +1819,177 @@ class InventoryMovementViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+    
+    @action(detail=False, methods=['post'])
+    def bulk_transfer(self, request):
+        """
+        Bulk transfer items between locations.
+        Payload: {
+            "from_location": <id>,
+            "to_location": <id>,
+            "items": [{"item_id": <id>, "quantity": <qty>}, ...],
+            "reason": "Moving to project site"
+        }
+        """
+        from core.models import InventoryLocation, InventoryItem, InventoryMovement
+        from django.core.exceptions import ValidationError
+        from decimal import Decimal
+        
+        try:
+            from_loc = InventoryLocation.objects.get(pk=request.data.get('from_location'))
+            to_loc = InventoryLocation.objects.get(pk=request.data.get('to_location'))
+        except InventoryLocation.DoesNotExist:
+            return Response({'detail': 'Invalid location'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        items_data = request.data.get('items', [])
+        reason = request.data.get('reason', 'Bulk transfer')
+        
+        movements_created = []
+        errors = []
+        
+        for item_data in items_data:
+            try:
+                item = InventoryItem.objects.get(pk=item_data['item_id'])
+                qty = Decimal(str(item_data['quantity']))
+                
+                if qty <= 0:
+                    errors.append(f"Invalid quantity for {item.name}")
+                    continue
+                
+                # Create movement
+                movement = InventoryMovement.objects.create(
+                    item=item,
+                    from_location=from_loc,
+                    to_location=to_loc,
+                    movement_type='TRANSFER',
+                    quantity=qty,
+                    reason=reason,
+                    created_by=request.user
+                )
+                
+                # Apply movement (will raise ValidationError if insufficient stock)
+                try:
+                    movement.apply()
+                    movements_created.append({
+                        'id': movement.id,
+                        'item': item.name,
+                        'quantity': str(qty)
+                    })
+                except ValidationError as e:
+                    errors.append(str(e))
+                    movement.delete()  # Rollback
+                    
+            except (InventoryItem.DoesNotExist, KeyError, ValueError) as e:
+                errors.append(f"Error processing item: {str(e)}")
+        
+        return Response({
+            'success': len(movements_created),
+            'errors': errors,
+            'movements': movements_created
+        }, status=status.HTTP_200_OK if not errors else status.HTTP_207_MULTI_STATUS)
+    
+    @action(detail=False, methods=['post'])
+    def stock_adjustment(self, request):
+        """
+        Manual stock adjustment for physical count corrections.
+        Payload: {
+            "location": <id>,
+            "item": <id>,
+            "new_quantity": <qty>,
+            "reason": "Physical count correction"
+        }
+        """
+        from core.models import InventoryLocation, InventoryItem, InventoryMovement, ProjectInventory
+        from decimal import Decimal
+        
+        try:
+            location = InventoryLocation.objects.get(pk=request.data.get('location'))
+            item = InventoryItem.objects.get(pk=request.data.get('item'))
+            new_qty = Decimal(str(request.data.get('new_quantity')))
+            reason = request.data.get('reason', 'Stock adjustment')
+        except (InventoryLocation.DoesNotExist, InventoryItem.DoesNotExist, ValueError):
+            return Response({'detail': 'Invalid parameters'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get current stock
+        stock, _ = ProjectInventory.objects.get_or_create(item=item, location=location)
+        current_qty = stock.quantity
+        
+        # Calculate adjustment amount
+        adjustment = new_qty - current_qty
+        
+        if adjustment == 0:
+            return Response({'detail': 'No adjustment needed'}, status=status.HTTP_200_OK)
+        
+        # Create adjustment movement
+        movement = InventoryMovement.objects.create(
+            item=item,
+            to_location=location,
+            movement_type='ADJUST',
+            quantity=adjustment,
+            reason=f"{reason}. Previous: {current_qty}, New: {new_qty}",
+            created_by=request.user
+        )
+        
+        movement.apply()
+        
+        return Response({
+            'movement_id': movement.id,
+            'previous_quantity': str(current_qty),
+            'new_quantity': str(new_qty),
+            'adjustment': str(adjustment)
+        })
+    
+    @action(detail=False, methods=['get'])
+    def low_stock_report(self, request):
+        """
+        Get items below threshold across all locations.
+        Query params: ?category=PINTURA&location=<id>
+        """
+        from core.models import InventoryItem, ProjectInventory
+        from django.db.models import Sum, Q
+        
+        # Filter params
+        category = request.query_params.get('category')
+        location_id = request.query_params.get('location')
+        
+        items_qs = InventoryItem.objects.filter(active=True, no_threshold=False)
+        
+        if category:
+            items_qs = items_qs.filter(category=category)
+        
+        low_stock_items = []
+        
+        for item in items_qs:
+            threshold = item.get_effective_threshold()
+            if not threshold:
+                continue
+            
+            # Get stock for item
+            stocks_qs = ProjectInventory.objects.filter(item=item)
+            
+            if location_id:
+                stocks_qs = stocks_qs.filter(location_id=location_id)
+            
+            total_qty = stocks_qs.aggregate(total=Sum('quantity'))['total'] or Decimal("0")
+            
+            if total_qty < threshold:
+                low_stock_items.append({
+                    'item_id': item.id,
+                    'item_name': item.name,
+                    'sku': item.sku or 'N/A',
+                    'category': item.get_category_display(),
+                    'current_quantity': str(total_qty),
+                    'threshold': str(threshold),
+                    'shortage': str(threshold - total_qty),
+                    'valuation_method': item.valuation_method,
+                    'average_cost': str(item.average_cost)
+                })
+        
+        return Response({
+            'count': len(low_stock_items),
+            'items': low_stock_items
+        })
+
 
 
 class MaterialCatalogViewSet(viewsets.ModelViewSet):

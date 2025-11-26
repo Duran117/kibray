@@ -11,9 +11,88 @@ from django.db.models import Q, Sum
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import timedelta, date
+from decimal import Decimal
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+@shared_task(name='core.tasks.check_inventory_shortages')
+def check_inventory_shortages():
+    """
+    Check for low inventory levels and send alerts.
+    Runs daily at 8 AM.
+    
+    Scans all active items with thresholds, aggregates quantities
+    across all locations, and creates notifications for items below threshold.
+    """
+    from core.models import InventoryItem, ProjectInventory, Notification
+    from django.contrib.auth import get_user_model
+    from django.db.models import Sum, Q
+    
+    User = get_user_model()
+    today = timezone.now().date()
+    
+    # Get active items with thresholds
+    items = InventoryItem.objects.filter(
+        active=True,
+        no_threshold=False
+    ).filter(
+        Q(low_stock_threshold__isnull=False) | Q(default_threshold__isnull=False)
+    )
+    
+    low_stock_items = []
+    
+    for item in items:
+        threshold = item.get_effective_threshold()
+        if not threshold:
+            continue
+        
+        # Get total quantity across all locations
+        total_qty = ProjectInventory.objects.filter(item=item).aggregate(
+            total=Sum('quantity')
+        )['total'] or Decimal("0")
+        
+        if total_qty < threshold:
+            shortage = threshold - total_qty
+            low_stock_items.append({
+                'item': item,
+                'current_qty': total_qty,
+                'threshold': threshold,
+                'shortage': shortage
+            })
+    
+    # Send notifications to admins and managers
+    if low_stock_items:
+        recipients = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+        
+        # Create summary notification
+        item_list = ', '.join([
+            f"{item_data['item'].name} ({item_data['current_qty']}/{item_data['threshold']})"
+            for item_data in low_stock_items[:5]  # First 5 items
+        ])
+        
+        if len(low_stock_items) > 5:
+            item_list += f" ... and {len(low_stock_items) - 5} more"
+        
+        for user in recipients:
+            Notification.objects.create(
+                user=user,
+                notification_type='task_alert',
+                title=f'Low Inventory Alert: {len(low_stock_items)} items',
+                message=f'Items below threshold: {item_list}',
+                link_url='/inventory/',
+                related_object_type='inventory',
+                related_object_id=None
+            )
+    
+    logger.info(f"Inventory check: {len(low_stock_items)} items below threshold")
+    
+    return {
+        'date': str(today),
+        'low_stock_count': len(low_stock_items),
+        'items_checked': items.count()
+    }
 
 
 @shared_task(name='core.tasks.check_overdue_invoices')

@@ -3477,6 +3477,111 @@ class InventoryItem(models.Model):
 
             self.last_purchase_cost = new_cost
             self.save(update_fields=['average_cost', 'last_purchase_cost'])
+    
+    def get_fifo_cost(self, quantity_needed):
+        """
+        Calculate FIFO cost for given quantity.
+        Returns (total_cost, remaining_qty) based on oldest purchases first.
+        """
+        if self.valuation_method != 'FIFO':
+            return self.average_cost * quantity_needed, Decimal("0")
+        
+        # Get movements in chronological order (oldest first)
+        purchases = self.movements.filter(
+            movement_type='RECEIVE',
+            applied=True,
+            unit_cost__isnull=False
+        ).order_by('created_at')
+        
+        total_cost = Decimal("0")
+        remaining = quantity_needed
+        
+        for purchase in purchases:
+            if remaining <= 0:
+                break
+            
+            qty_from_batch = min(remaining, purchase.quantity)
+            total_cost += qty_from_batch * purchase.unit_cost
+            remaining -= qty_from_batch
+        
+        # If still need more, use average cost for remainder
+        if remaining > 0:
+            total_cost += remaining * self.average_cost
+        
+        return total_cost, remaining
+    
+    def get_lifo_cost(self, quantity_needed):
+        """
+        Calculate LIFO cost for given quantity.
+        Returns (total_cost, remaining_qty) based on newest purchases first.
+        """
+        if self.valuation_method != 'LIFO':
+            return self.average_cost * quantity_needed, Decimal("0")
+        
+        # Get movements in reverse chronological order (newest first)
+        purchases = self.movements.filter(
+            movement_type='RECEIVE',
+            applied=True,
+            unit_cost__isnull=False
+        ).order_by('-created_at')
+        
+        total_cost = Decimal("0")
+        remaining = quantity_needed
+        
+        for purchase in purchases:
+            if remaining <= 0:
+                break
+            
+            qty_from_batch = min(remaining, purchase.quantity)
+            total_cost += qty_from_batch * purchase.unit_cost
+            remaining -= qty_from_batch
+        
+        # If still need more, use average cost for remainder
+        if remaining > 0:
+            total_cost += remaining * self.average_cost
+        
+        return total_cost, remaining
+    
+    def get_cost_for_quantity(self, quantity):
+        """
+        Get cost for specified quantity based on valuation method.
+        Returns Decimal total cost.
+        """
+        if self.valuation_method == 'FIFO':
+            cost, _ = self.get_fifo_cost(quantity)
+            return cost
+        elif self.valuation_method == 'LIFO':
+            cost, _ = self.get_lifo_cost(quantity)
+            return cost
+        else:  # AVG
+            return self.average_cost * quantity
+    
+    def total_quantity_all_locations(self):
+        """Return total quantity across all locations."""
+        return ProjectInventory.objects.filter(item=self).aggregate(
+            total=models.Sum('quantity')
+        )['total'] or Decimal("0")
+    
+    def check_reorder_point(self):
+        """
+        Check if item needs reordering across all locations.
+        Returns dict with alert info if below threshold.
+        """
+        total_qty = self.total_quantity_all_locations()
+        threshold = self.get_effective_threshold()
+        
+        if threshold and total_qty < threshold:
+            return {
+                'needs_reorder': True,
+                'current_qty': total_qty,
+                'threshold': threshold,
+                'shortage': threshold - total_qty,
+                'item_name': self.name,
+                'sku': self.sku or 'N/A'
+            }
+        
+        return {'needs_reorder': False}
+
 
 
 class InventoryLocation(models.Model):
