@@ -118,8 +118,8 @@ class SitePhotoSerializer(serializers.ModelSerializer):
         model = SitePhoto
         fields = [
             'id', 'project', 'project_name', 'created_by', 'uploader_name', 'image', 'thumbnail',
-            'location_lat', 'location_lng', 'location_accuracy_m', 'notes',
-            'damage_report', 'damage_report_title', 'photo_type', 'caption', 'created_at'
+            'location_lat', 'location_lng', 'location_accuracy_m', 'notes', 'room', 'wall_ref',
+            'damage_report', 'damage_report_title', 'photo_type', 'caption', 'visibility', 'created_at'
         ]
         read_only_fields = ['created_by', 'thumbnail', 'created_at']
 
@@ -224,18 +224,28 @@ class DamageReportSerializer(serializers.ModelSerializer):
 class ColorSampleSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source='project.name', read_only=True)
     approver_name = serializers.CharField(source='approved_by.get_full_name', read_only=True, allow_null=True)
+    rejecter_name = serializers.CharField(source='rejected_by.get_full_name', read_only=True, allow_null=True)
+    status_changed_by_name = serializers.CharField(source='status_changed_by.get_full_name', read_only=True, allow_null=True)
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True, allow_null=True)
     
     class Meta:
         model = ColorSample
         fields = [
             'id', 'project', 'project_name', 'name', 'code', 'brand',
             'finish', 'gloss', 'status', 'sample_image', 'reference_photo',
-            'sample_number', 'version', 'approved_by', 'approver_name',
-            'approved_at', 'approval_signature', 'approval_ip',
-            'rejected_by', 'rejected_at', 'rejection_reason',
-            'created_at', 'updated_at'
+            'sample_number', 'version', 'room_location', 'room_group',
+            'notes', 'client_notes', 'annotations',
+            'approved_by', 'approver_name', 'approved_at', 'approval_signature', 'approval_ip',
+            'rejected_by', 'rejecter_name', 'rejected_at', 'rejection_reason',
+            'status_changed_by', 'status_changed_by_name', 'status_changed_at',
+            'created_by', 'created_by_name', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['sample_number', 'version', 'approved_by', 'approver_name', 'approved_at', 'approval_signature', 'approval_ip', 'rejected_by', 'rejected_at', 'created_at', 'updated_at']
+        read_only_fields = [
+            'sample_number', 'version', 'approved_by', 'approver_name', 'approved_at', 
+            'approval_signature', 'approval_ip', 'rejected_by', 'rejecter_name', 'rejected_at',
+            'status_changed_by', 'status_changed_by_name', 'status_changed_at',
+            'created_by', 'created_by_name', 'created_at', 'updated_at'
+        ]
 
 class ColorSampleApproveSerializer(serializers.Serializer):
     signature_ip = serializers.IPAddressField(required=False, allow_null=True)

@@ -2723,14 +2723,43 @@ class SitePhoto(models.Model):
             # This would integrate with a geocoding service in production
             pass
         
-        # Q18.12: Generate thumbnail (simplified - would use Pillow in production)
+        # Q18.12: Generate thumbnail
         if self.image and not self.thumbnail:
-            # Placeholder - actual implementation would use PIL/Pillow
-            # from PIL import Image
-            # thumb = Image.open(self.image.path)
-            # thumb.thumbnail((300, 300))
-            # thumb.save(thumbnail_path)
-            pass
+            try:
+                from PIL import Image
+                from io import BytesIO
+                from django.core.files.base import ContentFile
+                import os
+                
+                # Open original image
+                img = Image.open(self.image)
+                
+                # Convert to RGB if necessary (for PNG with transparency)
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                    img = background
+                
+                # Create thumbnail (max 300x300, preserve aspect ratio)
+                img.thumbnail((300, 300), Image.Resampling.LANCZOS)
+                
+                # Save to BytesIO
+                thumb_io = BytesIO()
+                img.save(thumb_io, format='JPEG', quality=85)
+                thumb_io.seek(0)
+                
+                # Generate filename
+                original_name = os.path.basename(self.image.name)
+                name_without_ext = os.path.splitext(original_name)[0]
+                thumb_filename = f"{name_without_ext}_thumb.jpg"
+                
+                # Save thumbnail field
+                self.thumbnail.save(thumb_filename, ContentFile(thumb_io.read()), save=False)
+            except Exception as e:
+                # Log error but don't fail save
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Failed to generate thumbnail for SitePhoto: {e}")
         
         super().save(*args, **kwargs)
 

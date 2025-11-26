@@ -16,7 +16,7 @@ from django.db.models import Sum, Q, F, DecimalField
 from django.db.models.functions import Coalesce
 from decimal import Decimal
 from django.core.files.base import ContentFile
-from datetime import timedelta
+from datetime import timedelta, datetime
 import base64, re
 from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
@@ -1003,30 +1003,164 @@ class PlanPinViewSet(viewsets.ReadOnlyModelViewSet):
 
 # Color Samples
 class ColorSampleViewSet(viewsets.ModelViewSet):
+    """
+    MÓDULO 19: Color Samples with KPISM numbering and approval workflow.
+    
+    Features:
+    - Auto-generate sample_number on create (KPISM format)
+    - Approval workflow: proposed → review → approved/rejected
+    - Digital signature on approval (SHA256 hash)
+    - Required rejection reason (Q19.12)
+    - Room grouping for organization
+    - Status change notifications
+    
+    Endpoints:
+    - GET /api/v1/color-samples/ - List all samples (with filters)
+    - POST /api/v1/color-samples/ - Create new sample (auto-generates sample_number)
+    - GET /api/v1/color-samples/{id}/ - Retrieve single sample
+    - PATCH /api/v1/color-samples/{id}/ - Update sample metadata
+    - DELETE /api/v1/color-samples/{id}/ - Delete sample
+    - POST /api/v1/color-samples/{id}/approve/ - Approve sample (digital signature)
+    - POST /api/v1/color-samples/{id}/reject/ - Reject sample (requires reason)
+    - POST /api/v1/color-samples/{id}/request_changes/ - Request changes (move to review)
+    
+    Query Parameters:
+    - project={id} - Filter by project
+    - status=proposed|review|approved|rejected|archived - Filter by status
+    - room_group={name} - Filter by room group
+    - brand={name} - Filter by brand
+    """
     serializer_class = ColorSampleSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'status', 'room_group', 'brand']
+    search_fields = ['name', 'code', 'room_location', 'notes']
+    ordering_fields = ['created_at', 'sample_number', 'status']
+    pagination_class = StandardResultsSetPagination
     
     def get_queryset(self):
-        return ColorSample.objects.select_related('project', 'approved_by', 'rejected_by').order_by('-created_at')
+        qs = ColorSample.objects.select_related(
+            'project', 'approved_by', 'rejected_by', 'status_changed_by', 'created_by'
+        ).order_by('-created_at')
+        
+        # Non-staff users only see samples from their accessible projects
+        user = self.request.user
+        if not user.is_staff:
+            from core.models import ClientProjectAccess
+            accessible_projects = ClientProjectAccess.objects.filter(
+                user=user
+            ).values_list('project_id', flat=True)
+            qs = qs.filter(project_id__in=accessible_projects)
+        
+        return qs
 
-    @action(detail=True, methods=['post'])
+    def perform_create(self, serializer):
+        """Auto-set created_by and trigger sample_number generation"""
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'], url_path='approve')
     def approve(self, request, pk=None):
+        """
+        Approve a color sample with digital signature.
+        
+        Body (optional):
+        {
+            "signature_ip": "192.168.1.100"  // Optional, defaults to REMOTE_ADDR
+        }
+        
+        Response:
+        - Updated sample with approval_signature, approved_by, approved_at
+        - Status changed to 'approved'
+        - Notifications sent to project team
+        """
         from .serializers import ColorSampleApproveSerializer
         sample = self.get_object()
+        
+        # Check if already approved
+        if sample.status == 'approved':
+            return Response(
+                {'error': 'Sample is already approved'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         ser = ColorSampleApproveSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         ip = ser.validated_data.get('signature_ip') or request.META.get('REMOTE_ADDR')
         sample.approve(request.user, ip_address=ip)
+        
         return Response(ColorSampleSerializer(sample, context={'request': request}).data)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_path='reject')
     def reject(self, request, pk=None):
+        """
+        Reject a color sample with required reason (Q19.12).
+        
+        Body (required):
+        {
+            "reason": "Color doesn't match the design requirements"
+        }
+        
+        Response:
+        - Updated sample with rejected_by, rejected_at, rejection_reason
+        - Status changed to 'rejected'
+        - Notifications sent to project team
+        """
         from .serializers import ColorSampleRejectSerializer
         sample = self.get_object()
+        
+        # Check if already rejected
+        if sample.status == 'rejected':
+            return Response(
+                {'error': 'Sample is already rejected'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         ser = ColorSampleRejectSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         reason = ser.validated_data['reason']
-        sample.reject(request.user, reason)
+        
+        try:
+            sample.reject(request.user, reason)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(ColorSampleSerializer(sample, context={'request': request}).data)
+    
+    @action(detail=True, methods=['post'], url_path='request-changes')
+    def request_changes(self, request, pk=None):
+        """
+        Request changes to a color sample (moves to 'review' status).
+        
+        Body (optional):
+        {
+            "notes": "Please adjust the hue slightly darker"
+        }
+        
+        Response:
+        - Status changed to 'review'
+        - Client notes updated if provided
+        - Notifications sent to project team
+        """
+        from django.utils import timezone
+        sample = self.get_object()
+        
+        # Update client notes if provided
+        notes = request.data.get('notes')
+        if notes:
+            if sample.client_notes:
+                sample.client_notes += f"\n\n[{timezone.now().strftime('%Y-%m-%d %H:%M')}] {request.user.username}: {notes}"
+            else:
+                sample.client_notes = f"[{timezone.now().strftime('%Y-%m-%d %H:%M')}] {request.user.username}: {notes}"
+        
+        # Move to review status
+        sample.status = 'review'
+        sample.status_changed_by = request.user
+        sample.status_changed_at = timezone.now()
+        sample.save()
+        
+        # Notify team
+        sample._notify_status_change('review', request.user)
+        
         return Response(ColorSampleSerializer(sample, context={'request': request}).data)
 
 # Projects
@@ -2704,19 +2838,57 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
 
 class SitePhotoViewSet(viewsets.ModelViewSet):
+    """
+    MÓDULO 18: Site Photos with GPS auto-tagging, thumbnail generation, and gallery system.
+    
+    Features:
+    - GPS extraction from EXIF data (handled in serializer)
+    - Auto-generate thumbnails on save (handled in model)
+    - Filter by project, damage_report, photo_type, date_range
+    - Gallery action for organized photo viewing
+    - ClientProjectAccess enforcement for non-staff users
+    
+    Endpoints:
+    - GET /api/v1/site-photos/ - List all photos (with filters)
+    - POST /api/v1/site-photos/ - Upload new photo (multipart/form-data)
+    - GET /api/v1/site-photos/{id}/ - Retrieve single photo
+    - PATCH /api/v1/site-photos/{id}/ - Update photo metadata
+    - DELETE /api/v1/site-photos/{id}/ - Delete photo
+    - GET /api/v1/site-photos/gallery/ - Organized gallery view grouped by photo_type
+    
+    Query Parameters:
+    - project={id} - Filter by project
+    - damage_report={id} - Filter by damage report
+    - photo_type=before|progress|after|defect|reference - Filter by type
+    - start=YYYY-MM-DD - Filter photos from this date
+    - end=YYYY-MM-DD - Filter photos until this date
+    - visibility=public|internal - Filter by visibility (staff only)
+    """
     queryset = SitePhoto.objects.select_related('project', 'damage_report', 'created_by').all().order_by('-created_at')
     serializer_class = SitePhotoSerializer
     permission_classes = [IsAuthenticated]
-    from rest_framework.parsers import JSONParser
     parser_classes = [JSONParser, MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['project', 'damage_report', 'photo_type']
-    search_fields = ['caption', 'notes', 'project__name']
-    ordering_fields = ['created_at']
-    pagination_class = None
+    filterset_fields = ['project', 'damage_report', 'photo_type', 'visibility']
+    search_fields = ['caption', 'notes', 'project__name', 'room', 'wall_ref']
+    ordering_fields = ['created_at', 'photo_type']
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         qs = super().get_queryset()
+        user = self.request.user
+        
+        # Non-staff users only see photos from their accessible projects (via ClientProjectAccess)
+        if not user.is_staff:
+            from core.models import ClientProjectAccess
+            accessible_projects = ClientProjectAccess.objects.filter(
+                user=user
+            ).values_list('project_id', flat=True)
+            qs = qs.filter(project_id__in=accessible_projects)
+            
+            # Non-staff users only see public photos
+            qs = qs.filter(visibility='public')
+        
         # Optional date range filter
         start = self.request.query_params.get('start')
         end = self.request.query_params.get('end')
@@ -2726,13 +2898,63 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
             if dt:
                 qs = qs.filter(created_at__gte=dt)
         if end:
-            dt = parse_datetime(end) or parse_date(end)
-            if dt:
-                qs = qs.filter(created_at__lte=dt)
+            dt_end = parse_datetime(end) or parse_date(end)
+            if dt_end:
+                # Include the entire end date
+                if not isinstance(dt_end, datetime):
+                    dt_end = datetime.combine(dt_end, datetime.max.time())
+                qs = qs.filter(created_at__lte=dt_end)
+        
         return qs
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+    
+    @action(detail=False, methods=['get'], url_path='gallery')
+    def gallery(self, request):
+        """
+        Organized gallery view grouped by photo_type.
+        
+        Returns photos organized by type (before, progress, after, defect, reference)
+        with thumbnails for efficient loading.
+        
+        Example response:
+        {
+            "before": [{id, thumbnail, caption, created_at}, ...],
+            "progress": [...],
+            "after": [...],
+            "defect": [...],
+            "reference": [...]
+        }
+        """
+        qs = self.filter_queryset(self.get_queryset())
+        
+        # Group photos by type
+        gallery_data = {
+            'before': [],
+            'progress': [],
+            'after': [],
+            'defect': [],
+            'reference': []
+        }
+        
+        for photo in qs:
+            photo_data = {
+                'id': photo.id,
+                'thumbnail': photo.thumbnail.url if photo.thumbnail else None,
+                'image': photo.image.url if photo.image else None,
+                'caption': photo.caption,
+                'room': photo.room,
+                'wall_ref': photo.wall_ref,
+                'location_lat': str(photo.location_lat) if photo.location_lat else None,
+                'location_lng': str(photo.location_lng) if photo.location_lng else None,
+                'damage_report_id': photo.damage_report_id,
+                'created_at': photo.created_at.isoformat(),
+                'created_by': photo.created_by.get_full_name() if photo.created_by else None,
+            }
+            gallery_data[photo.photo_type].append(photo_data)
+        
+        return Response(gallery_data)
 
 
 # ============================================================================
