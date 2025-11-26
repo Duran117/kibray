@@ -148,14 +148,25 @@ class DamageReportSerializer(serializers.ModelSerializer):
 
 class ColorSampleSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source='project.name', read_only=True)
+    approver_name = serializers.CharField(source='approved_by.get_full_name', read_only=True, allow_null=True)
     
     class Meta:
         model = ColorSample
         fields = [
             'id', 'project', 'project_name', 'name', 'code', 'brand',
-            'status', 'swatch_image', 'created_at'
+            'finish', 'gloss', 'status', 'sample_image', 'reference_photo',
+            'sample_number', 'version', 'approved_by', 'approver_name',
+            'approved_at', 'approval_signature', 'approval_ip',
+            'rejected_by', 'rejected_at', 'rejection_reason',
+            'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at']
+        read_only_fields = ['sample_number', 'version', 'approved_by', 'approver_name', 'approved_at', 'approval_signature', 'approval_ip', 'rejected_by', 'rejected_at', 'created_at', 'updated_at']
+
+class ColorSampleApproveSerializer(serializers.Serializer):
+    signature_ip = serializers.IPAddressField(required=False, allow_null=True)
+
+class ColorSampleRejectSerializer(serializers.Serializer):
+    reason = serializers.CharField(max_length=500)
 
 class PlanPinSerializer(serializers.ModelSerializer):
     color_sample_name = serializers.CharField(source='color_sample.name', read_only=True, allow_null=True)

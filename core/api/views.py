@@ -579,12 +579,32 @@ class PlanPinViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
 # Color Samples
-class ColorSampleViewSet(viewsets.ReadOnlyModelViewSet):
+class ColorSampleViewSet(viewsets.ModelViewSet):
     serializer_class = ColorSampleSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return ColorSample.objects.select_related('project').order_by('-created_at')
+        return ColorSample.objects.select_related('project', 'approved_by', 'rejected_by').order_by('-created_at')
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        from .serializers import ColorSampleApproveSerializer
+        sample = self.get_object()
+        ser = ColorSampleApproveSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        ip = ser.validated_data.get('signature_ip') or request.META.get('REMOTE_ADDR')
+        sample.approve(request.user, ip_address=ip)
+        return Response(ColorSampleSerializer(sample, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        from .serializers import ColorSampleRejectSerializer
+        sample = self.get_object()
+        ser = ColorSampleRejectSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        reason = ser.validated_data['reason']
+        sample.reject(request.user, reason)
+        return Response(ColorSampleSerializer(sample, context={'request': request}).data)
 
 # Projects
 class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
