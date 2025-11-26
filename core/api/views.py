@@ -87,7 +87,8 @@ class ChatChannelViewSet(viewsets.ReadOnlyModelViewSet):
 class ChatMessageViewSet(viewsets.ModelViewSet):
     serializer_class = ChatMessageSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    from rest_framework.parsers import JSONParser
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     
     def get_queryset(self):
         channel_id = self.request.query_params.get('channel')
@@ -97,7 +98,28 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         return qs
     
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Save with user and detect mentions to notify
+        msg = serializer.save(user=self.request.user)
+        # @mentions notifications
+        import re
+        usernames = set(re.findall(r'@([A-Za-z0-9_\.\-]+)', msg.message or ''))
+        if usernames:
+            from django.contrib.auth import get_user_model
+            from core.models import Notification
+            User = get_user_model()
+            for uname in usernames:
+                try:
+                    u = User.objects.get(username=uname)
+                    Notification.objects.create(
+                        user=u,
+                        notification_type='chat_message',
+                        title=f"Mention by {self.request.user.username}",
+                        message=(msg.message or '')[:200],
+                        related_object_type='chat_message',
+                        related_object_id=msg.id,
+                    )
+                except User.DoesNotExist:
+                    continue
 
 
 # Invoices (Module 6) - DRF API

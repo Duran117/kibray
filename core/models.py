@@ -3326,6 +3326,7 @@ class ChatMessage(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     message = models.TextField(blank=True)
     image = models.ImageField(upload_to='project_chat/', null=True, blank=True)
+    attachment = models.FileField(upload_to='project_chat/', null=True, blank=True)
     link_url = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

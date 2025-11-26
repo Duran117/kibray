@@ -27,11 +27,18 @@ class ChatChannelSerializer(serializers.ModelSerializer):
 
 class ChatMessageSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    mentions = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = ChatMessage
-        fields = ['id', 'channel', 'user', 'message', 'link_url', 'image', 'created_at']
+        fields = ['id', 'channel', 'user', 'message', 'link_url', 'image', 'attachment', 'mentions', 'created_at']
         read_only_fields = ['user', 'created_at']
+
+    def get_mentions(self, obj):
+        import re
+        text = obj.message or ''
+        usernames = set(re.findall(r'@([A-Za-z0-9_\.\-]+)', text))
+        return list(usernames)
 
 class TaskSerializer(serializers.ModelSerializer):
     assigned_to_name = serializers.CharField(source='assigned_to.get_full_name', read_only=True, allow_null=True)
