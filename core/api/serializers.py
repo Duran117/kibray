@@ -340,13 +340,14 @@ class InvoiceSerializer(serializers.ModelSerializer):
 class ClientRequestSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source='project.name', read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True, allow_null=True)
+    attachments = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         from core.models import ClientRequest
         model = ClientRequest
         fields = [
             'id', 'project', 'project_name', 'title', 'description', 'request_type',
-            'created_by', 'created_by_name', 'created_at', 'status', 'change_order'
+            'created_by', 'created_by_name', 'created_at', 'status', 'change_order', 'attachments'
         ]
         read_only_fields = ['created_by', 'created_at']
 
@@ -357,7 +358,24 @@ class ClientRequestSerializer(serializers.ModelSerializer):
         if user and not validated_data.get('created_by'):
             validated_data['created_by'] = user
         return super().create(validated_data)
-        return invoice
+
+    def get_attachments(self, obj):
+        return [
+            {
+                'id': a.id,
+                'filename': a.filename,
+                'size_bytes': a.size_bytes,
+                'uploaded_at': a.uploaded_at,
+            } for a in getattr(obj, 'attachments', []).all()
+        ]
+
+
+class ClientRequestAttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        from core.models import ClientRequestAttachment
+        model = ClientRequestAttachment
+        fields = ['id', 'request', 'file', 'filename', 'content_type', 'size_bytes', 'uploaded_by', 'uploaded_at']
+        read_only_fields = ['uploaded_by', 'size_bytes', 'uploaded_at']
 
 
 class BudgetLineSerializer(serializers.ModelSerializer):

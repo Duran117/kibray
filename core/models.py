@@ -2455,6 +2455,29 @@ class ClientRequest(models.Model):
     def __str__(self):
         return f"CR#{self.id} · {self.project.name} · {self.title} · {self.get_status_display()}"
 
+
+class ClientRequestAttachment(models.Model):
+    """Sandboxed attachment for client requests."""
+    request = models.ForeignKey(ClientRequest, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='client_requests/', blank=False)
+    filename = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=100, blank=True)
+    size_bytes = models.IntegerField(default=0)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def save(self, *args, **kwargs):
+        # basic quota guard: 20MB per file
+        if hasattr(self.file, 'size') and self.file.size > 20 * 1024 * 1024:
+            from django.core.exceptions import ValidationError
+            raise ValidationError({'file': 'File exceeds 20MB limit'})
+        self.size_bytes = getattr(self.file, 'size', 0)
+        self.filename = self.filename or getattr(self.file, 'name', self.filename)
+        super().save(*args, **kwargs)
+
 class MaterialRequestItem(models.Model):
     if TYPE_CHECKING:
         get_unit_display: Callable[[], str]

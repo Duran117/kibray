@@ -1847,6 +1847,23 @@ class ClientRequestViewSet(viewsets.ModelViewSet):
         return Response({'status': cr.status})
 
 
+class ClientRequestAttachmentViewSet(viewsets.ModelViewSet):
+    from core.models import ClientRequestAttachment as Model
+    from core.api.serializers import ClientRequestAttachmentSerializer as Serializer
+
+    queryset = Model.objects.select_related('request', 'uploaded_by').all().order_by('-uploaded_at')
+    serializer_class = Serializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['request']
+    ordering_fields = ['uploaded_at', 'size_bytes']
+    pagination_class = None
+
+    def perform_create(self, serializer):
+        serializer.save(uploaded_by=self.request.user)
+
+
 # ============================================================================
 # FASE 7: Dashboards (basic API overviews)
 # ============================================================================
