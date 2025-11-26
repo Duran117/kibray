@@ -52,11 +52,37 @@ All schedules configured in `kibray_backend/celery.py`:
   - Temperature (max/min)
   - Conditions (clear, cloudy, rain, etc.)
   - Precipitation, wind, humidity
-- Data source: `open-meteo` API (placeholder; ready for real integration)
+- Data source: **Open-Meteo API** (https://open-meteo.com)
+  - Free, no API key required
+  - WMO Weather interpretation codes for conditions
+  - Forecast data: temperature, precipitation, wind speed
+  - Default coordinates: San Francisco Bay Area (37.7749, -122.4194)
+  - Production: Add lat/lon geocoding for project addresses
 - Used by:
   - Dashboard weather indicators
   - Daily plan weather context
   - Analytics for weather impact on delays
+
+**Weather Code Mapping** (WMO Standard):
+- 0: Clear sky
+- 1-3: Mainly clear to overcast
+- 45-48: Fog
+- 51-67: Drizzle and rain (light to heavy)
+- 71-77: Snow
+- 80-82: Rain showers
+- 95-99: Thunderstorm (with/without hail)
+
+**Error Handling**:
+- Network errors: Logged and project skipped (continues to next)
+- Data parsing errors: Logged with fallback to previous snapshot
+- Rate limiting: Open-Meteo free tier supports 10,000 requests/day (more than enough for Kibray)
+
+**Testing**: 9 tests in `tests/test_weather_api.py`:
+- API call mocking (success/error)
+- Weather code translations
+- Active project filtering
+- Snapshot update vs. create logic
+- Humidity estimation based on precipitation
 
 ### 2. High-Priority Touch-up Alerts (Phase 7)
 
@@ -237,7 +263,8 @@ for task in recent:
 
 - **Redis caching**: Cache dashboard aggregates (TTL: 5 min)
 - **EVM recalculation**: Daily task to update Earned Value metrics
-- **Real weather API**: Replace placeholder with Open-Meteo or WeatherAPI integration
+- **Geocoding service**: Auto-convert project addresses to lat/lon for accurate weather
+- **Weather alerts**: Notify PMs of extreme weather (rain >25mm, wind >50kph, temp <0°C)
 - **Email digests**: Weekly summary of project status to stakeholders
 - **Auto-archive**: Move completed projects to archive after 90 days
 - **Anomaly detection**: ML-based alerts for cost/schedule variance

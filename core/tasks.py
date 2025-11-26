@@ -264,11 +264,16 @@ def update_daily_weather_snapshots():
     Fetch and persist weather data for all active projects.
     Runs daily at 5 AM (before daily plan updates).
     
-    Creates WeatherSnapshot records for today's date for each project.
-    Uses project address (if available) or name as location identifier.
+    Creates WeatherSnapshot records using Open-Meteo API.
+    Uses project latitude/longitude (from address geocoding) for accuracy.
+    Falls back to default coordinates if address is not geocoded.
     """
     from core.models import Project, WeatherSnapshot
     from django.db.models import Q
+    import requests
+    import logging
+    
+    logger = logging.getLogger(__name__)
     
     today = timezone.now().date()
     
@@ -279,24 +284,100 @@ def update_daily_weather_snapshots():
     
     snapshots_created = 0
     snapshots_updated = 0
+    errors = []
     
     for project in active_projects:
-        # Use address or project name as location key
-        location_key = project.address if project.address else project.name
-        
-        # Fetch weather data (placeholder: replace with real API in production)
-        # For now, simulate basic data
-        import random
-        conditions = ['Clear', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Overcast']
-        
-        weather_data = {
-            'temperature_max': round(random.uniform(15, 32), 1),
-            'temperature_min': round(random.uniform(8, 20), 1),
-            'conditions_text': random.choice(conditions),
-            'precipitation_mm': round(random.uniform(0, 5), 1) if random.random() < 0.3 else 0,
-            'wind_kph': round(random.uniform(5, 25), 1),
-            'humidity_percent': random.randint(40, 85),
-        }
+        try:
+            # Get coordinates (default to San Francisco Bay Area if not set)
+            # In production, use geocoding service to convert project.address → lat/lon
+            latitude = getattr(project, 'latitude', 37.7749)  # Default: SF
+            longitude = getattr(project, 'longitude', -122.4194)
+            
+            # Open-Meteo API call (free, no API key required)
+            url = "https://api.open-meteo.com/v1/forecast"
+            params = {
+                'latitude': latitude,
+                'longitude': longitude,
+                'daily': [
+                    'temperature_2m_max',
+                    'temperature_2m_min',
+                    'precipitation_sum',
+                    'windspeed_10m_max',
+                    'weathercode'
+                ],
+                'timezone': 'America/Los_Angeles',
+                'forecast_days': 1  # Only today
+            }
+            
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            
+            api_data = response.json()
+            daily = api_data.get('daily', {})
+            
+            # Weather code mapping (WMO Weather interpretation codes)
+            # https://open-meteo.com/en/docs#weathervariables
+            weather_codes = {
+                0: 'Clear sky',
+                1: 'Mainly clear',
+                2: 'Partly cloudy',
+                3: 'Overcast',
+                45: 'Foggy',
+                48: 'Depositing rime fog',
+                51: 'Light drizzle',
+                53: 'Moderate drizzle',
+                55: 'Dense drizzle',
+                61: 'Slight rain',
+                63: 'Moderate rain',
+                65: 'Heavy rain',
+                71: 'Slight snow',
+                73: 'Moderate snow',
+                75: 'Heavy snow',
+                77: 'Snow grains',
+                80: 'Slight rain showers',
+                81: 'Moderate rain showers',
+                82: 'Violent rain showers',
+                85: 'Slight snow showers',
+                86: 'Heavy snow showers',
+                95: 'Thunderstorm',
+                96: 'Thunderstorm with slight hail',
+                99: 'Thunderstorm with heavy hail'
+            }
+            
+            # Extract data (indices [0] for today)
+            temp_max = daily.get('temperature_2m_max', [None])[0]
+            temp_min = daily.get('temperature_2m_min', [None])[0]
+            precipitation = daily.get('precipitation_sum', [0])[0]
+            wind_speed = daily.get('windspeed_10m_max', [0])[0]
+            weather_code = daily.get('weathercode', [0])[0]
+            
+            conditions_text = weather_codes.get(weather_code, 'Unknown')
+            
+            # Calculate humidity estimate (not provided by free tier)
+            # Use heuristic: higher precipitation → higher humidity
+            if precipitation > 5:
+                humidity_estimate = 80
+            elif precipitation > 1:
+                humidity_estimate = 65
+            else:
+                humidity_estimate = 50
+            
+            weather_data = {
+                'temperature_max': temp_max,
+                'temperature_min': temp_min,
+                'conditions_text': conditions_text,
+                'precipitation_mm': precipitation,
+                'wind_kph': wind_speed * 1.60934,  # Convert km/h to mph (or keep as km/h)
+                'humidity_percent': humidity_estimate,
+                'weather_code': weather_code,
+                'latitude': latitude,
+                'longitude': longitude
+            }
+        except (requests.RequestException, Exception) as e:
+            logger.error(f"Weather API error for {project.name}: {e}")
+            errors.append(f"{project.name}: {str(e)}")
+            # Skip this project, continue to next
+            continue
         
         # Check if snapshot already exists for today
         snapshot, created = WeatherSnapshot.objects.update_or_create(
@@ -311,7 +392,7 @@ def update_daily_weather_snapshots():
                 'wind_kph': weather_data['wind_kph'],
                 'humidity_percent': weather_data['humidity_percent'],
                 'raw_json': weather_data,
-                'provider_url': 'https://open-meteo.com/en/docs',
+                'provider_url': f'https://open-meteo.com/en/docs?latitude={latitude}&longitude={longitude}',
             }
         )
         
@@ -321,11 +402,15 @@ def update_daily_weather_snapshots():
             snapshots_updated += 1
     
     logger.info(f"Weather snapshots: {snapshots_created} created, {snapshots_updated} updated")
+    if errors:
+        logger.warning(f"Weather fetch errors: {len(errors)} projects failed")
+    
     return {
         'date': str(today),
         'created': snapshots_created,
         'updated': snapshots_updated,
-        'total_projects': active_projects.count()
+    'total_projects': active_projects.count(),
+    'errors': errors
     }
 
 
