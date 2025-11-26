@@ -2428,6 +2428,11 @@ class MaterialRequest(models.Model):
 # Solicitudes de Cliente (extras que pueden convertirse en CO)
 # ---------------------
 class ClientRequest(models.Model):
+    REQUEST_TYPE_CHOICES = [
+        ("material", "Material"),
+        ("change_order", "Cambio"),
+        ("info", "Información"),
+    ]
     STATUS_CHOICES = [
         ("pending", "Pendiente"),
         ("approved", "Aprobada"),
@@ -2441,6 +2446,7 @@ class ClientRequest(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="client_requests")
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES, default="info")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")

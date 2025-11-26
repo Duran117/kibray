@@ -1811,6 +1811,42 @@ class MaterialRequestViewSet(viewsets.ModelViewSet):
         return Response({'expense_id': expense.id, 'status': mr.status})
 
 
+class ClientRequestViewSet(viewsets.ModelViewSet):
+    """Client Requests: Material, Change Order, Info"""
+    from core.models import ClientRequest as Model
+    from core.api.serializers import ClientRequestSerializer as Serializer
+
+    queryset = Model.objects.select_related('project', 'created_by').all().order_by('-created_at')
+    serializer_class = Serializer
+    # Unpaginated for list endpoints to match tests pattern
+    pagination_class = None
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'request_type', 'status']
+    search_fields = ['title', 'description', 'project__name']
+    ordering_fields = ['created_at', 'status']
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+        
+    def approve(self, request, pk=None):
+        cr = self.get_object()
+        if cr.status == 'pending':
+            cr.status = 'approved'
+            cr.save(update_fields=['status'])
+        return Response({'status': cr.status})
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        cr = self.get_object()
+        if cr.status in ['pending', 'approved']:
+            cr.status = 'rejected'
+            cr.save(update_fields=['status'])
+        return Response({'status': cr.status})
+
+
 # ============================================================================
 # FASE 7: Dashboards (basic API overviews)
 # ============================================================================

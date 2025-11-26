@@ -335,6 +335,28 @@ class InvoiceSerializer(serializers.ModelSerializer):
                 total += il.amount
             invoice.total_amount = total
             invoice.save(update_fields=['total_amount'])
+
+
+class ClientRequestSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True, allow_null=True)
+
+    class Meta:
+        from core.models import ClientRequest
+        model = ClientRequest
+        fields = [
+            'id', 'project', 'project_name', 'title', 'description', 'request_type',
+            'created_by', 'created_by_name', 'created_at', 'status', 'change_order'
+        ]
+        read_only_fields = ['created_by', 'created_at']
+
+    def create(self, validated_data):
+        # auto-assign created_by from request context
+        req = self.context.get('request')
+        user = getattr(req, 'user', None)
+        if user and not validated_data.get('created_by'):
+            validated_data['created_by'] = user
+        return super().create(validated_data)
         return invoice
 
 

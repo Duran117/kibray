@@ -10,6 +10,7 @@ from .views import (
     DailyLogPlanningViewSet, TaskTemplateViewSet, WeatherSnapshotViewSet,
     DailyPlanViewSet, PlannedActivityViewSet, TimeEntryViewSet,
     MaterialRequestViewSet, MaterialCatalogViewSet,
+    ClientRequestViewSet,
     InventoryItemViewSet, InventoryLocationViewSet, ProjectInventoryViewSet, InventoryMovementViewSet,
     InvoiceViewSet,
     PayrollPeriodViewSet, PayrollRecordViewSet, PayrollPaymentViewSet,
@@ -59,6 +60,7 @@ router.register(r'time-entries', TimeEntryViewSet, basename='time-entry')
 # Module 14: Materials & Inventory
 router.register(r'material-requests', MaterialRequestViewSet, basename='material-request')
 router.register(r'material-catalog', MaterialCatalogViewSet, basename='material-catalog')
+router.register(r'client-requests', ClientRequestViewSet, basename='client-request')
 router.register(r'inventory/items', InventoryItemViewSet, basename='inventory-item')
 router.register(r'inventory/locations', InventoryLocationViewSet, basename='inventory-location')
 router.register(r'inventory/stocks', ProjectInventoryViewSet, basename='project-inventory')
