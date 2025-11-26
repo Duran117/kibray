@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
     FloorPlan, PlanPin, ColorSample, Project, ScheduleCategory, ScheduleItem,
-    Income, Expense, CostCode, BudgetLine, DailyLog, TaskTemplate, WeatherSnapshot
+    Income, Expense, CostCode, BudgetLine, DailyLog, TaskTemplate, WeatherSnapshot,
+    PermissionMatrix, AuditLog, LoginAttempt
 )
 
 User = get_user_model()
@@ -18,6 +19,70 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = ['id', 'title', 'message', 'link_url', 'is_read', 'created_at']
         read_only_fields = ['created_at']
+
+
+# =============================================================================
+# SECURITY & AUDIT SERIALIZERS (Phase 9)
+# =============================================================================
+
+class PermissionMatrixSerializer(serializers.ModelSerializer):
+    user_display = serializers.CharField(source='user.get_full_name', read_only=True)
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
+    entity_type_display = serializers.CharField(source='get_entity_type_display', read_only=True)
+    project_name = serializers.CharField(source='scope_project.name', read_only=True, allow_null=True)
+    is_active = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PermissionMatrix
+        fields = [
+            'id', 'user', 'user_display', 'role', 'role_display',
+            'entity_type', 'entity_type_display',
+            'can_view', 'can_create', 'can_edit', 'can_delete', 'can_approve',
+            'effective_from', 'effective_until', 'is_active',
+            'scope_project', 'project_name',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+    
+    def get_is_active(self, obj):
+        return obj.is_active()
+
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    username_display = serializers.CharField(source='username', read_only=True)
+    action_display = serializers.CharField(source='get_action_display', read_only=True)
+    entity_type_display = serializers.CharField(source='get_entity_type_display', read_only=True)
+    
+    class Meta:
+        model = AuditLog
+        fields = [
+            'id', 'user', 'username', 'username_display',
+            'action', 'action_display',
+            'entity_type', 'entity_type_display', 'entity_id', 'entity_repr',
+            'old_values', 'new_values',
+            'ip_address', 'user_agent', 'session_id',
+            'request_path', 'request_method',
+            'notes', 'success', 'error_message',
+            'timestamp'
+        ]
+        read_only_fields = ['timestamp']
+
+
+class LoginAttemptSerializer(serializers.ModelSerializer):
+    status_icon = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = LoginAttempt
+        fields = [
+            'id', 'username', 'ip_address', 'user_agent',
+            'success', 'status_icon', 'failure_reason',
+            'timestamp', 'session_id',
+            'country_code', 'city'
+        ]
+        read_only_fields = ['timestamp']
+    
+    def get_status_icon(self, obj):
+        return "✓" if obj.success else "✗"
 
 class ChatChannelSerializer(serializers.ModelSerializer):
     class Meta:

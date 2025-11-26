@@ -3375,6 +3375,242 @@ class Notification(models.Model):
         if not self.is_read:
             self.is_read = True
             self.save(update_fields=['is_read'])
+
+
+# =============================================================================
+# SECURITY & AUDIT MODELS (Phase 9)
+# =============================================================================
+
+class PermissionMatrix(models.Model):
+    """
+    Q16.1: Role-based access control matrix
+    Defines granular permissions for users based on roles and entity types
+    """
+    ROLE_CHOICES = [
+        ('admin', 'Administrador'),
+        ('project_manager', 'Project Manager'),
+        ('contractor', 'Contratista'),
+        ('client', 'Cliente'),
+        ('viewer', 'Visualizador'),
+    ]
+    
+    ENTITY_TYPE_CHOICES = [
+        ('project', 'Proyecto'),
+        ('task', 'Tarea'),
+        ('invoice', 'Factura'),
+        ('estimate', 'Estimación'),
+        ('payment', 'Pago'),
+        ('expense', 'Gasto'),
+        ('inventory', 'Inventario'),
+        ('damage', 'Reporte de Daño'),
+        ('color', 'Muestra de Color'),
+        ('document', 'Documento'),
+    ]
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='permission_matrix'
+    )
+    role = models.CharField(max_length=30, choices=ROLE_CHOICES)
+    entity_type = models.CharField(max_length=30, choices=ENTITY_TYPE_CHOICES)
+    
+    # Granular permissions
+    can_view = models.BooleanField(default=False)
+    can_create = models.BooleanField(default=False)
+    can_edit = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
+    can_approve = models.BooleanField(default=False)
+    
+    # Temporal access control
+    effective_from = models.DateField(null=True, blank=True, help_text='Fecha de inicio de permisos temporales')
+    effective_until = models.DateField(null=True, blank=True, help_text='Fecha de expiración de permisos temporales')
+    
+    # Scope limitation (optional: restrict to specific projects)
+    scope_project = models.ForeignKey(
+        'Project', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        help_text='Si se especifica, permisos se limitan a este proyecto'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = [['user', 'role', 'entity_type', 'scope_project']]
+        indexes = [
+            models.Index(fields=['user', 'entity_type']),
+            models.Index(fields=['role', 'entity_type']),
+        ]
+    
+    def __str__(self):
+        scope = f" @ {self.scope_project.name}" if self.scope_project else " (global)"
+        return f"{self.user.username} [{self.role}] → {self.entity_type}{scope}"
+    
+    def is_active(self):
+        """Check if permission is currently active based on date range"""
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        if self.effective_from and today < self.effective_from:
+            return False
+        if self.effective_until and today > self.effective_until:
+            return False
+        return True
+
+
+class AuditLog(models.Model):
+    """
+    Q16.2: Comprehensive audit trail for all critical operations
+    Tracks who did what, when, and from where
+    """
+    ACTION_CHOICES = [
+        ('create', 'Crear'),
+        ('update', 'Actualizar'),
+        ('delete', 'Eliminar'),
+        ('view', 'Visualizar'),
+        ('approve', 'Aprobar'),
+        ('reject', 'Rechazar'),
+        ('export', 'Exportar'),
+        ('login', 'Inicio de Sesión'),
+        ('logout', 'Cierre de Sesión'),
+        ('password_change', 'Cambio de Contraseña'),
+    ]
+    
+    ENTITY_TYPE_CHOICES = [
+        ('project', 'Proyecto'),
+        ('task', 'Tarea'),
+        ('invoice', 'Factura'),
+        ('estimate', 'Estimación'),
+        ('payment', 'Pago'),
+        ('expense', 'Gasto'),
+        ('inventory', 'Inventario'),
+        ('damage', 'Reporte de Daño'),
+        ('color', 'Muestra de Color'),
+        ('user', 'Usuario'),
+        ('permission', 'Permiso'),
+        ('document', 'Documento'),
+        ('system', 'Sistema'),
+    ]
+    
+    # Who performed the action
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        related_name='audit_logs'
+    )
+    username = models.CharField(max_length=150, help_text='Cached username in case user is deleted')
+    
+    # What action was performed
+    action = models.CharField(max_length=30, choices=ACTION_CHOICES)
+    entity_type = models.CharField(max_length=30, choices=ENTITY_TYPE_CHOICES)
+    entity_id = models.IntegerField(null=True, blank=True)
+    entity_repr = models.CharField(max_length=255, blank=True, help_text='String representation of entity')
+    
+    # Change tracking (JSON fields for before/after values)
+    old_values = models.JSONField(null=True, blank=True, help_text='Estado anterior (para updates/deletes)')
+    new_values = models.JSONField(null=True, blank=True, help_text='Estado nuevo (para creates/updates)')
+    
+    # Context information
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    session_id = models.CharField(max_length=100, blank=True)
+    request_path = models.CharField(max_length=255, blank=True)
+    request_method = models.CharField(max_length=10, blank=True)  # GET, POST, PUT, DELETE
+    
+    # Additional context
+    notes = models.TextField(blank=True, help_text='Notas adicionales sobre la acción')
+    success = models.BooleanField(default=True, help_text='Si la acción fue exitosa')
+    error_message = models.TextField(blank=True, help_text='Mensaje de error si falló')
+    
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['entity_type', 'entity_id']),
+            models.Index(fields=['action', 'entity_type']),
+            models.Index(fields=['ip_address', 'timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.username} {self.action} {self.entity_type}#{self.entity_id or 'N/A'} @ {self.timestamp}"
+
+
+class LoginAttempt(models.Model):
+    """
+    Q16.3: Track login attempts for security monitoring and rate limiting
+    Enables brute-force detection and account lockout
+    """
+    username = models.CharField(max_length=150, db_index=True)
+    ip_address = models.GenericIPAddressField(db_index=True)
+    user_agent = models.TextField(blank=True)
+    
+    success = models.BooleanField(default=False)
+    failure_reason = models.CharField(
+        max_length=100, 
+        blank=True,
+        help_text='Razón del fallo: invalid_password, user_not_found, account_locked, etc.'
+    )
+    
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    session_id = models.CharField(max_length=100, blank=True)
+    
+    # Geolocation (optional future enhancement)
+    country_code = models.CharField(max_length=2, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['username', 'timestamp']),
+            models.Index(fields=['ip_address', 'timestamp']),
+            models.Index(fields=['success', 'timestamp']),
+        ]
+    
+    def __str__(self):
+        status = "✓" if self.success else "✗"
+        return f"{status} {self.username} from {self.ip_address} @ {self.timestamp}"
+    
+    @staticmethod
+    def check_rate_limit(username, ip_address, window_minutes=15, max_attempts=5):
+        """
+        Check if rate limit is exceeded for given username or IP
+        Returns (is_blocked, attempts_count)
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        cutoff = timezone.now() - timedelta(minutes=window_minutes)
+        
+        # Check attempts from this IP for this username
+        recent_failures = LoginAttempt.objects.filter(
+            username=username,
+            ip_address=ip_address,
+            success=False,
+            timestamp__gte=cutoff
+        ).count()
+        
+        is_blocked = recent_failures >= max_attempts
+        return is_blocked, recent_failures
+    
+    @staticmethod
+    def log_attempt(username, ip_address, success, failure_reason='', user_agent='', session_id=''):
+        """Helper to create a login attempt record"""
+        return LoginAttempt.objects.create(
+            username=username,
+            ip_address=ip_address,
+            success=success,
+            failure_reason=failure_reason,
+            user_agent=user_agent,
+            session_id=session_id
+        )
+
+
 class InventoryItem(models.Model):
     if TYPE_CHECKING:
         get_category_display: Callable[[], str]

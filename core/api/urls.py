@@ -16,6 +16,7 @@ from .views import (
     InventoryItemViewSet, InventoryLocationViewSet, ProjectInventoryViewSet, InventoryMovementViewSet,
     InvoiceViewSet,
     PayrollPeriodViewSet, PayrollRecordViewSet, PayrollPaymentViewSet,
+    PermissionMatrixViewSet, AuditLogViewSet, LoginAttemptViewSet,
     global_search, save_changeorder_photo_annotations, delete_changeorder_photo,
     update_changeorder_photo_image,
     InvoiceDashboardView, MaterialsDashboardView, FinancialDashboardView, PayrollDashboardView,
@@ -26,6 +27,11 @@ from .dashboard_extra import ProjectDashboardView, ClientDashboardView
 router = DefaultRouter()
 # Notifications & Chat
 router.register(r'notifications', NotificationViewSet, basename='notification')
+# Security & Audit (Phase 9)
+router.register(r'permissions', PermissionMatrixViewSet, basename='permission-matrix')
+router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
+router.register(r'login-attempts', LoginAttemptViewSet, basename='login-attempt')
+
 router.register(r'chat/channels', ChatChannelViewSet, basename='chat-channel')
 router.register(r'chat/messages', ChatMessageViewSet, basename='chat-message')
 

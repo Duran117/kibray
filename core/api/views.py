@@ -16,6 +16,7 @@ from django.db.models import Sum, Q, F, DecimalField
 from django.db.models.functions import Coalesce
 from decimal import Decimal
 from django.core.files.base import ContentFile
+from datetime import timedelta
 import base64, re
 from core.models import (
     Notification, ChatChannel, ChatMessage, Task, DamageReport,
@@ -24,7 +25,8 @@ from core.models import (
     TaskTemplate, WeatherSnapshot, Employee, DailyPlan, PlannedActivity, TimeEntry,
     MaterialRequest, MaterialRequestItem, MaterialCatalog,
     InventoryItem, InventoryLocation, ProjectInventory, InventoryMovement,
-    PayrollPeriod, PayrollRecord, PayrollPayment, SitePhoto
+    PayrollPeriod, PayrollRecord, PayrollPayment, SitePhoto,
+    PermissionMatrix, AuditLog, LoginAttempt
 )
 from .serializers import (
     NotificationSerializer, ChatChannelSerializer, ChatMessageSerializer,
@@ -42,7 +44,8 @@ from .serializers import (
     InvoiceSerializer, InvoiceLineAPISerializer, InvoicePaymentAPISerializer,
     PayrollPeriodSerializer, PayrollRecordSerializer, PayrollPaymentSerializer,
     TwoFactorSetupSerializer, TwoFactorEnableSerializer, TwoFactorDisableSerializer,
-    TwoFactorTokenObtainPairSerializer, SitePhotoSerializer
+    TwoFactorTokenObtainPairSerializer, SitePhotoSerializer,
+    PermissionMatrixSerializer, AuditLogSerializer, LoginAttemptSerializer
 )
 from .filters import IncomeFilter, ExpenseFilter, ProjectFilter, InvoiceFilter
 from .pagination import StandardResultsSetPagination
@@ -74,6 +77,225 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     def count_unread(self, request):
         count = Notification.objects.filter(user=request.user, is_read=False).count()
         return Response({'unread_count': count})
+
+
+# =============================================================================
+# SECURITY & AUDIT VIEWSETS (Phase 9)
+# =============================================================================
+
+class PermissionMatrixViewSet(viewsets.ModelViewSet):
+    """
+    Q16.1: Role-based access control matrix
+    - Admins can manage all permissions
+    - Users can view their own permissions
+    """
+    serializer_class = PermissionMatrixSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['user', 'role', 'entity_type', 'scope_project']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name']
+    
+    def get_queryset(self):
+        user = self.request.user
+        # Admins see all, others only see their own
+        if user.is_staff or user.is_superuser:
+            return PermissionMatrix.objects.all().select_related('user', 'scope_project')
+        return PermissionMatrix.objects.filter(user=user).select_related('user', 'scope_project')
+    
+    @action(detail=False, methods=['get'])
+    def my_permissions(self, request):
+        """Get current user's active permissions grouped by entity type"""
+        perms = PermissionMatrix.objects.filter(user=request.user)
+        active_perms = [p for p in perms if p.is_active()]
+        
+        grouped = {}
+        for perm in active_perms:
+            entity = perm.entity_type
+            if entity not in grouped:
+                grouped[entity] = {
+                    'can_view': False,
+                    'can_create': False,
+                    'can_edit': False,
+                    'can_delete': False,
+                    'can_approve': False,
+                }
+            # Aggregate permissions (any True makes it True)
+            grouped[entity]['can_view'] = grouped[entity]['can_view'] or perm.can_view
+            grouped[entity]['can_create'] = grouped[entity]['can_create'] or perm.can_create
+            grouped[entity]['can_edit'] = grouped[entity]['can_edit'] or perm.can_edit
+            grouped[entity]['can_delete'] = grouped[entity]['can_delete'] or perm.can_delete
+            grouped[entity]['can_approve'] = grouped[entity]['can_approve'] or perm.can_approve
+        
+        return Response(grouped)
+    
+    @action(detail=False, methods=['get'])
+    def check_permission(self, request):
+        """
+        Check if user has specific permission
+        Query params: entity_type, action (view/create/edit/delete/approve), project_id (optional)
+        """
+        entity_type = request.query_params.get('entity_type')
+        action = request.query_params.get('action')  # view, create, edit, delete, approve
+        project_id = request.query_params.get('project_id')
+        
+        if not entity_type or not action:
+            return Response({'error': 'entity_type and action required'}, status=400)
+        
+        perms = PermissionMatrix.objects.filter(
+            user=request.user,
+            entity_type=entity_type
+        )
+        
+        if project_id:
+            perms = perms.filter(Q(scope_project_id=project_id) | Q(scope_project__isnull=True))
+        
+        active_perms = [p for p in perms if p.is_active()]
+        
+        # Check if any active permission grants the requested action
+        has_permission = any(
+            getattr(perm, f'can_{action}', False) for perm in active_perms
+        )
+        
+        return Response({
+            'has_permission': has_permission,
+            'entity_type': entity_type,
+            'action': action,
+            'project_id': project_id
+        })
+
+
+class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Q16.2: Comprehensive audit trail (read-only)
+    - Admins can view all logs
+    - Users can view logs related to their actions
+    """
+    serializer_class = AuditLogSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['user', 'action', 'entity_type', 'entity_id', 'success']
+    search_fields = ['username', 'entity_repr', 'ip_address']
+    
+    def get_queryset(self):
+        user = self.request.user
+        # Admins see all, others only see their own
+        if user.is_staff or user.is_superuser:
+            return AuditLog.objects.all().select_related('user')
+        return AuditLog.objects.filter(user=user).select_related('user')
+    
+    @action(detail=False, methods=['get'])
+    def recent_activity(self, request):
+        """Get recent activity for current user (last 24 hours)"""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        cutoff = timezone.now() - timedelta(hours=24)
+        logs = AuditLog.objects.filter(
+            user=request.user,
+            timestamp__gte=cutoff
+        ).order_by('-timestamp')[:50]
+        
+        serializer = self.get_serializer(logs, many=True)
+        return Response({
+            'count': logs.count(),
+            'logs': serializer.data
+        })
+    
+    @action(detail=False, methods=['get'])
+    def entity_history(self, request):
+        """
+        Get audit history for specific entity
+        Query params: entity_type, entity_id
+        """
+        entity_type = request.query_params.get('entity_type')
+        entity_id = request.query_params.get('entity_id')
+        
+        if not entity_type or not entity_id:
+            return Response({'error': 'entity_type and entity_id required'}, status=400)
+        
+        logs = AuditLog.objects.filter(
+            entity_type=entity_type,
+            entity_id=entity_id
+        ).order_by('-timestamp')
+        
+        # Permission check: admins see all, others need ownership
+        if not (request.user.is_staff or request.user.is_superuser):
+            logs = logs.filter(user=request.user)
+        
+        serializer = self.get_serializer(logs, many=True)
+        return Response({
+            'entity_type': entity_type,
+            'entity_id': entity_id,
+            'history': serializer.data
+        })
+
+
+class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Q16.3: Login attempt tracking (read-only)
+    - Admins can view all attempts
+    - Users can view their own attempts
+    """
+    serializer_class = LoginAttemptSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['username', 'success', 'ip_address']
+    search_fields = ['username', 'ip_address']
+    
+    def get_queryset(self):
+        user = self.request.user
+        # Admins see all, others only see their own
+        if user.is_staff or user.is_superuser:
+            return LoginAttempt.objects.all()
+        return LoginAttempt.objects.filter(username=user.username)
+    
+    @action(detail=False, methods=['get'])
+    def recent_failures(self, request):
+        """Get recent failed login attempts (last 7 days)"""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        cutoff = timezone.now() - timedelta(days=7)
+        attempts = LoginAttempt.objects.filter(
+            success=False,
+            timestamp__gte=cutoff
+        ).order_by('-timestamp')
+        
+        # Non-admins see only their own
+        if not (request.user.is_staff or request.user.is_superuser):
+            attempts = attempts.filter(username=request.user.username)
+        
+        serializer = self.get_serializer(attempts[:100], many=True)
+        return Response({
+            'count': attempts.count(),
+            'attempts': serializer.data
+        })
+    
+    @action(detail=False, methods=['get'])
+    def suspicious_activity(self, request):
+        """Detect suspicious login patterns (admin only)"""
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response({'error': 'Admin access required'}, status=403)
+        
+        from django.utils import timezone
+        from datetime import timedelta
+        from django.db.models import Count
+        
+        cutoff = timezone.now() - timedelta(hours=1)
+        
+        # Group by IP and count failures
+        suspicious_ips = LoginAttempt.objects.filter(
+            success=False,
+            timestamp__gte=cutoff
+        ).values('ip_address').annotate(
+            failure_count=Count('id')
+        ).filter(failure_count__gte=5).order_by('-failure_count')
+        
+        return Response({
+            'window': '1 hour',
+            'threshold': 5,
+            'suspicious_ips': list(suspicious_ips)
+        })
 
 # Chat
 class ChatChannelViewSet(viewsets.ReadOnlyModelViewSet):
@@ -195,6 +417,163 @@ class TaskViewSet(viewsets.ModelViewSet):
             else:
                 qs = qs.none()
         return qs
+    
+    @action(detail=False, methods=['get'])
+    def touchup_kanban(self, request):
+        """
+        Touch-up board in Kanban format with auto-prioritization.
+        Query params:
+        - project: Filter by project ID
+        - priority: Filter by priority (low, medium, high, urgent)
+        - assigned_to: Filter by employee ID
+        
+        Response: {
+          "columns": {
+            "pending": [...],
+            "in_progress": [...],
+            "completed": [...]
+          },
+          "stats": {...}
+        }
+        """
+        from core.models import Task
+        from django.db.models import Count, Q
+        from django.utils import timezone
+        
+        # Base queryset - touch-ups only
+        qs = Task.objects.filter(is_touchup=True).select_related('project', 'assigned_to', 'created_by')
+        
+        # Filters
+        project_id = request.query_params.get('project')
+        if project_id:
+            qs = qs.filter(project_id=project_id)
+        
+        priority = request.query_params.get('priority')
+        if priority:
+            qs = qs.filter(priority=priority)
+        
+        assigned_to = request.query_params.get('assigned_to')
+        if assigned_to:
+            qs = qs.filter(assigned_to_id=assigned_to)
+        
+        # Auto-prioritize: boost priority if:
+        # - Linked to damage report with high/critical severity
+        # - Created more than 7 days ago and still pending
+        # - Linked to client request
+        today = timezone.now().date()
+        
+        # Organize into Kanban columns
+        pending_tasks = []
+        in_progress_tasks = []
+        completed_tasks = []
+        
+        for task in qs:
+            # Calculate auto-priority score
+            score = 0
+            
+            # Base priority
+            priority_scores = {'low': 1, 'medium': 2, 'high': 3, 'urgent': 4}
+            score += priority_scores.get(task.priority, 2)
+            
+            # Age factor (older = higher priority)
+            if task.created_at:
+                age_days = (timezone.now() - task.created_at).days
+                if age_days > 14:
+                    score += 3
+                elif age_days > 7:
+                    score += 2
+                elif age_days > 3:
+                    score += 1
+            
+            # Damage report severity
+            if hasattr(task, 'damage_reports'):
+                for dmg in task.damage_reports.all():
+                    if dmg.severity in ['critical', 'high']:
+                        score += 2
+            
+            # Due date urgency
+            if task.due_date and task.due_date < today:
+                score += 3  # Overdue
+            elif task.due_date and task.due_date <= today + timedelta(days=3):
+                score += 1  # Due soon
+            
+            # Serialize task with score
+            task_data = TaskSerializer(task).data
+            task_data['auto_priority_score'] = score
+            
+            # Add to appropriate column
+            if task.status == 'Completada':
+                completed_tasks.append(task_data)
+            elif task.status == 'En Progreso':
+                in_progress_tasks.append(task_data)
+            else:  # Pendiente, Cancelada
+                pending_tasks.append(task_data)
+        
+        # Sort each column by auto-priority score (descending)
+        pending_tasks.sort(key=lambda x: x['auto_priority_score'], reverse=True)
+        in_progress_tasks.sort(key=lambda x: x['auto_priority_score'], reverse=True)
+        completed_tasks.sort(key=lambda x: x.get('completed_at') or '', reverse=True)
+        
+        # Stats
+        stats = {
+            'total': qs.count(),
+            'pending': len(pending_tasks),
+            'in_progress': len(in_progress_tasks),
+            'completed': len(completed_tasks),
+            'high_priority': qs.filter(priority__in=['high', 'urgent']).count(),
+            'overdue': qs.filter(due_date__lt=today, status__in=['Pendiente', 'En Progreso']).count()
+        }
+        
+        return Response({
+            'columns': {
+                'pending': pending_tasks,
+                'in_progress': in_progress_tasks,
+                'completed': completed_tasks
+            },
+            'stats': stats
+        })
+    
+    @action(detail=True, methods=['patch'])
+    def quick_status(self, request, pk=None):
+        """
+        Quick status update for Kanban drag-and-drop.
+        Payload: {"status": "En Progreso"}
+        """
+        task = self.get_object()
+        new_status = request.data.get('status')
+        
+        if not new_status:
+            return Response({'error': 'status required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate status
+        valid_statuses = ['Pendiente', 'En Progreso', 'Completada', 'Cancelada']
+        if new_status not in valid_statuses:
+            return Response({'error': f'Invalid status. Valid: {valid_statuses}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Touch-up completion validation
+        if task.is_touchup and new_status == 'Completada':
+            if not task.images.exists():
+                return Response({
+                    'error': 'Touch-up requires photo evidence before completion'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        old_status = task.status
+        task.status = new_status
+        
+        # Auto-timestamp tracking
+        if new_status == 'En Progreso' and not task.started_at:
+            task.started_at = timezone.now()
+        elif new_status == 'Completada' and not task.completed_at:
+            task.completed_at = timezone.now()
+        
+        task.save()
+        
+        return Response({
+            'status': 'updated',
+            'old_status': old_status,
+            'new_status': new_status,
+            'task_id': task.id
+        })
     
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
