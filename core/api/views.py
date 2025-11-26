@@ -24,7 +24,7 @@ from core.models import (
     TaskTemplate, WeatherSnapshot, Employee, DailyPlan, PlannedActivity, TimeEntry,
     MaterialRequest, MaterialRequestItem, MaterialCatalog,
     InventoryItem, InventoryLocation, ProjectInventory, InventoryMovement,
-    PayrollPeriod, PayrollRecord, PayrollPayment
+    PayrollPeriod, PayrollRecord, PayrollPayment, SitePhoto
 )
 from .serializers import (
     NotificationSerializer, ChatChannelSerializer, ChatMessageSerializer,
@@ -42,7 +42,7 @@ from .serializers import (
     InvoiceSerializer, InvoiceLineAPISerializer, InvoicePaymentAPISerializer,
     PayrollPeriodSerializer, PayrollRecordSerializer, PayrollPaymentSerializer,
     TwoFactorSetupSerializer, TwoFactorEnableSerializer, TwoFactorDisableSerializer,
-    TwoFactorTokenObtainPairSerializer
+    TwoFactorTokenObtainPairSerializer, SitePhotoSerializer
 )
 from .filters import IncomeFilter, ExpenseFilter, ProjectFilter, InvoiceFilter
 from .pagination import StandardResultsSetPagination
@@ -1903,6 +1903,38 @@ class ClientRequestAttachmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(uploaded_by=self.request.user)
+
+
+class SitePhotoViewSet(viewsets.ModelViewSet):
+    queryset = SitePhoto.objects.select_related('project', 'damage_report', 'created_by').all().order_by('-created_at')
+    serializer_class = SitePhotoSerializer
+    permission_classes = [IsAuthenticated]
+    from rest_framework.parsers import JSONParser
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'damage_report', 'photo_type']
+    search_fields = ['caption', 'notes', 'project__name']
+    ordering_fields = ['created_at']
+    pagination_class = None
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Optional date range filter
+        start = self.request.query_params.get('start')
+        end = self.request.query_params.get('end')
+        from django.utils.dateparse import parse_datetime, parse_date
+        if start:
+            dt = parse_datetime(start) or parse_date(start)
+            if dt:
+                qs = qs.filter(created_at__gte=dt)
+        if end:
+            dt = parse_datetime(end) or parse_date(end)
+            if dt:
+                qs = qs.filter(created_at__lte=dt)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
 
 # ============================================================================

@@ -2656,6 +2656,7 @@ class SitePhoto(models.Model):
     special_finish = models.BooleanField(default=False)
     coats = models.PositiveSmallIntegerField(default=1)
     annotations = models.JSONField(default=dict, blank=True)
+    damage_report = models.ForeignKey('DamageReport', null=True, blank=True, on_delete=models.SET_NULL, related_name='site_photos')
     notes = models.TextField(blank=True)
     
     # NUEVOS CAMPOS: Before/After comparison
@@ -2686,6 +2687,7 @@ class SitePhoto(models.Model):
     # Q18.2: GPS location
     location_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, help_text='Latitude from project location')
     location_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, help_text='Longitude from project location')
+    location_accuracy_m = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text='GPS accuracy in meters')
     # Q18.4: Privacy control
     visibility = models.CharField(
         max_length=20,

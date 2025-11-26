@@ -12,6 +12,7 @@ from .views import (
     MaterialRequestViewSet, MaterialCatalogViewSet,
     ClientRequestViewSet,
     ClientRequestAttachmentViewSet,
+    SitePhotoViewSet,
     InventoryItemViewSet, InventoryLocationViewSet, ProjectInventoryViewSet, InventoryMovementViewSet,
     InvoiceViewSet,
     PayrollPeriodViewSet, PayrollRecordViewSet, PayrollPaymentViewSet,
@@ -63,6 +64,7 @@ router.register(r'material-requests', MaterialRequestViewSet, basename='material
 router.register(r'material-catalog', MaterialCatalogViewSet, basename='material-catalog')
 router.register(r'client-requests', ClientRequestViewSet, basename='client-request')
 router.register(r'client-request-attachments', ClientRequestAttachmentViewSet, basename='client-request-attachment')
+router.register(r'site-photos', SitePhotoViewSet, basename='site-photo')
 router.register(r'inventory/items', InventoryItemViewSet, basename='inventory-item')
 router.register(r'inventory/locations', InventoryLocationViewSet, basename='inventory-location')
 router.register(r'inventory/stocks', ProjectInventoryViewSet, basename='project-inventory')
