@@ -1523,8 +1523,9 @@ class Invoice(models.Model):
     # Payment tracking (NEW)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     
-    # Legacy fields (keep for backward compatibility)
-    is_paid = models.BooleanField(default=False)
+    # Legacy field (DEPRECATED): mantener temporalmente para reportes antiguos.
+    # Será removido en futura migración; usar amount_paid >= total_amount para determinar pago completo.
+    is_paid = models.BooleanField(default=False, help_text="DEPRECATED: usar amount_paid y total_amount; se eliminará tras migración de reportes.")
     pdf = models.FileField(upload_to='invoices/', blank=True, null=True)
     notes = models.TextField(blank=True)
     change_orders = models.ManyToManyField('ChangeOrder', blank=True, related_name='invoices')
@@ -1532,8 +1533,11 @@ class Invoice(models.Model):
     
     @property
     def balance_due(self):
-        """Remaining amount to be paid"""
-        return self.total_amount - self.amount_paid
+        """Remaining amount to be paid (never negative)."""
+        if self.total_amount is None or self.amount_paid is None:
+            return Decimal("0")
+        remaining = self.total_amount - self.amount_paid
+        return remaining if remaining > 0 else Decimal("0")
     
     @property
     def payment_progress(self):
@@ -1541,30 +1545,44 @@ class Invoice(models.Model):
         if self.total_amount == 0:
             return 0
         return (self.amount_paid / self.total_amount) * 100
-    
-    def update_status(self):
-        """Auto-update status based on payments and dates"""
+
+    @property
+    def fully_paid(self) -> bool:
+        """Estado de pago derivado (usar en vez de is_paid)."""
+        return self.total_amount > 0 and self.amount_paid >= self.total_amount
+
+    def _sync_payment_flags(self):
+        """Sincroniza flags legacy y fechas según estado de pago derivado."""
         from django.utils import timezone
-        
-        if self.balance_due <= 0 and self.amount_paid > 0:
+        was_paid = self.is_paid
+        self.is_paid = self.fully_paid  # Mantener compatibilidad
+        if self.is_paid and not self.paid_date:
+            self.paid_date = timezone.now()
+        # Ajustar status si corresponde (sin guardar todavía)
+        if self.is_paid:
             self.status = 'PAID'
-            if not self.paid_date:
-                self.paid_date = timezone.now()
-            self.is_paid = True  # Update legacy field
-        elif self.amount_paid > 0:
+        elif self.amount_paid > 0 and self.status not in ['PAID', 'CANCELLED']:
             self.status = 'PARTIAL'
-        elif self.due_date and timezone.now().date() > self.due_date and self.balance_due > 0:
-            if self.status not in ['DRAFT', 'CANCELLED']:
+
+    def update_status(self):
+        """Auto‑update de status basado en pagos y fechas. Usa lógica derivada, ignora is_paid manual."""
+        from django.utils import timezone
+        self._sync_payment_flags()
+        # Overdue logic sólo si aún no está pagada o cancelada
+        if self.due_date and timezone.now().date() > self.due_date and self.balance_due > 0:
+            if self.status not in ['DRAFT', 'CANCELLED', 'PAID']:
                 self.status = 'OVERDUE'
-        
-        self.save()
+        super(Invoice, self).save(update_fields=['status','paid_date','is_paid'])
+        return self.status
 
     def save(self, *args, **kwargs):
         creating = self._state.adding
-        was_paid = False
-        if not creating:
+        old_status = None
+        old_is_paid = None
+        if not creating and self.pk:
             old = Invoice.objects.get(pk=self.pk)
-            was_paid = old.is_paid
+            old_status = old.status
+            old_is_paid = old.is_paid
 
         if not self.invoice_number:
             # Si existe una Estimate aprobada más reciente, usar su código como prefijo
@@ -1577,10 +1595,12 @@ class Invoice(models.Model):
                 initials = ''.join([w[0].upper() for w in client.split()[:2]]) or "KP"
                 seq = Invoice.objects.filter(project=self.project).count() + 1
                 self.invoice_number = f"{initials}-{self.project.id:04d}-{seq:03d}"
-
+        # Sincronizar flags antes de guardar para consistencia
+        self._sync_payment_flags()
         super().save(*args, **kwargs)
 
-        if self.is_paid and (creating or not was_paid) and not self.income:
+        # Crear Income sólo en transición a pagada completa
+        if self.is_paid and (creating or (old_is_paid is False)) and not self.income:
             income = Income.objects.create(
                 project=self.project,
                 project_name=f"Factura {self.invoice_number}",
@@ -2123,6 +2143,16 @@ class MaterialRequest(models.Model):
             models.Index(fields=['status', 'created_at']),
         ]
         ordering = ['-created_at']
+
+    def clean(self):
+        # Bloquear uso del estado deprecado 'submitted'
+        if self.status == 'submitted':
+            raise ValidationError({'status': "El estado 'submitted' está deprecado. Usa 'pending' para solicitudes enviadas."})
+
+    def save(self, *args, **kwargs):
+        # Asegura ejecución de validaciones y bloqueo del estado deprecated
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return f"MR#{self.id} · {self.project} · {self.get_status_display()}"
@@ -3920,6 +3950,16 @@ class DailyPlan(models.Model):
         ]
         verbose_name = "Daily Plan"
         verbose_name_plural = "Daily Plans"
+
+    def save(self, *args, **kwargs):
+        """Normaliza completion_deadline a timezone-aware si es naive."""
+        from django.utils import timezone
+        if self.completion_deadline and timezone.is_naive(self.completion_deadline):
+            self.completion_deadline = timezone.make_aware(
+                self.completion_deadline,
+                timezone.get_current_timezone()
+            )
+        return super().save(*args, **kwargs)
     
     def __str__(self):
         return f"Plan for {self.project.name} on {self.plan_date}"
