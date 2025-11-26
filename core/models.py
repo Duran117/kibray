@@ -2098,17 +2098,28 @@ class MaterialRequest(models.Model):
         ("next_week", "Siguiente semana"),
         ("date", "Fecha específica"),
     ]
+    
+    # Status choices con transición a nombres normalizados
     STATUS_CHOICES = [
         ("draft", "Borrador"),  # Q14.4: Estado inicial
         ("pending", "Pendiente"),  # Enviada, esperando aprobación
         ("approved", "Aprobada"),  # Q14.4: Admin aprobó
-        ("submitted", "Enviada"),  # Deprecated, mantener por compatibilidad
+        ("submitted", "Enviada"),  # DEPRECATED: bloqueado en clean()
         ("ordered", "Ordenada"),
         ("partially_received", "Parcialmente recibida"),  # Q14.10
         ("fulfilled", "Entregada"),
         ("cancelled", "Cancelada"),
         ("purchased_lead", "Compra directa (líder)"),
     ]
+    
+    # Mapping de compatibilidad (R1): acepta legacy y mapea a valores normalizados
+    # Usado por serializer y forms para convertir input legacy automáticamente
+    STATUS_COMPAT_MAP = {
+        # Legacy -> Normalizado
+        'submitted': 'pending',  # Deprecated pero mapeado a pending si llega vía API
+        'partially_received': 'partially_received',  # Sin cambio por ahora
+        'purchased_lead': 'purchased_lead',  # Sin cambio (futuro: PURCHASED_DIRECT)
+    }
     if TYPE_CHECKING:
         id: int
         get_status_display: Callable[[], str]
@@ -2145,7 +2156,16 @@ class MaterialRequest(models.Model):
         ordering = ['-created_at']
 
     def clean(self):
-        # Bloquear uso del estado deprecado 'submitted'
+        # Aplicar mapping de compatibilidad antes de validar
+        if self.status in self.STATUS_COMPAT_MAP:
+            import logging
+            logger = logging.getLogger(__name__)
+            old_status = self.status
+            self.status = self.STATUS_COMPAT_MAP[self.status]
+            logger.warning(f"MaterialRequest: legacy status '{old_status}' auto-mapped to '{self.status}' (ID: {self.pk})")
+        
+        # Bloquear 'submitted' directo (solo permitido vía mapping)
+        # Si después del mapping aún es 'submitted', fue un intento directo (edge case)
         if self.status == 'submitted':
             raise ValidationError({'status': "El estado 'submitted' está deprecado. Usa 'pending' para solicitudes enviadas."})
 

@@ -659,6 +659,36 @@ class MaterialRequestSerializer(serializers.ModelSerializer):
     requested_by_name = serializers.CharField(source='requested_by.get_full_name', read_only=True, allow_null=True)
     project_name = serializers.CharField(source='project.name', read_only=True)
     items = MaterialRequestItemSerializer(many=True)
+    # Campo adicional para detectar si se usó mapping legacy
+    legacy_status_used = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        from core.models import MaterialRequest
+        model = MaterialRequest
+        fields = [
+            'id', 'project', 'project_name', 'requested_by', 'requested_by_name',
+            'needed_when', 'needed_date', 'notes', 'status', 'legacy_status_used',
+            'approved_by', 'approved_at', 'expected_delivery_date', 'partial_receipt_notes',
+            'created_at', 'updated_at', 'items'
+        ]
+        read_only_fields = ['requested_by', 'approved_by', 'approved_at', 'created_at', 'updated_at']
+    
+    def get_legacy_status_used(self, obj):
+        """Indica si el status actual fue mapeado desde un valor legacy."""
+        # Si status en BD es 'pending' pero no se puede determinar origen sin metadata adicional,
+        # este campo es informativo para frontend (puede expandirse con modelo de audit trail)
+        return False  # Placeholder; expandir con tracking si necesario
+
+    def validate_status(self, value):
+        """Aplicar mapping de compatibilidad en validación de entrada."""
+        from core.models import MaterialRequest
+        if value in MaterialRequest.STATUS_COMPAT_MAP:
+            import logging
+            logger = logging.getLogger(__name__)
+            mapped = MaterialRequest.STATUS_COMPAT_MAP[value]
+            logger.info(f"MaterialRequest serializer: legacy status '{value}' mapped to '{mapped}'")
+            return mapped
+        return value
 
     class Meta:
         from core.models import MaterialRequest
@@ -670,6 +700,7 @@ class MaterialRequestSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'items'
         ]
         read_only_fields = ['requested_by', 'approved_by', 'approved_at', 'created_at', 'updated_at']
+
 
     def create(self, validated_data):
         from core.models import MaterialRequestItem as MRI
@@ -693,6 +724,7 @@ class MaterialRequestSerializer(serializers.ModelSerializer):
                 data['request'] = req
                 MRI.objects.create(**data)
         return req
+
 
 
 class MaterialCatalogSerializer(serializers.ModelSerializer):
