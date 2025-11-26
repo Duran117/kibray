@@ -968,38 +968,318 @@ class TwoFactorTokenObtainPairView(TokenObtainPairView):
     serializer_class = TwoFactorTokenObtainPairSerializer
 
 # Floor Plans & Pins
-class FloorPlanViewSet(viewsets.ReadOnlyModelViewSet):
+class FloorPlanViewSet(viewsets.ModelViewSet):
+    """
+    MÓDULO 20: Floor Plans with versioning and pin migration.
+    
+    Features:
+    - Floor plan versioning (version field auto-increments)
+    - Pin migration between plan versions
+    - Nested pins in response
+    - Multi-level support (basement, ground, upper floors)
+    - PDF export tracking
+    
+    Endpoints:
+    - GET /api/v1/floor-plans/ - List all plans (no pagination)
+    - POST /api/v1/floor-plans/ - Create new plan
+    - GET /api/v1/floor-plans/{id}/ - Retrieve single plan with pins
+    - PATCH /api/v1/floor-plans/{id}/ - Update plan metadata
+    - DELETE /api/v1/floor-plans/{id}/ - Delete plan
+    - POST /api/v1/floor-plans/{id}/create-version/ - Create new version (uploads new image)
+    - POST /api/v1/floor-plans/{id}/migrate-pins/ - Migrate pins from old version
+    - GET /api/v1/floor-plans/{id}/migratable-pins/ - List pins pending migration
+    
+    Query Parameters:
+    - project={id} - Filter by project
+    - is_current=true|false - Filter by current version
+    - level={int} - Filter by floor level
+    """
     serializer_class = FloorPlanSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = None
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'is_current', 'level']
+    search_fields = ['name', 'level_identifier']
+    ordering_fields = ['created_at', 'level', 'version']
+    pagination_class = None  # Disabled for floor plans (usually small dataset)
     
     def get_queryset(self):
-        return FloorPlan.objects.prefetch_related('pins').select_related('project').order_by('-created_at')
-
-class PlanPinViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = PlanPinSerializer
-    permission_classes = [IsAuthenticated]
-    pagination_class = None
-    
-    def get_queryset(self):
-        plan_id = self.request.query_params.get('plan')
-        pin_type = self.request.query_params.get('pin_type')
-        qs = PlanPin.objects.select_related('plan', 'color_sample', 'linked_task').order_by('-created_at')
-        if plan_id:
-            qs = qs.filter(plan_id=plan_id)
-        if pin_type:
-            qs = qs.filter(pin_type=pin_type)
+        qs = FloorPlan.objects.prefetch_related(
+            'pins__color_sample',
+            'pins__linked_task',
+            'pins__created_by'
+        ).select_related('project', 'created_by', 'replaced_by').order_by('level', 'name')
+        
+        # Non-staff users only see plans from their accessible projects
+        user = self.request.user
+        if not user.is_staff:
+            from core.models import ClientProjectAccess
+            accessible_projects = ClientProjectAccess.objects.filter(
+                user=user
+            ).values_list('project_id', flat=True)
+            qs = qs.filter(project_id__in=accessible_projects)
+        
         return qs
 
-    @action(detail=True, methods=['post'])
+    def perform_create(self, serializer):
+        """Auto-set created_by and is_current"""
+        serializer.save(created_by=self.request.user, is_current=True)
+    
+    @action(detail=True, methods=['post'], url_path='create-version')
+    def create_version(self, request, pk=None):
+        """
+        Create a new version of the floor plan with a new image.
+        Marks all active pins as 'pending_migration'.
+        
+        Body (multipart/form-data):
+        - image: new floor plan image file (required)
+        
+        Response:
+        - New FloorPlan object with version incremented
+        - Old plan marked as is_current=False
+        - All pins marked as pending_migration
+        """
+        old_plan = self.get_object()
+        
+        new_image = request.FILES.get('image')
+        if not new_image:
+            return Response(
+                {'error': 'image file is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create new version
+        new_plan = old_plan.create_new_version(new_image, request.user)
+        
+        return Response(
+            FloorPlanSerializer(new_plan, context={'request': request}).data,
+            status=status.HTTP_201_CREATED
+        )
+    
+    @action(detail=True, methods=['post'], url_path='migrate-pins')
+    def migrate_pins(self, request, pk=None):
+        """
+        Migrate pins from old plan version to this new version.
+        
+        Body:
+        {
+            "pin_mappings": [
+                {"old_pin_id": 123, "new_x": 0.45, "new_y": 0.67},
+                {"old_pin_id": 124, "new_x": 0.32, "new_y": 0.89}
+            ]
+        }
+        
+        Response:
+        - Array of newly created pins
+        - Old pins marked as 'migrated'
+        """
+        new_plan = self.get_object()
+        pin_mappings = request.data.get('pin_mappings', [])
+        
+        if not pin_mappings:
+            return Response(
+                {'error': 'pin_mappings array is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        migrated_pins = []
+        for mapping in pin_mappings:
+            old_pin_id = mapping.get('old_pin_id')
+            new_x = mapping.get('new_x')
+            new_y = mapping.get('new_y')
+            
+            if not all([old_pin_id, new_x is not None, new_y is not None]):
+                continue
+            
+            try:
+                from core.models import PlanPin
+                old_pin = PlanPin.objects.get(id=old_pin_id, status='pending_migration')
+                new_pin = old_pin.migrate_to_plan(new_plan, new_x, new_y)
+                
+                # Mark old pin as migrated
+                old_pin.status = 'migrated'
+                old_pin.migrated_to = new_pin
+                old_pin.save()
+                
+                migrated_pins.append(new_pin)
+            except PlanPin.DoesNotExist:
+                continue
+        
+        from core.api.serializers import PlanPinSerializer
+        return Response({
+            'migrated_count': len(migrated_pins),
+            'pins': PlanPinSerializer(migrated_pins, many=True, context={'request': request}).data
+        })
+    
+    @action(detail=True, methods=['get'], url_path='migratable-pins')
+    def migratable_pins(self, request, pk=None):
+        """
+        Get list of pins from old version that need migration.
+        
+        Returns:
+        - Array of pins with status='pending_migration'
+        - Useful for building migration UI
+        """
+        plan = self.get_object()
+        
+        # If this is a new version, get pins from replaced plan
+        if plan.version > 1:
+            # Find the plan this one replaced
+            old_plan = FloorPlan.objects.filter(replaced_by=plan).first()
+            if old_plan:
+                migratable_pins = old_plan.get_migratable_pins()
+            else:
+                migratable_pins = []
+        else:
+            migratable_pins = []
+        
+        from core.api.serializers import PlanPinSerializer
+        return Response({
+            'count': len(migratable_pins),
+            'pins': PlanPinSerializer(migratable_pins, many=True, context={'request': request}).data
+        })
+
+
+class PlanPinViewSet(viewsets.ModelViewSet):
+    """
+    MÓDULO 20: Plan Pins with annotations and client commenting.
+    
+    Features:
+    - CRUD operations for pins
+    - Multi-point path support (line drawings)
+    - Color sample and task linkage
+    - Client commenting system
+    - Auto-task creation for issue pins
+    - Canvas annotations support
+    
+    Endpoints:
+    - GET /api/v1/plan-pins/ - List all pins (with filters)
+    - POST /api/v1/plan-pins/ - Create new pin (auto-creates task if needed)
+    - GET /api/v1/plan-pins/{id}/ - Retrieve single pin
+    - PATCH /api/v1/plan-pins/{id}/ - Update pin
+    - DELETE /api/v1/plan-pins/{id}/ - Delete pin
+    - POST /api/v1/plan-pins/{id}/comment/ - Add client comment
+    - POST /api/v1/plan-pins/{id}/update-annotations/ - Update canvas annotations
+    
+    Query Parameters:
+    - plan={id} - Filter by floor plan
+    - pin_type=note|touchup|color|alert|damage - Filter by type
+    - status=active|pending_migration|migrated|archived - Filter by status
+    """
+    serializer_class = PlanPinSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['plan', 'pin_type', 'status', 'color_sample', 'linked_task']
+    search_fields = ['title', 'description']
+    ordering_fields = ['created_at']
+    pagination_class = None  # Usually small dataset per plan
+    
+    def get_queryset(self):
+        qs = PlanPin.objects.select_related(
+            'plan__project', 
+            'color_sample', 
+            'linked_task', 
+            'created_by',
+            'migrated_to'
+        ).order_by('-created_at')
+        
+        # Non-staff users only see pins from accessible projects
+        user = self.request.user
+        if not user.is_staff:
+            from core.models import ClientProjectAccess
+            accessible_projects = ClientProjectAccess.objects.filter(
+                user=user
+            ).values_list('project_id', flat=True)
+            qs = qs.filter(plan__project_id__in=accessible_projects)
+        
+        return qs
+
+    def perform_create(self, serializer):
+        """Auto-set created_by and trigger task creation"""
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'], url_path='comment')
     def comment(self, request, pk=None):
-        """Allow clients/staff to add a comment on a pin"""
+        """
+        Add a client/staff comment to a pin.
+        
+        Body:
+        {
+            "comment": "This needs attention"
+        }
+        
+        Response:
+        - Updated pin with new comment in client_comments array
+        """
         pin = self.get_object()
-        comment = request.data.get('comment', '').strip()
-        if not comment:
-            return Response({'detail': 'comment is required'}, status=400)
-        pin.add_client_comment(request.user, comment)
+        comment_text = request.data.get('comment', '').strip()
+        
+        if not comment_text:
+            return Response(
+                {'error': 'comment is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Add comment with timestamp and user info
+        from django.utils import timezone
+        comment_entry = {
+            'user': request.user.username,
+            'user_id': request.user.id,
+            'comment': comment_text,
+            'timestamp': timezone.now().isoformat()
+        }
+        
+        if not pin.client_comments:
+            pin.client_comments = []
+        
+        pin.client_comments.append(comment_entry)
+        pin.save()
+        
         return Response(PlanPinSerializer(pin, context={'request': request}).data)
+    
+    @action(detail=True, methods=['post'], url_path='update-annotations')
+    def update_annotations(self, request, pk=None):
+        """
+        Update canvas annotations for a pin attachment.
+        
+        Body:
+        {
+            "attachment_id": 123,  // PlanPinAttachment ID
+            "annotations": {
+                "shapes": [...],
+                "text": [...],
+                "arrows": [...]
+            }
+        }
+        
+        Response:
+        - Success message
+        """
+        pin = self.get_object()
+        attachment_id = request.data.get('attachment_id')
+        annotations = request.data.get('annotations', {})
+        
+        if not attachment_id:
+            return Response(
+                {'error': 'attachment_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from core.models import PlanPinAttachment
+            attachment = PlanPinAttachment.objects.get(id=attachment_id, pin=pin)
+            attachment.annotations = annotations
+            attachment.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Annotations updated successfully'
+            })
+        except PlanPinAttachment.DoesNotExist:
+            return Response(
+                {'error': 'Attachment not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 # Color Samples
 class ColorSampleViewSet(viewsets.ModelViewSet):

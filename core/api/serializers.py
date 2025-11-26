@@ -256,24 +256,45 @@ class ColorSampleRejectSerializer(serializers.Serializer):
 class PlanPinSerializer(serializers.ModelSerializer):
     color_sample_name = serializers.CharField(source='color_sample.name', read_only=True, allow_null=True)
     linked_task_title = serializers.CharField(source='linked_task.title', read_only=True, allow_null=True)
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True, allow_null=True)
+    migrated_to_id = serializers.IntegerField(source='migrated_to.id', read_only=True, allow_null=True)
+    plan_name = serializers.CharField(source='plan.name', read_only=True)
     
     class Meta:
         model = PlanPin
         fields = [
-            'id', 'plan', 'x', 'y', 'title', 'description', 'pin_type',
+            'id', 'plan', 'plan_name', 'x', 'y', 'title', 'description', 'pin_type',
             'color_sample', 'color_sample_name', 'linked_task', 'linked_task_title',
-            'pin_color', 'is_multipoint', 'path_points', 'created_at'
+            'pin_color', 'is_multipoint', 'path_points', 'status', 'migrated_to_id',
+            'client_comments', 'created_by', 'created_by_name', 'created_at'
         ]
-        read_only_fields = ['created_at', 'pin_color']
+        read_only_fields = ['created_at', 'pin_color', 'migrated_to_id', 'created_by', 'created_by_name']
 
 class FloorPlanSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source='project.name', read_only=True)
     pins = PlanPinSerializer(many=True, read_only=True)
+    pin_count = serializers.SerializerMethodField()
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True, allow_null=True)
+    replaced_by_id = serializers.IntegerField(source='replaced_by.id', read_only=True, allow_null=True)
+    pending_migration_count = serializers.SerializerMethodField()
     
     class Meta:
         model = FloorPlan
-        fields = ['id', 'project', 'project_name', 'name', 'image', 'created_at', 'pins']
-        read_only_fields = ['created_at']
+        fields = [
+            'id', 'project', 'project_name', 'name', 'level', 'level_identifier', 
+            'image', 'version', 'is_current', 'replaced_by_id', 'last_pdf_export',
+            'created_by', 'created_by_name', 'created_at', 
+            'pins', 'pin_count', 'pending_migration_count'
+        ]
+    read_only_fields = ['created_at', 'version', 'is_current', 'replaced_by_id', 'created_by', 'created_by_name']
+    
+    def get_pin_count(self, obj):
+        """Count active pins only"""
+        return obj.pins.filter(status='active').count()
+    
+    def get_pending_migration_count(self, obj):
+        """Count pins pending migration"""
+        return obj.pins.filter(status='pending_migration').count()
 
 class ProjectListSerializer(serializers.ModelSerializer):
     class Meta:
