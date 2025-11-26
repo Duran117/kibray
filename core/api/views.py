@@ -1827,7 +1827,26 @@ class ClientRequestViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'status']
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        # Only staff or users with project access can create for that project
+        project = serializer.validated_data.get('project')
+        user = self.request.user
+        if not user.is_staff:
+            from core.models import ClientProjectAccess
+            has_access = ClientProjectAccess.objects.filter(user=user, project=project).exists()
+            if not has_access:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied('No access to project')
+        serializer.save(created_by=user)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if user.is_staff:
+            return qs
+        # Restrict to projects the user has access to
+        from core.models import ClientProjectAccess
+        project_ids = ClientProjectAccess.objects.filter(user=user).values_list('project_id', flat=True)
+        return qs.filter(project_id__in=list(project_ids))
 
     @action(detail=True, methods=['post'])
         

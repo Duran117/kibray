@@ -360,13 +360,17 @@ class ClientRequestSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_attachments(self, obj):
+        # During create(), obj may be a dict-like validated_data; return empty.
+        if not hasattr(obj, 'attachments'):
+            return []
+        qs = obj.attachments.all()
         return [
             {
                 'id': a.id,
                 'filename': a.filename,
                 'size_bytes': a.size_bytes,
                 'uploaded_at': a.uploaded_at,
-            } for a in getattr(obj, 'attachments', []).all()
+            } for a in qs
         ]
 
 
