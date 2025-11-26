@@ -3331,12 +3331,61 @@ class ChatMessage(models.Model):
     attachment = models.FileField(upload_to='project_chat/', null=True, blank=True)
     link_url = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Soft delete fields (admin only)
+    is_deleted = models.BooleanField(default=False)
+    deleted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, 
+                                    null=True, blank=True, related_name='deleted_chat_messages')
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"ChatMsg ch={self.channel_id} by {getattr(self.user,'username','?')}"
+
+
+class ChatMention(models.Model):
+    """
+    Track @mentions in chat messages with optional entity linking.
+    Allows mentioning users directly OR linking to entities like tasks, damages, etc.
+    """
+    ENTITY_TYPE_CHOICES = [
+        ('user', 'User'),
+        ('task', 'Task'),
+        ('damage', 'Damage Report'),
+        ('color_sample', 'Color Sample'),
+        ('floor_plan', 'Floor Plan'),
+        ('material', 'Material'),
+        ('change_order', 'Change Order'),
+    ]
+    if TYPE_CHECKING:
+        id: int
+        message_id: int
+    
+    message = models.ForeignKey(ChatMessage, on_delete=models.CASCADE, related_name='mentions')
+    mentioned_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, 
+                                       related_name='chat_mentions', null=True, blank=True,
+                                       help_text='User mentioned (@username)')
+    entity_type = models.CharField(max_length=30, choices=ENTITY_TYPE_CHOICES, default='user',
+                                    help_text='Type of entity referenced (task, damage, etc.)')
+    entity_id = models.IntegerField(null=True, blank=True,
+                                    help_text='ID of referenced entity (optional)')
+    entity_label = models.CharField(max_length=200, blank=True,
+                                    help_text='Display text for entity link (e.g., "Task #45: Paint walls")')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['mentioned_user', 'created_at']),
+            models.Index(fields=['entity_type', 'entity_id']),
+        ]
+
+    def __str__(self):
+        if self.mentioned_user:
+            return f"@{self.mentioned_user.username} in msg#{self.message_id}"
+        return f"{self.entity_type}#{self.entity_id} in msg#{self.message_id}"
 
 # ---------------------
 # Sistema de notificaciones

@@ -541,6 +541,70 @@ class ClientRequestAttachmentSerializer(serializers.ModelSerializer):
         read_only_fields = ['uploaded_by', 'size_bytes', 'uploaded_at']
 
 
+class ChatChannelSerializer(serializers.ModelSerializer):
+    """Chat channel with participant info"""
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True, allow_null=True)
+    participant_count = serializers.SerializerMethodField()
+    participant_usernames = serializers.SerializerMethodField()
+    
+    class Meta:
+        from core.models import ChatChannel
+        model = ChatChannel
+        fields = [
+            'id', 'project', 'project_name', 'name', 'channel_type', 'created_by', 
+            'created_by_name', 'participants', 'participant_count', 'participant_usernames',
+            'is_default', 'created_at'
+        ]
+        read_only_fields = ['created_by', 'created_at']
+    
+    def get_participant_count(self, obj):
+        return obj.participants.count()
+    
+    def get_participant_usernames(self, obj):
+        return list(obj.participants.values_list('username', flat=True))
+
+
+class ChatMentionSerializer(serializers.ModelSerializer):
+    """Serializer for chat mentions"""
+    mentioned_username = serializers.CharField(source='mentioned_user.username', read_only=True, allow_null=True)
+    
+    class Meta:
+        from core.models import ChatMention
+        model = ChatMention
+        fields = [
+            'id', 'message', 'mentioned_user', 'mentioned_username', 'entity_type', 
+            'entity_id', 'entity_label', 'created_at'
+        ]
+        read_only_fields = ['created_at']
+
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    """Chat message with mention parsing and attachments"""
+    channel_name = serializers.CharField(source='channel.name', read_only=True)
+    project_id = serializers.IntegerField(source='channel.project_id', read_only=True)
+    user_username = serializers.CharField(source='user.username', read_only=True, allow_null=True)
+    user_full_name = serializers.CharField(source='user.get_full_name', read_only=True, allow_null=True)
+    mentions = ChatMentionSerializer(many=True, read_only=True)
+    message_display = serializers.SerializerMethodField()
+    
+    class Meta:
+        from core.models import ChatMessage
+        model = ChatMessage
+        fields = [
+            'id', 'channel', 'channel_name', 'project_id', 'user', 'user_username', 
+            'user_full_name', 'message', 'message_display', 'image', 'attachment', 
+            'link_url', 'mentions', 'is_deleted', 'deleted_by', 'deleted_at', 'created_at'
+        ]
+        read_only_fields = ['user', 'mentions', 'is_deleted', 'deleted_by', 'deleted_at', 'created_at']
+    
+    def get_message_display(self, obj):
+        """Return message text or '[deleted]' if soft-deleted"""
+        if obj.is_deleted:
+            return '[Message deleted]'
+        return obj.message
+
+
 class BudgetLineSerializer(serializers.ModelSerializer):
     """Budget line serializer with cost code details"""
     cost_code_name = serializers.CharField(source='cost_code.name', read_only=True)

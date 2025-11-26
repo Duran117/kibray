@@ -3,7 +3,7 @@ import json
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.request import Request
 from rest_framework import filters
 from rest_framework.views import APIView
@@ -2517,6 +2517,190 @@ class ClientRequestAttachmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(uploaded_by=self.request.user)
+
+
+class ChatChannelViewSet(viewsets.ModelViewSet):
+    """
+    Chat Channels API - project-based communication channels
+    
+    Endpoints:
+    - GET /api/v1/chat/channels/ - List all channels user has access to
+    - POST /api/v1/chat/channels/ - Create new channel
+    - GET /api/v1/chat/channels/{id}/ - Get channel details
+    - PATCH /api/v1/chat/channels/{id}/ - Update channel
+    - DELETE /api/v1/chat/channels/{id}/ - Delete channel
+    - POST /api/v1/chat/channels/{id}/add_participant/ - Add user to channel
+    - POST /api/v1/chat/channels/{id}/remove_participant/ - Remove user from channel
+    """
+    from core.models import ChatChannel as Model
+    from core.api.serializers import ChatChannelSerializer as Serializer
+    
+    queryset = Model.objects.select_related('project', 'created_by').prefetch_related('participants').all().order_by('project', 'name')
+    serializer_class = Serializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['project', 'channel_type', 'is_default']
+    search_fields = ['name']
+    ordering_fields = ['created_at', 'name']
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        
+        # Staff can see all channels
+        if user.is_staff:
+            return qs
+        
+        # Non-staff: filter by ClientProjectAccess
+        from core.models import ClientProjectAccess
+        project_ids = ClientProjectAccess.objects.filter(user=user).values_list('project_id', flat=True)
+        return qs.filter(project_id__in=list(project_ids))
+    
+    @action(detail=True, methods=['post'])
+    def add_participant(self, request, pk=None):
+        """Add user to channel participants"""
+        channel = self.get_object()
+        user_id = request.data.get('user_id')
+        
+        if not user_id:
+            return Response({'error': 'user_id required'}, status=400)
+        
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        try:
+            user = User.objects.get(id=user_id)
+            channel.participants.add(user)
+            return Response({'success': True, 'message': f'User {user.username} added to channel'})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+    
+    @action(detail=True, methods=['post'])
+    def remove_participant(self, request, pk=None):
+        """Remove user from channel participants"""
+        channel = self.get_object()
+        user_id = request.data.get('user_id')
+        
+        if not user_id:
+            return Response({'error': 'user_id required'}, status=400)
+        
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        try:
+            user = User.objects.get(id=user_id)
+            channel.participants.remove(user)
+            return Response({'success': True, 'message': f'User {user.username} removed from channel'})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+
+
+class ChatMessageViewSet(viewsets.ModelViewSet):
+    """
+    Chat Messages API - messages with @mentions, entity linking, and attachments
+    
+    Features:
+    - Automatic @mention parsing (e.g., @username, @task#123)
+    - Entity linking to tasks, damages, color samples, etc.
+    - Notification creation for mentioned users
+    - File/image attachments
+    - Soft delete (admin only)
+    
+    Endpoints:
+    - GET /api/v1/chat/messages/ - List messages (filtered by channel)
+    - POST /api/v1/chat/messages/ - Create message (auto-parses mentions)
+    - GET /api/v1/chat/messages/{id}/ - Get message details
+    - PATCH /api/v1/chat/messages/{id}/ - Update message
+    - DELETE /api/v1/chat/messages/{id}/ - Hard delete (admin only)
+    - POST /api/v1/chat/messages/{id}/soft_delete/ - Soft delete message
+    - GET /api/v1/chat/messages/my_mentions/ - Get messages where user is mentioned
+    """
+    from core.models import ChatMessage as Model
+    from core.api.serializers import ChatMessageSerializer as Serializer
+    
+    queryset = Model.objects.select_related('channel__project', 'user', 'deleted_by').prefetch_related('mentions').all().order_by('-created_at')
+    serializer_class = Serializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['channel', 'user', 'is_deleted']
+    search_fields = ['message']
+    ordering_fields = ['created_at']
+    
+    def perform_create(self, serializer):
+        message = serializer.save(user=self.request.user)
+        
+        # Parse @mentions from message text
+        from core.chat_utils import parse_mentions, create_mention_objects, create_mention_notifications, enrich_mentions_with_labels
+        
+        mentions_data = parse_mentions(message.message)
+        mention_objects = create_mention_objects(message, mentions_data)
+        
+        # Enrich entity mentions with display labels
+        enrich_mentions_with_labels(mention_objects)
+        
+        # Create notifications for mentioned users
+        create_mention_notifications(mention_objects)
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        
+        # Staff can see all messages
+        if user.is_staff:
+            return qs
+        
+        # Non-staff: filter by ClientProjectAccess via channel->project
+        from core.models import ClientProjectAccess
+        project_ids = ClientProjectAccess.objects.filter(user=user).values_list('project_id', flat=True)
+        return qs.filter(channel__project_id__in=list(project_ids))
+    
+    @action(detail=True, methods=['post'])
+    def soft_delete(self, request, pk=None):
+        """Soft delete message (admin only)"""
+        message = self.get_object()
+        
+        # Check if user is admin/superuser
+        profile = getattr(request.user, 'profile', None)
+        role = getattr(profile, 'role', 'employee')
+        
+        if not request.user.is_staff and role not in ['admin', 'superuser']:
+            return Response({'error': 'Only admins can delete messages'}, status=403)
+        
+        # Soft delete
+        from django.utils import timezone
+        message.is_deleted = True
+        message.deleted_by = request.user
+        message.deleted_at = timezone.now()
+        message.save(update_fields=['is_deleted', 'deleted_by', 'deleted_at'])
+        
+        return Response({'success': True, 'message': 'Message deleted'})
+    
+    @action(detail=False, methods=['get'])
+    def my_mentions(self, request):
+        """Get messages where current user is mentioned"""
+        user = request.user
+        
+        # Find ChatMentions for this user
+        from core.models import ChatMention
+        mention_ids = ChatMention.objects.filter(
+            mentioned_user=user,
+            entity_type='user'
+        ).values_list('message_id', flat=True)
+        
+        # Get messages
+        qs = self.get_queryset().filter(id__in=list(mention_ids))
+        
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
 
 
 class SitePhotoViewSet(viewsets.ModelViewSet):
