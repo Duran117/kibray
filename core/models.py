@@ -3352,18 +3352,23 @@ class InventoryItem(models.Model):
     def update_average_cost(self, new_cost, quantity_purchased):
         """Q15.8: Actualizar costo promedio con nueva compra"""
         if self.valuation_method == 'AVG':
-            # Get current total quantity across all locations
-            total_qty = ProjectInventory.objects.filter(item=self).aggregate(
+            # Get current total quantity across all locations AFTER this receive may have been applied.
+            total_qty_after = ProjectInventory.objects.filter(item=self).aggregate(
                 total=models.Sum('quantity')
             )['total'] or Decimal("0")
-            
-            if total_qty > 0:
-                # Weighted average
-                total_value = (self.average_cost * total_qty) + (new_cost * quantity_purchased)
-                self.average_cost = total_value / (total_qty + quantity_purchased)
+
+            # Derive previous quantity before this purchase (avoid negatives if called pre/post in different flows)
+            prev_qty = total_qty_after - (quantity_purchased or Decimal("0"))
+            if prev_qty < 0:
+                prev_qty = Decimal("0")
+
+            if prev_qty > 0:
+                # Weighted average on previous stock + this purchase
+                total_value = (self.average_cost * prev_qty) + (new_cost * quantity_purchased)
+                self.average_cost = total_value / (prev_qty + quantity_purchased)
             else:
                 self.average_cost = new_cost
-            
+
             self.last_purchase_cost = new_cost
             self.save(update_fields=['average_cost', 'last_purchase_cost'])
 
