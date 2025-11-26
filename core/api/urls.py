@@ -14,7 +14,8 @@ from .views import (
     InvoiceViewSet,
     PayrollPeriodViewSet, PayrollRecordViewSet, PayrollPaymentViewSet,
     global_search, save_changeorder_photo_annotations, delete_changeorder_photo,
-    update_changeorder_photo_image
+    update_changeorder_photo_image,
+    InvoiceDashboardView, MaterialsDashboardView
 )
 
 router = DefaultRouter()
@@ -82,4 +83,7 @@ urlpatterns = [
     path('changeorder-photo/<int:photo_id>/annotated-image/', update_changeorder_photo_image, name='update_photo_image'),
     # API routes
     path('', include(router.urls)),
+    # Dashboards
+    path('dashboards/invoices/', InvoiceDashboardView.as_view(), name='dashboard-invoices'),
+    path('dashboards/materials/', MaterialsDashboardView.as_view(), name='dashboard-materials'),
 ]

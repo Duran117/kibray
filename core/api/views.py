@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.request import Request
 from rest_framework import filters
+from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
@@ -1759,5 +1760,68 @@ class MaterialRequestViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'total_amount required'}, status=status.HTTP_400_BAD_REQUEST)
         expense = mr.create_direct_purchase_expense(total_amount=total, user=request.user)
         return Response({'expense_id': expense.id, 'status': mr.status})
+
+
+# ============================================================================
+# FASE 7: Dashboards (basic API overviews)
+# ============================================================================
+
+class InvoiceDashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request):
+        from core.models import Invoice
+        from django.db.models import Sum, Count
+        qs = Invoice.objects.all()
+        total_invoices = qs.count()
+        total_amount = qs.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+        paid_amount = qs.filter(status='PAID').aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+        overdue_count = qs.filter(status='OVERDUE').count()
+        outstanding = total_amount - paid_amount
+        # Top clients by invoiced amount (by project.client)
+        top_clients = list(
+            qs.values('project__client').annotate(total=Sum('total_amount'), count=Count('id'))
+            .order_by('-total')[:5]
+        )
+        return Response({
+            'total_invoices': total_invoices,
+            'total_amount': total_amount,
+            'paid_amount': paid_amount,
+            'outstanding_amount': outstanding,
+            'overdue_count': overdue_count,
+            'top_clients': top_clients,
+        })
+
+
+class MaterialsDashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request):
+        from core.models import InventoryItem, ProjectInventory, InventoryMovement
+        from django.db.models import Sum, Count
+        # Totals
+        total_items = InventoryItem.objects.filter(active=True).count()
+        # Low stock items (any stock record below threshold)
+        low_stock = ProjectInventory.objects.all()
+        low_stock_count = sum(1 for s in low_stock if s.is_below)
+        # Stock value using avg cost
+        stocks = ProjectInventory.objects.select_related('item')
+        total_stock_value = Decimal('0.00')
+        for s in stocks:
+            if s.item and s.item.average_cost is not None and s.quantity is not None:
+                total_stock_value += (s.item.average_cost * s.quantity)
+        # Recent movements
+        recent_movements = InventoryMovement.objects.count()
+        # Items by category
+        by_category = list(
+            InventoryItem.objects.values('category').annotate(count=Count('id')).order_by('-count')
+        )
+        return Response({
+            'total_items': total_items,
+            'low_stock_count': low_stock_count,
+            'total_stock_value': total_stock_value,
+            'recent_movements': recent_movements,
+            'items_by_category': by_category,
+        })
 
 
