@@ -415,12 +415,41 @@ class DamageReportViewSet(viewsets.ModelViewSet):
     serializer_class = DamageReportSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['project', 'status', 'severity', 'category']
+    search_fields = ['title', 'description', 'location_detail', 'root_cause']
+    pagination_class = None
     
     def get_queryset(self):
-        return DamageReport.objects.select_related('project', 'reported_by').order_by('-created_at')
+        return DamageReport.objects.select_related('project', 'reported_by', 'assigned_to').order_by('-reported_at')
     
     def perform_create(self, serializer):
         serializer.save(reported_by=self.request.user)
+    
+    @action(detail=True, methods=['post'])
+    def add_photo(self, request, pk=None):
+        report = self.get_object()
+        image = request.FILES.get('image')
+        notes = request.data.get('notes', '')
+        if not image:
+            return Response({'detail': 'image is required'}, status=400)
+        from core.models import DamagePhoto
+        from .serializers import DamagePhotoSerializer
+        photo = DamagePhoto.objects.create(report=report, image=image, notes=notes)
+        return Response(DamagePhotoSerializer(photo, context={'request': request}).data, status=201)
+    
+    @action(detail=False, methods=['get'])
+    def analytics(self, request):
+        qs = self.get_queryset()
+        project_id = request.query_params.get('project')
+        if project_id:
+            qs = qs.filter(project_id=project_id)
+        # Aggregate counts by severity and status
+        from collections import Counter
+        sev = Counter(qs.values_list('severity', flat=True))
+        stat = Counter(qs.values_list('status', flat=True))
+        cat = Counter(qs.values_list('category', flat=True))
+        return Response({'severity': sev, 'status': stat, 'category': cat, 'total': qs.count()})
 
 # ================================
 # Module 16: Payroll API

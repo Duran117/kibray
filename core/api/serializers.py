@@ -133,18 +133,28 @@ class TaskSerializer(serializers.ModelSerializer):
     def get_dependencies_ids(self, obj):
         return list(obj.dependencies.values_list('id', flat=True))
 
+class DamagePhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        from core.models import DamagePhoto
+        model = DamagePhoto
+        fields = ['id', 'report', 'image', 'notes', 'created_at']
+        read_only_fields = ['created_at']
+
 class DamageReportSerializer(serializers.ModelSerializer):
     reported_by_name = serializers.CharField(source='reported_by.get_full_name', read_only=True, allow_null=True)
     project_name = serializers.CharField(source='project.name', read_only=True)
+    photos = DamagePhotoSerializer(many=True, read_only=True)
     
     class Meta:
         model = DamageReport
         fields = [
             'id', 'project', 'project_name', 'title', 'description',
-            'severity', 'status', 'reported_by', 'reported_by_name',
-            'photo', 'created_at', 'updated_at'
+            'category', 'severity', 'status', 'estimated_cost',
+            'reported_by', 'reported_by_name', 'assigned_to',
+            'reported_at', 'in_progress_at', 'resolved_at',
+            'location_detail', 'root_cause', 'auto_task', 'photos'
         ]
-        read_only_fields = ['reported_by', 'created_at', 'updated_at']
+        read_only_fields = ['reported_by', 'reported_at', 'in_progress_at', 'resolved_at', 'auto_task']
 
 class ColorSampleSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source='project.name', read_only=True)
