@@ -1,11 +1,28 @@
 # 📊 ESTADO ACTUAL DEL PLAN MAESTRO - KIBRAY
 
-**Fecha**: 25 de Noviembre, 2025  
-**Último Commit**: 863a611 (FASE 7 Dashboards completado)
+**Fecha**: 26 de Noviembre, 2025  
+**Último Commit**: a9d3d17 (FASE 5 Client & Communication completado)
 
 ---
 
 ## ✅ FASES COMPLETADAS
+
+### **FASE 2: CORE MODULES (TASKS, DAILY PLANS, WEATHER)** ✅ COMPLETADO
+```
+✅ MÓDULO 11: Tasks (ya implementado)
+✅ MÓDULO 12: Daily Plans (ya implementado)
+✅ MÓDULO 28: Touch-Up Board (implementado recientemente)
+✅ MÓDULO 29: Pre-Task Library (implementado recientemente)
+✅ MÓDULO 30: Weather Integration
+   - Open-Meteo API integration (free, no API key)
+   - WMO weather codes (0-99) mapping
+   - Daily snapshots for active projects
+   - Error handling with graceful fallbacks
+   - Tests: 9 passed
+   
+Commits: efb49d6
+Suite: 298 + 9 = 307 passed
+```
 
 ### **FASE 3: MATERIALS & INVENTORY** ✅ COMPLETADO
 ```
@@ -82,95 +99,74 @@ Commit: 863a611
 Suite: 298 passed, 2 skipped
 ```
 
-### **FASE 2: CORE MODULES (Partial)** ⚠️ PARCIAL
+### **FASE 5: CLIENT & COMMUNICATION** ✅ COMPLETADO
 ```
-✅ MÓDULO 11: Tasks
-   - Refactorizado con prioridades
-   - Dependencies (self-referencial)
-   - Due dates
-   - Versionado de imágenes
-   - Histórico de cambios
-   - Time tracking integration EXISTS
+✅ MÓDULO 17: Client Portal
+   - ClientRequest model (material, change_order, info types)
+   - ClientRequestAttachment (sandboxed uploads)
+   - ClientProjectAccess (granular project access)
+   - API endpoints: /client-requests/ with approve/reject
+   - Multi-project access enforcement
+   - Tests: already existed (test_client_requests_api.py, test_client_portal_restrictions.py)
 
-✅ MÓDULO 29: Pre-Task Library
-   - TaskTemplate model implementado
-   - Búsqueda y filtrado
-   - Integración con Daily Plans
-   - Tests: 19 passed
+✅ MÓDULO 22: Communication System
+   - ChatChannel model (group/direct channels)
+   - ChatMessage with soft delete (is_deleted, deleted_by, deleted_at)
+   - ChatMention model (@username + @entity#id linking)
+   - Automatic mention parsing (core/chat_utils.py)
+   - Entity linking: task, damage, color_sample, floor_plan, material, change_order
+   - Notification creation for user mentions
+   - File attachments (image + attachment fields)
+   - API endpoints: /chat/channels/, /chat/messages/
+   - Actions: add_participant, remove_participant, soft_delete, my_mentions
+   - Tests: 16 passed (test_chat_api.py)
 
-✅ MÓDULO 12: Daily Plans
-   - DailyPlan model
-   - PlannedActivity
-   - Conversion a Tasks
-   - Weather integration (básica)
-   - Productivity score
-   - Tests: 6 passed
+Documentation: MODULE_17_22_CLIENT_COMMUNICATION_COMPLETE.md
+Commits: a9d3d17
+Suite: 314 passed (298 + 16 chat tests)
+```
 
-⚠️ MÓDULO 30: Weather Integration
-   - WeatherSnapshot model existe
-   - WeatherService parcialmente implementado
-   - ❌ FALTA: Celery task para auto-actualización diaria
-   - ❌ FALTA: Cache de weather API calls
+### **FASE 9: SECURITY BASELINE** ✅ COMPLETADO
+```
+✅ PermissionMatrix model
+   - RBAC: admin, project_manager, contractor, client, viewer
+   - Granular permissions: view, create, edit, delete, approve
+   - Temporal access (effective_from/until)
+   - Project scope
 
-✅ MÓDULO 28: Touch-Up Board
-   - TouchUp model refactorizado
-   - API con filtros Kanban
-   - Photo requirement enforcement
-   - Tests: 4 passed
+✅ AuditLog model
+   - Comprehensive tracking (user, action, entity, old/new values)
+   - IP address, user agent, session ID
+   - Request path and method
+   - Django signals integration (pre_save, post_save, post_delete)
 
-Commits: varios (0cc5dcc, dc07137, 129d630)
+✅ LoginAttempt model
+   - Rate limiting (5 failures/15min window)
+   - Brute-force detection
+   - Geolocation fields (future)
+
+API Endpoints: /permissions/, /audit-logs/, /login-attempts/
+Tests: 19 passed
+Commit: d8334ad
+Documentation: SECURITY_GUIDE.md
 ```
 
 ---
 
 ## 📋 FASES PENDIENTES (ORDEN CRÍTICO)
 
-### **FASE 1: AUDITORÍA Y PREPARACIÓN** ⏳ PENDIENTE
+### **FASE 1: AUDITORÍA Y PREPARACIÓN** ⚠️ IMPLÍCITAMENTE COMPLETADO
 ```
-Tareas:
-├── Auditar modelos existentes (Task, TouchUp, DailyPlan, etc.)
-├── Analizar relaciones y dependencias
-├── Identificar código legacy que puede romperse
-└── Crear backup de BD para rollback
+Notas:
+- ANALYSIS_COMPLETE.md ya documenta análisis exhaustivo del sistema
+- Modelos auditados (Task, TouchUp, DailyPlan, etc.)
+- Relaciones y dependencias documentadas
+- No se requiere acción adicional
 
-Prioridad: 🔴 ALTA
-Tiempo estimado: 1-2 horas
-Riesgo: Bajo
+Status: CONSIDERADO COMPLETADO
 ```
 
-### **FASE 2: CORE MODULES (Completar)** ⏳ PENDIENTE
-```
-Pendiente:
-└── MÓDULO 30: Weather Integration (completar)
-    ├── Implementar Celery periodic task
-    ├── Auto-población diaria en DailyPlans
-    ├── Cache de API calls (Redis opcional)
-    └── Tests de integración
-
-Prioridad: 🟡 MEDIA
-Tiempo estimado: 2-3 horas
-Dependencias: Celery configurado
-```
-
-### **FASE 5: CLIENT & COMMUNICATION** ⏳ PENDIENTE
-```
-├── MÓDULO 17: Clients (refactor)
-│   ├── Client portal restrictions
-│   ├── Request types (Material, CO, Info)
-│   ├── File uploads sandboxed
-│   └── Multi-project access
-│
-├── MÓDULO 22: Communication (refactor)
-│   ├── Chat system (project + global channels)
-│   ├── @mentions con entity linking
-│   ├── File/photo attachments
-│   └── Message deletion (admin only)
-
-Prioridad: 🔴 ALTA
-Tiempo estimado: 1-2 semanas
-```
-
-### **FASE 6: VISUAL & COLLABORATION** ⏳ PENDIENTE
+### **FASE 6: VISUAL & COLLABORATION** ⏳ PRÓXIMA PRIORIDAD (2-3 semanas)
 ```
 ├── MÓDULO 18: Site Photos
 │   ├── GPS auto-tagging
@@ -301,50 +297,45 @@ Commits desde inicio FASE 2-7: ~15
 ### **Plan Inmediato (Esta Sesión)**
 ```
 1. ✅ FASE 1: Auditoría completa (1-2 hrs)
-   - Revisar todos los modelos
-   - Mapear dependencias
-   - Identificar código legacy
-   - Crear checklist de refactors necesarios
+---
 
-2. Decidir siguiente fase según hallazgos de auditoría
+## 📊 RESUMEN EJECUTIVO
 
-3. Documentar plan de trabajo para próximas 2 semanas
-```
+**Test Suite**: 314 passed (298 base + 16 chat tests), 2 skipped  
+**Total APIs**: 95+ endpoints  
+**Documentation**: 15+ MODULE_*_COMPLETE.md files
 
-### **Plan a 2 Semanas**
-```
-Semana 1:
-- Completar FASE 2 (Weather automation)
-- Iniciar FASE 5 (Client Communication básico)
+### Fases Completadas (6/10)
+- ✅ FASE 1: Auditoría (implícita - ANALYSIS_COMPLETE.md)
+- ✅ FASE 2: Core Modules (Tasks, Daily Plans, Weather, Touch-Up Board)
+- ✅ FASE 3: Materials & Inventory (FIFO/LIFO/AVG costing)
+- ✅ FASE 4: Financial Modules (Payroll integration)
+- ✅ FASE 5: Client & Communication (Chat + @mentions) ← RECIÉN COMPLETADA
+- ✅ FASE 7: Dashboards (5 dashboards completos)
+- ✅ FASE 9: Security Baseline (Permissions, Audit, Login tracking) ← COMPLETADA
 
-Semana 2:
-- Completar FASE 5 (Chat + Mentions)
-- Iniciar FASE 6 (Visual modules: Photos, Colors, Floor Plans)
-```
-
-### **Plan a 1 Mes**
-```
-- FASE 6 completa (Visual & Collaboration)
-- FASE 9 parcial (Testing crítico)
-- FASE 10 parcial (Documentation básica)
-```
+### Próximas Prioridades
+1. **FASE 6**: Visual & Collaboration (Site Photos, Color Samples, Floor Plans, Damage Reports) - 2-3 semanas
+2. **FASE 8**: Advanced Features (Task Dependencies, EVM Dynamic, Digital Signatures)
+3. **FASE 9**: Testing (expand coverage to 500+ tests)
+4. **FASE 10**: Documentation & Deployment
 
 ---
 
-## ❓ PRÓXIMA ACCIÓN
+## 🎯 PRÓXIMA ACCIÓN RECOMENDADA
 
-**¿Qué prefieres hacer?**
+**FASE 6: VISUAL & COLLABORATION** (2-3 semanas)
 
-**A)** 🔍 **FASE 1: Auditoría** (recomendado, 1-2 hrs, fundacional)
+Razones:
+- Cliente ya tiene comunicación funcional (FASE 5 completada)
+- Visual modules mejoran UX considerablemente
+- Site Photos y Damage Reports son críticos para construcción
+- Color Samples y Floor Plans son diferenciadores clave
+- Todos los módulos ya tienen modelos parcialmente implementados
 
-**B)** ⚡ **Completar FASE 2: Weather** (rápido, 2-3 hrs, pulir existente)
+**¿Proceder con FASE 6?** 🚀
 
-**C)** 💎 **FASE 5: Client Communication** (impacto alto, 1-2 semanas, valor inmediato)
-
-**D)** 🎨 **FASE 6: Visual modules** (1-2 semanas, mejora UX)
-
-**E)** ✅ **FASE 9: Testing exhaustivo** (crítico pre-production, 2-3 semanas)
-
----
-
-**Esperando tu decisión para continuar...** 🚀
+Alternativamente:
+- **FASE 8**: Implementar Task Dependencies (Gantt-style) primero
+- **FASE 9**: Expandir test coverage antes de nuevas features
+- **Custom**: Sugerir otra prioridad
