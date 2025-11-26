@@ -248,6 +248,55 @@ class TaskViewSet(viewsets.ModelViewSet):
         elapsed = task.stop_tracking()
         if elapsed is None:
             return Response({'error': 'Not tracking'}, status=400)
+        return Response({'status': 'ok', 'elapsed_seconds': elapsed, 'total_hours': task.total_hours})
+    
+    @action(detail=True, methods=['get'])
+    def time_summary(self, request, pk=None):
+        """
+        Q11.13: Retorna resumen agregado de tiempo trabajado en la tarea.
+        
+        Incluye:
+        - Tracking interno (time_tracked_seconds)
+        - TimeEntry registros vinculados
+        - Breakdown por empleado
+        - Total combinado en horas
+        """
+        from core.models import TimeEntry
+        from django.db.models import Sum, F
+        from decimal import Decimal
+        
+        task = self.get_object()
+        
+        # Internal tracking (botón inicio/fin)
+        internal_hours = task.get_time_tracked_hours()
+        
+        # TimeEntry aggregation
+        time_entries = task.time_entries.select_related('employee', 'employee__user').all()
+        
+        # Breakdown por empleado
+        employee_breakdown = time_entries.values(
+            employee_id=F('employee__id'),
+            employee_name=F('employee__user__first_name')
+        ).annotate(
+            hours=Sum('hours_worked')
+        ).order_by('-hours')
+        
+        # Total TimeEntry hours
+        time_entry_hours = sum(float(e['hours'] or 0) for e in employee_breakdown)
+        
+        # Total combinado
+        total_hours = round(internal_hours + time_entry_hours, 2)
+        
+        return Response({
+            'task_id': task.id,
+            'task_title': task.title,
+            'internal_tracking_hours': internal_hours,
+            'time_entry_hours': round(time_entry_hours, 2),
+            'total_hours': total_hours,
+            'employee_breakdown': list(employee_breakdown),
+            'is_tracking_active': task.started_at is not None,
+            'reopen_count': task.reopen_events_count
+        })
         return Response({'status': 'ok', 'elapsed_seconds': elapsed, 'time_tracked_seconds': task.time_tracked_seconds, 'time_tracked_hours': task.get_time_tracked_hours()})
 
     @action(detail=True, methods=['get'])

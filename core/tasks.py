@@ -385,3 +385,111 @@ def generate_daily_plan_reminders():
     
     logger.info(f"Sent {sent} daily plan reminders for {tomorrow}")
     return {'sent': sent, 'date': str(tomorrow)}
+
+
+@shared_task(name='core.tasks.update_daily_plans_weather')
+def update_daily_plans_weather():
+    """
+    Update weather data for upcoming daily plans.
+    Runs daily at 5 AM.
+    
+    Fetches weather for:
+    - Today's plans without recent weather data
+    - Tomorrow's plans without weather data
+    
+    Uses WeatherService with cache, rate limiting, and circuit breaker.
+    """
+    from core.models import DailyPlan, Project
+    from core.services.weather import weather_service
+    
+    now = timezone.now()
+    today = now.date()
+    tomorrow = today + timedelta(days=1)
+    
+    # Target plans: today and tomorrow, not in SKIPPED/CANCELLED
+    target_plans = DailyPlan.objects.filter(
+        plan_date__in=[today, tomorrow],
+        status__in=['DRAFT', 'PUBLISHED', 'IN_PROGRESS']
+    ).select_related('project')
+    
+    updated = 0
+    skipped_no_address = 0
+    skipped_stale = 0
+    errors = 0
+    
+    for plan in target_plans:
+        # Skip if no project address (can't geocode)
+        if not plan.project.address:
+            skipped_no_address += 1
+            continue
+        
+        # Check if weather data is recent (< 2 hours old)
+        if plan.weather_fetched_at:
+            age = (now - plan.weather_fetched_at).total_seconds() / 3600
+            if age < 2:  # Skip if fetched within last 2 hours
+                skipped_stale += 1
+                continue
+        
+        # Attempt weather fetch
+        try:
+            plan.fetch_weather()
+            updated += 1
+            logger.info(f"Updated weather for DailyPlan {plan.id} ({plan.project.name}, {plan.plan_date})")
+        except Exception as e:
+            errors += 1
+            logger.error(f"Failed to fetch weather for DailyPlan {plan.id}: {e}")
+    
+    result = {
+        'updated': updated,
+        'skipped_no_address': skipped_no_address,
+        'skipped_recent': skipped_stale,
+        'errors': errors,
+        'timestamp': str(now)
+    }
+    
+    logger.info(f"Weather update complete: {result}")
+    return result
+
+
+@shared_task(name='core.tasks.fetch_weather_for_plan')
+def fetch_weather_for_plan(plan_id):
+    """
+    Fetch weather data for a specific DailyPlan (async task).
+    Called automatically when plan is created/updated.
+    
+    Args:
+        plan_id: DailyPlan primary key
+    
+    Returns:
+        dict with status and weather data summary
+    """
+    from core.models import DailyPlan
+    
+    try:
+        plan = DailyPlan.objects.get(id=plan_id)
+    except DailyPlan.DoesNotExist:
+        logger.error(f"DailyPlan {plan_id} not found for weather fetch")
+        return {'status': 'not_found', 'plan_id': plan_id}
+    
+    if not plan.project.address:
+        logger.warning(f"DailyPlan {plan_id} has no project address, skipping weather fetch")
+        return {'status': 'no_address', 'plan_id': plan_id}
+    
+    try:
+        weather_data = plan.fetch_weather()
+        if weather_data:
+            logger.info(f"Weather fetched successfully for DailyPlan {plan_id}")
+            return {
+                'status': 'success',
+                'plan_id': plan_id,
+                'temperature': weather_data.get('temperature'),
+                'condition': weather_data.get('condition')
+            }
+        else:
+            logger.warning(f"Weather fetch returned no data for DailyPlan {plan_id}")
+            return {'status': 'no_data', 'plan_id': plan_id}
+    except Exception as e:
+        logger.error(f"Error fetching weather for DailyPlan {plan_id}: {e}")
+        return {'status': 'error', 'plan_id': plan_id, 'error': str(e)}
+
+

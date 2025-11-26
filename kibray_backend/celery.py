@@ -57,6 +57,12 @@ app.conf.beat_schedule = {
         'schedule': crontab(hour=1, minute=0),
     },
     
+    # Update weather data for upcoming daily plans at 5 AM
+    'update-daily-plans-weather': {
+        'task': 'core.tasks.update_daily_plans_weather',
+        'schedule': crontab(hour=5, minute=0),
+    },
+    
     # Cleanup old notifications weekly on Sunday at 2 AM
     'cleanup-old-notifications': {
         'task': 'core.tasks.cleanup_old_notifications',

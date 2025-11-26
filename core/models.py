@@ -629,14 +629,43 @@ class Task(models.Model):
 
         is_new = self.pk is None
         old_assigned_to = None
+        old_status = None
 
         if not is_new:
             old_obj = Task.objects.filter(pk=self.pk).first()
-            if old_obj and old_obj.assigned_to != self.assigned_to:
-                old_assigned_to = old_obj.assigned_to
+            if old_obj:
+                if old_obj.assigned_to != self.assigned_to:
+                    old_assigned_to = old_obj.assigned_to
+                # Capturar estado anterior para log automático
+                old_status = old_obj.status
 
-        # Guardar sin manejar cambios de estado (delegado a señales)
+        # Guardar
         super().save(*args, **kwargs)
+        
+        # Auto-log de cambios de estado (incluyendo reaperturas)
+        if not is_new and old_status and old_status != self.status:
+            from core.models import TaskStatusChange
+            
+            # Determinar si es reapertura (de Completada/Cancelada a otro estado)
+            is_reopen = old_status in ['Completada', 'Cancelada'] and self.status not in ['Completada', 'Cancelada']
+            
+            # Usuario que hizo el cambio (si disponible en contexto)
+            changed_by = getattr(self, '_current_user', None)
+            
+            # Notas automáticas
+            notes = ""
+            if is_reopen:
+                notes = f"Tarea reabierta desde estado '{old_status}'"
+            else:
+                notes = f"Cambio de estado: {old_status} → {self.status}"
+            
+            TaskStatusChange.objects.create(
+                task=self,
+                old_status=old_status,
+                new_status=self.status,
+                changed_by=changed_by,
+                notes=notes
+            )
 
         # Notificar nueva asignación solamente aquí. Cambios de estado se manejan vía signals.
         if old_assigned_to != self.assigned_to and self.assigned_to:
@@ -3972,14 +4001,38 @@ class DailyPlan(models.Model):
         verbose_name_plural = "Daily Plans"
 
     def save(self, *args, **kwargs):
-        """Normaliza completion_deadline a timezone-aware si es naive."""
+        """Normaliza completion_deadline a timezone-aware si es naive y dispara fetch weather si necesario."""
         from django.utils import timezone
         if self.completion_deadline and timezone.is_naive(self.completion_deadline):
             self.completion_deadline = timezone.make_aware(
                 self.completion_deadline,
                 timezone.get_current_timezone()
             )
-        return super().save(*args, **kwargs)
+        
+        # Guardar primero para tener ID
+        is_new = self._state.adding
+        result = super().save(*args, **kwargs)
+        
+        # Auto-trigger weather fetch para planes futuros sin datos recientes
+        if self.project.address and self.plan_date >= timezone.now().date():
+            should_fetch = False
+            
+            # Caso 1: plan nuevo sin weather
+            if is_new and not self.weather_data:
+                should_fetch = True
+            
+            # Caso 2: weather data obsoleto (> 6 horas)
+            elif self.weather_fetched_at:
+                age_hours = (timezone.now() - self.weather_fetched_at).total_seconds() / 3600
+                if age_hours > 6:
+                    should_fetch = True
+            
+            if should_fetch:
+                # Disparar fetch asíncrono (evita bloquear save)
+                from core.tasks import fetch_weather_for_plan
+                fetch_weather_for_plan.delay(self.id)
+        
+        return result
     
     def __str__(self):
         return f"Plan for {self.project.name} on {self.plan_date}"
