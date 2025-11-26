@@ -207,16 +207,24 @@ urlpatterns = [
     path("files/<int:file_id>/download/", views.file_download, name="file_download"),
     path("files/<int:file_id>/edit/", views.file_edit_metadata, name="file_edit_metadata"),
     
-    # Touch-up Pins
-    path("projects/<int:project_id>/touchup-plans/", views.touchup_plans_list, name="touchup_plans_list"),
-    path("plans/<int:plan_id>/touchups/", views.touchup_plan_detail, name="touchup_plan_detail"),
-    path("plans/<int:plan_id>/touchups/create/", views.touchup_create, name="touchup_create"),
-    path("touchups/<int:touchup_id>/", views.touchup_detail_ajax, name="touchup_detail_ajax"),
-    path("touchups/<int:touchup_id>/update/", views.touchup_update, name="touchup_update"),
-    path("touchups/<int:touchup_id>/complete/", views.touchup_complete, name="touchup_complete"),
-    path("touchups/<int:touchup_id>/delete/", views.touchup_delete, name="touchup_delete"),
-    path("touchups/<int:touchup_id>/approve/", views.touchup_approve, name="touchup_approve"),
-    path("touchups/<int:touchup_id>/reject/", views.touchup_reject, name="touchup_reject"),
+    # Touch-up Pins (deprecated flow) - gated via settings.TOUCHUP_PIN_ENABLED
+    # These routes are disabled by default to consolidate on Task(is_touchup=True)
+    # Set TOUCHUP_PIN_ENABLED=True to re-enable the legacy TouchUpPin UI.
+    # Note: Data model remains for compatibility and potential future migration.
+    *([
+        path("projects/<int:project_id>/touchup-plans/", views.touchup_plans_list, name="touchup_plans_list"),
+        path("plans/<int:plan_id>/touchups/", views.touchup_plan_detail, name="touchup_plan_detail"),
+        path("plans/<int:plan_id>/touchups/create/", views.touchup_create, name="touchup_create"),
+        path("touchups/<int:touchup_id>/", views.touchup_detail_ajax, name="touchup_detail_ajax"),
+        path("touchups/<int:touchup_id>/update/", views.touchup_update, name="touchup_update"),
+        path("touchups/<int:touchup_id>/complete/", views.touchup_complete, name="touchup_complete"),
+        path("touchups/<int:touchup_id>/delete/", views.touchup_delete, name="touchup_delete"),
+        path("touchups/<int:touchup_id>/approve/", views.touchup_approve, name="touchup_approve"),
+        path("touchups/<int:touchup_id>/reject/", views.touchup_reject, name="touchup_reject"),
+    ] if getattr(settings, 'TOUCHUP_PIN_ENABLED', False) else [
+        # Stub route: redirect to Task-based touch-up board when legacy UI disabled
+        path("projects/<int:project_id>/touchup-plans/", views.touchup_board, name="touchup_plans_list"),
+    ]),
     
     # Info Pins (Regular floor plan pins)
     path("pins/<int:pin_id>/info/", views.pin_info_ajax, name="pin_info_ajax"),

@@ -683,23 +683,11 @@ class MaterialRequestSerializer(serializers.ModelSerializer):
         """Aplicar mapping de compatibilidad en validación de entrada."""
         from core.models import MaterialRequest
         if value in MaterialRequest.STATUS_COMPAT_MAP:
-            import logging
-            logger = logging.getLogger(__name__)
-            mapped = MaterialRequest.STATUS_COMPAT_MAP[value]
-            logger.info(f"MaterialRequest serializer: legacy status '{value}' mapped to '{mapped}'")
-            return mapped
+            # Mapear automáticamente valores legacy a su forma normalizada
+            return MaterialRequest.STATUS_COMPAT_MAP[value]
         return value
 
-    class Meta:
-        from core.models import MaterialRequest
-        model = MaterialRequest
-        fields = [
-            'id', 'project', 'project_name', 'requested_by', 'requested_by_name',
-            'needed_when', 'needed_date', 'notes', 'status',
-            'approved_by', 'approved_at', 'expected_delivery_date', 'partial_receipt_notes',
-            'created_at', 'updated_at', 'items'
-        ]
-        read_only_fields = ['requested_by', 'approved_by', 'approved_at', 'created_at', 'updated_at']
+    # Nota: evitamos duplicar Meta; ya incluye legacy_status_used
 
 
     def create(self, validated_data):

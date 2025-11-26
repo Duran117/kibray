@@ -1,3 +1,8 @@
+# Celery: run tasks eagerly during tests to avoid broker requirement
+import os as _os
+if _os.getenv('PYTEST_CURRENT_TEST') or _os.getenv('RUN_TESTS') == '1':
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
 import os
 from pathlib import Path
 import dj_database_url
@@ -138,6 +143,10 @@ else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Custom settings
+# Feature flags
+# Disable legacy TouchUpPin UI by default; consolidate touch-ups via Task(is_touchup=True)
+TOUCHUP_PIN_ENABLED = False
 # 🔑 ID por defecto
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
