@@ -63,6 +63,18 @@ app.conf.beat_schedule = {
         'schedule': crontab(hour=5, minute=0),
     },
     
+    # Fetch weather snapshots for all active projects at 5 AM (before daily plans)
+    'fetch-weather-snapshots': {
+        'task': 'core.tasks.update_daily_weather_snapshots',
+        'schedule': crontab(hour=5, minute=0),
+    },
+    
+    # Alert about high-priority touch-ups daily at 9 AM
+    'alert-high-priority-touchups': {
+        'task': 'core.tasks.alert_high_priority_touchups',
+        'schedule': crontab(hour=9, minute=0),
+    },
+    
     # Cleanup old notifications weekly on Sunday at 2 AM
     'cleanup-old-notifications': {
         'task': 'core.tasks.cleanup_old_notifications',

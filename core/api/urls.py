@@ -21,6 +21,7 @@ from .views import (
     InvoiceDashboardView, MaterialsDashboardView, FinancialDashboardView, PayrollDashboardView,
     InvoiceTrendsView, MaterialsUsageAnalyticsView, AdminDashboardView
 )
+from .dashboard_extra import ProjectDashboardView, ClientDashboardView
 
 router = DefaultRouter()
 # Notifications & Chat
@@ -98,4 +99,6 @@ urlpatterns = [
     path('dashboards/financial/', FinancialDashboardView.as_view(), name='dashboard-financial'),
     path('dashboards/payroll/', PayrollDashboardView.as_view(), name='dashboard-payroll'),
     path('dashboards/admin/', AdminDashboardView.as_view(), name='dashboard-admin'),
+    path('dashboards/projects/<int:project_id>/', ProjectDashboardView.as_view(), name='dashboard-project'),
+    path('dashboards/client/', ClientDashboardView.as_view(), name='dashboard-client'),
 ]

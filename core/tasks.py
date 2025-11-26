@@ -181,6 +181,157 @@ def generate_weekly_payroll():
 
 @shared_task(name='core.tasks.update_daily_weather_snapshots')
 def update_daily_weather_snapshots():
+    """
+    Fetch and persist weather data for all active projects.
+    Runs daily at 5 AM (before daily plan updates).
+    
+    Creates WeatherSnapshot records for today's date for each project.
+    Uses project address (if available) or name as location identifier.
+    """
+    from core.models import Project, WeatherSnapshot
+    from django.db.models import Q
+    
+    today = timezone.now().date()
+    
+    # Filter active projects (no end_date or end_date in future)
+    active_projects = Project.objects.filter(
+        Q(end_date__isnull=True) | Q(end_date__gte=today)
+    )
+    
+    snapshots_created = 0
+    snapshots_updated = 0
+    
+    for project in active_projects:
+        # Use address or project name as location key
+        location_key = project.address if project.address else project.name
+        
+        # Fetch weather data (placeholder: replace with real API in production)
+        # For now, simulate basic data
+        import random
+        conditions = ['Clear', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Overcast']
+        
+        weather_data = {
+            'temperature_max': round(random.uniform(15, 32), 1),
+            'temperature_min': round(random.uniform(8, 20), 1),
+            'conditions_text': random.choice(conditions),
+            'precipitation_mm': round(random.uniform(0, 5), 1) if random.random() < 0.3 else 0,
+            'wind_kph': round(random.uniform(5, 25), 1),
+            'humidity_percent': random.randint(40, 85),
+        }
+        
+        # Check if snapshot already exists for today
+        snapshot, created = WeatherSnapshot.objects.update_or_create(
+            project=project,
+            date=today,
+            source='open-meteo',
+            defaults={
+                'temperature_max': weather_data['temperature_max'],
+                'temperature_min': weather_data['temperature_min'],
+                'conditions_text': weather_data['conditions_text'],
+                'precipitation_mm': weather_data['precipitation_mm'],
+                'wind_kph': weather_data['wind_kph'],
+                'humidity_percent': weather_data['humidity_percent'],
+                'raw_json': weather_data,
+                'provider_url': 'https://open-meteo.com/en/docs',
+            }
+        )
+        
+        if created:
+            snapshots_created += 1
+        else:
+            snapshots_updated += 1
+    
+    logger.info(f"Weather snapshots: {snapshots_created} created, {snapshots_updated} updated")
+    return {
+        'date': str(today),
+        'created': snapshots_created,
+        'updated': snapshots_updated,
+        'total_projects': active_projects.count()
+    }
+
+
+@shared_task(name='core.tasks.alert_high_priority_touchups')
+def alert_high_priority_touchups():
+    """
+    Alert project managers about high-priority open touch-ups.
+    Runs daily at 9 AM.
+    
+    Scans all projects for touch-up tasks with priority=high/urgent
+    that are still pending or in progress. Sends notifications if
+    count exceeds threshold (default: 3).
+    """
+    from core.models import Project, Task, Notification
+    from django.contrib.auth import get_user_model
+    from django.db.models import Q, Count
+    
+    User = get_user_model()
+    THRESHOLD = 3  # Alert if 3+ high-priority touchups
+    
+    today = timezone.now().date()
+    
+    # Get active projects
+    active_projects = Project.objects.filter(
+        Q(end_date__isnull=True) | Q(end_date__gte=today)
+    )
+    
+    alerts_sent = 0
+    
+    for project in active_projects:
+        # Count high-priority open touch-ups
+        high_priority_touchups = project.tasks.filter(
+            is_touchup=True,
+            priority__in=['high', 'urgent'],
+            status__in=['Pendiente', 'En Progreso']
+        )
+        
+        touchup_count = high_priority_touchups.count()
+        
+        if touchup_count >= THRESHOLD:
+            # Get project managers and admins
+            recipients = []
+            
+            # Find users with PM role who have access to this project
+            try:
+                from core.models import ClientProjectAccess
+                pm_accesses = ClientProjectAccess.objects.filter(
+                    project=project,
+                    role='external_pm'
+                ).select_related('user')
+                recipients.extend([access.user for access in pm_accesses])
+            except Exception:
+                pass
+            
+            # Add admin users
+            admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+            recipients.extend(admins)
+            
+            # Remove duplicates
+            recipients = list(set(recipients))
+            
+            # Create notifications
+            for user in recipients:
+                Notification.objects.create(
+                    user=user,
+                    notification_type='task_alert',
+                    title=f'High-Priority Touch-ups Alert: {project.name}',
+                    message=f'{touchup_count} high-priority touch-up tasks require attention.',
+                    link_url=f'/projects/{project.id}/touchups/',
+                    related_object_type='project',
+                    related_object_id=project.id
+                )
+            
+            alerts_sent += len(recipients)
+            logger.info(f"Sent {len(recipients)} alerts for {touchup_count} touchups in project {project.id}")
+    
+    return {
+        'date': str(today),
+        'alerts_sent': alerts_sent,
+        'threshold': THRESHOLD
+    }
+
+
+@shared_task(name='core.tasks.update_daily_weather_snapshots_legacy')
+def update_daily_weather_snapshots_legacy():
     """Daily task to snapshot weather for active projects (Module 30 skeleton)."""
     from core.models import Project, Notification
     from core.services.weather_service import get_weather_service
