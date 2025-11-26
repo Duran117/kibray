@@ -563,6 +563,7 @@ class TwoFactorTokenObtainPairView(TokenObtainPairView):
 class FloorPlanViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FloorPlanSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
     
     def get_queryset(self):
         return FloorPlan.objects.prefetch_related('pins').select_related('project').order_by('-created_at')
@@ -570,13 +571,27 @@ class FloorPlanViewSet(viewsets.ReadOnlyModelViewSet):
 class PlanPinViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PlanPinSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
     
     def get_queryset(self):
         plan_id = self.request.query_params.get('plan')
+        pin_type = self.request.query_params.get('pin_type')
         qs = PlanPin.objects.select_related('plan', 'color_sample', 'linked_task').order_by('-created_at')
         if plan_id:
             qs = qs.filter(plan_id=plan_id)
+        if pin_type:
+            qs = qs.filter(pin_type=pin_type)
         return qs
+
+    @action(detail=True, methods=['post'])
+    def comment(self, request, pk=None):
+        """Allow clients/staff to add a comment on a pin"""
+        pin = self.get_object()
+        comment = request.data.get('comment', '').strip()
+        if not comment:
+            return Response({'detail': 'comment is required'}, status=400)
+        pin.add_client_comment(request.user, comment)
+        return Response(PlanPinSerializer(pin, context={'request': request}).data)
 
 # Color Samples
 class ColorSampleViewSet(viewsets.ModelViewSet):
