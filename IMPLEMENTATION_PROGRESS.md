@@ -22,7 +22,7 @@ Escala: 0–100%. Valores basados en verificación de modelos/vistas/servicios y
 
 - Módulo 1 – Proyectos: 82%
   - Implementado: Proyecto, presupuestos, EV, schedules, dashboards por rol, minutas, CO integrado.
-  - Pendiente: notificación al asignar PM; firmas digitales para colores.
+  - Pendiente: firmas digitales para colores (UI completa y flujo cliente).
 
 - Módulo 2 – Empleados: 85%
   - Implementado: CRUD empleado, vinculación User/Profile, activo/inactivo, tarifa/hora, historial básico; lógica de almuerzo aplicada en TimeEntry.
@@ -90,6 +90,8 @@ Promedio (M1–M6): ≈ 78%.
 - Task API y lógica de reopen/time tracking: estable; sin duplicidad de eventos (señales centralizadas).
 - Invoice + pagos parciales: presentes en modelos; estados sincronizados.
 - Project_code (PRJ-####): agregado y auto-generado post-creación.
+ - PM assignment: modelo mínimo con notificación auto (post_save) agregado.
+ - Color approvals: modelo con firma digital y acciones approve/reject con notificaciones.
 
 ## 🗺️ Cómo usar este mapa
 

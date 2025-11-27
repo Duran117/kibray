@@ -106,6 +106,110 @@ class Project(models.Model):
         return compute_project_ev(self, as_of=as_of)
 
 
+class ProjectManagerAssignment(models.Model):
+    """Asignación de Project Manager a un proyecto con notificación automática."""
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="pm_assignments")
+    pm = models.ForeignKey(User, on_delete=models.CASCADE, related_name="managed_projects")
+    role = models.CharField(max_length=50, default="project_manager")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("project", "pm")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.pm.username} → {self.project.name} ({self.role})"
+
+
+@receiver(post_save, sender=ProjectManagerAssignment)
+def notify_pm_assignment(sender, instance: "ProjectManagerAssignment", created: bool, **kwargs):
+    """Notifica al PM y al Admin cuando se realiza una asignación."""
+    if not created:
+        return
+    from core.models import Notification
+
+    # Notificar al PM asignado
+    Notification.objects.create(
+        user=instance.pm,
+        notification_type="pm_assigned",
+        title="Has sido asignado como PM",
+        message=f"Fuiste asignado al proyecto '{instance.project.name}' como {instance.role}.",
+        related_object_type="project",
+        related_object_id=instance.project_id,
+    )
+    # Notificar a admins (usuarios staff)
+    for admin in User.objects.filter(is_staff=True, is_active=True):
+        Notification.objects.create(
+            user=admin,
+            notification_type="pm_assigned",
+            title="Nuevo PM asignado",
+            message=f"{instance.pm.username} fue asignado al proyecto '{instance.project.name}'.",
+            related_object_type="project",
+            related_object_id=instance.project_id,
+        )
+
+
+class ColorApproval(models.Model):
+    """Aprobación/rechazo de muestras de color con evidencia de firma digital."""
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pendiente"),
+        ("APPROVED", "Aprobado"),
+        ("REJECTED", "Rechazado"),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="color_approvals")
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests")
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    color_name = models.CharField(max_length=100)
+    color_code = models.CharField(max_length=50, blank=True)
+    brand = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=200, blank=True, help_text=_("Ubicación de aplicación"))
+    notes = models.TextField(blank=True)
+    client_signature = models.FileField(upload_to="color_approvals/signatures/", blank=True, null=True)
+    signed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.project.name} · {self.color_name} ({self.status})"
+
+    def approve(self, approver: Optional[User] = None, signature_file=None):
+        from django.utils import timezone
+
+        self.status = "APPROVED"
+        if approver:
+            self.approved_by = approver
+        if signature_file is not None:
+            self.client_signature = signature_file
+        self.signed_at = timezone.now()
+        self.save(update_fields=["status", "approved_by", "client_signature", "signed_at"])
+        # Notificar PMs y cliente
+        from core.models import Notification
+        pms = User.objects.filter(profile__role="project_manager", is_active=True)
+        for pm in pms:
+            Notification.objects.create(
+                user=pm,
+                notification_type="color_approved",
+                title="Color aprobado",
+                message=f"'{self.color_name}' aprobado para {self.project.name}.",
+                related_object_type="project",
+                related_object_id=self.project_id,
+            )
+
+    def reject(self, approver: Optional[User] = None, reason: str = ""):
+        self.status = "REJECTED"
+        if approver:
+            self.approved_by = approver
+        if reason:
+            self.notes = (self.notes or "") + f"\nRechazo: {reason}"
+        self.save(update_fields=["status", "approved_by", "notes"])
+
+
 # ---------------------
 # Modelo de Ingreso
 # ---------------------
