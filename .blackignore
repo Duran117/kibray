@@ -1,0 +1,7 @@
+core/consumers_fixed.py
+migrations/
+__pycache__/
+.venv/
+venv/
+staticfiles/
+media/

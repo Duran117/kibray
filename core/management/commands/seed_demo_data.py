@@ -1,6 +1,6 @@
 import random
 import uuid
-from datetime import date, datetime, timedelta, time
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -8,32 +8,30 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from core.models import (
-    Project,
-    Employee,
-    TimeEntry,
-    Schedule,
-    Task,
-    Comment,
-    ChangeOrder,
-    PayrollPeriod,
-    PayrollRecord,
-    PayrollPayment,
-    Income,
-    Expense,
-    Invoice,
-    InvoiceLine,
-    CostCode,
     BudgetLine,
-    Estimate,
-    EstimateLine,
-    Proposal,
-    DailyLog,
-    Issue,
-    InventoryItem,
-    InventoryLocation,
-    ProjectInventory,
+    ChangeOrder,
     ChatChannel,
     ChatMessage,
+    CostCode,
+    DailyLog,
+    Employee,
+    Estimate,
+    EstimateLine,
+    Expense,
+    Income,
+    InventoryItem,
+    InventoryLocation,
+    Invoice,
+    InvoiceLine,
+    Issue,
+    PayrollPayment,
+    PayrollPeriod,
+    Project,
+    ProjectInventory,
+    Proposal,
+    Schedule,
+    Task,
+    TimeEntry,
 )
 
 
@@ -59,10 +57,7 @@ class Command(BaseCommand):
         users = {}
 
         # Admin (may already exist via createsu)
-        admin, _ = User.objects.get_or_create(
-            username="admin",
-            defaults={"email": "admin@example.com"}
-        )
+        admin, _ = User.objects.get_or_create(username="admin", defaults={"email": "admin@example.com"})
         if not admin.has_usable_password():
             admin.set_password("admin123")
             admin.is_staff = True
@@ -71,10 +66,7 @@ class Command(BaseCommand):
         users["admin"] = admin
 
         # Project Manager
-        pm, created = User.objects.get_or_create(
-            username="pm",
-            defaults={"email": "pm@example.com"}
-        )
+        pm, created = User.objects.get_or_create(username="pm", defaults={"email": "pm@example.com"})
         if created:
             pm.set_password("pm123")
             pm.is_staff = True
@@ -88,9 +80,7 @@ class Command(BaseCommand):
 
         # Employees
         for i in range(1, 4):
-            u, created = User.objects.get_or_create(
-                username=f"emp{i}", defaults={"email": f"emp{i}@example.com"}
-            )
+            u, created = User.objects.get_or_create(username=f"emp{i}", defaults={"email": f"emp{i}@example.com"})
             if created:
                 u.set_password("emp123")
                 u.save()
@@ -113,10 +103,7 @@ class Command(BaseCommand):
             users[f"emp{i}"] = u
 
         # Client user (viewer)
-        client, created = User.objects.get_or_create(
-            username="cliente",
-            defaults={"email": "cliente@example.com"}
-        )
+        client, created = User.objects.get_or_create(username="cliente", defaults={"email": "cliente@example.com"})
         if created:
             client.set_password("cliente123")
             client.save()
@@ -287,7 +274,9 @@ class Command(BaseCommand):
                         "description": f"Tarea {idx} para {p.name}",
                         "status": random.choice(["Pendiente", "En Progreso", "Completada"]),
                         "created_by": users["pm"],
-                        "assigned_to_id": getattr(Employee.objects.filter(user__username__startswith="emp").order_by("id").first(), "id", None),
+                        "assigned_to_id": getattr(
+                            Employee.objects.filter(user__username__startswith="emp").order_by("id").first(), "id", None
+                        ),
                     },
                 )
 
@@ -344,6 +333,7 @@ class Command(BaseCommand):
             # Register partial payment
             if inv.amount_paid == 0:
                 from core.models import InvoicePayment
+
                 InvoicePayment.objects.create(
                     invoice=inv,
                     amount=Decimal("1000.00"),
@@ -404,6 +394,7 @@ class Command(BaseCommand):
 
             # Create PayrollRecord by helper (compute hours and pay)
             from core.models import crear_o_actualizar_payroll_record
+
             rec = crear_o_actualizar_payroll_record(emp, monday, sunday)
             rec.period = period
             rec.save()
@@ -421,8 +412,12 @@ class Command(BaseCommand):
         storage, _ = InventoryLocation.objects.get_or_create(name="Central Storage", is_storage=True)
         loc_proj, _ = InventoryLocation.objects.get_or_create(name="Site Storage", project=projects[0])
 
-        paint, _ = InventoryItem.objects.get_or_create(name="Paint - Interior White", category="PINTURA", default_threshold=Decimal("5"))
-        tape, _ = InventoryItem.objects.get_or_create(name="Tape 2in 3M", category="MATERIAL", default_threshold=Decimal("10"))
+        paint, _ = InventoryItem.objects.get_or_create(
+            name="Paint - Interior White", category="PINTURA", default_threshold=Decimal("5")
+        )
+        tape, _ = InventoryItem.objects.get_or_create(
+            name="Tape 2in 3M", category="MATERIAL", default_threshold=Decimal("10")
+        )
 
         ProjectInventory.objects.get_or_create(item=paint, location=storage, defaults={"quantity": Decimal("20")})
         ProjectInventory.objects.get_or_create(item=tape, location=storage, defaults={"quantity": Decimal("50")})

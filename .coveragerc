@@ -1,0 +1,12 @@
+[run]
+branch = True
+omit =
+    */migrations/*
+    */tests/*
+    */venv/*
+    */.venv/*
+    core/consumers_fixed.py
+
+[report]
+show_missing = True
+skip_covered = False

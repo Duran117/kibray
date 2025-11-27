@@ -1,13 +1,11 @@
-import io
 import pytest
-from django.urls import reverse
-from django.test import Client
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client
+from django.urls import reverse
 from django.utils import timezone
 
-from core.models import Project, FloorPlan, DamageReport, Income, Expense
-from core.models import TimeEntry, Employee, RFI, Issue, Risk
+from core.models import RFI, DamageReport, Employee, Expense, FloorPlan, Income, Issue, Project, Risk, TimeEntry
 
 
 @pytest.fixture
@@ -99,6 +97,7 @@ def employee(db):
 @pytest.fixture
 def timeentry(db, project, employee):
     from datetime import date, time
+
     return TimeEntry.objects.create(
         employee=employee,
         project=project,
@@ -187,6 +186,7 @@ class TestSmokeRoutes:
         assert client.get(reverse("rfi_edit", args=[rfi.id])).status_code in (302, 301)
         assert client.get(reverse("issue_edit", args=[issue.id])).status_code in (302, 301)
         assert client.get(reverse("risk_edit", args=[risk.id])).status_code in (302, 301)
+
     # TimeEntry
     # Create a minimal employee/timeentry for redirect check (reuse existing fixtures indirectly)
     # Note: we can't rely on staff-created employee here, so just ensure redirect on pattern

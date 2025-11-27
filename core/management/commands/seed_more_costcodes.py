@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+
 from core.models import CostCode
 
 DATA = [
@@ -7,6 +8,7 @@ DATA = [
     ("EQP002", "Lift Rental", "equipment"),
 ]
 
+
 class Command(BaseCommand):
     help = "Seed extra cost codes."
 
@@ -14,8 +16,7 @@ class Command(BaseCommand):
         new = 0
         for code, name, cat in DATA:
             _, created = CostCode.objects.get_or_create(
-                code=code,
-                defaults={"name": name, "category": cat, "active": True}
+                code=code, defaults={"name": name, "category": cat, "active": True}
             )
             if created:
                 new += 1

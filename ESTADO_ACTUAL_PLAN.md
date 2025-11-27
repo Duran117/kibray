@@ -166,48 +166,35 @@ Notas:
 Status: CONSIDERADO COMPLETADO
 ```
 
-### **FASE 6: VISUAL & COLLABORATION** ⏳ PRÓXIMA PRIORIDAD (2-3 semanas)
+### **FASE 6: VISUAL & COLLABORATION** ✅ COMPLETADO (26 Nov 2025)
 ```
-├── MÓDULO 18: Site Photos
-│   ├── GPS auto-tagging
-│   ├── Gallery system
-│   └── Integration con Damage Reports
-│
-├── MÓDULO 19: Color Samples
-│   ├── Sample numbering (KPISM format)
-│   ├── Room grouping
-│   ├── Approval workflow
-│   └── Digital signature integration
-│
-├── MÓDULO 20: Floor Plans
-│   ├── Pin system (tipos: Info, Touch-up, Issue)
-│   ├── Pin migration en blueprint updates
-│   ├── Canvas annotations
-│   └── Multi-device support
-│
-├── MÓDULO 21: Damage Reports
-│   ├── Category system
-│   ├── Workflow states
-│   ├── Photo evidence
-│   ├── CO integration (opcional)
-│   └── Pattern analytics
+MÓDULO 18: Site Photos
+   - Implementado (gallery + filtrado fecha + tipos) ✅
+MÓDULO 19: Color Samples
+   - Workflow aprobado/rechazado + numeración + filtros ✅
+MÓDULO 20: Floor Plans
+   - Versionado + migración de pins + comentarios + anotaciones ✅ (22/22 tests)
+MÓDULO 21: Damage Reports
+   - Ciclo vida + asignación + conversión CO ✅ (29/29 tests)
 
-Prioridad: 🟡 MEDIA
-Tiempo estimado: 2-3 semanas
+Documento resumen: MODULE_18_21_VISUAL_COLLABORATION_COMPLETE.md
+Tests nuevos fase: 86 (86 verdes)
+Deuda técnica registrada: notification types formales (opcional)
 ```
 
-### **FASE 8: ADVANCED FEATURES** ⏳ PENDIENTE
+### **FASE 8: ADVANCED FEATURES** ⏳ PRÓXIMA PRIORIDAD
 ```
-├── MÓDULO 23: Cost Codes (refactor)
-├── MÓDULO 25: Automation (consolidar)
-├── MÓDULO 26: Security (audit + mejoras)
-├── MÓDULO 27: Reports (sistema unificado)
-├── MÓDULO 31: Digital Signatures (NUEVO)
-├── P3: Task Dependencies (Gantt)
-└── P4: EVM Dynamic Recalculation
+Orden sugerido:
+1. Task Dependencies (Gantt) – desbloquea planificación crítica
+2. Digital Signatures (aplicar a ColorSamples y ChangeOrders)
+3. Cost Codes refactor (estandarización financiera)
+4. Reports unificado (export PDF/JSON multi-módulo)
+5. EVM Dynamic Recalculation (finanzas avanzadas)
+6. Automation consolidation (limpieza final)
 
-Prioridad: 🟢 BAJA
+Prioridad: � MEDIA
 Tiempo estimado: 3-4 semanas
+Prerequisito opcional: cerrar 7 tests de Damage antes de comenzar (#estabilidad)
 ```
 
 ### **FASE 9: TESTING & VALIDATION** ⏳ PENDIENTE

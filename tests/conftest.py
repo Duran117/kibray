@@ -4,7 +4,8 @@ import pytest
 # This avoids RuntimeError from pytest-django enforcing DB access restrictions on unmarked tests.
 # If certain tests should NOT hit the DB, they can add @pytest.mark.no_db and we can refine logic later.
 
+
 def pytest_collection_modifyitems(config, items):
     for item in items:
-        if 'django_db' not in item.keywords:
+        if "django_db" not in item.keywords:
             item.add_marker(pytest.mark.django_db)

@@ -60,76 +60,181 @@ SPECIFIC_TRANSLATIONS = {
     "Rol": "Rol",
 }
 
+
 def has_spanish_chars(text):
     """Detecta caracteres típicos del español"""
-    spanish_chars = ['ñ', 'Ñ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', '¿', '¡']
+    spanish_chars = ["ñ", "Ñ", "á", "é", "í", "ó", "ú", "Á", "É", "Í", "Ó", "Ú", "¿", "¡"]
     return any(char in text for char in spanish_chars)
+
 
 def is_likely_spanish(text):
     """Determina si un texto probablemente ya está en español"""
     if not text or len(text) < 2:
         return False
-    
+
     # Si tiene caracteres especiales del español
     if has_spanish_chars(text):
         return True
-    
+
     # Palabras comunes en español
     spanish_words = [
-        'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'al', 'para', 'con', 'sin', 'por',
-        'que', 'si', 'no', 'más', 'muy', 'también', 'aquí', 'ahí', 'donde', 'cuando', 'cómo',
-        'este', 'esta', 'estos', 'estas', 'ese', 'esa', 'esos', 'esas',
-        'año', 'día', 'mes', 'usuario', 'usuarios', 'proyecto', 'proyectos',
-        'fecha', 'nombre', 'descripción', 'crear', 'editar', 'eliminar', 'guardar',
-        'cancelar', 'todos', 'todas', 'ninguno', 'ninguna', 'ejemplo', 'opcional',
-        'requerido', 'selecciona', 'introduce', 'escribe', 'grupo', 'grupos',
-        'permiso', 'permisos', 'acceso', 'sistema', 'panel', 'administrativo',
-        'siguiente', 'anterior', 'nuevo', 'nueva', 'buscar', 'filtrar', 'exportar',
-        'gastos', 'ingresos', 'tiempo', 'cronograma', 'tareas', 'cliente', 'clientes',
-        'empleado', 'empleados', 'administrador', 'administradores', 'presupuesto',
-        'materiales', 'otros', 'monto', 'cheque', 'transferencia', 'factura',
-        'comprobante', 'seguro', 'oficina', 'bloqueado', 'baja', 'media', 'alta',
-        'urgente', 'ver', 'gestionar', 'asignados', 'completo', 'registro', 'rol',
-        'tintes', 'acabados', 'comienza', 'creando', 'primer', 'paso', 'retrasos',
-        'problemas', 'cocina', 'pared', 'norte', 'sur', 'este', 'oeste',
+        "el",
+        "la",
+        "los",
+        "las",
+        "un",
+        "una",
+        "de",
+        "del",
+        "al",
+        "para",
+        "con",
+        "sin",
+        "por",
+        "que",
+        "si",
+        "no",
+        "más",
+        "muy",
+        "también",
+        "aquí",
+        "ahí",
+        "donde",
+        "cuando",
+        "cómo",
+        "este",
+        "esta",
+        "estos",
+        "estas",
+        "ese",
+        "esa",
+        "esos",
+        "esas",
+        "año",
+        "día",
+        "mes",
+        "usuario",
+        "usuarios",
+        "proyecto",
+        "proyectos",
+        "fecha",
+        "nombre",
+        "descripción",
+        "crear",
+        "editar",
+        "eliminar",
+        "guardar",
+        "cancelar",
+        "todos",
+        "todas",
+        "ninguno",
+        "ninguna",
+        "ejemplo",
+        "opcional",
+        "requerido",
+        "selecciona",
+        "introduce",
+        "escribe",
+        "grupo",
+        "grupos",
+        "permiso",
+        "permisos",
+        "acceso",
+        "sistema",
+        "panel",
+        "administrativo",
+        "siguiente",
+        "anterior",
+        "nuevo",
+        "nueva",
+        "buscar",
+        "filtrar",
+        "exportar",
+        "gastos",
+        "ingresos",
+        "tiempo",
+        "cronograma",
+        "tareas",
+        "cliente",
+        "clientes",
+        "empleado",
+        "empleados",
+        "administrador",
+        "administradores",
+        "presupuesto",
+        "materiales",
+        "otros",
+        "monto",
+        "cheque",
+        "transferencia",
+        "factura",
+        "comprobante",
+        "seguro",
+        "oficina",
+        "bloqueado",
+        "baja",
+        "media",
+        "alta",
+        "urgente",
+        "ver",
+        "gestionar",
+        "asignados",
+        "completo",
+        "registro",
+        "rol",
+        "tintes",
+        "acabados",
+        "comienza",
+        "creando",
+        "primer",
+        "paso",
+        "retrasos",
+        "problemas",
+        "cocina",
+        "pared",
+        "norte",
+        "sur",
+        "este",
+        "oeste",
     ]
-    
+
     text_lower = text.lower()
-    words_in_text = re.findall(r'\b\w+\b', text_lower)
-    
+    words_in_text = re.findall(r"\b\w+\b", text_lower)
+
     # Si tiene al menos una palabra en español
     for word in words_in_text:
         if word in spanish_words:
             return True
-    
+
     # Terminaciones típicas del español
-    if any(text_lower.endswith(suffix) for suffix in ['ción', 'sión', 'dad', 'tad', 'dor', 'dora', 'mente']):
+    if any(text_lower.endswith(suffix) for suffix in ["ción", "sión", "dad", "tad", "dor", "dora", "mente"]):
         return True
-    
+
     return False
+
 
 def process_po_file_final(po_file_path):
     """Procesamiento final: si msgid está en español, copiarlo a msgstr"""
-    
-    with open(po_file_path, 'r', encoding='utf-8') as f:
+
+    with open(po_file_path, encoding="utf-8") as f:
         lines = f.readlines()
-    
+
     new_lines = []
     auto_copied = 0
     from_dict = 0
     still_empty = 0
     i = 0
-    
+
     print("🔄 Procesando traducciones finales...")
-    
+
     while i < len(lines):
         line = lines[i]
         new_lines.append(line)
-        
+
         # Buscar msgid seguido de msgstr vacío
         if line.startswith('msgid "') and not line.strip() == 'msgid ""':
             msgid = line[7:-2]  # Extraer texto entre comillas
-            
+
             # Verificar si la siguiente línea es msgstr ""
             if i + 1 < len(lines) and lines[i + 1].strip() == 'msgstr ""':
                 # Primero verificar el diccionario
@@ -149,22 +254,23 @@ def process_po_file_final(po_file_path):
                     else:
                         new_lines.append(lines[i + 1])
                         still_empty += 1
-                
+
                 i += 2
                 continue
-        
+
         i += 1
-    
+
     # Guardar archivo
-    with open(po_file_path, 'w', encoding='utf-8') as f:
+    with open(po_file_path, "w", encoding="utf-8") as f:
         f.writelines(new_lines)
-    
+
     print(f"\n✅ Auto-copiadas (ya en español): {auto_copied}")
     print(f"✅ Traducidas del diccionario: {from_dict}")
     print(f"⏳ Aún vacías: {still_empty}")
     print(f"📊 Total completado: {auto_copied + from_dict}")
-    
+
     return auto_copied + from_dict
+
 
 def get_basic_translation(text):
     """Traducciones básicas de palabras comunes en inglés"""
@@ -249,8 +355,9 @@ def get_basic_translation(text):
         "Close": "Cerrar",
         "Submit": "Enviar",
     }
-    
+
     return basic.get(text, "")
+
 
 if __name__ == "__main__":
     po_file = "/Users/jesus/Documents/kibray/locale/es/LC_MESSAGES/django.po"

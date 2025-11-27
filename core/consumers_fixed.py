@@ -145,7 +145,7 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
     async def typing_indicator(self, event):
         """Send typing indicator to WebSocket"""
         # Don't send to the user who is typing
-        if event['user_id'] != self.user.id  # type: ignore[union-attr]:
+        if event['user_id'] != self.user.id:  # type: ignore[union-attr]
             await self.send(text_data=json.dumps({
                 'type': 'typing',
                 'user_id': event['user_id'],
@@ -155,7 +155,7 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
     
     async def user_joined(self, event):
         """Notify when user joins"""
-        if event['user_id'] != self.user.id  # type: ignore[union-attr]:
+        if event['user_id'] != self.user.id:  # type: ignore[union-attr]
             await self.send(text_data=json.dumps({
                 'type': 'user_joined',
                 'user_id': event['user_id'],
@@ -165,7 +165,7 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
     
     async def user_left(self, event):
         """Notify when user leaves"""
-        if event['user_id'] != self.user.id  # type: ignore[union-attr]:
+        if event['user_id'] != self.user.id:  # type: ignore[union-attr]
             await self.send(text_data=json.dumps({
                 'type': 'user_left',
                 'user_id': event['user_id'],

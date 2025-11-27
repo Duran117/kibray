@@ -1,10 +1,10 @@
 import pytest
-from django.urls import reverse
-from django.utils import translation
-from django.utils.translation import override
 from django.contrib.auth import get_user_model
-from core.models import Project, DamageReport
-from django.utils import timezone
+from django.urls import reverse
+from django.utils import timezone, translation
+from django.utils.translation import override
+
+from core.models import DamageReport, Project
 
 
 @pytest.mark.django_db
@@ -21,7 +21,7 @@ def test_dashboard_admin_translations(client):
 
     # Spanish default render (LANGUAGE_CODE = 'es')
     session = client.session
-    session['lang'] = 'es'
+    session["lang"] = "es"
     session.save()
     resp_es = client.get(url)
     assert resp_es.status_code == 200
@@ -30,11 +30,11 @@ def test_dashboard_admin_translations(client):
     assert "Active Projects" not in html_es
 
     # Activate English explicitly for translation thread then request
-    translation.activate('en')
+    translation.activate("en")
     session = client.session
-    session['lang'] = 'en'
+    session["lang"] = "en"
     session.save()
-    resp_en = client.get(url, HTTP_ACCEPT_LANGUAGE='en')
+    resp_en = client.get(url, HTTP_ACCEPT_LANGUAGE="en")
     # Deactivate after request
     translation.deactivate()
     assert resp_en.status_code == 200
@@ -62,11 +62,11 @@ def test_damage_report_photos_pluralization(client):
     assert "Foto" in html_es  # singular/plural handled
 
     # Activate English similar to admin test to ensure LocaleMiddleware + session interplay
-    translation.activate('en')
+    translation.activate("en")
     session = client.session
-    session['lang'] = 'en'
+    session["lang"] = "en"
     session.save()
-    resp_en = client.get(detail_url, HTTP_ACCEPT_LANGUAGE='en')
+    resp_en = client.get(detail_url, HTTP_ACCEPT_LANGUAGE="en")
     translation.deactivate()
     html_en = resp_en.content.decode()
     # For 0 count we expect plural "0 Photos"; ensure English words present

@@ -1551,30 +1551,32 @@ TRANSLATIONS = {
     "Edit SOP": "Edit SOP",
 }
 
+
 def translate_simple(text):
     """Traducir texto simple usando el diccionario"""
     return TRANSLATIONS.get(text, None)
 
+
 def process_po_file(filepath):
     """Procesar archivo PO y agregar traducciones automáticas"""
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding="utf-8") as f:
         lines = f.readlines()
-    
+
     modified = []
     i = 0
     translations_added = 0
-    
+
     while i < len(lines):
         line = lines[i]
         modified.append(line)
-        
+
         # Buscar msgid seguido de msgstr vacío
         if line.startswith('msgid "') and not line.startswith('msgid ""'):
             # Extraer el texto del msgid
             msgid_match = re.match(r'msgid "(.*)"', line)
             if msgid_match:
                 msgid_text = msgid_match.group(1)
-                
+
                 # Ver si la siguiente línea es msgstr vacío
                 if i + 1 < len(lines):
                     next_line = lines[i + 1]
@@ -1587,17 +1589,17 @@ def process_po_file(filepath):
                             translations_added += 1
                             i += 2  # saltar el msgstr vacío original
                             continue
-        
+
         i += 1
-    
+
     # Escribir archivo modificado
-    with open(filepath, 'w', encoding='utf-8') as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.writelines(modified)
-    
+
     return translations_added
 
-if __name__ == '__main__':
-    en_file = 'locale/en/LC_MESSAGES/django.po'
+
+if __name__ == "__main__":
+    en_file = "locale/en/LC_MESSAGES/django.po"
     count = process_po_file(en_file)
     print(f"✓ Agregadas {count} traducciones automáticas a {en_file}")
-

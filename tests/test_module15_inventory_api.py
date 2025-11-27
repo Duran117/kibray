@@ -1,17 +1,23 @@
-import pytest
 from decimal import Decimal
+
+import pytest
 from django.utils import timezone
+
 
 @pytest.mark.django_db
 class TestInventoryMovements:
     def setup_method(self):
         from core.models import InventoryItem, InventoryLocation
-        self.item = InventoryItem.objects.create(name="Latex Paint", category="PINTURA", unit="gal", low_stock_threshold=Decimal("5"))
+
+        self.item = InventoryItem.objects.create(
+            name="Latex Paint", category="PINTURA", unit="gal", low_stock_threshold=Decimal("5")
+        )
         self.storage = InventoryLocation.objects.create(name="Main Warehouse", is_storage=True)
         self.site = InventoryLocation.objects.create(name="Project A", project=None, is_storage=False)
 
     def test_receive_increases_stock_and_updates_avg_cost(self, django_user_model):
-        from core.models import InventoryMovement, ProjectInventory, InventoryItem
+        from core.models import InventoryItem, InventoryMovement, ProjectInventory
+
         user = django_user_model.objects.create_user(username="invuser")
 
         m = InventoryMovement.objects.create(
@@ -32,6 +38,7 @@ class TestInventoryMovements:
 
     def test_issue_decreases_stock_and_prevents_negative(self, django_user_model):
         from core.models import InventoryMovement, ProjectInventory
+
         user = django_user_model.objects.create_user(username="invuser2")
 
         # Seed stock
@@ -46,6 +53,7 @@ class TestInventoryMovements:
         m_seed.apply()
         # Try to issue more than available
         from django.core.exceptions import ValidationError
+
         with pytest.raises(ValidationError):
             InventoryMovement.objects.create(
                 item=self.item,
@@ -69,6 +77,7 @@ class TestInventoryMovements:
 
     def test_transfer_moves_between_locations(self, django_user_model):
         from core.models import InventoryMovement, ProjectInventory
+
         user = django_user_model.objects.create_user(username="invuser3")
 
         # Seed stock in storage
@@ -98,6 +107,7 @@ class TestInventoryMovements:
 
     def test_adjust_never_goes_negative(self, django_user_model):
         from core.models import InventoryMovement, ProjectInventory
+
         user = django_user_model.objects.create_user(username="invuser4")
 
         # Seed stock 1
@@ -123,7 +133,8 @@ class TestInventoryMovements:
         assert stock.quantity == Decimal("0")
 
     def test_low_stock_alert_on_issue(self, django_user_model):
-        from core.models import InventoryMovement, ProjectInventory, Notification
+        from core.models import InventoryMovement, Notification, ProjectInventory
+
         user = django_user_model.objects.create_user(username="invuser5", is_staff=True)
 
         # Seed stock 6, threshold 5 -> after issue 2 -> 4 < 5 triggers alert
@@ -149,6 +160,7 @@ class TestInventoryMovements:
 
     def test_idempotent_apply(self, django_user_model):
         from core.models import InventoryMovement, ProjectInventory
+
         user = django_user_model.objects.create_user(username="invuser6")
         m = InventoryMovement.objects.create(
             item=self.item,
@@ -165,10 +177,12 @@ class TestInventoryMovements:
         after = ProjectInventory.objects.get(item=self.item, location=self.storage).quantity
         assert before == after
 
+
 @pytest.mark.django_db
 class TestInventoryAPILists:
     def test_list_endpoints(self, client, django_user_model):
         from core.models import InventoryItem, InventoryLocation
+
         user = django_user_model.objects.create_user(username="apiuser", password="x", is_staff=True)
         client.force_login(user)
 

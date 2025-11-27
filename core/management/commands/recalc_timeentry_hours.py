@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
+
 from core.models import TimeEntry
+
 
 class Command(BaseCommand):
     help = "Recalcula hours_worked de todas las TimeEntry usando la lógica actual del modelo."

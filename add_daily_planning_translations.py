@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Script para agregar traducciones españolas al archivo django.po
 """
@@ -127,22 +126,22 @@ translations = {
 }
 
 # Leer archivo
-with open('locale/es/LC_MESSAGES/django.po', 'r', encoding='utf-8') as f:
+with open("locale/es/LC_MESSAGES/django.po", encoding="utf-8") as f:
     content = f.read()
 
 # Aplicar traducciones
 for english, spanish in translations.items():
     # Escapar caracteres especiales para regex
     english_escaped = re.escape(english)
-    
+
     # Buscar el patrón msgid "..." msgstr ""
     pattern = f'msgid "{english_escaped}"\\nmsgstr ""'
     replacement = f'msgid "{english}"\\nmsgstr "{spanish}"'
-    
+
     content = re.sub(pattern, replacement, content)
 
 # Guardar archivo
-with open('locale/es/LC_MESSAGES/django.po', 'w', encoding='utf-8') as f:
+with open("locale/es/LC_MESSAGES/django.po", "w", encoding="utf-8") as f:
     f.write(content)
 
 print("✅ Traducciones en español agregadas exitosamente!")

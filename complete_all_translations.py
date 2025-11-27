@@ -4,7 +4,6 @@ Completa TODAS las traducciones faltantes al 100%
 """
 
 import re
-import sys
 
 # Diccionario MASIVO de traducciones
 TRANSLATIONS = {
@@ -17,7 +16,6 @@ TRANSLATIONS = {
     "Enter a whole number.": "Introduce un número entero.",
     "Ensure this value is less than or equal to %(limit_value)s.": "Asegúrate de que este valor sea menor o igual a %(limit_value)s.",
     "Ensure this value is greater than or equal to %(limit_value)s.": "Asegúrate de que este valor sea mayor o igual a %(limit_value)s.",
-    
     # Common UI
     "Welcome": "Bienvenido",
     "Dashboard": "Panel de Control",
@@ -82,7 +80,6 @@ TRANSLATIONS = {
     "Hide": "Ocultar",
     "More": "Más",
     "Less": "Menos",
-    
     # Projects
     "Project": "Proyecto",
     "Projects": "Proyectos",
@@ -103,7 +100,6 @@ TRANSLATIONS = {
     "Address": "Dirección",
     "Location": "Ubicación",
     "Progress": "Progreso",
-    
     # Financial
     "Income": "Ingreso",
     "Incomes": "Ingresos",
@@ -123,7 +119,6 @@ TRANSLATIONS = {
     "Balance": "Balance",
     "Transaction": "Transacción",
     "Transactions": "Transacciones",
-    
     # Time & Schedule
     "Schedule": "Cronograma",
     "Schedules": "Cronogramas",
@@ -152,7 +147,6 @@ TRANSLATIONS = {
     "This Month": "Este Mes",
     "Last Month": "Mes Pasado",
     "Next Month": "Próximo Mes",
-    
     # Materials & Inventory
     "Material": "Material",
     "Materials": "Materiales",
@@ -167,7 +161,6 @@ TRANSLATIONS = {
     "Orders": "Órdenes",
     "Request": "Solicitud",
     "Requests": "Solicitudes",
-    
     # People
     "Employee": "Empleado",
     "Employees": "Empleados",
@@ -181,7 +174,6 @@ TRANSLATIONS = {
     "Permissions": "Permisos",
     "Group": "Grupo",
     "Groups": "Grupos",
-    
     # Reports
     "Report": "Reporte",
     "Reports": "Reportes",
@@ -191,7 +183,6 @@ TRANSLATIONS = {
     "Graph": "Gráfica",
     "Data": "Datos",
     "Analytics": "Análisis",
-    
     # Status
     "Not started": "No iniciado",
     "In Progress": "En Progreso",
@@ -207,14 +198,12 @@ TRANSLATIONS = {
     "Published": "Publicado",
     "Active": "Activo",
     "Inactive": "Inactivo",
-    
     # Priority
     "Low": "Baja",
     "Medium": "Media",
     "High": "Alta",
     "Urgent": "Urgente",
     "Critical": "Crítico",
-    
     # Payment
     "Transfer": "Transferencia",
     "Check": "Cheque",
@@ -226,7 +215,6 @@ TRANSLATIONS = {
     "Invoice or receipt": "Factura o comprobante",
     "Paid": "Pagado",
     "Unpaid": "No Pagado",
-    
     # Categories
     "Food": "Comida",
     "Insurance": "Seguro",
@@ -239,7 +227,6 @@ TRANSLATIONS = {
     "Equipment": "Equipo",
     "Maintenance": "Mantenimiento",
     "Utilities": "Servicios",
-    
     # Construction phases
     "Site cleaning": "Limpieza del sitio",
     "Preparation": "Preparación",
@@ -253,7 +240,6 @@ TRANSLATIONS = {
     "Touch-up": "Retoques",
     "Inspection": "Inspección",
     "Final inspection": "Inspección final",
-    
     # Admin panel
     "Admin Panel": "Panel Administrativo",
     "Advanced Admin Panel": "Panel Administrativo Avanzado",
@@ -277,7 +263,6 @@ TRANSLATIONS = {
     "No recent activity": "No hay actividad reciente",
     "Recent activity": "Actividad reciente",
     "Django Admin": "Administración Django",
-    
     # Forms
     "Register a new expense": "Registrar un nuevo gasto",
     "Register expense": "Registrar gasto",
@@ -290,14 +275,12 @@ TRANSLATIONS = {
     "End date is required.": "La fecha de fin es obligatoria.",
     "Amount is required.": "El monto es obligatorio.",
     "Enter a valid amount.": "Introduce un monto válido.",
-    
     # Budget
     "Total budget allocated to project": "Presupuesto total asignado al proyecto",
     "Budget for labor": "Presupuesto para mano de obra",
     "Budget for materials": "Presupuesto para materiales",
     "Budget for other expenses": "Presupuesto para otros gastos",
     "Budget for other expenses (insurance, storage, etc.)": "Presupuesto para otros gastos (seguros, almacenamiento, etc.)",
-    
     # Tasks & Damage
     "No associated floor plan": "Sin plano asociado",
     "No associated pin": "Sin pin asociado",
@@ -324,7 +307,6 @@ TRANSLATIONS = {
     "User who created the task (client or staff)": "Usuario que creó la tarea (cliente o staff)",
     "Created by": "Creado por",
     "Assigned to": "Asignado a",
-    
     # Daily planning - Placeholders
     "Achievements of the day...": "Logros del día...",
     "General notes...": "Notas generales...",
@@ -340,7 +322,6 @@ TRANSLATIONS = {
     "Ex: Crack in main bathroom wall": "Ej: Grieta en pared del baño principal",
     "Describe damage in as much detail as possible...": "Describe el daño con el mayor detalle posible...",
     "Ex: Kitchen - North Wall": "Ej: Cocina - Pared Norte",
-    
     # Paint codes
     "Example: SW 7008 Alabaster, SW 6258 Tricorn Black": "Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black",
     "Paint codes if different from common colors": "Códigos de pintura si son diferentes de los colores comunes",
@@ -349,12 +330,10 @@ TRANSLATIONS = {
     "Number of spots or imperfections detected": "Número de manchas o imperfecciones detectadas",
     "Notes about learnings, mistakes, or improvements for future projects": "Notas sobre aprendizajes, errores o mejoras para próximos proyectos",
     "Lessons learned": "Lecciones aprendidas",
-    
     # Percentage
     "If you can't complete 100%, indicate the percentage achieved": "Si no puedes completar 100%, indica el porcentaje alcanzado",
     "Percentage": "Porcentaje",
     "Complete": "Completar",
-    
     # CRUD operations
     "Create, edit and delete users, groups and permissions": "Crear, editar y eliminar usuarios, grupos y permisos",
     "Full CRUD management of projects, expenses, income, time entries": "Gestión CRUD completa de proyectos, gastos, ingresos, registros de tiempo",
@@ -364,7 +343,6 @@ TRANSLATIONS = {
     "Manage users, roles, permissions and system groups.": "Administra usuarios, roles, permisos y grupos del sistema.",
     "Access and manage all system models.": "Accede y administra todos los modelos del sistema.",
     "Monitor system activity and changes made.": "Monitorea la actividad del sistema y cambios realizados.",
-    
     # Time units
     "ago": "hace",
     "day": "día",
@@ -381,7 +359,6 @@ TRANSLATIONS = {
     "months": "meses",
     "year": "año",
     "years": "años",
-    
     # Common phrases
     "Are you sure?": "¿Estás seguro?",
     "Are you sure you want to delete this?": "¿Estás seguro de que quieres eliminar esto?",
@@ -415,7 +392,6 @@ TRANSLATIONS = {
     "Discount": "Descuento",
     "Subtotal": "Subtotal",
     "Grand Total": "Total General",
-    
     # Notifications
     "Notification": "Notificación",
     "Notifications": "Notificaciones",
@@ -424,7 +400,6 @@ TRANSLATIONS = {
     "Clear all": "Limpiar todo",
     "No notifications": "No hay notificaciones",
     "You have no new notifications": "No tienes notificaciones nuevas",
-    
     # Errors
     "An error occurred": "Ocurrió un error",
     "Page not found": "Página no encontrada",
@@ -432,7 +407,6 @@ TRANSLATIONS = {
     "You don't have permission to access this page": "No tienes permiso para acceder a esta página",
     "Invalid credentials": "Credenciales inválidas",
     "Invalid username or password": "Nombre de usuario o contraseña inválidos",
-    
     # Actions
     "Register": "Registrar",
     "Register Hours": "Registrar Horas",
@@ -457,7 +431,6 @@ TRANSLATIONS = {
     "Cut": "Cortar",
     "Undo": "Deshacer",
     "Redo": "Rehacer",
-    
     # Filters
     "All types": "Todos los tipos",
     "All statuses": "Todos los estados",
@@ -471,7 +444,6 @@ TRANSLATIONS = {
     "From": "Desde",
     "To": "Hasta",
     "Between": "Entre",
-    
     # Pagination
     "Previous": "Anterior",
     "Next": "Siguiente",
@@ -483,7 +455,6 @@ TRANSLATIONS = {
     "to": "a",
     "entries": "entradas",
     "results": "resultados",
-    
     # File upload
     "Upload file": "Subir archivo",
     "Upload image": "Subir imagen",
@@ -494,7 +465,6 @@ TRANSLATIONS = {
     "Browse": "Examinar",
     "Maximum file size": "Tamaño máximo de archivo",
     "Allowed file types": "Tipos de archivo permitidos",
-    
     # Misc
     "Language": "Idioma",
     "Theme": "Tema",
@@ -537,116 +507,165 @@ TRANSLATIONS = {
 
 # Palabras clave en español para detectar si ya está traducido
 SPANISH_KEYWORDS = {
-    'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'para', 'con', 'sin',
-    'que', 'si', 'no', 'más', 'muy', 'también', 'aquí', 'ahí', 'donde',
-    'cuando', 'cómo', 'ción', 'dad', 'ión', 'ñ', 'á', 'é', 'í', 'ó', 'ú',
-    'año', 'día', 'mes', 'usuario', 'proyecto', 'fecha', 'nombre', 'descripción',
-    'crear', 'editar', 'eliminar', 'guardar', 'cancelar', 'todos', 'ninguno',
-    'ejemplo', 'opcional', 'requerido', 'selecciona', 'introduce', 'escribe'
+    "el",
+    "la",
+    "los",
+    "las",
+    "un",
+    "una",
+    "de",
+    "del",
+    "para",
+    "con",
+    "sin",
+    "que",
+    "si",
+    "no",
+    "más",
+    "muy",
+    "también",
+    "aquí",
+    "ahí",
+    "donde",
+    "cuando",
+    "cómo",
+    "ción",
+    "dad",
+    "ión",
+    "ñ",
+    "á",
+    "é",
+    "í",
+    "ó",
+    "ú",
+    "año",
+    "día",
+    "mes",
+    "usuario",
+    "proyecto",
+    "fecha",
+    "nombre",
+    "descripción",
+    "crear",
+    "editar",
+    "eliminar",
+    "guardar",
+    "cancelar",
+    "todos",
+    "ninguno",
+    "ejemplo",
+    "opcional",
+    "requerido",
+    "selecciona",
+    "introduce",
+    "escribe",
 }
+
 
 def is_already_spanish(text):
     """Detecta si el texto ya está en español"""
     if not text or len(text) < 2:
         return False
-        
+
     text_lower = text.lower()
-    
+
     # Si tiene caracteres especiales del español
-    if any(char in text_lower for char in ['ñ', 'á', 'é', 'í', 'ó', 'ú', '¿', '¡']):
+    if any(char in text_lower for char in ["ñ", "á", "é", "í", "ó", "ú", "¿", "¡"]):
         return True
-    
+
     # Si contiene palabras clave en español
-    words = set(re.findall(r'\w+', text_lower))
+    words = set(re.findall(r"\w+", text_lower))
     if len(words & SPANISH_KEYWORDS) >= 1:
         return True
-    
+
     return False
+
 
 def translate_text(text):
     """Traduce un texto al español"""
     # Si ya está en español, dejarlo tal cual
     if is_already_spanish(text):
         return text
-    
+
     # Buscar traducción exacta
     if text in TRANSLATIONS:
         return TRANSLATIONS[text]
-    
+
     # Buscar case-insensitive
     for key, value in TRANSLATIONS.items():
         if key.lower() == text.lower():
             return value
-    
+
     # Si contiene variables de Django, intentar traducir la parte fija
-    if '%(' in text or '{' in text:
+    if "%(" in text or "{" in text:
         for key, value in TRANSLATIONS.items():
             if key in text:
                 return text.replace(key, value)
-    
+
     # Intentar traducciones comunes de palabras sueltas
     simple_translations = {
-        'view': 'ver',
-        'list': 'lista',
-        'all': 'todos',
-        'new': 'nuevo',
-        'old': 'antiguo',
-        'recent': 'reciente',
-        'last': 'último',
-        'first': 'primero',
-        'total': 'total',
-        'count': 'contador',
-        'number': 'número',
-        'id': 'id',
-        'code': 'código',
-        'reference': 'referencia',
-        'value': 'valor',
-        'label': 'etiqueta',
-        'display': 'mostrar',
-        'main': 'principal',
-        'general': 'general',
-        'default': 'predeterminado',
-        'custom': 'personalizado',
+        "view": "ver",
+        "list": "lista",
+        "all": "todos",
+        "new": "nuevo",
+        "old": "antiguo",
+        "recent": "reciente",
+        "last": "último",
+        "first": "primero",
+        "total": "total",
+        "count": "contador",
+        "number": "número",
+        "id": "id",
+        "code": "código",
+        "reference": "referencia",
+        "value": "valor",
+        "label": "etiqueta",
+        "display": "mostrar",
+        "main": "principal",
+        "general": "general",
+        "default": "predeterminado",
+        "custom": "personalizado",
     }
-    
+
     lower_text = text.lower()
     for eng, esp in simple_translations.items():
         if eng in lower_text:
             return text.replace(eng, esp).replace(eng.capitalize(), esp.capitalize())
-    
+
     return ""
+
 
 def process_po_file(po_file_path):
     """Procesa un archivo .po y completa todas las traducciones"""
-    
-    with open(po_file_path, 'r', encoding='utf-8') as f:
+
+    with open(po_file_path, encoding="utf-8") as f:
         lines = f.readlines()
-    
+
     new_lines = []
     completed = 0
     already_spanish = 0
     still_empty = 0
     i = 0
-    
+
     print("🔄 Procesando traducciones...")
-    
+
     while i < len(lines):
         line = lines[i]
         new_lines.append(line)
-        
+
         # Buscar msgid seguido de msgstr vacío
         if line.startswith('msgid "') and not line.strip() == 'msgid ""':
             # Extraer texto entre comillas (manejo de multilinea)
             msgid_lines = [line[7:-2]]  # Quitar 'msgid "' y '"\n'
             j = i + 1
-            
+
             # Leer líneas adicionales del msgid si son multilinea
-            while j < len(lines) and lines[j].startswith('"') and not lines[j].startswith('msgstr'):
+            while j < len(lines) and lines[j].startswith('"') and not lines[j].startswith("msgstr"):
                 msgid_lines.append(lines[j][1:-2])  # Quitar comillas
                 j += 1
-            
-            msgid = ''.join(msgid_lines)
-            
+
+            msgid = "".join(msgid_lines)
+
             # Verificar si la siguiente línea es msgstr ""
             if j < len(lines) and lines[j].strip() == 'msgstr ""':
                 # Decidir traducción
@@ -663,27 +682,28 @@ def process_po_file(po_file_path):
                     else:
                         new_lines.append(lines[j])
                         still_empty += 1
-                
+
                 i = j + 1
                 continue
-        
+
         i += 1
-    
+
     # Guardar archivo
-    with open(po_file_path, 'w', encoding='utf-8') as f:
+    with open(po_file_path, "w", encoding="utf-8") as f:
         f.writelines(new_lines)
-    
+
     print(f"\n✅ Traducciones del inglés: {completed}")
     print(f"🔄 Textos ya en español: {already_spanish}")
     print(f"⏳ Aún vacías: {still_empty}")
     print(f"📊 Total procesado: {completed + already_spanish}")
-    
+
     total_attempted = completed + already_spanish + still_empty
     if total_attempted > 0:
         success_rate = ((completed + already_spanish) / total_attempted) * 100
         print(f"🎯 Tasa de éxito: {success_rate:.1f}%")
-    
+
     return completed + already_spanish
+
 
 if __name__ == "__main__":
     po_file = "/Users/jesus/Documents/kibray/locale/es/LC_MESSAGES/django.po"

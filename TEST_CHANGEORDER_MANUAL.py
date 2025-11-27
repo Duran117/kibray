@@ -69,7 +69,7 @@ Para probar:
 from core.models import ColorSample, Project
 
 project = Project.objects.first()
-approved = ColorSample.objects.filter(project=project, status='approved')
+approved = ColorSample.objects.filter(project=project, status="approved")
 print(f"Colores aprobados en {project.name}: {approved.count()}")
 for color in approved:
     print(f"  - {color.code} / {color.name} / {color.brand}")
@@ -78,7 +78,7 @@ for color in approved:
 # Ver fotos con anotaciones
 from core.models import ChangeOrderPhoto
 
-photos_with_annotations = ChangeOrderPhoto.objects.exclude(annotations='')
+photos_with_annotations = ChangeOrderPhoto.objects.exclude(annotations="")
 print(f"Fotos con anotaciones: {photos_with_annotations.count()}")
 for photo in photos_with_annotations:
     print(f"  CO-{photo.change_order.id}: {len(photo.annotations)} bytes de JSON")
@@ -87,24 +87,20 @@ for photo in photos_with_annotations:
 # Crear color sample de prueba
 def create_test_color_sample(project):
     color = ColorSample.objects.create(
-        project=project,
-        code='SW 7006',
-        name='Extra White',
-        brand='Sherwin Williams',
-        finish='Flat',
-        status='approved'
+        project=project, code="SW 7006", name="Extra White", brand="Sherwin Williams", finish="Flat", status="approved"
     )
     print(f"Color de prueba creado: {color.code}")
     return color
 
 
 # Simular AJAX request
-import requests
 import json
+
+import requests
 
 # (Asumiendo servidor corriendo en localhost:8000)
 project_id = 1
-response = requests.get(f'http://localhost:8000/api/projects/{project_id}/approved-colors/')
+response = requests.get(f"http://localhost:8000/api/projects/{project_id}/approved-colors/")
 data = response.json()
 print(f"API response: {json.dumps(data, indent=2)}")
 

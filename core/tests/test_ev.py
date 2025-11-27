@@ -1,8 +1,10 @@
 from datetime import date
+
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
-from core.models import Project, CostCode, BudgetLine, BudgetProgress
+
+from core.models import BudgetLine, BudgetProgress, CostCode, Project
 
 
 class EarnedValueTests(TestCase):
@@ -18,8 +20,7 @@ class EarnedValueTests(TestCase):
         )
         self.cc = CostCode.objects.create(code="LAB001", name="Labor")
         self.bl = BudgetLine.objects.create(
-            project=self.project, cost_code=self.cc,
-            description="Labor line", qty=100, unit="hr", unit_cost=10
+            project=self.project, cost_code=self.cc, description="Labor line", qty=100, unit="hr", unit_cost=10
         )
         self.progress = BudgetProgress.objects.create(
             budget_line=self.bl, date=date.today(), percent_complete=10, qty_completed=10, note="init"
@@ -36,13 +37,17 @@ class EarnedValueTests(TestCase):
         self.client.login(username="user", password="x")
         url = reverse("project_ev", args=[self.project.id])
         before = BudgetProgress.objects.filter(budget_line__project=self.project).count()
-        resp = self.client.post(url, {
-            "budget_line": self.bl.id,
-            "date": date.today().isoformat(),
-            "percent_complete": 20,
-            "qty_completed": 20,
-            "note": "try add",
-        }, follow=False)
+        resp = self.client.post(
+            url,
+            {
+                "budget_line": self.bl.id,
+                "date": date.today().isoformat(),
+                "percent_complete": 20,
+                "qty_completed": 20,
+                "note": "try add",
+            },
+            follow=False,
+        )
         self.assertEqual(resp.status_code, 302)
         after = BudgetProgress.objects.filter(budget_line__project=self.project).count()
         self.assertEqual(before, after)
@@ -51,13 +56,16 @@ class EarnedValueTests(TestCase):
         self.client.login(username="staff", password="x")
         url = reverse("project_ev", args=[self.project.id])
         before = BudgetProgress.objects.filter(budget_line__project=self.project).count()
-        resp = self.client.post(url, {
-            "budget_line": self.bl.id,
-            "date": date.today().isoformat(),
-            "percent_complete": 30,
-            "qty_completed": 30,
-            "note": "ok",
-        })
+        resp = self.client.post(
+            url,
+            {
+                "budget_line": self.bl.id,
+                "date": date.today().isoformat(),
+                "percent_complete": 30,
+                "qty_completed": 30,
+                "note": "ok",
+            },
+        )
         self.assertEqual(resp.status_code, 302)
         after = BudgetProgress.objects.filter(budget_line__project=self.project).count()
         self.assertEqual(after, before + 1)
@@ -73,13 +81,16 @@ class EarnedValueTests(TestCase):
         url = reverse("edit_progress", args=[self.project.id, self.progress.id])
         r1 = self.client.get(url, {"as_of": date.today().isoformat()})
         self.assertEqual(r1.status_code, 200)
-        r2 = self.client.post(url, {
-            "date": date.today().isoformat(),
-            "percent_complete": 40,
-            "qty_completed": 40,
-            "note": "upd",
-            "as_of": date.today().isoformat(),
-        })
+        r2 = self.client.post(
+            url,
+            {
+                "date": date.today().isoformat(),
+                "percent_complete": 40,
+                "qty_completed": 40,
+                "note": "upd",
+                "as_of": date.today().isoformat(),
+            },
+        )
         self.assertEqual(r2.status_code, 302)
         self.progress.refresh_from_db()
         self.assertEqual(float(self.progress.percent_complete), 40.0)

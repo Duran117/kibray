@@ -3,7 +3,6 @@
 Script DEFINITIVO - Completa el 100% de todas las traducciones
 """
 
-import re
 
 # DICCIONARIO DEFINITIVO Y COMPLETO
 ALL_TRANSLATIONS = {
@@ -39,14 +38,12 @@ ALL_TRANSLATIONS = {
     "% Completado (manual)": "% Completado (manual)",
     "Add step...": "Agregar paso...",
     "Add material...": "Agregar material...",
-    
     # RFI (Request for Information)
     "RFI": "Solicitud de Información",
     "RFIs": "Solicitudes de Información",
     "Create RFI": "Crear RFI",
     "Edit RFI": "Editar RFI",
     "View RFI": "Ver RFI",
-    
     # Risk Management
     "Risk": "Riesgo",
     "Risks": "Riesgos",
@@ -55,7 +52,6 @@ ALL_TRANSLATIONS = {
     "Medium Risk": "Riesgo Medio",
     "High Risk": "Riesgo Alto",
     "Critical Risk": "Riesgo Crítico",
-    
     # Productivity
     "Productivity": "Productividad",
     "Rate": "Tasa",
@@ -63,7 +59,6 @@ ALL_TRANSLATIONS = {
     "Performance": "Rendimiento",
     "Training": "Capacitación",
     "Support": "Apoyo",
-    
     # Events
     "Event": "Evento",
     "Events": "Eventos",
@@ -71,7 +66,6 @@ ALL_TRANSLATIONS = {
     "Event Description": "Descripción del Evento",
     "Event Date": "Fecha del Evento",
     "Event Time": "Hora del Evento",
-    
     # Budget
     "Budget": "Presupuesto",
     "Budget Line": "Línea Presupuestaria",
@@ -82,7 +76,6 @@ ALL_TRANSLATIONS = {
     "Available Budget": "Presupuesto Disponible",
     "Generate from Estimate": "Generar desde Estimado",
     "Generate": "Generar",
-    
     # Planning
     "Planned Start": "Inicio Planificado",
     "Planned End": "Fin Planificado",
@@ -93,7 +86,6 @@ ALL_TRANSLATIONS = {
     "Completed %": "% Completado",
     "Manual": "Manual",
     "Automatic": "Automático",
-    
     # Steps & Materials
     "Step": "Paso",
     "Steps": "Pasos",
@@ -102,7 +94,6 @@ ALL_TRANSLATIONS = {
     "Add Item": "Agregar Elemento",
     "Remove Step": "Quitar Paso",
     "Remove Material": "Quitar Material",
-    
     # Common actions
     "Enter": "Introducir",
     "Enter title": "Introduce el título",
@@ -121,7 +112,6 @@ ALL_TRANSLATIONS = {
     "Select priority": "Selecciona la prioridad",
     "Select category": "Selecciona la categoría",
     "Select type": "Selecciona el tipo",
-    
     # Confirmations
     "Are you sure?": "¿Estás seguro?",
     "Are you sure you want to delete?": "¿Estás seguro de que quieres eliminar?",
@@ -131,7 +121,6 @@ ALL_TRANSLATIONS = {
     "Cannot be undone": "No se puede deshacer",
     "Confirm deletion": "Confirmar eliminación",
     "Confirm action": "Confirmar acción",
-    
     # Data Export/Import
     "Export": "Exportar",
     "Import": "Importar",
@@ -142,14 +131,12 @@ ALL_TRANSLATIONS = {
     "Export PDF": "Exportar PDF",
     "Download": "Descargar",
     "Upload": "Subir",
-    
     # Alternatives & Recommendations
     "Alternatives": "Alternativas",
     "Recommended": "Recomendado",
     "Recommended Alternatives": "Alternativas Recomendadas",
     "Suggestions": "Sugerencias",
     "Options": "Opciones",
-    
     # Start/End
     "Start": "Inicio",
     "End": "Fin",
@@ -158,7 +145,6 @@ ALL_TRANSLATIONS = {
     "From": "Desde",
     "To": "Hasta",
     "Between": "Entre",
-    
     # Scores & Metrics
     "Score": "Puntuación",
     "Scores": "Puntuaciones",
@@ -168,7 +154,6 @@ ALL_TRANSLATIONS = {
     "Metrics": "Métricas",
     "KPI": "Indicador",
     "KPIs": "Indicadores",
-    
     # Additional common terms
     "Available": "Disponible",
     "Unavailable": "No disponible",
@@ -221,54 +206,142 @@ ALL_TRANSLATIONS = {
     "Selections": "Selecciones",
 }
 
+
 def is_spanish_text(text):
     """Detecta si el texto ya está en español"""
     if not text or len(text) < 2:
         return False
-    
+
     # Caracteres especiales del español
-    spanish_chars = ['ñ', 'Ñ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', '¿', '¡', 'ü', 'Ü']
+    spanish_chars = ["ñ", "Ñ", "á", "é", "í", "ó", "ú", "Á", "É", "Í", "Ó", "Ú", "¿", "¡", "ü", "Ü"]
     if any(char in text for char in spanish_chars):
         return True
-    
+
     # Palabras comunes del español
     spanish_indicators = [
-        'el ', 'la ', 'los ', 'las ', 'un ', 'una ', 'de ', 'del ', 'al ', 
-        'para ', 'con ', 'sin ', 'por ', 'que ', ' si ', ' no ', 'más ', 'muy ',
-        'también', 'aquí', 'ahí', 'donde', 'cuando', 'cómo', 'este', 'esta',
-        'estos', 'estas', 'ese', 'esa', 'esos', 'esas', 'año', 'día', 'mes',
-        'usuario', 'usuarios', 'proyecto', 'proyectos', 'fecha', 'nombre',
-        'descripción', 'crear', 'editar', 'eliminar', 'guardar', 'cancelar',
-        'todos', 'todas', 'ninguno', 'ejemplo', 'opcional', 'requerido',
-        'selecciona', 'introduce', 'escribe', 'grupo', 'grupos', 'permiso',
-        'permisos', 'acceso', 'sistema', 'panel', 'administrativo', 'siguiente',
-        'anterior', 'nuevo', 'nueva', 'buscar', 'filtrar', 'exportar', 'gastos',
-        'ingresos', 'tiempo', 'cronograma', 'tareas', 'cliente', 'clientes',
-        'empleado', 'empleados', 'administrador', 'administradores', 'presupuesto',
-        'materiales', 'otros', 'monto', 'cheque', 'transferencia', 'factura',
-        'estimado', 'aprobado', 'disponible', 'generar', 'desde', 'hasta',
-        'completado', 'manual', 'planificado', 'paso', 'agregar', 'quitar',
+        "el ",
+        "la ",
+        "los ",
+        "las ",
+        "un ",
+        "una ",
+        "de ",
+        "del ",
+        "al ",
+        "para ",
+        "con ",
+        "sin ",
+        "por ",
+        "que ",
+        " si ",
+        " no ",
+        "más ",
+        "muy ",
+        "también",
+        "aquí",
+        "ahí",
+        "donde",
+        "cuando",
+        "cómo",
+        "este",
+        "esta",
+        "estos",
+        "estas",
+        "ese",
+        "esa",
+        "esos",
+        "esas",
+        "año",
+        "día",
+        "mes",
+        "usuario",
+        "usuarios",
+        "proyecto",
+        "proyectos",
+        "fecha",
+        "nombre",
+        "descripción",
+        "crear",
+        "editar",
+        "eliminar",
+        "guardar",
+        "cancelar",
+        "todos",
+        "todas",
+        "ninguno",
+        "ejemplo",
+        "opcional",
+        "requerido",
+        "selecciona",
+        "introduce",
+        "escribe",
+        "grupo",
+        "grupos",
+        "permiso",
+        "permisos",
+        "acceso",
+        "sistema",
+        "panel",
+        "administrativo",
+        "siguiente",
+        "anterior",
+        "nuevo",
+        "nueva",
+        "buscar",
+        "filtrar",
+        "exportar",
+        "gastos",
+        "ingresos",
+        "tiempo",
+        "cronograma",
+        "tareas",
+        "cliente",
+        "clientes",
+        "empleado",
+        "empleados",
+        "administrador",
+        "administradores",
+        "presupuesto",
+        "materiales",
+        "otros",
+        "monto",
+        "cheque",
+        "transferencia",
+        "factura",
+        "estimado",
+        "aprobado",
+        "disponible",
+        "generar",
+        "desde",
+        "hasta",
+        "completado",
+        "manual",
+        "planificado",
+        "paso",
+        "agregar",
+        "quitar",
     ]
-    
-    text_lower = ' ' + text.lower() + ' '
+
+    text_lower = " " + text.lower() + " "
     if any(indicator in text_lower for indicator in spanish_indicators):
         return True
-    
+
     # Terminaciones españolas
-    spanish_endings = ['ción', 'sión', 'dad', 'tad', 'dor', 'dora', 'mente', 'ado', 'ada', 'ido', 'ida']
+    spanish_endings = ["ción", "sión", "dad", "tad", "dor", "dora", "mente", "ado", "ada", "ido", "ida"]
     words = text_lower.split()
     for word in words:
         if any(word.endswith(ending) for ending in spanish_endings):
             return True
-    
+
     return False
+
 
 def translate_english_to_spanish(text):
     """Traduce texto del inglés al español"""
     # Buscar en el diccionario
     if text in ALL_TRANSLATIONS:
         return ALL_TRANSLATIONS[text]
-    
+
     # Buscar case-insensitive
     for key, value in ALL_TRANSLATIONS.items():
         if key.lower() == text.lower():
@@ -278,18 +351,32 @@ def translate_english_to_spanish(text):
             elif text[0].isupper():
                 return value[0].upper() + value[1:]
             return value
-    
+
     # Traducir palabras individuales comunes
     simple_words = {
-        'view': 'ver', 'list': 'lista', 'all': 'todos', 'new': 'nuevo',
-        'edit': 'editar', 'delete': 'eliminar', 'save': 'guardar',
-        'cancel': 'cancelar', 'add': 'agregar', 'remove': 'quitar',
-        'create': 'crear', 'update': 'actualizar', 'show': 'mostrar',
-        'hide': 'ocultar', 'open': 'abrir', 'close': 'cerrar',
-        'start': 'inicio', 'end': 'fin', 'begin': 'comenzar',
-        'finish': 'finalizar', 'complete': 'completar',
+        "view": "ver",
+        "list": "lista",
+        "all": "todos",
+        "new": "nuevo",
+        "edit": "editar",
+        "delete": "eliminar",
+        "save": "guardar",
+        "cancel": "cancelar",
+        "add": "agregar",
+        "remove": "quitar",
+        "create": "crear",
+        "update": "actualizar",
+        "show": "mostrar",
+        "hide": "ocultar",
+        "open": "abrir",
+        "close": "cerrar",
+        "start": "inicio",
+        "end": "fin",
+        "begin": "comenzar",
+        "finish": "finalizar",
+        "complete": "completar",
     }
-    
+
     text_lower = text.lower()
     for eng, esp in simple_words.items():
         if eng in text_lower:
@@ -297,30 +384,31 @@ def translate_english_to_spanish(text):
             if text[0].isupper():
                 result = result[0].upper() + result[1:]
             return result
-    
+
     return ""
+
 
 def final_pass(po_file_path):
     """Pasada final para completar el 100%"""
-    
-    with open(po_file_path, 'r', encoding='utf-8') as f:
+
+    with open(po_file_path, encoding="utf-8") as f:
         lines = f.readlines()
-    
+
     new_lines = []
     spanish_copied = 0
     english_translated = 0
     left_empty = 0
     i = 0
-    
+
     print("🚀 Pasada FINAL para completar 100%...")
-    
+
     while i < len(lines):
         line = lines[i]
         new_lines.append(line)
-        
+
         if line.startswith('msgid "') and not line.strip() == 'msgid ""':
             msgid = line[7:-2]  # Extraer texto
-            
+
             if i + 1 < len(lines) and lines[i + 1].strip() == 'msgstr ""':
                 # Ya está en español? Copiarlo
                 if is_spanish_text(msgid):
@@ -336,22 +424,23 @@ def final_pass(po_file_path):
                         # Si no tenemos traducción, copiar el original
                         new_lines.append(f'msgstr "{msgid}"\n')
                         left_empty += 1
-                
+
                 i += 2
                 continue
-        
+
         i += 1
-    
+
     # Guardar
-    with open(po_file_path, 'w', encoding='utf-8') as f:
+    with open(po_file_path, "w", encoding="utf-8") as f:
         f.writelines(new_lines)
-    
+
     print(f"\n✅ Textos en español copiados: {spanish_copied}")
     print(f"✅ Traducciones del inglés: {english_translated}")
     print(f"⚠️  Sin traducción (copiados): {left_empty}")
     print(f"📊 Total procesado: {spanish_copied + english_translated + left_empty}")
-    
+
     return spanish_copied + english_translated
+
 
 if __name__ == "__main__":
     po_file = "/Users/jesus/Documents/kibray/locale/es/LC_MESSAGES/django.po"

@@ -1,11 +1,15 @@
-import pytest
 from decimal import Decimal
+
+import pytest
 from django.utils import timezone
+
 
 @pytest.mark.django_db
 def test_receive_with_expense_links_and_cost():
-    from core.models import InventoryItem, InventoryLocation, InventoryMovement, Expense, Project
     from django.contrib.auth import get_user_model
+
+    from core.models import Expense, InventoryItem, InventoryLocation, InventoryMovement, Project
+
     User = get_user_model()
 
     project = Project.objects.create(name="Inv Proj", start_date=timezone.now().date())
@@ -19,7 +23,7 @@ def test_receive_with_expense_links_and_cost():
         amount=Decimal("100.00"),
         date=timezone.now().date(),
         category="MATERIALES",
-        description="Purchase of thinner"
+        description="Purchase of thinner",
     )
 
     # Receive 10 units at total 100 => unit_cost 10

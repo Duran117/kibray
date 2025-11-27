@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # Script para arreglar traducciones en django.po
-import re
 
 # Leer archivo
-with open('locale/es/LC_MESSAGES/django.po', 'r', encoding='utf-8') as f:
+with open("locale/es/LC_MESSAGES/django.po", encoding="utf-8") as f:
     content = f.read()
 
 # Reparar msgstr duplicado en línea 157
@@ -43,7 +42,7 @@ msgstr ""
 content = content.replace(multiline_old, multiline_new)
 
 # Escribir archivo
-with open('locale/es/LC_MESSAGES/django.po', 'w', encoding='utf-8') as f:
+with open("locale/es/LC_MESSAGES/django.po", "w", encoding="utf-8") as f:
     f.write(content)
 
 print("✅ Archivo django.po (ES) reparado")

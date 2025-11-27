@@ -2,60 +2,83 @@
 Audit logging utilities for automatic tracking of model changes
 Phase 9: Security & Audit Trail
 """
-from django.db.models.signals import post_save, post_delete, pre_save
-from django.dispatch import receiver
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
-from core.models import (
-    AuditLog, LoginAttempt, Project, Task, Invoice, 
-    Expense, InventoryMovement, DamageReport
-)
+from django.db.models.signals import post_delete, post_save, pre_save
+from django.dispatch import receiver
+
+from core.models import AuditLog, Invoice, LoginAttempt, Project, Task
 
 User = get_user_model()
 
 
 def get_client_ip(request):
     """Extract client IP from request"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
+        ip = x_forwarded_for.split(",")[0]
     else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+        ip = request.META.get("REMOTE_ADDR")
+    # Fallback for test clients without REMOTE_ADDR
+    return ip or "127.0.0.1"
 
 
-def log_audit_action(user, action, entity_type, entity_id, entity_repr='', 
-                     old_values=None, new_values=None, request=None, 
-                     notes='', success=True, error_message=''):
+def log_audit_action(
+    user,
+    action,
+    entity_type,
+    entity_id,
+    entity_repr="",
+    old_values=None,
+    new_values=None,
+    request=None,
+    notes="",
+    success=True,
+    error_message="",
+):
     """
     Helper function to create audit log entries
     Can be called manually or via signals
     """
-    username = user.username if user else 'system'
-    
+    username = user.username if user else "system"
+
     audit_data = {
-        'user': user if user else None,
-        'username': username,
-        'action': action,
-        'entity_type': entity_type,
-        'entity_id': entity_id,
-        'entity_repr': entity_repr,
-        'old_values': old_values,
-        'new_values': new_values,
-        'notes': notes,
-        'success': success,
-        'error_message': error_message,
+        "user": user if user else None,
+        "username": username,
+        "action": action,
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "entity_repr": entity_repr,
+        "old_values": old_values,
+        "new_values": new_values,
+        "notes": notes,
+        "success": success,
+        "error_message": error_message,
     }
-    
+
+    # Enrich with request context when available, else safe defaults
     if request:
-        audit_data.update({
-            'ip_address': get_client_ip(request),
-            'user_agent': request.META.get('HTTP_USER_AGENT', ''),
-            'session_id': request.session.session_key if hasattr(request, 'session') else '',
-            'request_path': request.path,
-            'request_method': request.method,
-        })
-    
+        audit_data.update(
+            {
+                "ip_address": get_client_ip(request),
+                "user_agent": request.META.get("HTTP_USER_AGENT", ""),
+                "session_id": request.session.session_key if hasattr(request, "session") else "",
+                "request_path": request.path or "/",
+                "request_method": request.method or "SYSTEM",
+            }
+        )
+    else:
+        audit_data.update(
+            {
+                "ip_address": audit_data.get("ip_address") or "127.0.0.1",
+                "user_agent": audit_data.get("user_agent") or "",
+                "session_id": audit_data.get("session_id") or "",
+                "request_path": audit_data.get("request_path") or "/",
+                "request_method": audit_data.get("request_method") or "SYSTEM",
+            }
+        )
+
     return AuditLog.objects.create(**audit_data)
 
 
@@ -63,31 +86,28 @@ def log_audit_action(user, action, entity_type, entity_id, entity_repr='',
 # LOGIN/LOGOUT TRACKING
 # =============================================================================
 
+
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
     """Track successful logins"""
     ip = get_client_ip(request)
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
-    session_id = request.session.session_key if hasattr(request, 'session') else ''
-    
+    user_agent = request.META.get("HTTP_USER_AGENT", "")
+    session_id = request.session.session_key if hasattr(request, "session") else ""
+
     # Log login attempt
     LoginAttempt.log_attempt(
-        username=user.username,
-        ip_address=ip,
-        success=True,
-        user_agent=user_agent,
-        session_id=session_id
+        username=user.username, ip_address=ip, success=True, user_agent=user_agent, session_id=session_id
     )
-    
+
     # Log audit trail
     log_audit_action(
         user=user,
-        action='login',
-        entity_type='user',
+        action="login",
+        entity_type="user",
         entity_id=user.id,
         entity_repr=user.get_full_name() or user.username,
         request=request,
-        notes='Successful login'
+        notes="Successful login",
     )
 
 
@@ -97,40 +117,36 @@ def log_user_logout(sender, request, user, **kwargs):
     if user:
         log_audit_action(
             user=user,
-            action='logout',
-            entity_type='user',
+            action="logout",
+            entity_type="user",
             entity_id=user.id,
             entity_repr=user.get_full_name() or user.username,
             request=request,
-            notes='User logged out'
+            notes="User logged out",
         )
 
 
 @receiver(user_login_failed)
 def log_login_failure(sender, credentials, request, **kwargs):
     """Track failed login attempts"""
-    username = credentials.get('username', 'unknown')
+    username = credentials.get("username", "unknown")
     ip = get_client_ip(request)
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
-    
+    user_agent = request.META.get("HTTP_USER_AGENT", "")
+
     # Check if user exists to determine failure reason
     try:
         User.objects.get(username=username)
-        failure_reason = 'invalid_password'
+        failure_reason = "invalid_password"
     except User.DoesNotExist:
-        failure_reason = 'user_not_found'
-    
+        failure_reason = "user_not_found"
+
     # Check rate limiting
     is_blocked, attempt_count = LoginAttempt.check_rate_limit(username, ip)
     if is_blocked:
-        failure_reason = 'rate_limited'
-    
+        failure_reason = "rate_limited"
+
     LoginAttempt.log_attempt(
-        username=username,
-        ip_address=ip,
-        success=False,
-        failure_reason=failure_reason,
-        user_agent=user_agent
+        username=username, ip_address=ip, success=False, failure_reason=failure_reason, user_agent=user_agent
     )
 
 
@@ -140,6 +156,7 @@ def log_login_failure(sender, credentials, request, **kwargs):
 
 # Store previous state before save
 _pre_save_instances = {}
+
 
 @receiver(pre_save, sender=Project)
 @receiver(pre_save, sender=Invoice)
@@ -156,41 +173,42 @@ def capture_pre_save_state(sender, instance, **kwargs):
 @receiver(post_save, sender=Project)
 def audit_project_changes(sender, instance, created, **kwargs):
     """Track project creation and updates"""
-    action = 'create' if created else 'update'
-    
+    action = "create" if created else "update"
+
     old_values = None
     new_values = None
-    
+
     if not created:
         key = f"{sender.__name__}_{instance.pk}"
         original = _pre_save_instances.get(key)
         if original:
+            # Use safe getters to avoid AttributeError on optional fields
             old_values = {
-                'name': original.name,
-                'status': original.status,
-                'budget': str(original.budget),
-                'client_id': original.client_id,
+                "name": getattr(original, "name", ""),
+                "status": getattr(original, "status", ""),
+                "budget": str(getattr(original, "budget", getattr(original, "budget_total", "0"))),
+                "client_id": getattr(original, "client_id", None),
             }
             new_values = {
-                'name': instance.name,
-                'status': instance.status,
-                'budget': str(instance.budget),
-                'client_id': instance.client_id,
+                "name": getattr(instance, "name", ""),
+                "status": getattr(instance, "status", ""),
+                "budget": str(getattr(instance, "budget", getattr(instance, "budget_total", "0"))),
+                "client_id": getattr(instance, "client_id", None),
             }
             # Cleanup
             del _pre_save_instances[key]
-    
+
     # Note: This will only track changes made through code, not from API with request context
     # For API tracking, see DRF middleware below
     log_audit_action(
         user=None,  # Will be enriched by API middleware
         action=action,
-        entity_type='project',
+        entity_type="project",
         entity_id=instance.id,
         entity_repr=str(instance),
         old_values=old_values,
         new_values=new_values,
-        notes=f'Project {action}d'
+        notes=f"Project {action}d",
     )
 
 
@@ -200,21 +218,21 @@ def audit_project_changes(sender, instance, created, **kwargs):
 def audit_model_deletion(sender, instance, **kwargs):
     """Track deletion of critical models"""
     entity_type_map = {
-        'Project': 'project',
-        'Task': 'task',
-        'Invoice': 'invoice',
+        "Project": "project",
+        "Task": "task",
+        "Invoice": "invoice",
     }
-    
-    entity_type = entity_type_map.get(sender.__name__, 'unknown')
-    
+
+    entity_type = entity_type_map.get(sender.__name__, "unknown")
+
     log_audit_action(
         user=None,  # Will be enriched by API middleware
-        action='delete',
+        action="delete",
         entity_type=entity_type,
         entity_id=instance.id,
         entity_repr=str(instance),
-        old_values={'deleted': True},
-        notes=f'{sender.__name__} deleted'
+        old_values={"deleted": True},
+        notes=f"{sender.__name__} deleted",
     )
 
 
@@ -222,48 +240,50 @@ def audit_model_deletion(sender, instance, **kwargs):
 # DRF MIDDLEWARE FOR API REQUEST TRACKING
 # =============================================================================
 
+
 class AuditLogMiddleware:
     """
     Middleware to enrich audit logs with request context
     Should be added to MIDDLEWARE in settings.py
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
-    
+
     def __call__(self, request):
         # Store request in thread-local for signal handlers
-        if hasattr(request, 'user') and request.user.is_authenticated:
+        if hasattr(request, "user") and request.user.is_authenticated:
             # You can use thread-local storage here if needed
             pass
-        
+
         response = self.get_response(request)
-        
+
         # Log API access for sensitive endpoints
-        if request.path.startswith('/api/v1/') and request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
-            if hasattr(request, 'user') and request.user.is_authenticated:
+        if request.path.startswith("/api/v1/") and request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+            if hasattr(request, "user") and request.user.is_authenticated:
                 # Extract entity info from path if possible
                 # e.g., /api/v1/projects/5/ -> entity_type=project, entity_id=5
-                path_parts = request.path.strip('/').split('/')
+                path_parts = request.path.strip("/").split("/")
                 if len(path_parts) >= 3:
-                    entity_type = path_parts[2].rstrip('s')  # Remove trailing 's'
+                    entity_type = path_parts[2].rstrip("s")  # Remove trailing 's'
                     entity_id = path_parts[3] if len(path_parts) > 3 and path_parts[3].isdigit() else None
-                    
+
                     action_map = {
-                        'POST': 'create',
-                        'PUT': 'update',
-                        'PATCH': 'update',
-                        'DELETE': 'delete',
+                        "POST": "create",
+                        "PUT": "update",
+                        "PATCH": "update",
+                        "DELETE": "delete",
                     }
-                    
+
                     log_audit_action(
                         user=request.user,
-                        action=action_map.get(request.method, 'update'),
+                        action=action_map.get(request.method, "update"),
                         entity_type=entity_type,
                         entity_id=int(entity_id) if entity_id else None,
-                        entity_repr='',
+                        entity_repr="",
                         request=request,
-                        notes=f'API {request.method} request',
-                        success=(200 <= response.status_code < 400)
+                        notes=f"API {request.method} request",
+                        success=(200 <= response.status_code < 400),
                     )
-        
+
         return response

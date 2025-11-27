@@ -1,8 +1,11 @@
 from datetime import date, timedelta
 from decimal import Decimal
+
 from django.test import TestCase
-from core.models import Project, CostCode, BudgetLine, BudgetProgress, Expense
+
+from core.models import BudgetLine, BudgetProgress, CostCode, Expense, Project
 from core.services.earned_value import compute_project_ev
+
 
 class EarnedValueTests(TestCase):
     def setUp(self):
@@ -62,14 +65,11 @@ class EarnedValueTests(TestCase):
             project=self.project,
             amount=Decimal("400"),
             date=self.start + timedelta(days=2),
-            description="Test"  # si tu modelo requiere otro campo, ajusta aquí
+            description="Test",  # si tu modelo requiere otro campo, ajusta aquí
         )
         # Gasto posterior al corte NO cuenta
         Expense.objects.create(
-            project=self.project,
-            amount=Decimal("999"),
-            date=self.finish + timedelta(days=10),
-            description="Later"
+            project=self.project, amount=Decimal("999"), date=self.finish + timedelta(days=10), description="Later"
         )
         s = compute_project_ev(self.project, as_of=self.start + timedelta(days=3))
         self.assertAlmostEqual(float(s["AC"]), 400.0, places=2)
@@ -82,12 +82,7 @@ class EarnedValueTests(TestCase):
             percent_complete=Decimal("50"),
             qty_completed=0,
         )
-        Expense.objects.create(
-            project=self.project,
-            amount=Decimal("400"),
-            date=self.finish,
-            description="Cost"
-        )
+        Expense.objects.create(project=self.project, amount=Decimal("400"), date=self.finish, description="Cost")
         as_of = self.finish + timedelta(days=1)
         s = compute_project_ev(self.project, as_of=as_of)
 
@@ -95,8 +90,4 @@ class EarnedValueTests(TestCase):
         self.assertAlmostEqual(float(s["PV"]), float(self.baseline), places=2)
         self.assertAlmostEqual(float(s["AC"]), 400.0, places=2)
         self.assertAlmostEqual(float(s["SPI"]), 0.5, places=2)
-        self.assertAlmostEqual(
-            float(s["CPI"]),
-            float((self.baseline * Decimal("0.5")) / Decimal("400")),
-            places=2
-        )
+        self.assertAlmostEqual(float(s["CPI"]), float((self.baseline * Decimal("0.5")) / Decimal("400")), places=2)

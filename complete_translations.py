@@ -5,7 +5,6 @@ Usa traducciones comunes y DeepL/Google Translate API si está disponible
 """
 
 import re
-import sys
 
 # Diccionario de traducciones comunes ES
 COMMON_TRANSLATIONS = {
@@ -67,7 +66,6 @@ COMMON_TRANSLATIONS = {
     "Comments": "Comentarios",
     "Required": "Requerido",
     "Optional": "Opcional",
-    
     # Projects
     "Project": "Proyecto",
     "Projects": "Proyectos",
@@ -86,7 +84,6 @@ COMMON_TRANSLATIONS = {
     "Client": "Cliente",
     "Address": "Dirección",
     "Location": "Ubicación",
-    
     # Financial
     "Income": "Ingreso",
     "Expense": "Gasto",
@@ -101,7 +98,6 @@ COMMON_TRANSLATIONS = {
     "Receipt": "Recibo",
     "Balance": "Balance",
     "Transaction": "Transacción",
-    
     # Time & Schedule
     "Schedule": "Cronograma",
     "Calendar": "Calendario",
@@ -124,7 +120,6 @@ COMMON_TRANSLATIONS = {
     "Last Week": "Semana Pasada",
     "This Month": "Este Mes",
     "Last Month": "Mes Pasado",
-    
     # Materials & Inventory
     "Material": "Material",
     "Materials": "Materiales",
@@ -135,7 +130,6 @@ COMMON_TRANSLATIONS = {
     "Supplier": "Proveedor",
     "Order": "Orden",
     "Request": "Solicitud",
-    
     # People
     "Employee": "Empleado",
     "Employees": "Empleados",
@@ -145,7 +139,6 @@ COMMON_TRANSLATIONS = {
     "Role": "Rol",
     "Permission": "Permiso",
     "Permissions": "Permisos",
-    
     # Reports
     "Report": "Reporte",
     "Reports": "Reportes",
@@ -153,7 +146,6 @@ COMMON_TRANSLATIONS = {
     "Chart": "Gráfico",
     "Graph": "Gráfica",
     "Data": "Datos",
-    
     # Common phrases
     "Are you sure?": "¿Estás seguro?",
     "This action cannot be undone": "Esta acción no se puede deshacer",
@@ -194,48 +186,50 @@ COMMON_TRANSLATIONS = {
     "Cancelled": "Cancelado",
 }
 
+
 def complete_translations(po_file_path):
     """Completa traducciones faltantes en un archivo .po"""
-    
-    with open(po_file_path, 'r', encoding='utf-8') as f:
+
+    with open(po_file_path, encoding="utf-8") as f:
         content = f.read()
-    
+
     # Contar vacíos antes
     empty_before = len(re.findall(r'msgstr ""', content))
-    
+
     # Patrón para encontrar msgid/msgstr vacíos
     pattern = r'msgid "([^"]+)"\nmsgstr ""'
-    
+
     completed_count = 0
-    
+
     def replace_empty(match):
         nonlocal completed_count
         msgid = match.group(1)
-        
+
         # Buscar traducción en diccionario
         if msgid in COMMON_TRANSLATIONS:
             translation = COMMON_TRANSLATIONS[msgid]
             completed_count += 1
             return f'msgid "{msgid}"\nmsgstr "{translation}"'
-        
+
         # Si no está en el diccionario, dejar vacío
         return match.group(0)
-    
+
     # Reemplazar traducciones vacías
     new_content = re.sub(pattern, replace_empty, content)
-    
+
     # Guardar archivo
-    with open(po_file_path, 'w', encoding='utf-8') as f:
+    with open(po_file_path, "w", encoding="utf-8") as f:
         f.write(new_content)
-    
+
     # Contar vacíos después
     empty_after = len(re.findall(r'msgstr ""', new_content))
-    
+
     print(f"✅ Traducciones completadas: {completed_count}")
     print(f"⏳ Traducciones vacías restantes: {empty_after}")
     print(f"📊 Progreso: {empty_before - empty_after} nuevas traducciones agregadas")
-    
+
     return completed_count
+
 
 if __name__ == "__main__":
     po_file = "/Users/jesus/Documents/kibray/locale/es/LC_MESSAGES/django.po"
