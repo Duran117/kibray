@@ -298,11 +298,16 @@ class SitePhotoSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     assigned_to_name = serializers.CharField(source="assigned_to.get_full_name", read_only=True, allow_null=True)
     project_name = serializers.CharField(source="project.name", read_only=True)
-    priority = serializers.CharField(read_only=True)
-    due_date = serializers.DateField(read_only=True, allow_null=True)
+    # Make priority and due_date writable for API updates
+    priority = serializers.ChoiceField(choices=["low", "medium", "high", "urgent"], required=False)
+    due_date = serializers.DateField(required=False, allow_null=True)
     total_hours = serializers.FloatField(read_only=True)
     time_tracked_hours = serializers.SerializerMethodField()
-    dependencies_ids = serializers.SerializerMethodField()
+    # Read-only representation and a write-only input for dependencies
+    dependencies_ids = serializers.SerializerMethodField(read_only=True)
+    dependencies = serializers.ListField(
+        child=serializers.IntegerField(), write_only=True, required=False, allow_empty=True
+    )
     reopen_events_count = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -325,6 +330,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "time_tracked_hours",
             "total_hours",
             "dependencies_ids",
+            "dependencies",
             "reopen_events_count",
         ]
 
@@ -335,6 +341,33 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def get_dependencies_ids(self, obj):
         return list(obj.dependencies.values_list("id", flat=True))
+
+    def create(self, validated_data):
+        deps = validated_data.pop("dependencies", None)
+        task = super().create(validated_data)
+        if deps is not None:
+            from core.models import Task as TaskModel
+
+            dep_qs = TaskModel.objects.filter(id__in=deps)
+            task.dependencies.set(dep_qs)
+            # Re-run clean to validate cycles/self-dependency
+            task.full_clean()
+            task.save()
+        return task
+
+    def update(self, instance, validated_data):
+        deps = validated_data.pop("dependencies", None)
+        task = super().update(instance, validated_data)
+        if deps is not None:
+            from core.models import Task as TaskModel
+
+            if str(instance.id) in [str(d) for d in deps]:
+                raise serializers.ValidationError({"dependencies": "Task cannot depend on itself"})
+            dep_qs = TaskModel.objects.filter(id__in=deps)
+            task.dependencies.set(dep_qs)
+            task.full_clean()
+            task.save()
+        return task
 
 
 class TaskDependencySerializer(serializers.ModelSerializer):

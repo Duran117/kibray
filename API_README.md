@@ -210,11 +210,19 @@ Response: array of photos. Pagination disabled for simplicity.
     "description": "Fix paint chips near entrance",
     "assigned_to": 4,
     "assigned_to_name": "Maria Garcia",
-    "status": "pending",
+    "status": "Pendiente",
+    "priority": "high",
     "is_touchup": true,
+    "project": 2,
     "project_name": "Downtown Office Renovation",
     "due_date": "2025-01-20",
-    "created_at": "2025-01-14T08:00:00Z"
+    "created_at": "2025-01-14T08:00:00Z",
+    "started_at": null,
+    "time_tracked_seconds": 0,
+    "time_tracked_hours": 0.0,
+    "total_hours": 0.0,
+    "dependencies_ids": [12, 13],
+    "reopen_events_count": 1
   }
 ]
 ```
@@ -229,9 +237,92 @@ Response: array of photos. Pagination disabled for simplicity.
 }
 ```
 
-**Valid Statuses**: `pending`, `in_progress`, `completed`
+**Valid Statuses**: `Pendiente`, `En Progreso`, `Completada`, `Cancelada`
 
 **Response**: Updated task object
+
+#### Create/Update Task (writable fields)
+
+Tasks are managed via standard REST endpoints:
+- `POST /api/v1/tasks/` to create
+- `PATCH /api/v1/tasks/{id}/` to update
+
+Writable fields include:
+- `title`, `description`, `project`, `assigned_to`,
+- `priority` one of: `low`, `medium`, `high`, `urgent`
+- `due_date` (YYYY-MM-DD or null)
+- `dependencies` (list of task IDs to set ManyToMany)
+
+Example (PATCH):
+```json
+{
+  "priority": "urgent",
+  "due_date": "2025-01-30",
+  "dependencies": [10, 11]
+}
+```
+
+Notes:
+- `dependencies` sets the full dependency list; use actions below to add/remove individually.
+- Circular/self dependencies are validated and will return 400.
+
+#### Reopen Task
+**POST** `/api/v1/tasks/{id}/reopen/`
+
+Body:
+```json
+{ "notes": "Client requested changes" }
+```
+
+Response:
+```json
+{ "status": "ok", "new_status": "En Progreso", "reopen_events_count": 2 }
+```
+
+#### Start/Stop Time Tracking
+- **POST** `/api/v1/tasks/{id}/start_tracking/` → `{ "status": "ok", "started_at": "..." }`
+- **POST** `/api/v1/tasks/{id}/stop_tracking/` → `{ "status": "ok", "elapsed_seconds": 354, "total_hours": 2.1 }`
+
+Rules:
+- `start_tracking` requires all dependencies completed and task not marked as touch-up.
+
+#### Time Summary
+**GET** `/api/v1/tasks/{id}/time_summary/`
+
+Response:
+```json
+{
+  "task_id": 123,
+  "task_title": "Fix door frame",
+  "internal_tracking_hours": 1.5,
+  "time_entry_hours": 2.0,
+  "total_hours": 3.5,
+  "employee_breakdown": [
+    {"employee_id": 7, "employee_name": "Ana", "hours": 2.0}
+  ],
+  "is_tracking_active": false,
+  "reopen_count": 1
+}
+```
+
+#### Manage Dependencies
+- **POST** `/api/v1/tasks/{id}/add_dependency/` → `{ "dependency_id": 99 }`
+- **POST** `/api/v1/tasks/{id}/remove_dependency/` → `{ "dependency_id": 99 }`
+
+#### Add Task Image (Touch-ups)
+**POST** `/api/v1/tasks/{id}/add_image/` (multipart)
+
+Form fields: `image` (file), optional `caption`
+
+Response: `{ "status": "ok", "image_id": 55, "version": 2 }`
+
+#### Touch-up Kanban Board
+**GET** `/api/v1/tasks/touchup_board/?project={id}&status=Pendiente,En%20Progreso&priority=high,urgent&assigned_to_me=true`
+
+Response: `{ columns: [...], totals: { ... } }`
+
+#### Gantt Data
+**GET** `/api/v1/tasks/gantt/?project={id}` → `{ tasks: [...], dependencies: [...] }`
 
 ---
 

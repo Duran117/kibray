@@ -7,7 +7,7 @@ import time
 from collections.abc import Callable
 from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -630,22 +630,17 @@ class Task(models.Model):
 
     def reopen(self, user=None, notes: str = ""):
         """Reabrir una tarea completada (Q11.12)."""
-        from core.models import TaskStatusChange
-
         if self.status != "Completada":
             return False
         old_status = self.status
         self.status = "En Progreso" if self.can_start() else "Pendiente"
         self.completed_at = None
-        self._current_user = user
+        # Preparar metadata para que la señal de post_save cree UN solo TaskStatusChange
+        # y registre correctamente quién y por qué se reabrió.
+        self._changed_by = user  # usado por create_task_status_change
+        self._change_notes = notes or "Reapertura de tarea"
+        # Guardar (la señal detectará el cambio de status y generará el registro)
         self.save(skip_validation=True)
-        TaskStatusChange.objects.create(
-            task=self,
-            old_status=old_status,
-            new_status=self.status,
-            changed_by=user,
-            notes=notes or "Reapertura de tarea",
-        )
         return True
 
     def save(self, *args, **kwargs):
@@ -1602,7 +1597,7 @@ class TwoFactorProfile(models.Model):
         return b32
 
     @staticmethod
-    def _totp(secret_b32: str, for_time: int | None = None, period: int = 30, digits: int = 6) -> str:
+    def _totp(secret_b32: str, for_time: Optional[int] = None, period: int = 30, digits: int = 6) -> str:
         if for_time is None:
             for_time = int(time.time())
         counter = int(for_time // period)
