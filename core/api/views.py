@@ -695,8 +695,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         time_entries = task.time_entries.select_related("employee", "employee__user").all()
 
         # Breakdown por empleado
+        # Use non-conflicting key names to avoid collision with TimeEntry.employee_id field
         employee_breakdown = (
-            time_entries.values(employee_id=F("employee__id"), employee_name=F("employee__user__first_name"))
+            time_entries.values(emp_id=F("employee__id"), employee_name=F("employee__user__first_name"))
             .annotate(hours=Sum("hours_worked"))
             .order_by("-hours")
         )
