@@ -20,9 +20,9 @@ Notas clave:
 
 Escala: 0–100%. Valores basados en verificación de modelos/vistas/servicios y tests actuales.
 
-- Módulo 1 – Proyectos: 80%
+- Módulo 1 – Proyectos: 82%
   - Implementado: Proyecto, presupuestos, EV, schedules, dashboards por rol, minutas, CO integrado.
-  - Pendiente: numeración automática de proyecto; notificación al asignar PM; firmas digitales para colores.
+  - Pendiente: notificación al asignar PM; firmas digitales para colores.
 
 - Módulo 2 – Empleados: 85%
   - Implementado: CRUD empleado, vinculación User/Profile, activo/inactivo, tarifa/hora, historial básico; lógica de almuerzo aplicada en TimeEntry.
@@ -89,6 +89,7 @@ Promedio (M1–M6): ≈ 78%.
 - Tests globales: 513 PASS.
 - Task API y lógica de reopen/time tracking: estable; sin duplicidad de eventos (señales centralizadas).
 - Invoice + pagos parciales: presentes en modelos; estados sincronizados.
+- Project_code (PRJ-####): agregado y auto-generado post-creación.
 
 ## 🗺️ Cómo usar este mapa
 

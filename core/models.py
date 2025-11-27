@@ -23,6 +23,12 @@ from django.utils.translation import gettext_lazy as _
 # ---------------------
 class Project(models.Model):
     name = models.CharField(max_length=100)
+    project_code = models.CharField(
+        max_length=16,
+        unique=True,
+        blank=True,
+        help_text=_("Código amigable del proyecto (PRJ-0001, PRJ-0002...). Se genera automáticamente."),
+    )
     client = models.CharField(max_length=100, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     start_date = models.DateField()
@@ -77,7 +83,12 @@ class Project(models.Model):
     def save(self, *args, **kwargs):
         # Ejecuta validaciones antes de guardar (incluye create y update)
         self.full_clean()
+        creating = self.pk is None
         super().save(*args, **kwargs)
+        # Asignar project_code después de tener PK
+        if creating and not self.project_code:
+            self.project_code = f"PRJ-{self.id:04d}"
+            super().save(update_fields=["project_code"])
 
     def profit(self):
         return round(self.total_income - self.total_expenses, 2)
