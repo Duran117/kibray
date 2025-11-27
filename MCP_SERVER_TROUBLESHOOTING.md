@@ -6,57 +6,132 @@ The Pylance MCP server is not responding:
 Error sending message to http://localhost:5419/stream: TypeError: fetch failed
 ```
 
-## Root Cause
-The MCP (Model Context Protocol) server requires the Pylance extension to be running in VS Code with the MCP server enabled. The server should be listening on `localhost:5419`.
+## ✅ Resolution Steps (User Action Required)
 
-## Troubleshooting Steps
+### Step 1: Reload VS Code Window
+1. Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
+2. Type "Developer: Reload Window"
+3. Press Enter
 
-1. **Verify Pylance Extension**
-   - Check if the Pylance extension is installed and enabled in VS Code
-   - Extension ID: `ms-python.vscode-pylance`
+This will restart all VS Code extensions including Pylance and its MCP server.
 
-2. **Check MCP Server Status**
-   - Open VS Code Command Palette (Cmd+Shift+P)
-   - Look for "Pylance: Restart Server" or similar commands
-   - Check VS Code output panel for Pylance logs
+### Step 2: Verify Python Extension
+1. Press `Cmd+Shift+X` to open Extensions
+2. Search for "Python"
+3. Ensure "Python" by Microsoft is installed and enabled
+4. Search for "Pylance"
+5. Ensure "Pylance" by Microsoft is installed and enabled
 
-3. **Verify Port Availability**
-   ```bash
-   lsof -i :5419
-   ```
-   If nothing is listening, the MCP server process isn't running.
+### Step 3: Check Python Interpreter
+1. Press `Cmd+Shift+P`
+2. Type "Python: Select Interpreter"
+3. Choose `.venv/bin/python` (should be at the top)
 
-4. **Restart VS Code**
-   - Close and reopen VS Code completely
-   - The MCP server should start automatically if properly configured
+### Step 4: Restart VS Code Completely
+If the above doesn't work:
+1. Close VS Code completely (Cmd+Q on macOS)
+2. Reopen VS Code
+3. Open the kibray workspace folder
 
-5. **Check VS Code Settings**
-   Create/edit `.vscode/settings.json`:
-   ```json
-   {
-     "python.analysis.mcpEnabled": true,
-     "python.analysis.mcpPort": 5419
-   }
-   ```
+### Step 5: Check MCP Server Status
+After reloading, verify the server is running:
+```bash
+lsof -i :5419
+```
 
-## Alternative: Use Direct Python Tools
-If MCP server cannot be started, all Python analysis can still be done using:
-- `pytest` for testing
-- `ruff` for linting
-- `black` for formatting
-- `mypy` for type checking (optional)
+You should see output like:
+```
+COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+node    12345  user   23u  IPv4 ...           TCP localhost:5419 (LISTEN)
+```
 
-## Status
-- **Current State**: MCP server not responding
-- **Impact**: Cannot use MCP-specific tools (pylanceRunCodeSnippet, pylanceSyntaxErrors, etc.)
-- **Workaround**: Using standard Python tools (pytest, ruff, black) successfully
-- **Action Required**: Manual VS Code/Pylance configuration by user
+## Configuration Applied
 
-## Resolution Notes
-The user should:
-1. Verify Pylance extension is up to date
-2. Check for any Pylance errors in VS Code
-3. Restart VS Code to reinitialize the MCP server
-4. Confirm port 5419 is not blocked by firewall
+The following VS Code settings have been configured in `.vscode/settings.json`:
 
-If the issue persists, the MCP features are optional - all core functionality works without them.
+- **Python Interpreter**: Set to `.venv/bin/python`
+- **Type Checking**: Disabled (typeCheckingMode: "off")
+- **Format on Save**: Enabled with Python formatter
+- **Pytest**: Enabled as default test runner
+- **Auto Import**: Enabled
+- **Code Actions**: Organize imports on save
+
+## Testing Without MCP
+
+While the MCP server is being resolved, all Python development features work normally:
+
+### Available Tools
+```bash
+# Run tests
+pytest
+
+# Run with coverage
+pytest --cov=. --cov-report=term-missing
+
+# Lint code
+ruff check .
+
+# Auto-fix linting issues
+ruff check . --fix
+
+# Format code
+black .
+```
+
+### VS Code Tasks
+All quality tools are available via VS Code tasks:
+- `Cmd+Shift+P` → "Tasks: Run Task"
+  - Run tests with coverage
+  - Lint with ruff
+  - Lint and fix with ruff
+  - Format with black
+
+## What is MCP?
+
+The Model Context Protocol (MCP) is an optional feature that provides:
+- Enhanced code analysis
+- Better type inference
+- Improved auto-completion
+
+**Important**: MCP is NOT required for development. All core functionality (testing, linting, formatting, debugging) works without it.
+
+## Current Status
+
+- ✅ VS Code settings configured
+- ✅ Python interpreter selected (.venv/bin/python)
+- ✅ Pytest enabled as test runner
+- ✅ Black/Ruff integration configured
+- ⏳ MCP server needs VS Code reload (user action)
+
+## Expected Outcome
+
+After completing Steps 1-4 above, the MCP server should automatically start when VS Code reloads. The server runs on port 5419 and provides enhanced Python language features.
+
+## If Issue Persists
+
+If the MCP server still doesn't start after reloading:
+
+1. **Check Pylance Extension Logs**
+   - View → Output → Select "Pylance" from dropdown
+   - Look for errors related to MCP server startup
+
+2. **Reinstall Pylance**
+   - Extensions → Pylance → Uninstall
+   - Restart VS Code
+   - Reinstall Pylance from Extensions
+
+3. **Check Firewall**
+   - Ensure port 5419 is not blocked by firewall
+   - Add exception if needed
+
+4. **Use Alternative**
+   - Continue development without MCP
+   - All features work normally via command line tools
+
+## Summary
+
+**Action Required**: Reload VS Code window (`Cmd+Shift+P` → "Developer: Reload Window")
+
+**Impact**: None on development - all tools operational via command line
+
+**Status**: Configuration complete, waiting for VS Code reload to activate MCP server
