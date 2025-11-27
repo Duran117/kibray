@@ -7900,3 +7900,23 @@ def js_i18n_demo(request):
     This demonstrates gettext(), ngettext(), and interpolate() in JavaScript.
     """
     return render(request, "core/js_i18n_demo.html")
+
+
+# --- ANALYTICS DASHBOARD ---
+@login_required
+def analytics_dashboard(request):
+    """
+    Analytics Dashboard view - serves React-based analytics dashboard.
+    Provides comprehensive project metrics, touchup analytics, color approvals,
+    and PM performance data visualization.
+    """
+    # Determine user role for frontend permission checks
+    user_role = "user"
+    if request.user.is_superuser:
+        user_role = "admin"
+    elif request.user.is_staff:
+        user_role = "staff"
+    
+    return render(request, "core/analytics_dashboard.html", {
+        "user_role": user_role,
+    })

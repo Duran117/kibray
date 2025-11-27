@@ -21,7 +21,7 @@ export const App: React.FC<AppProps> = ({ projectId }) => {
   const [categories, setCategories] = useState<ScheduleCategory[]>([]);
   const [selectedTask, setSelectedTask] = useState<ScheduleTask | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'Day' | 'Week' | 'Month'>('Day');
+  const [viewMode] = useState<'Day' | 'Week' | 'Month'>('Day');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +55,10 @@ export const App: React.FC<AppProps> = ({ projectId }) => {
       setError('Error al actualizar la tarea');
       console.error('Error updating task:', err);
     }
+  };
+
+  const handleGanttTaskUpdate = (taskId: string, start: string, end: string, progress: number) => {
+    handleTaskUpdate(taskId, { start, end, progress });
   };
 
   const handleTaskClick = (task: ScheduleTask) => {
@@ -169,7 +173,7 @@ export const App: React.FC<AppProps> = ({ projectId }) => {
 
       <GanttChart
         tasks={tasks}
-        onTaskUpdate={handleTaskUpdate}
+        onTaskUpdate={handleGanttTaskUpdate}
         onTaskClick={handleTaskClick}
         viewMode={viewMode}
       />

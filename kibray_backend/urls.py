@@ -36,6 +36,7 @@ urlpatterns = [
     path("dashboard/client/", views.dashboard_client, name="dashboard_client"),
     path("dashboard/designer/", views.dashboard_designer, name="dashboard_designer"),
     path("dashboard/superintendent/", views.dashboard_superintendent, name="dashboard_superintendent"),
+    path("dashboard/analytics/", views.analytics_dashboard, name="analytics_dashboard"),
     # Demo/Testing
     path("demo/js-i18n/", views.js_i18n_demo, name="js_i18n_demo"),
     # Project list & CRUD

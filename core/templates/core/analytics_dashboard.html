@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Ensure dashboard is full-width and styled consistently */
+  #dashboard-root {
+    min-height: 80vh;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="dashboard-root" data-user-role="{{ user_role }}" data-is-staff="{% if user.is_staff %}true{% else %}false{% endif %}"></div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Dashboard React Component -->
+{% if DEBUG %}
+    <!-- Development: Load from Vite dev server -->
+    <script type="module" src="http://localhost:5173/@vite/client"></script>
+    <script type="module" src="http://localhost:5173/src/dashboard-main.tsx"></script>
+{% else %}
+    <!-- Production: Load built assets -->
+    <script type="module" src="{% static 'gantt/dashboard.BuT8jHGj.js' %}"></script>
+{% endif %}
+{% endblock %}

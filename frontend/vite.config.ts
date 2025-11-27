@@ -10,12 +10,13 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       input: {
-        main: './src/main.tsx'
+        main: './src/main.tsx',
+        dashboard: './src/dashboard-main.tsx'
       },
       output: {
-        entryFileNames: 'gantt.[hash].js',
-        chunkFileNames: 'gantt.[hash].js',
-        assetFileNames: 'gantt.[hash].[ext]'
+        entryFileNames: '[name].[hash].js',
+        chunkFileNames: '[name].[hash].js',
+        assetFileNames: '[name].[hash].[ext]'
       }
     }
   },

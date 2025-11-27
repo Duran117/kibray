@@ -38,7 +38,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
     // Initialize or update Gantt
     if (!ganttInstance.current) {
       ganttInstance.current = new Gantt(ganttRef.current, ganttTasks, {
-        view_mode: currentView,
+        view_mode: currentView as 'Day' | 'Week' | 'Month',
         date_format: 'YYYY-MM-DD',
         custom_popup_html: (task: any) => {
           return `
