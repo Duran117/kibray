@@ -118,8 +118,11 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 
 # 📁 Archivos estáticos
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "core", "static")]
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "core", "static"),
+    os.path.join(BASE_DIR, "staticfiles"),  # For Vite built assets
+]
+STATIC_ROOT = os.path.join(BASE_DIR, "static_collected")
 if DEBUG:
     # Simpler storage in development/test to avoid manifest hash lookups
     STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"

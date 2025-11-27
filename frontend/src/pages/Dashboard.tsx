@@ -111,14 +111,26 @@ const Dashboard: React.FC = () => {
   const [approvalData, setApprovalData] = useState<ColorApprovalAnalytics | null>(null);
   const [pmData, setPmData] = useState<PMPerformance | null>(null);
 
-  const getAuthToken = () => localStorage.getItem('token');
+  // Get CSRF token from cookie for Django
+  const getCSRFToken = () => {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const trimmed = cookie.trim();
+      if (trimmed.startsWith(name + '=')) {
+        return trimmed.substring(name.length + 1);
+      }
+    }
+    return '';
+  };
 
   const fetchProjectHealth = async (pid: number) => {
     try {
       setLoading(true);
       setError(null);
       const response = await axios.get(`${API_BASE}/analytics/projects/${pid}/health/`, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        withCredentials: true,
+        headers: { 'X-CSRFToken': getCSRFToken() },
       });
       setProjectHealth(response.data);
     } catch (err: any) {
@@ -136,7 +148,8 @@ const Dashboard: React.FC = () => {
         ? `${API_BASE}/analytics/touchups/?project=${pid}`
         : `${API_BASE}/analytics/touchups/`;
       const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        withCredentials: true,
+        headers: { 'X-CSRFToken': getCSRFToken() },
       });
       setTouchupData(response.data);
     } catch (err: any) {
@@ -154,7 +167,8 @@ const Dashboard: React.FC = () => {
         ? `${API_BASE}/analytics/color-approvals/?project=${pid}`
         : `${API_BASE}/analytics/color-approvals/`;
       const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        withCredentials: true,
+        headers: { 'X-CSRFToken': getCSRFToken() },
       });
       setApprovalData(response.data);
     } catch (err: any) {
@@ -169,7 +183,8 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await axios.get(`${API_BASE}/analytics/pm-performance/`, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        withCredentials: true,
+        headers: { 'X-CSRFToken': getCSRFToken() },
       });
       setPmData(response.data);
     } catch (err: any) {
