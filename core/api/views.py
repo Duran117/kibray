@@ -47,7 +47,9 @@ from core.models import (
     PlannedActivity,
     PlanPin,
     Project,
+    ProjectManagerAssignment,
     ProjectInventory,
+    ColorApproval,
     ScheduleCategory,
     ScheduleItem,
     SitePhoto,
@@ -92,6 +94,8 @@ from .serializers import (
     ProjectInventorySerializer,
     ProjectListSerializer,
     ProjectSerializer,
+    ProjectManagerAssignmentSerializer,
+    ColorApprovalSerializer,
     ScheduleCategorySerializer,
     ScheduleItemSerializer,
     SitePhotoSerializer,
@@ -132,6 +136,64 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     def count_unread(self, request):
         count = Notification.objects.filter(user=request.user, is_read=False).count()
         return Response({"unread_count": count})
+
+
+class ProjectManagerAssignmentViewSet(viewsets.ModelViewSet):
+    serializer_class = ProjectManagerAssignmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ProjectManagerAssignment.objects.select_related("project", "pm").order_by("-created_at")
+
+    @action(detail=False, methods=["post"], url_path="assign")
+    def assign(self, request: Request):
+        """Create an assignment and rely on signal for notifications."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        return Response(ProjectManagerAssignmentSerializer(instance).data, status=201)
+
+
+class ColorApprovalViewSet(viewsets.ModelViewSet):
+    serializer_class = ColorApprovalSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ["project", "status", "color_name", "brand"]
+    search_fields = ["color_name", "color_code", "brand", "location"]
+
+    def get_queryset(self):
+        return ColorApproval.objects.select_related("project", "requested_by", "approved_by").order_by("-created_at")
+
+    @action(detail=True, methods=["post"], parser_classes=[MultiPartParser, FormParser, JSONParser])
+    def approve(self, request: Request, pk=None):
+        approval = self.get_object()
+        user = request.user
+        # Permission: only admins or assigned PMs for the project
+        from core.models import ProjectManagerAssignment
+        is_pm = ProjectManagerAssignment.objects.filter(project=approval.project, pm=user).exists()
+        if not (user.is_superuser or user.is_staff or is_pm):
+            return Response({"detail": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+        # Validation: prevent approving twice
+        if approval.status == "APPROVED":
+            return Response({"detail": "Already approved"}, status=status.HTTP_400_BAD_REQUEST)
+        signature = request.FILES.get("client_signature")
+        approval.approve(approver=user, signature_file=signature)
+        return Response(ColorApprovalSerializer(approval).data)
+
+    @action(detail=True, methods=["post"])
+    def reject(self, request: Request, pk=None):
+        approval = self.get_object()
+        user = request.user
+        from core.models import ProjectManagerAssignment
+        is_pm = ProjectManagerAssignment.objects.filter(project=approval.project, pm=user).exists()
+        if not (user.is_superuser or user.is_staff or is_pm):
+            return Response({"detail": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+        # Validation: prevent rejecting after rejection
+        if approval.status == "REJECTED":
+            return Response({"detail": "Already rejected"}, status=status.HTTP_400_BAD_REQUEST)
+        reason = request.data.get("reason", "")
+        approval.reject(approver=user, reason=reason)
+        return Response(ColorApprovalSerializer(approval).data)
 
 
 # =============================================================================
@@ -422,6 +484,30 @@ class TaskViewSet(viewsets.ModelViewSet):
             else:
                 qs = qs.none()
         return qs
+
+    @action(detail=False, methods=["get"])
+    def touchup_board(self, request: Request):
+        """Return a kanban-style board of touch-up tasks grouped by status and priority."""
+        project_id = request.query_params.get("project")
+        qs = self.get_queryset().filter(is_touchup=True)
+        if project_id:
+            qs = qs.filter(project_id=project_id)
+        board = {}
+        for status in ["Pendiente", "En Progreso", "Completada", "Cancelada"]:
+            board[status] = list(
+                qs.filter(status=status)
+                .order_by("-priority", "due_date")
+                .values(
+                    "id",
+                    "title",
+                    "priority",
+                    "assigned_to",
+                    "due_date",
+                    "created_at",
+                    "completed_at",
+                )
+            )
+        return Response({"columns": board, "total": qs.count()})
 
     @action(detail=False, methods=["get"])
     def touchup_kanban(self, request):

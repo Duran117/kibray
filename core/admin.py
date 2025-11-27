@@ -44,6 +44,8 @@ from .models import (
     Profile,
     Project,
     ProjectInventory,
+    ProjectManagerAssignment,
+    ColorApproval,
     PunchListItem,
     QualityDefect,
     QualityInspection,
@@ -278,6 +280,62 @@ class ColorSampleAdmin(admin.ModelAdmin):
     readonly_fields = ("approved_at", "created_at", "updated_at")
 
 
+@admin.register(ColorApproval)
+class ColorApprovalAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "project",
+        "color_name",
+        "color_code",
+        "brand",
+        "location",
+        "status",
+        "requested_by",
+        "approved_by",
+        "created_at",
+        "approved_at",
+    )
+    list_filter = ("project", "status", "brand")
+    search_fields = ("color_name", "color_code", "brand", "location", "project__name")
+    readonly_fields = ("approved_at",)
+    autocomplete_fields = ("project", "requested_by")
+
+    actions = ["approve_selected", "reject_selected"]
+
+    def has_approve_permission(self, request, obj):
+        # Allow if admin or assigned PM for the project
+        if request.user.is_superuser or request.user.is_staff:
+            return True
+        from .models import ProjectManagerAssignment
+        return ProjectManagerAssignment.objects.filter(project=obj.project, pm=request.user).exists()
+
+    def approve_selected(self, request, queryset):
+        approved = 0
+        for obj in queryset:
+            if obj.status == "APPROVED":
+                continue
+            if not self.has_approve_permission(request, obj):
+                self.message_user(request, f"No permission to approve {obj}", level="error")
+                continue
+            obj.approve(approver=request.user)
+            approved += 1
+        self.message_user(request, f"Approved {approved} color approvals.")
+    approve_selected.short_description = "Approve selected color approvals"
+
+    def reject_selected(self, request, queryset):
+        rejected = 0
+        for obj in queryset:
+            if obj.status == "REJECTED":
+                continue
+            if not self.has_approve_permission(request, obj):
+                self.message_user(request, f"No permission to reject {obj}", level="error")
+                continue
+            obj.reject(approver=request.user, reason="Rejected via admin action")
+            rejected += 1
+        self.message_user(request, f"Rejected {rejected} color approvals.")
+    reject_selected.short_description = "Reject selected color approvals"
+
+
 class PlanPinAttachmentInline(admin.TabularInline):
     model = PlanPinAttachment
     extra = 0
@@ -295,6 +353,14 @@ class FloorPlanAdmin(admin.ModelAdmin):
     list_filter = ("project",)
     search_fields = ("project__name", "name")
     inlines = [PlanPinInline]
+
+
+@admin.register(ProjectManagerAssignment)
+class ProjectManagerAssignmentAdmin(admin.ModelAdmin):
+    list_display = ("id", "project", "pm", "created_at")
+    list_filter = ("project", "pm")
+    search_fields = ("project__name", "pm__username", "pm__first_name", "pm__last_name")
+    autocomplete_fields = ("project", "pm")
 
 
 @admin.register(PlanPin)

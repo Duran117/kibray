@@ -194,12 +194,14 @@ Response: array of photos. Pagination disabled for simplicity.
 
 ### Tasks
 
+
 #### List Tasks
 **GET** `/api/v1/tasks/`
 
 **Query Parameters**:
-- `touchup=true` - Filter only touch-up tasks
+- `touchup=true` - Filter only touch-up tasks (uses `is_touchup` flag)
 - `assigned_to_me=true` - Filter tasks assigned to current user
+- `is_touchup=true|false` - Direct filter for touch-up tasks (for advanced queries)
 
 **Response**:
 ```json
@@ -225,6 +227,24 @@ Response: array of photos. Pagination disabled for simplicity.
     "reopen_events_count": 1
   }
 ]
+```
+
+#### Touch-Up Kanban Board
+**GET** `/api/v1/tasks/touchup_board/?project={id}`
+
+Returns a kanban-style board of touch-up tasks grouped by status and priority for a project (or all projects if not specified).
+
+**Response**:
+```json
+{
+  "columns": {
+    "Pendiente": [ ... ],
+    "En Progreso": [ ... ],
+    "Completada": [ ... ],
+    "Cancelada": [ ... ]
+  },
+  "total": 7
+}
 ```
 
 #### Update Task Status
@@ -472,6 +492,29 @@ Body: `{ "reason": "Does not match spec" }`
   }
 ]
 ```
+
+#### Project Manager Assignments
+
+- `GET /api/v1/project-manager-assignments/` — list assignments
+- `POST /api/v1/project-manager-assignments/` — create assignment (body: `{ project, pm }`)
+- `POST /api/v1/project-manager-assignments/assign/` — convenience action to create assignment; triggers notifications to PM and admins
+
+Notes:
+- Notifications are generated via a post-save signal; duplicates are avoided by unique constraints where applicable.
+
+#### Color Approvals
+
+- `GET /api/v1/color-approvals/` — list color approvals
+- `POST /api/v1/color-approvals/` — create approval request (fields: `project`, `requested_by`, `color_name`, `color_code`, `brand`, `location`)
+- `POST /api/v1/color-approvals/{id}/approve` — approve with optional multipart file `client_signature`
+- `POST /api/v1/color-approvals/{id}/reject` — reject with JSON body `{ reason: string }`
+
+Filtering & Search:
+- Filter: `project`, `status`, `color_name`, `brand`
+- Search: `color_name`, `color_code`, `brand`, `location`
+
+Auth:
+- Requires JWT authentication; obtain tokens via `/api/v1/auth/login/` and include `Authorization: Bearer <token>`
 
 ---
 

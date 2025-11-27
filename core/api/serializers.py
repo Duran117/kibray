@@ -18,8 +18,10 @@ from core.models import (
     PermissionMatrix,
     PlanPin,
     Project,
+    ProjectManagerAssignment,
     ScheduleCategory,
     ScheduleItem,
+    ColorApproval,
     Task,
     TaskTemplate,
     WeatherSnapshot,
@@ -386,6 +388,44 @@ class TaskDependencySerializer(serializers.ModelSerializer):
 
         # Explicit creation to avoid any unintended model mixups
         return TD.objects.create(**validated_data)
+
+
+class ProjectManagerAssignmentSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source="project.name", read_only=True)
+    pm_username = serializers.CharField(source="pm.username", read_only=True)
+
+    class Meta:
+        model = ProjectManagerAssignment
+        fields = ["id", "project", "project_name", "pm", "pm_username", "role", "created_at"]
+        read_only_fields = ["created_at"]
+
+
+class ColorApprovalSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source="project.name", read_only=True)
+    requested_by_username = serializers.CharField(source="requested_by.username", read_only=True, allow_null=True)
+    approved_by_username = serializers.CharField(source="approved_by.username", read_only=True, allow_null=True)
+
+    class Meta:
+        model = ColorApproval
+        fields = [
+            "id",
+            "project",
+            "project_name",
+            "requested_by",
+            "requested_by_username",
+            "approved_by",
+            "approved_by_username",
+            "status",
+            "color_name",
+            "color_code",
+            "brand",
+            "location",
+            "notes",
+            "client_signature",
+            "signed_at",
+            "created_at",
+        ]
+        read_only_fields = ["signed_at", "created_at"]
 
 
 class DamagePhotoSerializer(serializers.ModelSerializer):

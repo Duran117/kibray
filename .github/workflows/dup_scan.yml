@@ -1,0 +1,38 @@
+name: Duplicate/Complexity Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Flake8 Simplify
+        run: |
+          flake8 --select=SIM --statistics --count .
+
+      - name: Radon Cyclomatic Complexity Report
+        run: |
+          radon cc core -s -a
+          radon cc kibray_backend -s -a
+
+      - name: Radon Maintainability Index
+        run: |
+          radon mi core
+          radon mi kibray_backend

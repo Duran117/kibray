@@ -12,6 +12,7 @@ from .views import (
     ClientRequestAttachmentViewSet,
     ClientRequestViewSet,
     ColorSampleViewSet,
+    ColorApprovalViewSet,
     CostCodeViewSet,
     DailyLogPlanningViewSet,
     DailyPlanViewSet,
@@ -32,6 +33,7 @@ from .views import (
     MaterialsDashboardView,
     MaterialsUsageAnalyticsView,
     NotificationViewSet,
+    ProjectManagerAssignmentViewSet,
     PayrollDashboardView,
     PayrollPaymentViewSet,
     PayrollPeriodViewSet,
@@ -78,9 +80,11 @@ router.register(r"task-dependencies", TaskDependencyViewSet, basename="task-depe
 router.register(r"floor-plans", FloorPlanViewSet, basename="floor-plan")
 router.register(r"plan-pins", PlanPinViewSet, basename="plan-pin")
 router.register(r"color-samples", ColorSampleViewSet, basename="color-sample")
+router.register(r"color-approvals", ColorApprovalViewSet, basename="color-approval")
 
 # Projects
 router.register(r"projects", ProjectViewSet, basename="project")
+router.register(r"project-manager-assignments", ProjectManagerAssignmentViewSet, basename="project-manager-assignment")
 
 # Schedule
 router.register(r"schedule/categories", ScheduleCategoryViewSet, basename="schedule-category")

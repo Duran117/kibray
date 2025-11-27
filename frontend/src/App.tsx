@@ -1,3 +1,10 @@
+// Touch-Up Board route
+// import TouchupBoard from './pages/TouchupBoard';
+
+// ...existing code...
+
+// Example route wiring (adjust if using react-router)
+// <Route path="/touchups" element={<TouchupBoard />} />
 import React, { useState, useEffect } from 'react';
 import { GanttChart } from './components/GanttChart';
 import { TaskEditor } from './components/TaskEditor';
