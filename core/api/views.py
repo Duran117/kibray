@@ -4189,3 +4189,75 @@ class AdminDashboardView(APIView):
                 "health_score": health_score,
             }
         )
+
+
+# =============================================================================
+# ANALYTICS DASHBOARD VIEWS
+# =============================================================================
+
+
+class ProjectHealthDashboardView(APIView):
+    """Comprehensive project health metrics dashboard."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request, project_id: int) -> Response:
+        """Get project health metrics including completion, budget, timeline, risks."""
+        from core.services.analytics import get_project_health_metrics
+
+        data = get_project_health_metrics(project_id)
+        if "error" in data:
+            return Response(data, status=status.HTTP_404_NOT_FOUND)
+        return Response(data)
+
+
+class TouchupAnalyticsDashboardView(APIView):
+    """Touch-up task analytics with trends."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        """Get touchup analytics with optional project filter."""
+        from core.services.analytics import get_touchup_analytics
+
+        project_id = request.query_params.get("project")
+        data = get_touchup_analytics(
+            project_id=int(project_id) if project_id else None
+        )
+        return Response(data)
+
+
+class ColorApprovalAnalyticsDashboardView(APIView):
+    """Color approval workflow metrics."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        """Get color approval analytics with optional project filter."""
+        from core.services.analytics import get_color_approval_analytics
+
+        project_id = request.query_params.get("project")
+        data = get_color_approval_analytics(
+            project_id=int(project_id) if project_id else None
+        )
+        return Response(data)
+
+
+class PMPerformanceDashboardView(APIView):
+    """PM workload and performance analytics."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        """Get PM performance analytics. Admin access required."""
+        from core.services.analytics import get_pm_performance_analytics
+
+        # Restrict to admins or staff
+        user = request.user
+        if not (user.is_superuser or user.is_staff):
+            return Response(
+                {"detail": "Admin access required"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        data = get_pm_performance_analytics()
+        return Response(data)

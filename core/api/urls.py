@@ -13,6 +13,7 @@ from .views import (
     ClientRequestViewSet,
     ColorSampleViewSet,
     ColorApprovalViewSet,
+    ColorApprovalAnalyticsDashboardView,
     CostCodeViewSet,
     DailyLogPlanningViewSet,
     DailyPlanViewSet,
@@ -33,6 +34,8 @@ from .views import (
     MaterialsDashboardView,
     MaterialsUsageAnalyticsView,
     NotificationViewSet,
+    PMPerformanceDashboardView,
+    ProjectHealthDashboardView,
     ProjectManagerAssignmentViewSet,
     PayrollDashboardView,
     PayrollPaymentViewSet,
@@ -48,6 +51,7 @@ from .views import (
     SitePhotoViewSet,
     TaskDependencyViewSet,
     TaskGanttView,
+    TouchupAnalyticsDashboardView,
     TaskTemplateViewSet,
     TaskViewSet,
     TimeEntryViewSet,
@@ -155,4 +159,13 @@ urlpatterns = [
     path("dashboards/admin/", AdminDashboardView.as_view(), name="dashboard-admin"),
     path("dashboards/projects/<int:project_id>/", ProjectDashboardView.as_view(), name="dashboard-project"),
     path("dashboards/client/", ClientDashboardView.as_view(), name="dashboard-client"),
+    # Analytics Dashboards (NEW)
+    path(
+        "analytics/projects/<int:project_id>/health/",
+        ProjectHealthDashboardView.as_view(),
+        name="analytics-project-health",
+    ),
+    path("analytics/touchups/", TouchupAnalyticsDashboardView.as_view(), name="analytics-touchups"),
+    path("analytics/color-approvals/", ColorApprovalAnalyticsDashboardView.as_view(), name="analytics-color-approvals"),
+    path("analytics/pm-performance/", PMPerformanceDashboardView.as_view(), name="analytics-pm-performance"),
 ]

@@ -1,28 +1,4 @@
 [tool.ruff]
-target-version = "py39"
-line-length = 100
-exclude = [
-  ".venv",
-  "**/__pycache__",
-  "db.sqlite3",
-]
-
-[tool.ruff.lint]
-select = [
-  "E",  # pycodestyle errors
-  "F",  # pyflakes
-  "B",  # bugbear
-  "I",  # isort
-]
-ignore = [
-  "E501",  # line length handled by formatter
-]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-line-ending = "lf"
-[tool.ruff]
 line-length = 120
 target-version = "py311"
 exclude = [
@@ -33,27 +9,33 @@ exclude = [
     "venv",
     "staticfiles",
     "media",
+    "db.sqlite3",
 ]
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
 ]
 ignore = [
-    "E501",  # line too long (handled by formatter)
-    "B008",  # function call in argument defaults
-    "B904",  # raise from inside except
+    "E501",
+    "B008",
+    "B904",
 ]
 
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # unused imports in __init__
-"tests/**" = ["F401", "F811"]  # allow test fixtures
+"__init__.py" = ["F401"]
+"tests/**" = ["F401", "F811"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["core", "kibray_backend", "signatures", "reports"]

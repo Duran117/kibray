@@ -293,11 +293,11 @@ class ColorApprovalAdmin(admin.ModelAdmin):
         "requested_by",
         "approved_by",
         "created_at",
-        "approved_at",
+        "signed_at",
     )
     list_filter = ("project", "status", "brand")
     search_fields = ("color_name", "color_code", "brand", "location", "project__name")
-    readonly_fields = ("approved_at",)
+    readonly_fields = ("signed_at", "created_at")
     autocomplete_fields = ("project", "requested_by")
 
     actions = ["approve_selected", "reject_selected"]

@@ -775,3 +775,204 @@ print(serializer.data)
 4. Submit to App Store
 
 For questions or issues, check Django logs or open a support ticket.
+
+---
+
+## 📊 Analytics & Dashboards
+
+### 1. Project Health Metrics
+
+Get comprehensive project health dashboard with completion, budget, timeline, and risk indicators.
+
+**Endpoint**: `GET /api/v1/analytics/projects/{project_id}/health/`
+
+**Authentication**: Required (any authenticated user)
+
+**Response** (200 OK):
+```json
+{
+  "project_id": 1,
+  "project_name": "Residential Painting Project",
+  "completion_percentage": 65.5,
+  "budget": {
+    "total": 50000.00,
+    "spent": 32500.00,
+    "remaining": 17500.00,
+    "variance_pct": 35.0
+  },
+  "timeline": {
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "days_total": 89,
+    "days_elapsed": 45,
+    "days_remaining": 44,
+    "on_track": true
+  },
+  "task_summary": {
+    "total": 50,
+    "completed": 33,
+    "in_progress": 10,
+    "pending": 5,
+    "cancelled": 2
+  },
+  "risk_indicators": {
+    "overdue_tasks": 3,
+    "budget_overrun": false,
+    "behind_schedule": false
+  },
+  "recent_activity": {
+    "completions_last_7_days": 8
+  }
+}
+```
+
+**Error Response** (404 Not Found):
+```json
+{
+  "error": "Project not found"
+}
+```
+
+---
+
+### 2. Touch-up Analytics
+
+Get touch-up task metrics with trends and performance data.
+
+**Endpoint**: `GET /api/v1/analytics/touchups/`
+
+**Authentication**: Required (any authenticated user)
+
+**Query Parameters**:
+- `project` (optional): Filter by project ID
+
+**Response** (200 OK):
+```json
+{
+  "total_touchups": 45,
+  "by_status": {
+    "Completada": 30,
+    "En Progreso": 8,
+    "Pendiente": 7,
+    "Cancelada": 0
+  },
+  "by_priority": {
+    "urgent": 5,
+    "high": 15,
+    "medium": 20,
+    "low": 5
+  },
+  "completion_rate": 66.67,
+  "avg_resolution_time_hours": 24.5,
+  "trends": [
+    {"date": "2025-11-01", "count": 3},
+    {"date": "2025-11-02", "count": 5},
+    {"date": "2025-11-03", "count": 2}
+  ]
+}
+```
+
+**Usage Examples**:
+```bash
+# Global touchup analytics
+curl -H "Authorization: Bearer <token>" \
+  https://api.example.com/api/v1/analytics/touchups/
+
+# Project-specific touchup analytics
+curl -H "Authorization: Bearer <token>" \
+  https://api.example.com/api/v1/analytics/touchups/?project=5
+```
+
+---
+
+### 3. Color Approval Analytics
+
+Get color approval workflow metrics and brand analysis.
+
+**Endpoint**: `GET /api/v1/analytics/color-approvals/`
+
+**Authentication**: Required (any authenticated user)
+
+**Query Parameters**:
+- `project` (optional): Filter by project ID
+
+**Response** (200 OK):
+```json
+{
+  "total_approvals": 28,
+  "by_status": {
+    "PENDING": 5,
+    "APPROVED": 20,
+    "REJECTED": 3
+  },
+  "by_brand": [
+    {"brand": "Sherwin-Williams", "count": 15},
+    {"brand": "Benjamin Moore", "count": 8},
+    {"brand": "Behr", "count": 5}
+  ],
+  "avg_approval_time_hours": 18.5,
+  "pending_aging_days": 3
+}
+```
+
+**Notes**:
+- `by_brand` returns top 10 brands by approval count
+- `avg_approval_time_hours` is calculated from `created_at` to `signed_at` for approved items
+- `pending_aging_days` shows days since oldest pending approval was created
+
+---
+
+### 4. PM Performance Analytics
+
+Get project manager workload and performance metrics.
+
+**Endpoint**: `GET /api/v1/analytics/pm-performance/`
+
+**Authentication**: Required (admin or staff only)
+
+**Permissions**: `is_superuser` or `is_staff` must be `true`
+
+**Response** (200 OK):
+```json
+{
+  "pm_list": [
+    {
+      "pm_id": 3,
+      "pm_username": "john_manager",
+      "projects_count": 5,
+      "tasks_assigned": 120,
+      "tasks_completed": 85,
+      "completion_rate": 70.83,
+      "overdue_count": 8
+    },
+    {
+      "pm_id": 7,
+      "pm_username": "sarah_pm",
+      "projects_count": 3,
+      "tasks_assigned": 75,
+      "tasks_completed": 60,
+      "completion_rate": 80.0,
+      "overdue_count": 2
+    }
+  ],
+  "overall": {
+    "total_pms": 8,
+    "avg_projects_per_pm": 3.5,
+    "avg_completion_rate": 72.5
+  }
+}
+```
+
+**Error Response** (403 Forbidden):
+```json
+{
+  "detail": "Admin access required"
+}
+```
+
+**Usage Examples**:
+```bash
+# Get PM performance (admin only)
+curl -H "Authorization: Bearer <admin_token>" \
+  https://api.example.com/api/v1/analytics/pm-performance/
+```
