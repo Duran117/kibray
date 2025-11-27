@@ -134,7 +134,13 @@ const Dashboard: React.FC = () => {
       });
       setProjectHealth(response.data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch project health');
+      if (err.response?.status === 401) {
+        setError('Authentication required. Please log in to Django admin first.');
+      } else if (err.response?.status === 404) {
+        setError(`Project ${pid} not found.`);
+      } else {
+        setError(err.response?.data?.error || 'Failed to fetch project health');
+      }
     } finally {
       setLoading(false);
     }
@@ -153,7 +159,11 @@ const Dashboard: React.FC = () => {
       });
       setTouchupData(response.data);
     } catch (err: any) {
-      setError('Failed to fetch touchup analytics');
+      if (err.response?.status === 401) {
+        setError('Authentication required. Please log in to Django admin first.');
+      } else {
+        setError('Failed to fetch touchup analytics');
+      }
     } finally {
       setLoading(false);
     }
@@ -172,7 +182,11 @@ const Dashboard: React.FC = () => {
       });
       setApprovalData(response.data);
     } catch (err: any) {
-      setError('Failed to fetch color approval analytics');
+      if (err.response?.status === 401) {
+        setError('Authentication required. Please log in to Django admin first.');
+      } else {
+        setError('Failed to fetch color approval analytics');
+      }
     } finally {
       setLoading(false);
     }
@@ -188,7 +202,13 @@ const Dashboard: React.FC = () => {
       });
       setPmData(response.data);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to fetch PM performance');
+      if (err.response?.status === 401) {
+        setError('Authentication required. Please log in to Django admin first.');
+      } else if (err.response?.status === 403) {
+        setError('Access denied. Admin permission required for PM Performance data.');
+      } else {
+        setError(err.response?.data?.detail || 'Failed to fetch PM performance');
+      }
     } finally {
       setLoading(false);
     }
@@ -758,10 +778,10 @@ const Dashboard: React.FC = () => {
 
         {/* Error State */}
         {error && !loading && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+          <div className="bg-red-50 border-l-4 border-red-400 p-6 mb-6 rounded-lg">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-6 w-6 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -769,8 +789,19 @@ const Dashboard: React.FC = () => {
                   />
                 </svg>
               </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-red-800">Error Loading Data</h3>
+                <p className="mt-2 text-sm text-red-700">{error}</p>
+                {error.includes('Authentication required') && (
+                  <div className="mt-4">
+                    <a
+                      href="/admin/login/?next=/dashboard/analytics/"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                      Go to Login
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
