@@ -54,4 +54,6 @@ Outcomes log
 - ✅ Check #1 (Tasks: status transitions): Verified `Task.status` allows transitions, `TaskStatusChange` model exists for audit trail (model line ~960).
 - ✅ Check #2 (Tasks: dependencies and Gantt): Verified `TaskDependency` (~857) has cycle detection (`would_create_cycle` static method), unique_together on (task, predecessor, type), tests present in `tests/test_task_dependencies.py` and `test_task_dependencies_cycles_extended.py`. Created additional edge case tests in `tests/test_phase3_task_dependency_edge_cases.py` (duplicate types, large/negative lag) — all pass.
 - ✅ Check #4 (Daily Plan → Task conversion): Verified `DailyPlan` model (~4848) supports conversion; tests exist in `tests/test_module12_dailyplan_api.py` for the conversion flow.
-- ⏸️ Remaining checks (3, 5–10) deferred for manual review or next iteration.
+- ❌ Check #6 (Materials → Inventory integration): **GAP DETECTED** — MaterialRequest receipt does NOT automatically create InventoryMovement (RECEIVE). Created `tests/test_phase3_material_inventory_integration.py` with 2 failing tests (0 movements found). Requirements Q14.5 + Q15.6 impacted. Issue #7 created for P1 backlog.
+- ⏸️ Remaining checks (3, 5, 7–10) deferred for manual review or next iteration.
+
