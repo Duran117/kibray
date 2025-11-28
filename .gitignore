@@ -1,33 +1,61 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
+*.py[cod]
+*$py.class
 
-# Virtual Environment
-.venv/
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtualenv
+.env
+.venv
 venv/
 ENV/
-env/
+
+# Pytest
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Test outputs / logs
+runserver.out
+test-results/
+reports/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc accidental files
+gitignore
+* (edit)
+* (edit)*
 
 # Django
 db.sqlite3
 db.sqlite3.backup_*
 media/
 staticfiles/
-.env
 *.log
 logs/
 
-# VSCode
-.vscode/
-
-# Mac/Windows
-.DS_Store
-Thumbs.db
-
 # Compiled translations (keep .po, ignore .mo)
 *.mo
-# Node/npm (si usas)
+
+# Node/npm
 node_modules/
