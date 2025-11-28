@@ -31,6 +31,9 @@ export default function ColorApprovals() {
     notes: '',
   });
 
+  // Helper to get CSRF token from meta tag (Django renders this in base template)
+  const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
   const fetchApprovals = async () => {
     setLoading(true);
     setError(null);
@@ -41,10 +44,8 @@ export default function ColorApprovals() {
       if (filter.brand) params.set('brand', filter.brand);
 
       const res = await fetch(`/api/v1/color-approvals/?${params}`, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
-        },
+        headers: { Accept: 'application/json' },
+        credentials: 'include',
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -70,8 +71,9 @@ export default function ColorApprovals() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
+          'X-CSRFToken': getCsrf(),
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -91,12 +93,10 @@ export default function ColorApprovals() {
     try {
       const formData = new FormData();
       if (signatureFile) formData.append('client_signature', signatureFile);
-
       const res = await fetch(`/api/v1/color-approvals/${id}/approve/`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
-        },
+        headers: { 'X-CSRFToken': getCsrf() },
+        credentials: 'include',
         body: formData,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -116,8 +116,9 @@ export default function ColorApprovals() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
+          'X-CSRFToken': getCsrf(),
         },
+        credentials: 'include',
         body: JSON.stringify({ reason }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -128,6 +129,15 @@ export default function ColorApprovals() {
       setLoading(false);
     }
   };
+
+  // Instrumentation: mark root mounted for Playwright and log early state
+  useEffect(() => {
+    const root = document.getElementById('color-approvals-root');
+    if (root) {
+      root.setAttribute('data-mounted', '1');
+      console.log('[ColorApprovals] mounted, approvals length:', approvals.length);
+    }
+  }, [approvals.length]);
 
   return (
     <div className="color-approvals" style={{ padding: 20 }}>
