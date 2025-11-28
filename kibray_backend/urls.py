@@ -97,6 +97,7 @@ urlpatterns = [
     path("pins/<int:pin_id>/detail.json", views.pin_detail_ajax, name="pin_detail_ajax"),
     # Touch-up board
     path("projects/<int:project_id>/touchups/", views.touchup_board, name="touchup_board"),
+    path("projects/<int:project_id>/touchups-react/", views.touchup_board_react, name="touchup_board_react"),
     path("touchups/quick-update/<int:task_id>/", views.touchup_quick_update, name="touchup_quick_update"),
     # Damage reports
     path("projects/<int:project_id>/damages/", views.damage_report_list, name="damage_report_list"),

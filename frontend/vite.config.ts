@@ -11,7 +11,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './src/main.tsx',
-        dashboard: './src/dashboard-main.tsx'
+        dashboard: './src/dashboard-main.tsx',
+        touchup: './src/touchup-main.tsx'
       },
       output: {
         entryFileNames: '[name].[hash].js',

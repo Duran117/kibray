@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Touch-ups Board{% endblock %}
+
+{% block extra_css %}
+<style>
+  #touchup-root {
+    min-height: 80vh;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="touchup-root" data-project-id="{{ project_id }}"></div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- TouchUp Board React Component -->
+<script type="module" src="{% static 'gantt/touchup.CkbZVNY2.js' %}"></script>
+{% endblock %}

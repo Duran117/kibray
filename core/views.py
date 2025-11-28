@@ -7920,3 +7920,17 @@ def analytics_dashboard(request):
     return render(request, "core/analytics_dashboard.html", {
         "user_role": user_role,
     })
+
+
+# --- TOUCHUP BOARD REACT ---
+@login_required
+def touchup_board_react(request, project_id):
+    """
+    TouchUp Board React view - serves React-based kanban board for touchups.
+    """
+    project = get_object_or_404(Project, id=project_id)
+    
+    return render(request, "core/touchup_board_react.html", {
+        "project_id": project_id,
+        "project": project,
+    })
