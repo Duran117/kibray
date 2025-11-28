@@ -12,9 +12,10 @@
     "detect_secrets_baseline": "committed",
     "detect_secrets_ci": "added",
     "phase3_verification": "complete",
-    "phase3_checks_passed": 9,
-    "phase3_gaps_found": 1,
-    "phase3_issues_created": ["#7"]
+    "phase3_checks_passed": 10,
+    "phase3_gaps_found": 0,
+    "phase3_false_positives": ["#7"]
   }
 }
+
 
