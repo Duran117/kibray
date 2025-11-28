@@ -37,7 +37,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: ./test-results || .
+          name: test-results-${{ matrix.python-version }}
+          path: test-results
+          if-no-files-found: ignore
 
 # Nota: si se desea cobertura, se puede añadir un paso de cobertura con coverage.py
