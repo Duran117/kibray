@@ -1,0 +1,63 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Python files
+*.py text diff=python
+
+# Web files
+*.html text diff=html
+*.css text
+*.js text
+*.json text
+*.xml text
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+*.rst text
+
+# Configuration
+*.yml text
+*.yaml text
+*.ini text
+*.cfg text
+*.conf text
+*.toml text
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Windows scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.otf binary
+
+# SQLite
+*.sqlite3 binary
+*.db binary
+
+# Translations
+*.po text
+*.pot text
+*.mo binary
+
+# Exclude certain paths from language statistics
+docs/** linguist-documentation
+tests/** linguist-vendored=false
