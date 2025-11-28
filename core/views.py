@@ -7934,3 +7934,28 @@ def touchup_board_react(request, project_id):
         "project_id": project_id,
         "project": project,
     })
+
+
+# --- COLOR APPROVALS REACT ---
+@login_required
+def color_approvals_react(request, project_id=None):
+    """
+    Color Approvals React view - serves React-based color approval management.
+    """
+    project = None
+    if project_id:
+        project = get_object_or_404(Project, id=project_id)
+    
+    return render(request, "core/color_approvals_react.html", {
+        "project_id": project_id,
+        "project": project,
+    })
+
+
+# --- PM ASSIGNMENTS REACT ---
+@login_required
+def pm_assignments_react(request):
+    """
+    PM Assignments React view - serves React-based PM assignment management.
+    """
+    return render(request, "core/pm_assignments_react.html", {})

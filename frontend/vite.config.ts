@@ -12,7 +12,9 @@ export default defineConfig({
       input: {
         main: './src/main.tsx',
         dashboard: './src/dashboard-main.tsx',
-        touchup: './src/touchup-main.tsx'
+        touchup: './src/touchup-main.tsx',
+        colorApprovals: './src/color-approvals-main.tsx',
+        pmAssignments: './src/pm-assignments-main.tsx'
       },
       output: {
         entryFileNames: '[name].[hash].js',

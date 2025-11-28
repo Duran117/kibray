@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Color Approvals{% endblock %}
+
+{% block extra_css %}
+<style>
+  #color-approvals-root {
+    min-height: 80vh;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="color-approvals-root" data-project-id="{{ project_id }}"></div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Color Approvals React Component -->
+<script type="module" src="{% static 'gantt/colorApprovals.BCaM_qWy.js' %}"></script>
+{% endblock %}

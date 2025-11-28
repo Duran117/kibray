@@ -99,6 +99,11 @@ urlpatterns = [
     path("projects/<int:project_id>/touchups/", views.touchup_board, name="touchup_board"),
     path("projects/<int:project_id>/touchups-react/", views.touchup_board_react, name="touchup_board_react"),
     path("touchups/quick-update/<int:task_id>/", views.touchup_quick_update, name="touchup_quick_update"),
+    # Color Approvals React
+    path("color-approvals/", views.color_approvals_react, name="color_approvals_react"),
+    path("projects/<int:project_id>/color-approvals/", views.color_approvals_react, name="color_approvals_react_project"),
+    # PM Assignments React
+    path("pm-assignments/", views.pm_assignments_react, name="pm_assignments_react"),
     # Damage reports
     path("projects/<int:project_id>/damages/", views.damage_report_list, name="damage_report_list"),
     path("damages/<int:report_id>/", views.damage_report_detail, name="damage_report_detail"),

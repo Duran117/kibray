@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}PM Assignments{% endblock %}
+
+{% block extra_css %}
+<style>
+  #pm-assignments-root {
+    min-height: 80vh;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="pm-assignments-root"></div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- PM Assignments React Component -->
+<script type="module" src="{% static 'gantt/pmAssignments.fpvYf3NG.js' %}"></script>
+{% endblock %}
