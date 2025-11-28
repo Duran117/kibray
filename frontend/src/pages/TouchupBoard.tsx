@@ -40,8 +40,8 @@ export default function TouchupBoard() {
       const res = await fetch(url.toString(), {
         headers: {
           'Accept': 'application/json',
-          'Authorization': localStorage.getItem('access') ? `Bearer ${localStorage.getItem('access')}` : '',
         },
+        credentials: 'include', // Use Django session cookies
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -59,16 +59,32 @@ export default function TouchupBoard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  // Mark mounted for E2E instrumentation
+  useEffect(() => {
+    const root = document.getElementById('touchup-root');
+    if (root) {
+      root.setAttribute('data-mounted', '1');
+      console.log('[TouchupBoard] Component mounted, data-mounted=1');
+    } else {
+      console.log('[TouchupBoard] Component mount effect: root not found');
+    }
+  }, []);
+
   const sortedColumns = useMemo(() => {
-    const sortCards = (cards: TaskCard[]) => [...cards].sort((a, b) => {
-      const p = PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
-      if (p !== 0) return p;
-      const ad = a.due_date ? new Date(a.due_date).getTime() : 0;
-      const bd = b.due_date ? new Date(b.due_date).getTime() : 0;
-      return ad - bd;
-    });
+    const sortCards = (cards: any): TaskCard[] => {
+      if (!Array.isArray(cards)) return [];
+      return [...cards].sort((a: TaskCard, b: TaskCard) => {
+        const p = PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
+        if (p !== 0) return p;
+        const ad = a.due_date ? new Date(a.due_date).getTime() : 0;
+        const bd = b.due_date ? new Date(b.due_date).getTime() : 0;
+        return ad - bd;
+      });
+    };
     const out: BoardColumns = {} as any;
-    Object.entries(columns).forEach(([k, v]) => (out[k] = sortCards(v as TaskCard[])));
+    if (columns && typeof columns === 'object') {
+      Object.entries(columns).forEach(([k, v]) => (out[k] = sortCards(v)));
+    }
     return out;
   }, [columns]);
 
