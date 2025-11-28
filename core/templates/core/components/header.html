@@ -47,6 +47,10 @@
                         <option value="es" {% if LANGUAGE_CODE == 'es' %}selected{% endif %}>ES</option>
                     </select>
                 </form>
+                {# React NotificationCenter root (modern layout) #}
+                {% if user.is_authenticated %}
+                <div id="notification-root" class="relative"></div>
+                {% endif %}
                 
                 {# User Menu #}
                 {% if user.is_authenticated %}

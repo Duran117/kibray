@@ -14,7 +14,8 @@ export default defineConfig({
         dashboard: './src/dashboard-main.tsx',
         touchup: './src/touchup-main.tsx',
         colorApprovals: './src/color-approvals-main.tsx',
-        pmAssignments: './src/pm-assignments-main.tsx'
+        pmAssignments: './src/pm-assignments-main.tsx',
+        notification: './src/notification-main.tsx'
       },
       output: {
         entryFileNames: '[name].[hash].js',

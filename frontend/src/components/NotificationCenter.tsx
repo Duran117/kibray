@@ -25,8 +25,8 @@ export default function NotificationCenter() {
       const res = await fetch('/api/v1/notifications/', {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
         },
+        credentials: 'include', // Use Django session cookies
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -43,8 +43,8 @@ export default function NotificationCenter() {
       const res = await fetch('/api/v1/notifications/count_unread/', {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
         },
+        credentials: 'include', // Use Django session cookies
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -65,8 +65,9 @@ export default function NotificationCenter() {
       await fetch(`/api/v1/notifications/${id}/mark_read/`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
+          'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
       setUnreadCount((c) => Math.max(0, c - 1));
@@ -80,8 +81,9 @@ export default function NotificationCenter() {
       await fetch('/api/v1/notifications/mark_all_read/', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
+          'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);

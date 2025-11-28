@@ -325,12 +325,9 @@
               </li>
               
               <li class="nav-item d-flex align-items-center gap-2 me-2">
-                <a class="kb-nav-icon" href="{% url 'notifications_list' %}" title="{% trans 'Notificaciones' %}" aria-label="Notificaciones" data-bs-toggle="tooltip" data-bs-placement="bottom">
-                  <i class="bi bi-bell"></i>
-                  {% if badges.unread_notifications_count > 0 %}
-                    <span class="badge bg-danger rounded-pill">{{ badges.unread_notifications_count }}</span>
-                  {% endif %}
-                </a>
+                <!-- React NotificationCenter -->
+                <div id="notification-root"></div>
+                
                 <a class="kb-nav-icon" href="{% url 'pm_select_project' 'chat' %}" title="Chat" aria-label="Chat" data-bs-toggle="tooltip" data-bs-placement="bottom">
                   <i class="bi bi-chat-dots"></i>
                 </a>
@@ -795,6 +792,11 @@
         }
       }, 30000); // 30 seconds after first interaction
     </script>
+    
+    <!-- NotificationCenter React Bundle -->
+    {% if user.is_authenticated %}
+    <script type="module" src="{% static 'gantt/notification.DugCJ5ir.js' %}"></script>
+    {% endif %}
     
     {% block extra_js %}{% endblock %}
 </body>
