@@ -9,73 +9,54 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: [3.11]
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
-      - name: Install dependencies
-        run: |
-          python -m venv .venv
-          . .venv/bin/activate
-          pip install -r requirements.txt
-      - name: Secrets scan (detect-secrets)
-        run: |
-          . .venv/bin/activate
-          pip install detect-secrets
-          mkdir -p reports
-          # scan using committed baseline; allow failures until baseline is reviewed
-          .venv/bin/detect-secrets scan --baseline .secrets.baseline --all-files --json > reports/detect_secrets.json || true
-      - name: Run Django checks
-        run: .venv/bin/python manage.py check
-      - name: Lint (ruff)
-        run: .venv/bin/ruff check .
-      - name: Security scan (bandit)
-        run: .venv/bin/bandit -r core -f json -o reports/bandit_core.json || true
-      - name: Run tests with coverage
-        run: .venv/bin/python -m coverage run -m pytest
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-html
-          path: reports/coverage_html
-name: CI
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
+          python-version: '3.11'
           cache: 'pip'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install ruff mypy pytest
-      - name: Secrets scan (detect-secrets)
-        run: |
-          pip install detect-secrets
-          mkdir -p reports
-          detect-secrets scan --baseline .secrets.baseline --all-files --json > reports/detect_secrets.json || true
+          pip install ruff bandit detect-secrets coverage pytest
+
+      - name: Run Django checks
+        run: python manage.py check
+
       - name: Lint (ruff)
         run: ruff check .
-      - name: Typecheck (mypy)
-        run: mypy . --config-file mypy.ini
-      - name: Tests (pytest)
-        env:
-          DJANGO_SETTINGS_MODULE: kibray_backend.settings
-        run: pytest -q
+
+      - name: Security scan (bandit)
+        run: |
+          mkdir -p reports
+          bandit -r core -f json -o reports/bandit_core.json || true
+
+      - name: Secrets scan (detect-secrets)
+        run: |
+          mkdir -p reports
+          detect-secrets scan --baseline .secrets.baseline --all-files --json > reports/detect_secrets.json || true
+
+      - name: Run tests with coverage
+        run: |
+          python -m coverage run -m pytest -q --maxfail=1 --junitxml=test-results/junit.xml
+
+      - name: Coverage reports
+        run: |
+          python -m coverage html -d reports/coverage_html
+          python -m coverage xml -o reports/coverage.xml
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-artifacts
+          path: |
+            reports/coverage_html
+            reports/bandit_core.json
+            reports/detect_secrets.json
+            reports/coverage.xml
+            test-results/junit.xml

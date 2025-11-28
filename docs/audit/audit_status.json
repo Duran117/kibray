@@ -1,6 +1,6 @@
 {
-  "phase": "PHASE_1",
-  "progress": "phase1-completed",
+  "phase": "PHASE_2",
+  "progress": "phase2-in-progress",
   "checks": {
     "manage_py_check": "passed_with_warnings",
     "pytest": "passed",
@@ -8,6 +8,8 @@
     "ruff": "ran",
     "bandit": "ran",
     "pip_audit": "ran",
-    "phase1_traceability": "generated"
+    "phase1_traceability": "generated",
+    "detect_secrets_baseline": "committed",
+    "detect_secrets_ci": "added"
   }
 }
