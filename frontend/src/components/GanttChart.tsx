@@ -19,10 +19,20 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 }) => {
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
-  const [currentView, setCurrentView] = useState<string>(viewMode);
+  const [currentView, setCurrentView] = useState<string>(() => {
+    return localStorage.getItem('gantt_view_mode') || viewMode;
+  });
 
   useEffect(() => {
-    if (!ganttRef.current || tasks.length === 0) return;
+    if (!ganttRef.current) return;
+
+    // Provide empty state if no tasks yet
+    if (tasks.length === 0) {
+      if (!ganttInstance.current) {
+        ganttRef.current.innerHTML = '<div class="p-3 text-muted">No hay tareas en el cronograma todavía.</div>';
+      }
+      return;
+    }
 
     // Convert tasks to Gantt format
     const ganttTasks: GanttTask[] = tasks.map((task) => ({
@@ -37,7 +47,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 
     // Initialize or update Gantt
     if (!ganttInstance.current) {
-      ganttInstance.current = new Gantt(ganttRef.current, ganttTasks, {
+  ganttInstance.current = new Gantt(ganttRef.current, ganttTasks, {
         view_mode: currentView as 'Day' | 'Week' | 'Month',
         date_format: 'YYYY-MM-DD',
         custom_popup_html: (task: any) => {
@@ -75,13 +85,14 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 
   const changeView = (mode: string) => {
     setCurrentView(mode);
+    localStorage.setItem('gantt_view_mode', mode);
     if (ganttInstance.current) {
       ganttInstance.current.change_view_mode(mode);
     }
   };
 
   return (
-    <div className="gantt-wrapper">
+  <div className="gantt-wrapper" data-component="gantt-chart">
       <div className="gantt-controls">
         <div className="btn-group">
           <button
@@ -105,6 +116,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         </div>
       </div>
       <div ref={ganttRef} className="gantt-container"></div>
+      {/* Instrumentation for tests: expose task names */}
+      <div id="gantt-task-names" style={{display:'none'}} data-task-names={tasks.map(t=>t.name).join('|')}></div>
     </div>
   );
 };

@@ -19,3 +19,6 @@ ReactDOM.createRoot(rootElement).render(
     <App projectId={parseInt(projectId, 10)} />
   </React.StrictMode>
 );
+
+// Mark mounted for E2E stability (redundant with App instrumentation but immediate)
+rootElement.setAttribute('data-mounted', '1');

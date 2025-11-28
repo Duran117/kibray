@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 {% load static %}
 
 {% block extra_css %}
@@ -33,9 +33,9 @@
     <script type="module" src="http://localhost:5173/@vite/client"></script>
     <script type="module" src="http://localhost:5173/src/main.tsx"></script>
 {% else %}
-    <!-- Production: Load built assets from staticfiles -->
+    <!-- Production: Load built assets from staticfiles (hashed via Vite) -->
     {% load static %}
-    <script type="module" src="{% static 'gantt/assets/main.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'gantt/assets/main.css' %}">
+    <script type="module" src="{% static 'gantt/main.CiDn1Eg8.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'gantt/main.Br17f8wA.css' %}">
 {% endif %}
 {% endblock %}

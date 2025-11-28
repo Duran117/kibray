@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ScheduleTask, ScheduleCategory, TaskFormData } from './types';
 
-const API_BASE = '/api';
+const API_BASE = '/api/v1';
 
 // Get CSRF token from cookie
 function getCsrfToken(): string {
@@ -19,6 +19,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Add CSRF token to requests
@@ -30,11 +31,27 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Map backend ScheduleItem serializer shape to frontend ScheduleTask shape
+function mapItem(raw: any): ScheduleTask {
+  return {
+    id: String(raw.id),
+    name: raw.name || raw.title || 'Untitled',
+    start: raw.planned_start || '',
+    end: raw.planned_end || '',
+    progress: raw.percent_complete ?? 0,
+    status: (raw.status || 'NOT_STARTED') as ScheduleTask['status'],
+    dependencies: [],
+    category: raw.category ?? undefined,
+    is_milestone: !!raw.is_milestone,
+    custom_class: '',
+  };
+}
+
 export const scheduleApi = {
   // Get all tasks for a project
   getTasks: async (projectId: number): Promise<ScheduleTask[]> => {
     const response = await api.get(`/schedule/items/?project=${projectId}`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data.map(mapItem) : [];
   },
 
   // Get categories for a project
@@ -45,17 +62,35 @@ export const scheduleApi = {
 
   // Create new task
   createTask: async (projectId: number, data: TaskFormData): Promise<ScheduleTask> => {
-    const response = await api.post(`/schedule/items/`, {
-      ...data,
+    const payload = {
       project: projectId,
-    });
-    return response.data;
+      name: data.name, // serializer maps 'name' -> title
+      planned_start: data.start,
+      planned_end: data.end,
+      status: data.status,
+      percent_complete: data.progress,
+      category: data.category,
+      is_milestone: data.is_milestone,
+      description: data.description,
+    };
+    const response = await api.post(`/schedule/items/`, payload);
+    return mapItem(response.data);
   },
 
   // Update task
-  updateTask: async (taskId: string, data: Partial<TaskFormData>): Promise<ScheduleTask> => {
-    const response = await api.patch(`/schedule/items/${taskId}/`, data);
-    return response.data;
+  updateTask: async (taskId: string, data: Partial<TaskFormData | ScheduleTask>): Promise<ScheduleTask> => {
+    const payload: any = {};
+    if (data.start) payload.planned_start = data.start;
+    if (data.end) payload.planned_end = data.end;
+    if (data.progress !== undefined) payload.percent_complete = data.progress;
+    if ((data as any).status) payload.status = (data as any).status;
+    if ((data as any).name) payload.name = (data as any).name;
+  // 'name' maps to title via serializer source
+    if ((data as any).category !== undefined) payload.category = (data as any).category;
+    if ((data as any).is_milestone !== undefined) payload.is_milestone = (data as any).is_milestone;
+    if ((data as any).description !== undefined) payload.description = (data as any).description;
+    const response = await api.patch(`/schedule/items/${taskId}/`, payload);
+    return mapItem(response.data);
   },
 
   // Delete task
@@ -65,6 +100,7 @@ export const scheduleApi = {
 
   // Bulk update tasks (for drag and drop)
   bulkUpdateTasks: async (updates: Array<{ id: string; start: string; end: string }>): Promise<void> => {
-    await api.post(`/schedule/items/bulk_update/`, { updates });
+    const transformed = updates.map(u => ({ id: u.id, planned_start: u.start, planned_end: u.end }));
+    await api.post(`/schedule/items/bulk_update/`, { updates: transformed });
   },
 };

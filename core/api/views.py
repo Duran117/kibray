@@ -1984,10 +1984,34 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         project_id = self.request.query_params.get("project")
-        qs = ScheduleItem.objects.select_related("project", "category", "cost_code").prefetch_related("dependencies")
+        # Removed deprecated 'dependencies' prefetch (relation no longer exists on model)
+        qs = ScheduleItem.objects.select_related("project", "category", "cost_code")
         if project_id:
             qs = qs.filter(project_id=project_id)
         return qs.order_by("order")
+
+    def perform_create(self, serializer):
+        """Ensure a category exists even if frontend omits it.
+
+        Frontend initial Gantt create flow currently sends: project, name(title), planned_start, planned_end, status,
+        percent_complete, is_milestone, description — but may omit 'category'. The model requires a non-null category.
+        To keep UX simple, we auto-provision or reuse a default category named 'General' for the given project when
+        none is supplied. This prevents 400 validation errors while allowing later explicit categorization.
+        """
+        data = serializer.validated_data
+        category = data.get("category")
+        project = data.get("project")
+        if category is None:
+            from core.models import ScheduleCategory
+            # Prefer existing 'General' category; if absent create it with order=0.
+            category, _created = ScheduleCategory.objects.get_or_create(
+                project=project,
+                name="General",
+                defaults={"order": 0},
+            )
+            serializer.save(category=category)
+        else:
+            serializer.save()
 
     @action(detail=False, methods=["post"])
     def bulk_update(self, request):

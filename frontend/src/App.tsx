@@ -29,6 +29,14 @@ export const App: React.FC<AppProps> = ({ projectId }) => {
     loadData();
   }, [projectId]);
 
+  // Instrumentation: flag root after initial load
+  useEffect(() => {
+    if (!loading) {
+      const root = document.getElementById('gantt-root');
+      if (root) root.setAttribute('data-mounted', '1');
+    }
+  }, [loading]);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -155,7 +163,7 @@ export const App: React.FC<AppProps> = ({ projectId }) => {
   }
 
   return (
-    <div className="app-container">
+  <div className="app-container" data-component="gantt-app">
       <div className="app-header">
         <h2>Cronograma del Proyecto</h2>
         <div className="app-toolbar">

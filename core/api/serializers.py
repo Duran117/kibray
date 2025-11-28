@@ -671,14 +671,11 @@ class ScheduleCategorySerializer(serializers.ModelSerializer):
             "id",
             "project",
             "name",
-            "description",
             "order",
             "parent",
             "is_phase",
+            "cost_code",
             "item_count",
-            "planned_start",
-            "planned_end",
-            "status",
             "percent_complete",
         ]
         read_only_fields = ["item_count"]
@@ -689,7 +686,10 @@ class ScheduleCategorySerializer(serializers.ModelSerializer):
 
 class ScheduleItemSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True, allow_null=True)
-    dependencies_list = serializers.SerializerMethodField()
+    # Map legacy 'name' used by frontend to model field 'title'
+    name = serializers.CharField(source="title")
+    # Allow frontend to omit category; viewset will assign a default if missing
+    category = serializers.PrimaryKeyRelatedField(queryset=ScheduleCategory.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = ScheduleItem
@@ -703,23 +703,15 @@ class ScheduleItemSerializer(serializers.ModelSerializer):
             "order",
             "planned_start",
             "planned_end",
-            "actual_start",
-            "actual_end",
             "status",
             "percent_complete",
             "is_milestone",
-            "dependencies",
-            "dependencies_list",
             "cost_code",
             "budget_line",
             "estimate_line",
         ]
 
-    def get_dependencies_list(self, obj):
-        """Return comma-separated list of dependency IDs for Frappe Gantt format"""
-        if obj.dependencies:
-            return ",".join(str(dep.id) for dep in obj.dependencies.all())
-        return ""
+    # dependencies removed (not present on model); could be reintroduced later
 
 
 # =============================================================================
