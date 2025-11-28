@@ -19,12 +19,6 @@
 
 {% block extra_js %}
 <!-- Dashboard React Component -->
-{% if DEBUG %}
-    <!-- Development: Load from Vite dev server -->
-    <script type="module" src="http://localhost:5173/@vite/client"></script>
-    <script type="module" src="http://localhost:5173/src/dashboard-main.tsx"></script>
-{% else %}
-    <!-- Production: Load built assets -->
-    <script type="module" src="{% static 'gantt/dashboard.D4chUXzj.js' %}"></script>
-{% endif %}
+<!-- Always load production build for E2E testing stability -->
+<script type="module" src="{% static 'gantt/dashboard.D4chUXzj.js' %}"></script>
 {% endblock %}

@@ -148,13 +148,24 @@ test.describe('Notifications', () => {
 
 test.describe('Analytics Dashboard', () => {
   test.beforeEach(async ({ page }) => {
+    // Login first - Django @login_required decorator requires authentication
+    await page.goto('http://localhost:8000/admin/login/');
+    
+    // Fill login form (using existing admin credentials)
+    await page.fill('input[name="username"]', 'admin');
+    await page.fill('input[name="password"]', 'admin123');
+    await page.click('input[type="submit"]');
+    
+    // Wait for redirect after successful login
+    await page.waitForTimeout(1000);
+    
     // Navigate to dashboard
     await page.goto('http://localhost:8000/dashboard/analytics/');
   });
 
   test('should display dashboard with all 4 tabs', async ({ page }) => {
-    // Wait for React app to load
-    await page.waitForSelector('#root', { timeout: 5000 });
+    // Wait for React app to fully render - wait for the title
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Check that all tabs are present
     await expect(page.locator('button:has-text("Project Health")')).toBeVisible();
@@ -164,7 +175,7 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should load Project Health tab by default', async ({ page }) => {
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Check project ID input is visible
     await expect(page.locator('input[placeholder*="Project ID"]').first()).toBeVisible();
@@ -183,7 +194,7 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should navigate between tabs', async ({ page }) => {
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Click Touch-ups tab
     await page.click('button:has-text("Touch-ups")');
@@ -203,7 +214,7 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should show loading state while fetching data', async ({ page }) => {
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Fill project ID and click load
     await page.fill('input[placeholder*="Project ID"]', '1');
@@ -225,7 +236,7 @@ test.describe('Analytics Dashboard', () => {
     // In real scenario, you'd logout first or use incognito
     
     await page.goto('http://localhost:8000/dashboard/analytics/');
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Try to load data without auth
     const touchupsTab = page.locator('button:has-text("Touch-ups")');
@@ -240,7 +251,7 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should filter Touch-ups by project', async ({ page }) => {
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Navigate to Touch-ups tab
     await page.click('button:has-text("Touch-ups")');
@@ -258,7 +269,7 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should display Color Approvals analytics', async ({ page }) => {
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Navigate to Color Approvals tab
     await page.click('button:has-text("Color Approvals")');
@@ -271,7 +282,7 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should display PM Performance for admin users', async ({ page }) => {
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Navigate to PM Performance tab
     await page.click('button:has-text("PM Performance")');
@@ -290,7 +301,7 @@ test.describe('Analytics Dashboard', () => {
   test('should show "Go to Login" button on authentication error', async ({ page }) => {
     // This assumes we're not authenticated
     await page.goto('http://localhost:8000/dashboard/analytics/');
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Try to trigger auth error by clicking on tabs
     await page.click('button:has-text("Color Approvals")');
@@ -303,7 +314,7 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should handle project not found gracefully', async ({ page }) => {
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Try to load non-existent project
     await page.fill('input[placeholder*="Project ID"]', '999999');
@@ -317,7 +328,7 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should display charts with Recharts library', async ({ page }) => {
-    await page.waitForSelector('#root', { timeout: 5000 });
+    await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 15000 });
     
     // Load a project
     await page.fill('input[placeholder*="Project ID"]', '1');
