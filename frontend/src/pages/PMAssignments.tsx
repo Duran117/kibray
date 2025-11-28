@@ -17,15 +17,15 @@ export default function PMAssignments() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ project: '', pm: '', role: 'project_manager' });
 
+  const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
   const fetchAssignments = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/v1/project-manager-assignments/', {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
-        },
+        headers: { Accept: 'application/json' },
+        credentials: 'include',
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -50,8 +50,9 @@ export default function PMAssignments() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
+          'X-CSRFToken': getCsrf(),
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -64,6 +65,15 @@ export default function PMAssignments() {
       setLoading(false);
     }
   };
+
+  // Instrumentation for Playwright: mark root mounted and log list length
+  useEffect(() => {
+    const root = document.getElementById('pm-assignments-root');
+    if (root) {
+      root.setAttribute('data-mounted', '1');
+      console.log('[PMAssignments] mounted, count:', assignments.length);
+    }
+  }, [assignments.length]);
 
   return (
     <div className="pm-assignments" style={{ padding: 20 }}>
