@@ -2244,7 +2244,7 @@ def changeorder_create_view(request):
     if project_id:
         try:
             approved_colors = ColorSample.objects.filter(project_id=project_id, status="approved").order_by("code")
-        except:
+        except Exception:
             pass
 
     # Use clean Design System template by default
@@ -2667,7 +2667,7 @@ def invoice_builder_view(request, project_id):
         if due_date_str:
             try:
                 due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
-            except:
+            except Exception:
                 pass
 
         # Create Invoice
@@ -5916,7 +5916,7 @@ def employee_morning_dashboard(request):
     """
     try:
         employee = request.user.employee
-    except:
+    except Exception:
         messages.error(request, "You are not registered as an employee")
         return redirect("dashboard")
 
@@ -5950,7 +5950,7 @@ def activity_complete(request, activity_id):
 
     try:
         employee = request.user.employee
-    except:
+    except Exception:
         messages.error(request, "You are not registered as an employee")
         return redirect("dashboard")
 
@@ -7916,10 +7916,14 @@ def analytics_dashboard(request):
         user_role = "admin"
     elif request.user.is_staff:
         user_role = "staff"
-    
-    return render(request, "core/analytics_dashboard.html", {
-        "user_role": user_role,
-    })
+
+    return render(
+        request,
+        "core/analytics_dashboard.html",
+        {
+            "user_role": user_role,
+        },
+    )
 
 
 # --- TOUCHUP BOARD REACT ---
@@ -7929,11 +7933,15 @@ def touchup_board_react(request, project_id):
     TouchUp Board React view - serves React-based kanban board for touchups.
     """
     project = get_object_or_404(Project, id=project_id)
-    
-    return render(request, "core/touchup_board_react.html", {
-        "project_id": project_id,
-        "project": project,
-    })
+
+    return render(
+        request,
+        "core/touchup_board_react.html",
+        {
+            "project_id": project_id,
+            "project": project,
+        },
+    )
 
 
 # --- COLOR APPROVALS REACT ---
@@ -7945,11 +7953,15 @@ def color_approvals_react(request, project_id=None):
     project = None
     if project_id:
         project = get_object_or_404(Project, id=project_id)
-    
-    return render(request, "core/color_approvals_react.html", {
-        "project_id": project_id,
-        "project": project,
-    })
+
+    return render(
+        request,
+        "core/color_approvals_react.html",
+        {
+            "project_id": project_id,
+            "project": project,
+        },
+    )
 
 
 # --- PM ASSIGNMENTS REACT ---

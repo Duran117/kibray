@@ -23,6 +23,13 @@ jobs:
           python -m venv .venv
           . .venv/bin/activate
           pip install -r requirements.txt
+      - name: Secrets scan (detect-secrets)
+        run: |
+          . .venv/bin/activate
+          pip install detect-secrets
+          mkdir -p reports
+          # scan using committed baseline; allow failures until baseline is reviewed
+          .venv/bin/detect-secrets scan --baseline .secrets.baseline --all-files --json > reports/detect_secrets.json || true
       - name: Run Django checks
         run: .venv/bin/python manage.py check
       - name: Lint (ruff)
@@ -59,6 +66,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install ruff mypy pytest
+      - name: Secrets scan (detect-secrets)
+        run: |
+          pip install detect-secrets
+          mkdir -p reports
+          detect-secrets scan --baseline .secrets.baseline --all-files --json > reports/detect_secrets.json || true
       - name: Lint (ruff)
         run: ruff check .
       - name: Typecheck (mypy)
