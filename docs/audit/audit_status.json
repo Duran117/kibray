@@ -1,12 +1,13 @@
 {
-  "phase": "PHASE_0",
-  "progress": "phase0-completed",
+  "phase": "PHASE_1",
+  "progress": "phase1-completed",
   "checks": {
     "manage_py_check": "passed_with_warnings",
     "pytest": "passed",
     "coverage": "generated",
     "ruff": "ran",
     "bandit": "ran",
-    "pip_audit": "ran"
+    "pip_audit": "ran",
+    "phase1_traceability": "generated"
   }
 }
