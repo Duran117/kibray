@@ -101,7 +101,9 @@ urlpatterns = [
     path("touchups/quick-update/<int:task_id>/", views.touchup_quick_update, name="touchup_quick_update"),
     # Color Approvals React
     path("color-approvals/", views.color_approvals_react, name="color_approvals_react"),
-    path("projects/<int:project_id>/color-approvals/", views.color_approvals_react, name="color_approvals_react_project"),
+    path(
+        "projects/<int:project_id>/color-approvals/", views.color_approvals_react, name="color_approvals_react_project"
+    ),
     # PM Assignments React
     path("pm-assignments/", views.pm_assignments_react, name="pm_assignments_react"),
     # Damage reports

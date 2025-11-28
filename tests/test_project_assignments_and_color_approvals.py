@@ -8,6 +8,7 @@ from core.models import Project, ColorApproval, ProjectManagerAssignment
 
 User = get_user_model()
 
+
 @pytest.mark.django_db
 def test_pm_assignment_creates_notification(admin_user):
     client = APIClient()
@@ -26,6 +27,7 @@ def test_pm_assignment_creates_notification(admin_user):
     # Notification model uses related_name="notifications"
     assert assignment.pm.notifications.count() >= 1
 
+
 @pytest.mark.django_db
 def test_color_approval_approve_and_reject_flow(admin_user):
     client = APIClient()
@@ -36,14 +38,18 @@ def test_color_approval_approve_and_reject_flow(admin_user):
     project = Project.objects.create(name="Color Project", start_date=timezone.now().date())
     # Create approval request
     url = reverse("color-approval-list")
-    resp = client.post(url, {
-        "project": project.id,
-        "requested_by": requester.id,
-        "color_name": "Ocean Blue",
-        "color_code": "BLU-001",
-        "brand": "BrandX",
-        "location": "Living Room",
-    }, format="json")
+    resp = client.post(
+        url,
+        {
+            "project": project.id,
+            "requested_by": requester.id,
+            "color_name": "Ocean Blue",
+            "color_code": "BLU-001",
+            "brand": "BrandX",
+            "location": "Living Room",
+        },
+        format="json",
+    )
     assert resp.status_code in (200, 201)
     approval_id = resp.data.get("id") or ColorApproval.objects.latest("id").id
 

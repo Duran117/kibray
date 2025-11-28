@@ -17,7 +17,7 @@ from core.models import (
 def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
     """
     Comprehensive project health analytics.
-    
+
     Returns:
         - completion_percentage: % of tasks completed
         - budget_status: { total, spent, remaining, variance_pct }
@@ -38,10 +38,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
     in_progress = tasks.filter(status="En Progreso").count()
     pending = tasks.filter(status="Pendiente").count()
     cancelled = tasks.filter(status="Cancelada").count()
-    overdue = tasks.filter(
-        Q(status__in=["Pendiente", "En Progreso"])
-        & Q(due_date__lt=timezone.now().date())
-    ).count()
+    overdue = tasks.filter(Q(status__in=["Pendiente", "En Progreso"]) & Q(due_date__lt=timezone.now().date())).count()
 
     completion_pct = (completed / total_tasks * 100) if total_tasks > 0 else 0
 
@@ -49,11 +46,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
     budget_total = project.budget_total or Decimal("0")
     total_expenses = project.total_expenses or Decimal("0")
     budget_remaining = budget_total - total_expenses
-    variance_pct = (
-        ((budget_total - total_expenses) / budget_total * 100)
-        if budget_total > 0
-        else 0
-    )
+    variance_pct = ((budget_total - total_expenses) / budget_total * 100) if budget_total > 0 else 0
 
     # Timeline metrics
     start_date = project.start_date
@@ -71,9 +64,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
 
     # Recent activity
     seven_days_ago = timezone.now() - timedelta(days=7)
-    recent_completions = tasks.filter(
-        status="Completada", completed_at__gte=seven_days_ago
-    ).count()
+    recent_completions = tasks.filter(status="Completada", completed_at__gte=seven_days_ago).count()
 
     # Risk flags
     budget_overrun = total_expenses > budget_total
@@ -116,7 +107,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
 def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
     """
     Touch-up task analytics with trends and performance metrics.
-    
+
     Returns:
         - total_touchups: count
         - by_status: { pending, in_progress, completed, cancelled }
@@ -141,15 +132,11 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
         }
 
     # Status breakdown
-    by_status = (
-        qs.values("status").annotate(count=Count("id")).order_by("-count")
-    )
+    by_status = qs.values("status").annotate(count=Count("id")).order_by("-count")
     status_dict = {item["status"]: item["count"] for item in by_status}
 
     # Priority breakdown
-    by_priority = (
-        qs.values("priority").annotate(count=Count("id")).order_by("-count")
-    )
+    by_priority = qs.values("priority").annotate(count=Count("id")).order_by("-count")
     priority_dict = {item["priority"]: item["count"] for item in by_priority}
 
     # Completion rate
@@ -162,11 +149,7 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
     for task in completed_tasks:
         delta = task.completed_at - task.created_at
         resolution_times.append(delta.total_seconds() / 3600)  # hours
-    avg_resolution = (
-        sum(resolution_times) / len(resolution_times)
-        if resolution_times
-        else 0
-    )
+    avg_resolution = sum(resolution_times) / len(resolution_times) if resolution_times else 0
 
     # Trends: last 30 days
     thirty_days_ago = timezone.now() - timedelta(days=30)
@@ -177,10 +160,7 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
         .annotate(count=Count("id"))
         .order_by("day")
     )
-    trends = [
-        {"date": str(item["day"]), "count": item["count"]}
-        for item in daily_completions
-    ]
+    trends = [{"date": str(item["day"]), "count": item["count"]} for item in daily_completions]
 
     return {
         "total_touchups": total,
@@ -195,7 +175,7 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
 def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
     """
     Color approval workflow metrics.
-    
+
     Returns:
         - total_approvals: count
         - by_status: { PENDING, APPROVED, REJECTED }
@@ -218,20 +198,12 @@ def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
         }
 
     # Status breakdown
-    by_status = (
-        qs.values("status").annotate(count=Count("id")).order_by("-count")
-    )
+    by_status = qs.values("status").annotate(count=Count("id")).order_by("-count")
     status_dict = {item["status"]: item["count"] for item in by_status}
 
     # Brand breakdown (top 10)
-    by_brand = (
-        qs.values("brand")
-        .annotate(count=Count("id"))
-        .order_by("-count")[:10]
-    )
-    brand_list = [
-        {"brand": item["brand"], "count": item["count"]} for item in by_brand
-    ]
+    by_brand = qs.values("brand").annotate(count=Count("id")).order_by("-count")[:10]
+    brand_list = [{"brand": item["brand"], "count": item["count"]} for item in by_brand]
 
     # Avg approval time
     approved = qs.filter(status="APPROVED", signed_at__isnull=False)
@@ -239,9 +211,7 @@ def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
     for approval in approved:
         delta = approval.signed_at - approval.created_at
         approval_times.append(delta.total_seconds() / 3600)
-    avg_approval = (
-        sum(approval_times) / len(approval_times) if approval_times else 0
-    )
+    avg_approval = sum(approval_times) / len(approval_times) if approval_times else 0
 
     # Pending aging (oldest pending)
     oldest_pending = qs.filter(status="PENDING").order_by("created_at").first()
@@ -263,7 +233,7 @@ def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
 def get_pm_performance_analytics() -> Dict[str, Any]:
     """
     Project Manager workload and performance metrics.
-    
+
     Returns:
         - pm_list: [{ pm_id, pm_username, projects_count, tasks_assigned, tasks_completed, completion_rate, overdue_count }]
         - overall: { total_pms, avg_projects_per_pm, avg_completion_rate }
@@ -281,20 +251,13 @@ def get_pm_performance_analytics() -> Dict[str, Any]:
         projects = pm_item["projects_count"]
 
         # Tasks in PM's projects
-        pm_projects = ProjectManagerAssignment.objects.filter(
-            pm_id=pm_id
-        ).values_list("project_id", flat=True)
+        pm_projects = ProjectManagerAssignment.objects.filter(pm_id=pm_id).values_list("project_id", flat=True)
         tasks = Task.objects.filter(project_id__in=pm_projects)
         tasks_assigned = tasks.count()
         tasks_completed = tasks.filter(status="Completada").count()
-        completion_rate = (
-            (tasks_completed / tasks_assigned * 100)
-            if tasks_assigned > 0
-            else 0
-        )
+        completion_rate = (tasks_completed / tasks_assigned * 100) if tasks_assigned > 0 else 0
         overdue = tasks.filter(
-            Q(status__in=["Pendiente", "En Progreso"])
-            & Q(due_date__lt=timezone.now().date())
+            Q(status__in=["Pendiente", "En Progreso"]) & Q(due_date__lt=timezone.now().date())
         ).count()
 
         pm_data.append(
@@ -311,16 +274,8 @@ def get_pm_performance_analytics() -> Dict[str, Any]:
 
     # Overall stats
     total_pms = len(pm_data)
-    avg_projects = (
-        sum(p["projects_count"] for p in pm_data) / total_pms
-        if total_pms > 0
-        else 0
-    )
-    avg_completion = (
-        sum(p["completion_rate"] for p in pm_data) / total_pms
-        if total_pms > 0
-        else 0
-    )
+    avg_projects = sum(p["projects_count"] for p in pm_data) / total_pms if total_pms > 0 else 0
+    avg_completion = sum(p["completion_rate"] for p in pm_data) / total_pms if total_pms > 0 else 0
 
     return {
         "pm_list": pm_data,

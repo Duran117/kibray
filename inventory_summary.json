@@ -1,0 +1,167 @@
+{
+  "total_files": 650,
+  "ext_top": [
+    [
+      ".py",
+      274
+    ],
+    [
+      ".html",
+      177
+    ],
+    [
+      ".md",
+      108
+    ],
+    [
+      ".tsx",
+      14
+    ],
+    [
+      ".ts",
+      11
+    ],
+    [
+      ".png",
+      10
+    ],
+    [
+      ".json",
+      8
+    ],
+    [
+      ".css",
+      8
+    ],
+    [
+      "<no_ext>",
+      7
+    ],
+    [
+      ".js",
+      5
+    ],
+    [
+      ".yml",
+      4
+    ],
+    [
+      ".mo",
+      4
+    ],
+    [
+      ".po",
+      4
+    ],
+    [
+      ".sh",
+      4
+    ],
+    [
+      ".txt",
+      3
+    ],
+    [
+      ".broken",
+      2
+    ],
+    [
+      ".svg",
+      2
+    ],
+    [
+      ".ini",
+      2
+    ],
+    [
+      ".webm",
+      1
+    ],
+    [
+      ".toml",
+      1
+    ]
+  ],
+  "top_large": [
+    {
+      "path": "REQUIREMENTS_DOCUMENTATION.md",
+      "size": 794986
+    },
+    {
+      "path": "frontend/playwright-report/index.html",
+      "size": 523083
+    },
+    {
+      "path": "core/views.py",
+      "size": 293011
+    },
+    {
+      "path": "core/models.py",
+      "size": 259678
+    },
+    {
+      "path": "frontend/playwright-report/data/7b8d0031963020783ff91f270208c842a8517349.webm",
+      "size": 234719
+    },
+    {
+      "path": "locale/es/LC_MESSAGES/django.po",
+      "size": 190612
+    },
+    {
+      "path": "locale/en/LC_MESSAGES/django.po",
+      "size": 187095
+    },
+    {
+      "path": "core/api/views.py",
+      "size": 168426
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "size": 122696
+    },
+    {
+      "path": "core/static/kibray-logo.png",
+      "size": 90859
+    },
+    {
+      "path": "locale/en/LC_MESSAGES/django.mo",
+      "size": 75020
+    },
+    {
+      "path": "locale/es/LC_MESSAGES/django.mo",
+      "size": 72811
+    },
+    {
+      "path": "core/forms.py",
+      "size": 66547
+    },
+    {
+      "path": "auto_translate_po.py",
+      "size": 65716
+    },
+    {
+      "path": "core/api/serializers.py",
+      "size": 63284
+    },
+    {
+      "path": "core/templates/core/changeorder_form_standalone.html",
+      "size": 61560
+    },
+    {
+      "path": "core/templates/core/changeorder_form_modern.html.broken",
+      "size": 57326
+    },
+    {
+      "path": "core/templates/core/changeorder_form_modern.html",
+      "size": 55944
+    },
+    {
+      "path": "CLARIFICATION_QUESTIONS_MODULES_11-27.md",
+      "size": 45479
+    },
+    {
+      "path": "core/templates/core/floor_plan_detail.html",
+      "size": 41783
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Prueba de edición de gastos (Expense)"""
+
 import os
 from datetime import date
 from decimal import Decimal

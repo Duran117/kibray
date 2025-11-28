@@ -1,0 +1,4252 @@
+diff --git a/.gitignore b/.gitignore
+index 5a66d76..4d1d7e4 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,61 +1,37 @@
+-# Byte-compiled / optimized / DLL files
++# Python
+ __pycache__/
+-*.py[cod]
+-*$py.class
++*.pyc
++*.pyo
++*.pyd
++*.sqlite3
+ 
+-# C extensions
+-*.so
+-
+-# Distribution / packaging
+-.Python
+-build/
+-dist/
+-*.egg-info/
+-.eggs/
+-
+-# Virtualenv
+-.env
+-.venv
++# Virtual Environment
++.venv/
+ venv/
+ ENV/
+-
+-# Pytest
+-.pytest_cache/
+-.coverage
+-coverage.xml
+-htmlcov/
+-
+-# Test outputs / logs
+-runserver.out
+-test-results/
+-reports/
+-
+-# Editor directories and files
+-.vscode/
+-.idea/
+-*.suo
+-*.user
+-*.userosscache
+-
+-# OS files
+-.DS_Store
+-Thumbs.db
+-
+-# Misc accidental files
+-gitignore
+-* (edit)
+-* (edit)*
++env/
+ 
+ # Django
+ db.sqlite3
+ db.sqlite3.backup_*
+ media/
+ staticfiles/
++.env
+ *.log
+ logs/
+ 
++# Backups directory and explicit DB backups
++backups/
++db_backup_*.sqlite3
++
++# VSCode
++.vscode/
++
++# Mac/Windows
++.DS_Store
++Thumbs.db
++
+ # Compiled translations (keep .po, ignore .mo)
+ *.mo
+-
+-# Node/npm
++# Node/npm (si usas)
+ node_modules/
+\ No newline at end of file
+diff --git a/auto_translate.py b/auto_translate.py
+index 4a1e386..fe24ec2 100644
+--- a/auto_translate.py
++++ b/auto_translate.py
+@@ -4,7 +4,6 @@ Auto-traductor inteligente para archivos .po
+ Detecta si el texto ya está en español y lo preserva
+ """
+ 
+-
+ # Palabras clave en español para detectar si ya está traducido
+ SPANISH_KEYWORDS = {
+     "el",
+diff --git a/auto_translate_po.py b/auto_translate_po.py
+index 52bbcfe..5ac0f8e 100644
+--- a/auto_translate_po.py
++++ b/auto_translate_po.py
+@@ -2,6 +2,7 @@
+ """
+ Script automático para traducir entradas obvias del PO file español->inglés
+ """
++
+ import re
+ 
+ # Diccionario de traducciones directas comunes
+diff --git a/complete_100_percent.py b/complete_100_percent.py
+index 73cd450..a8375af 100644
+--- a/complete_100_percent.py
++++ b/complete_100_percent.py
+@@ -3,7 +3,6 @@
+ Script DEFINITIVO - Completa el 100% de todas las traducciones
+ """
+ 
+-
+ # DICCIONARIO DEFINITIVO Y COMPLETO
+ ALL_TRANSLATIONS = {
+     # Términos técnicos y específicos
+diff --git a/core/admin.py b/core/admin.py
+index 3d558a1..937b7ab 100644
+--- a/core/admin.py
++++ b/core/admin.py
+@@ -307,6 +307,7 @@ class ColorApprovalAdmin(admin.ModelAdmin):
+         if request.user.is_superuser or request.user.is_staff:
+             return True
+         from .models import ProjectManagerAssignment
++
+         return ProjectManagerAssignment.objects.filter(project=obj.project, pm=request.user).exists()
+ 
+     def approve_selected(self, request, queryset):
+@@ -320,6 +321,7 @@ class ColorApprovalAdmin(admin.ModelAdmin):
+             obj.approve(approver=request.user)
+             approved += 1
+         self.message_user(request, f"Approved {approved} color approvals.")
++
+     approve_selected.short_description = "Approve selected color approvals"
+ 
+     def reject_selected(self, request, queryset):
+@@ -333,6 +335,7 @@ class ColorApprovalAdmin(admin.ModelAdmin):
+             obj.reject(approver=request.user, reason="Rejected via admin action")
+             rejected += 1
+         self.message_user(request, f"Rejected {rejected} color approvals.")
++
+     reject_selected.short_description = "Reject selected color approvals"
+ 
+ 
+diff --git a/core/api/serializers.py b/core/api/serializers.py
+index ece1f3b..3759cad 100644
+--- a/core/api/serializers.py
++++ b/core/api/serializers.py
+@@ -39,7 +39,17 @@ class UserSerializer(serializers.ModelSerializer):
+ class NotificationSerializer(serializers.ModelSerializer):
+     class Meta:
+         model = Notification
+-        fields = ["id", "notification_type", "title", "message", "link_url", "is_read", "created_at", "related_object_type", "related_object_id"]
++        fields = [
++            "id",
++            "notification_type",
++            "title",
++            "message",
++            "link_url",
++            "is_read",
++            "created_at",
++            "related_object_type",
++            "related_object_id",
++        ]
+         read_only_fields = ["created_at"]
+ 
+ 
+@@ -689,7 +699,9 @@ class ScheduleItemSerializer(serializers.ModelSerializer):
+     # Map legacy 'name' used by frontend to model field 'title'
+     name = serializers.CharField(source="title")
+     # Allow frontend to omit category; viewset will assign a default if missing
+-    category = serializers.PrimaryKeyRelatedField(queryset=ScheduleCategory.objects.all(), required=False, allow_null=True)
++    category = serializers.PrimaryKeyRelatedField(
++        queryset=ScheduleCategory.objects.all(), required=False, allow_null=True
++    )
+ 
+     class Meta:
+         model = ScheduleItem
+diff --git a/core/api/views.py b/core/api/views.py
+index 2952756..c20defa 100644
+--- a/core/api/views.py
++++ b/core/api/views.py
+@@ -170,6 +170,7 @@ class ColorApprovalViewSet(viewsets.ModelViewSet):
+         user = request.user
+         # Permission: only admins or assigned PMs for the project
+         from core.models import ProjectManagerAssignment
++
+         is_pm = ProjectManagerAssignment.objects.filter(project=approval.project, pm=user).exists()
+         if not (user.is_superuser or user.is_staff or is_pm):
+             return Response({"detail": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+@@ -185,6 +186,7 @@ class ColorApprovalViewSet(viewsets.ModelViewSet):
+         approval = self.get_object()
+         user = request.user
+         from core.models import ProjectManagerAssignment
++
+         is_pm = ProjectManagerAssignment.objects.filter(project=approval.project, pm=user).exists()
+         if not (user.is_superuser or user.is_staff or is_pm):
+             return Response({"detail": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+@@ -2003,6 +2005,7 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
+         project = data.get("project")
+         if category is None:
+             from core.models import ScheduleCategory
++
+             # Prefer existing 'General' category; if absent create it with order=0.
+             category, _created = ScheduleCategory.objects.get_or_create(
+                 project=project,
+@@ -4245,9 +4248,7 @@ class TouchupAnalyticsDashboardView(APIView):
+         from core.services.analytics import get_touchup_analytics
+ 
+         project_id = request.query_params.get("project")
+-        data = get_touchup_analytics(
+-            project_id=int(project_id) if project_id else None
+-        )
++        data = get_touchup_analytics(project_id=int(project_id) if project_id else None)
+         return Response(data)
+ 
+ 
+@@ -4261,9 +4262,7 @@ class ColorApprovalAnalyticsDashboardView(APIView):
+         from core.services.analytics import get_color_approval_analytics
+ 
+         project_id = request.query_params.get("project")
+-        data = get_color_approval_analytics(
+-            project_id=int(project_id) if project_id else None
+-        )
++        data = get_color_approval_analytics(project_id=int(project_id) if project_id else None)
+         return Response(data)
+ 
+ 
+diff --git a/core/consumers_fixed.py b/core/consumers_fixed.py
+index ac9ef7c..cd314d3 100644
+--- a/core/consumers_fixed.py
++++ b/core/consumers_fixed.py
+@@ -18,7 +18,7 @@ from datetime import datetime
+ class ProjectChatConsumer(AsyncWebsocketConsumer):
+     """
+     WebSocket consumer for project-specific chat rooms.
+-    
++
+     Features:
+     - Real-time message delivery
+     - Read receipts
+@@ -26,189 +26,197 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
+     - File attachment notifications
+     - @mentions
+     """
+-    
++
+     async def connect(self):
+         """Accept WebSocket connection and join project chat group"""
+-        self.project_id = self.scope['url_route']['kwargs']['project_id']  # type: ignore[typeddict-item]
+-        self.room_group_name = f'chat_project_{self.project_id}'
+-        self.user = self.scope['user']  # type: ignore[typeddict-item]
+-        
++        self.project_id = self.scope["url_route"]["kwargs"]["project_id"]  # type: ignore[typeddict-item]
++        self.room_group_name = f"chat_project_{self.project_id}"
++        self.user = self.scope["user"]  # type: ignore[typeddict-item]
++
+         # Join room group
+-        await self.channel_layer.group_add(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-        
++        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
++
+         await self.accept()
+-        
++
+         # Notify others user joined
+         await self.channel_layer.group_send(
+             self.room_group_name,
+             {
+-                'type': 'user_joined',
+-                'user_id': self.user.id,  # type: ignore[union-attr]
+-                'username': self.user.username,  # type: ignore[union-attr]
+-                'timestamp': datetime.now().isoformat(),
+-            }
++                "type": "user_joined",
++                "user_id": self.user.id,  # type: ignore[union-attr]
++                "username": self.user.username,  # type: ignore[union-attr]
++                "timestamp": datetime.now().isoformat(),
++            },
+         )
+-    
++
+     async def disconnect(self, close_code):
+         """Leave chat group when WebSocket closes"""
+         # Notify others user left
+         await self.channel_layer.group_send(
+             self.room_group_name,
+             {
+-                'type': 'user_left',
+-                'user_id': self.user.id,  # type: ignore[union-attr]
+-                'username': self.user.username,  # type: ignore[union-attr]
+-                'timestamp': datetime.now().isoformat(),
+-            }
++                "type": "user_left",
++                "user_id": self.user.id,  # type: ignore[union-attr]
++                "username": self.user.username,  # type: ignore[union-attr]
++                "timestamp": datetime.now().isoformat(),
++            },
+         )
+-        
++
+         # Leave room group
+-        await self.channel_layer.group_discard(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-    
++        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
++
+     async def receive(self, text_data):
+         """Receive message from WebSocket and broadcast to group"""
+         data = json.loads(text_data)
+-        message_type = data.get('type', 'message')
+-        
+-        if message_type == 'message':
++        message_type = data.get("type", "message")
++
++        if message_type == "message":
+             # Save message to database
+             message_id = await self.save_message(
+                 project_id=self.project_id,
+                 user=self.user,
+-                content=data['message'],
+-                attachments=data.get('attachments', [])
++                content=data["message"],
++                attachments=data.get("attachments", []),
+             )
+-            
++
+             # Broadcast to chat group
+             await self.channel_layer.group_send(
+                 self.room_group_name,
+                 {
+-                    'type': 'chat_message',
+-                    'message_id': message_id,
+-                    'message': data['message'],
+-                    'user_id': self.user.id,  # type: ignore[union-attr]
+-                    'username': self.user.username,  # type: ignore[union-attr]
+-                    'timestamp': datetime.now().isoformat(),
+-                    'attachments': data.get('attachments', []),
+-                }
++                    "type": "chat_message",
++                    "message_id": message_id,
++                    "message": data["message"],
++                    "user_id": self.user.id,  # type: ignore[union-attr]
++                    "username": self.user.username,  # type: ignore[union-attr]
++                    "timestamp": datetime.now().isoformat(),
++                    "attachments": data.get("attachments", []),
++                },
+             )
+-        
+-        elif message_type == 'typing':
++
++        elif message_type == "typing":
+             # Broadcast typing indicator
+             await self.channel_layer.group_send(
+                 self.room_group_name,
+                 {
+-                    'type': 'typing_indicator',
+-                    'user_id': self.user.id,  # type: ignore[union-attr]
+-                    'username': self.user.username,  # type: ignore[union-attr]
+-                    'is_typing': data.get('is_typing', True),
+-                }
++                    "type": "typing_indicator",
++                    "user_id": self.user.id,  # type: ignore[union-attr]
++                    "username": self.user.username,  # type: ignore[union-attr]
++                    "is_typing": data.get("is_typing", True),
++                },
+             )
+-        
+-        elif message_type == 'read_receipt':
++
++        elif message_type == "read_receipt":
+             # Mark message as read
+-            await self.mark_message_read(
+-                message_id=data['message_id'],
+-                user=self.user
+-            )
+-            
++            await self.mark_message_read(message_id=data["message_id"], user=self.user)
++
+             # Broadcast read receipt
+             await self.channel_layer.group_send(
+                 self.room_group_name,
+                 {
+-                    'type': 'read_receipt',
+-                    'message_id': data['message_id'],
+-                    'user_id': self.user.id,  # type: ignore[union-attr]
+-                    'timestamp': datetime.now().isoformat(),
+-                }
++                    "type": "read_receipt",
++                    "message_id": data["message_id"],
++                    "user_id": self.user.id,  # type: ignore[union-attr]
++                    "timestamp": datetime.now().isoformat(),
++                },
+             )
+-    
++
+     # Handlers for different message types from group
+     async def chat_message(self, event):
+         """Send chat message to WebSocket"""
+-        await self.send(text_data=json.dumps({
+-            'type': 'message',
+-            'message_id': event['message_id'],
+-            'message': event['message'],
+-            'user_id': event['user_id'],
+-            'username': event['username'],
+-            'timestamp': event['timestamp'],
+-            'attachments': event.get('attachments', []),
+-        }))
+-    
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "message",
++                    "message_id": event["message_id"],
++                    "message": event["message"],
++                    "user_id": event["user_id"],
++                    "username": event["username"],
++                    "timestamp": event["timestamp"],
++                    "attachments": event.get("attachments", []),
++                }
++            )
++        )
++
+     async def typing_indicator(self, event):
+         """Send typing indicator to WebSocket"""
+         # Don't send to the user who is typing
+-        if event['user_id'] != self.user.id:  # type: ignore[union-attr]
+-            await self.send(text_data=json.dumps({
+-                'type': 'typing',
+-                'user_id': event['user_id'],
+-                'username': event['username'],
+-                'is_typing': event['is_typing'],
+-            }))
+-    
++        if event["user_id"] != self.user.id:  # type: ignore[union-attr]
++            await self.send(
++                text_data=json.dumps(
++                    {
++                        "type": "typing",
++                        "user_id": event["user_id"],
++                        "username": event["username"],
++                        "is_typing": event["is_typing"],
++                    }
++                )
++            )
++
+     async def user_joined(self, event):
+         """Notify when user joins"""
+-        if event['user_id'] != self.user.id:  # type: ignore[union-attr]
+-            await self.send(text_data=json.dumps({
+-                'type': 'user_joined',
+-                'user_id': event['user_id'],
+-                'username': event['username'],
+-                'timestamp': event['timestamp'],
+-            }))
+-    
++        if event["user_id"] != self.user.id:  # type: ignore[union-attr]
++            await self.send(
++                text_data=json.dumps(
++                    {
++                        "type": "user_joined",
++                        "user_id": event["user_id"],
++                        "username": event["username"],
++                        "timestamp": event["timestamp"],
++                    }
++                )
++            )
++
+     async def user_left(self, event):
+         """Notify when user leaves"""
+-        if event['user_id'] != self.user.id:  # type: ignore[union-attr]
+-            await self.send(text_data=json.dumps({
+-                'type': 'user_left',
+-                'user_id': event['user_id'],
+-                'username': event['username'],
+-                'timestamp': event['timestamp'],
+-            }))
+-    
++        if event["user_id"] != self.user.id:  # type: ignore[union-attr]
++            await self.send(
++                text_data=json.dumps(
++                    {
++                        "type": "user_left",
++                        "user_id": event["user_id"],
++                        "username": event["username"],
++                        "timestamp": event["timestamp"],
++                    }
++                )
++            )
++
+     async def read_receipt(self, event):
+         """Send read receipt to WebSocket"""
+-        await self.send(text_data=json.dumps({
+-            'type': 'read_receipt',
+-            'message_id': event['message_id'],
+-            'user_id': event['user_id'],
+-            'timestamp': event['timestamp'],
+-        }))
+-    
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "read_receipt",
++                    "message_id": event["message_id"],
++                    "user_id": event["user_id"],
++                    "timestamp": event["timestamp"],
++                }
++            )
++        )
++
+     @database_sync_to_async
+     def save_message(self, project_id, user, content, attachments):
+         """Save chat message to database"""
+         from core.models import ChatMessage, ChatChannel, Project
+-        
++
+         project = Project.objects.get(id=project_id)
+-        
++
+         # Get or create project channel
+-        channel, _ = ChatChannel.objects.get_or_create(
+-            project=project,
+-            defaults={'name': f'Project: {project.name}'}
+-        )
+-        
++        channel, _ = ChatChannel.objects.get_or_create(project=project, defaults={"name": f"Project: {project.name}"})
++
+         # Create message
+         message = ChatMessage.objects.create(
+             channel=channel,
+             user=user,
+             content=content,
+         )
+-        
++
+         return message.id
+-    
++
+     @database_sync_to_async
+     def mark_message_read(self, message_id, user):
+         """Mark message as read by user"""
+         from core.models import ChatMessage
+-        
++
+         try:
+             message = ChatMessage.objects.get(id=message_id)
+             # Add read tracking logic here (create MessageRead model if needed)
+@@ -219,97 +227,92 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
+ 
+ class DirectChatConsumer(AsyncWebsocketConsumer):
+     """WebSocket consumer for direct messages between two users"""
+-    
++
+     async def connect(self):
+         """Accept WebSocket connection for direct chat"""
+-        self.other_user_id = self.scope['url_route']['kwargs']['user_id']  # type: ignore[typeddict-item]
+-        self.user = self.scope['user']  # type: ignore[typeddict-item]
+-        
++        self.other_user_id = self.scope["url_route"]["kwargs"]["user_id"]  # type: ignore[typeddict-item]
++        self.user = self.scope["user"]  # type: ignore[typeddict-item]
++
+         # Create unique room name (sorted user IDs for consistency)
+-        user_ids = sorted([self.user.id  # type: ignore[union-attr] int(self.other_user_id)])
+-        self.room_group_name = f'direct_chat_{user_ids[0]}_{user_ids[1]}'
+-        
++        user_ids = sorted([int(self.user.id), int(self.other_user_id)])  # type: ignore[union-attr]
++        self.room_group_name = f"direct_chat_{user_ids[0]}_{user_ids[1]}"
++
+         # Join room group
+-        await self.channel_layer.group_add(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-        
++        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
++
+         await self.accept()
+-    
++
+     async def disconnect(self, close_code):
+         """Leave direct chat group"""
+-        await self.channel_layer.group_discard(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-    
++        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
++
+     async def receive(self, text_data):
+         """Receive and broadcast direct message"""
+         data = json.loads(text_data)
+-        
++
+         # Save message to database
+         message_id = await self.save_direct_message(
+-            from_user=self.user,
+-            to_user_id=self.other_user_id,
+-            content=data['message']
++            from_user=self.user, to_user_id=self.other_user_id, content=data["message"]
+         )
+-        
++
+         # Broadcast to both users
+         await self.channel_layer.group_send(
+             self.room_group_name,
+             {
+-                'type': 'direct_message',
+-                'message_id': message_id,
+-                'message': data['message'],
+-                'from_user_id': self.user.id,  # type: ignore[union-attr]
+-                'from_username': self.user.username,  # type: ignore[union-attr]
+-                'timestamp': datetime.now().isoformat(),
+-            }
++                "type": "direct_message",
++                "message_id": message_id,
++                "message": data["message"],
++                "from_user_id": self.user.id,  # type: ignore[union-attr]
++                "from_username": self.user.username,  # type: ignore[union-attr]
++                "timestamp": datetime.now().isoformat(),
++            },
+         )
+-    
++
+     async def direct_message(self, event):
+         """Send direct message to WebSocket"""
+-        await self.send(text_data=json.dumps({
+-            'type': 'message',
+-            'message_id': event['message_id'],
+-            'message': event['message'],
+-            'from_user_id': event['from_user_id'],
+-            'from_username': event['from_username'],
+-            'timestamp': event['timestamp'],
+-        }))
+-    
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "message",
++                    "message_id": event["message_id"],
++                    "message": event["message"],
++                    "from_user_id": event["from_user_id"],
++                    "from_username": event["from_username"],
++                    "timestamp": event["timestamp"],
++                }
++            )
++        )
++
+     @database_sync_to_async
+     def save_direct_message(self, from_user, to_user_id, content):
+         """Save direct message to database"""
+         from core.models import ChatMessage, ChatChannel
+-        
++
+         # Get or create direct message channel
+         to_user = User.objects.get(id=to_user_id)
+-        user_ids = sorted([from_user.id  # type: ignore[attr-defined] to_user.id  # type: ignore[attr-defined]])
+-        
++        user_ids = sorted([int(from_user.id), int(to_user.id)])  # type: ignore[attr-defined]
++
+         channel, _ = ChatChannel.objects.get_or_create(
+-            name=f'DM_{user_ids[0]}_{user_ids[1]}',
+-            defaults={'is_direct': True}
++            name=f"DM_{user_ids[0]}_{user_ids[1]}", defaults={"is_direct": True}
+         )
+-        
++
+         # Add participants if needed
+         channel.participants.add(from_user, to_user)
+-        
++
+         # Create message
+         message = ChatMessage.objects.create(
+             channel=channel,
+             user=from_user,
+             content=content,
+         )
+-        
++
+         return message.id
+ 
+ 
+ class NotificationConsumer(AsyncWebsocketConsumer):
+     """
+     WebSocket consumer for real-time notifications.
+-    
++
+     Sends live updates for:
+     - New tasks assigned
+     - Invoice status changes
+@@ -317,77 +320,85 @@ class NotificationConsumer(AsyncWebsocketConsumer):
+     - Chat mentions
+     - System alerts
+     """
+-    
++
+     async def connect(self):
+         """Connect to user's notification channel"""
+-        self.user = self.scope['user']  # type: ignore[typeddict-item]
+-        self.room_group_name = f'notifications_{self.user.id  # type: ignore[union-attr]}'
+-        
+-        await self.channel_layer.group_add(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-        
++        self.user = self.scope["user"]  # type: ignore[typeddict-item]
++        self.room_group_name = f"notifications_{self.user.id}"  # type: ignore[union-attr]
++
++        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
++
+         await self.accept()
+-        
++
+         # Send unread notification count on connect
+         unread_count = await self.get_unread_count()
+-        await self.send(text_data=json.dumps({
+-            'type': 'unread_count',
+-            'count': unread_count,
+-        }))
+-    
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "unread_count",
++                    "count": unread_count,
++                }
++            )
++        )
++
+     async def disconnect(self, close_code):
+         """Disconnect from notification channel"""
+-        await self.channel_layer.group_discard(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-    
++        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
++
+     async def receive(self, text_data):
+         """Mark notification as read"""
+         data = json.loads(text_data)
+-        
+-        if data.get('type') == 'mark_read':
+-            await self.mark_notification_read(data['notification_id'])
+-            
++
++        if data.get("type") == "mark_read":
++            await self.mark_notification_read(data["notification_id"])
++
+             # Send updated unread count
+             unread_count = await self.get_unread_count()
+-            await self.send(text_data=json.dumps({
+-                'type': 'unread_count',
+-                'count': unread_count,
+-            }))
+-    
++            await self.send(
++                text_data=json.dumps(
++                    {
++                        "type": "unread_count",
++                        "count": unread_count,
++                    }
++                )
++            )
++
+     async def notification(self, event):
+         """Send notification to WebSocket"""
+-        await self.send(text_data=json.dumps({
+-            'type': 'notification',
+-            'id': event['notification_id'],
+-            'title': event['title'],
+-            'message': event['message'],
+-            'notification_type': event['notification_type'],
+-            'priority': event.get('priority', 'normal'),
+-            'url': event.get('url', ''),
+-            'timestamp': event['timestamp'],
+-        }))
+-    
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "notification",
++                    "id": event["notification_id"],
++                    "title": event["title"],
++                    "message": event["message"],
++                    "notification_type": event["notification_type"],
++                    "priority": event.get("priority", "normal"),
++                    "url": event.get("url", ""),
++                    "timestamp": event["timestamp"],
++                }
++            )
++        )
++
+     @database_sync_to_async
+     def get_unread_count(self):
+         """Get count of unread notifications"""
+         from core.models import Notification
++
+         return Notification.objects.filter(user=self.user, is_read=False).count()
+-    
++
+     @database_sync_to_async
+     def mark_notification_read(self, notification_id):
+         """Mark notification as read"""
+         from core.models import Notification
++
+         Notification.objects.filter(id=notification_id, user=self.user).update(is_read=True)
+ 
+ 
+ class DashboardConsumer(AsyncWebsocketConsumer):
+     """
+     Real-time dashboard updates for project metrics.
+-    
++
+     Sends live updates for:
+     - Earned Value metrics
+     - Time entries
+@@ -395,58 +406,53 @@ class DashboardConsumer(AsyncWebsocketConsumer):
+     - Task completion
+     - Quality scores
+     """
+-    
++
+     async def connect(self):
+         """Connect to project dashboard channel"""
+-        self.project_id = self.scope['url_route']['kwargs']['project_id']  # type: ignore[typeddict-item]
+-        self.room_group_name = f'dashboard_project_{self.project_id}'
+-        
+-        await self.channel_layer.group_add(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-        
++        self.project_id = self.scope["url_route"]["kwargs"]["project_id"]  # type: ignore[typeddict-item]
++        self.room_group_name = f"dashboard_project_{self.project_id}"
++
++        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
++
+         await self.accept()
+-        
++
+         # Send initial dashboard data
+         dashboard_data = await self.get_dashboard_data()
+-        await self.send(text_data=json.dumps({
+-            'type': 'dashboard_data',
+-            **dashboard_data
+-        }))
+-    
++        await self.send(text_data=json.dumps({"type": "dashboard_data", **dashboard_data}))
++
+     async def disconnect(self, close_code):
+         """Disconnect from dashboard channel"""
+-        await self.channel_layer.group_discard(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-    
++        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
++
+     async def dashboard_update(self, event):
+         """Send dashboard update to WebSocket"""
+-        await self.send(text_data=json.dumps({
+-            'type': 'dashboard_update',
+-            'metric': event['metric'],
+-            'value': event['value'],
+-            'timestamp': event['timestamp'],
+-        }))
+-    
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "dashboard_update",
++                    "metric": event["metric"],
++                    "value": event["value"],
++                    "timestamp": event["timestamp"],
++                }
++            )
++        )
++
+     @database_sync_to_async
+     def get_dashboard_data(self):
+         """Get current dashboard metrics"""
+         from core.models import Project
+-        
++
+         try:
+             project = Project.objects.get(id=self.project_id)
+             ev_data = project.earned_value_summary()
+-            
++
+             return {
+-                'project_name': project.name,
+-                'earned_value': ev_data,
+-                'budget_total': float(project.budget_total),
+-                'total_expenses': float(project.total_expenses),
+-                'budget_remaining': float(project.budget_remaining),
+-                'profit': float(project.profit()),
++                "project_name": project.name,
++                "earned_value": ev_data,
++                "budget_total": float(project.budget_total),
++                "total_expenses": float(project.total_expenses),
++                "budget_remaining": float(project.budget_remaining),
++                "profit": float(project.profit()),
+             }
+         except Project.DoesNotExist:
+             return {}
+@@ -454,93 +460,87 @@ class DashboardConsumer(AsyncWebsocketConsumer):
+ 
+ class AdminDashboardConsumer(AsyncWebsocketConsumer):
+     """Real-time admin dashboard with all projects overview"""
+-    
++
+     async def connect(self):
+         """Connect to admin dashboard channel"""
+-        self.room_group_name = 'dashboard_admin'
+-        
+-        await self.channel_layer.group_add(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-        
++        self.room_group_name = "dashboard_admin"
++
++        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
++
+         await self.accept()
+-    
++
+     async def disconnect(self, close_code):
+         """Disconnect from admin dashboard"""
+-        await self.channel_layer.group_discard(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-    
++        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
++
+     async def admin_update(self, event):
+         """Send admin dashboard update"""
+-        await self.send(text_data=json.dumps({
+-            'type': 'admin_update',
+-            'data': event['data'],
+-            'timestamp': event['timestamp'],
+-        }))
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "admin_update",
++                    "data": event["data"],
++                    "timestamp": event["timestamp"],
++                }
++            )
++        )
+ 
+ 
+ class DailyPlanConsumer(AsyncWebsocketConsumer):
+     """Real-time updates for daily plans"""
+-    
++
+     async def connect(self):
+         """Connect to daily plan channel"""
+-        self.date = self.scope['url_route']['kwargs']['date']  # type: ignore[typeddict-item]
+-        self.room_group_name = f'daily_plan_{self.date}'
+-        
+-        await self.channel_layer.group_add(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-        
++        self.date = self.scope["url_route"]["kwargs"]["date"]  # type: ignore[typeddict-item]
++        self.room_group_name = f"daily_plan_{self.date}"
++
++        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
++
+         await self.accept()
+-    
++
+     async def disconnect(self, close_code):
+         """Disconnect from daily plan channel"""
+-        await self.channel_layer.group_discard(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-    
++        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
++
+     async def plan_update(self, event):
+         """Send daily plan update"""
+-        await self.send(text_data=json.dumps({
+-            'type': 'plan_update',
+-            'plan_id': event['plan_id'],
+-            'status': event['status'],
+-            'timestamp': event['timestamp'],
+-        }))
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "plan_update",
++                    "plan_id": event["plan_id"],
++                    "status": event["status"],
++                    "timestamp": event["timestamp"],
++                }
++            )
++        )
+ 
+ 
+ class QualityInspectionConsumer(AsyncWebsocketConsumer):
+     """Real-time quality inspection updates"""
+-    
++
+     async def connect(self):
+         """Connect to quality inspection channel"""
+-        self.inspection_id = self.scope['url_route']['kwargs']['inspection_id']  # type: ignore[typeddict-item]
+-        self.room_group_name = f'quality_inspection_{self.inspection_id}'
+-        
+-        await self.channel_layer.group_add(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-        
++        self.inspection_id = self.scope["url_route"]["kwargs"]["inspection_id"]  # type: ignore[typeddict-item]
++        self.room_group_name = f"quality_inspection_{self.inspection_id}"
++
++        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
++
+         await self.accept()
+-    
++
+     async def disconnect(self, close_code):
+         """Disconnect from quality inspection channel"""
+-        await self.channel_layer.group_discard(
+-            self.room_group_name,
+-            self.channel_name
+-        )
+-    
++        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
++
+     async def inspection_update(self, event):
+         """Send quality inspection update"""
+-        await self.send(text_data=json.dumps({
+-            'type': 'inspection_update',
+-            'defect_count': event['defect_count'],
+-            'overall_score': event['overall_score'],
+-            'timestamp': event['timestamp'],
+-        }))
++        await self.send(
++            text_data=json.dumps(
++                {
++                    "type": "inspection_update",
++                    "defect_count": event["defect_count"],
++                    "overall_score": event["overall_score"],
++                    "timestamp": event["timestamp"],
++                }
++            )
++        )
+diff --git a/core/models.py b/core/models.py
+index 3c8763d..0af1ead 100644
+--- a/core/models.py
++++ b/core/models.py
+@@ -160,8 +160,12 @@ class ColorApproval(models.Model):
+     ]
+ 
+     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="color_approvals")
+-    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests")
+-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done")
++    requested_by = models.ForeignKey(
++        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests"
++    )
++    approved_by = models.ForeignKey(
++        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done"
++    )
+     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+     color_name = models.CharField(max_length=100)
+     color_code = models.CharField(max_length=50, blank=True)
+@@ -190,6 +194,7 @@ class ColorApproval(models.Model):
+         self.save(update_fields=["status", "approved_by", "client_signature", "signed_at"])
+         # Notificar PMs y cliente
+         from core.models import Notification
++
+         pms = User.objects.filter(profile__role="project_manager", is_active=True)
+         for pm in pms:
+             Notification.objects.create(
+diff --git a/core/services/analytics.py b/core/services/analytics.py
+index 7bb5518..9493338 100644
+--- a/core/services/analytics.py
++++ b/core/services/analytics.py
+@@ -17,7 +17,7 @@ from core.models import (
+ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
+     """
+     Comprehensive project health analytics.
+-    
++
+     Returns:
+         - completion_percentage: % of tasks completed
+         - budget_status: { total, spent, remaining, variance_pct }
+@@ -38,10 +38,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
+     in_progress = tasks.filter(status="En Progreso").count()
+     pending = tasks.filter(status="Pendiente").count()
+     cancelled = tasks.filter(status="Cancelada").count()
+-    overdue = tasks.filter(
+-        Q(status__in=["Pendiente", "En Progreso"])
+-        & Q(due_date__lt=timezone.now().date())
+-    ).count()
++    overdue = tasks.filter(Q(status__in=["Pendiente", "En Progreso"]) & Q(due_date__lt=timezone.now().date())).count()
+ 
+     completion_pct = (completed / total_tasks * 100) if total_tasks > 0 else 0
+ 
+@@ -49,11 +46,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
+     budget_total = project.budget_total or Decimal("0")
+     total_expenses = project.total_expenses or Decimal("0")
+     budget_remaining = budget_total - total_expenses
+-    variance_pct = (
+-        ((budget_total - total_expenses) / budget_total * 100)
+-        if budget_total > 0
+-        else 0
+-    )
++    variance_pct = ((budget_total - total_expenses) / budget_total * 100) if budget_total > 0 else 0
+ 
+     # Timeline metrics
+     start_date = project.start_date
+@@ -71,9 +64,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
+ 
+     # Recent activity
+     seven_days_ago = timezone.now() - timedelta(days=7)
+-    recent_completions = tasks.filter(
+-        status="Completada", completed_at__gte=seven_days_ago
+-    ).count()
++    recent_completions = tasks.filter(status="Completada", completed_at__gte=seven_days_ago).count()
+ 
+     # Risk flags
+     budget_overrun = total_expenses > budget_total
+@@ -116,7 +107,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
+ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
+     """
+     Touch-up task analytics with trends and performance metrics.
+-    
++
+     Returns:
+         - total_touchups: count
+         - by_status: { pending, in_progress, completed, cancelled }
+@@ -141,15 +132,11 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
+         }
+ 
+     # Status breakdown
+-    by_status = (
+-        qs.values("status").annotate(count=Count("id")).order_by("-count")
+-    )
++    by_status = qs.values("status").annotate(count=Count("id")).order_by("-count")
+     status_dict = {item["status"]: item["count"] for item in by_status}
+ 
+     # Priority breakdown
+-    by_priority = (
+-        qs.values("priority").annotate(count=Count("id")).order_by("-count")
+-    )
++    by_priority = qs.values("priority").annotate(count=Count("id")).order_by("-count")
+     priority_dict = {item["priority"]: item["count"] for item in by_priority}
+ 
+     # Completion rate
+@@ -162,11 +149,7 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
+     for task in completed_tasks:
+         delta = task.completed_at - task.created_at
+         resolution_times.append(delta.total_seconds() / 3600)  # hours
+-    avg_resolution = (
+-        sum(resolution_times) / len(resolution_times)
+-        if resolution_times
+-        else 0
+-    )
++    avg_resolution = sum(resolution_times) / len(resolution_times) if resolution_times else 0
+ 
+     # Trends: last 30 days
+     thirty_days_ago = timezone.now() - timedelta(days=30)
+@@ -177,10 +160,7 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
+         .annotate(count=Count("id"))
+         .order_by("day")
+     )
+-    trends = [
+-        {"date": str(item["day"]), "count": item["count"]}
+-        for item in daily_completions
+-    ]
++    trends = [{"date": str(item["day"]), "count": item["count"]} for item in daily_completions]
+ 
+     return {
+         "total_touchups": total,
+@@ -195,7 +175,7 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
+ def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
+     """
+     Color approval workflow metrics.
+-    
++
+     Returns:
+         - total_approvals: count
+         - by_status: { PENDING, APPROVED, REJECTED }
+@@ -218,20 +198,12 @@ def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
+         }
+ 
+     # Status breakdown
+-    by_status = (
+-        qs.values("status").annotate(count=Count("id")).order_by("-count")
+-    )
++    by_status = qs.values("status").annotate(count=Count("id")).order_by("-count")
+     status_dict = {item["status"]: item["count"] for item in by_status}
+ 
+     # Brand breakdown (top 10)
+-    by_brand = (
+-        qs.values("brand")
+-        .annotate(count=Count("id"))
+-        .order_by("-count")[:10]
+-    )
+-    brand_list = [
+-        {"brand": item["brand"], "count": item["count"]} for item in by_brand
+-    ]
++    by_brand = qs.values("brand").annotate(count=Count("id")).order_by("-count")[:10]
++    brand_list = [{"brand": item["brand"], "count": item["count"]} for item in by_brand]
+ 
+     # Avg approval time
+     approved = qs.filter(status="APPROVED", signed_at__isnull=False)
+@@ -239,9 +211,7 @@ def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
+     for approval in approved:
+         delta = approval.signed_at - approval.created_at
+         approval_times.append(delta.total_seconds() / 3600)
+-    avg_approval = (
+-        sum(approval_times) / len(approval_times) if approval_times else 0
+-    )
++    avg_approval = sum(approval_times) / len(approval_times) if approval_times else 0
+ 
+     # Pending aging (oldest pending)
+     oldest_pending = qs.filter(status="PENDING").order_by("created_at").first()
+@@ -263,7 +233,7 @@ def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
+ def get_pm_performance_analytics() -> Dict[str, Any]:
+     """
+     Project Manager workload and performance metrics.
+-    
++
+     Returns:
+         - pm_list: [{ pm_id, pm_username, projects_count, tasks_assigned, tasks_completed, completion_rate, overdue_count }]
+         - overall: { total_pms, avg_projects_per_pm, avg_completion_rate }
+@@ -281,20 +251,13 @@ def get_pm_performance_analytics() -> Dict[str, Any]:
+         projects = pm_item["projects_count"]
+ 
+         # Tasks in PM's projects
+-        pm_projects = ProjectManagerAssignment.objects.filter(
+-            pm_id=pm_id
+-        ).values_list("project_id", flat=True)
++        pm_projects = ProjectManagerAssignment.objects.filter(pm_id=pm_id).values_list("project_id", flat=True)
+         tasks = Task.objects.filter(project_id__in=pm_projects)
+         tasks_assigned = tasks.count()
+         tasks_completed = tasks.filter(status="Completada").count()
+-        completion_rate = (
+-            (tasks_completed / tasks_assigned * 100)
+-            if tasks_assigned > 0
+-            else 0
+-        )
++        completion_rate = (tasks_completed / tasks_assigned * 100) if tasks_assigned > 0 else 0
+         overdue = tasks.filter(
+-            Q(status__in=["Pendiente", "En Progreso"])
+-            & Q(due_date__lt=timezone.now().date())
++            Q(status__in=["Pendiente", "En Progreso"]) & Q(due_date__lt=timezone.now().date())
+         ).count()
+ 
+         pm_data.append(
+@@ -311,16 +274,8 @@ def get_pm_performance_analytics() -> Dict[str, Any]:
+ 
+     # Overall stats
+     total_pms = len(pm_data)
+-    avg_projects = (
+-        sum(p["projects_count"] for p in pm_data) / total_pms
+-        if total_pms > 0
+-        else 0
+-    )
+-    avg_completion = (
+-        sum(p["completion_rate"] for p in pm_data) / total_pms
+-        if total_pms > 0
+-        else 0
+-    )
++    avg_projects = sum(p["projects_count"] for p in pm_data) / total_pms if total_pms > 0 else 0
++    avg_completion = sum(p["completion_rate"] for p in pm_data) / total_pms if total_pms > 0 else 0
+ 
+     return {
+         "pm_list": pm_data,
+diff --git a/core/tasks.py b/core/tasks.py
+index fb70443..9598a92 100644
+--- a/core/tasks.py
++++ b/core/tasks.py
+@@ -578,10 +578,9 @@ def send_pending_notifications():
+ 
+     # Get notifications marked for email but not yet sent
+     pending = Notification.objects.filter(
+-        sent_via_email=False, created_at__gte=timezone.now() - timedelta(hours=24)  # Last 24h only
+-    ).select_related("user")[
+-        :100
+-    ]  # Batch of 100
++        sent_via_email=False,
++        created_at__gte=timezone.now() - timedelta(hours=24),  # Last 24h only
++    ).select_related("user")[:100]  # Batch of 100
+ 
+     sent_count = 0
+     error_count = 0
+diff --git a/core/views.py b/core/views.py
+index c0675a2..4be1424 100644
+--- a/core/views.py
++++ b/core/views.py
+@@ -7916,10 +7916,14 @@ def analytics_dashboard(request):
+         user_role = "admin"
+     elif request.user.is_staff:
+         user_role = "staff"
+-    
+-    return render(request, "core/analytics_dashboard.html", {
+-        "user_role": user_role,
+-    })
++
++    return render(
++        request,
++        "core/analytics_dashboard.html",
++        {
++            "user_role": user_role,
++        },
++    )
+ 
+ 
+ # --- TOUCHUP BOARD REACT ---
+@@ -7929,11 +7933,15 @@ def touchup_board_react(request, project_id):
+     TouchUp Board React view - serves React-based kanban board for touchups.
+     """
+     project = get_object_or_404(Project, id=project_id)
+-    
+-    return render(request, "core/touchup_board_react.html", {
+-        "project_id": project_id,
+-        "project": project,
+-    })
++
++    return render(
++        request,
++        "core/touchup_board_react.html",
++        {
++            "project_id": project_id,
++            "project": project,
++        },
++    )
+ 
+ 
+ # --- COLOR APPROVALS REACT ---
+@@ -7945,11 +7953,15 @@ def color_approvals_react(request, project_id=None):
+     project = None
+     if project_id:
+         project = get_object_or_404(Project, id=project_id)
+-    
+-    return render(request, "core/color_approvals_react.html", {
+-        "project_id": project_id,
+-        "project": project,
+-    })
++
++    return render(
++        request,
++        "core/color_approvals_react.html",
++        {
++            "project_id": project_id,
++            "project": project,
++        },
++    )
+ 
+ 
+ # --- PM ASSIGNMENTS REACT ---
+diff --git a/core/views_financial.py b/core/views_financial.py
+index fed8443..0014f5f 100644
+--- a/core/views_financial.py
++++ b/core/views_financial.py
+@@ -496,7 +496,9 @@ def employee_performance_review(request, employee_id=None):
+ 
+         # Get or create annual metric
+         metric, created = EmployeePerformanceMetric.objects.get_or_create(
+-            employee=employee, year=year, month__isnull=True  # Annual metric
++            employee=employee,
++            year=year,
++            month__isnull=True,  # Annual metric
+         )
+ 
+         # Auto-calculate metrics
+diff --git a/generate_pwa_icons.py b/generate_pwa_icons.py
+index e1b444b..2950f87 100644
+--- a/generate_pwa_icons.py
++++ b/generate_pwa_icons.py
+@@ -2,6 +2,7 @@
+ """
+ Generate PWA icons from SVG using PIL/Pillow and cairosvg
+ """
++
+ import os
+ from pathlib import Path
+ 
+diff --git a/kibray_backend/urls.py b/kibray_backend/urls.py
+index b2d8280..7032b52 100644
+--- a/kibray_backend/urls.py
++++ b/kibray_backend/urls.py
+@@ -101,7 +101,9 @@ urlpatterns = [
+     path("touchups/quick-update/<int:task_id>/", views.touchup_quick_update, name="touchup_quick_update"),
+     # Color Approvals React
+     path("color-approvals/", views.color_approvals_react, name="color_approvals_react"),
+-    path("projects/<int:project_id>/color-approvals/", views.color_approvals_react, name="color_approvals_react_project"),
++    path(
++        "projects/<int:project_id>/color-approvals/", views.color_approvals_react, name="color_approvals_react_project"
++    ),
+     # PM Assignments React
+     path("pm-assignments/", views.pm_assignments_react, name="pm_assignments_react"),
+     # Damage reports
+diff --git a/manage.py b/manage.py
+index a3f4b5b..9ebe0f5 100644
+--- a/manage.py
++++ b/manage.py
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env python
+ """Django's command-line utility for administrative tasks."""
++
+ import os
+ import sys
+ 
+diff --git a/scripts/check_invoice_is_paid_usage.py b/scripts/check_invoice_is_paid_usage.py
+index d25fa1d..a813309 100755
+--- a/scripts/check_invoice_is_paid_usage.py
++++ b/scripts/check_invoice_is_paid_usage.py
+@@ -10,6 +10,7 @@ Ejecutar antes de crear la migración final que elimine is_paid.
+ Uso:
+     python scripts/check_invoice_is_paid_usage.py
+ """
++
+ import os
+ import pathlib
+ import sys
+diff --git a/seed_analytics_data.py b/seed_analytics_data.py
+index 9e3a9b4..b196ba9 100644
+--- a/seed_analytics_data.py
++++ b/seed_analytics_data.py
+@@ -3,138 +3,135 @@
+ Script para poblar la base de datos con datos de prueba para analytics.
+ Esto permitirá probar las APIs de ColorApproval y PMPerformance.
+ """
++
+ import os
+ import django
+ from datetime import datetime, timedelta
+ 
+-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kibray_backend.settings')
++os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings")
+ django.setup()
+ 
+ from django.contrib.auth.models import User
+ from core.models import Project, ColorApproval, ProjectManagerAssignment
+ 
++
+ def seed_data():
+     print("🌱 Iniciando seed de datos para analytics...")
+-    
++
+     # Obtener o crear usuarios
+     admin = User.objects.filter(is_superuser=True).first()
+     if not admin:
+-        admin = User.objects.create_superuser('admin', 'admin@kibray.com', 'admin123')
++        admin = User.objects.create_superuser("admin", "admin@kibray.com", "admin123")
+         print(f"✅ Usuario admin creado: {admin.username}")
+     else:
+         print(f"✅ Usuario admin encontrado: {admin.username}")
+-    
++
+     # Crear PM users si no existen
+-    pm1, _ = User.objects.get_or_create(username='pm_juan', defaults={
+-        'email': 'juan@kibray.com',
+-        'first_name': 'Juan',
+-        'last_name': 'Pérez'
+-    })
+-    pm2, _ = User.objects.get_or_create(username='pm_maria', defaults={
+-        'email': 'maria@kibray.com',
+-        'first_name': 'María',
+-        'last_name': 'González'
+-    })
++    pm1, _ = User.objects.get_or_create(
++        username="pm_juan", defaults={"email": "juan@kibray.com", "first_name": "Juan", "last_name": "Pérez"}
++    )
++    pm2, _ = User.objects.get_or_create(
++        username="pm_maria", defaults={"email": "maria@kibray.com", "first_name": "María", "last_name": "González"}
++    )
+     print(f"✅ PMs creados/encontrados: {pm1.username}, {pm2.username}")
+-    
++
+     # Obtener proyectos existentes
+     projects = Project.objects.all()[:3]
+     if not projects:
+         print("⚠️  No hay proyectos en la base de datos. Crea proyectos primero.")
+         return
+-    
++
+     print(f"✅ Proyectos encontrados: {len(projects)}")
+-    
++
+     # Crear ColorApprovals para testing
+     color_approvals_data = [
+         {
+-            'project': projects[0],
+-            'status': 'PENDING',
+-            'color_name': 'Blanco Polar',
+-            'color_code': 'WP-001',
+-            'brand': 'Sherwin Williams',
+-            'location': 'Sala principal',
+-            'requested_by': admin,
++            "project": projects[0],
++            "status": "PENDING",
++            "color_name": "Blanco Polar",
++            "color_code": "WP-001",
++            "brand": "Sherwin Williams",
++            "location": "Sala principal",
++            "requested_by": admin,
+         },
+         {
+-            'project': projects[0],
+-            'status': 'APPROVED',
+-            'color_name': 'Gris Urbano',
+-            'color_code': 'GU-045',
+-            'brand': 'Sherwin Williams',
+-            'location': 'Habitación 1',
+-            'requested_by': admin,
+-            'approved_by': admin,
+-            'signed_at': datetime.now() - timedelta(days=2),
++            "project": projects[0],
++            "status": "APPROVED",
++            "color_name": "Gris Urbano",
++            "color_code": "GU-045",
++            "brand": "Sherwin Williams",
++            "location": "Habitación 1",
++            "requested_by": admin,
++            "approved_by": admin,
++            "signed_at": datetime.now() - timedelta(days=2),
+         },
+         {
+-            'project': projects[0],
+-            'status': 'REJECTED',
+-            'color_name': 'Azul Marino',
+-            'color_code': 'AM-120',
+-            'brand': 'Benjamin Moore',
+-            'location': 'Cocina',
+-            'requested_by': admin,
+-            'notes': 'Cliente prefiere un tono más claro',
++            "project": projects[0],
++            "status": "REJECTED",
++            "color_name": "Azul Marino",
++            "color_code": "AM-120",
++            "brand": "Benjamin Moore",
++            "location": "Cocina",
++            "requested_by": admin,
++            "notes": "Cliente prefiere un tono más claro",
+         },
+     ]
+-    
++
+     if len(projects) > 1:
+-        color_approvals_data.extend([
+-            {
+-                'project': projects[1],
+-                'status': 'PENDING',
+-                'color_name': 'Beige Natural',
+-                'color_code': 'BN-033',
+-                'brand': 'Behr',
+-                'location': 'Exterior fachada',
+-                'requested_by': admin,
+-            },
+-            {
+-                'project': projects[1],
+-                'status': 'APPROVED',
+-                'color_name': 'Verde Olivo',
+-                'color_code': 'VO-088',
+-                'brand': 'Benjamin Moore',
+-                'location': 'Sala de estar',
+-                'requested_by': admin,
+-                'approved_by': admin,
+-                'signed_at': datetime.now() - timedelta(days=5),
+-            },
+-        ])
+-    
++        color_approvals_data.extend(
++            [
++                {
++                    "project": projects[1],
++                    "status": "PENDING",
++                    "color_name": "Beige Natural",
++                    "color_code": "BN-033",
++                    "brand": "Behr",
++                    "location": "Exterior fachada",
++                    "requested_by": admin,
++                },
++                {
++                    "project": projects[1],
++                    "status": "APPROVED",
++                    "color_name": "Verde Olivo",
++                    "color_code": "VO-088",
++                    "brand": "Benjamin Moore",
++                    "location": "Sala de estar",
++                    "requested_by": admin,
++                    "approved_by": admin,
++                    "signed_at": datetime.now() - timedelta(days=5),
++                },
++            ]
++        )
++
+     # Crear las ColorApprovals
+     created_count = 0
+     for data in color_approvals_data:
+         # Verificar si ya existe
+-        exists = ColorApproval.objects.filter(
+-            project=data['project'],
+-            color_name=data['color_name']
+-        ).exists()
+-        
++        exists = ColorApproval.objects.filter(project=data["project"], color_name=data["color_name"]).exists()
++
+         if not exists:
+             ColorApproval.objects.create(**data)
+             created_count += 1
+-    
++
+     print(f"✅ ColorApprovals creados: {created_count}/{len(color_approvals_data)}")
+-    
++
+     # Crear PM Assignments
+     assignments_data = [
+-        {'project': projects[0], 'pm': pm1},
+-        {'project': projects[1] if len(projects) > 1 else projects[0], 'pm': pm2},
++        {"project": projects[0], "pm": pm1},
++        {"project": projects[1] if len(projects) > 1 else projects[0], "pm": pm2},
+     ]
+-    
++
+     if len(projects) > 2:
+-        assignments_data.append({'project': projects[2], 'pm': pm1})
+-    
++        assignments_data.append({"project": projects[2], "pm": pm1})
++
+     assigned_count = 0
+     for data in assignments_data:
+         obj, created = ProjectManagerAssignment.objects.get_or_create(**data)
+         if created:
+             assigned_count += 1
+-    
++
+     print(f"✅ PM Assignments creados: {assigned_count}/{len(assignments_data)}")
+-    
++
+     # Resumen
+     print("\n📊 Resumen de datos creados:")
+     print(f"   - ColorApprovals total: {ColorApproval.objects.count()}")
+@@ -146,5 +143,6 @@ def seed_data():
+     print(f"   - PMs: {User.objects.filter(username__startswith='pm_').count()}")
+     print("\n✅ Seed completado exitosamente!")
+ 
+-if __name__ == '__main__':
++
++if __name__ == "__main__":
+     seed_data()
+diff --git a/test_activity1_2_endpoints.py b/test_activity1_2_endpoints.py
+index ab642ad..a5f9608 100644
+--- a/test_activity1_2_endpoints.py
++++ b/test_activity1_2_endpoints.py
+@@ -3,6 +3,7 @@
+ Test script para verificar todos los endpoints de Activity 1 y 2
+ Corre este script con: python3 test_activity1_2_endpoints.py
+ """
++
+ import os
+ import time
+ 
+diff --git a/test_comprehensive_audit.py b/test_comprehensive_audit.py
+index 2539877..febc4c4 100644
+--- a/test_comprehensive_audit.py
++++ b/test_comprehensive_audit.py
+@@ -3,6 +3,7 @@
+ Comprehensive button and form audit for all modules
+ Tests every button, form, and endpoint systematically
+ """
++
+ import os
+ import time
+ 
+diff --git a/test_expense_create_delete.py b/test_expense_create_delete.py
+index bca59b4..83cfa3d 100644
+--- a/test_expense_create_delete.py
++++ b/test_expense_create_delete.py
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env python
+ """Pruebas de creación y eliminación de gastos"""
++
+ import os
+ from datetime import date
+ from decimal import Decimal
+diff --git a/test_expense_edit.py b/test_expense_edit.py
+index 4b18d46..e896a0b 100644
+--- a/test_expense_edit.py
++++ b/test_expense_edit.py
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env python
+ """Prueba de edición de gastos (Expense)"""
++
+ import os
+ from datetime import date
+ from decimal import Decimal
+diff --git a/test_project_crud.py b/test_project_crud.py
+index 024e3ae..aff80b0 100644
+--- a/test_project_crud.py
++++ b/test_project_crud.py
+@@ -3,6 +3,7 @@
+ Script de prueba para CRUD de Proyectos en Admin Panel
+ Prueba #1: Edición de Proyectos
+ """
++
+ import os
+ import sys
+ from datetime import date
+diff --git a/test_project_delete.py b/test_project_delete.py
+index 5c71207..b35436a 100644
+--- a/test_project_delete.py
++++ b/test_project_delete.py
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env python
+ """Pruebas de eliminación de proyectos con verificación de dependencias."""
++
+ import os
+ from datetime import date
+ from decimal import Decimal
+diff --git a/tests/test_analytics_dashboards.py b/tests/test_analytics_dashboards.py
+index f457515..da6925c 100644
+--- a/tests/test_analytics_dashboards.py
++++ b/tests/test_analytics_dashboards.py
+@@ -10,6 +10,7 @@ Covers:
+ - Permission validation
+ - Data accuracy
+ """
++
+ import json
+ from datetime import date, timedelta
+ from decimal import Decimal
+@@ -47,6 +48,7 @@ def admin_user(db):
+         is_superuser=True,
+     )
+     from core.models import Employee
++
+     Employee.objects.create(
+         user=user,
+         first_name="Admin",
+@@ -66,6 +68,7 @@ def pm_user(db):
+         email="pm@test.com",
+     )
+     from core.models import Employee
++
+     Employee.objects.create(
+         user=user,
+         first_name="PM",
+@@ -283,9 +286,7 @@ class TestTouchupAnalyticsDashboard:
+         assert data["by_status"]["Pendiente"] == 3
+         assert data["completion_rate"] == 40.0  # 2 out of 5
+ 
+-    def test_touchup_analytics_with_project_filter(
+-        self, api_client, admin_user, project_with_touchups
+-    ):
++    def test_touchup_analytics_with_project_filter(self, api_client, admin_user, project_with_touchups):
+         """Test touchup analytics filtered by project."""
+         api_client.force_authenticate(user=admin_user)
+         url = reverse("analytics-touchups")
+@@ -331,9 +332,7 @@ class TestTouchupAnalyticsDashboard:
+ class TestColorApprovalAnalyticsDashboard:
+     """Test color approval analytics endpoint."""
+ 
+-    def test_color_approval_analytics_success(
+-        self, api_client, admin_user, project_with_approvals
+-    ):
++    def test_color_approval_analytics_success(self, api_client, admin_user, project_with_approvals):
+         """Test successful color approval analytics retrieval."""
+         api_client.force_authenticate(user=admin_user)
+         url = reverse("analytics-color-approvals")
+@@ -361,9 +360,7 @@ class TestColorApprovalAnalyticsDashboard:
+         assert "BrandA" in brand_names
+         assert "BrandB" in brand_names
+ 
+-    def test_color_approval_analytics_with_project_filter(
+-        self, api_client, admin_user, project_with_approvals
+-    ):
++    def test_color_approval_analytics_with_project_filter(self, api_client, admin_user, project_with_approvals):
+         """Test color approval analytics filtered by project."""
+         api_client.force_authenticate(user=admin_user)
+         url = reverse("analytics-color-approvals")
+@@ -391,9 +388,7 @@ class TestColorApprovalAnalyticsDashboard:
+ 
+         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+ 
+-    def test_color_approval_pending_aging(
+-        self, api_client, admin_user, project_with_approvals
+-    ):
++    def test_color_approval_pending_aging(self, api_client, admin_user, project_with_approvals):
+         """Test pending aging calculation."""
+         api_client.force_authenticate(user=admin_user)
+         url = reverse("analytics-color-approvals")
+@@ -410,9 +405,7 @@ class TestColorApprovalAnalyticsDashboard:
+ class TestPMPerformanceDashboard:
+     """Test PM performance analytics endpoint."""
+ 
+-    def test_pm_performance_success_admin(
+-        self, api_client, admin_user, pm_user, project_with_tasks
+-    ):
++    def test_pm_performance_success_admin(self, api_client, admin_user, pm_user, project_with_tasks):
+         """Test PM performance analytics as admin."""
+         # Assign PM to project
+         ProjectManagerAssignment.objects.create(
+@@ -436,9 +429,7 @@ class TestPMPerformanceDashboard:
+         # Verify overall metrics
+         assert data["overall"]["total_pms"] >= 1
+ 
+-    def test_pm_performance_forbidden_regular_user(
+-        self, api_client, regular_user, pm_user, project_with_tasks
+-    ):
++    def test_pm_performance_forbidden_regular_user(self, api_client, regular_user, pm_user, project_with_tasks):
+         """Test PM performance analytics forbidden for regular users."""
+         ProjectManagerAssignment.objects.create(
+             project=project_with_tasks,
+@@ -471,9 +462,7 @@ class TestPMPerformanceDashboard:
+         assert data["overall"]["total_pms"] == 0
+         assert data["pm_list"] == []
+ 
+-    def test_pm_performance_staff_access(
+-        self, api_client, pm_user, project_with_tasks
+-    ):
++    def test_pm_performance_staff_access(self, api_client, pm_user, project_with_tasks):
+         """Test PM performance analytics accessible to staff users."""
+         # Make pm_user staff
+         pm_user.is_staff = True
+@@ -573,9 +562,7 @@ class TestAnalyticsEdgeCases:
+         # Should only return top 10 brands
+         assert len(data["by_brand"]) == 10
+ 
+-    def test_pm_performance_completion_rate_accuracy(
+-        self, api_client, admin_user, pm_user
+-    ):
++    def test_pm_performance_completion_rate_accuracy(self, api_client, admin_user, pm_user):
+         """Test PM completion rate calculation accuracy."""
+         project = Project.objects.create(
+             name="PM Rate Test",
+@@ -617,9 +604,7 @@ class TestAnalyticsEdgeCases:
+ class TestAnalyticsPerformance:
+     """Test analytics query performance and optimization."""
+ 
+-    def test_project_health_query_efficiency(
+-        self, api_client, admin_user, django_assert_num_queries
+-    ):
++    def test_project_health_query_efficiency(self, api_client, admin_user, django_assert_num_queries):
+         """Test project health endpoint query count."""
+         project = Project.objects.create(
+             name="Query Test",
+diff --git a/tests/test_analytics_rigorous.py b/tests/test_analytics_rigorous.py
+index dda7afa..d006faf 100644
+--- a/tests/test_analytics_rigorous.py
++++ b/tests/test_analytics_rigorous.py
+@@ -2,6 +2,7 @@
+ Pruebas rigurosas para APIs de Analytics
+ Valida ColorApproval y PMPerformance analytics endpoints
+ """
++
+ import pytest
+ from django.contrib.auth.models import User
+ from django.test import Client
+@@ -12,326 +13,306 @@ from datetime import datetime, timedelta
+ @pytest.mark.django_db
+ class TestColorApprovalAnalytics:
+     """Tests exhaustivos para /api/v1/analytics/color-approvals/"""
+-    
++
+     def setup_method(self):
+         """Setup para cada test"""
+         self.client = Client()
+         self.admin = User.objects.filter(is_superuser=True).first()
+         if not self.admin:
+-            self.admin = User.objects.create_superuser('admin_test', 'admin@test.com', 'test123')
++            self.admin = User.objects.create_superuser("admin_test", "admin@test.com", "test123")
+         self.client.force_login(self.admin)
+-        
++
+         # Crear proyecto de prueba
+         self.project = Project.objects.create(
+-            name='Test Project',
+-            client='Test Client',
+-            start_date=datetime.now().date()
++            name="Test Project", client="Test Client", start_date=datetime.now().date()
+         )
+-    
++
+     def test_color_approval_analytics_requires_authentication(self):
+         """Verifica que el endpoint requiere autenticación"""
+         client = Client()  # Cliente sin login
+-        response = client.get('/api/v1/analytics/color-approvals/')
++        response = client.get("/api/v1/analytics/color-approvals/")
+         assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+-    
++
+     def test_color_approval_analytics_global_success(self):
+         """Verifica analytics globales con datos"""
+         # Crear ColorApprovals de prueba
+         ColorApproval.objects.create(
+             project=self.project,
+-            status='PENDING',
+-            color_name='Test Color 1',
+-            brand='Test Brand',
+-            requested_by=self.admin
++            status="PENDING",
++            color_name="Test Color 1",
++            brand="Test Brand",
++            requested_by=self.admin,
+         )
+         ColorApproval.objects.create(
+             project=self.project,
+-            status='APPROVED',
+-            color_name='Test Color 2',
+-            brand='Test Brand',
++            status="APPROVED",
++            color_name="Test Color 2",
++            brand="Test Brand",
+             approved_by=self.admin,
+-            signed_at=datetime.now()
++            signed_at=datetime.now(),
+         )
+-        
+-        response = self.client.get('/api/v1/analytics/color-approvals/')
+-        
++
++        response = self.client.get("/api/v1/analytics/color-approvals/")
++
+         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+         data = response.json()
+-        
++
+         # Validar estructura de respuesta
+-        assert 'total_approvals' in data, "Missing total_approvals"
+-        assert 'by_status' in data, "Missing by_status"
+-        assert 'by_brand' in data, "Missing by_brand"
+-        assert 'avg_approval_time_hours' in data, "Missing avg_approval_time_hours"
+-        assert 'pending_aging_days' in data, "Missing pending_aging_days"
+-        
++        assert "total_approvals" in data, "Missing total_approvals"
++        assert "by_status" in data, "Missing by_status"
++        assert "by_brand" in data, "Missing by_brand"
++        assert "avg_approval_time_hours" in data, "Missing avg_approval_time_hours"
++        assert "pending_aging_days" in data, "Missing pending_aging_days"
++
+         # Validar tipos de datos
+-        assert isinstance(data['total_approvals'], int), "total_approvals debe ser int"
+-        assert isinstance(data['by_status'], dict), "by_status debe ser dict"
+-        assert isinstance(data['by_brand'], list), "by_brand debe ser list"
+-        assert isinstance(data['avg_approval_time_hours'], (int, float)) or data['avg_approval_time_hours'] is None
+-        assert isinstance(data['pending_aging_days'], (int, float)) or data['pending_aging_days'] is None
+-        
++        assert isinstance(data["total_approvals"], int), "total_approvals debe ser int"
++        assert isinstance(data["by_status"], dict), "by_status debe ser dict"
++        assert isinstance(data["by_brand"], list), "by_brand debe ser list"
++        assert isinstance(data["avg_approval_time_hours"], (int, float)) or data["avg_approval_time_hours"] is None
++        assert isinstance(data["pending_aging_days"], (int, float)) or data["pending_aging_days"] is None
++
+         # Validar valores mínimos
+-        assert data['total_approvals'] >= 2, f"Expected >= 2 approvals, got {data['total_approvals']}"
+-        assert 'PENDING' in data['by_status'] or 'APPROVED' in data['by_status']
+-    
++        assert data["total_approvals"] >= 2, f"Expected >= 2 approvals, got {data['total_approvals']}"
++        assert "PENDING" in data["by_status"] or "APPROVED" in data["by_status"]
++
+     def test_color_approval_analytics_by_project(self):
+         """Verifica analytics filtrado por proyecto"""
+         # Crear otro proyecto
+         other_project = Project.objects.create(
+-            name='Other Project',
+-            client='Other Client',
+-            start_date=datetime.now().date()
++            name="Other Project", client="Other Client", start_date=datetime.now().date()
+         )
+-        
++
+         # Crear aprobaciones en ambos proyectos
+         ColorApproval.objects.create(
+             project=self.project,
+-            status='APPROVED',
+-            color_name='Project 1 Color',
+-            brand='Brand A',
+-            requested_by=self.admin
++            status="APPROVED",
++            color_name="Project 1 Color",
++            brand="Brand A",
++            requested_by=self.admin,
+         )
+         ColorApproval.objects.create(
+             project=other_project,
+-            status='PENDING',
+-            color_name='Project 2 Color',
+-            brand='Brand B',
+-            requested_by=self.admin
++            status="PENDING",
++            color_name="Project 2 Color",
++            brand="Brand B",
++            requested_by=self.admin,
+         )
+-        
+-        response = self.client.get(f'/api/v1/analytics/color-approvals/?project={self.project.id}')
+-        
++
++        response = self.client.get(f"/api/v1/analytics/color-approvals/?project={self.project.id}")
++
+         assert response.status_code == 200
+         data = response.json()
+-        
++
+         # Solo debe incluir aprobaciones del proyecto filtrado
+-        assert data['total_approvals'] >= 1
++        assert data["total_approvals"] >= 1
+         # Verificar que los datos corresponden al proyecto correcto
+-        if data['by_brand']:
+-            brands = [item['brand'] for item in data['by_brand']]
+-            assert 'Brand A' in brands or data['total_approvals'] > 1
+-    
++        if data["by_brand"]:
++            brands = [item["brand"] for item in data["by_brand"]]
++            assert "Brand A" in brands or data["total_approvals"] > 1
++
+     def test_color_approval_analytics_empty_database(self):
+         """Verifica respuesta con base de datos vacía"""
+         # Eliminar todas las aprobaciones
+         ColorApproval.objects.all().delete()
+-        
+-        response = self.client.get('/api/v1/analytics/color-approvals/')
+-        
++
++        response = self.client.get("/api/v1/analytics/color-approvals/")
++
+         assert response.status_code == 200
+         data = response.json()
+-        
+-        assert data['total_approvals'] == 0
+-        assert data['by_status'] == {}
+-        assert data['by_brand'] == []
++
++        assert data["total_approvals"] == 0
++        assert data["by_status"] == {}
++        assert data["by_brand"] == []
+         # Permitir 0 o None para valores numéricos vacíos
+-        assert data['avg_approval_time_hours'] in [0, None]
+-        assert data['pending_aging_days'] in [0, None]
+-    
++        assert data["avg_approval_time_hours"] in [0, None]
++        assert data["pending_aging_days"] in [0, None]
++
+     def test_color_approval_analytics_invalid_project(self):
+         """Verifica manejo de proyecto inexistente"""
+-        response = self.client.get('/api/v1/analytics/color-approvals/?project=999999')
+-        
++        response = self.client.get("/api/v1/analytics/color-approvals/?project=999999")
++
+         assert response.status_code == 200
+         data = response.json()
+-        
++
+         # Debe retornar datos vacíos, no error
+-        assert data['total_approvals'] == 0
++        assert data["total_approvals"] == 0
+ 
+ 
+ @pytest.mark.django_db
+ class TestPMPerformanceAnalytics:
+     """Tests exhaustivos para /api/v1/analytics/pm-performance/"""
+-    
++
+     def setup_method(self):
+         """Setup para cada test"""
+         self.client = Client()
+         self.admin = User.objects.filter(is_superuser=True).first()
+         if not self.admin:
+-            self.admin = User.objects.create_superuser('admin_test2', 'admin2@test.com', 'test123')
++            self.admin = User.objects.create_superuser("admin_test2", "admin2@test.com", "test123")
+         self.client.force_login(self.admin)
+-        
++
+         # Crear PM
+-        self.pm = User.objects.create_user('pm_test', 'pm@test.com', 'test123')
+-        
++        self.pm = User.objects.create_user("pm_test", "pm@test.com", "test123")
++
+         # Crear proyecto
+         self.project = Project.objects.create(
+-            name='PM Test Project',
+-            client='Test Client',
+-            start_date=datetime.now().date()
++            name="PM Test Project", client="Test Client", start_date=datetime.now().date()
+         )
+-    
++
+     def test_pm_performance_requires_authentication(self):
+         """Verifica que el endpoint requiere autenticación"""
+         client = Client()
+-        response = client.get('/api/v1/analytics/pm-performance/')
++        response = client.get("/api/v1/analytics/pm-performance/")
+         assert response.status_code == 401
+-    
++
+     def test_pm_performance_requires_admin(self):
+         """Verifica que el endpoint requiere permisos de admin"""
+         # Crear usuario no-admin
+-        regular_user = User.objects.create_user('regular', 'regular@test.com', 'test123')
++        regular_user = User.objects.create_user("regular", "regular@test.com", "test123")
+         client = Client()
+         client.force_login(regular_user)
+-        
+-        response = client.get('/api/v1/analytics/pm-performance/')
++
++        response = client.get("/api/v1/analytics/pm-performance/")
+         assert response.status_code == 403, f"Expected 403 for non-admin, got {response.status_code}"
+-    
++
+     def test_pm_performance_success_with_data(self):
+         """Verifica analytics de PM con datos"""
+         # Asignar PM al proyecto
+-        ProjectManagerAssignment.objects.create(
+-            project=self.project,
+-            pm=self.pm
+-        )
+-        
++        ProjectManagerAssignment.objects.create(project=self.project, pm=self.pm)
++
+         # Crear Employee para el PM (Task.assigned_to requiere Employee)
+         from core.models import Employee
+         from decimal import Decimal
++
+         employee = Employee.objects.create(
+             user=self.pm,
+-            first_name='PM',
+-            last_name='Test',
+-            social_security_number='123-45-6789',
+-            hourly_rate=Decimal('25.00')
++            first_name="PM",
++            last_name="Test",
++            social_security_number="123-45-6789",
++            hourly_rate=Decimal("25.00"),
+         )
+-        
++
+         # Crear tareas asignadas al Employee
++        Task.objects.create(title="Test Task 1", project=self.project, assigned_to=employee, status="Completada")
++        Task.objects.create(title="Test Task 2", project=self.project, assigned_to=employee, status="En Progreso")
+         Task.objects.create(
+-            title='Test Task 1',
+-            project=self.project,
+-            assigned_to=employee,
+-            status='Completada'
+-        )
+-        Task.objects.create(
+-            title='Test Task 2',
+-            project=self.project,
+-            assigned_to=employee,
+-            status='En Progreso'
+-        )
+-        Task.objects.create(
+-            title='Test Task 3',
++            title="Test Task 3",
+             project=self.project,
+             assigned_to=employee,
+-            status='Pendiente',
+-            due_date=datetime.now().date() - timedelta(days=5)  # Overdue
++            status="Pendiente",
++            due_date=datetime.now().date() - timedelta(days=5),  # Overdue
+         )
+-        
+-        response = self.client.get('/api/v1/analytics/pm-performance/')
+-        
++
++        response = self.client.get("/api/v1/analytics/pm-performance/")
++
+         assert response.status_code == 200
+         data = response.json()
+-        
++
+         # Validar estructura
+-        assert 'pm_list' in data
+-        assert 'overall' in data
+-        
++        assert "pm_list" in data
++        assert "overall" in data
++
+         # Validar overall
+-        assert 'total_pms' in data['overall']
+-        assert 'avg_projects_per_pm' in data['overall']
+-        assert 'avg_completion_rate' in data['overall']
+-        
++        assert "total_pms" in data["overall"]
++        assert "avg_projects_per_pm" in data["overall"]
++        assert "avg_completion_rate" in data["overall"]
++
+         # Validar que hay al menos 1 PM
+-        assert data['overall']['total_pms'] >= 1
+-        assert isinstance(data['pm_list'], list)
+-        
++        assert data["overall"]["total_pms"] >= 1
++        assert isinstance(data["pm_list"], list)
++
+         # Validar estructura de PM individual
+-        if data['pm_list']:
+-            pm_data = data['pm_list'][0]
++        if data["pm_list"]:
++            pm_data = data["pm_list"][0]
+             required_fields = [
+-                'pm_id', 'pm_username', 'projects_count',
+-                'tasks_assigned', 'tasks_completed', 'completion_rate', 'overdue_count'
++                "pm_id",
++                "pm_username",
++                "projects_count",
++                "tasks_assigned",
++                "tasks_completed",
++                "completion_rate",
++                "overdue_count",
+             ]
+             for field in required_fields:
+                 assert field in pm_data, f"Missing field: {field}"
+-                
++
+             # Validar tipos
+-            assert isinstance(pm_data['pm_id'], int)
+-            assert isinstance(pm_data['pm_username'], str)
+-            assert isinstance(pm_data['projects_count'], int)
+-            assert isinstance(pm_data['tasks_assigned'], int)
+-            assert isinstance(pm_data['tasks_completed'], int)
+-            assert isinstance(pm_data['completion_rate'], (int, float))
+-            assert isinstance(pm_data['overdue_count'], int)
+-            
++            assert isinstance(pm_data["pm_id"], int)
++            assert isinstance(pm_data["pm_username"], str)
++            assert isinstance(pm_data["projects_count"], int)
++            assert isinstance(pm_data["tasks_assigned"], int)
++            assert isinstance(pm_data["tasks_completed"], int)
++            assert isinstance(pm_data["completion_rate"], (int, float))
++            assert isinstance(pm_data["overdue_count"], int)
++
+             # Validar rangos
+-            assert 0 <= pm_data['completion_rate'] <= 100
+-    
++            assert 0 <= pm_data["completion_rate"] <= 100
++
+     def test_pm_performance_empty_database(self):
+         """Verifica respuesta sin PMs asignados"""
+         ProjectManagerAssignment.objects.all().delete()
+-        
+-        response = self.client.get('/api/v1/analytics/pm-performance/')
+-        
++
++        response = self.client.get("/api/v1/analytics/pm-performance/")
++
+         assert response.status_code == 200
+         data = response.json()
+-        
+-        assert data['overall']['total_pms'] == 0
+-        assert data['overall']['avg_projects_per_pm'] == 0
+-        assert data['overall']['avg_completion_rate'] == 0
+-        assert data['pm_list'] == []
+-    
++
++        assert data["overall"]["total_pms"] == 0
++        assert data["overall"]["avg_projects_per_pm"] == 0
++        assert data["overall"]["avg_completion_rate"] == 0
++        assert data["pm_list"] == []
++
+     def test_pm_performance_multiple_pms(self):
+         """Verifica analytics con múltiples PMs"""
+         # Crear otro PM
+-        pm2 = User.objects.create_user('pm_test2', 'pm2@test.com', 'test123')
+-        
++        pm2 = User.objects.create_user("pm_test2", "pm2@test.com", "test123")
++
+         # Asignar ambos PMs a proyectos
+         ProjectManagerAssignment.objects.create(project=self.project, pm=self.pm)
+-        
+-        project2 = Project.objects.create(
+-            name='Project 2',
+-            client='Client 2',
+-            start_date=datetime.now().date()
+-        )
++
++        project2 = Project.objects.create(name="Project 2", client="Client 2", start_date=datetime.now().date())
+         ProjectManagerAssignment.objects.create(project=project2, pm=pm2)
+-        
+-        response = self.client.get('/api/v1/analytics/pm-performance/')
+-        
++
++        response = self.client.get("/api/v1/analytics/pm-performance/")
++
+         assert response.status_code == 200
+         data = response.json()
+-        
+-        assert data['overall']['total_pms'] >= 2
+-        assert len(data['pm_list']) >= 2
+-        
++
++        assert data["overall"]["total_pms"] >= 2
++        assert len(data["pm_list"]) >= 2
++
+         # Verificar que los PMs están en la lista
+-        pm_usernames = [pm['pm_username'] for pm in data['pm_list']]
+-        assert 'pm_test' in pm_usernames or 'pm_test2' in pm_usernames
++        pm_usernames = [pm["pm_username"] for pm in data["pm_list"]]
++        assert "pm_test" in pm_usernames or "pm_test2" in pm_usernames
+ 
+ 
+ @pytest.mark.django_db
+ class TestAnalyticsIntegration:
+     """Tests de integración para el sistema completo de analytics"""
+-    
++
+     def test_all_analytics_endpoints_accessible(self):
+         """Verifica que todos los endpoints de analytics son accesibles"""
+         client = Client()
+         admin = User.objects.filter(is_superuser=True).first()
+         if not admin:
+-            admin = User.objects.create_superuser('admin_int', 'admin@int.com', 'test123')
++            admin = User.objects.create_superuser("admin_int", "admin@int.com", "test123")
+         client.force_login(admin)
+-        
++
+         # Crear datos mínimos
+         project = Project.objects.create(
+-            name='Integration Test',
+-            client='Test Client',
+-            start_date=datetime.now().date()
++            name="Integration Test", client="Test Client", start_date=datetime.now().date()
+         )
+-        
++
+         endpoints = [
+-            f'/api/v1/analytics/projects/{project.id}/health/',
+-            '/api/v1/analytics/touchups/',
+-            '/api/v1/analytics/color-approvals/',
+-            '/api/v1/analytics/pm-performance/',
++            f"/api/v1/analytics/projects/{project.id}/health/",
++            "/api/v1/analytics/touchups/",
++            "/api/v1/analytics/color-approvals/",
++            "/api/v1/analytics/pm-performance/",
+         ]
+-        
++
+         for endpoint in endpoints:
+             response = client.get(endpoint)
+-            assert response.status_code in [200, 404], \
+-                f"Endpoint {endpoint} failed with {response.status_code}"
+-            
++            assert response.status_code in [200, 404], f"Endpoint {endpoint} failed with {response.status_code}"
++
+             if response.status_code == 200:
+                 data = response.json()
+                 assert isinstance(data, dict), f"Endpoint {endpoint} didn't return JSON object"
+@@ -340,8 +321,8 @@ class TestAnalyticsIntegration:
+ def run_analytics_tests():
+     """Función helper para ejecutar todos los tests"""
+     print("🧪 Ejecutando pruebas de Analytics...")
+-    pytest.main([__file__, '-v', '--tb=short'])
++    pytest.main([__file__, "-v", "--tb=short"])
+ 
+ 
+-if __name__ == '__main__':
++if __name__ == "__main__":
+     run_analytics_tests()
+diff --git a/tests/test_module_11_tasks.py b/tests/test_module_11_tasks.py
+index 4eef1a2..8809110 100644
+--- a/tests/test_module_11_tasks.py
++++ b/tests/test_module_11_tasks.py
+@@ -218,7 +218,10 @@ class TestTaskDependencies:
+     def test_can_start_with_completed_dependencies(self, project, admin_user):
+         """Test can_start() returns True when dependencies are complete"""
+         task1 = Task.objects.create(
+-            project=project, title="Task 1", status="Completada", created_by=admin_user  # Already completed
++            project=project,
++            title="Task 1",
++            status="Completada",
++            created_by=admin_user,  # Already completed
+         )
+         task2 = Task.objects.create(project=project, title="Task 2", created_by=admin_user)
+         task2.dependencies.add(task1)
+@@ -228,7 +231,10 @@ class TestTaskDependencies:
+     def test_cannot_start_with_pending_dependencies(self, project, admin_user):
+         """Test can_start() returns False when dependencies are pending"""
+         task1 = Task.objects.create(
+-            project=project, title="Task 1", status="Pendiente", created_by=admin_user  # Not completed
++            project=project,
++            title="Task 1",
++            status="Pendiente",
++            created_by=admin_user,  # Not completed
+         )
+         task2 = Task.objects.create(project=project, title="Task 2", created_by=admin_user)
+         task2.dependencies.add(task1)
+@@ -239,7 +245,10 @@ class TestTaskDependencies:
+         """Test task with multiple dependencies"""
+         task1 = Task.objects.create(project=project, title="Task 1", status="Completada", created_by=admin_user)
+         task2 = Task.objects.create(
+-            project=project, title="Task 2", status="En Progreso", created_by=admin_user  # Not completed
++            project=project,
++            title="Task 2",
++            status="En Progreso",
++            created_by=admin_user,  # Not completed
+         )
+         task3 = Task.objects.create(project=project, title="Task 3", created_by=admin_user)
+ 
+@@ -614,7 +623,9 @@ class TestTaskIntegration:
+             end_datetime=timezone.now() + timedelta(days=30),
+         )
+         category = ScheduleCategory.objects.create(
+-            project=project, name="Painting", order=1  # Added required project field
++            project=project,
++            name="Painting",
++            order=1,  # Added required project field
+         )
+         item = ScheduleItem.objects.create(
+             title="Paint Living Room",
+diff --git a/tests/test_notification_api_rigorous.py b/tests/test_notification_api_rigorous.py
+index fd05128..9771ea2 100644
+--- a/tests/test_notification_api_rigorous.py
++++ b/tests/test_notification_api_rigorous.py
+@@ -7,334 +7,317 @@ from core.models import Notification, Project, Employee
+ @pytest.mark.django_db
+ class TestNotificationAPIAuthentication:
+     """Tests de autenticación para API de notificaciones."""
+-    
++
+     def test_notification_list_requires_authentication(self):
+         """Verificar que GET /api/v1/notifications/ requiere autenticación."""
+         client = APIClient()
+-        response = client.get('/api/v1/notifications/')
++        response = client.get("/api/v1/notifications/")
+         assert response.status_code == 401, "Debe requerir autenticación"
+-    
++
+     def test_count_unread_requires_authentication(self):
+         """Verificar que GET /api/v1/notifications/count_unread/ requiere autenticación."""
+         client = APIClient()
+-        response = client.get('/api/v1/notifications/count_unread/')
++        response = client.get("/api/v1/notifications/count_unread/")
+         assert response.status_code == 401, "Debe requerir autenticación"
+-    
++
+     def test_mark_read_requires_authentication(self):
+         """Verificar que POST /api/v1/notifications/{id}/mark_read/ requiere autenticación."""
+         client = APIClient()
+-        response = client.post('/api/v1/notifications/1/mark_read/')
++        response = client.post("/api/v1/notifications/1/mark_read/")
+         assert response.status_code == 401, "Debe requerir autenticación"
+-    
++
+     def test_mark_all_read_requires_authentication(self):
+         """Verificar que POST /api/v1/notifications/mark_all_read/ requiere autenticación."""
+         client = APIClient()
+-        response = client.post('/api/v1/notifications/mark_all_read/')
++        response = client.post("/api/v1/notifications/mark_all_read/")
+         assert response.status_code == 401, "Debe requerir autenticación"
+ 
+ 
+ @pytest.mark.django_db
+ class TestNotificationAPIFunctionality:
+     """Tests de funcionalidad para API de notificaciones."""
+-    
++
+     @pytest.fixture
+     def user(self):
+         """Usuario de prueba."""
+-        return User.objects.create_user(username='testuser', password='testpass123')
+-    
++        return User.objects.create_user(username="testuser", password="testpass123")
++
+     @pytest.fixture
+     def other_user(self):
+         """Otro usuario para aislar notificaciones."""
+-        return User.objects.create_user(username='otheruser', password='testpass123')
+-    
++        return User.objects.create_user(username="otheruser", password="testpass123")
++
+     @pytest.fixture
+     def client(self, user):
+         """Cliente autenticado."""
+         client = APIClient()
+         client.force_authenticate(user=user)
+         return client
+-    
++
+     @pytest.fixture
+     def notifications(self, user):
+         """Crear notificaciones de prueba."""
+         return [
+             Notification.objects.create(
+                 user=user,
+-                notification_type='INFO',
+-                title=f'Notification {i}',
+-                message=f'Test message {i}',
+-                is_read=(i % 2 == 0)  # Alternadas leídas/no leídas
++                notification_type="INFO",
++                title=f"Notification {i}",
++                message=f"Test message {i}",
++                is_read=(i % 2 == 0),  # Alternadas leídas/no leídas
+             )
+             for i in range(1, 6)
+         ]
+-    
++
+     def test_notification_list_success(self, client, notifications):
+         """Verificar que GET /api/v1/notifications/ retorna notificaciones del usuario."""
+-        response = client.get('/api/v1/notifications/')
++        response = client.get("/api/v1/notifications/")
+         assert response.status_code == 200
+         data = response.json()
+-        
++
+         # Validar estructura
+-        assert isinstance(data, list) or ('results' in data), "Debe ser lista o tener 'results'"
+-        results = data if isinstance(data, list) else data['results']
++        assert isinstance(data, list) or ("results" in data), "Debe ser lista o tener 'results'"
++        results = data if isinstance(data, list) else data["results"]
+         assert len(results) == 5, "Debe retornar 5 notificaciones"
+-        
++
+         # Validar campos obligatorios
+         for notif in results:
+-            assert 'id' in notif
+-            assert 'notification_type' in notif
+-            assert 'title' in notif
+-            assert 'message' in notif
+-            assert 'is_read' in notif
+-            assert 'created_at' in notif
+-            assert isinstance(notif['is_read'], bool)
+-    
++            assert "id" in notif
++            assert "notification_type" in notif
++            assert "title" in notif
++            assert "message" in notif
++            assert "is_read" in notif
++            assert "created_at" in notif
++            assert isinstance(notif["is_read"], bool)
++
+     def test_notification_list_isolated_by_user(self, client, user, other_user):
+         """Verificar que cada usuario solo ve sus propias notificaciones."""
+         # Crear notificaciones para ambos usuarios
+-        Notification.objects.create(user=user, notification_type='INFO', title='User1 Notif', message='Test')
+-        Notification.objects.create(user=other_user, notification_type='INFO', title='User2 Notif', message='Test')
+-        
+-        response = client.get('/api/v1/notifications/')
++        Notification.objects.create(user=user, notification_type="INFO", title="User1 Notif", message="Test")
++        Notification.objects.create(user=other_user, notification_type="INFO", title="User2 Notif", message="Test")
++
++        response = client.get("/api/v1/notifications/")
+         assert response.status_code == 200
+         data = response.json()
+-        results = data if isinstance(data, list) else data['results']
+-        
++        results = data if isinstance(data, list) else data["results"]
++
+         # Debe ver solo 1 notificación (la suya)
+         assert len(results) == 1
+-        assert results[0]['title'] == 'User1 Notif'
+-    
++        assert results[0]["title"] == "User1 Notif"
++
+     def test_count_unread_success(self, client, notifications):
+         """Verificar que GET /api/v1/notifications/count_unread/ retorna conteo correcto."""
+-        response = client.get('/api/v1/notifications/count_unread/')
++        response = client.get("/api/v1/notifications/count_unread/")
+         assert response.status_code == 200
+         data = response.json()
+-        
+-        assert 'unread_count' in data
+-        assert isinstance(data['unread_count'], int)
++
++        assert "unread_count" in data
++        assert isinstance(data["unread_count"], int)
+         # 3 no leídas (índices impares: 1, 3, 5)
+-        assert data['unread_count'] == 3
+-    
++        assert data["unread_count"] == 3
++
+     def test_count_unread_empty(self, client, user):
+         """Verificar conteo con base de datos vacía."""
+-        response = client.get('/api/v1/notifications/count_unread/')
++        response = client.get("/api/v1/notifications/count_unread/")
+         assert response.status_code == 200
+         data = response.json()
+-        assert data['unread_count'] == 0
+-    
++        assert data["unread_count"] == 0
++
+     def test_mark_read_success(self, client, notifications):
+         """Verificar que POST /api/v1/notifications/{id}/mark_read/ marca como leída."""
+         unread_notif = notifications[0]  # Primera es no leída (índice 1, impar)
+         assert not unread_notif.is_read
+-        
+-        response = client.post(f'/api/v1/notifications/{unread_notif.id}/mark_read/')
++
++        response = client.post(f"/api/v1/notifications/{unread_notif.id}/mark_read/")
+         assert response.status_code == 200
+         data = response.json()
+-        assert data['status'] == 'ok'
+-        
++        assert data["status"] == "ok"
++
+         # Verificar en DB
+         unread_notif.refresh_from_db()
+         assert unread_notif.is_read, "Debe estar marcada como leída"
+-    
++
+     def test_mark_read_invalid_notification(self, client):
+         """Verificar comportamiento con notificación inexistente."""
+-        response = client.post('/api/v1/notifications/99999/mark_read/')
++        response = client.post("/api/v1/notifications/99999/mark_read/")
+         assert response.status_code == 404
+-    
++
+     def test_mark_all_read_success(self, client, notifications, user):
+         """Verificar que POST /api/v1/notifications/mark_all_read/ marca todas como leídas."""
+         # Verificar estado inicial
+         unread_count = Notification.objects.filter(user=user, is_read=False).count()
+         assert unread_count == 3, "Deben haber 3 no leídas inicialmente"
+-        
+-        response = client.post('/api/v1/notifications/mark_all_read/')
++
++        response = client.post("/api/v1/notifications/mark_all_read/")
+         assert response.status_code == 200
+         data = response.json()
+-        assert data['status'] == 'ok'
+-        
++        assert data["status"] == "ok"
++
+         # Verificar en DB
+         unread_count_after = Notification.objects.filter(user=user, is_read=False).count()
+         assert unread_count_after == 0, "Todas deben estar leídas"
+-        
++
+         total_count = Notification.objects.filter(user=user).count()
+         assert total_count == 5, "Deben seguir existiendo las 5 notificaciones"
+-    
++
+     def test_mark_all_read_empty_database(self, client):
+         """Verificar mark_all_read con base de datos vacía."""
+-        response = client.post('/api/v1/notifications/mark_all_read/')
++        response = client.post("/api/v1/notifications/mark_all_read/")
+         assert response.status_code == 200
+         data = response.json()
+-        assert data['status'] == 'ok'
++        assert data["status"] == "ok"
+ 
+ 
+ @pytest.mark.django_db
+ class TestNotificationDataValidation:
+     """Tests de validación de datos retornados."""
+-    
++
+     @pytest.fixture
+     def user(self):
+-        return User.objects.create_user(username='testuser', password='testpass123')
+-    
++        return User.objects.create_user(username="testuser", password="testpass123")
++
+     @pytest.fixture
+     def client(self, user):
+         client = APIClient()
+         client.force_authenticate(user=user)
+         return client
+-    
++
+     @pytest.fixture
+     def project(self):
+         """Proyecto de prueba para notificaciones relacionadas."""
+-        return Project.objects.create(
+-            name='Test Project',
+-            start_date='2025-01-01'
+-        )
+-    
++        return Project.objects.create(name="Test Project", start_date="2025-01-01")
++
+     def test_notification_with_related_object(self, client, user, project):
+         """Verificar notificación con objeto relacionado."""
+         notif = Notification.objects.create(
+             user=user,
+-            notification_type='PROJECT',
+-            title='Project Update',
+-            message='Project has been updated',
+-            related_object_type='project',
+-            related_object_id=project.id
++            notification_type="PROJECT",
++            title="Project Update",
++            message="Project has been updated",
++            related_object_type="project",
++            related_object_id=project.id,
+         )
+-        
+-        response = client.get('/api/v1/notifications/')
++
++        response = client.get("/api/v1/notifications/")
+         assert response.status_code == 200
+         data = response.json()
+-        results = data if isinstance(data, list) else data['results']
+-        
++        results = data if isinstance(data, list) else data["results"]
++
+         assert len(results) == 1
+         result = results[0]
+-        assert result['related_object_type'] == 'project'
+-        assert result['related_object_id'] == project.id
+-    
++        assert result["related_object_type"] == "project"
++        assert result["related_object_id"] == project.id
++
+     def test_notification_types(self, client, user):
+         """Verificar diferentes tipos de notificaciones."""
+-        types = ['INFO', 'WARNING', 'ERROR', 'SUCCESS', 'PROJECT', 'TASK', 'PAYMENT']
+-        
++        types = ["INFO", "WARNING", "ERROR", "SUCCESS", "PROJECT", "TASK", "PAYMENT"]
++
+         for ntype in types:
+             Notification.objects.create(
+-                user=user,
+-                notification_type=ntype,
+-                title=f'{ntype} notification',
+-                message='Test'
++                user=user, notification_type=ntype, title=f"{ntype} notification", message="Test"
+             )
+-        
+-        response = client.get('/api/v1/notifications/')
++
++        response = client.get("/api/v1/notifications/")
+         assert response.status_code == 200
+         data = response.json()
+-        results = data if isinstance(data, list) else data['results']
+-        
++        results = data if isinstance(data, list) else data["results"]
++
+         assert len(results) == len(types)
+-        returned_types = {n['notification_type'] for n in results}
++        returned_types = {n["notification_type"] for n in results}
+         assert returned_types == set(types)
+-    
++
+     def test_notification_ordering(self, client, user):
+         """Verificar que notificaciones están ordenadas por created_at DESC."""
+         import time
++
+         notifs = []
+         for i in range(3):
+-            notifs.append(Notification.objects.create(
+-                user=user,
+-                notification_type='INFO',
+-                title=f'Notification {i}',
+-                message='Test'
+-            ))
++            notifs.append(
++                Notification.objects.create(
++                    user=user, notification_type="INFO", title=f"Notification {i}", message="Test"
++                )
++            )
+             time.sleep(0.01)  # Pequeño delay para asegurar orden
+-        
+-        response = client.get('/api/v1/notifications/')
++
++        response = client.get("/api/v1/notifications/")
+         assert response.status_code == 200
+         data = response.json()
+-        results = data if isinstance(data, list) else data['results']
+-        
++        results = data if isinstance(data, list) else data["results"]
++
+         # Debe estar en orden descendente (más reciente primero)
+-        assert results[0]['title'] == 'Notification 2'
+-        assert results[1]['title'] == 'Notification 1'
+-        assert results[2]['title'] == 'Notification 0'
++        assert results[0]["title"] == "Notification 2"
++        assert results[1]["title"] == "Notification 1"
++        assert results[2]["title"] == "Notification 0"
+ 
+ 
+ @pytest.mark.django_db
+ class TestNotificationIntegration:
+     """Tests de integración con otros componentes del sistema."""
+-    
++
+     @pytest.fixture
+     def admin_user(self):
+-        return User.objects.create_superuser(username='admin', password='admin123', email='admin@test.com')
+-    
++        return User.objects.create_superuser(username="admin", password="admin123", email="admin@test.com")
++
+     @pytest.fixture
+     def regular_user(self):
+-        return User.objects.create_user(username='regular', password='testpass123')
+-    
++        return User.objects.create_user(username="regular", password="testpass123")
++
+     def test_all_notification_endpoints_accessible(self, admin_user):
+         """Verificar que todos los endpoints de notificaciones están accesibles."""
+         client = APIClient()
+         client.force_authenticate(user=admin_user)
+-        
++
+         # Crear notificación de prueba
+-        notif = Notification.objects.create(
+-            user=admin_user,
+-            notification_type='INFO',
+-            title='Test',
+-            message='Test'
+-        )
+-        
++        notif = Notification.objects.create(user=admin_user, notification_type="INFO", title="Test", message="Test")
++
+         endpoints = [
+-            ('/api/v1/notifications/', 'GET'),
+-            ('/api/v1/notifications/count_unread/', 'GET'),
+-            (f'/api/v1/notifications/{notif.id}/mark_read/', 'POST'),
+-            ('/api/v1/notifications/mark_all_read/', 'POST'),
++            ("/api/v1/notifications/", "GET"),
++            ("/api/v1/notifications/count_unread/", "GET"),
++            (f"/api/v1/notifications/{notif.id}/mark_read/", "POST"),
++            ("/api/v1/notifications/mark_all_read/", "POST"),
+         ]
+-        
++
+         for endpoint, method in endpoints:
+-            if method == 'GET':
++            if method == "GET":
+                 response = client.get(endpoint)
+             else:
+                 response = client.post(endpoint)
+-            
++
+             assert response.status_code in [200, 201], f"{method} {endpoint} debe ser accesible"
+-    
++
+     def test_notification_isolation_between_users(self, admin_user, regular_user):
+         """Verificar aislamiento completo entre usuarios."""
+         # Admin crea notificaciones
+         admin_notif = Notification.objects.create(
+-            user=admin_user,
+-            notification_type='INFO',
+-            title='Admin Notification',
+-            message='Admin only'
++            user=admin_user, notification_type="INFO", title="Admin Notification", message="Admin only"
+         )
+-        
++
+         # Regular user crea notificaciones
+         regular_notif = Notification.objects.create(
+-            user=regular_user,
+-            notification_type='INFO',
+-            title='Regular Notification',
+-            message='Regular only'
++            user=regular_user, notification_type="INFO", title="Regular Notification", message="Regular only"
+         )
+-        
++
+         # Admin client
+         admin_client = APIClient()
+         admin_client.force_authenticate(user=admin_user)
+-        
++
+         # Regular client
+         regular_client = APIClient()
+         regular_client.force_authenticate(user=regular_user)
+-        
++
+         # Admin debe ver solo su notificación
+-        admin_response = admin_client.get('/api/v1/notifications/')
++        admin_response = admin_client.get("/api/v1/notifications/")
+         admin_data = admin_response.json()
+-        admin_results = admin_data if isinstance(admin_data, list) else admin_data['results']
++        admin_results = admin_data if isinstance(admin_data, list) else admin_data["results"]
+         assert len(admin_results) == 1
+-        assert admin_results[0]['title'] == 'Admin Notification'
+-        
++        assert admin_results[0]["title"] == "Admin Notification"
++
+         # Regular debe ver solo su notificación
+-        regular_response = regular_client.get('/api/v1/notifications/')
++        regular_response = regular_client.get("/api/v1/notifications/")
+         regular_data = regular_response.json()
+-        regular_results = regular_data if isinstance(regular_data, list) else regular_data['results']
++        regular_results = regular_data if isinstance(regular_data, list) else regular_data["results"]
+         assert len(regular_results) == 1
+-        assert regular_results[0]['title'] == 'Regular Notification'
+-        
++        assert regular_results[0]["title"] == "Regular Notification"
++
+         # Regular user no debe poder marcar como leída la notificación del admin
+-        regular_mark_response = regular_client.post(f'/api/v1/notifications/{admin_notif.id}/mark_read/')
++        regular_mark_response = regular_client.post(f"/api/v1/notifications/{admin_notif.id}/mark_read/")
+         assert regular_mark_response.status_code == 404, "No debe poder acceder a notificaciones de otros usuarios"
+diff --git a/tests/test_project_assignments_and_color_approvals.py b/tests/test_project_assignments_and_color_approvals.py
+index 39550ed..ebcee5a 100644
+--- a/tests/test_project_assignments_and_color_approvals.py
++++ b/tests/test_project_assignments_and_color_approvals.py
+@@ -8,6 +8,7 @@ from core.models import Project, ColorApproval, ProjectManagerAssignment
+ 
+ User = get_user_model()
+ 
++
+ @pytest.mark.django_db
+ def test_pm_assignment_creates_notification(admin_user):
+     client = APIClient()
+@@ -26,6 +27,7 @@ def test_pm_assignment_creates_notification(admin_user):
+     # Notification model uses related_name="notifications"
+     assert assignment.pm.notifications.count() >= 1
+ 
++
+ @pytest.mark.django_db
+ def test_color_approval_approve_and_reject_flow(admin_user):
+     client = APIClient()
+@@ -36,14 +38,18 @@ def test_color_approval_approve_and_reject_flow(admin_user):
+     project = Project.objects.create(name="Color Project", start_date=timezone.now().date())
+     # Create approval request
+     url = reverse("color-approval-list")
+-    resp = client.post(url, {
+-        "project": project.id,
+-        "requested_by": requester.id,
+-        "color_name": "Ocean Blue",
+-        "color_code": "BLU-001",
+-        "brand": "BrandX",
+-        "location": "Living Room",
+-    }, format="json")
++    resp = client.post(
++        url,
++        {
++            "project": project.id,
++            "requested_by": requester.id,
++            "color_name": "Ocean Blue",
++            "color_code": "BLU-001",
++            "brand": "BrandX",
++            "location": "Living Room",
++        },
++        format="json",
++    )
+     assert resp.status_code in (200, 201)
+     approval_id = resp.data.get("id") or ColorApproval.objects.latest("id").id
+ 
+@@ -59,4 +65,4 @@ def test_color_approval_approve_and_reject_flow(admin_user):
+     reject_url = reverse("color-approval-reject", args=[approval_id])
+     resp3 = client.post(reject_url, {"reason": "Client changed mind"}, format="json")
+     assert resp3.status_code in (200, 201)
+-    assert resp3.data["status"].lower() == "rejected"
+\ No newline at end of file
++    assert resp3.data["status"].lower() == "rejected"
+diff --git a/tests/test_task_api.py b/tests/test_task_api.py
+index 76ab8fa..af97ca5 100644
+--- a/tests/test_task_api.py
++++ b/tests/test_task_api.py
+@@ -149,9 +149,7 @@ def test_task_add_remove_dependency_actions(api_client, user, project):
+     assert dep.id in r_add.json().get("dependencies", [])
+ 
+     # Remove dependency
+-    r_rem = api_client.post(
+-        f"/api/v1/tasks/{t.id}/remove_dependency/", data={"dependency_id": dep.id}, format="json"
+-    )
++    r_rem = api_client.post(f"/api/v1/tasks/{t.id}/remove_dependency/", data={"dependency_id": dep.id}, format="json")
+     assert r_rem.status_code == 200
+     assert dep.id not in r_rem.json().get("dependencies", [])
+ 
+diff --git a/tests/test_task_due_dates.py b/tests/test_task_due_dates.py
+index b3e4ff4..cebd9ae 100644
+--- a/tests/test_task_due_dates.py
++++ b/tests/test_task_due_dates.py
+@@ -16,10 +16,7 @@ def user():
+ 
+ @pytest.fixture
+ def project():
+-    return Project.objects.create(
+-        name="Due Date Test Project",
+-        start_date=date.today()
+-    )
++    return Project.objects.create(name="Due Date Test Project", start_date=date.today())
+ 
+ 
+ @pytest.mark.django_db
+@@ -30,22 +27,13 @@ class TestTaskDueDates:
+ 
+     def test_task_without_due_date(self, project, user):
+         """Una tarea puede crearse sin due_date (opcional)"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task without due date",
+-            created_by=user
+-        )
++        task = Task.objects.create(project=project, title="Task without due date", created_by=user)
+         assert task.due_date is None
+ 
+     def test_task_with_due_date(self, project, user):
+         """Crear tarea con due_date específica"""
+         future_date = date.today() + timedelta(days=7)
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task with due date",
+-            due_date=future_date,
+-            created_by=user
+-        )
++        task = Task.objects.create(project=project, title="Task with due date", due_date=future_date, created_by=user)
+         assert task.due_date == future_date
+ 
+     def test_filter_tasks_by_due_date(self, project, user):
+@@ -53,11 +41,11 @@ class TestTaskDueDates:
+         today = date.today()
+         tomorrow = today + timedelta(days=1)
+         next_week = today + timedelta(days=7)
+-        
++
+         task1 = Task.objects.create(project=project, title="Due today", due_date=today, created_by=user)
+         task2 = Task.objects.create(project=project, title="Due tomorrow", due_date=tomorrow, created_by=user)
+         task3 = Task.objects.create(project=project, title="Due next week", due_date=next_week, created_by=user)
+-        
++
+         due_tomorrow = Task.objects.filter(due_date=tomorrow)
+         assert due_tomorrow.count() == 1
+         assert due_tomorrow.first() == task2
+@@ -67,29 +55,23 @@ class TestTaskDueDates:
+         yesterday = date.today() - timedelta(days=1)
+         last_week = date.today() - timedelta(days=7)
+         tomorrow = date.today() + timedelta(days=1)
+-        
++
+         overdue1 = Task.objects.create(
+-            project=project, title="Overdue 1", due_date=yesterday, 
+-            status="Pendiente", created_by=user
++            project=project, title="Overdue 1", due_date=yesterday, status="Pendiente", created_by=user
+         )
+         overdue2 = Task.objects.create(
+-            project=project, title="Overdue 2", due_date=last_week, 
+-            status="En Progreso", created_by=user
++            project=project, title="Overdue 2", due_date=last_week, status="En Progreso", created_by=user
+         )
+         not_overdue = Task.objects.create(
+-            project=project, title="Future", due_date=tomorrow, 
+-            status="Pendiente", created_by=user
++            project=project, title="Future", due_date=tomorrow, status="Pendiente", created_by=user
+         )
+         completed = Task.objects.create(
+-            project=project, title="Completed", due_date=yesterday, 
+-            status="Completada", created_by=user
++            project=project, title="Completed", due_date=yesterday, status="Completada", created_by=user
+         )
+-        
++
+         # Overdue: tareas no completadas con due_date < today
+-        overdue_tasks = Task.objects.filter(
+-            due_date__lt=date.today()
+-        ).exclude(status="Completada")
+-        
++        overdue_tasks = Task.objects.filter(due_date__lt=date.today()).exclude(status="Completada")
++
+         assert overdue_tasks.count() == 2
+         assert overdue1 in overdue_tasks
+         assert overdue2 in overdue_tasks
+@@ -100,59 +82,48 @@ class TestTaskDueDates:
+         tomorrow = today + timedelta(days=1)
+         day_after = today + timedelta(days=2)
+         next_week = today + timedelta(days=7)
+-        
++
+         due_soon1 = Task.objects.create(project=project, title="Soon 1", due_date=tomorrow, created_by=user)
+         due_soon2 = Task.objects.create(project=project, title="Soon 2", due_date=day_after, created_by=user)
+         not_soon = Task.objects.create(project=project, title="Later", due_date=next_week, created_by=user)
+-        
++
+         # Due soon: próximos 3 días
+         threshold = today + timedelta(days=3)
+-        due_soon = Task.objects.filter(
+-            due_date__gte=today,
+-            due_date__lte=threshold
+-        ).exclude(status="Completada")
+-        
++        due_soon = Task.objects.filter(due_date__gte=today, due_date__lte=threshold).exclude(status="Completada")
++
+         assert due_soon.count() == 2
+ 
+     def test_update_due_date(self, project, user):
+         """Actualizar due_date de una tarea existente"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Updateable task",
+-            due_date=date.today(),
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="Updateable task", due_date=date.today(), created_by=user)
++
+         new_date = date.today() + timedelta(days=5)
+         task.due_date = new_date
+         task.save()
+         task.refresh_from_db()
+-        
++
+         assert task.due_date == new_date
+ 
+     def test_remove_due_date(self, project, user):
+         """Permitir eliminar due_date (cambiar a None)"""
+         task = Task.objects.create(
+-            project=project,
+-            title="Task with due date",
+-            due_date=date.today() + timedelta(days=3),
+-            created_by=user
++            project=project, title="Task with due date", due_date=date.today() + timedelta(days=3), created_by=user
+         )
+-        
++
+         task.due_date = None
+         task.save()
+         task.refresh_from_db()
+-        
++
+         assert task.due_date is None
+ 
+     def test_order_by_due_date(self, project, user):
+         """Ordenar tareas por due_date"""
+         today = date.today()
+-        
++
+         task1 = Task.objects.create(project=project, title="T1", due_date=today + timedelta(days=5), created_by=user)
+         task2 = Task.objects.create(project=project, title="T2", due_date=today + timedelta(days=1), created_by=user)
+         task3 = Task.objects.create(project=project, title="T3", due_date=today + timedelta(days=3), created_by=user)
+-        
++
+         ordered = Task.objects.filter(project=project).order_by("due_date")
+         assert ordered[0] == task2  # Día 1
+         assert ordered[1] == task3  # Día 3
+@@ -161,21 +132,17 @@ class TestTaskDueDates:
+     def test_priority_with_due_date(self, project, user):
+         """Combinar prioridad con due_date para ordenamiento"""
+         today = date.today()
+-        
++
+         # Urgente con due date lejana
+         urgent = Task.objects.create(
+-            project=project, title="Urgent", 
+-            priority="urgent", due_date=today + timedelta(days=10),
+-            created_by=user
++            project=project, title="Urgent", priority="urgent", due_date=today + timedelta(days=10), created_by=user
+         )
+-        
++
+         # Media prioridad con due date cercana
+         medium = Task.objects.create(
+-            project=project, title="Medium", 
+-            priority="medium", due_date=today + timedelta(days=1),
+-            created_by=user
++            project=project, title="Medium", priority="medium", due_date=today + timedelta(days=1), created_by=user
+         )
+-        
++
+         # Ambos campos están presentes y se pueden usar para ordenamiento
+         assert urgent.priority == "urgent"
+         assert medium.due_date < urgent.due_date
+@@ -183,17 +150,11 @@ class TestTaskDueDates:
+     def test_completed_task_with_past_due_date_not_overdue(self, project, user):
+         """Tarea completada con due_date pasada NO es overdue"""
+         past_date = date.today() - timedelta(days=5)
+-        
++
+         task = Task.objects.create(
+-            project=project,
+-            title="Completed past due",
+-            due_date=past_date,
+-            status="Completada",
+-            created_by=user
++            project=project, title="Completed past due", due_date=past_date, status="Completada", created_by=user
+         )
+-        
+-        overdue_tasks = Task.objects.filter(
+-            due_date__lt=date.today()
+-        ).exclude(status="Completada")
+-        
++
++        overdue_tasks = Task.objects.filter(due_date__lt=date.today()).exclude(status="Completada")
++
+         assert task not in overdue_tasks
+diff --git a/tests/test_task_images.py b/tests/test_task_images.py
+index 87567de..7d70abc 100644
+--- a/tests/test_task_images.py
++++ b/tests/test_task_images.py
+@@ -19,24 +19,18 @@ def user():
+ @pytest.fixture
+ def project():
+     from datetime import date
+-    return Project.objects.create(
+-        name="Image Test Project",
+-        start_date=date.today()
+-    )
++
++    return Project.objects.create(name="Image Test Project", start_date=date.today())
+ 
+ 
+ @pytest.fixture
+ def sample_image():
+     """Crear una imagen de prueba en memoria"""
+-    img = PILImage.new('RGB', (100, 100), color='red')
++    img = PILImage.new("RGB", (100, 100), color="red")
+     buffer = BytesIO()
+-    img.save(buffer, format='JPEG')
++    img.save(buffer, format="JPEG")
+     buffer.seek(0)
+-    return SimpleUploadedFile(
+-        name='test_image.jpg',
+-        content=buffer.read(),
+-        content_type='image/jpeg'
+-    )
++    return SimpleUploadedFile(name="test_image.jpg", content=buffer.read(), content_type="image/jpeg")
+ 
+ 
+ @pytest.mark.django_db
+@@ -47,18 +41,10 @@ class TestTaskImageVersioning:
+ 
+     def test_add_first_image(self, project, user, sample_image):
+         """Agregar primera imagen a una tarea"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task with image",
+-            created_by=user
+-        )
+-        
+-        task_image = task.add_image(
+-            image_file=sample_image,
+-            uploaded_by=user,
+-            caption="Primera versión"
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task with image", created_by=user)
++
++        task_image = task.add_image(image_file=sample_image, uploaded_by=user, caption="Primera versión")
++
+         assert task_image.version == 1
+         assert task_image.is_current is True
+         assert task.images.count() == 1
+@@ -66,51 +52,51 @@ class TestTaskImageVersioning:
+     def test_add_second_image_increments_version(self, project, user):
+         """Agregar segunda imagen incrementa version y marca anterior como no-current"""
+         task = Task.objects.create(project=project, title="Task", created_by=user)
+-        
++
+         # Primera imagen
+         img1_buffer = BytesIO()
+-        PILImage.new('RGB', (100, 100), color='red').save(img1_buffer, format='JPEG')
++        PILImage.new("RGB", (100, 100), color="red").save(img1_buffer, format="JPEG")
+         img1_buffer.seek(0)
+-        img1 = SimpleUploadedFile('img1.jpg', img1_buffer.read(), content_type='image/jpeg')
+-        
++        img1 = SimpleUploadedFile("img1.jpg", img1_buffer.read(), content_type="image/jpeg")
++
+         first_img = task.add_image(image_file=img1, uploaded_by=user, caption="V1")
+-        
++
+         # Segunda imagen
+         img2_buffer = BytesIO()
+-        PILImage.new('RGB', (100, 100), color='blue').save(img2_buffer, format='JPEG')
++        PILImage.new("RGB", (100, 100), color="blue").save(img2_buffer, format="JPEG")
+         img2_buffer.seek(0)
+-        img2 = SimpleUploadedFile('img2.jpg', img2_buffer.read(), content_type='image/jpeg')
+-        
++        img2 = SimpleUploadedFile("img2.jpg", img2_buffer.read(), content_type="image/jpeg")
++
+         second_img = task.add_image(image_file=img2, uploaded_by=user, caption="V2")
+-        
++
+         # Verificar versiones
+         first_img.refresh_from_db()
+         assert first_img.version == 1
+         assert first_img.is_current is False  # Ya no es current
+-        
++
+         assert second_img.version == 2
+         assert second_img.is_current is True
+-        
++
+         assert task.images.count() == 2
+ 
+     def test_multiple_images_versioning(self, project, user):
+         """Agregar múltiples imágenes mantiene el versionado correcto"""
+         task = Task.objects.create(project=project, title="Multi-img task", created_by=user)
+-        
++
+         for i in range(1, 6):  # 5 imágenes
+             buffer = BytesIO()
+-            PILImage.new('RGB', (100, 100), color='green').save(buffer, format='JPEG')
++            PILImage.new("RGB", (100, 100), color="green").save(buffer, format="JPEG")
+             buffer.seek(0)
+-            img = SimpleUploadedFile(f'img{i}.jpg', buffer.read(), content_type='image/jpeg')
++            img = SimpleUploadedFile(f"img{i}.jpg", buffer.read(), content_type="image/jpeg")
+             task.add_image(image_file=img, uploaded_by=user, caption=f"Version {i}")
+-        
++
+         # Verificar versiones
+-        images = task.images.all().order_by('version')
++        images = task.images.all().order_by("version")
+         assert images.count() == 5
+-        
++
+         for i, img in enumerate(images, start=1):
+             assert img.version == i
+-        
++
+         # Solo la última debe ser current
+         current_images = task.images.filter(is_current=True)
+         assert current_images.count() == 1
+@@ -119,15 +105,15 @@ class TestTaskImageVersioning:
+     def test_get_current_image(self, project, user):
+         """Obtener la imagen actual (versión más reciente)"""
+         task = Task.objects.create(project=project, title="Task", created_by=user)
+-        
++
+         # Agregar 3 imágenes
+         for i in range(1, 4):
+             buffer = BytesIO()
+-            PILImage.new('RGB', (100, 100), color='yellow').save(buffer, format='JPEG')
++            PILImage.new("RGB", (100, 100), color="yellow").save(buffer, format="JPEG")
+             buffer.seek(0)
+-            img = SimpleUploadedFile(f'img{i}.jpg', buffer.read(), content_type='image/jpeg')
++            img = SimpleUploadedFile(f"img{i}.jpg", buffer.read(), content_type="image/jpeg")
+             task.add_image(image_file=img, uploaded_by=user)
+-        
++
+         current = task.images.filter(is_current=True).first()
+         assert current is not None
+         assert current.version == 3
+@@ -135,58 +121,51 @@ class TestTaskImageVersioning:
+     def test_get_all_versions_history(self, project, user):
+         """Obtener histórico completo de versiones"""
+         task = Task.objects.create(project=project, title="Task", created_by=user)
+-        
++
+         versions = []
+         for i in range(1, 4):
+             buffer = BytesIO()
+-            PILImage.new('RGB', (100, 100), color='purple').save(buffer, format='JPEG')
++            PILImage.new("RGB", (100, 100), color="purple").save(buffer, format="JPEG")
+             buffer.seek(0)
+-            img = SimpleUploadedFile(f'img{i}.jpg', buffer.read(), content_type='image/jpeg')
++            img = SimpleUploadedFile(f"img{i}.jpg", buffer.read(), content_type="image/jpeg")
+             versions.append(task.add_image(image_file=img, uploaded_by=user, caption=f"V{i}"))
+-        
+-        all_versions = task.images.all().order_by('version')
++
++        all_versions = task.images.all().order_by("version")
+         assert all_versions.count() == 3
+-        
++
+         for i, img in enumerate(all_versions, start=1):
+             assert img.version == i
+ 
+     def test_image_caption_and_metadata(self, project, user, sample_image):
+         """Verificar que caption y metadata se guardan correctamente"""
+         task = Task.objects.create(project=project, title="Task", created_by=user)
+-        
++
+         task_image = task.add_image(
+-            image_file=sample_image,
+-            uploaded_by=user,
+-            caption="Imagen de referencia del touch-up"
++            image_file=sample_image, uploaded_by=user, caption="Imagen de referencia del touch-up"
+         )
+-        
++
+         assert task_image.caption == "Imagen de referencia del touch-up"
+         assert task_image.uploaded_by == user
+         assert task_image.uploaded_at is not None
+ 
+     def test_task_with_multiple_images_touch_up(self, project, user):
+         """Touch-up con varias imágenes (antes/después)"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Touch-up task",
+-            is_touchup=True,
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="Touch-up task", is_touchup=True, created_by=user)
++
+         # Imagen "antes"
+         before_buffer = BytesIO()
+-        PILImage.new('RGB', (200, 200), color='gray').save(before_buffer, format='JPEG')
++        PILImage.new("RGB", (200, 200), color="gray").save(before_buffer, format="JPEG")
+         before_buffer.seek(0)
+-        before_img = SimpleUploadedFile('before.jpg', before_buffer.read(), content_type='image/jpeg')
++        before_img = SimpleUploadedFile("before.jpg", before_buffer.read(), content_type="image/jpeg")
+         task.add_image(image_file=before_img, uploaded_by=user, caption="Antes de reparar")
+-        
++
+         # Imagen "después"
+         after_buffer = BytesIO()
+-        PILImage.new('RGB', (200, 200), color='white').save(after_buffer, format='JPEG')
++        PILImage.new("RGB", (200, 200), color="white").save(after_buffer, format="JPEG")
+         after_buffer.seek(0)
+-        after_img = SimpleUploadedFile('after.jpg', after_buffer.read(), content_type='image/jpeg')
++        after_img = SimpleUploadedFile("after.jpg", after_buffer.read(), content_type="image/jpeg")
+         task.add_image(image_file=after_img, uploaded_by=user, caption="Después de reparar")
+-        
++
+         assert task.images.count() == 2
+         current = task.images.filter(is_current=True).first()
+         assert current.caption == "Después de reparar"
+@@ -194,15 +173,15 @@ class TestTaskImageVersioning:
+     def test_image_queryset_ordering(self, project, user):
+         """TaskImage se ordena por uploaded_at descendente por defecto"""
+         task = Task.objects.create(project=project, title="Task", created_by=user)
+-        
++
+         images = []
+         for i in range(3):
+             buffer = BytesIO()
+-            PILImage.new('RGB', (100, 100), color='orange').save(buffer, format='JPEG')
++            PILImage.new("RGB", (100, 100), color="orange").save(buffer, format="JPEG")
+             buffer.seek(0)
+-            img = SimpleUploadedFile(f'img{i}.jpg', buffer.read(), content_type='image/jpeg')
++            img = SimpleUploadedFile(f"img{i}.jpg", buffer.read(), content_type="image/jpeg")
+             images.append(task.add_image(image_file=img, uploaded_by=user))
+-        
++
+         # El queryset default debe retornar más recientes primero
+         ordered = list(task.images.all())
+         assert ordered[0].version > ordered[-1].version
+@@ -210,7 +189,7 @@ class TestTaskImageVersioning:
+     def test_task_with_no_images(self, project, user):
+         """Tarea sin imágenes adjuntas"""
+         task = Task.objects.create(project=project, title="No images", created_by=user)
+-        
++
+         assert task.images.count() == 0
+         current = task.images.filter(is_current=True).first()
+         assert current is None
+@@ -219,5 +198,5 @@ class TestTaskImageVersioning:
+         """Verificar __str__ de TaskImage"""
+         task = Task.objects.create(project=project, title="Task", created_by=user)
+         img = task.add_image(image_file=sample_image, uploaded_by=user)
+-        
++
+         assert str(img) == f"{task.title} - v{img.version}"
+diff --git a/tests/test_task_priorities.py b/tests/test_task_priorities.py
+index a69f4be..15ddbd3 100644
+--- a/tests/test_task_priorities.py
++++ b/tests/test_task_priorities.py
+@@ -16,11 +16,8 @@ def user():
+ @pytest.fixture
+ def project():
+     from datetime import date
+-    return Project.objects.create(
+-        name="Test Project",
+-        start_date=date.today(),
+-        description="Priority testing project"
+-    )
++
++    return Project.objects.create(name="Test Project", start_date=date.today(), description="Priority testing project")
+ 
+ 
+ @pytest.mark.django_db
+@@ -31,23 +28,14 @@ class TestTaskPriorities:
+ 
+     def test_default_priority_is_medium(self, project, user):
+         """Una tarea sin prioridad especificada debe ser 'medium'"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task sin prioridad",
+-            created_by=user
+-        )
++        task = Task.objects.create(project=project, title="Task sin prioridad", created_by=user)
+         assert task.priority == "medium"
+ 
+     def test_create_task_with_each_priority(self, project, user):
+         """Crear tareas con cada nivel de prioridad"""
+         priorities = ["low", "medium", "high", "urgent"]
+         for priority in priorities:
+-            task = Task.objects.create(
+-                project=project,
+-                title=f"Task {priority}",
+-                priority=priority,
+-                created_by=user
+-            )
++            task = Task.objects.create(project=project, title=f"Task {priority}", priority=priority, created_by=user)
+             assert task.priority == priority
+ 
+     def test_filter_by_priority(self, project, user):
+@@ -59,7 +47,7 @@ class TestTaskPriorities:
+ 
+         high_tasks = Task.objects.filter(priority="high")
+         assert high_tasks.count() == 2
+-        
++
+         urgent_tasks = Task.objects.filter(priority="urgent")
+         assert urgent_tasks.count() == 1
+ 
+@@ -72,15 +60,15 @@ class TestTaskPriorities:
+ 
+         # Orden esperado: urgent > high > medium > low
+         from django.db.models import Case, When, IntegerField
+-        
++
+         priority_order = Case(
+             When(priority="urgent", then=0),
+             When(priority="high", then=1),
+             When(priority="medium", then=2),
+             When(priority="low", then=3),
+-            output_field=IntegerField()
++            output_field=IntegerField(),
+         )
+-        
++
+         sorted_tasks = Task.objects.filter(project=project).order_by(priority_order)
+         assert sorted_tasks[0].priority == "urgent"
+         assert sorted_tasks[1].priority == "high"
+@@ -89,38 +77,24 @@ class TestTaskPriorities:
+ 
+     def test_change_priority(self, project, user):
+         """Cambiar la prioridad de una tarea existente"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Changeable task",
+-            priority="low",
+-            created_by=user
+-        )
++        task = Task.objects.create(project=project, title="Changeable task", priority="low", created_by=user)
+         assert task.priority == "low"
+ 
+         task.priority = "urgent"
+         task.save()
+         task.refresh_from_db()
+-        
++
+         assert task.priority == "urgent"
+ 
+     def test_priority_with_dependencies(self, project, user):
+         """Tareas de alta prioridad pueden tener dependencias de baja prioridad"""
+         low_task = Task.objects.create(
+-            project=project,
+-            title="Low priority dependency",
+-            priority="low",
+-            created_by=user,
+-            status="Completada"
+-        )
+-        
+-        high_task = Task.objects.create(
+-            project=project,
+-            title="High priority task",
+-            priority="high",
+-            created_by=user
++            project=project, title="Low priority dependency", priority="low", created_by=user, status="Completada"
+         )
++
++        high_task = Task.objects.create(project=project, title="High priority task", priority="high", created_by=user)
+         high_task.dependencies.add(low_task)
+-        
++
+         assert high_task.priority == "high"
+         assert high_task.can_start()  # La dependencia está completada
+ 
+@@ -129,28 +103,23 @@ class TestTaskPriorities:
+         Task.objects.create(project=project, title="U1", priority="urgent", created_by=user)
+         Task.objects.create(project=project, title="U2", priority="urgent", created_by=user)
+         Task.objects.create(project=project, title="H1", priority="high", created_by=user)
+-        
++
+         urgent_count = Task.objects.filter(priority="urgent", status="Pendiente").count()
+         assert urgent_count == 2
+ 
+     def test_priority_choices_are_valid(self):
+         """Verificar que las opciones de prioridad están definidas correctamente"""
+         from core.models import Task
+-        
++
+         expected_priorities = {"low", "medium", "high", "urgent"}
+         actual_priorities = {choice[0] for choice in Task.PRIORITY_CHOICES}
+-        
++
+         assert actual_priorities == expected_priorities
+ 
+     def test_priority_display_name(self, project, user):
+         """Verificar que el display name de prioridad funciona (i18n)"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Display test",
+-            priority="urgent",
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="Display test", priority="urgent", created_by=user)
++
+         # get_priority_display() debe retornar el label traducido
+         display = task.get_priority_display()
+         assert display in ["Urgente", "Urgent"]  # Depende del idioma activo
+diff --git a/tests/test_task_reopen.py b/tests/test_task_reopen.py
+index b6350e5..dec43dc 100644
+--- a/tests/test_task_reopen.py
++++ b/tests/test_task_reopen.py
+@@ -22,10 +22,8 @@ def user2():
+ @pytest.fixture
+ def project():
+     from datetime import date
+-    return Project.objects.create(
+-        name="Reopen Test Project",
+-        start_date=date.today()
+-    )
++
++    return Project.objects.create(name="Reopen Test Project", start_date=date.today())
+ 
+ 
+ @pytest.mark.django_db
+@@ -37,51 +35,38 @@ class TestTaskReopenTracking:
+     def test_reopen_completed_task(self, project, user):
+         """Reabrir una tarea completada"""
+         task = Task.objects.create(
+-            project=project,
+-            title="Completed task",
+-            status="Completada",
+-            completed_at=timezone.now(),
+-            created_by=user
++            project=project, title="Completed task", status="Completada", completed_at=timezone.now(), created_by=user
+         )
+-        
++
+         result = task.reopen(user=user, notes="Necesita revisión")
+-        
++
+         assert result is True
+         assert task.status == "En Progreso"
+         assert task.completed_at is None
+ 
+     def test_reopen_non_completed_task_fails(self, project, user):
+         """No se puede reabrir una tarea que no está completada"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Pending task",
+-            status="Pendiente",
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="Pending task", status="Pendiente", created_by=user)
++
+         result = task.reopen(user=user)
+-        
++
+         assert result is False
+         assert task.status == "Pendiente"  # No cambió
+ 
+     def test_reopen_creates_status_change_record(self, project, user):
+         """Reabrir crea un registro en TaskStatusChange"""
+         task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            status="Completada",
+-            completed_at=timezone.now(),
+-            created_by=user
++            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+         )
+-        
++
+         # El signal ya creó un cambio al guardar como Completada
+         initial_changes = task.status_changes.count()
+-        
++
+         task.reopen(user=user, notes="Reabrir por error")
+-        
++
+         # Debe haber al menos 1 cambio nuevo (el reopen)
+         assert task.status_changes.count() > initial_changes
+-        
++
+         # Buscar el cambio de reopen (más reciente)
+         reopen_change = task.status_changes.filter(old_status="Completada").first()
+         assert reopen_change is not None
+@@ -90,55 +75,46 @@ class TestTaskReopenTracking:
+ 
+     def test_reopen_events_count_property(self, project, user):
+         """reopen_events_count cuenta cuántas veces se reabrió"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            status="Pendiente",
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", status="Pendiente", created_by=user)
++
+         # Contar reaperturas desde Completada
+         initial_reopen_count = task.reopen_events_count
+-        
++
+         # Completar y reabrir
+         task.status = "Completada"
+         task.completed_at = timezone.now()
+         task.save()
+         task.reopen(user=user)
+-        
++
+         assert task.reopen_events_count == initial_reopen_count + 1
+-        
++
+         # Completar y reabrir de nuevo
+         task.status = "Completada"
+         task.completed_at = timezone.now()
+         task.save()
+         task.reopen(user=user)
+-        
++
+         assert task.reopen_events_count == initial_reopen_count + 2
+ 
+     def test_multiple_reopens_by_different_users(self, project, user, user2):
+         """Múltiples reaperturas por diferentes usuarios"""
+         task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            status="Completada",
+-            completed_at=timezone.now(),
+-            created_by=user
++            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+         )
+-        
++
+         # Primera reapertura por user
+         task.reopen(user=user, notes="Reopen 1")
+-        
++
+         # Completar de nuevo
+         task.status = "Completada"
+         task.completed_at = timezone.now()
+         task.save()
+-        
++
+         # Segunda reapertura por user2
+         task.reopen(user=user2, notes="Reopen 2")
+-        
++
+         # Buscar cambios de reapertura específicamente
+-        reopen_changes = task.status_changes.filter(old_status="Completada").order_by('-changed_at')
++        reopen_changes = task.status_changes.filter(old_status="Completada").order_by("-changed_at")
+         assert reopen_changes.count() >= 2
+         # El más reciente debe tener notas de reopen
+         latest = reopen_changes.first()
+@@ -146,77 +122,55 @@ class TestTaskReopenTracking:
+ 
+     def test_reopen_with_dependencies_sets_pendiente(self, project, user):
+         """Reabrir con dependencias pendientes pone status=Pendiente"""
+-        dep = Task.objects.create(
+-            project=project,
+-            title="Dependency",
+-            status="Pendiente",
+-            created_by=user
+-        )
+-        
++        dep = Task.objects.create(project=project, title="Dependency", status="Pendiente", created_by=user)
++
+         task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            status="Completada",
+-            completed_at=timezone.now(),
+-            created_by=user
++            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+         )
+         task.dependencies.add(dep)
+-        
++
+         task.reopen(user=user)
+-        
++
+         assert task.status == "Pendiente"  # No "En Progreso" porque dep no está lista
+ 
+     def test_reopen_without_dependencies_sets_en_progreso(self, project, user):
+         """Reabrir sin dependencias pone status=En Progreso"""
+         task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            status="Completada",
+-            completed_at=timezone.now(),
+-            created_by=user
++            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+         )
+-        
++
+         task.reopen(user=user)
+-        
++
+         assert task.status == "En Progreso"
+ 
+     def test_task_status_change_str(self, project, user):
+         """Verificar __str__ de TaskStatusChange"""
+         task = Task.objects.create(
+-            project=project,
+-            title="My Task",
+-            status="Completada",
+-            completed_at=timezone.now(),
+-            created_by=user
++            project=project, title="My Task", status="Completada", completed_at=timezone.now(), created_by=user
+         )
+-        
++
+         task.reopen(user=user, notes="Test")
+-        
++
+         change = task.status_changes.first()
+         expected = f"{task.title}: Completada → En Progreso"
+         assert str(change) == expected
+ 
+     def test_status_change_ordering(self, project, user):
+         """TaskStatusChange se ordena por changed_at descendente"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            status="Pendiente",
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", status="Pendiente", created_by=user)
++
+         # Cambiar a En Progreso
+         task.status = "En Progreso"
+         task.save()
+-        
++
+         # Cambiar a Completada
+         task.status = "Completada"
+         task.completed_at = timezone.now()
+         task.save()
+-        
++
+         # Reabrir
+         task.reopen(user=user)
+-        
++
+         changes = list(task.status_changes.all())
+         # Debe haber al menos 3 cambios
+         assert len(changes) >= 3
+@@ -226,15 +180,11 @@ class TestTaskReopenTracking:
+     def test_reopen_without_user(self, project, user):
+         """Reabrir sin especificar usuario (changed_by=None)"""
+         task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            status="Completada",
+-            completed_at=timezone.now(),
+-            created_by=user
++            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+         )
+-        
++
+         task.reopen(user=None, notes="Sistema automático")
+-        
++
+         change = task.status_changes.first()
+         assert change.changed_by is None
+         assert change.notes == "Sistema automático"
+@@ -243,7 +193,7 @@ class TestTaskReopenTracking:
+         """Filtrar tareas que han sido reabiertas múltiples veces"""
+         # Tarea sin reaperturas
+         task1 = Task.objects.create(project=project, title="T1", status="Completada", created_by=user)
+-        
++
+         # Tarea con 1 reapertura
+         task2 = Task.objects.create(project=project, title="T2", status="Pendiente", created_by=user)
+         task2.status = "Completada"
+@@ -251,7 +201,7 @@ class TestTaskReopenTracking:
+         task2.reopen(user=user)
+         task2.status = "Completada"
+         task2.save()
+-        
++
+         # Tarea con 3 reaperturas
+         task3 = Task.objects.create(project=project, title="T3", status="Pendiente", created_by=user)
+         for _ in range(3):
+@@ -260,7 +210,7 @@ class TestTaskReopenTracking:
+             task3.reopen(user=user)
+         task3.status = "Completada"
+         task3.save()
+-        
++
+         # Verificar conteo de reaperturas
+         assert task3.reopen_events_count >= 3
+         assert task2.reopen_events_count >= 1
+diff --git a/tests/test_task_time_tracking.py b/tests/test_task_time_tracking.py
+index 182fd2e..575d301 100644
+--- a/tests/test_task_time_tracking.py
++++ b/tests/test_task_time_tracking.py
+@@ -17,21 +17,14 @@ def user():
+ 
+ @pytest.fixture
+ def employee(user):
+-    return Employee.objects.create(
+-        user=user,
+-        first_name="Time",
+-        last_name="Tracker",
+-        hourly_rate=25.00
+-    )
++    return Employee.objects.create(user=user, first_name="Time", last_name="Tracker", hourly_rate=25.00)
+ 
+ 
+ @pytest.fixture
+ def project():
+     from datetime import date
+-    return Project.objects.create(
+-        name="Time Tracking Project",
+-        start_date=date.today()
+-    )
++
++    return Project.objects.create(name="Time Tracking Project", start_date=date.today())
+ 
+ 
+ @pytest.mark.django_db
+@@ -42,12 +35,8 @@ class TestTaskTimeTracking:
+ 
+     def test_task_initial_time_is_zero(self, project, user):
+         """Nueva tarea tiene time_tracked_seconds=0 y started_at=None"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="New task",
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="New task", created_by=user)
++
+         assert task.time_tracked_seconds == 0
+         assert task.started_at is None
+         assert task.get_time_tracked_hours() == 0
+@@ -55,75 +44,51 @@ class TestTaskTimeTracking:
+     def test_start_tracking(self, project, user):
+         """start_tracking() inicia el timer y cambia status a En Progreso"""
+         task = Task.objects.create(
+-            project=project,
+-            title="Trackable task",
+-            status="Pendiente",
+-            created_by=user,
+-            is_touchup=False
++            project=project, title="Trackable task", status="Pendiente", created_by=user, is_touchup=False
+         )
+-        
++
+         result = task.start_tracking()
+-        
++
+         assert result is True
+         assert task.started_at is not None
+         assert task.status == "En Progreso"
+ 
+     def test_start_tracking_touch_up_fails(self, project, user):
+         """Touch-ups no usan tracking interno, start_tracking debe fallar"""
+-        touchup = Task.objects.create(
+-            project=project,
+-            title="Touch-up",
+-            is_touchup=True,
+-            created_by=user
+-        )
+-        
++        touchup = Task.objects.create(project=project, title="Touch-up", is_touchup=True, created_by=user)
++
+         result = touchup.start_tracking()
+-        
++
+         assert result is False
+         assert touchup.started_at is None
+ 
+     def test_start_tracking_with_pending_dependency_fails(self, project, user):
+         """No puede iniciar tracking si hay dependencias pendientes"""
+-        dep = Task.objects.create(
+-            project=project,
+-            title="Dependency",
+-            status="Pendiente",
+-            created_by=user
+-        )
+-        
+-        task = Task.objects.create(
+-            project=project,
+-            title="Dependent task",
+-            created_by=user,
+-            is_touchup=False
+-        )
++        dep = Task.objects.create(project=project, title="Dependency", status="Pendiente", created_by=user)
++
++        task = Task.objects.create(project=project, title="Dependent task", created_by=user, is_touchup=False)
+         task.dependencies.add(dep)
+-        
++
+         result = task.start_tracking()
+-        
++
+         assert result is False
+         assert task.started_at is None
+ 
+     def test_stop_tracking(self, project, user):
+         """stop_tracking() detiene el timer y acumula tiempo"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            created_by=user,
+-            is_touchup=False
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", created_by=user, is_touchup=False)
++
+         # Iniciar tracking
+         task.start_tracking()
+         start_time = task.started_at
+-        
++
+         # Simular trabajo por 5 segundos
+         task.started_at = timezone.now() - timedelta(seconds=5)
+         task.save()
+-        
++
+         # Detener tracking
+         elapsed = task.stop_tracking()
+-        
++
+         assert elapsed is not None
+         assert elapsed >= 5
+         assert task.time_tracked_seconds >= 5
+@@ -131,22 +96,17 @@ class TestTaskTimeTracking:
+ 
+     def test_stop_tracking_accumulates_time(self, project, user):
+         """Múltiples sesiones de tracking acumulan tiempo total"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            created_by=user,
+-            is_touchup=False
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", created_by=user, is_touchup=False)
++
+         # Primera sesión: 10 segundos
+         task.start_tracking()
+         task.started_at = timezone.now() - timedelta(seconds=10)
+         task.save()
+         task.stop_tracking()
+-        
++
+         first_total = task.time_tracked_seconds
+         assert first_total >= 10
+-        
++
+         # Segunda sesión: 15 segundos más
+         task.status = "En Progreso"
+         task.save()
+@@ -154,45 +114,38 @@ class TestTaskTimeTracking:
+         task.started_at = timezone.now() - timedelta(seconds=15)
+         task.save()
+         task.stop_tracking()
+-        
++
+         assert task.time_tracked_seconds >= (first_total + 15)
+ 
+     def test_get_time_tracked_hours(self, project, user):
+         """Convertir segundos a horas decimales"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", created_by=user)
++
+         # Simular 3600 segundos = 1 hora
+         task.time_tracked_seconds = 3600
+         task.save()
+-        
++
+         assert task.get_time_tracked_hours() == 1.0
+-        
++
+         # 7200 segundos = 2 horas
+         task.time_tracked_seconds = 7200
+         task.save()
+-        
++
+         assert task.get_time_tracked_hours() == 2.0
+-        
++
+         # 5400 segundos = 1.5 horas
+         task.time_tracked_seconds = 5400
+         task.save()
+-        
++
+         assert task.get_time_tracked_hours() == 1.5
+ 
+     def test_get_time_entries_hours(self, project, user, employee):
+         """Sumar horas de TimeEntry vinculadas a la tarea"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            created_by=user
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", created_by=user)
++
+         # Crear time entries
+         from datetime import date, time
++
+         TimeEntry.objects.create(
+             employee=employee,
+             project=project,
+@@ -200,7 +153,7 @@ class TestTaskTimeTracking:
+             date=date.today(),
+             start_time=time(9, 0),
+             end_time=time(11, 30),
+-            hours_worked=2.5
++            hours_worked=2.5,
+         )
+         TimeEntry.objects.create(
+             employee=employee,
+@@ -209,28 +162,25 @@ class TestTaskTimeTracking:
+             date=date.today(),
+             start_time=time(13, 0),
+             end_time=time(16, 0),
+-            hours_worked=3.0
++            hours_worked=3.0,
+         )
+-        
++
+         total = task.get_time_entries_hours()
+         assert total == 5.5
+ 
+     def test_total_hours_property(self, project, user, employee):
+         """total_hours combina tracking interno + time entries"""
+         from datetime import date
+-        
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            created_by=user
+-        )
+-        
++
++        task = Task.objects.create(project=project, title="Task", created_by=user)
++
+         # Tracking interno: 2 horas (7200 segundos)
+         task.time_tracked_seconds = 7200
+         task.save()
+-        
++
+         # Time entry: 3 horas
+         from datetime import time
++
+         TimeEntry.objects.create(
+             employee=employee,
+             project=project,
+@@ -238,64 +188,49 @@ class TestTaskTimeTracking:
+             date=date.today(),
+             start_time=time(9, 0),
+             end_time=time(12, 0),
+-            hours_worked=3.0
++            hours_worked=3.0,
+         )
+-        
++
+         assert task.total_hours == 5.0  # 2 + 3
+ 
+     def test_stop_tracking_minimum_elapsed(self, project, user):
+         """stop_tracking con tiempo <1 segundo registra 1 segundo mínimo"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            created_by=user,
+-            is_touchup=False
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", created_by=user, is_touchup=False)
++
+         task.start_tracking()
+         # Inmediatamente detener (< 1 segundo)
+         elapsed = task.stop_tracking()
+-        
++
+         assert elapsed == 1
+         assert task.time_tracked_seconds >= 1
+ 
+     def test_already_started_tracking_does_nothing(self, project, user):
+         """Intentar start_tracking cuando ya está corriendo no hace nada"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            created_by=user,
+-            is_touchup=False
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", created_by=user, is_touchup=False)
++
+         task.start_tracking()
+         first_start = task.started_at
+-        
++
+         # Intentar iniciar de nuevo
+         result = task.start_tracking()
+-        
++
+         assert result is False
+         assert task.started_at == first_start  # No cambió
+ 
+     def test_time_tracking_with_task_completion(self, project, user):
+         """Completar tarea mientras hay tracking activo"""
+-        task = Task.objects.create(
+-            project=project,
+-            title="Task",
+-            created_by=user,
+-            is_touchup=False
+-        )
+-        
++        task = Task.objects.create(project=project, title="Task", created_by=user, is_touchup=False)
++
+         task.start_tracking()
+         task.started_at = timezone.now() - timedelta(seconds=30)
+         task.save()
+-        
++
+         # Detener antes de completar
+         task.stop_tracking()
+-        
++
+         task.status = "Completada"
+         task.completed_at = timezone.now()
+         task.save()
+-        
++
+         assert task.time_tracked_seconds >= 30
+         assert task.status == "Completada"
+diff --git a/tests/test_weather_api.py b/tests/test_weather_api.py
+index 5444455..0053f0a 100644
+--- a/tests/test_weather_api.py
++++ b/tests/test_weather_api.py
+@@ -171,7 +171,9 @@ class TestWeatherAPI:
+ 
+         # Completed project (end date in past)
+         completed = Project.objects.create(
+-            name="Completed", start_date=today - timedelta(days=60), end_date=today - timedelta(days=1)  # Yesterday
++            name="Completed",
++            start_date=today - timedelta(days=60),
++            end_date=today - timedelta(days=1),  # Yesterday
+         )
+ 
+         # Mock API
+diff --git a/verify_connections.py b/verify_connections.py
+index 3b9e9a8..ad1871f 100644
+--- a/verify_connections.py
++++ b/verify_connections.py
+@@ -2,6 +2,7 @@
+ """
+ Script para verificar la conectividad entre modelos, forms, views, URLs y templates.
+ """
++
+ import os
+ import sys
+ 

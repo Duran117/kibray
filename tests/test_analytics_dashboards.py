@@ -10,6 +10,7 @@ Covers:
 - Permission validation
 - Data accuracy
 """
+
 import json
 from datetime import date, timedelta
 from decimal import Decimal
@@ -47,6 +48,7 @@ def admin_user(db):
         is_superuser=True,
     )
     from core.models import Employee
+
     Employee.objects.create(
         user=user,
         first_name="Admin",
@@ -66,6 +68,7 @@ def pm_user(db):
         email="pm@test.com",
     )
     from core.models import Employee
+
     Employee.objects.create(
         user=user,
         first_name="PM",
@@ -283,9 +286,7 @@ class TestTouchupAnalyticsDashboard:
         assert data["by_status"]["Pendiente"] == 3
         assert data["completion_rate"] == 40.0  # 2 out of 5
 
-    def test_touchup_analytics_with_project_filter(
-        self, api_client, admin_user, project_with_touchups
-    ):
+    def test_touchup_analytics_with_project_filter(self, api_client, admin_user, project_with_touchups):
         """Test touchup analytics filtered by project."""
         api_client.force_authenticate(user=admin_user)
         url = reverse("analytics-touchups")
@@ -331,9 +332,7 @@ class TestTouchupAnalyticsDashboard:
 class TestColorApprovalAnalyticsDashboard:
     """Test color approval analytics endpoint."""
 
-    def test_color_approval_analytics_success(
-        self, api_client, admin_user, project_with_approvals
-    ):
+    def test_color_approval_analytics_success(self, api_client, admin_user, project_with_approvals):
         """Test successful color approval analytics retrieval."""
         api_client.force_authenticate(user=admin_user)
         url = reverse("analytics-color-approvals")
@@ -361,9 +360,7 @@ class TestColorApprovalAnalyticsDashboard:
         assert "BrandA" in brand_names
         assert "BrandB" in brand_names
 
-    def test_color_approval_analytics_with_project_filter(
-        self, api_client, admin_user, project_with_approvals
-    ):
+    def test_color_approval_analytics_with_project_filter(self, api_client, admin_user, project_with_approvals):
         """Test color approval analytics filtered by project."""
         api_client.force_authenticate(user=admin_user)
         url = reverse("analytics-color-approvals")
@@ -391,9 +388,7 @@ class TestColorApprovalAnalyticsDashboard:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_color_approval_pending_aging(
-        self, api_client, admin_user, project_with_approvals
-    ):
+    def test_color_approval_pending_aging(self, api_client, admin_user, project_with_approvals):
         """Test pending aging calculation."""
         api_client.force_authenticate(user=admin_user)
         url = reverse("analytics-color-approvals")
@@ -410,9 +405,7 @@ class TestColorApprovalAnalyticsDashboard:
 class TestPMPerformanceDashboard:
     """Test PM performance analytics endpoint."""
 
-    def test_pm_performance_success_admin(
-        self, api_client, admin_user, pm_user, project_with_tasks
-    ):
+    def test_pm_performance_success_admin(self, api_client, admin_user, pm_user, project_with_tasks):
         """Test PM performance analytics as admin."""
         # Assign PM to project
         ProjectManagerAssignment.objects.create(
@@ -436,9 +429,7 @@ class TestPMPerformanceDashboard:
         # Verify overall metrics
         assert data["overall"]["total_pms"] >= 1
 
-    def test_pm_performance_forbidden_regular_user(
-        self, api_client, regular_user, pm_user, project_with_tasks
-    ):
+    def test_pm_performance_forbidden_regular_user(self, api_client, regular_user, pm_user, project_with_tasks):
         """Test PM performance analytics forbidden for regular users."""
         ProjectManagerAssignment.objects.create(
             project=project_with_tasks,
@@ -471,9 +462,7 @@ class TestPMPerformanceDashboard:
         assert data["overall"]["total_pms"] == 0
         assert data["pm_list"] == []
 
-    def test_pm_performance_staff_access(
-        self, api_client, pm_user, project_with_tasks
-    ):
+    def test_pm_performance_staff_access(self, api_client, pm_user, project_with_tasks):
         """Test PM performance analytics accessible to staff users."""
         # Make pm_user staff
         pm_user.is_staff = True
@@ -573,9 +562,7 @@ class TestAnalyticsEdgeCases:
         # Should only return top 10 brands
         assert len(data["by_brand"]) == 10
 
-    def test_pm_performance_completion_rate_accuracy(
-        self, api_client, admin_user, pm_user
-    ):
+    def test_pm_performance_completion_rate_accuracy(self, api_client, admin_user, pm_user):
         """Test PM completion rate calculation accuracy."""
         project = Project.objects.create(
             name="PM Rate Test",
@@ -617,9 +604,7 @@ class TestAnalyticsEdgeCases:
 class TestAnalyticsPerformance:
     """Test analytics query performance and optimization."""
 
-    def test_project_health_query_efficiency(
-        self, api_client, admin_user, django_assert_num_queries
-    ):
+    def test_project_health_query_efficiency(self, api_client, admin_user, django_assert_num_queries):
         """Test project health endpoint query count."""
         project = Project.objects.create(
             name="Query Test",

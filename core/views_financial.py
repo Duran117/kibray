@@ -496,7 +496,9 @@ def employee_performance_review(request, employee_id=None):
 
         # Get or create annual metric
         metric, created = EmployeePerformanceMetric.objects.get_or_create(
-            employee=employee, year=year, month__isnull=True  # Annual metric
+            employee=employee,
+            year=year,
+            month__isnull=True,  # Annual metric
         )
 
         # Auto-calculate metrics

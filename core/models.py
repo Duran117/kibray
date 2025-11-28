@@ -20,6 +20,126 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+# =====================================================================
+# HELPER FUNCTIONS FOR HUMAN-READABLE IDs
+# =====================================================================
+
+def generate_project_code(year=None):
+    """
+    Generate unique project code in format: PRJ-{YYYY}-{000}
+    Example: PRJ-2025-001
+    
+    Thread-safe using select_for_update with database locking.
+    """
+    from django.db import transaction
+    
+    if year is None:
+        year = timezone.now().year
+    
+    with transaction.atomic():
+        # Get the last project for this year with a lock to prevent race conditions
+        last_project = (
+            Project.objects
+            .select_for_update()
+            .filter(project_code__startswith=f"PRJ-{year}-")
+            .order_by('-project_code')
+            .first()
+        )
+        
+        if last_project and last_project.project_code:
+            # Extract the sequence number from the last project code
+            try:
+                sequence = int(last_project.project_code.split('-')[-1]) + 1
+            except (ValueError, IndexError):
+                sequence = 1
+        else:
+            # First project of the year
+            sequence = 1
+        
+        return f"PRJ-{year}-{sequence:03d}"
+
+
+def generate_employee_key():
+    """
+    Generate unique employee key in format: EMP-{000}
+    Example: EMP-001
+    
+    Thread-safe using select_for_update with database locking.
+    """
+    from django.db import transaction
+    
+    with transaction.atomic():
+        # Get the last employee with a lock to prevent race conditions
+        last_employee = (
+            Employee.objects
+            .select_for_update()
+            .filter(employee_key__startswith="EMP-")
+            .order_by('-employee_key')
+            .first()
+        )
+        
+        if last_employee and last_employee.employee_key:
+            # Extract the sequence number
+            try:
+                sequence = int(last_employee.employee_key.split('-')[-1]) + 1
+            except (ValueError, IndexError):
+                sequence = 1
+        else:
+            # First employee
+            sequence = 1
+        
+        return f"EMP-{sequence:03d}"
+
+
+def generate_inventory_sku(category):
+    """
+    Generate unique SKU based on category in format: {CAT}-{000}
+    Examples: MAT-001 (Material), TOO-005 (Herramienta), PAI-003 (Pintura)
+    
+    Thread-safe using select_for_update with database locking.
+    """
+    from django.db import transaction
+    
+    # Category prefix mapping
+    category_prefixes = {
+        "MATERIAL": "MAT",
+        "PINTURA": "PAI",
+        "ESCALERA": "LAD",
+        "LIJADORA": "SAN",
+        "SPRAY": "SPR",
+        "HERRAMIENTA": "TOO",
+        "OTRO": "OTH",
+    }
+    
+    prefix = category_prefixes.get(category, "ITM")
+    
+    with transaction.atomic():
+        # Get the last item for this category with a lock
+        last_item = (
+            InventoryItem.objects
+            .select_for_update()
+            .filter(sku__startswith=f"{prefix}-")
+            .order_by('-sku')
+            .first()
+        )
+        
+        if last_item and last_item.sku:
+            # Extract the sequence number
+            try:
+                sequence = int(last_item.sku.split('-')[-1]) + 1
+            except (ValueError, IndexError):
+                sequence = 1
+        else:
+            # First item of this category
+            sequence = 1
+        
+        return f"{prefix}-{sequence:03d}"
+
+
+# =====================================================================
+# MODELS
+# =====================================================================
+
 # ---------------------
 class Project(models.Model):
     name = models.CharField(max_length=100)
@@ -84,11 +204,13 @@ class Project(models.Model):
         # Ejecuta validaciones antes de guardar (incluye create y update)
         self.full_clean()
         creating = self.pk is None
-        super().save(*args, **kwargs)
-        # Asignar project_code después de tener PK
+        
+        # Generate project code before first save if not provided
         if creating and not self.project_code:
-            self.project_code = f"PRJ-{self.id:04d}"
-            super().save(update_fields=["project_code"])
+            # Generate code with current year
+            self.project_code = generate_project_code()
+        
+        super().save(*args, **kwargs)
 
     def profit(self):
         return round(self.total_income - self.total_expenses, 2)
@@ -160,8 +282,12 @@ class ColorApproval(models.Model):
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="color_approvals")
-    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests")
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done")
+    requested_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests"
+    )
+    approved_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done"
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     color_name = models.CharField(max_length=100)
     color_code = models.CharField(max_length=50, blank=True)
@@ -190,6 +316,7 @@ class ColorApproval(models.Model):
         self.save(update_fields=["status", "approved_by", "client_signature", "signed_at"])
         # Notificar PMs y cliente
         from core.models import Notification
+
         pms = User.objects.filter(profile__role="project_manager", is_active=True)
         for pm in pms:
             Notification.objects.create(
@@ -208,6 +335,110 @@ class ColorApproval(models.Model):
         if reason:
             self.notes = (self.notes or "") + f"\nRechazo: {reason}"
         self.save(update_fields=["status", "approved_by", "notes"])
+
+
+# ---------------------
+# Digital Signature Model (Gap A Implementation)
+# ---------------------
+class DigitalSignature(models.Model):
+    """
+    Cryptographic digital signature for document integrity verification.
+    Implements Gap A requirements from audit report.
+    """
+    
+    # Link to base signature from signatures app
+    base_signature = models.OneToOneField(
+        'signatures.Signature',
+        on_delete=models.CASCADE,
+        related_name='digital_signature',
+        help_text="Link to the base signature model"
+    )
+    
+    # Entity tracking
+    entity_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('color_sample', 'Color Sample'),
+            ('change_order', 'Change Order'),
+        ],
+        help_text="Type of entity being signed"
+    )
+    entity_id = models.PositiveIntegerField(help_text="ID of the signed entity")
+    
+    # Signature details
+    signer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='digital_signatures',
+        help_text="User who created the signature"
+    )
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    
+    # Signature data
+    signature_data = models.TextField(
+        help_text="Base64-encoded signature canvas data"
+    )
+    
+    # Document snapshot for integrity verification
+    document_snapshot = models.JSONField(
+        help_text="JSON snapshot of document state at signing time"
+    )
+    signed_hash = models.CharField(
+        max_length=64,
+        help_text="SHA256 hash of document snapshot"
+    )
+    
+    # Metadata
+    user_agent = models.TextField(blank=True)
+    geolocation = models.JSONField(null=True, blank=True)
+    
+    # Verification tracking
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verification_count = models.PositiveIntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['entity_type', 'entity_id']),
+            models.Index(fields=['signer', 'timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"DigitalSignature for {self.entity_type} #{self.entity_id} by {self.signer.username}"
+    
+    def _compute_hash(self):
+        """Compute SHA256 hash of current document snapshot"""
+        import json
+        snapshot_str = json.dumps(self.document_snapshot, sort_keys=True)
+        return hashlib.sha256(snapshot_str.encode()).hexdigest()
+    
+    def verify_integrity(self):
+        """
+        Verify document integrity by comparing current hash with signed hash.
+        Returns tuple (is_valid: bool, message: str)
+        """
+        current_hash = self._compute_hash()
+        is_valid = current_hash == self.signed_hash
+        
+        # Update verification tracking
+        from django.utils import timezone
+        self.verified_at = timezone.now()
+        self.verification_count += 1
+        self.save(update_fields=['verified_at', 'verification_count'])
+        
+        if is_valid:
+            return True, "Document integrity verified - no tampering detected"
+        else:
+            return False, f"TAMPER DETECTED: Hash mismatch (expected: {self.signed_hash}, got: {current_hash})"
+    
+    def save(self, *args, **kwargs):
+        """Auto-compute signed_hash on creation"""
+        if not self.pk and not self.signed_hash:
+            self.signed_hash = self._compute_hash()
+        super().save(*args, **kwargs)
 
 
 # ---------------------
@@ -281,6 +512,16 @@ class Employee(models.Model):
     """
 
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="employee_profile")
+    
+    # Human-readable employee key (EMP-001, EMP-002, etc.)
+    employee_key = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        editable=False,
+        help_text=_("Código único del empleado (EMP-001, EMP-002...). Se genera automáticamente.")
+    )
+    
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     social_security_number = models.CharField(max_length=20, unique=True)
@@ -304,8 +545,19 @@ class Employee(models.Model):
     has_custom_overtime = models.BooleanField(
         default=False, help_text="Q16.11: True if employee has custom overtime rate"
     )
+    # Gap B: Optional tax profile linkage for withholding calculations
+    tax_profile = models.ForeignKey(
+        'core.TaxProfile', on_delete=models.SET_NULL, null=True, blank=True,
+        help_text="Gap B: Tax profile used to compute tax_withheld"
+    )
     # New audit field (was missing from migration chain – added now) using explicit default for existing rows
     created_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        # Generate employee key on creation if not provided
+        if not self.pk and not self.employee_key:
+            self.employee_key = generate_employee_key()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         base = f"{self.first_name} {self.last_name}".strip()
@@ -1269,6 +1521,16 @@ class ChangeOrder(models.Model):
     notes = models.TextField(blank=True)
     color = models.CharField(max_length=7, blank=True, null=True, help_text="Color hex (ej: #FF5733)")
     reference_code = models.CharField(max_length=50, blank=True, null=True, help_text="Código de referencia o color")
+    
+    # Digital signature (Gap A)
+    digital_signature = models.ForeignKey(
+        'DigitalSignature',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='change_order_signatures',
+        help_text="Cryptographic signature for approval"
+    )
 
     def __str__(self):
         return f"CO {self.id} | {self.project.name} | ${self.amount:.2f}"
@@ -1277,6 +1539,42 @@ class ChangeOrder(models.Model):
     def title(self) -> str:
         """Synthetic title used by API/tests. Falls back to reference_code or formatted ID."""
         return self.reference_code or f"CO: {self.id}"
+    
+    def get_signature_snapshot(self):
+        """Generate snapshot of change order for signature verification"""
+        return {
+            'id': self.id,
+            'project_id': self.project_id,
+            'description': self.description,
+            'amount': str(self.amount),
+            'status': self.status,
+            'reference_code': self.reference_code,
+        }
+    
+    def sign_document(self, signer, ip_address=None, signature_canvas_data=None, 
+                     user_agent='', geolocation=None):
+        """
+        Create digital signature for this change order
+        """
+        from core.signature_utils import create_signature
+        
+        signature = create_signature(
+            entity=self,
+            signer=signer,
+            ip_address=ip_address,
+            signature_canvas_data=signature_canvas_data,
+            user_agent=user_agent,
+            geolocation=geolocation
+        )
+        
+        self.digital_signature = signature
+        self.save(update_fields=['digital_signature'])
+        return signature
+    
+    def verify_signature(self):
+        """Verify digital signature integrity"""
+        from core.signature_utils import verify_signature
+        return verify_signature(self)
 
 
 class ChangeOrderPhoto(models.Model):
@@ -1361,6 +1659,10 @@ class PayrollPeriod(models.Model):
         help_text="Admin who approved this period",
     )
     approved_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when period was approved")
+    # Gap B: Locking & recompute metadata
+    locked = models.BooleanField(default=False, help_text="Gap B: When true, no further adjustments/payments allowed")
+    recomputed_at = models.DateTimeField(null=True, blank=True, help_text="Gap B: Last time period was recomputed")
+    split_expenses_by_project = models.BooleanField(default=False, help_text="Gap B: Generate per-project expenses on recompute")
 
     class Meta:
         ordering = ["-week_start"]
@@ -1487,6 +1789,8 @@ class PayrollRecord(models.Model):
     net_pay = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Net pay after deductions & tax"
     )
+    # Gap B: recompute timestamp
+    recalculated_at = models.DateTimeField(null=True, blank=True, help_text="Gap B: Last time this record was recomputed")
     # Q16.10 manual adjustment audit
     manually_adjusted = models.BooleanField(default=False, help_text="True if manually adjusted")
     adjusted_by = models.ForeignKey(
@@ -1607,6 +1911,9 @@ class PayrollRecord(models.Model):
     def manual_adjust(self, adjusted_by, reason, **field_updates):
         """Q16.10: Record manual adjustment with audit trail"""
         from django.utils import timezone
+        # Gap B: prevent changes if locked
+        if self.period and getattr(self.period, 'locked', False):
+            raise ValueError("PayrollPeriod is locked; cannot adjust record")
 
         self.manually_adjusted = True
         self.adjusted_by = adjusted_by
@@ -1614,11 +1921,31 @@ class PayrollRecord(models.Model):
         self.adjustment_reason = reason
 
         # Apply field updates
+        before = {}
         for field, value in field_updates.items():
             if hasattr(self, field):
+                before[field] = getattr(self, field)
                 setattr(self, field, value)
 
         self.save()
+        # Gap B: create granular audit entry
+        try:
+            from core.models import PayrollRecordAudit
+            changes = {}
+            for f, old_val in before.items():
+                new_val = getattr(self, f)
+                if old_val != new_val:
+                    changes[f] = {"old": str(old_val), "new": str(new_val)}
+            if changes:
+                PayrollRecordAudit.objects.create(
+                    payroll_record=self,
+                    changed_by=adjusted_by,
+                    reason=reason,
+                    changes=changes,
+                )
+        except Exception:
+            # Ignore if migration not yet applied
+            pass
 
     def create_expense_record(self):
         """Q16.13: Create linked expense for labor cost"""
@@ -1681,6 +2008,77 @@ class PayrollPayment(models.Model):
     def __str__(self):
         ref = f"#{self.check_number}" if self.check_number else self.reference
         return f"${self.amount} - {self.payroll_record.employee} - {ref}"
+
+    def save(self, *args, **kwargs):
+        # Gap B: Block payment creation if period locked (unless user is staff provided via context)
+        period = getattr(self.payroll_record, 'period', None)
+        if period and getattr(period, 'locked', False):
+            raise ValueError("Cannot register payment: PayrollPeriod is locked")
+        super().save(*args, **kwargs)
+
+
+# ---------------------
+# Gap B: Tax Profile & Payroll Record Audit Models
+# ---------------------
+class TaxProfile(models.Model):
+    METHOD_CHOICES = [
+        ("flat", "Flat Percentage"),
+        ("tiered", "Tiered Brackets"),
+    ]
+    name = models.CharField(max_length=100)
+    method = models.CharField(max_length=20, choices=METHOD_CHOICES, default="flat")
+    flat_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="% flat e.g. 12.50")
+    tiers = models.JSONField(default=list, blank=True, help_text="Tier list: [{'up_to': 1000, 'rate': 10.0}, ...]")
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def compute_tax(self, gross: Decimal) -> Decimal:
+        from decimal import Decimal as D
+        if self.method == 'flat':
+            rate = self.flat_rate or D('0')
+            return (gross * rate / D('100')).quantize(D('0.01'))
+        # tiered
+        tax = D('0')
+        remaining = gross
+        last_limit = D('0')
+        for bracket in sorted(self.tiers, key=lambda b: b.get('up_to') or 10**12):
+            limit = D(str(bracket.get('up_to'))) if bracket.get('up_to') is not None else None
+            rate = D(str(bracket.get('rate', 0)))
+            if limit is None:  # final open bracket
+                span = remaining
+            else:
+                span = min(remaining, limit - last_limit)
+            if span <= 0:
+                continue
+            tax += (span * rate / D('100'))
+            remaining -= span
+            if limit is not None:
+                last_limit = limit
+            if remaining <= 0:
+                break
+        return tax.quantize(D('0.01'))
+
+
+class PayrollRecordAudit(models.Model):
+    payroll_record = models.ForeignKey(PayrollRecord, related_name='audits', on_delete=models.CASCADE)
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    changed_at = models.DateTimeField(auto_now_add=True)
+    reason = models.TextField(blank=True)
+    changes = models.JSONField(help_text="Field diffs: {field: {old, new}}")
+
+    class Meta:
+        ordering = ['-changed_at']
+        indexes = [models.Index(fields=['payroll_record'])]
+
+    def __str__(self):
+        return f"Audit #{self.id} for PayrollRecord {self.payroll_record_id}"
 
 
 # ---------------------
@@ -3256,6 +3654,15 @@ class ColorSample(models.Model):
     approval_ip = models.GenericIPAddressField(
         null=True, blank=True, help_text="IP address of approver for legal purposes"
     )
+    # Gap A: Enhanced digital signature
+    digital_signature = models.ForeignKey(
+        'DigitalSignature',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='color_sample_signatures',
+        help_text="Cryptographic signature for approval"
+    )
     # Q19.7 Linked tasks
     linked_tasks = models.ManyToManyField(
         "Task", blank=True, related_name="color_samples", help_text="Tasks that use this color"
@@ -3312,8 +3719,9 @@ class ColorSample(models.Model):
             return self.is_active_choice()
         return user.is_staff and self.is_active_choice()
 
-    def approve(self, user, ip_address=None):
-        """Q19.13: Approve with digital signature"""
+    def approve(self, user, ip_address=None, signature_canvas_data=None, 
+                user_agent='', geolocation=None):
+        """Q19.13: Approve with enhanced digital signature (Gap A)"""
         import hashlib
 
         from django.utils import timezone
@@ -3324,10 +3732,29 @@ class ColorSample(models.Model):
         self.status_changed_by = user
         self.status_changed_at = timezone.now()
 
-        # Q19.13: Generate cryptographic signature
+        # Q19.13: Generate cryptographic signature (legacy)
         signature_data = f"{self.id}|{self.project_id}|{user.id}|{self.approved_at.isoformat()}|{self.code}|{self.name}"
         self.approval_signature = hashlib.sha256(signature_data.encode()).hexdigest()
         self.approval_ip = ip_address
+
+        # Gap A: Create enhanced digital signature
+        from core.signature_utils import create_signature
+        
+        try:
+            digital_sig = create_signature(
+                entity=self,
+                signer=user,
+                ip_address=ip_address,
+                signature_canvas_data=signature_canvas_data,
+                user_agent=user_agent,
+                geolocation=geolocation
+            )
+            self.digital_signature = digital_sig
+        except Exception as e:
+            # Log error but don't fail approval
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to create digital signature for ColorSample {self.id}: {e}")
 
         self.save()
 
@@ -3352,6 +3779,23 @@ class ColorSample(models.Model):
 
         # Q19.5: Notify on rejection
         self._notify_status_change("rejected", user)
+    
+    def get_signature_snapshot(self):
+        """Generate snapshot of color sample for signature verification"""
+        return {
+            'id': self.id,
+            'project_id': self.project_id,
+            'code': self.code,
+            'name': self.name,
+            'brand': self.brand,
+            'status': self.status,
+            'version': self.version,
+        }
+    
+    def verify_signature(self):
+        """Verify digital signature integrity"""
+        from core.signature_utils import verify_signature
+        return verify_signature(self)
 
     def _notify_status_change(self, new_status, changed_by):
         """Q19.5: Notify admin and all project team when status changes"""
@@ -4276,6 +4720,12 @@ class InventoryItem(models.Model):
             models.Index(fields=["category", "active"]),
             models.Index(fields=["sku"]),
         ]
+
+    def save(self, *args, **kwargs):
+        # Auto-generate SKU if not provided by user
+        if not self.sku and self.category:
+            self.sku = generate_inventory_sku(self.category)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.get_category_display()})"

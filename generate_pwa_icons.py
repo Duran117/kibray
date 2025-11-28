@@ -2,6 +2,7 @@
 """
 Generate PWA icons from SVG using PIL/Pillow and cairosvg
 """
+
 import os
 from pathlib import Path
 

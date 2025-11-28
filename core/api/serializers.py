@@ -39,7 +39,17 @@ class UserSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["id", "notification_type", "title", "message", "link_url", "is_read", "created_at", "related_object_type", "related_object_id"]
+        fields = [
+            "id",
+            "notification_type",
+            "title",
+            "message",
+            "link_url",
+            "is_read",
+            "created_at",
+            "related_object_type",
+            "related_object_id",
+        ]
         read_only_fields = ["created_at"]
 
 
@@ -689,7 +699,9 @@ class ScheduleItemSerializer(serializers.ModelSerializer):
     # Map legacy 'name' used by frontend to model field 'title'
     name = serializers.CharField(source="title")
     # Allow frontend to omit category; viewset will assign a default if missing
-    category = serializers.PrimaryKeyRelatedField(queryset=ScheduleCategory.objects.all(), required=False, allow_null=True)
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=ScheduleCategory.objects.all(), required=False, allow_null=True
+    )
 
     class Meta:
         model = ScheduleItem
@@ -1850,6 +1862,9 @@ class PayrollPeriodSerializer(serializers.ModelSerializer):
             "approved_by",
             "approved_at",
             "validation_errors",
+            "locked",
+            "recomputed_at",
+            "split_expenses_by_project",
             "total_payroll",
             "total_paid",
             "balance_due",
@@ -1860,6 +1875,7 @@ class PayrollPeriodSerializer(serializers.ModelSerializer):
             "approved_by",
             "approved_at",
             "validation_errors",
+            "recomputed_at",
             "total_payroll",
             "total_paid",
             "balance_due",
@@ -1882,6 +1898,24 @@ class PayrollPeriodSerializer(serializers.ModelSerializer):
             return obj.balance_due()
         except Exception:
             return 0
+
+
+# Gap B: TaxProfile & PayrollRecordAudit serializers
+class TaxProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        from core.models import TaxProfile
+        model = TaxProfile
+        fields = ["id", "name", "method", "flat_rate", "tiers", "active", "created_at", "updated_at"]
+
+
+class PayrollRecordAuditSerializer(serializers.ModelSerializer):
+    changed_by_username = serializers.CharField(source="changed_by.username", read_only=True)
+
+    class Meta:
+        from core.models import PayrollRecordAudit
+        model = PayrollRecordAudit
+        fields = ["id", "payroll_record", "changed_by", "changed_by_username", "changed_at", "reason", "changes"]
+        read_only_fields = ["id", "changed_by", "changed_at"]
 
 
 # ============================================================================

@@ -3,6 +3,7 @@
 Script de prueba para CRUD de Proyectos en Admin Panel
 Prueba #1: Edición de Proyectos
 """
+
 import os
 import sys
 from datetime import date

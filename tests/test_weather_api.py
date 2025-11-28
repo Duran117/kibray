@@ -171,7 +171,9 @@ class TestWeatherAPI:
 
         # Completed project (end date in past)
         completed = Project.objects.create(
-            name="Completed", start_date=today - timedelta(days=60), end_date=today - timedelta(days=1)  # Yesterday
+            name="Completed",
+            start_date=today - timedelta(days=60),
+            end_date=today - timedelta(days=1),  # Yesterday
         )
 
         # Mock API

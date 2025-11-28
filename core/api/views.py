@@ -2,7 +2,7 @@ import base64
 import json
 import re
 from datetime import datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth import get_user_model
 from django.db.models import DecimalField, F, Q, Sum
@@ -170,6 +170,7 @@ class ColorApprovalViewSet(viewsets.ModelViewSet):
         user = request.user
         # Permission: only admins or assigned PMs for the project
         from core.models import ProjectManagerAssignment
+
         is_pm = ProjectManagerAssignment.objects.filter(project=approval.project, pm=user).exists()
         if not (user.is_superuser or user.is_staff or is_pm):
             return Response({"detail": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
@@ -185,6 +186,7 @@ class ColorApprovalViewSet(viewsets.ModelViewSet):
         approval = self.get_object()
         user = request.user
         from core.models import ProjectManagerAssignment
+
         is_pm = ProjectManagerAssignment.objects.filter(project=approval.project, pm=user).exists()
         if not (user.is_superuser or user.is_staff or is_pm):
             return Response({"detail": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
@@ -1228,6 +1230,81 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
         period.generate_expense_records()
         return Response({"status": "ok"})
 
+    @action(detail=True, methods=["post"])
+    def lock(self, request, pk=None):
+        """Gap B: Lock the payroll period to prevent further changes."""
+        period = self.get_object()
+        period.locked = True
+        period.save(update_fields=["locked"])
+        return Response({"status": "locked"})
+
+    @action(detail=True, methods=["post"])
+    def recompute(self, request, pk=None):
+        """Gap B: Recompute all records in period (tax, overtime, gross/net)."""
+        from core.services.payroll_recompute import recompute_period
+        period = self.get_object()
+        force = request.data.get("force", False)
+        try:
+            count = recompute_period(period, force=bool(force))
+            return Response({"status": "recomputed", "records_updated": count})
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+    @action(detail=True, methods=["get"])
+    def export(self, request, pk=None):
+        """Gap B: Export period summary as JSON or CSV."""
+        import csv
+        from io import StringIO
+        from django.http import HttpResponse
+        
+        period = self.get_object()
+        format_type = request.query_params.get("format", "json")
+        
+        records = period.records.select_related("employee").all()
+        data = {
+            "period_id": period.id,
+            "week_start": str(period.week_start),
+            "week_end": str(period.week_end),
+            "status": period.status,
+            "locked": period.locked,
+            "total_payroll": float(period.total_payroll()),
+            "total_paid": float(period.total_paid()),
+            "records": [
+                {
+                    "employee": f"{r.employee.first_name} {r.employee.last_name}",
+                    "total_hours": float(r.total_hours),
+                    "regular_hours": float(getattr(r, "regular_hours", 0)),
+                    "overtime_hours": float(getattr(r, "overtime_hours", 0)),
+                    "gross_pay": float(r.gross_pay),
+                    "tax_withheld": float(getattr(r, "tax_withheld", 0)),
+                    "net_pay": float(r.net_pay),
+                    "total_pay": float(r.total_pay),
+                }
+                for r in records
+            ],
+        }
+        
+        if format_type == "csv":
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(["Employee", "Total Hours", "Regular", "Overtime", "Gross", "Tax", "Net", "Total Pay"])
+            for r in records:
+                writer.writerow([
+                    f"{r.employee.first_name} {r.employee.last_name}",
+                    r.total_hours,
+                    getattr(r, "regular_hours", 0),
+                    getattr(r, "overtime_hours", 0),
+                    r.gross_pay,
+                    getattr(r, "tax_withheld", 0),
+                    r.net_pay,
+                    r.total_pay,
+                ])
+            response = HttpResponse(output.getvalue(), content_type="text/csv")
+            response["Content-Disposition"] = f'attachment; filename="payroll_{period.id}.csv"'
+            return response
+        
+        return Response(data)
+
 
 class PayrollRecordViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollRecordSerializer
@@ -1255,6 +1332,15 @@ class PayrollRecordViewSet(viewsets.ModelViewSet):
         exp = record.create_expense_record()
         return Response({"expense_id": exp.id})
 
+    @action(detail=True, methods=["get"])
+    def audit(self, request, pk=None):
+        """Gap B: Retrieve audit trail for this payroll record."""
+        from core.api.serializers import PayrollRecordAuditSerializer
+        record = self.get_object()
+        audits = record.audits.all()
+        serializer = PayrollRecordAuditSerializer(audits, many=True)
+        return Response(serializer.data)
+
 
 class PayrollPaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollPaymentSerializer
@@ -1274,6 +1360,20 @@ class PayrollPaymentViewSet(viewsets.ModelViewSet):
                 return Response({"warning": "Overpayment detected"}, status=201)
         except Exception:
             pass
+
+
+# Gap B: TaxProfile ViewSet
+class TaxProfileViewSet(viewsets.ModelViewSet):
+    from core.api.serializers import TaxProfileSerializer
+    serializer_class = TaxProfileSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["active", "method"]
+    ordering_fields = ["name", "created_at"]
+
+    def get_queryset(self):
+        from core.models import TaxProfile
+        return TaxProfile.objects.all().order_by("name")
 
 
 # ================================
@@ -2003,6 +2103,7 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
         project = data.get("project")
         if category is None:
             from core.models import ScheduleCategory
+
             # Prefer existing 'General' category; if absent create it with order=0.
             category, _created = ScheduleCategory.objects.get_or_create(
                 project=project,
@@ -3096,6 +3197,95 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
     filterset_fields = ["category", "active", "is_equipment"]
     search_fields = ["name", "sku"]
     ordering_fields = ["name", "created_at"]
+
+    @action(detail=True, methods=["get"])
+    def valuation_report(self, request, pk=None):
+        """
+        Gap D: Get detailed valuation report for an inventory item.
+        Returns cost breakdown by method (FIFO/LIFO/AVG).
+        """
+        item = self.get_object()
+        
+        # Get total quantity across all locations
+        total_qty = item.total_quantity_all_locations()
+        
+        # Calculate costs by different methods
+        fifo_cost, _ = item.get_fifo_cost(total_qty)
+        lifo_cost, _ = item.get_lifo_cost(total_qty)
+        avg_cost = item.average_cost * total_qty if item.average_cost else Decimal("0")
+        
+        # Get purchase history for analysis
+        purchases = item.movements.filter(
+            movement_type="RECEIVE",
+            applied=True,
+            unit_cost__isnull=False
+        ).order_by("-created_at").values(
+            "quantity", "unit_cost", "created_at", "reason"
+        )[:10]
+        
+        # Calculate inventory value by active method
+        current_value = item.get_cost_for_quantity(total_qty)
+        
+        return Response({
+            "item_id": item.id,
+            "item_name": item.name,
+            "sku": item.sku,
+            "valuation_method": item.valuation_method,
+            "total_quantity": str(total_qty),
+            "current_value": str(current_value),
+            "cost_breakdown": {
+                "fifo": str(fifo_cost),
+                "lifo": str(lifo_cost),
+                "avg": str(avg_cost)
+            },
+            "average_cost": str(item.average_cost),
+            "last_purchase_cost": str(item.last_purchase_cost) if item.last_purchase_cost else None,
+            "recent_purchases": [
+                {
+                    "quantity": str(p["quantity"]),
+                    "unit_cost": str(p["unit_cost"]),
+                    "date": p["created_at"].isoformat() if p["created_at"] else None,
+                    "reason": p["reason"]
+                }
+                for p in purchases
+            ]
+        })
+
+    @action(detail=True, methods=["post"])
+    def calculate_cogs(self, request, pk=None):
+        """
+        Gap D: Calculate COGS (Cost of Goods Sold) for a quantity to be consumed.
+        POST data: {"quantity": "10.00"}
+        """
+        item = self.get_object()
+        
+        try:
+            quantity = Decimal(str(request.data.get("quantity", "0")))
+        except (ValueError, TypeError, InvalidOperation):
+            return Response(
+                {"error": "Invalid quantity format"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if quantity <= 0:
+            return Response(
+                {"error": "Quantity must be greater than zero"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Calculate COGS based on valuation method
+        cogs = item.get_cost_for_quantity(quantity)
+        unit_cogs = cogs / quantity if quantity > 0 else Decimal("0")
+        
+        return Response({
+            "item_id": item.id,
+            "item_name": item.name,
+            "quantity": str(quantity),
+            "valuation_method": item.valuation_method,
+            "total_cogs": str(cogs),
+            "unit_cogs": str(unit_cogs),
+            "average_cost": str(item.average_cost)
+        })
 
 
 class InventoryLocationViewSet(viewsets.ModelViewSet):
@@ -4245,9 +4435,7 @@ class TouchupAnalyticsDashboardView(APIView):
         from core.services.analytics import get_touchup_analytics
 
         project_id = request.query_params.get("project")
-        data = get_touchup_analytics(
-            project_id=int(project_id) if project_id else None
-        )
+        data = get_touchup_analytics(project_id=int(project_id) if project_id else None)
         return Response(data)
 
 
@@ -4261,9 +4449,7 @@ class ColorApprovalAnalyticsDashboardView(APIView):
         from core.services.analytics import get_color_approval_analytics
 
         project_id = request.query_params.get("project")
-        data = get_color_approval_analytics(
-            project_id=int(project_id) if project_id else None
-        )
+        data = get_color_approval_analytics(project_id=int(project_id) if project_id else None)
         return Response(data)
 
 
@@ -4285,3 +4471,510 @@ class PMPerformanceDashboardView(APIView):
             )
         data = get_pm_performance_analytics()
         return Response(data)
+
+
+# =============================================================================
+# GAP D: INVENTORY VALUATION & REPORTING
+# =============================================================================
+
+
+class InventoryValuationReportView(APIView):
+    """
+    Gap D: Comprehensive inventory valuation report.
+    Shows total inventory value, breakdown by category, and aging.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        """Get inventory valuation report."""
+        from django.db.models import Sum, Count
+        
+        # Get all active inventory items with their quantities
+        items = InventoryItem.objects.filter(active=True).annotate(
+            total_quantity=Sum("projectinventory__quantity")
+        ).filter(total_quantity__gt=0)
+        
+        # Calculate total value and breakdown by category
+        total_value = Decimal("0")
+        category_breakdown = {}
+        aging_analysis = {
+            "0-30_days": {"count": 0, "value": Decimal("0")},
+            "31-60_days": {"count": 0, "value": Decimal("0")},
+            "61-90_days": {"count": 0, "value": Decimal("0")},
+            "over_90_days": {"count": 0, "value": Decimal("0")}
+        }
+        
+        items_detail = []
+        
+        for item in items:
+            quantity = item.total_quantity
+            value = item.get_cost_for_quantity(quantity)
+            total_value += value
+            
+            # Category breakdown
+            category = item.get_category_display()
+            if category not in category_breakdown:
+                category_breakdown[category] = {"count": 0, "value": Decimal("0")}
+            category_breakdown[category]["count"] += 1
+            category_breakdown[category]["value"] += value
+            
+            # Aging analysis (based on last purchase date)
+            last_purchase = item.movements.filter(
+                movement_type="RECEIVE",
+                applied=True
+            ).order_by("-created_at").first()
+            
+            if last_purchase and last_purchase.created_at:
+                from django.utils import timezone
+                days_old = (timezone.now() - last_purchase.created_at).days
+                
+                if days_old <= 30:
+                    aging_analysis["0-30_days"]["count"] += 1
+                    aging_analysis["0-30_days"]["value"] += value
+                elif days_old <= 60:
+                    aging_analysis["31-60_days"]["count"] += 1
+                    aging_analysis["31-60_days"]["value"] += value
+                elif days_old <= 90:
+                    aging_analysis["61-90_days"]["count"] += 1
+                    aging_analysis["61-90_days"]["value"] += value
+                else:
+                    aging_analysis["over_90_days"]["count"] += 1
+                    aging_analysis["over_90_days"]["value"] += value
+            
+            items_detail.append({
+                "id": item.id,
+                "name": item.name,
+                "sku": item.sku,
+                "category": category,
+                "valuation_method": item.valuation_method,
+                "quantity": str(quantity),
+                "average_cost": str(item.average_cost),
+                "total_value": str(value),
+                "last_purchase_date": last_purchase.created_at.isoformat() if last_purchase and last_purchase.created_at else None,
+                "days_old": days_old if last_purchase and last_purchase.created_at else None
+            })
+        
+        # Format response
+        return Response({
+            "report_date": datetime.now().isoformat(),
+            "summary": {
+                "total_items": len(items_detail),
+                "total_value": str(total_value)
+            },
+            "by_category": {
+                cat: {"count": data["count"], "value": str(data["value"])}
+                for cat, data in category_breakdown.items()
+            },
+            "aging_analysis": {
+                bucket: {"count": data["count"], "value": str(data["value"])}
+                for bucket, data in aging_analysis.items()
+            },
+            "items": items_detail
+        })
+
+
+# =============================================================================
+# GAP E: ADVANCED FINANCIAL REPORTING
+# =============================================================================
+
+
+class InvoiceAgingReportAPIView(APIView):
+    """
+    Gap E: Invoice aging report API endpoint.
+    Returns unpaid invoices grouped by age buckets (0-30, 31-60, 61-90, 90+ days).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        """Get accounts receivable aging report."""
+        from django.utils import timezone
+        
+        today = timezone.now().date()
+        
+        aging_buckets = {
+            "current": [],  # 0-30 days
+            "30_60": [],
+            "60_90": [],
+            "over_90": []
+        }
+        
+        unpaid_invoices = Invoice.objects.filter(
+            status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL", "OVERDUE"]
+        ).select_related("project")
+        
+        for invoice in unpaid_invoices:
+            days_outstanding = (today - invoice.date_issued).days
+            balance = invoice.balance_due
+            
+            invoice_data = {
+                "id": invoice.id,
+                "invoice_number": invoice.invoice_number,
+                "project": invoice.project.name if invoice.project else None,
+                "date_issued": invoice.date_issued.isoformat(),
+                "due_date": invoice.due_date.isoformat() if invoice.due_date else None,
+                "total_amount": str(invoice.total_amount),
+                "amount_paid": str(invoice.amount_paid),
+                "balance": str(balance),
+                "days_outstanding": days_outstanding,
+                "status": invoice.status
+            }
+            
+            if days_outstanding <= 30:
+                aging_buckets["current"].append(invoice_data)
+            elif days_outstanding <= 60:
+                aging_buckets["30_60"].append(invoice_data)
+            elif days_outstanding <= 90:
+                aging_buckets["60_90"].append(invoice_data)
+            else:
+                aging_buckets["over_90"].append(invoice_data)
+        
+        # Calculate totals
+        totals = {
+            bucket: sum(Decimal(inv["balance"]) for inv in invoices)
+            for bucket, invoices in aging_buckets.items()
+        }
+        grand_total = sum(totals.values())
+        
+        # Calculate percentages
+        percentages = {
+            bucket: float(total / grand_total * 100) if grand_total > 0 else 0.0
+            for bucket, total in totals.items()
+        }
+        
+        return Response({
+            "report_date": today.isoformat(),
+            "aging_buckets": aging_buckets,
+            "totals": {k: str(v) for k, v in totals.items()},
+            "grand_total": str(grand_total),
+            "percentages": percentages,
+            "summary": {
+                "total_invoices": len(unpaid_invoices),
+                "current_count": len(aging_buckets["current"]),
+                "30_60_count": len(aging_buckets["30_60"]),
+                "60_90_count": len(aging_buckets["60_90"]),
+                "over_90_count": len(aging_buckets["over_90"])
+            }
+        })
+
+
+class CashFlowProjectionAPIView(APIView):
+    """
+    Gap E: Cash flow projection API endpoint.
+    Shows expected cash inflows (unpaid invoices) and outflows (projected expenses).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        """Get cash flow projection for next 90 days."""
+        from django.utils import timezone
+        
+        today = timezone.now().date()
+        next_90_days = today + timedelta(days=90)
+        
+        # Inflows: Unpaid invoices with due dates
+        expected_inflows = Invoice.objects.filter(
+            status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"],
+            due_date__isnull=False,
+            due_date__lte=next_90_days
+        ).order_by("due_date")
+        
+        inflows_by_week = {}
+        total_expected_inflow = Decimal("0")
+        
+        for invoice in expected_inflows:
+            balance = invoice.balance_due
+            total_expected_inflow += balance
+            
+            # Group by week
+            week_start = invoice.due_date - timedelta(days=invoice.due_date.weekday())
+            week_key = week_start.isoformat()
+            
+            if week_key not in inflows_by_week:
+                inflows_by_week[week_key] = {
+                    "week_start": week_key,
+                    "invoices": [],
+                    "total": Decimal("0")
+                }
+            
+            inflows_by_week[week_key]["invoices"].append({
+                "invoice_number": invoice.invoice_number,
+                "project": invoice.project.name if invoice.project else None,
+                "due_date": invoice.due_date.isoformat(),
+                "balance": str(balance)
+            })
+            inflows_by_week[week_key]["total"] += balance
+        
+        # Outflows: Active projects' projected expenses
+        active_projects = Project.objects.filter(end_date__isnull=True)
+        
+        total_project_budgets = Decimal("0")
+        total_spent = Decimal("0")
+        projected_remaining = Decimal("0")
+        
+        projects_detail = []
+        
+        for project in active_projects:
+            budget = project.budget_total or Decimal("0")
+            spent = project.expenses.aggregate(Sum("amount"))["amount__sum"] or Decimal("0")
+            remaining = budget - spent
+            
+            if remaining > 0:
+                total_project_budgets += budget
+                total_spent += spent
+                projected_remaining += remaining
+                
+                projects_detail.append({
+                    "project": project.name,
+                    "budget": str(budget),
+                    "spent": str(spent),
+                    "remaining": str(remaining),
+                    "completion_percentage": float(spent / budget * 100) if budget > 0 else 0.0
+                })
+        
+        # Net cash flow projection
+        net_projection = total_expected_inflow - projected_remaining
+        
+        return Response({
+            "projection_date": today.isoformat(),
+            "projection_period": f"{today.isoformat()} to {next_90_days.isoformat()}",
+            "inflows": {
+                "total_expected": str(total_expected_inflow),
+                "by_week": [
+                    {
+                        "week_start": data["week_start"],
+                        "total": str(data["total"]),
+                        "invoices": data["invoices"]
+                    }
+                    for data in sorted(inflows_by_week.values(), key=lambda x: x["week_start"])
+                ],
+                "invoice_count": len(expected_inflows)
+            },
+            "outflows": {
+                "projected_expenses": str(projected_remaining),
+                "projects": projects_detail,
+                "project_count": len(projects_detail)
+            },
+            "net_projection": str(net_projection),
+            "health_indicator": "positive" if net_projection > 0 else "negative" if net_projection < 0 else "neutral"
+        })
+
+
+class BudgetVarianceAnalysisAPIView(APIView):
+    """
+    Gap E: Budget variance analysis API endpoint.
+    Shows budget vs actual for active projects.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        """Get budget variance analysis for all active projects."""
+        from django.db.models import Sum
+        
+        project_id = request.query_params.get("project")
+        
+        if project_id:
+            projects = Project.objects.filter(id=project_id)
+        else:
+            projects = Project.objects.filter(end_date__isnull=True)
+        
+        projects_analysis = []
+        total_budget = Decimal("0")
+        total_actual = Decimal("0")
+        over_budget_count = 0
+        
+        for project in projects:
+            budget_total = project.budget_total or Decimal("0")
+            budget_labor = project.budget_labor or Decimal("0")
+            budget_materials = project.budget_materials or Decimal("0")
+            budget_other = project.budget_other or Decimal("0")
+            
+            # Actual expenses by category
+            expenses = project.expenses.values("category").annotate(total=Sum("amount"))
+            
+            actual_labor = Decimal("0")
+            actual_materials = Decimal("0")
+            actual_other = Decimal("0")
+            
+            for expense in expenses:
+                category = expense["category"]
+                amount = expense["total"] or Decimal("0")
+                
+                if category in ["PAYROLL", "LABOR"]:
+                    actual_labor += amount
+                elif category in ["MATERIALES", "MATERIALS"]:
+                    actual_materials += amount
+                else:
+                    actual_other += amount
+            
+            actual_total = actual_labor + actual_materials + actual_other
+            
+            variance_total = budget_total - actual_total
+            variance_pct = float(variance_total / budget_total * 100) if budget_total > 0 else 0.0
+            
+            if actual_total > budget_total:
+                over_budget_count += 1
+            
+            total_budget += budget_total
+            total_actual += actual_total
+            
+            projects_analysis.append({
+                "project_id": project.id,
+                "project_name": project.name,
+                "budget": {
+                    "total": str(budget_total),
+                    "labor": str(budget_labor),
+                    "materials": str(budget_materials),
+                    "other": str(budget_other)
+                },
+                "actual": {
+                    "total": str(actual_total),
+                    "labor": str(actual_labor),
+                    "materials": str(actual_materials),
+                    "other": str(actual_other)
+                },
+                "variance": {
+                    "total": str(variance_total),
+                    "labor": str(budget_labor - actual_labor),
+                    "materials": str(budget_materials - actual_materials),
+                    "other": str(budget_other - actual_other),
+                    "percentage": variance_pct
+                },
+                "status": "over_budget" if actual_total > budget_total else "under_budget" if variance_total > 0 else "on_budget"
+            })
+        
+        overall_variance = total_budget - total_actual
+        
+        return Response({
+            "report_date": datetime.now().isoformat(),
+            "summary": {
+                "total_projects": len(projects_analysis),
+                "total_budget": str(total_budget),
+                "total_actual": str(total_actual),
+                "overall_variance": str(overall_variance),
+                "overall_variance_pct": float(overall_variance / total_budget * 100) if total_budget > 0 else 0.0,
+                "over_budget_count": over_budget_count
+            },
+            "projects": projects_analysis
+        })
+
+
+# =============================================================================
+# GAP F: CLIENT PORTAL ENHANCEMENTS
+# =============================================================================
+
+
+class ClientInvoiceListAPIView(APIView):
+    """
+    Gap F: Client-facing invoice list API.
+    Returns invoices for projects the client has access to.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        """Get invoices accessible to the current client user."""
+        from core.models import ClientProjectAccess
+        
+        user = request.user
+        
+        # Get projects client has access to
+        client_access = ClientProjectAccess.objects.filter(
+            user=user
+        ).select_related("project")
+        
+        accessible_project_ids = [access.project_id for access in client_access]
+        
+        # Get invoices for those projects
+        invoices = Invoice.objects.filter(
+            project_id__in=accessible_project_ids
+        ).select_related("project").order_by("-date_issued")
+        
+        # Apply status filter if provided
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            invoices = invoices.filter(status=status_filter.upper())
+        
+        invoices_data = []
+        for invoice in invoices:
+            balance = invoice.balance_due
+            
+            invoices_data.append({
+                "id": invoice.id,
+                "invoice_number": invoice.invoice_number,
+                "project": invoice.project.name if invoice.project else None,
+                "date_issued": invoice.date_issued.isoformat(),
+                "date_due": invoice.due_date.isoformat() if invoice.due_date else None,
+                "total_amount": str(invoice.total_amount),
+                "amount_paid": str(invoice.amount_paid),
+                "balance_due": str(balance),
+                "status": invoice.status,
+                "status_display": invoice.get_status_display(),
+                "is_overdue": invoice.status == "OVERDUE",
+                "can_approve": invoice.status in ["SENT", "VIEWED"] and balance > 0,
+                "payment_progress": invoice.payment_progress
+            })
+        
+        return Response({
+            "invoices": invoices_data,
+            "total_count": len(invoices_data),
+            "accessible_projects": [
+                {"id": access.project.id, "name": access.project.name}
+                for access in client_access
+            ]
+        })
+
+
+class ClientInvoiceApprovalAPIView(APIView):
+    """
+    Gap F: Client invoice approval endpoint.
+    Allows clients to approve invoices for payment.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request, invoice_id: int) -> Response:
+        """Approve an invoice as a client."""
+        from core.models import ClientProjectAccess
+        
+        user = request.user
+        
+        try:
+            invoice = Invoice.objects.select_related("project").get(id=invoice_id)
+        except Invoice.DoesNotExist:
+            return Response(
+                {"error": "Invoice not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Check if user has access to this project
+        has_access = ClientProjectAccess.objects.filter(
+            user=user,
+            project=invoice.project
+        ).exists()
+        
+        if not has_access:
+            return Response(
+                {"error": "You do not have access to this invoice"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Check if invoice can be approved
+        if invoice.status not in ["SENT", "VIEWED"]:
+            return Response(
+                {"error": f"Invoice cannot be approved (current status: {invoice.status})"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Mark as approved
+        from django.utils import timezone
+        invoice.status = "APPROVED"
+        invoice.approved_date = timezone.now()
+        invoice.save()
+        
+        return Response({
+            "message": "Invoice approved successfully",
+            "invoice": {
+                "id": invoice.id,
+                "invoice_number": invoice.invoice_number,
+                "status": invoice.status,
+                "approved_date": invoice.approved_date.isoformat() if invoice.approved_date else None
+            }
+        })

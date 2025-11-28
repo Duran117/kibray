@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "branch": "copilot/improve-repo-governance-and-quality",
+    "commit": "82bd0f6",
+    "date": "2025-11-28T00:00:00Z"
+  },
+  "inventory": {
+    "path": "inventory.json",
+    "file_count": 7739
+  },
+  "test_summary": {
+    "total": 602,
+    "passed": 600,
+    "failed": 0,
+    "skipped": 2,
+    "time_seconds": 66.837,
+    "junit_path": "test-results/junit.xml"
+  },
+  "coverage": {
+    "line_rate": 0.584,
+    "lines_valid": 13881,
+    "lines_covered": 8107,
+    "coverage_xml": "reports/coverage.xml"
+  },
+  "security": {
+    "pip_audit": "reports/pip_audit.json",
+    "vulnerable_packages": [
+      {
+        "name": "django",
+        "version": "5.2.4",
+        "issues": [
+          "CVE-2025-57833 (FilteredRelation SQL injection)",
+          "CVE-2025-59681 (QuerySet.annotate/alias SQLi)",
+          "CVE-2025-59682 (archive.extract path traversal)",
+          "CVE-2025-64458 (DoS via Unicode normalization)",
+          "CVE-2025-64459 (QuerySet.filter/exclude SQLi)"
+        ],
+        "recommended": "Upgrade to Django 5.2.8+ (or latest secure micro)",
+        "report": "reports/pip_audit.json"
+      },
+      {
+        "name": "requests",
+        "version": "2.32.3",
+        "issues": ["CVE-2024-47081 (.netrc credential leakage)"] ,
+        "recommended": "Upgrade to requests 2.32.4",
+        "report": "reports/pip_audit.json"
+      }
+    ]
+  },
+  "static_analysis": {
+    "bandit_report": "reports/bandit.json",
+    "ruff": "run (see terminal)",
+    "notes": "Many linter warnings in tests (unused vars F841) and import order issues (I001)."
+  },
+  "artifacts": {
+    "patches": "patches/changes.patch",
+    "report_analysis": "REPORT_ANALYSIS.md"
+  }
+}

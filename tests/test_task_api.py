@@ -149,9 +149,7 @@ def test_task_add_remove_dependency_actions(api_client, user, project):
     assert dep.id in r_add.json().get("dependencies", [])
 
     # Remove dependency
-    r_rem = api_client.post(
-        f"/api/v1/tasks/{t.id}/remove_dependency/", data={"dependency_id": dep.id}, format="json"
-    )
+    r_rem = api_client.post(f"/api/v1/tasks/{t.id}/remove_dependency/", data={"dependency_id": dep.id}, format="json")
     assert r_rem.status_code == 200
     assert dep.id not in r_rem.json().get("dependencies", [])
 

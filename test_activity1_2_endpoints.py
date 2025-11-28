@@ -3,6 +3,7 @@
 Test script para verificar todos los endpoints de Activity 1 y 2
 Corre este script con: python3 test_activity1_2_endpoints.py
 """
+
 import os
 import time
 

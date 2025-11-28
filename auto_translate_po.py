@@ -2,6 +2,7 @@
 """
 Script automático para traducir entradas obvias del PO file español->inglés
 """
+
 import re
 
 # Diccionario de traducciones directas comunes

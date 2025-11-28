@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Pruebas de creación y eliminación de gastos"""
+
 import os
 from datetime import date
 from decimal import Decimal

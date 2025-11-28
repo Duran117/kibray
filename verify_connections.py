@@ -2,6 +2,7 @@
 """
 Script para verificar la conectividad entre modelos, forms, views, URLs y templates.
 """
+
 import os
 import sys
 

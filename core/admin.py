@@ -307,6 +307,7 @@ class ColorApprovalAdmin(admin.ModelAdmin):
         if request.user.is_superuser or request.user.is_staff:
             return True
         from .models import ProjectManagerAssignment
+
         return ProjectManagerAssignment.objects.filter(project=obj.project, pm=request.user).exists()
 
     def approve_selected(self, request, queryset):
@@ -320,6 +321,7 @@ class ColorApprovalAdmin(admin.ModelAdmin):
             obj.approve(approver=request.user)
             approved += 1
         self.message_user(request, f"Approved {approved} color approvals.")
+
     approve_selected.short_description = "Approve selected color approvals"
 
     def reject_selected(self, request, queryset):
@@ -333,6 +335,7 @@ class ColorApprovalAdmin(admin.ModelAdmin):
             obj.reject(approver=request.user, reason="Rejected via admin action")
             rejected += 1
         self.message_user(request, f"Rejected {rejected} color approvals.")
+
     reject_selected.short_description = "Reject selected color approvals"
 
 

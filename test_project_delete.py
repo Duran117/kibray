@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Pruebas de eliminación de proyectos con verificación de dependencias."""
+
 import os
 from datetime import date
 from decimal import Decimal

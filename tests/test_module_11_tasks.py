@@ -218,7 +218,10 @@ class TestTaskDependencies:
     def test_can_start_with_completed_dependencies(self, project, admin_user):
         """Test can_start() returns True when dependencies are complete"""
         task1 = Task.objects.create(
-            project=project, title="Task 1", status="Completada", created_by=admin_user  # Already completed
+            project=project,
+            title="Task 1",
+            status="Completada",
+            created_by=admin_user,  # Already completed
         )
         task2 = Task.objects.create(project=project, title="Task 2", created_by=admin_user)
         task2.dependencies.add(task1)
@@ -228,7 +231,10 @@ class TestTaskDependencies:
     def test_cannot_start_with_pending_dependencies(self, project, admin_user):
         """Test can_start() returns False when dependencies are pending"""
         task1 = Task.objects.create(
-            project=project, title="Task 1", status="Pendiente", created_by=admin_user  # Not completed
+            project=project,
+            title="Task 1",
+            status="Pendiente",
+            created_by=admin_user,  # Not completed
         )
         task2 = Task.objects.create(project=project, title="Task 2", created_by=admin_user)
         task2.dependencies.add(task1)
@@ -239,7 +245,10 @@ class TestTaskDependencies:
         """Test task with multiple dependencies"""
         task1 = Task.objects.create(project=project, title="Task 1", status="Completada", created_by=admin_user)
         task2 = Task.objects.create(
-            project=project, title="Task 2", status="En Progreso", created_by=admin_user  # Not completed
+            project=project,
+            title="Task 2",
+            status="En Progreso",
+            created_by=admin_user,  # Not completed
         )
         task3 = Task.objects.create(project=project, title="Task 3", created_by=admin_user)
 
@@ -614,7 +623,9 @@ class TestTaskIntegration:
             end_datetime=timezone.now() + timedelta(days=30),
         )
         category = ScheduleCategory.objects.create(
-            project=project, name="Painting", order=1  # Added required project field
+            project=project,
+            name="Painting",
+            order=1,  # Added required project field
         )
         item = ScheduleItem.objects.create(
             title="Paint Living Room",

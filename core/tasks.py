@@ -578,10 +578,9 @@ def send_pending_notifications():
 
     # Get notifications marked for email but not yet sent
     pending = Notification.objects.filter(
-        sent_via_email=False, created_at__gte=timezone.now() - timedelta(hours=24)  # Last 24h only
-    ).select_related("user")[
-        :100
-    ]  # Batch of 100
+        sent_via_email=False,
+        created_at__gte=timezone.now() - timedelta(hours=24),  # Last 24h only
+    ).select_related("user")[:100]  # Batch of 100
 
     sent_count = 0
     error_count = 0

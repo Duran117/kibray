@@ -10,6 +10,7 @@ Ejecutar antes de crear la migración final que elimine is_paid.
 Uso:
     python scripts/check_invoice_is_paid_usage.py
 """
+
 import os
 import pathlib
 import sys

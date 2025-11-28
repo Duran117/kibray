@@ -7,8 +7,12 @@ from .views import (
     AdminDashboardView,
     AuditLogViewSet,
     BudgetLineViewSet,
+    BudgetVarianceAnalysisAPIView,
+    CashFlowProjectionAPIView,
     ChatChannelViewSet,
     ChatMessageViewSet,
+    ClientInvoiceApprovalAPIView,
+    ClientInvoiceListAPIView,
     ClientRequestAttachmentViewSet,
     ClientRequestViewSet,
     ColorSampleViewSet,
@@ -25,6 +29,8 @@ from .views import (
     InventoryItemViewSet,
     InventoryLocationViewSet,
     InventoryMovementViewSet,
+    InventoryValuationReportView,
+    InvoiceAgingReportAPIView,
     InvoiceDashboardView,
     InvoiceTrendsView,
     InvoiceViewSet,
@@ -42,6 +48,7 @@ from .views import (
     PayrollPeriodViewSet,
     PayrollRecordViewSet,
     PermissionMatrixViewSet,
+    TaxProfileViewSet,
     PlannedActivityViewSet,
     PlanPinViewSet,
     ProjectInventoryViewSet,
@@ -124,6 +131,7 @@ router.register(r"inventory/movements", InventoryMovementViewSet, basename="inve
 router.register(r"payroll/periods", PayrollPeriodViewSet, basename="payroll-period")
 router.register(r"payroll/records", PayrollRecordViewSet, basename="payroll-record")
 router.register(r"payroll/payments", PayrollPaymentViewSet, basename="payroll-payment")
+router.register(r"payroll/tax-profiles", TaxProfileViewSet, basename="tax-profile")  # Gap B
 
 # Security: 2FA
 router.register(r"2fa", TwoFactorViewSet, basename="twofactor")
@@ -168,4 +176,13 @@ urlpatterns = [
     path("analytics/touchups/", TouchupAnalyticsDashboardView.as_view(), name="analytics-touchups"),
     path("analytics/color-approvals/", ColorApprovalAnalyticsDashboardView.as_view(), name="analytics-color-approvals"),
     path("analytics/pm-performance/", PMPerformanceDashboardView.as_view(), name="analytics-pm-performance"),
+    # Gap D: Inventory Valuation
+    path("inventory/valuation-report/", InventoryValuationReportView.as_view(), name="inventory-valuation-report"),
+    # Gap E: Advanced Financial Reporting
+    path("financial/aging-report/", InvoiceAgingReportAPIView.as_view(), name="financial-aging-report"),
+    path("financial/cash-flow-projection/", CashFlowProjectionAPIView.as_view(), name="financial-cash-flow"),
+    path("financial/budget-variance/", BudgetVarianceAnalysisAPIView.as_view(), name="financial-budget-variance"),
+    # Gap F: Client Portal
+    path("client/invoices/", ClientInvoiceListAPIView.as_view(), name="client-invoices"),
+    path("client/invoices/<int:invoice_id>/approve/", ClientInvoiceApprovalAPIView.as_view(), name="client-invoice-approve"),
 ]

@@ -3,7 +3,6 @@
 Script DEFINITIVO - Completa el 100% de todas las traducciones
 """
 
-
 # DICCIONARIO DEFINITIVO Y COMPLETO
 ALL_TRANSLATIONS = {
     # Términos técnicos y específicos

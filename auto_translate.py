@@ -4,7 +4,6 @@ Auto-traductor inteligente para archivos .po
 Detecta si el texto ya está en español y lo preserva
 """
 
-
 # Palabras clave en español para detectar si ya está traducido
 SPANISH_KEYWORDS = {
     "el",
