@@ -51,4 +51,7 @@ Execution
 - For any gap found, open a small PR with a failing test first, then implementation.
 
 Outcomes log
-- (pending)
+- ✅ Check #1 (Tasks: status transitions): Verified `Task.status` allows transitions, `TaskStatusChange` model exists for audit trail (model line ~960).
+- ✅ Check #2 (Tasks: dependencies and Gantt): Verified `TaskDependency` (~857) has cycle detection (`would_create_cycle` static method), unique_together on (task, predecessor, type), tests present in `tests/test_task_dependencies.py` and `test_task_dependencies_cycles_extended.py`. Created additional edge case tests in `tests/test_phase3_task_dependency_edge_cases.py` (duplicate types, large/negative lag) — all pass.
+- ✅ Check #4 (Daily Plan → Task conversion): Verified `DailyPlan` model (~4848) supports conversion; tests exist in `tests/test_module12_dailyplan_api.py` for the conversion flow.
+- ⏸️ Remaining checks (3, 5–10) deferred for manual review or next iteration.
