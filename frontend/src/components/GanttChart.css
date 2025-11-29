@@ -12,6 +12,29 @@
   align-items: center;
 }
 
+.saving-indicator {
+  display: flex;
+  align-items: center;
+  color: #0d6efd;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: #cfe2ff;
+  border-radius: 6px;
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .gantt-container {
   overflow-x: auto;
   overflow-y: auto;

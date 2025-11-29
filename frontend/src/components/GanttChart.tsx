@@ -22,6 +22,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   const [currentView, setCurrentView] = useState<string>(() => {
     return localStorage.getItem('gantt_view_mode') || viewMode;
   });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!ganttRef.current) return;
@@ -66,16 +67,26 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             onTaskClick(originalTask);
           }
         },
-        on_date_change: (task: any, start: Date, end: Date) => {
-          onTaskUpdate(
-            task.id,
-            format(start, 'yyyy-MM-dd'),
-            format(end, 'yyyy-MM-dd'),
-            task.progress
-          );
+        on_date_change: async (task: any, start: Date, end: Date) => {
+          setSaving(true);
+          try {
+            await onTaskUpdate(
+              task.id,
+              format(start, 'yyyy-MM-dd'),
+              format(end, 'yyyy-MM-dd'),
+              task.progress
+            );
+          } finally {
+            setSaving(false);
+          }
         },
-        on_progress_change: (task: any, progress: number) => {
-          onTaskUpdate(task.id, task._start, task._end, progress);
+        on_progress_change: async (task: any, progress: number) => {
+          setSaving(true);
+          try {
+            await onTaskUpdate(task.id, task._start, task._end, progress);
+          } finally {
+            setSaving(false);
+          }
         },
       });
     } else {
@@ -114,6 +125,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             <i className="bi bi-calendar-month"></i> Month
           </button>
         </div>
+        {saving && (
+          <div className="saving-indicator">
+            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Guardando cambios...
+          </div>
+        )}
       </div>
       <div ref={ganttRef} className="gantt-container"></div>
       {/* Instrumentation for tests: expose task names */}

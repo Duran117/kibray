@@ -770,7 +770,8 @@ class ScheduleCategorySerializer(serializers.ModelSerializer):
 class ScheduleItemSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True, allow_null=True)
     # Map legacy 'name' used by frontend to model field 'title'
-    name = serializers.CharField(source="title")
+    # Allow partial updates without requiring name/title
+    name = serializers.CharField(source="title", required=False)
     # Allow frontend to omit category; viewset will assign a default if missing
     category = serializers.PrimaryKeyRelatedField(
         queryset=ScheduleCategory.objects.all(), required=False, allow_null=True
@@ -795,6 +796,12 @@ class ScheduleItemSerializer(serializers.ModelSerializer):
             "budget_line",
             "estimate_line",
         ]
+        # Enable partial updates for PATCH requests
+        extra_kwargs = {
+            'project': {'required': False},
+            'planned_start': {'required': False},
+            'planned_end': {'required': False},
+        }
 
     # dependencies removed (not present on model); could be reintroduced later
 

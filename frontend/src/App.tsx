@@ -55,18 +55,35 @@ export const App: React.FC<AppProps> = ({ projectId }) => {
     }
   };
 
-  const handleTaskUpdate = async (taskId: string, changes: Partial<ScheduleTask>) => {
+  const handleGanttTaskUpdate = async (taskId: string, start: string, end: string, progress: number) => {
     try {
-      const updatedTask = await scheduleApi.updateTask(taskId, changes);
+      // Check if it's a date change or progress change
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      let updatedTask: ScheduleTask;
+      
+      // If dates changed, use optimized date update
+      if (task.start !== start || task.end !== end) {
+        updatedTask = await scheduleApi.updateTaskDates(taskId, start, end);
+      } 
+      // If only progress changed, use optimized progress update
+      else if (task.progress !== progress) {
+        updatedTask = await scheduleApi.updateTaskProgress(taskId, progress);
+      } else {
+        return; // No changes
+      }
+
+      // Optimistically update local state
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updatedTask : t)));
     } catch (err) {
-      setError('Error al actualizar la tarea');
-      console.error('Error updating task:', err);
+      console.error('Error updating task from Gantt:', err);
+      setError('Error al guardar cambios del cronograma. Revirtiendo...');
+      // Reload data to revert visual changes
+      await loadData();
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
     }
-  };
-
-  const handleGanttTaskUpdate = (taskId: string, start: string, end: string, progress: number) => {
-    handleTaskUpdate(taskId, { start, end, progress });
   };
 
   const handleTaskClick = (task: ScheduleTask) => {

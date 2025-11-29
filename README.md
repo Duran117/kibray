@@ -208,6 +208,18 @@ Failing:        0 ✅
 - Non-regression: existing public approval flow unaffected
 - Performance optimized (<200ms)
 
+#### ✅ **Gantt Chart Drag & Drop with Real-Time Persistence**
+- Interactive Frappe Gantt with drag & drop task scheduling
+- Real-time date updates via PATCH to Django REST API
+- Progress bar adjustments with optimistic UI updates
+- Visual "Guardando cambios..." indicator during saves
+- Error recovery with automatic data reload on failure
+- Optimized API calls (separate methods for dates vs. progress)
+- Partial update support (no required fields in PATCH)
+- 8 comprehensive integration tests (100% passing)
+- Admin interface for `Proposal` and `ProposalEmailLog`
+- Full documentation in `GANTT_DRAG_DROP_IMPLEMENTATION.md`
+
 #### 🟡 **Mobile Optimization (FASE 3 - In Progress)**
 - Change Order board optimized (touch drag & drop)
 - 4 more templates pending optimization

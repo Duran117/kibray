@@ -93,6 +93,25 @@ export const scheduleApi = {
     return mapItem(response.data);
   },
 
+  // Update task dates only (optimized for drag & drop)
+  updateTaskDates: async (taskId: string, start: string, end: string): Promise<ScheduleTask> => {
+    const payload = {
+      planned_start: start,
+      planned_end: end,
+    };
+    const response = await api.patch(`/schedule/items/${taskId}/`, payload);
+    return mapItem(response.data);
+  },
+
+  // Update task progress only
+  updateTaskProgress: async (taskId: string, progress: number): Promise<ScheduleTask> => {
+    const payload = {
+      percent_complete: progress,
+    };
+    const response = await api.patch(`/schedule/items/${taskId}/`, payload);
+    return mapItem(response.data);
+  },
+
   // Delete task
   deleteTask: async (taskId: string): Promise<void> => {
     await api.delete(`/schedule/items/${taskId}/`);
