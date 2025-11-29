@@ -65,10 +65,11 @@ from .models import (
 # Empleado
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ("first_name", "last_name", "hourly_rate", "is_active")
-    search_fields = ("first_name", "last_name")
+    list_display = ("employee_key", "first_name", "last_name", "hourly_rate", "is_active")
+    search_fields = ("employee_key", "first_name", "last_name", "social_security_number")
     list_filter = ("is_active",)
-    ordering = ("-created_at",)
+    ordering = ("employee_key",)
+    readonly_fields = ("employee_key", "created_at", "updated_at")
 
 
 # Ingreso
@@ -95,42 +96,56 @@ class ExpenseAdmin(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
+        "project_code",
         "name",
         "client",
         "start_date",
         "end_date",
-        "budget_labor",
-        "budget_materials",
-        "budget_other",
         "budget_total",
         "total_income",
         "total_expenses",
         "profit",
     )
-    search_fields = ("name", "client")
+    search_fields = ("project_code", "name", "client")
     list_filter = ("start_date", "end_date")
-    ordering = ("-start_date",)
+    ordering = ("-project_code",)
+    readonly_fields = ("project_code", "total_income", "total_expenses", "profit")
 
 
 # Registro de Horas
 @admin.register(TimeEntry)
 class TimeEntryAdmin(admin.ModelAdmin):
-    list_display = ("employee", "project", "date", "hours_worked", "labor_cost")
+    list_display = ("employee", "employee_key_display", "project", "project_code_display", "date", "hours_worked", "labor_cost")
     list_filter = ("project", "employee", "date")
-    search_fields = ("employee__first_name", "employee__last_name", "project__name")
+    search_fields = ("employee__employee_key", "employee__first_name", "employee__last_name", "project__project_code", "project__name")
     readonly_fields = ("hours_worked", "labor_cost")
     date_hierarchy = "date"
     ordering = ("-date",)
+    
+    def employee_key_display(self, obj):
+        return obj.employee.employee_key if obj.employee else "-"
+    employee_key_display.short_description = "Employee Key"
+    employee_key_display.admin_order_field = "employee__employee_key"
+    
+    def project_code_display(self, obj):
+        return obj.project.project_code if obj.project else "-"
+    project_code_display.short_description = "Project Code"
+    project_code_display.admin_order_field = "project__project_code"
 
 
 # Cronograma
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ("project", "title", "start_datetime", "end_datetime", "is_complete", "is_personal")
+    list_display = ("project", "project_code_display", "title", "start_datetime", "end_datetime", "is_complete", "is_personal")
     list_filter = ("project", "is_complete", "is_personal", "stage")
-    search_fields = ("title", "description", "delay_reason", "advance_reason")
+    search_fields = ("project__project_code", "title", "description", "delay_reason", "advance_reason")
     date_hierarchy = "start_datetime"
     ordering = ("-start_datetime",)
+    
+    def project_code_display(self, obj):
+        return obj.project.project_code if obj.project else "-"
+    project_code_display.short_description = "Project Code"
+    project_code_display.admin_order_field = "project__project_code"
 
 
 # Cronograma jerárquico (ScheduleItem)
@@ -173,11 +188,16 @@ class InvoicePaymentInline(admin.TabularInline):
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ("invoice_number", "project", "status", "total_amount", "amount_paid", "balance_due", "date_issued")
+    list_display = ("invoice_number", "project", "project_code_display", "status", "total_amount", "amount_paid", "balance_due", "date_issued")
     inlines = [InvoiceLineInline, InvoicePaymentInline]
-    search_fields = ("invoice_number", "project__name", "project__client")
+    search_fields = ("invoice_number", "project__project_code", "project__name", "project__client")
     list_filter = ("status", "is_paid", "project")
     readonly_fields = ("invoice_number", "payment_progress", "balance_due")
+    
+    def project_code_display(self, obj):
+        return obj.project.project_code if obj.project else "-"
+    project_code_display.short_description = "Project Code"
+    project_code_display.admin_order_field = "project__project_code"
 
 
 @admin.register(InvoiceLine)
@@ -429,9 +449,11 @@ class NotificationAdmin(admin.ModelAdmin):
 
 @admin.register(InventoryItem)
 class InventoryItemAdmin(admin.ModelAdmin):
-    list_display = ("name", "category", "unit", "default_threshold", "active")
+    list_display = ("sku", "name", "category", "unit", "default_threshold", "active")
     list_filter = ("category", "active")
-    search_fields = ("name",)
+    search_fields = ("sku", "name", "category")
+    ordering = ("sku",)
+    readonly_fields = ("sku",)
 
 
 @admin.register(InventoryLocation)
@@ -443,9 +465,14 @@ class InventoryLocationAdmin(admin.ModelAdmin):
 
 @admin.register(ProjectInventory)
 class ProjectInventoryAdmin(admin.ModelAdmin):
-    list_display = ("item", "location", "quantity", "threshold_override")
+    list_display = ("item", "item_sku_display", "location", "quantity", "threshold_override")
     list_filter = ("location__project", "item__category")
-    search_fields = ("item__name", "location__name")
+    search_fields = ("item__sku", "item__name", "location__name")
+    
+    def item_sku_display(self, obj):
+        return obj.item.sku if obj.item else "-"
+    item_sku_display.short_description = "SKU"
+    item_sku_display.admin_order_field = "item__sku"
 
 
 @admin.register(InventoryMovement)

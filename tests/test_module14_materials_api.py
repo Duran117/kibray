@@ -29,12 +29,21 @@ def project(db):
 
 def test_inventory_item_sku_unique(api_client, user):
     api_client.force_authenticate(user=user)
-    payload = {"name": "Blue Tape", "category": "MATERIAL", "unit": "pcs", "sku": "SKU-ABC-1"}
+    # SKU is now auto-generated and read-only, so creating the same item twice
+    # should create two separate items with different SKUs
+    payload = {"name": "Blue Tape", "category": "MATERIAL", "unit": "pcs"}
     res = api_client.post("/api/v1/inventory/items/", payload, format="json")
     assert res.status_code in (200, 201)
-    # Duplicate SKU should fail
+    first_sku = res.data.get("sku")
+    assert first_sku is not None
+    assert first_sku.startswith("MAT-")  # Material category prefix
+    
+    # Creating another item with same payload should get a new auto-generated SKU
     res2 = api_client.post("/api/v1/inventory/items/", payload, format="json")
-    assert res2.status_code == 400
+    assert res2.status_code in (200, 201)
+    second_sku = res2.data.get("sku")
+    assert second_sku is not None
+    assert second_sku != first_sku  # Different SKUs auto-generated
 
 
 def test_material_request_flow_receive_partial_and_full(api_client, user, project):

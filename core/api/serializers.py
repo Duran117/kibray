@@ -10,9 +10,11 @@ from core.models import (
     CostCode,
     DailyLog,
     DamageReport,
+    Employee,  # ⭐ Added for Employee serializer
     Expense,
     FloorPlan,
     Income,
+    InventoryItem,  # ⭐ Added for Inventory serializer
     LoginAttempt,
     Notification,
     PermissionMatrix,
@@ -34,6 +36,29 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "first_name", "last_name"]
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    """Employee serializer with human-readable key"""
+    full_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Employee
+        fields = [
+            "id",
+            "employee_key",  # ⭐ Human-readable ID first
+            "first_name",
+            "last_name",
+            "full_name",
+            "social_security_number",
+            "hourly_rate",
+            "is_active",
+            "created_at",
+        ]
+        read_only_fields = ["employee_key", "created_at"]
+    
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}"
 
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -743,6 +768,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             "id",
+            "project_code",  # ⭐ Human-readable ID first
             "name",
             "client",
             "address",
@@ -767,7 +793,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "income_count",
             "expense_count",
         ]
-        read_only_fields = ["created_at", "total_income", "total_expenses", "profit", "budget_remaining"]
+        read_only_fields = ["project_code", "created_at", "total_income", "total_expenses", "profit", "budget_remaining"]
 
     def get_income_count(self, obj):
         return obj.incomes.count()
@@ -781,12 +807,14 @@ class IncomeSerializer(serializers.ModelSerializer):
 
     project_name = serializers.CharField(source="project.name", read_only=True)
     project_client = serializers.CharField(source="project.client", read_only=True)
+    project_code = serializers.CharField(source="project.project_code", read_only=True)  # ⭐ Human-readable ID
 
     class Meta:
         model = Income
         fields = [
             "id",
             "project",
+            "project_code",  # ⭐ Add human-readable code
             "project_name",
             "project_client",
             "project_name",
@@ -819,6 +847,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
     """Expense serializer with project and cost code details"""
 
     project_name = serializers.CharField(source="project.name", read_only=True)
+    project_code = serializers.CharField(source="project.project_code", read_only=True)  # ⭐ Human-readable ID
     cost_code_name = serializers.CharField(source="cost_code.name", read_only=True, allow_null=True)
     change_order_number = serializers.CharField(source="change_order.number", read_only=True, allow_null=True)
 
@@ -827,6 +856,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "project",
+            "project_code",  # ⭐ Add human-readable code
             "project_name",
             "amount",
             "project_name",
@@ -1323,8 +1353,10 @@ class DailyLogPlanningSerializer(serializers.ModelSerializer):
 
 class TimeEntrySerializer(serializers.ModelSerializer):
     employee_name = serializers.SerializerMethodField(read_only=True)
+    employee_key = serializers.CharField(source="employee.employee_key", read_only=True)  # ⭐ Human-readable ID
     task_title = serializers.CharField(source="task.title", read_only=True)
     project_name = serializers.CharField(source="project.name", read_only=True)
+    project_code = serializers.CharField(source="project.project_code", read_only=True)  # ⭐ Human-readable ID
 
     class Meta:
         from core.models import TimeEntry
@@ -1333,8 +1365,10 @@ class TimeEntrySerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "employee",
+            "employee_key",  # ⭐ Add human-readable key
             "employee_name",
             "project",
+            "project_code",  # ⭐ Add human-readable code
             "project_name",
             "task",
             "task_title",
@@ -1503,6 +1537,7 @@ class InventoryItemSerializer(serializers.ModelSerializer):
         model = InventoryItem
         fields = [
             "id",
+            "sku",  # ⭐ Move SKU to top as primary identifier
             "name",
             "category",
             "unit",
@@ -1510,7 +1545,6 @@ class InventoryItemSerializer(serializers.ModelSerializer):
             "track_serial",
             "low_stock_threshold",
             "default_threshold",
-            "sku",
             "valuation_method",
             "average_cost",
             "last_purchase_cost",
@@ -1519,7 +1553,7 @@ class InventoryItemSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["average_cost", "last_purchase_cost", "created_at", "updated_at"]
+        read_only_fields = ["sku", "average_cost", "last_purchase_cost", "created_at", "updated_at"]  # ⭐ SKU is read-only
 
 
 class InventoryLocationSerializer(serializers.ModelSerializer):
