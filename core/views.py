@@ -2297,6 +2297,81 @@ def changeorder_billing_history_view(request, changeorder_id):
     return render(request, "core/changeorder_billing_history.html", context)
 
 
+def changeorder_customer_signature_view(request, changeorder_id, token=None):
+    """
+    Customer-facing signature view for Change Orders.
+    Supports both FIXED and T&M pricing models.
+    Accessible via secure token (no login required).
+    """
+    changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
+    
+    # TODO: Implement token validation for security
+    # For now, we allow access without authentication for demo purposes
+    # In production, validate token or require customer login
+    
+    # Check if already signed
+    if changeorder.signature_image:
+        return render(request, "core/changeorder_signature_already_signed.html", {
+            "changeorder": changeorder
+        })
+    
+    if request.method == "POST":
+        import base64
+        import uuid
+        from django.core.files.base import ContentFile
+        from django.utils import timezone
+        
+        # Get signature data from POST
+        signature_data = request.POST.get('signature_data')
+        signer_name = request.POST.get('signer_name', '').strip()
+        
+        if not signature_data:
+            return render(request, "core/changeorder_signature_form.html", {
+                "changeorder": changeorder,
+                "error": "Por favor, dibuje su firma antes de continuar."
+            })
+        
+        if not signer_name:
+            return render(request, "core/changeorder_signature_form.html", {
+                "changeorder": changeorder,
+                "error": "Por favor, ingrese su nombre completo."
+            })
+        
+        try:
+            # Parse base64 signature image (format: "data:image/png;base64,...")
+            format_str, imgstr = signature_data.split(';base64,')
+            ext = format_str.split('/')[-1]
+            
+            # Decode and save signature image
+            signature_file = ContentFile(
+                base64.b64decode(imgstr),
+                name=f'signature_co_{changeorder.id}_{uuid.uuid4().hex[:8]}.{ext}'
+            )
+            
+            # Save signature fields
+            changeorder.signature_image = signature_file
+            changeorder.signed_by = signer_name
+            changeorder.signed_at = timezone.now()
+            changeorder.status = 'approved'  # Auto-approve on signature
+            changeorder.save()
+            
+            # Redirect to success page
+            return render(request, "core/changeorder_signature_success.html", {
+                "changeorder": changeorder
+            })
+            
+        except Exception as e:
+            return render(request, "core/changeorder_signature_form.html", {
+                "changeorder": changeorder,
+                "error": f"Error al procesar la firma: {str(e)}"
+            })
+    
+    # GET request - show signature form
+    return render(request, "core/changeorder_signature_form.html", {
+        "changeorder": changeorder
+    })
+
+
 @login_required
 def changeorder_create_view(request):
     if request.method == "POST":

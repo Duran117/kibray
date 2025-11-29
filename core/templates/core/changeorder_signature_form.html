@@ -1,0 +1,584 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firma de Change Order - CO-{{ changeorder.id|stringformat:"04d" }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --success-color: #059669;
+            --danger-color: #dc2626;
+            --info-color: #0284c7;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .signature-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .header .co-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .amount-display {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 3px solid var(--success-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+
+        .amount-label {
+            font-size: 0.9rem;
+            color: #065f46;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .amount-value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #047857;
+        }
+
+        .rates-display {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 3px solid var(--info-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .rate-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(2, 132, 199, 0.2);
+        }
+
+        .rate-item:last-child {
+            border-bottom: none;
+        }
+
+        .rate-label {
+            font-weight: 600;
+            color: #075985;
+        }
+
+        .rate-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #0369a1;
+        }
+
+        .legal-text {
+            background: #fffbeb;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .legal-text p {
+            margin: 0;
+            color: #78350f;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .legal-text strong {
+            color: #92400e;
+        }
+
+        .signature-pad-container {
+            border: 3px solid #cbd5e1;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 1rem 0;
+            background: #f8fafc;
+        }
+
+        .signature-pad {
+            width: 100%;
+            height: 200px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .signature-controls {
+            background: #f1f5f9;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            border: 2px solid #dc2626;
+            color: #7f1d1d;
+        }
+
+        .description-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: #475569;
+            line-height: 1.6;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .header .co-number {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            .amount-value {
+                font-size: 2rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .signature-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .empty-signature-warning {
+            display: none;
+            background: #fee2e2;
+            border: 2px solid #dc2626;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: #7f1d1d;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="signature-container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1><i class="bi bi-file-earmark-text"></i> Change Order</h1>
+            <div class="co-number">CO-{{ changeorder.id|stringformat:"04d" }}</div>
+            <p style="margin: 0; opacity: 0.9;">{{ changeorder.project.name }}</p>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+            {% if error %}
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- PROJECT INFO -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="bi bi-info-circle"></i> Información del Proyecto
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Cliente</div>
+                        <div class="info-value">{{ changeorder.project.client|default:"No especificado" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Fecha de Creación</div>
+                        <div class="info-value">{{ changeorder.date_created|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="bi bi-file-text"></i> Descripción del Trabajo
+                </div>
+                <div class="description-box">
+                    {{ changeorder.description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- PRICING INFO -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="bi bi-currency-dollar"></i> Información de Precios
+                </div>
+
+                {% if changeorder.pricing_type == 'FIXED' %}
+                <!-- FIXED PRICE -->
+                <div class="amount-display">
+                    <div class="amount-label">Monto Total - Precio Fijo</div>
+                    <div class="amount-value">${{ changeorder.amount|floatformat:2 }}</div>
+                </div>
+
+                <div class="legal-text">
+                    <p>
+                        <i class="bi bi-shield-check"></i>
+                        <strong>Acuerdo de Precio Fijo:</strong> Yo, el cliente, acepto pagar la suma fija de 
+                        <strong>${{ changeorder.amount|floatformat:2 }}</strong> por el trabajo descrito arriba. 
+                        Este monto es definitivo y no estará sujeto a cambios basados en horas trabajadas o materiales utilizados.
+                    </p>
+                </div>
+
+                {% else %}
+                <!-- TIME & MATERIALS -->
+                <div class="rates-display">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #075985; margin-bottom: 0.5rem;">
+                            <i class="bi bi-clock-history"></i> Modalidad: Tiempo y Materiales
+                        </div>
+                        <div style="font-size: 0.9rem; color: #0369a1;">
+                            Se facturará según las horas trabajadas y materiales utilizados
+                        </div>
+                    </div>
+
+                    <div class="rate-item">
+                        <span class="rate-label">
+                            <i class="bi bi-person-badge"></i> Tarifa por Hora de Mano de Obra
+                        </span>
+                        <span class="rate-value">${{ changeorder.billing_hourly_rate|floatformat:2 }}/hr</span>
+                    </div>
+
+                    <div class="rate-item">
+                        <span class="rate-label">
+                            <i class="bi bi-box-seam"></i> Markup sobre Materiales
+                        </span>
+                        <span class="rate-value">{{ changeorder.material_markup_pct|floatformat:0 }}%</span>
+                    </div>
+                </div>
+
+                <div class="legal-text">
+                    <p>
+                        <i class="bi bi-shield-check"></i>
+                        <strong>Acuerdo de Tiempo y Materiales:</strong> Yo, el cliente, autorizo este trabajo bajo la modalidad 
+                        de Tiempo y Materiales (T&M) con las tarifas listadas arriba. Entiendo que el costo final será calculado 
+                        basándose en:
+                    </p>
+                    <ul style="margin: 0.5rem 0 0 1.5rem;">
+                        <li><strong>Mano de Obra:</strong> Horas trabajadas × ${{ changeorder.billing_hourly_rate|floatformat:2 }}/hora</li>
+                        <li><strong>Materiales:</strong> Costo de materiales + {{ changeorder.material_markup_pct|floatformat:0 }}% de markup</li>
+                    </ul>
+                    <p style="margin-top: 0.5rem; font-style: italic;">
+                        El monto total no está predefinido y se determinará al finalizar el trabajo.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- SIGNATURE SECTION -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="bi bi-pencil-square"></i> Firma Digital
+                </div>
+
+                <form method="post" id="signatureForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="signature_data" id="signatureData">
+
+                    <div class="form-group">
+                        <label for="signerName" class="form-label">
+                            <i class="bi bi-person"></i> Nombre Completo *
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="signerName" 
+                            name="signer_name" 
+                            placeholder="Ingrese su nombre completo"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-pen"></i> Firme en el Recuadro *
+                        </label>
+                        <div class="signature-pad-container">
+                            <canvas id="signaturePad" class="signature-pad"></canvas>
+                            <div class="signature-controls">
+                                <small style="color: #64748b;">
+                                    <i class="bi bi-info-circle"></i> Dibuje su firma con el dedo o mouse
+                                </small>
+                                <button type="button" class="btn btn-secondary" id="clearButton">
+                                    <i class="bi bi-eraser"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                        <div id="emptySignatureWarning" class="empty-signature-warning">
+                            <i class="bi bi-exclamation-triangle"></i> Por favor, firme en el recuadro antes de continuar.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success" id="submitButton">
+                        <i class="bi bi-check-circle"></i> Firmar y Aprobar Change Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Signature Pad
+        const canvas = document.getElementById('signaturePad');
+        const signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgb(255, 255, 255)',
+            penColor: 'rgb(0, 0, 0)',
+            minWidth: 1,
+            maxWidth: 3
+        });
+
+        // Resize canvas to fit container
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Clear button
+        document.getElementById('clearButton').addEventListener('click', function() {
+            signaturePad.clear();
+            document.getElementById('emptySignatureWarning').style.display = 'none';
+        });
+
+        // Form submission
+        document.getElementById('signatureForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const signerName = document.getElementById('signerName').value.trim();
+            const warningDiv = document.getElementById('emptySignatureWarning');
+
+            // Validate signer name
+            if (!signerName) {
+                alert('Por favor, ingrese su nombre completo.');
+                document.getElementById('signerName').focus();
+                return false;
+            }
+
+            // Validate signature
+            if (signaturePad.isEmpty()) {
+                warningDiv.style.display = 'block';
+                canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+
+            // Get signature data as base64
+            const signatureData = signaturePad.toDataURL('image/png');
+            document.getElementById('signatureData').value = signatureData;
+
+            // Show loading state
+            const submitButton = document.getElementById('submitButton');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
+
+            // Submit form
+            this.submit();
+        });
+
+        // Prevent accidental page reload
+        window.addEventListener('beforeunload', function(e) {
+            if (!signaturePad.isEmpty()) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        });
+    </script>
+</body>
+</html>

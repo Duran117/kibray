@@ -1952,6 +1952,25 @@ class ChangeOrder(models.Model):
         related_name='change_order_signatures',
         help_text="Cryptographic signature for approval"
     )
+    
+    # Customer signature fields (simple implementation)
+    signature_image = models.ImageField(
+        upload_to='signatures/change_orders/',
+        null=True,
+        blank=True,
+        help_text="Customer signature image from canvas"
+    )
+    signed_by = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Name of person who signed"
+    )
+    signed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when signature was captured"
+    )
 
     def get_effective_labor_rate(self):
         """Retorna la tarifa efectiva: override del CO o default del proyecto"""

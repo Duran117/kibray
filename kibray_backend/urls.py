@@ -143,6 +143,8 @@ urlpatterns = [
     # Change Orders
     path("changeorder/<int:changeorder_id>/", views.changeorder_detail_view, name="changeorder_detail"),
     path("changeorder/<int:changeorder_id>/billing-history/", views.changeorder_billing_history_view, name="changeorder_billing_history"),
+    path("changeorder/<int:changeorder_id>/sign/", views.changeorder_customer_signature_view, name="changeorder_customer_signature"),
+    path("changeorder/<int:changeorder_id>/sign/<str:token>/", views.changeorder_customer_signature_view, name="changeorder_customer_signature_token"),
     path("changeorder/add/", views.changeorder_create_view, name="changeorder_create"),
     path("changeorder/<int:co_id>/edit/", views.changeorder_edit_view, name="changeorder_edit"),
     path("changeorder/<int:co_id>/delete/", views.changeorder_delete_view, name="changeorder_delete"),
