@@ -58,6 +58,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import F, Q
+from django.core.cache import cache
 from core.models import (
     Project,
     Invoice,
@@ -96,6 +97,10 @@ class FinancialAnalyticsService:
 
     # Cash Flow Projection -------------------------------------------------
     def get_cash_flow_projection(self, days: int = 30) -> Dict[str, Any]:
+        cache_key = f"fa:cashflow:{self.as_of.isoformat()}:{days}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         horizon_end = self.as_of + timedelta(days=days)
         invoices = (
             Invoice.objects.filter(
@@ -118,7 +123,7 @@ class FinancialAnalyticsService:
         avg_weekly_payroll = total_payroll / Decimal("4") if total_payroll > 0 else Decimal("0")
 
         material_expenses = Expense.objects.filter(date__gte=four_weeks_ago, date__lte=self.as_of).filter(
-            Q(notes__icontains="material") | Q(category__icontains="material") | Q(description__icontains="material")
+            Q(category__icontains="material") | Q(description__icontains="material")
         )
         total_material = material_expenses.aggregate(t=Sum("amount"))["t"] or Decimal("0")
         avg_weekly_material = total_material / Decimal("4") if total_material > 0 else Decimal("0")
@@ -138,10 +143,16 @@ class FinancialAnalyticsService:
             "expense": [float(r.expected_expense) for r in rows],
             "net": [float(r.net) for r in rows],
         }
-        return {"rows": rows, "chart": chart}
+        payload = {"rows": rows, "chart": chart}
+        cache.set(cache_key, payload, 300)  # 5 min cache
+        return payload
 
     # Project Margins ------------------------------------------------------
     def get_project_margins(self) -> list[Dict[str, Any]]:
+        cache_key = "fa:project_margins"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         data: list[Dict[str, Any]] = []
         for p in Project.objects.filter(is_archived=False).order_by("name"):
             invoiced = p.invoices.aggregate(t=Sum("total_amount"))["t"] or Decimal("0")
@@ -150,7 +161,7 @@ class FinancialAnalyticsService:
                 or Decimal("0")
             )
             material_cost = p.expenses.filter(
-                Q(notes__icontains="material") | Q(category__icontains="material") | Q(description__icontains="material")
+                Q(category__icontains="material") | Q(description__icontains="material")
             ).aggregate(t=Sum("amount"))["t"] or Decimal("0")
             total_cost = labor_cost + material_cost
             margin_pct = float(((invoiced - total_cost) / invoiced * 100) if invoiced > 0 else 0.0)
@@ -165,27 +176,44 @@ class FinancialAnalyticsService:
                     "margin_pct": margin_pct,
                 }
             )
+        cache.set(cache_key, data, 300)
         return data
 
     # Company Health KPIs --------------------------------------------------
     def get_company_health_kpis(self) -> Dict[str, Any]:
+        cache_key = f"fa:kpis:{self.as_of.isoformat()}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         income_sum = Project.objects.aggregate(t=Sum("total_income"))["t"] or Decimal("0")
         expense_sum = Project.objects.aggregate(t=Sum("total_expenses"))["t"] or Decimal("0")
         net_profit = income_sum - expense_sum
-
-        receivables = Invoice.objects.filter(status__in=self.COLLECTIBLE_INVOICE_STATUSES).aggregate(t=Sum("total_amount"))["t"] or Decimal("0")
+        # Refined receivables: remaining balance (total - amount_paid)
+        remaining = Decimal("0")
+        for inv in Invoice.objects.filter(status__in=self.COLLECTIBLE_INVOICE_STATUSES).values("total_amount", "amount_paid"):
+            total = inv["total_amount"] or Decimal("0")
+            paid = inv["amount_paid"] or Decimal("0")
+            bal = total - paid
+            if bal > 0:
+                remaining += bal
         horizon_start = self.as_of - timedelta(days=30)
         expenses_30 = Expense.objects.filter(date__gte=horizon_start, date__lte=self.as_of).aggregate(t=Sum("amount"))["t"] or Decimal("0")
         payroll_30 = PayrollRecord.objects.filter(week_start__gte=horizon_start).aggregate(t=Sum("net_pay"))["t"] or Decimal("0")
         burn_rate = (expenses_30 + payroll_30) / Decimal("30") if (expenses_30 + payroll_30) > 0 else Decimal("0")
-        return {
+        data = {
             "net_profit": float(net_profit),
-            "total_receivables": float(receivables),
+            "total_receivables": float(remaining),
             "burn_rate": float(burn_rate),
         }
+        cache.set(cache_key, data, 300)
+        return data
 
     # Inventory Risk -------------------------------------------------------
     def get_inventory_risk_items(self) -> list[Dict[str, Any]]:
+        cache_key = "fa:inventory_risk"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         items: list[Dict[str, Any]] = []
         for s in ProjectInventory.objects.select_related("item", "location", "location__project").all():
             threshold = s.threshold() or s.item.get_effective_threshold()
@@ -194,12 +222,14 @@ class FinancialAnalyticsService:
                     {
                         "item_id": s.item.id,
                         "item_name": s.item.name,
+                        "project_id": getattr(s.location.project, "id", None),
                         "project": getattr(s.location.project, "name", None),
                         "location": s.location.name,
                         "quantity": float(s.quantity),
                         "threshold": float(threshold),
                     }
                 )
+        cache.set(cache_key, items, 300)
         return items
 
     # Top Performing Employees --------------------------------------------

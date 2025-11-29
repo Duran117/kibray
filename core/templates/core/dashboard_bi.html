@@ -60,7 +60,7 @@
       <tbody>
         {% for p in low_margin_projects %}
         <tr>
-          <td>{{ p.project_name }}</td>
+          <td><a href="{% url 'project_overview' p.project_id %}" class="underline decoration-slate-600 hover:text-blue-300">{{ p.project_name }}</a></td>
           <td><span class="badge-low">{{ p.margin_pct|floatformat:1 }}%</span></td>
           <td>${{ p.invoiced|floatformat:0 }}</td>
           <td>${{ p.total_cost|floatformat:0 }}</td>
@@ -73,7 +73,7 @@
     <h6 class="mt-6 mb-2 text-sm text-slate-300 uppercase tracking-wide">Top Performing Projects</h6>
     <ul class="text-sm space-y-1">
       {% for p in high_margin_projects %}
-      <li class="flex justify-between"><span>{{ p.project_name }}</span><span class="text-green-400">{{ p.margin_pct|floatformat:1 }}%</span></li>
+      <li class="flex justify-between"><span><a href="{% url 'project_overview' p.project_id %}" class="underline decoration-slate-600 hover:text-blue-300">{{ p.project_name }}</a></span><span class="text-green-400">{{ p.margin_pct|floatformat:1 }}%</span></li>
       {% empty %}<li class="text-slate-400">No data</li>{% endfor %}
     </ul>
   </div>
@@ -84,7 +84,7 @@
       <tbody>
         {% for e in top_performing_employees %}
         <tr>
-          <td>{{ e.name }}</td>
+          <td><a href="{% url 'payroll_payment_history_employee' e.employee_id %}" class="underline decoration-slate-600 hover:text-blue-300">{{ e.name }}</a></td>
           <td>{{ e.productivity_pct|floatformat:1 }}%</td>
           <td>{{ e.billable_hours|floatformat:1 }}h</td>
           <td>{{ e.total_hours|floatformat:1 }}h</td>
@@ -102,7 +102,7 @@
     <tbody>
       {% for i in inventory_risk_items %}
       <tr>
-        <td>{{ i.item_name }}</td>
+        <td><a href="{% if i.project_id %}{% url 'inventory_view' i.project_id %}{% else %}#{% endif %}" class="underline decoration-slate-600 hover:text-blue-300">{{ i.item_name }}</a></td>
         <td>{{ i.project|default:"—" }}</td>
         <td>{{ i.location }}</td>
         <td><span class="badge-risk">{{ i.quantity|floatformat:1 }}</span></td>
