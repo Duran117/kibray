@@ -74,6 +74,7 @@ from core.services.earned_value import compute_project_ev
 
 from .forms import (
     ActivityTemplateForm,
+    ActivationWizardForm,
     BudgetLineForm,
     BudgetLineScheduleForm,
     BudgetProgressEditForm,
@@ -94,6 +95,7 @@ from .forms import (
     MaterialsRequestForm,
     PayrollRecordForm,
     PlanPinForm,
+    ProposalEmailForm,
     RFIAnswerForm,
     RFIForm,
     RiskForm,
@@ -101,7 +103,6 @@ from .forms import (
     ScheduleForm,
     ScheduleItemForm,
     TimeEntryForm,
-    ProposalEmailForm,
 )
 
 
@@ -3402,8 +3403,133 @@ def daily_log_view(request, project_id):
         "form": form,
         "can_create": can_create,
     }
-
     return render(request, "core/daily_log_list.html", context)
+
+
+@login_required
+def project_activation_view(request, project_id):
+    """
+    Project Activation Wizard - Automates transition from Sales to Production.
+    
+    Converts approved estimate into operational entities:
+    - ScheduleItems for Gantt
+    - BudgetLines for financial control
+    - Tasks for daily operations
+    - Invoice for deposit/advance
+    """
+    from core.forms import ActivationWizardForm
+    from core.services.activation_service import ProjectActivationService
+    
+    project = get_object_or_404(Project, pk=project_id)
+    
+    # Check permissions (PM, admin, superuser only)
+    profile = getattr(request.user, "profile", None)
+    role = getattr(profile, "role", "employee")
+    if role not in ["admin", "superuser", "project_manager"]:
+        messages.error(request, "No tienes permisos para activar proyectos")
+        return redirect("dashboard")
+    
+    # Get approved estimate
+    estimate = project.estimates.filter(approved=True).order_by('-version').first()
+    
+    if not estimate:
+        messages.error(request, "No hay estimado aprobado para este proyecto")
+        return redirect("project_overview", project_id=project.id)
+    
+    # Check if already activated
+    has_schedule = project.schedule_items.exists()
+    has_budget = project.budget_lines.exists()
+    
+    if request.method == "POST":
+        form = ActivationWizardForm(request.POST, estimate=estimate)
+        
+        if form.is_valid():
+            try:
+                # Initialize service
+                service = ProjectActivationService(project=project, estimate=estimate)
+                
+                # Get form data
+                start_date = form.cleaned_data['start_date']
+                create_schedule = form.cleaned_data['create_schedule']
+                create_budget = form.cleaned_data['create_budget']
+                create_tasks = form.cleaned_data['create_tasks']
+                deposit_percent = form.cleaned_data.get('deposit_percent', 0)
+                items_to_schedule = form.cleaned_data.get('items_to_schedule')
+                
+                # Convert QuerySet to list if present, or None if empty
+                if items_to_schedule:
+                    items_list = list(items_to_schedule)
+                    items_to_schedule = items_list if items_list else None
+                else:
+                    items_to_schedule = None
+                
+                # Get employee from user if exists (for task assignment)
+                from core.models import Employee
+                employee = Employee.objects.filter(user=request.user).first()
+                
+                # Activate project
+                result = service.activate_project(
+                    start_date=start_date,
+                    create_schedule=create_schedule,
+                    create_budget=create_budget,
+                    create_tasks=create_tasks,
+                    deposit_percent=deposit_percent,
+                    items_to_schedule=items_to_schedule,
+                    assigned_to=employee,
+                )
+                
+                # Build success message
+                summary = result['summary']
+                msg_parts = ["Proyecto activado exitosamente:"]
+                
+                if summary['schedule_items_count'] > 0:
+                    msg_parts.append(f"✓ {summary['schedule_items_count']} ítems de cronograma creados")
+                
+                if summary['budget_lines_count'] > 0:
+                    msg_parts.append(f"✓ {summary['budget_lines_count']} líneas de presupuesto creadas")
+                
+                if summary['tasks_count'] > 0:
+                    msg_parts.append(f"✓ {summary['tasks_count']} tareas operativas creadas")
+                
+                if summary['invoice_created']:
+                    msg_parts.append(f"✓ Factura de anticipo creada (${summary['invoice_amount']})")
+                
+                messages.success(request, " | ".join(msg_parts))
+                
+                # Redirect to Gantt if schedule was created, otherwise to project detail
+                if create_schedule:
+                    return redirect("schedule_generator", project_id=project.id)
+                else:
+                    return redirect("project_overview", project_id=project.id)
+                    
+            except ValueError as e:
+                messages.error(request, f"Error de validación: {str(e)}")
+            except Exception as e:
+                messages.error(request, f"Error al activar proyecto: {str(e)}")
+    else:
+        form = ActivationWizardForm(estimate=estimate)
+    
+    # Calculate estimate summary
+    estimate_lines = estimate.lines.all()
+    direct_cost = sum(line.direct_cost() for line in estimate_lines)
+    material_markup = (direct_cost * (estimate.markup_material / 100)) if estimate.markup_material else 0
+    labor_markup = (direct_cost * (estimate.markup_labor / 100)) if estimate.markup_labor else 0
+    overhead = (direct_cost * (estimate.overhead_pct / 100)) if estimate.overhead_pct else 0
+    profit = (direct_cost * (estimate.target_profit_pct / 100)) if estimate.target_profit_pct else 0
+    estimate_total = direct_cost + material_markup + labor_markup + overhead + profit
+    
+    context = {
+        "project": project,
+        "estimate": estimate,
+        "estimate_lines": estimate_lines,
+        "estimate_total": estimate_total,
+        "form": form,
+        "has_schedule": has_schedule,
+        "has_budget": has_budget,
+        "is_reactivation": has_schedule or has_budget,
+    }
+    
+    return render(request, "core/project_activation.html", context)
 
 
 @login_required

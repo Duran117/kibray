@@ -198,6 +198,8 @@ urlpatterns = [
     path("projects/<int:project_id>/estimates/new/", views.estimate_create_view, name="estimate_create"),
     path("estimates/<int:estimate_id>/", views.estimate_detail_view, name="estimate_detail"),
     path("estimates/<int:estimate_id>/send-email/", views.estimate_send_email, name="estimate_send_email"),
+    # Project Activation
+    path("projects/<int:project_id>/activate/", views.project_activation_view, name="project_activation"),
     # Daily log / RFIs / Issues / Risks
     path("projects/<int:project_id>/daily-log/", views.daily_log_view, name="daily_log"),
     path("projects/<int:project_id>/daily-log/create/", views.daily_log_create, name="daily_log_create"),

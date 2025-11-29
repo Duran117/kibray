@@ -1716,3 +1716,125 @@ class ProposalEmailForm(forms.Form):
             raise ValidationError("El mensaje no puede estar vacío.")
         # Recomendación básica: incluir saludo y link
         return m
+
+
+# ========================================================================================
+# PROJECT ACTIVATION WIZARD FORM
+# ========================================================================================
+class ActivationWizardForm(forms.Form):
+    """Formulario para activar proyecto desde estimado aprobado.
+    
+    Permite configurar:
+    - Fecha de inicio
+    - Qué entidades crear (cronograma, presupuesto, tareas)
+    - Porcentaje de anticipo para factura inicial
+    - Selección de líneas específicas del estimado para cronograma
+    """
+    
+    start_date = forms.DateField(
+        label="Fecha de inicio del proyecto",
+        widget=forms.DateInput(
+            attrs={
+                "class": "form-control",
+                "type": "date",
+                "placeholder": "Selecciona fecha de inicio"
+            }
+        ),
+        help_text="Fecha en que inicia la obra/proyecto",
+    )
+    
+    create_schedule = forms.BooleanField(
+        label="Crear cronograma",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        help_text="Genera ScheduleItems para visualizar en Gantt",
+    )
+    
+    create_budget = forms.BooleanField(
+        label="Crear presupuesto",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        help_text="Genera BudgetLines para control financiero",
+    )
+    
+    create_tasks = forms.BooleanField(
+        label="Crear tareas operativas",
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        help_text="Genera Tasks diarias basadas en el cronograma",
+    )
+    
+    deposit_percent = forms.IntegerField(
+        label="Porcentaje de anticipo (%)",
+        required=False,
+        initial=0,
+        min_value=0,
+        max_value=100,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "0-100",
+                "min": "0",
+                "max": "100"
+            }
+        ),
+        help_text="Porcentaje del total para factura de anticipo (0 = sin anticipo)",
+    )
+    
+    items_to_schedule = forms.ModelMultipleChoiceField(
+        label="Líneas del estimado a incluir en cronograma",
+        queryset=EstimateLine.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+        help_text="Deja vacío para incluir todas las líneas",
+    )
+
+    def __init__(self, *args, **kwargs):
+        """Initialize form with estimate context."""
+        estimate = kwargs.pop('estimate', None)
+        super().__init__(*args, **kwargs)
+        
+        if estimate:
+            # Set queryset for items_to_schedule
+            self.fields['items_to_schedule'].queryset = estimate.lines.all()
+            
+            # Pre-select all lines by default
+            if not self.is_bound:
+                self.initial['items_to_schedule'] = estimate.lines.all()
+
+    def clean_deposit_percent(self):
+        """Validate deposit percentage."""
+        percent = self.cleaned_data.get('deposit_percent')
+        if percent is None:
+            return 0
+        if percent < 0 or percent > 100:
+            raise ValidationError("El porcentaje debe estar entre 0 y 100")
+        return percent
+
+    def clean(self):
+        """Validate form data."""
+        cleaned_data = super().clean()
+        
+        create_schedule = cleaned_data.get('create_schedule')
+        create_tasks = cleaned_data.get('create_tasks')
+        
+        # Tasks require schedule
+        if create_tasks and not create_schedule:
+            raise ValidationError(
+                "Para crear tareas operativas, primero debes crear el cronograma"
+            )
+        
+        # At least one action must be selected
+        if not any([
+            cleaned_data.get('create_schedule'),
+            cleaned_data.get('create_budget'),
+            cleaned_data.get('deposit_percent', 0) > 0
+        ]):
+            raise ValidationError(
+                "Debes seleccionar al menos una acción (cronograma, presupuesto o anticipo)"
+            )
+        
+        return cleaned_data

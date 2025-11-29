@@ -1,0 +1,333 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}Activar Proyecto - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+                    <li class="breadcrumb-item active">Activar Proyecto</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-rocket-takeoff"></i> Activar Proyecto</h2>
+                    <p class="text-muted">Convierte el estimado aprobado en cronograma, presupuesto y tareas operativas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if is_reactivation %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> 
+        <strong>Advertencia:</strong> Este proyecto ya tiene 
+        {% if has_schedule %}cronograma{% endif %}
+        {% if has_budget %}{% if has_schedule %} y {% endif %}presupuesto{% endif %} creado(s).
+        Activar nuevamente agregará más ítems. Considera eliminar los existentes primero si deseas reemplazarlos.
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Left Column: Configuration Form -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Configuración de Activación</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="activation-form">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Start Date -->
+                        <div class="mb-4">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-calendar-event"></i> {{ form.start_date.label }}
+                            </label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                            <div class="text-danger small">{{ form.start_date.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.start_date.help_text }}</small>
+                        </div>
+
+                        <hr>
+
+                        <!-- What to Create -->
+                        <h6 class="mb-3"><i class="bi bi-list-check"></i> ¿Qué deseas crear?</h6>
+
+                        <div class="form-check mb-3">
+                            {{ form.create_schedule }}
+                            <label class="form-check-label" for="{{ form.create_schedule.id_for_label }}">
+                                <strong>{{ form.create_schedule.label }}</strong>
+                                <br>
+                                <small class="text-muted">{{ form.create_schedule.help_text }}</small>
+                            </label>
+                        </div>
+
+                        <!-- Schedule Item Selection (shown only if create_schedule is checked) -->
+                        <div id="schedule-items-section" class="ms-4 mb-3" style="display: none;">
+                            <label class="form-label fw-bold">{{ form.items_to_schedule.label }}</label>
+                            <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                                {% for choice in form.items_to_schedule %}
+                                <div class="form-check">
+                                    {{ choice.tag }}
+                                    <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                        {{ choice.choice_label }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text text-muted">{{ form.items_to_schedule.help_text }}</small>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            {{ form.create_budget }}
+                            <label class="form-check-label" for="{{ form.create_budget.id_for_label }}">
+                                <strong>{{ form.create_budget.label }}</strong>
+                                <br>
+                                <small class="text-muted">{{ form.create_budget.help_text }}</small>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            {{ form.create_tasks }}
+                            <label class="form-check-label" for="{{ form.create_tasks.id_for_label }}">
+                                <strong>{{ form.create_tasks.label }}</strong>
+                                <br>
+                                <small class="text-muted">{{ form.create_tasks.help_text }}</small>
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <!-- Deposit Invoice -->
+                        <h6 class="mb-3"><i class="bi bi-cash-coin"></i> Factura de Anticipo</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="{{ form.deposit_percent.id_for_label }}" class="form-label">
+                                    {{ form.deposit_percent.label }}
+                                </label>
+                                {{ form.deposit_percent }}
+                                {% if form.deposit_percent.errors %}
+                                <div class="text-danger small">{{ form.deposit_percent.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">{{ form.deposit_percent.help_text }}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Monto de Anticipo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="deposit-amount" readonly value="0.00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-rocket-takeoff"></i> Activar Proyecto
+                            </button>
+                            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Summary -->
+        <div class="col-lg-5">
+            <!-- Estimate Summary -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Resumen del Estimado</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Versión:</th>
+                            <td>{{ estimate.version }}</td>
+                        </tr>
+                        <tr>
+                            <th>Estado:</th>
+                            <td>
+                                {% if estimate.approved %}
+                                <span class="badge bg-success">Aprobado</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pendiente</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Líneas:</th>
+                            <td>{{ estimate_lines|length }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total:</th>
+                            <td class="fw-bold text-success">${{ estimate_total|floatformat:2 }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- What Will Be Created -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-magic"></i> Lo que se creará</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled" id="creation-summary">
+                        <li class="mb-2" data-feature="schedule" style="display: none;">
+                            <i class="bi bi-calendar3 text-primary"></i>
+                            <strong>Cronograma:</strong>
+                            <span class="schedule-count">0</span> ítems para Gantt
+                        </li>
+                        <li class="mb-2" data-feature="budget" style="display: none;">
+                            <i class="bi bi-cash-stack text-success"></i>
+                            <strong>Presupuesto:</strong>
+                            {{ estimate_lines|length }} líneas de presupuesto
+                        </li>
+                        <li class="mb-2" data-feature="tasks" style="display: none;">
+                            <i class="bi bi-list-task text-info"></i>
+                            <strong>Tareas:</strong>
+                            <span class="tasks-count">0</span> tareas operativas
+                        </li>
+                        <li class="mb-2" data-feature="invoice" style="display: none;">
+                            <i class="bi bi-receipt text-warning"></i>
+                            <strong>Factura:</strong>
+                            Anticipo de $<span id="invoice-amount">0.00</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="alert alert-info small mt-3" id="no-selection" style="display: none;">
+                        <i class="bi bi-info-circle"></i>
+                        Selecciona al menos una opción para continuar
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dynamic UI updates
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('activation-form');
+    const scheduleCheckbox = document.getElementById('{{ form.create_schedule.id_for_label }}');
+    const budgetCheckbox = document.getElementById('{{ form.create_budget.id_for_label }}');
+    const tasksCheckbox = document.getElementById('{{ form.create_tasks.id_for_label }}');
+    const depositInput = document.getElementById('{{ form.deposit_percent.id_for_label }}');
+    const depositAmount = document.getElementById('deposit-amount');
+    const scheduleItemsSection = document.getElementById('schedule-items-section');
+    const scheduleItemCheckboxes = document.querySelectorAll('#schedule-items-section input[type="checkbox"]');
+    
+    const estimateTotal = {{ estimate_total|default:0 }};
+    
+    // Toggle schedule items section
+    scheduleCheckbox.addEventListener('change', function() {
+        scheduleItemsSection.style.display = this.checked ? 'block' : 'none';
+        if (this.checked) {
+            // Check all by default
+            scheduleItemCheckboxes.forEach(cb => cb.checked = true);
+        }
+        updateSummary();
+    });
+    
+    // Update summary when checkboxes change
+    budgetCheckbox.addEventListener('change', updateSummary);
+    tasksCheckbox.addEventListener('change', updateSummary);
+    depositInput.addEventListener('input', updateDepositAmount);
+    
+    // Update schedule count when items selection changes
+    scheduleItemCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateSummary);
+    });
+    
+    function updateDepositAmount() {
+        const percent = parseFloat(depositInput.value) || 0;
+        const amount = (estimateTotal * percent / 100).toFixed(2);
+        depositAmount.value = amount;
+        document.getElementById('invoice-amount').textContent = amount;
+        updateSummary();
+    }
+    
+    function updateSummary() {
+        const features = {
+            schedule: scheduleCheckbox.checked,
+            budget: budgetCheckbox.checked,
+            tasks: tasksCheckbox.checked,
+            invoice: parseFloat(depositInput.value) > 0
+        };
+        
+        // Count selected schedule items
+        const selectedCount = Array.from(scheduleItemCheckboxes).filter(cb => cb.checked).length;
+        document.querySelector('.schedule-count').textContent = selectedCount;
+        document.querySelector('.tasks-count').textContent = selectedCount;
+        
+        // Show/hide summary items
+        Object.keys(features).forEach(feature => {
+            const el = document.querySelector(`[data-feature="${feature}"]`);
+            if (el) {
+                el.style.display = features[feature] ? 'block' : 'none';
+            }
+        });
+        
+        // Show "no selection" message if nothing selected
+        const hasSelection = Object.values(features).some(v => v);
+        document.getElementById('no-selection').style.display = hasSelection ? 'none' : 'block';
+    }
+    
+    // Initial update
+    if (scheduleCheckbox.checked) {
+        scheduleItemsSection.style.display = 'block';
+    }
+    updateDepositAmount();
+    updateSummary();
+});
+</script>
+
+<style>
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.card {
+    border: none;
+}
+
+.card-header {
+    border-bottom: 3px solid rgba(0,0,0,0.1);
+}
+
+#schedule-items-section {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+}
+
+#creation-summary li {
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+</style>
+{% endblock %}
