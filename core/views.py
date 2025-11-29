@@ -336,6 +336,9 @@ def dashboard_admin(request):
     fa = FinancialAnalyticsService()
     kpis = fa.get_company_health_kpis()
     net_profit = Decimal(str(kpis.get("net_profit", 0)))  # maintain existing variable for template compatibility
+    # Provide legacy totals for templates/tests expecting these context keys
+    total_income = Project.objects.aggregate(t=Sum("total_income"))["t"] or Decimal("0")
+    total_expense = Project.objects.aggregate(t=Sum("total_expenses"))["t"] or Decimal("0")
 
     # === ALERTAS CRÍTICAS ===
     # 1. TimeEntries sin CO asignar

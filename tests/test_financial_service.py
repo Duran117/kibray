@@ -9,6 +9,8 @@ from core.models import Project, Employee, TimeEntry, Expense, Invoice, PayrollR
 class FinancialAnalyticsServiceTests(TestCase):
     def setUp(self):
         today = timezone.localdate()
+        from django.core.cache import cache
+        cache.clear()  # ensure no stale cached KPIs from previous tests
         # Project
         self.project = Project.objects.create(
             name="Test Project",
