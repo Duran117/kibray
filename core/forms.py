@@ -1752,7 +1752,7 @@ class ActivationWizardForm(forms.Form):
     )
     
     create_budget = forms.BooleanField(
-        label="Crear presupuesto",
+        label="Generar Presupuesto Base",
         required=False,
         initial=True,
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -1768,7 +1768,7 @@ class ActivationWizardForm(forms.Form):
     )
     
     deposit_percent = forms.IntegerField(
-        label="Porcentaje de anticipo (%)",
+        label="% Anticipo (0 = No facturar)",
         required=False,
         initial=0,
         min_value=0,

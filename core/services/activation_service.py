@@ -62,7 +62,8 @@ class ProjectActivationService:
     def create_schedule_from_estimate(
         self,
         start_date,
-        items_to_schedule: Optional[List[EstimateLine]] = None
+        items_to_schedule: Optional[List[EstimateLine]] = None,
+        selected_line_ids: Optional[List[int]] = None,
     ) -> List[ScheduleItem]:
         """
         Create ScheduleItems from EstimateLines.
@@ -82,8 +83,10 @@ class ProjectActivationService:
             defaults={"order": 0}
         )
 
-        # Determine which lines to schedule
-        if items_to_schedule is None:
+        # Determine which lines to schedule (precedence: explicit IDs > provided queryset > all)
+        if selected_line_ids is not None:
+            lines_to_process = self.estimate.lines.filter(id__in=selected_line_ids)
+        elif items_to_schedule is None:
             lines_to_process = self.estimate.lines.all()
         else:
             lines_to_process = items_to_schedule
@@ -91,13 +94,21 @@ class ProjectActivationService:
         created_items = []
         current_date = start_date
 
+        def _add_business_days(d, days: int):
+            """Add business days (Mon-Fri)."""
+            result = d
+            added = 0
+            while added < days:
+                result += timedelta(days=1)
+                if result.weekday() < 5:  # 0=Mon .. 4=Fri
+                    added += 1
+            return result
+
         for idx, line in enumerate(lines_to_process, start=1):
-            # Calculate duration in days (8 hours per day)
-            # Use labor hours as basis; if no labor, use 1 day
-            labor_hours = float(line.qty) if line.cost_code and line.cost_code.category == 'labor' else 8
-            duration_days = max(1, int(labor_hours / 8))
-            
-            end_date = current_date + timedelta(days=duration_days)
+            # Duration: interpret qty as hours if labor, else default 8h (1 day)
+            labor_hours = float(line.qty) if line.cost_code and line.cost_code.category == 'labor' else 8.0
+            duration_days = max(1, int((labor_hours + 7) // 8))  # ceiling division
+            end_date = _add_business_days(current_date, duration_days - 1)  # duration of 1 day ends same day
             
             # Create title from line description or cost code
             title = line.description or f"{line.cost_code.name if line.cost_code else 'Item'} - {line.qty} {line.unit}"
@@ -133,6 +144,8 @@ class ProjectActivationService:
         Returns:
             List of created BudgetLines
         """
+        # Clean previous budget lines (spec requirement: reset baseline before regeneration)
+        BudgetLine.objects.filter(project=self.project).delete()
         created_lines = []
         
         for line in self.estimate.lines.all():
@@ -260,6 +273,7 @@ class ProjectActivationService:
         create_tasks: bool = False,
         deposit_percent: int = 0,
         items_to_schedule: Optional[List[EstimateLine]] = None,
+        selected_line_ids: Optional[List[int]] = None,
         assigned_to=None,
     ) -> Dict[str, Any]:
         """
@@ -294,7 +308,8 @@ class ProjectActivationService:
         if create_schedule:
             schedule_items = self.create_schedule_from_estimate(
                 start_date=start_date,
-                items_to_schedule=items_to_schedule
+                items_to_schedule=items_to_schedule,
+                selected_line_ids=selected_line_ids,
             )
             result['schedule_items'] = schedule_items
 

@@ -3455,13 +3455,8 @@ def project_activation_view(request, project_id):
                 create_tasks = form.cleaned_data['create_tasks']
                 deposit_percent = form.cleaned_data.get('deposit_percent', 0)
                 items_to_schedule = form.cleaned_data.get('items_to_schedule')
-                
-                # Convert QuerySet to list if present, or None if empty
-                if items_to_schedule:
-                    items_list = list(items_to_schedule)
-                    items_to_schedule = items_list if items_list else None
-                else:
-                    items_to_schedule = None
+                # Selected line IDs (spec wants passing IDs)
+                selected_line_ids = [l.id for l in items_to_schedule] if items_to_schedule and items_to_schedule.exists() else None
                 
                 # Get employee from user if exists (for task assignment)
                 from core.models import Employee
@@ -3474,7 +3469,8 @@ def project_activation_view(request, project_id):
                     create_budget=create_budget,
                     create_tasks=create_tasks,
                     deposit_percent=deposit_percent,
-                    items_to_schedule=items_to_schedule,
+                    items_to_schedule=None,  # keep backward compatibility not used now
+                    selected_line_ids=selected_line_ids,
                     assigned_to=employee,
                 )
                 
