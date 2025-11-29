@@ -1,0 +1,137 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% block title %}Executive BI Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+  body.dark-bi { background:#0f172a; color:#e2e8f0; }
+  .bi-card { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:18px; }
+  .bi-card h5 { color:#f8fafc; font-weight:600; }
+  .metric { font-size:2.2rem; font-weight:700; line-height:1; }
+  .sub { font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:#94a3b8; }
+  table.bi-table { width:100%; border-collapse:collapse; }
+  table.bi-table th,table.bi-table td { padding:8px 10px; font-size:13px; }
+  table.bi-table th { background:#0f172a; color:#94a3b8; text-align:left; }
+  table.bi-table tr:nth-child(even){ background:#14213d; }
+  table.bi-table tr:hover { background:#1d4ed8; color:#fff; }
+  .badge-low { background:#dc2626; color:#fff; padding:2px 6px; border-radius:6px; font-size:11px; }
+  .badge-risk { background:#f59e0b; color:#0f172a; padding:2px 6px; border-radius:6px; font-size:11px; }
+  .chart-wrap { height:280px; }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-3xl font-bold text-slate-50">Executive BI</h1>
+    <p class="text-slate-400 text-sm">{{ today|date:"F d, Y" }} · Consolidated KPIs</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  <div class="bi-card">
+    <div class="sub">NET PROFIT</div>
+    <div class="metric">${{ kpis.net_profit|floatformat:0 }}</div>
+  </div>
+  <div class="bi-card">
+    <div class="sub">RECEIVABLES</div>
+    <div class="metric">${{ kpis.total_receivables|floatformat:0 }}</div>
+  </div>
+  <div class="bi-card">
+    <div class="sub">BURN RATE (Daily)</div>
+    <div class="metric">${{ kpis.burn_rate|floatformat:0 }}</div>
+  </div>
+</div>
+
+<div class="bi-card mb-8">
+  <h5 class="mb-4 flex items-center gap-2"><span>Financial Forecast</span></h5>
+  <div class="chart-wrap"><canvas id="cashFlowChart"></canvas></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+  <div class="bi-card">
+    <h5 class="mb-3">Operational Red Flags</h5>
+    <table class="bi-table">
+      <thead>
+        <tr><th>Project</th><th>Margin %</th><th>Invoiced</th><th>Total Cost</th></tr>
+      </thead>
+      <tbody>
+        {% for p in low_margin_projects %}
+        <tr>
+          <td>{{ p.project_name }}</td>
+          <td><span class="badge-low">{{ p.margin_pct|floatformat:1 }}%</span></td>
+          <td>${{ p.invoiced|floatformat:0 }}</td>
+          <td>${{ p.total_cost|floatformat:0 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-slate-400">No low margin projects &lt; 15%</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h6 class="mt-6 mb-2 text-sm text-slate-300 uppercase tracking-wide">Top Performing Projects</h6>
+    <ul class="text-sm space-y-1">
+      {% for p in high_margin_projects %}
+      <li class="flex justify-between"><span>{{ p.project_name }}</span><span class="text-green-400">{{ p.margin_pct|floatformat:1 }}%</span></li>
+      {% empty %}<li class="text-slate-400">No data</li>{% endfor %}
+    </ul>
+  </div>
+  <div class="bi-card">
+    <h5 class="mb-3">Top Performing Employees</h5>
+    <table class="bi-table">
+      <thead><tr><th>Employee</th><th>Prod %</th><th>Billable</th><th>Total</th></tr></thead>
+      <tbody>
+        {% for e in top_performing_employees %}
+        <tr>
+          <td>{{ e.name }}</td>
+          <td>{{ e.productivity_pct|floatformat:1 }}%</td>
+          <td>{{ e.billable_hours|floatformat:1 }}h</td>
+          <td>{{ e.total_hours|floatformat:1 }}h</td>
+        </tr>
+        {% empty %}<tr><td colspan="4" class="text-center text-slate-400">No employee data</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="bi-card mb-12">
+  <h5 class="mb-3">Inventory Critical List</h5>
+  <table class="bi-table">
+    <thead><tr><th>Item</th><th>Project</th><th>Location</th><th>Qty</th><th>Threshold</th></tr></thead>
+    <tbody>
+      {% for i in inventory_risk_items %}
+      <tr>
+        <td>{{ i.item_name }}</td>
+        <td>{{ i.project|default:"—" }}</td>
+        <td>{{ i.location }}</td>
+        <td><span class="badge-risk">{{ i.quantity|floatformat:1 }}</span></td>
+        <td>{{ i.threshold|floatformat:1 }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="5" class="text-center text-slate-400">No critical inventory items</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  (function(){
+    const data = {{ cash_flow_chart_data|safe }};
+    const ctx = document.getElementById('cashFlowChart');
+    if(!ctx) return;
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [
+          { label: 'Income', data: data.income, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.2)', tension:.3 },
+          { label: 'Expense', data: data.expense, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.2)', tension:.3 },
+          { label: 'Net', data: data.net, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.2)', tension:.3 }
+        ]
+      },
+      options: { responsive:true, plugins:{ legend:{ labels:{ color:'#cbd5e1' } } }, scales:{ x:{ ticks:{ color:'#94a3b8'} }, y:{ ticks:{ color:'#94a3b8'} } } }
+    });
+    document.body.classList.add('dark-bi');
+  })();
+</script>
+{% endblock %}

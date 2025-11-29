@@ -29,6 +29,7 @@ from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone, translation
 from django.views.decorators.http import require_http_methods, require_POST
+from django.core import signing
 from xhtml2pdf import pisa
 
 from core import models
@@ -71,6 +72,7 @@ from core.models import (
     TimeEntry,
 )
 from core.services.earned_value import compute_project_ev
+from core.services.financial_service import FinancialAnalyticsService  # BI Module 21
 
 from .forms import (
     ActivityTemplateForm,
@@ -330,10 +332,10 @@ def dashboard_admin(request):
         messages.error(request, "Acceso solo para Admin/Staff.")
         return redirect("dashboard")
 
-    # === MÉTRICAS FINANCIERAS ===
-    total_income = Income.objects.aggregate(t=Sum("amount"))["t"] or Decimal("0")
-    total_expense = Expense.objects.aggregate(t=Sum("amount"))["t"] or Decimal("0")
-    net_profit = total_income - total_expense
+    # === MÉTRICAS FINANCIERAS (refactored to service) ===
+    fa = FinancialAnalyticsService()
+    kpis = fa.get_company_health_kpis()
+    net_profit = Decimal(str(kpis.get("net_profit", 0)))  # maintain existing variable for template compatibility
 
     # === ALERTAS CRÍTICAS ===
     # 1. TimeEntries sin CO asignar
@@ -550,6 +552,40 @@ def dashboard_client(request):
     use_legacy = request.GET.get("legacy")
     template_name = "core/dashboard_client.html" if use_legacy else "core/dashboard_client_clean.html"
     return render(request, template_name, context)
+
+
+# --- EXECUTIVE BI DASHBOARD (Module 21) ---
+@login_required
+def executive_bi_dashboard(request):
+    """High-level consolidated business intelligence dashboard.
+
+    Uses FinancialAnalyticsService to avoid duplicated financial logic across
+    various views and ensures consistency of KPIs.
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        messages.error(request, "Acceso solo para Admin/Staff.")
+        return redirect("dashboard")
+
+    service = FinancialAnalyticsService()
+    cash_flow = service.get_cash_flow_projection(days=30)
+    margins = service.get_project_margins()
+    kpis = service.get_company_health_kpis()
+    top_employees = service.get_top_performing_employees(limit=8)
+    inventory_risk = service.get_inventory_risk_items()
+
+    low_margin_projects = [m for m in margins if m["margin_pct"] < 15.0]
+    high_margin_projects = sorted(margins, key=lambda m: m["margin_pct"], reverse=True)[:5]
+
+    context = {
+        "today": timezone.localdate(),
+        "kpis": kpis,
+        "cash_flow_chart_data": cash_flow["chart"],
+        "low_margin_projects": low_margin_projects,
+        "high_margin_projects": high_margin_projects,
+        "top_performing_employees": top_employees,
+        "inventory_risk_items": inventory_risk,
+    }
+    return render(request, "core/dashboard_bi.html", context)
 
 
 # --- DASHBOARD (Redirect to role-based dashboards) ---
@@ -2298,78 +2334,151 @@ def changeorder_billing_history_view(request, changeorder_id):
 
 
 def changeorder_customer_signature_view(request, changeorder_id, token=None):
-    """
-    Customer-facing signature view for Change Orders.
-    Supports both FIXED and T&M pricing models.
-    Accessible via secure token (no login required).
+    """Vista pública para capturar firma de cliente en Change Orders.
+    Mejoras:
+    - Validación de token firmado (HMAC) con expiración.
+    - Acceso opcional sin token (compatibilidad con flujo interno).
+    - Manejo explícito de errores de token (expirado / manipulado).
     """
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
-    
-    # TODO: Implement token validation for security
-    # For now, we allow access without authentication for demo purposes
-    # In production, validate token or require customer login
-    
-    # Check if already signed
+
+    # --- Token validation (solo si se proporciona en la URL) ---
+    if token is not None:
+        try:
+            payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 días
+            if payload.get("co") != changeorder.id:
+                return HttpResponseForbidden("Token no coincide con este Change Order.")
+        except signing.SignatureExpired:
+            return HttpResponseForbidden("El enlace de firma ha expirado. Solicite uno nuevo.")
+        except signing.BadSignature:
+            return HttpResponseForbidden("Token inválido o manipulado.")
+
+    # Si ya está firmado mostrar pantalla correspondiente
     if changeorder.signature_image:
-        return render(request, "core/changeorder_signature_already_signed.html", {
-            "changeorder": changeorder
-        })
-    
+        return render(request, "core/changeorder_signature_already_signed.html", {"changeorder": changeorder})
+
     if request.method == "POST":
         import base64
         import uuid
         from django.core.files.base import ContentFile
         from django.utils import timezone
-        
-        # Get signature data from POST
-        signature_data = request.POST.get('signature_data')
-        signer_name = request.POST.get('signer_name', '').strip()
-        
+
+        signature_data = request.POST.get("signature_data")
+        signer_name = request.POST.get("signer_name", "").strip()
+
         if not signature_data:
-            return render(request, "core/changeorder_signature_form.html", {
-                "changeorder": changeorder,
-                "error": "Por favor, dibuje su firma antes de continuar."
-            })
-        
-        if not signer_name:
-            return render(request, "core/changeorder_signature_form.html", {
-                "changeorder": changeorder,
-                "error": "Por favor, ingrese su nombre completo."
-            })
-        
-        try:
-            # Parse base64 signature image (format: "data:image/png;base64,...")
-            format_str, imgstr = signature_data.split(';base64,')
-            ext = format_str.split('/')[-1]
-            
-            # Decode and save signature image
-            signature_file = ContentFile(
-                base64.b64decode(imgstr),
-                name=f'signature_co_{changeorder.id}_{uuid.uuid4().hex[:8]}.{ext}'
+            return render(
+                request,
+                "core/changeorder_signature_form.html",
+                {"changeorder": changeorder, "error": "Por favor, dibuje su firma antes de continuar."},
             )
-            
-            # Save signature fields
+        if not signer_name:
+            return render(
+                request,
+                "core/changeorder_signature_form.html",
+                {"changeorder": changeorder, "error": "Por favor, ingrese su nombre completo."},
+            )
+
+        try:
+            format_str, imgstr = signature_data.split(";base64,")
+            ext = format_str.split("/")[-1]
+            signature_file = ContentFile(
+                base64.b64decode(imgstr), name=f"signature_co_{changeorder.id}_{uuid.uuid4().hex[:8]}.{ext}"
+            )
+
             changeorder.signature_image = signature_file
             changeorder.signed_by = signer_name
             changeorder.signed_at = timezone.now()
-            changeorder.status = 'approved'  # Auto-approve on signature
-            changeorder.save()
-            
-            # Redirect to success page
-            return render(request, "core/changeorder_signature_success.html", {
-                "changeorder": changeorder
-            })
-            
+            changeorder.status = "approved"
+            # Audit trail capture (Paso 4)
+            forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+            ip = forwarded_for.split(",")[0].strip() if forwarded_for else request.META.get("REMOTE_ADDR")
+            changeorder.signed_ip = ip
+            changeorder.signed_user_agent = request.META.get("HTTP_USER_AGENT", "")[:512]
+            changeorder.save(update_fields=["signature_image", "signed_by", "signed_at", "status", "signed_ip", "signed_user_agent"])
+
+            # --- Email notifications (Paso 2) ---
+            from django.conf import settings
+            from django.core.mail import send_mail
+
+            customer_email = request.POST.get("customer_email", "").strip()
+            internal_recipients = list(
+                User.objects.filter(is_staff=True, is_active=True).values_list("email", flat=True)
+            )
+            # Filtrar emails vacíos
+            internal_recipients = [e for e in internal_recipients if e]
+
+            subject = f"CO #{changeorder.id} firmado por cliente"
+            body_lines = [
+                f"Change Order #{changeorder.id} ha sido firmado.",
+                f"Proyecto: {changeorder.project.name if changeorder.project else '-'}",
+                f"Descripción: {changeorder.description[:180]}" + ("..." if len(changeorder.description) > 180 else ""),
+                f"Tipo de precio: {changeorder.pricing_type}",
+                f"Firmado por: {signer_name}",
+                f"Fecha/Hora: {timezone.localtime(changeorder.signed_at).strftime('%Y-%m-%d %H:%M:%S')}",
+            ]
+
+            if changeorder.pricing_type == "T_AND_M":
+                body_lines.append(
+                    f"Tarifa Labor: ${changeorder.get_effective_billing_rate():.2f} | Markup Materiales: {changeorder.material_markup_pct}%"
+                )
+            else:
+                body_lines.append(f"Monto fijo aprobado: ${changeorder.amount:.2f}")
+
+            body_lines.append("---")
+            body_lines.append("Este correo es automático. No responder.")
+            message_body = "\n".join(body_lines)
+
+            # Enviar a staff interno
+            if internal_recipients:
+                try:
+                    send_mail(
+                        subject,
+                        message_body,
+                        getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@kibray.com"),
+                        internal_recipients,
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass  # Silenciar errores de email en flujo público
+
+            # Enviar confirmación al cliente si proporcionó correo
+            if customer_email:
+                try:
+                    send_mail(
+                        f"Confirmación firma CO #{changeorder.id}",
+                        "Gracias por firmar el Change Order. Hemos registrado su aprobación.",
+                        getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@kibray.com"),
+                        [customer_email],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
+
+            # --- PDF Generation (Paso 3) ---
+            try:
+                pdf_template = get_template("core/changeorder_pdf.html")
+                html = pdf_template.render({"changeorder": changeorder})
+                pdf_io = BytesIO()
+                pisa.CreatePDF(html, dest=pdf_io)
+                pdf_bytes = pdf_io.getvalue()
+                if pdf_bytes:
+                    from django.core.files.base import ContentFile as _CF
+                    changeorder.signed_pdf = _CF(pdf_bytes, name=f"co_{changeorder.id}_signed.pdf")
+                    changeorder.save(update_fields=["signed_pdf"])
+            except Exception:
+                # No bloquear flujo por fallo de PDF
+                pass
+
+            return render(request, "core/changeorder_signature_success.html", {"changeorder": changeorder})
         except Exception as e:
-            return render(request, "core/changeorder_signature_form.html", {
-                "changeorder": changeorder,
-                "error": f"Error al procesar la firma: {str(e)}"
-            })
-    
-    # GET request - show signature form
-    return render(request, "core/changeorder_signature_form.html", {
-        "changeorder": changeorder
-    })
+            return render(
+                request,
+                "core/changeorder_signature_form.html",
+                {"changeorder": changeorder, "error": f"Error al procesar la firma: {e}"},
+            )
+
+    return render(request, "core/changeorder_signature_form.html", {"changeorder": changeorder})
 
 
 @login_required
