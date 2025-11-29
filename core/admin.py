@@ -25,6 +25,7 @@ from .models import (
     EmployeeSkillLevel,
     EVSnapshot,
     Expense,
+    WarrantyTicket,
     ExpenseOCRData,
     FloorPlan,
     GPSCheckIn,
@@ -88,11 +89,19 @@ class IncomeAdmin(admin.ModelAdmin):
 # Gasto
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
-    list_display = ("project_name", "category", "amount", "date")
-    list_filter = ("category", "date")
+    list_display = ("project_name", "category", "amount", "date", "project", "warranty_ticket")
+    list_filter = ("category", "date", "project", "warranty_ticket")
     search_fields = ("project_name", "description")
     date_hierarchy = "date"
     ordering = ("-date",)
+
+
+@admin.register(WarrantyTicket)
+class WarrantyTicketAdmin(admin.ModelAdmin):
+    list_display = ("ticket_number", "project", "priority", "status", "created_at", "resolved_at")
+    list_filter = ("status", "priority", "project")
+    search_fields = ("ticket_number", "project__name", "issue_description")
+    readonly_fields = ("created_at",)
 
 
 # Proyecto

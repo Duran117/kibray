@@ -1,3 +1,4 @@
+ 
 """
 Management command para simular escenarios de la arquitectura final Kibray
 Genera datos realistas para testing - Villa Moderna

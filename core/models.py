@@ -202,6 +202,8 @@ class Project(models.Model):
         default=False,
         help_text=_("Si es True, el proyecto no aparece en dashboard de PM pero sigue activo para Admin")
     )
+    # Long-Term maintenance: hard archive flag (read-only for non-admins)
+    is_archived = models.BooleanField(default=False, help_text=_("Proyecto archivado: solo editable por Admin"))
     approved_finishes = models.JSONField(
         blank=True,
         null=True,
@@ -275,6 +277,21 @@ class Project(models.Model):
         from core.services.earned_value import compute_project_ev
 
         return compute_project_ev(self, as_of=as_of)
+
+    # Archiving Strategy
+    def archive_project(self):
+        """Mark project as archived and set status placeholder."""
+        self.is_archived = True
+        # If a status field exists in future, set to 'archived'. Kept as comment per spec.
+        # self.status = 'archived'
+        self.save(update_fields=["is_archived"])  # minimal write
+        # Placeholder for cold storage offloading (future AWS Glacier migration)
+        self.trigger_cold_storage_migration()
+
+    def trigger_cold_storage_migration(self):
+        """Placeholder hook: implement media offload to cold storage (e.g., AWS Glacier)."""
+        # TODO: Implement cold storage migration.
+        pass
 
 
 class ProjectManagerAssignment(models.Model):
@@ -529,7 +546,13 @@ class Expense(models.Model):
         ('not_applicable', 'No Aplica'),
     ]
     
-    project = models.ForeignKey(Project, related_name="expenses", on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name="expenses", on_delete=models.CASCADE, null=True, blank=True)
+    # Warranty linkage: expenses tied to warranty tickets (post-sale repairs)
+    # Added to avoid impacting original project profit
+    # Declared below after WarrantyTicket definition but referenced via string to avoid ordering issues
+    warranty_ticket = models.ForeignKey(
+        "WarrantyTicket", on_delete=models.CASCADE, null=True, blank=True, related_name="expenses"
+    )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     project_name = models.CharField(max_length=255)
     date = models.DateField()
@@ -585,6 +608,11 @@ class Expense(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-set reimbursement_status based on paid_by_employee"""
+        # Validation: expense must belong to either a project or a warranty ticket, but not both
+        if self.project and self.warranty_ticket:
+            raise ValidationError("Un gasto no puede estar vinculado a proyecto y garantía a la vez.")
+        if not self.project and not self.warranty_ticket:
+            raise ValidationError("El gasto debe pertenecer a un proyecto o a un ticket de garantía.")
         if self.paid_by_employee and self.reimbursement_status == 'not_applicable':
             self.reimbursement_status = 'pending'
         elif not self.paid_by_employee:
@@ -621,6 +649,62 @@ class Expense(models.Model):
                 entity_id=self.id,
                 description=f"Reembolsó ${self.amount} a {self.paid_by_employee.first_name} vía {method}"
             )
+
+
+# ---------------------
+# Warranty Tickets (Long-Term Maintenance)
+# ---------------------
+class WarrantyTicket(models.Model):
+    STATUS_CHOICES = [
+        ("open", "Open"),
+        ("scheduled", "Scheduled"),
+        ("resolved", "Resolved"),
+    ]
+    PRIORITY_CHOICES = [
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("urgent", "Urgent"),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="warranties")
+    ticket_number = models.CharField(max_length=20, unique=True, editable=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open")
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")
+    issue_description = models.TextField()
+    client_contact = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="client_warranty_tickets")
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_warranty_tickets")
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.ticket_number} · {self.project.name}"
+
+    def clean(self):
+        # Ensure project is effectively completed or archived
+        if not self.project.end_date and not self.project.is_archived:
+            raise ValidationError("Solo se pueden crear tickets de garantía para proyectos cerrados o archivados.")
+
+    def save(self, *args, **kwargs):
+        creating = self.pk is None
+        if creating and not self.ticket_number:
+            # Generate sequential WAR-XXX per project or globally
+            self.ticket_number = self._generate_ticket_number()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _generate_ticket_number():
+        """Generate unique ticket number WAR-001, WAR-002 (global sequence)."""
+        last = WarrantyTicket.objects.order_by('-ticket_number').first()
+        seq = 1
+        if last and last.ticket_number and last.ticket_number.startswith('WAR-'):
+            try:
+                seq = int(last.ticket_number.split('-')[-1]) + 1
+            except Exception:
+                seq = 1
+        return f"WAR-{seq:03d}"
 
 
 # ---------------------
