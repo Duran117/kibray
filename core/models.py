@@ -1059,6 +1059,7 @@ class Task(models.Model):
         choices=[
             ("Pendiente", _("Pendiente")),
             ("En Progreso", _("En Progreso")),
+            ("En Revisión", _("En Revisión")),
             ("Completada", _("Completada")),
             ("Cancelada", _("Cancelada")),
         ],
@@ -1163,6 +1164,8 @@ class Task(models.Model):
         null=True,
         help_text=_("Foto de cierre al completar tarea")
     )
+    # Visibilidad al cliente tras aprobación
+    is_visible_to_client = models.BooleanField(default=False)
     progress_percent = models.IntegerField(
         default=0,
         help_text=_("Porcentaje de progreso (0-100)")
@@ -1315,6 +1318,11 @@ class Task(models.Model):
                     old_assigned_to = old_obj.assigned_to
                 old_status = old_obj.status
                 old_progress = old_obj.progress_percent
+        # Auto-move to review when progress hits 100 (unless currently approved/completed)
+        # Role-based exception (Admin/PM may directly complete). We rely on caller to be employee in typical flow.
+        if not is_new and old_progress != 100 and self.progress_percent == 100:
+            if self.status not in ["Completada"]:
+                self.status = "En Revisión"
         super().save(*args, **kwargs)
         if old_assigned_to != self.assigned_to and self.assigned_to:
             self._notify_assignment()
@@ -1382,6 +1390,73 @@ class Task(models.Model):
                 related_object_id=self.id,
                 link_url=link,
             )
+
+    # Módulo 23: Aprobación/Rechazo por Admin/PM
+    def approve_by_pm(self, approver: User):
+        """Admin/PM aprueba: completar, hacer visible y generar imagen Before/After si disponible."""
+        self.status = "Completada"
+        self.is_visible_to_client = True
+        from django.utils import timezone
+        self.completed_at = timezone.now()
+        # Generar imagen combinada si hay initial_photo y completion_photo
+        try:
+            self._generate_before_after_image()
+        except Exception:
+            # Falla silenciosa: la imagen es opcional
+            pass
+        self.save(skip_validation=True)
+
+    def reject_by_pm(self, approver: User, reason: str = ""):
+        """Admin/PM rechaza: volver a En Progreso, set progress 50 y contar rechazo en perfil del empleado."""
+        self.status = "En Progreso"
+        self.progress_percent = 50
+        # Incrementar contador de rechazos en perfil del empleado
+        try:
+            if self.assigned_to and hasattr(self.assigned_to, 'user') and self.assigned_to.user:
+                profile = Profile.objects.filter(user=self.assigned_to.user).first()
+                if profile:
+                    profile.rejections_count = (getattr(profile, 'rejections_count', 0) or 0) + 1
+                    profile.save(update_fields=['rejections_count'])
+        except Exception:
+            pass
+        # Registrar cambio
+        self._current_user = approver
+        self.save(skip_validation=True)
+
+    def _generate_before_after_image(self):
+        """Combine initial and completion images side-by-side with a watermark using Pillow."""
+        if not (self.initial_photo and self.completion_photo):
+            return
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+            import os
+            # initial_photo is PlanPin; assume it has a photo field named 'photo'
+            init_img_path = getattr(self.initial_photo, 'photo', None)
+            if hasattr(init_img_path, 'path'):
+                init_path = init_img_path.path
+            else:
+                return
+            comp_path = self.completion_photo.path
+            img1 = Image.open(init_path).convert('RGB')
+            img2 = Image.open(comp_path).convert('RGB')
+            # Resize to same height
+            h = min(img1.height, img2.height)
+            img1 = img1.resize((int(img1.width * h / img1.height), h))
+            img2 = img2.resize((int(img2.width * h / img2.height), h))
+            combined = Image.new('RGB', (img1.width + img2.width, h))
+            combined.paste(img1, (0, 0))
+            combined.paste(img2, (img1.width, 0))
+            # Watermark
+            draw = ImageDraw.Draw(combined)
+            watermark = "Kibray Before/After"
+            draw.text((10, h - 20), watermark, fill=(255, 255, 255))
+            out_dir = os.path.join(settings.MEDIA_ROOT, 'tasks', 'before_after')
+            os.makedirs(out_dir, exist_ok=True)
+            out_path = os.path.join(out_dir, f"task_{self.id}_before_after.jpg")
+            combined.save(out_path, format='JPEG', quality=85)
+        except Exception:
+            # Do not break task flow if Pillow not available or images missing
+            pass
 
     class Meta:
         ordering = ["-created_at"]
@@ -1750,6 +1825,8 @@ class Profile(models.Model):
     language = models.CharField(
         max_length=5, choices=[("en", "English"), ("es", "Español")], default="en", help_text="Preferred UI language"
     )
+    # Módulo 23: contador de rechazos para tracking de desempeño
+    rejections_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
@@ -2999,6 +3076,32 @@ class Proposal(models.Model):
 
     def __str__(self):
         return f"Proposal {self.estimate.code} ({self.estimate.project.name})"
+
+
+class ProposalEmailLog(models.Model):
+    """Registro de envíos de propuesta por email para auditoría y seguimiento.
+
+    success: indica si el envío se realizó sin excepción.
+    error_message: texto de error si falla.
+    message_preview: primeras ~500 chars del cuerpo enviado.
+    """
+    proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE, related_name="email_logs")
+    estimate = models.ForeignKey(Estimate, on_delete=models.CASCADE, related_name="email_logs")
+    recipient = models.EmailField()
+    subject = models.CharField(max_length=200)
+    message_preview = models.TextField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    success = models.BooleanField(default=True)
+    error_message = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-sent_at"]
+        verbose_name = "Proposal Email Log"
+        verbose_name_plural = "Proposal Email Logs"
+
+    def __str__(self):
+        status = "OK" if self.success else "ERROR"
+        return f"EmailLog {self.proposal_id} -> {self.recipient} [{status}]"
 
 
 # --- Field Communication ---

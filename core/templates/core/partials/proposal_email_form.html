@@ -1,0 +1,26 @@
+{% load static %}
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+<form method="post" action="{% url 'estimate_send_email' estimate.id %}" class="proposal-email-form">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label for="id_subject" class="form-label">Asunto</label>
+    {{ form.subject }}
+  </div>
+  <div class="mb-3">
+    <label for="id_recipient" class="form-label">Para (correo del cliente)</label>
+    {{ form.recipient }}
+    <div class="form-text">Ingresa el correo del cliente que recibirá la cotización.</div>
+  </div>
+  <div class="mb-3">
+    <label for="id_message" class="form-label">Mensaje</label>
+    {{ form.message }}
+    <div class="form-text">Edita libremente el contenido antes de enviar. El enlace público ya está incluido.</div>
+  </div>
+  <div class="d-flex justify-content-end gap-2">
+    <button type="submit" class="btn btn-primary">Enviar Ahora</button>
+  </div>
+</form>

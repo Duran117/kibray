@@ -1669,3 +1669,50 @@ class ProjectEditForm(ProjectCreateForm):
                 "placeholder": "Notas sobre aprendizajes, errores o mejoras para próximos proyectos",
             }
         )
+
+
+# ========================================================================================
+# PROPOSAL EMAIL FORM
+# ========================================================================================
+class ProposalEmailForm(forms.Form):
+    """Formulario para enviar la propuesta (Estimate/Proposal) por email al cliente.
+
+    Campos:
+      - subject: Asunto del correo.
+      - recipient: Email destino.
+      - message: Cuerpo editable (texto plano) que incluirá el link público.
+    """
+
+    subject = forms.CharField(
+        label="Asunto",
+        max_length=200,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Asunto del correo"}),
+    )
+    recipient = forms.EmailField(
+        label="Para",
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "cliente@correo.com"}),
+    )
+    message = forms.CharField(
+        label="Mensaje",
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 10,
+                "placeholder": "Texto del correo. Puedes editar libremente antes de enviar...",
+                "style": "resize:vertical;",
+            }
+        ),
+    )
+
+    def clean_subject(self):
+        s = self.cleaned_data.get("subject", "").strip()
+        if not s:
+            raise ValidationError("El asunto es obligatorio.")
+        return s
+
+    def clean_message(self):
+        m = self.cleaned_data.get("message", "").strip()
+        if not m:
+            raise ValidationError("El mensaje no puede estar vacío.")
+        # Recomendación básica: incluir saludo y link
+        return m

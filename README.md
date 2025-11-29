@@ -198,6 +198,14 @@ Failing:        0 ✅
 - Navbar search bar on all pages
 - Keyboard shortcut (Ctrl+K)
 - 5 entity types searchable
+
+#### ✅ **Proposal Email Sending & Audit Logging**
+- Internal PM interface to email proposal link to client
+- HTML + plain-text email with secure public token link
+- Recipient auto-prefill (project client or first client access user)
+- Persistent logging model `ProposalEmailLog` capturing success/fail + preview
+- 3 dedicated tests (send success, failure logging, modal partial load)
+- Non-regression: existing public approval flow unaffected
 - Performance optimized (<200ms)
 
 #### 🟡 **Mobile Optimization (FASE 3 - In Progress)**

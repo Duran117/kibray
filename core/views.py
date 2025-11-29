@@ -10,6 +10,7 @@ from io import BytesIO
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -100,6 +101,7 @@ from .forms import (
     ScheduleForm,
     ScheduleItemForm,
     TimeEntryForm,
+    ProposalEmailForm,
 )
 
 
@@ -3215,7 +3217,124 @@ def estimate_detail_view(request, estimate_id):
     return render(
         request,
         "core/estimate_detail.html",
-        {"estimate": est, "lines": lines, "direct": direct, "proposed_price": proposed_price},
+        {
+            "estimate": est,
+            "lines": lines,
+            "direct": direct,
+            "proposed_price": proposed_price,
+        },
+    )
+
+
+@login_required
+def estimate_send_email(request, estimate_id):
+    """Vista para pre-editar y enviar la propuesta al cliente por email.
+
+    GET: retorna fragmento HTML con formulario pre-llenado (para cargar en modal).
+    POST: envía el correo y redirige al detalle del estimate con mensaje de éxito.
+    """
+    from django.utils import timezone
+    from django.conf import settings
+    import uuid
+
+    est = get_object_or_404(Estimate, pk=estimate_id)
+    # Asegurar Proposal y token
+    from core.models import Proposal
+
+    proposal, created = Proposal.objects.get_or_create(
+        estimate=est,
+        defaults={"issued_at": timezone.now()},
+    )
+    if not proposal.client_view_token:
+        proposal.client_view_token = uuid.uuid4()
+        proposal.save(update_fields=["client_view_token"])
+
+    public_url = request.build_absolute_uri(
+        reverse("proposal_public", kwargs={"token": str(proposal.client_view_token)})
+    )
+
+    # Heurística para pre-llenar email del cliente
+    initial_recipient = None
+    if est.project.client and "@" in est.project.client:
+        initial_recipient = est.project.client.strip()
+    else:
+        try:
+            from core.models import ClientProjectAccess
+            cpa = ClientProjectAccess.objects.filter(project=est.project, role="client").select_related("user").first()
+            if cpa and cpa.user and cpa.user.email:
+                initial_recipient = cpa.user.email
+        except Exception:
+            pass
+
+    if request.method == "POST":
+        form = ProposalEmailForm(request.POST)
+        if form.is_valid():
+            subject = form.cleaned_data["subject"]
+            message = form.cleaned_data["message"]
+            recipient = form.cleaned_data["recipient"]
+            # Garantizar que el link está incluido
+            if public_url not in message:
+                message = f"{message}\n\nVer y aprobar la cotización:\n{public_url}"
+            sender = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
+            error_msg = None
+            success_flag = True
+            try:
+                # Construir versión HTML simple
+                html_body = (
+                    "<p>" + message.replace("\n\n", "</p><p>").replace("\n", "<br>") + "</p>" +
+                    f"<p><a href='{public_url}' style='display:inline-block;padding:12px 20px;background:#4CAF50;color:#fff;text-decoration:none;border-radius:6px;'>Ver y Aprobar Cotización</a></p>"
+                )
+                email = EmailMultiAlternatives(subject, message, sender, [recipient])
+                email.attach_alternative(html_body, "text/html")
+                email.send()
+                messages.success(request, "Propuesta enviada correctamente al cliente.")
+            except Exception as e:
+                success_flag = False
+                error_msg = str(e)
+                messages.error(request, f"Error enviando correo: {e}")
+
+            # Log persistente
+            from core.models import ProposalEmailLog
+            try:
+                ProposalEmailLog.objects.create(
+                    proposal=proposal,
+                    estimate=est,
+                    recipient=recipient,
+                    subject=subject,
+                    message_preview=message[:500],
+                    success=success_flag,
+                    error_message=error_msg,
+                )
+            except Exception:
+                pass
+            return redirect("estimate_detail", estimate_id=est.id)
+    else:
+        client_name = est.project.client or "Cliente"
+        subject = f"Cotización {getattr(est, 'code', '')} - {est.project.name}".strip()
+        message = (
+            f"Hola {client_name},\n\n"
+            "Adjunto encontrarás la cotización detallada para tu revisión.\n\n"
+            f"Puedes verla y aprobarla aquí:\n{public_url}\n\n"
+            "Saludos,\nTu Empresa"
+        )
+        form = ProposalEmailForm(
+            initial={
+                "subject": subject,
+                "message": message,
+                "recipient": initial_recipient or "",
+            }
+        )
+
+    # GET -> retornar fragmento para modal (o página completa si se accede directamente)
+    template_name = "core/partials/proposal_email_form.html" if request.headers.get("Hx-Request") or request.GET.get("partial") else "core/partials/proposal_email_form.html"
+    return render(
+        request,
+        template_name,
+        {
+            "form": form,
+            "estimate": est,
+            "public_url": public_url,
+        },
     )
 
 
@@ -7971,3 +8090,64 @@ def pm_assignments_react(request):
     PM Assignments React view - serves React-based PM assignment management.
     """
     return render(request, "core/pm_assignments_react.html", {})
+
+
+# --- PUBLIC PROPOSAL APPROVAL ---
+def proposal_public_view(request, token):
+    """
+    Public view for clients to approve or reject a proposal.
+    No login required - access via unique token.
+    """
+    from core.models import Proposal
+    
+    try:
+        proposal = Proposal.objects.select_related('estimate__project').get(client_view_token=token)
+    except Proposal.DoesNotExist:
+        return HttpResponseNotFound("Propuesta no encontrada o enlace inválido.")
+    
+    estimate = proposal.estimate
+    project = estimate.project
+    lines = estimate.lines.select_related('cost_code').all()
+    
+    # Calculate totals
+    subtotal = sum((line.qty * (line.labor_unit_cost + line.material_unit_cost + line.other_unit_cost)) for line in lines)
+    # Apply markups and overheads
+    markup_material_amount = subtotal * (estimate.markup_material / Decimal("100"))
+    markup_labor_amount = subtotal * (estimate.markup_labor / Decimal("100"))
+    overhead_amount = subtotal * (estimate.overhead_pct / Decimal("100"))
+    profit_amount = subtotal * (estimate.target_profit_pct / Decimal("100"))
+    
+    total = subtotal + markup_material_amount + markup_labor_amount + overhead_amount + profit_amount
+    
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "approve":
+            proposal.accepted = True
+            proposal.accepted_at = timezone.now()
+            estimate.approved = True
+            proposal.save(update_fields=["accepted", "accepted_at"])
+            estimate.save(update_fields=["approved"])
+            messages.success(request, "¡Gracias! Hemos recibido tu aprobación. Comenzaremos a trabajar en tu proyecto.")
+            
+        elif action == "reject":
+            feedback = request.POST.get("feedback", "").strip()
+            proposal.client_comment = feedback
+            proposal.save(update_fields=["client_comment"])
+            messages.info(request, "Hemos recibido tus comentarios. Nuestro equipo se pondrá en contacto contigo pronto.")
+            # TODO: Notify PM/Admin via email or notification
+    
+    context = {
+        "proposal": proposal,
+        "estimate": estimate,
+        "project": project,
+        "lines": lines,
+        "subtotal": subtotal,
+        "markup_material": markup_material_amount,
+        "markup_labor": markup_labor_amount,
+        "overhead": overhead_amount,
+        "profit": profit_amount,
+        "total": total,
+    }
+    
+    return render(request, "core/proposal_public.html", context)

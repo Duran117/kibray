@@ -197,6 +197,7 @@ urlpatterns = [
     # Estimates
     path("projects/<int:project_id>/estimates/new/", views.estimate_create_view, name="estimate_create"),
     path("estimates/<int:estimate_id>/", views.estimate_detail_view, name="estimate_detail"),
+    path("estimates/<int:estimate_id>/send-email/", views.estimate_send_email, name="estimate_send_email"),
     # Daily log / RFIs / Issues / Risks
     path("projects/<int:project_id>/daily-log/", views.daily_log_view, name="daily_log"),
     path("projects/<int:project_id>/daily-log/create/", views.daily_log_create, name="daily_log_create"),
@@ -398,6 +399,8 @@ urlpatterns = [
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     # Legacy simple session-based (kept for compatibility)
     path("lang/<str:code>/", views.set_language_view, name="set_language_code"),
+    # Public proposal approval (no login required)
+    path("proposals/<str:token>/", views.proposal_public_view, name="proposal_public"),
 ]
 
 # Media/Static en desarrollo

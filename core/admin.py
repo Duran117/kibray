@@ -50,6 +50,8 @@ from .models import (
     ProjectInventory,
     ProjectManagerAssignment,
     ColorApproval,
+    Proposal,
+    ProposalEmailLog,
     PunchListItem,
     QualityDefect,
     QualityInspection,
@@ -1064,3 +1066,46 @@ class TaskTemplateAdmin(admin.ModelAdmin):
     search_fields = ("title", "description", "tags")
     list_filter = ("default_priority", "is_active")
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(Proposal)
+class ProposalAdmin(admin.ModelAdmin):
+    list_display = ("estimate", "project_name", "issued_at", "accepted", "accepted_at")
+    search_fields = ("estimate__project__name", "estimate__project__project_code", "client_view_token")
+    list_filter = ("accepted", "issued_at")
+    readonly_fields = ("client_view_token", "issued_at", "accepted_at")
+    date_hierarchy = "issued_at"
+    ordering = ("-issued_at",)
+    
+    def project_name(self, obj):
+        return obj.estimate.project.name if obj.estimate and obj.estimate.project else "-"
+    project_name.short_description = "Project"
+    project_name.admin_order_field = "estimate__project__name"
+
+
+@admin.register(ProposalEmailLog)
+class ProposalEmailLogAdmin(admin.ModelAdmin):
+    list_display = ("proposal_display", "recipient", "subject", "sent_at", "success_display")
+    search_fields = ("recipient", "subject", "proposal__estimate__project__name", "error_message")
+    list_filter = ("success", "sent_at")
+    readonly_fields = ("proposal", "estimate", "recipient", "subject", "message_preview", "sent_at", "success", "error_message")
+    date_hierarchy = "sent_at"
+    ordering = ("-sent_at",)
+    
+    def proposal_display(self, obj):
+        project_name = obj.estimate.project.name if obj.estimate and obj.estimate.project else "N/A"
+        return f"{obj.proposal_id} ({project_name})"
+    proposal_display.short_description = "Proposal"
+    
+    def success_display(self, obj):
+        return "✅" if obj.success else "❌"
+    success_display.short_description = "Status"
+    success_display.admin_order_field = "success"
+    
+    def has_add_permission(self, request):
+        # Logs are created programmatically only
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        # Logs are read-only
+        return False
