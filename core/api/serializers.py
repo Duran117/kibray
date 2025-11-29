@@ -2104,3 +2104,159 @@ class TwoFactorTokenObtainPairSerializer(TokenObtainPairSerializer):  # type: ig
             # If any unexpected error, deny for safety
             raise serializers.ValidationError({"otp": "2FA validation failed"})
         return data
+
+
+# =============================================================================
+# FOCUS WORKFLOW SERIALIZERS (Module 25 - Productivity)
+# =============================================================================
+
+from core.models import DailyFocusSession, FocusTask
+
+
+class FocusTaskSerializer(serializers.ModelSerializer):
+    """Serializer for Focus Tasks (Pareto + Eat That Frog)"""
+    duration_minutes = serializers.ReadOnlyField()
+    checklist_progress = serializers.ReadOnlyField()
+    checklist_completed = serializers.ReadOnlyField()
+    checklist_total = serializers.ReadOnlyField()
+    calendar_title = serializers.SerializerMethodField()
+    calendar_description = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = FocusTask
+        fields = [
+            'id',
+            'title',
+            'description',
+            'is_high_impact',
+            'impact_reason',
+            'is_frog',
+            'checklist',
+            'scheduled_start',
+            'scheduled_end',
+            'calendar_token',
+            'is_completed',
+            'completed_at',
+            'order',
+            'duration_minutes',
+            'checklist_progress',
+            'checklist_completed',
+            'checklist_total',
+            'calendar_title',
+            'calendar_description',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['calendar_token', 'completed_at', 'created_at', 'updated_at']
+    
+    def get_calendar_title(self, obj):
+        return obj.get_calendar_title()
+    
+    def get_calendar_description(self, obj):
+        return obj.get_calendar_description()
+    
+    def validate(self, data):
+        """Validate task constraints"""
+        # Check scheduled times
+        if data.get('scheduled_start') and data.get('scheduled_end'):
+            if data['scheduled_end'] <= data['scheduled_start']:
+                raise serializers.ValidationError({
+                    'scheduled_end': 'End time must be after start time.'
+                })
+        
+        # High impact requires reason
+        if data.get('is_high_impact') and not data.get('impact_reason', '').strip():
+            raise serializers.ValidationError({
+                'impact_reason': 'High Impact tasks require an explanation of WHY they matter.'
+            })
+        
+        # Frog must be high impact
+        if data.get('is_frog') and not data.get('is_high_impact'):
+            raise serializers.ValidationError({
+                'is_high_impact': 'The Frog task must also be marked as High Impact.'
+            })
+        
+        return data
+
+
+class DailyFocusSessionSerializer(serializers.ModelSerializer):
+    """Serializer for Daily Focus Sessions"""
+    focus_tasks = FocusTaskSerializer(many=True, read_only=True)
+    total_tasks = serializers.ReadOnlyField()
+    completed_tasks = serializers.ReadOnlyField()
+    high_impact_tasks = serializers.ReadOnlyField()
+    frog_task = FocusTaskSerializer(read_only=True)
+    user_display = serializers.CharField(source='user.get_full_name', read_only=True)
+    
+    class Meta:
+        model = DailyFocusSession
+        fields = [
+            'id',
+            'user',
+            'user_display',
+            'date',
+            'energy_level',
+            'notes',
+            'focus_tasks',
+            'total_tasks',
+            'completed_tasks',
+            'high_impact_tasks',
+            'frog_task',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at']
+    
+    def validate_energy_level(self, value):
+        """Validate energy level is between 1-10"""
+        if value < 1 or value > 10:
+            raise serializers.ValidationError('Energy level must be between 1 and 10.')
+        return value
+
+
+class FocusSessionCreateSerializer(serializers.Serializer):
+    """Serializer for creating a complete focus session with tasks"""
+    date = serializers.DateField()
+    energy_level = serializers.IntegerField(min_value=1, max_value=10)
+    notes = serializers.CharField(required=False, allow_blank=True)
+    tasks = serializers.ListField(
+        child=serializers.DictField(),
+        min_length=1
+    )
+    
+    def validate_tasks(self, value):
+        """Validate tasks structure"""
+        frog_count = sum(1 for task in value if task.get('is_frog'))
+        
+        if frog_count > 1:
+            raise serializers.ValidationError('Only one Frog task allowed per session.')
+        
+        high_impact_tasks = [t for t in value if t.get('is_high_impact')]
+        
+        for task in high_impact_tasks:
+            if not task.get('impact_reason', '').strip():
+                raise serializers.ValidationError(
+                    f"High Impact task '{task.get('title')}' requires an impact reason."
+                )
+        
+        return value
+    
+    def create(self, validated_data):
+        """Create session with tasks"""
+        tasks_data = validated_data.pop('tasks')
+        
+        # Create session
+        session = DailyFocusSession.objects.create(
+            user=self.context['request'].user,
+            **validated_data
+        )
+        
+        # Create tasks
+        for idx, task_data in enumerate(tasks_data):
+            FocusTask.objects.create(
+                session=session,
+                order=idx,
+                **task_data
+            )
+        
+        return session

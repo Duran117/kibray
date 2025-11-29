@@ -146,6 +146,11 @@ router.register(r"2fa", TwoFactorViewSet, basename="twofactor")
 # Module 21: Business Intelligence Analytics
 router.register(r"bi", BIAnalyticsViewSet, basename="bi-analytics")
 
+# Module 25: Executive Focus Workflow (Productivity)
+from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet, focus_stats
+router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-session")
+router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
+
 urlpatterns = [
     # JWT Auth
     path("auth/login/", TwoFactorTokenObtainPairView.as_view(), name="token_obtain_pair"),
@@ -197,4 +202,9 @@ urlpatterns = [
     path("client/invoices/<int:invoice_id>/approve/", ClientInvoiceApprovalAPIView.as_view(), name="client-invoice-approve"),
     # Master Schedule Center
     path("schedule/master/", lambda req: __import__('core.api.schedule_api', fromlist=['get_master_schedule_data']).get_master_schedule_data(req), name="master-schedule-data"),
+    # Focus Workflow Stats & Calendar
+    path("focus/stats/", focus_stats, name="focus-stats"),
+    # iCal Calendar Feeds
+    path("calendar/feed/<int:user_token>.ics", lambda req, user_token: __import__('core.api.calendar_feed', fromlist=['generate_focus_calendar_feed']).generate_focus_calendar_feed(req, user_token), name="focus-calendar-feed"),
+    path("calendar/master/<int:user_token>.ics", lambda req, user_token: __import__('core.api.calendar_feed', fromlist=['generate_master_calendar_feed']).generate_master_calendar_feed(req, user_token), name="master-calendar-feed"),
 ]

@@ -626,6 +626,23 @@ def master_schedule_center(request):
     return render(request, "core/master_schedule.html", context)
 
 
+@login_required
+def focus_wizard(request):
+    """Executive Focus Wizard: 4-Step Daily Planning (Pareto + Eat That Frog).
+    
+    Step 1: Brain Dump (capture all tasks)
+    Step 2: 80/20 Filter (identify high impact tasks)
+    Step 3: The Frog (select #1 most important task)
+    Step 4: Battle Plan (break down frog + time blocking)
+    """
+    context = {
+        "title": "Executive Focus Wizard",
+        "today": timezone.localdate(),
+        "user_token": request.user.id,  # For calendar feed URL
+    }
+    return render(request, "core/focus_wizard.html", context)
+
+
 # --- DASHBOARD (Redirect to role-based dashboards) ---
 @login_required
 def dashboard_view(request):

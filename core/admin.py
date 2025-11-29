@@ -1109,3 +1109,160 @@ class ProposalEmailLogAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         # Logs are read-only
         return False
+
+
+# =============================================================================
+# MODULE 25: EXECUTIVE FOCUS WORKFLOW (PRODUCTIVITY)
+# =============================================================================
+
+from .models import DailyFocusSession, FocusTask
+
+
+class FocusTaskInline(admin.TabularInline):
+    model = FocusTask
+    extra = 0
+    fields = (
+        'order', 'title', 'is_high_impact', 'is_frog', 
+        'scheduled_start', 'scheduled_end', 'is_completed'
+    )
+    readonly_fields = ('calendar_token',)
+    ordering = ['order', '-is_frog', '-is_high_impact']
+
+
+@admin.register(DailyFocusSession)
+class DailyFocusSessionAdmin(admin.ModelAdmin):
+    list_display = (
+        'date', 'user', 'energy_level', 
+        'total_tasks_display', 'completed_tasks_display', 
+        'frog_display', 'created_at'
+    )
+    list_filter = ('date', 'energy_level', 'user')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'notes')
+    readonly_fields = ('created_at', 'updated_at')
+    date_hierarchy = 'date'
+    ordering = ('-date',)
+    
+    inlines = [FocusTaskInline]
+    
+    fieldsets = (
+        ('Session Info', {
+            'fields': ('user', 'date', 'energy_level')
+        }),
+        ('Notes', {
+            'fields': ('notes',),
+            'classes': ('collapse',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def total_tasks_display(self, obj):
+        return obj.total_tasks
+    total_tasks_display.short_description = 'Total Tasks'
+    
+    def completed_tasks_display(self, obj):
+        completed = obj.completed_tasks
+        total = obj.total_tasks
+        if total > 0:
+            pct = int((completed / total) * 100)
+            return f"{completed}/{total} ({pct}%)"
+        return "0/0"
+    completed_tasks_display.short_description = 'Completed'
+    
+    def frog_display(self, obj):
+        frog = obj.frog_task
+        if frog:
+            status = "✅" if frog.is_completed else "⏳"
+            return f"🐸 {status} {frog.title[:30]}"
+        return "-"
+    frog_display.short_description = 'Frog Task'
+
+
+@admin.register(FocusTask)
+class FocusTaskAdmin(admin.ModelAdmin):
+    list_display = (
+        'title_display', 'session_user', 'session_date', 
+        'is_high_impact', 'is_frog', 'is_completed', 
+        'scheduled_start', 'duration_display'
+    )
+    list_filter = (
+        'is_high_impact', 'is_frog', 'is_completed', 
+        'session__date', 'session__user'
+    )
+    search_fields = (
+        'title', 'description', 'impact_reason', 
+        'session__user__username'
+    )
+    readonly_fields = (
+        'calendar_token', 'completed_at', 'created_at', 'updated_at',
+        'duration_minutes', 'checklist_progress', 'calendar_title', 
+        'calendar_description'
+    )
+    date_hierarchy = 'session__date'
+    ordering = ('-session__date', 'order', '-is_frog', '-is_high_impact')
+    
+    fieldsets = (
+        ('Task Info', {
+            'fields': ('session', 'title', 'description', 'order')
+        }),
+        ('Pareto & Frog', {
+            'fields': ('is_high_impact', 'impact_reason', 'is_frog')
+        }),
+        ('Battle Plan', {
+            'fields': ('checklist',),
+            'classes': ('collapse',)
+        }),
+        ('Time Blocking', {
+            'fields': (
+                'scheduled_start', 'scheduled_end', 'duration_minutes'
+            )
+        }),
+        ('Status', {
+            'fields': ('is_completed', 'completed_at', 'checklist_progress')
+        }),
+        ('Calendar Integration', {
+            'fields': (
+                'calendar_token', 'calendar_title', 'calendar_description'
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def title_display(self, obj):
+        prefix = "🐸 " if obj.is_frog else "⚡ " if obj.is_high_impact else ""
+        return f"{prefix}{obj.title}"
+    title_display.short_description = 'Title'
+    
+    def session_user(self, obj):
+        return obj.session.user.get_full_name() or obj.session.user.username
+    session_user.short_description = 'User'
+    session_user.admin_order_field = 'session__user'
+    
+    def session_date(self, obj):
+        return obj.session.date
+    session_date.short_description = 'Date'
+    session_date.admin_order_field = 'session__date'
+    
+    def duration_display(self, obj):
+        if obj.duration_minutes:
+            hours = obj.duration_minutes // 60
+            minutes = obj.duration_minutes % 60
+            if hours > 0:
+                return f"{hours}h {minutes}m"
+            return f"{minutes}m"
+        return "-"
+    duration_display.short_description = 'Duration'
+    
+    def calendar_title(self, obj):
+        return obj.get_calendar_title()
+    calendar_title.short_description = 'Calendar Title'
+    
+    def calendar_description(self, obj):
+        return obj.get_calendar_description()
+    calendar_description.short_description = 'Calendar Description'

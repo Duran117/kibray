@@ -1,0 +1,871 @@
+{% extends 'core/base_modern.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Executive Focus Wizard" %} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wizard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .wizard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+    
+    .wizard-steps::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e5e7eb;
+        z-index: 0;
+    }
+    
+    .wizard-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    
+    .wizard-step.active .step-circle {
+        background: #667eea;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .wizard-step.completed .step-circle {
+        background: #10b981;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .wizard-step.active .step-label {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .wizard-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        min-height: 400px;
+    }
+    
+    .step-panel {
+        display: none;
+    }
+    
+    .step-panel.active {
+        display: block;
+        animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .task-card {
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        cursor: move;
+        transition: all 0.2s;
+    }
+    
+    .task-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    }
+    
+    .task-card.high-impact {
+        border-color: #f59e0b;
+        background: #fffbeb;
+    }
+    
+    .task-card.frog {
+        border-color: #10b981;
+        background: #ecfdf5;
+        border-width: 3px;
+    }
+    
+    .task-card.frog::before {
+        content: '🐸';
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+    }
+    
+    .drag-zone {
+        min-height: 300px;
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 1rem;
+        background: #f9fafb;
+    }
+    
+    .drag-zone.drag-over {
+        border-color: #667eea;
+        background: #eef2ff;
+    }
+    
+    .columns-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    
+    .column-header {
+        font-weight: 600;
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .impact-input {
+        margin-top: 0.5rem;
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+    
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .checklist-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .checklist-item input[type="text"] {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+    }
+    
+    .time-block-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-wizard {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    
+    .btn-primary {
+        background: #667eea;
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        background: #5568d3;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: #e5e7eb;
+        color: #374151;
+        border: none;
+    }
+    
+    .btn-secondary:hover {
+        background: #d1d5db;
+    }
+    
+    .wizard-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .energy-selector {
+        display: flex;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .energy-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid #e5e7eb;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .energy-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .energy-btn.selected {
+        border-color: #667eea;
+        background: #667eea;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .frog-selector {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .frog-option {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .frog-option:hover {
+        border-color: #10b981;
+    }
+    
+    .frog-option.selected {
+        border-color: #10b981;
+        background: #ecfdf5;
+        border-width: 3px;
+    }
+    
+    .frog-option.selected::before {
+        content: '🐸 ';
+        font-size: 1.5rem;
+    }
+    
+    .success-message {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .calendar-subscribe {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+    <!-- Header -->
+    <div class="wizard-header">
+        <h1 class="text-3xl font-bold mb-2">🎯 {% trans "Executive Focus Wizard" %}</h1>
+        <p class="text-lg opacity-90">{% trans "Pareto (80/20) + Eat That Frog Daily Planning" %}</p>
+        <div class="mt-4">
+            <span class="text-sm opacity-75">{% trans "Date:" %}</span>
+            <span class="text-lg font-semibold ml-2" id="sessionDate">{{ today|date:"l, F j, Y" }}</span>
+        </div>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1">
+            <div class="step-circle">1</div>
+            <div class="step-label">{% trans "Brain Dump" %}</div>
+        </div>
+        <div class="wizard-step" data-step="2">
+            <div class="step-circle">2</div>
+            <div class="step-label">{% trans "80/20 Filter" %}</div>
+        </div>
+        <div class="wizard-step" data-step="3">
+            <div class="step-circle">3</div>
+            <div class="step-label">{% trans "The Frog 🐸" %}</div>
+        </div>
+        <div class="wizard-step" data-step="4">
+            <div class="step-circle">4</div>
+            <div class="step-label">{% trans "Battle Plan" %}</div>
+        </div>
+    </div>
+
+    <!-- Wizard Content -->
+    <div class="wizard-content">
+        <!-- Step 1: Brain Dump -->
+        <div class="step-panel active" id="step1">
+            <h2 class="text-2xl font-bold mb-4">{% trans "Step 1: Brain Dump" %}</h2>
+            <p class="text-gray-600 mb-4">
+                {% trans "Write down everything you need to do today. One task per line. Don't filter yet - just dump it all out." %}
+            </p>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    {% trans "How's your energy today?" %}
+                </label>
+                <div class="energy-selector" id="energySelector">
+                    {% for i in "12345678910" %}
+                    <button type="button" class="energy-btn" data-energy="{{ forloop.counter }}">{{ forloop.counter }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <textarea 
+                id="taskInput"
+                rows="12"
+                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="{% trans 'Review project proposal\nCall supplier about materials\nUpdate client on progress\nReview team timesheets\n...' %}"
+            ></textarea>
+            
+            <div class="mt-4 text-sm text-gray-500">
+                <span id="taskCount">0</span> {% trans "tasks entered" %}
+            </div>
+        </div>
+
+        <!-- Step 2: 80/20 Filter -->
+        <div class="step-panel" id="step2">
+            <h2 class="text-2xl font-bold mb-4">{% trans "Step 2: The 80/20 Filter" %}</h2>
+            <p class="text-gray-600 mb-4">
+                {% trans "Drag tasks to the High Impact column. These are the 20% that will produce 80% of your results." %}
+            </p>
+            
+            <div class="columns-container">
+                <div>
+                    <div class="column-header text-gray-700">
+                        📋 {% trans "All Tasks" %}
+                    </div>
+                    <div class="drag-zone" id="allTasksZone" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <!-- Task cards will be added here -->
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="column-header text-orange-600">
+                        ⚡ {% trans "High Impact (The Critical 20%)" %}
+                    </div>
+                    <div class="drag-zone" id="highImpactZone" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <!-- High impact tasks will be moved here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: The Frog -->
+        <div class="step-panel" id="step3">
+            <h2 class="text-2xl font-bold mb-4">{% trans "Step 3: Identify Your Frog 🐸" %}</h2>
+            <p class="text-gray-600 mb-4">
+                {% trans "Which ONE task is the most important/hardest? This is your Frog. Eat it first thing in the morning." %}
+            </p>
+            
+            <div class="frog-selector" id="frogSelector">
+                <!-- High impact tasks will be listed here as radio options -->
+            </div>
+            
+            <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="text-sm text-green-800">
+                    <strong>💡 Tip:</strong> {% trans "Your Frog is the task that will make the biggest difference to your day. It's usually the one you're most tempted to avoid." %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 4: Battle Plan -->
+        <div class="step-panel" id="step4">
+            <h2 class="text-2xl font-bold mb-4">{% trans "Step 4: Battle Plan" %}</h2>
+            <p class="text-gray-600 mb-4">
+                {% trans "Break down your Frog into micro-actions and schedule it." %}
+            </p>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">🐸 <span id="frogTitle"></span></h3>
+                <p class="text-sm text-gray-600" id="frogImpact"></p>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    {% trans "Checklist (Break it down into small steps):" %}
+                </label>
+                <div id="checklistContainer">
+                    <div class="checklist-item">
+                        <input type="checkbox" disabled>
+                        <input type="text" class="checklist-input" placeholder="{% trans 'First small step...' %}">
+                        <button type="button" onclick="removeChecklistItem(this)" class="text-red-500 hover:text-red-700">✕</button>
+                    </div>
+                </div>
+                <button type="button" onclick="addChecklistItem()" class="mt-2 text-sm text-purple-600 hover:text-purple-800">
+                    + {% trans "Add step" %}
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    {% trans "Time Block (When will you tackle this?):" %}
+                </label>
+                <div class="time-block-grid">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">{% trans "Start Time" %}</label>
+                        <input type="datetime-local" id="startTime" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">{% trans "End Time" %}</label>
+                        <input type="datetime-local" id="endTime" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    {% trans "Session Notes (Optional):" %}
+                </label>
+                <textarea 
+                    id="sessionNotes"
+                    rows="3"
+                    class="w-full p-3 border border-gray-300 rounded-lg"
+                    placeholder="{% trans 'Any insights, reflections, or reminders for today...' %}"
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Success Step -->
+        <div class="step-panel" id="stepSuccess">
+            <div class="success-message">
+                <div class="success-icon">🎉</div>
+                <h2 class="text-3xl font-bold mb-4">{% trans "Your Focus Plan is Ready!" %}</h2>
+                <p class="text-lg text-gray-600 mb-6">
+                    {% trans "Your tasks are now on your calendar. Time to eat that frog!" %}
+                </p>
+                
+                <div class="calendar-subscribe">
+                    <h3 class="font-semibold mb-2">📅 {% trans "Subscribe to Your Focus Calendar" %}</h3>
+                    <p class="text-sm text-gray-600 mb-3">
+                        {% trans "Add this to Apple Calendar or Google Calendar for automatic sync:" %}
+                    </p>
+                    <div class="flex gap-2">
+                        <input 
+                            type="text" 
+                            id="calendarUrl" 
+                            readonly 
+                            class="flex-1 p-2 border border-gray-300 rounded bg-white"
+                            value="webcal://{{ request.get_host }}/api/calendar/feed/{{ user_token }}.ics"
+                        >
+                        <button onclick="copyCalendarUrl()" class="btn-wizard btn-secondary">
+                            {% trans "Copy" %}
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex gap-4 justify-center">
+                    <a href="{% url 'dashboard' %}" class="btn-wizard btn-secondary">
+                        {% trans "Back to Dashboard" %}
+                    </a>
+                    <a href="{% url 'master_schedule_center' %}" class="btn-wizard btn-primary">
+                        {% trans "View Master Calendar" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="wizard-actions" id="wizardActions">
+            <button type="button" id="btnPrev" class="btn-wizard btn-secondary" onclick="prevStep()" style="display: none;">
+                ← {% trans "Previous" %}
+            </button>
+            <div></div>
+            <button type="button" id="btnNext" class="btn-wizard btn-primary" onclick="nextStep()">
+                {% trans "Next" %} →
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStep = 1;
+let tasks = [];
+let energyLevel = 5;
+let sessionId = null;
+
+// Energy selector
+document.querySelectorAll('.energy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.energy-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        energyLevel = parseInt(this.dataset.energy);
+    });
+});
+
+// Set default energy
+document.querySelector('.energy-btn[data-energy="5"]').classList.add('selected');
+
+// Task input counter
+document.getElementById('taskInput').addEventListener('input', function() {
+    const lines = this.value.split('\n').filter(line => line.trim().length > 0);
+    document.getElementById('taskCount').textContent = lines.length;
+});
+
+// Navigation
+function nextStep() {
+    if (currentStep === 1) {
+        // Parse tasks from textarea
+        const input = document.getElementById('taskInput').value;
+        const lines = input.split('\n').filter(line => line.trim().length > 0);
+        
+        if (lines.length === 0) {
+            alert('{% trans "Please enter at least one task" %}');
+            return;
+        }
+        
+        tasks = lines.map((line, idx) => ({
+            id: idx,
+            title: line.trim(),
+            isHighImpact: false,
+            impactReason: '',
+            isFrog: false
+        }));
+        
+        renderTaskCards();
+    } else if (currentStep === 2) {
+        // Validate high impact tasks have reasons
+        const highImpactTasks = tasks.filter(t => t.isHighImpact);
+        
+        if (highImpactTasks.length === 0) {
+            alert('{% trans "Please select at least one High Impact task" %}');
+            return;
+        }
+        
+        for (let task of highImpactTasks) {
+            if (!task.impactReason.trim()) {
+                alert('{% trans "Please explain WHY each High Impact task matters" %}');
+                return;
+            }
+        }
+        
+        renderFrogOptions();
+    } else if (currentStep === 3) {
+        // Validate frog selection
+        const frogTask = tasks.find(t => t.isFrog);
+        
+        if (!frogTask) {
+            alert('{% trans "Please select your Frog task" %}');
+            return;
+        }
+        
+        renderBattlePlan(frogTask);
+    } else if (currentStep === 4) {
+        // Save and finish
+        saveFocusSession();
+        return; // Don't increment step, saveFocusSession will handle navigation
+    }
+    
+    currentStep++;
+    updateWizardUI();
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateWizardUI();
+    }
+}
+
+function updateWizardUI() {
+    // Update step indicators
+    document.querySelectorAll('.wizard-step').forEach(step => {
+        const stepNum = parseInt(step.dataset.step);
+        step.classList.remove('active', 'completed');
+        
+        if (stepNum === currentStep) {
+            step.classList.add('active');
+        } else if (stepNum < currentStep) {
+            step.classList.add('completed');
+        }
+    });
+    
+    // Show/hide panels
+    document.querySelectorAll('.step-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+    document.getElementById(`step${currentStep}`).classList.add('active');
+    
+    // Update buttons
+    document.getElementById('btnPrev').style.display = currentStep > 1 ? 'block' : 'none';
+    
+    const btnNext = document.getElementById('btnNext');
+    if (currentStep === 4) {
+        btnNext.textContent = '✓ {% trans "Complete Plan" %}';
+    } else {
+        btnNext.textContent = '{% trans "Next" %} →';
+    }
+    
+    // Hide actions on success
+    if (currentStep === 5) {
+        document.getElementById('wizardActions').style.display = 'none';
+    }
+}
+
+// Drag and Drop for Step 2
+function allowDrop(ev) {
+    ev.preventDefault();
+    ev.target.closest('.drag-zone').classList.add('drag-over');
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("taskId", ev.target.dataset.taskId);
+}
+
+function drop(ev) {
+    ev.preventDefault();
+    ev.target.closest('.drag-zone').classList.remove('drag-over');
+    
+    const taskId = parseInt(ev.dataTransfer.getData("taskId"));
+    const dropZone = ev.target.closest('.drag-zone');
+    const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+    
+    if (dropZone.id === 'highImpactZone') {
+        tasks[taskId].isHighImpact = true;
+        taskCard.classList.add('high-impact');
+        
+        // Add impact reason input if not exists
+        if (!taskCard.querySelector('.impact-input')) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'impact-input';
+            input.placeholder = '{% trans "Why does this matter? What results will it produce?" %}';
+            input.value = tasks[taskId].impactReason;
+            input.addEventListener('input', function() {
+                tasks[taskId].impactReason = this.value;
+            });
+            taskCard.appendChild(input);
+        }
+    } else {
+        tasks[taskId].isHighImpact = false;
+        tasks[taskId].isFrog = false;
+        taskCard.classList.remove('high-impact');
+        const impactInput = taskCard.querySelector('.impact-input');
+        if (impactInput) impactInput.remove();
+    }
+    
+    dropZone.appendChild(taskCard);
+}
+
+function renderTaskCards() {
+    const allTasksZone = document.getElementById('allTasksZone');
+    allTasksZone.innerHTML = '';
+    
+    tasks.forEach(task => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.draggable = true;
+        card.dataset.taskId = task.id;
+        card.ondragstart = drag;
+        card.ondragend = function() {
+            document.querySelectorAll('.drag-zone').forEach(z => z.classList.remove('drag-over'));
+        };
+        card.innerHTML = `<div>${task.title}</div>`;
+        allTasksZone.appendChild(card);
+    });
+}
+
+function renderFrogOptions() {
+    const frogSelector = document.getElementById('frogSelector');
+    frogSelector.innerHTML = '';
+    
+    const highImpactTasks = tasks.filter(t => t.isHighImpact);
+    
+    highImpactTasks.forEach(task => {
+        const option = document.createElement('div');
+        option.className = 'frog-option';
+        option.dataset.taskId = task.id;
+        option.innerHTML = `
+            <div class="font-semibold">${task.title}</div>
+            <div class="text-sm text-gray-600 mt-1">${task.impactReason}</div>
+        `;
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.frog-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            // Reset all frog flags
+            tasks.forEach(t => t.isFrog = false);
+            tasks[task.id].isFrog = true;
+        });
+        
+        frogSelector.appendChild(option);
+    });
+}
+
+function renderBattlePlan(frogTask) {
+    document.getElementById('frogTitle').textContent = frogTask.title;
+    document.getElementById('frogImpact').textContent = frogTask.impactReason;
+    
+    // Set default times (tomorrow 9 AM - 11 AM)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    
+    const endTime = new Date(tomorrow);
+    endTime.setHours(11, 0, 0, 0);
+    
+    document.getElementById('startTime').value = formatDateTimeLocal(tomorrow);
+    document.getElementById('endTime').value = formatDateTimeLocal(endTime);
+}
+
+function formatDateTimeLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function addChecklistItem() {
+    const container = document.getElementById('checklistContainer');
+    const item = document.createElement('div');
+    item.className = 'checklist-item';
+    item.innerHTML = `
+        <input type="checkbox" disabled>
+        <input type="text" class="checklist-input" placeholder="{% trans 'Next step...' %}">
+        <button type="button" onclick="removeChecklistItem(this)" class="text-red-500 hover:text-red-700">✕</button>
+    `;
+    container.appendChild(item);
+}
+
+function removeChecklistItem(btn) {
+    btn.closest('.checklist-item').remove();
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+async function saveFocusSession() {
+    const frogTask = tasks.find(t => t.isFrog);
+    
+    // Collect checklist
+    const checklistInputs = document.querySelectorAll('.checklist-input');
+    const checklist = Array.from(checklistInputs)
+        .map(input => ({
+            text: input.value.trim(),
+            done: false
+        }))
+        .filter(item => item.text.length > 0);
+    
+    const sessionData = {
+        date: new Date().toISOString().split('T')[0],
+        energy_level: energyLevel,
+        notes: document.getElementById('sessionNotes').value,
+        tasks: tasks.map(task => ({
+            title: task.title,
+            is_high_impact: task.isHighImpact,
+            impact_reason: task.impactReason,
+            is_frog: task.isFrog,
+            checklist: task.isFrog ? checklist : [],
+            scheduled_start: task.isFrog ? document.getElementById('startTime').value : null,
+            scheduled_end: task.isFrog ? document.getElementById('endTime').value : null
+        }))
+    };
+    
+    try {
+        const response = await fetch('/api/v1/focus/sessions/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(sessionData)
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            sessionId = data.id;
+            
+            // Show success step
+            currentStep = 5;
+            document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
+            document.getElementById('stepSuccess').classList.add('active');
+            document.getElementById('wizardActions').style.display = 'none';
+            
+            // Update all wizard steps to completed
+            document.querySelectorAll('.wizard-step').forEach(step => {
+                step.classList.remove('active');
+                step.classList.add('completed');
+            });
+        } else {
+            const error = await response.json();
+            alert('{% trans "Error saving session:" %} ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('{% trans "Error saving session. Please try again." %}');
+    }
+}
+
+function copyCalendarUrl() {
+    const input = document.getElementById('calendarUrl');
+    input.select();
+    document.execCommand('copy');
+    alert('{% trans "Calendar URL copied! Paste it in your calendar app." %}');
+}
+</script>
+{% endblock %}
