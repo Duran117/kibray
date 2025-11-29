@@ -6030,7 +6030,28 @@ def daily_plan_create(request, project_id):
 
     if request.method == "POST":
         plan_date_str = request.POST.get("plan_date")
-        plan_date = datetime.strptime(plan_date_str, "%Y-%m-%d").date() if plan_date_str else None
+        plan_date = None
+        if plan_date_str:
+            try:
+                plan_date = datetime.strptime(plan_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                # Invalid date format: re-render form with error instead of raising exception
+                messages.error(request, "Invalid date format")
+                from core.services.planning_service import get_suggested_items_for_date
+                target_date = timezone.now().date() + timedelta(days=1)
+                suggested_items = get_suggested_items_for_date(project, target_date)
+                return render(
+                    request,
+                    "core/daily_plan_create.html",
+                    {
+                        "project": project,
+                        "min_date": timezone.now().date(),
+                        "target_date": target_date,
+                        "suggested_items": suggested_items,
+                        "has_suggestions": len(suggested_items) > 0,
+                        "invalid_date": True,
+                    },
+                )
 
         if not plan_date:
             messages.error(request, "Plan date is required")

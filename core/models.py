@@ -6296,6 +6296,15 @@ class DailyPlan(models.Model):
 
         return movements
 
+    # Backwards compatibility for older code/tests expecting the default
+    # Django reverse accessor name `plannedactivity_set` when no related_name
+    # was specified on PlannedActivity.daily_plan ForeignKey. Our current
+    # related_name is `activities`; expose an alias so external code and
+    # existing tests don't break.
+    @property
+    def plannedactivity_set(self):  # pragma: no cover - simple alias
+        return self.activities
+
 
 class PlannedActivity(models.Model):
     """

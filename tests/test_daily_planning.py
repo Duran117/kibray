@@ -35,8 +35,11 @@ def user_with_profile(db, django_user_model):
     )
     # Profile is auto-created via signal, just update if needed
     profile = Profile.objects.get(user=user)
-    profile.role = 'manager'
+    # Set role and staff flags so _is_staffish passes (permite admin/project_manager/staff/superuser)
+    profile.role = 'project_manager'
     profile.save()
+    user.is_staff = True
+    user.save()
     return user
 
 
@@ -450,6 +453,8 @@ class TestDailyPlanCreateView:
         
         # Should still show form with errors
         assert response.status_code == 200
+        # Inline error message should be present
+        assert 'Invalid date format' in response.content.decode()
         
     def test_post_duplicate_import(self, client, user_with_profile, project, schedule_items):
         """Test importing same item twice (should handle gracefully)."""

@@ -1,235 +1,87 @@
-{% extends "core/base.html" %}{% extends "core/base.html" %}
-
-{% load i18n %}{% load i18n %}
-
-{% block title %}{% trans "Create Daily Plan" %}{% endblock %}
-
-{% block title %}Create Daily Plan - {{ project.name }}{% endblock %}{% block content %}
-
-<div class="container py-3" style="max-width:800px;">
-
-{% block content %}  <h2 class="mb-3"><i class="bi bi-journal-plus me-2"></i>{% trans "New Daily Plan" %}</h2>
-
-<div class="container-fluid py-4">  <p class="text-muted">{% trans "Minimal placeholder template for daily plan creation." %}</p>
-
-    <!-- Header -->  <form method="post">
-
-    <div class="row mb-4">    {% csrf_token %}
-
-        <div class="col-12">    {{ form.as_p }}
-
-            <nav aria-label="breadcrumb">    <button class="btn btn-primary" type="submit">{% trans "Save" %}</button>
-
-                <ol class="breadcrumb">    <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
-
-                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>  </form>
-
-                    <li class="breadcrumb-item"><a href="{% url 'daily_planning_dashboard' %}">Daily Planning</a></li></div>
-
-                    <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>{% endblock %}
-
-                    <li class="breadcrumb-item active">New Daily Plan</li>
-                </ol>
-            </nav>
-            
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2><i class="bi bi-calendar-plus"></i> Create Daily Plan</h2>
-                    <p class="text-muted">Plan activities for {{ project.name }} on {{ target_date|date:"F j, Y" }}</p>
+{% extends "core/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Create Daily Plan" %} · {{ project.name }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="h5 mb-3"><i class="bi bi-calendar-plus me-1"></i> {% trans "Create Daily Plan" %}</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} small py-2 mb-2">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% if invalid_date %}
+        <div class="alert alert-danger small py-2 mb-3"><i class="bi bi-exclamation-triangle me-1"></i>{% trans "Invalid date format. Please use YYYY-MM-DD." %}</div>
+    {% endif %}
+    <p class="text-muted">{% blocktrans %}Planning for {{ target_date|date:"F j, Y" }}{% endblocktrans %}</p>
+    <form method="post" id="plan-form" class="row g-4">
+        {% csrf_token %}
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">{% trans "Plan Details" %}</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="plan_date" class="form-label fw-semibold">{% trans "Plan Date" %}</label>
+                        <input type="date" class="form-control" id="plan_date" name="plan_date" value="{{ target_date|date:'Y-m-d' }}" min="{{ min_date|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{% trans "Quick Date" %}</label>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDate(1)">{% trans "Tomorrow" %}</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDate(2)">{% trans "+2" %}</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDate(7)">{% trans "Next Week" %}</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{% trans "Selected Activities" %}</label>
+                        <div id="selected-activities-list" class="border rounded bg-light p-3" style="min-height:110px;">
+                            <p id="no-activities-msg" class="text-muted mb-0">{% trans "None yet – use suggestions →" %}</p>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> {% trans "Create Plan" %}</button>
+                        <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <form method="post" id="plan-form">
-        {% csrf_token %}
-        
-        <div class="row">
-            <!-- Left Column: Plan Form -->
-            <div class="col-lg-5">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Plan Details</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Plan Date -->
-                        <div class="mb-3">
-                            <label for="plan_date" class="form-label fw-bold">
-                                <i class="bi bi-calendar-event"></i> Plan Date
-                            </label>
-                            <input 
-                                type="date" 
-                                class="form-control" 
-                                id="plan_date" 
-                                name="plan_date" 
-                                value="{{ target_date|date:'Y-m-d' }}"
-                                min="{{ min_date|date:'Y-m-d' }}"
-                                required
-                            >
-                            <small class="form-text text-muted">
-                                The work day this plan is for (must be submitted by 5pm the day before)
-                            </small>
-                        </div>
-
-                        <!-- Date Selector Buttons -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Quick Date Select</label>
-                            <div class="btn-group d-flex" role="group">
-                                <button type="button" class="btn btn-outline-secondary" onclick="setDate(1)">
-                                    Tomorrow
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="setDate(2)">
-                                    +2 Days
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="setDate(7)">
-                                    Next Week
-                                </button>
-                            </div>
-                        </div>
-
-                        <hr>
-
-                        <!-- Selected Activities Summary -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-list-check"></i> Selected Activities
-                            </label>
-                            <div id="selected-activities-list" class="border rounded p-3 bg-light" style="min-height: 100px;">
-                                <p class="text-muted mb-0" id="no-activities-msg">
-                                    No activities selected yet. Import from suggestions →
-                                </p>
-                            </div>
-                            <small class="form-text text-muted">
-                                Selected schedule items will be imported as planned activities
-                            </small>
-                        </div>
-
-                        <hr>
-
-                        <!-- Submit Buttons -->
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-save"></i> Create Plan & Continue Editing
-                            </button>
-                            <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Schedule Suggestions -->
-            <div class="col-lg-7">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-lightbulb"></i> Schedule Suggestions for {{ target_date|date:"F j, Y" }}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if has_suggestions %}
-                            <p class="text-muted mb-3">
-                                These schedule items are planned for {{ target_date|date:"F j" }}. 
-                                Click "Import" to add them to your daily plan.
-                            </p>
-
-                            <div id="suggestions-container">
-                                {% for item in suggested_items %}
-                                <div class="card mb-3 suggestion-card" data-item-id="{{ item.id }}">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <h6 class="card-title mb-1">
-                                                    {% if item.is_milestone %}
-                                                    <i class="bi bi-diamond-fill text-warning"></i>
-                                                    {% endif %}
-                                                    {{ item.title }}
-                                                </h6>
-                                                <p class="card-text small text-muted mb-2">
-                                                    {{ item.category_name }}
-                                                    {% if item.cost_code %}
-                                                    · <span class="badge bg-secondary">{{ item.cost_code }}</span>
-                                                    {% endif %}
-                                                </p>
-                                                
-                                                <!-- Progress Bar -->
-                                                <div class="progress mb-2" style="height: 20px;">
-                                                    <div 
-                                                        class="progress-bar {% if item.is_behind %}bg-danger{% else %}bg-success{% endif %}" 
-                                                        role="progressbar" 
-                                                        style="width: {{ item.percent_complete }}%"
-                                                        aria-valuenow="{{ item.percent_complete }}" 
-                                                        aria-valuemin="0" 
-                                                        aria-valuemax="100">
-                                                        {{ item.percent_complete }}%
-                                                    </div>
-                                                </div>
-
-                                                <!-- Metadata -->
-                                                <div class="d-flex flex-wrap gap-2 small">
-                                                    <span class="badge bg-info">
-                                                        <i class="bi bi-calendar"></i> 
-                                                        {{ item.planned_start|date:"M j" }} - {{ item.planned_end|date:"M j" }}
-                                                    </span>
-                                                    <span class="badge {% if item.days_remaining <= 2 %}bg-danger{% elif item.days_remaining <= 5 %}bg-warning{% else %}bg-secondary{% endif %}">
-                                                        <i class="bi bi-clock"></i> 
-                                                        {{ item.days_remaining }} day{{ item.days_remaining|pluralize }} left
-                                                    </span>
-                                                    {% if item.is_behind %}
-                                                    <span class="badge bg-danger">
-                                                        <i class="bi bi-exclamation-triangle"></i> Behind Schedule
-                                                    </span>
-                                                    {% endif %}
-                                                    {% if item.is_urgent %}
-                                                    <span class="badge bg-danger">
-                                                        <i class="bi bi-fire"></i> Urgent
-                                                    </span>
-                                                    {% endif %}
-                                                    <span class="badge bg-light text-dark">
-                                                        {{ item.status_display }}
-                                                    </span>
-                                                </div>
-
-                                                {% if item.description %}
-                                                <p class="card-text small mt-2 mb-0 text-muted">
-                                                    {{ item.description|truncatewords:20 }}
-                                                </p>
-                                                {% endif %}
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">{% trans "Suggestions" %}</div>
+                <div class="card-body">
+                    {% if has_suggestions %}
+                        <div id="suggestions-container">
+                            {% for item in suggested_items %}
+                            <div class="card mb-3 suggestion-card" data-item-id="{{ item.id }}">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="flex-grow-1 pe-2">
+                                            <h6 class="card-title mb-1">{% if item.is_milestone %}<i class="bi bi-diamond-fill text-warning me-1"></i>{% endif %}{{ item.title }}</h6>
+                                            <div class="small text-muted mb-2">{{ item.category_name }} {% if item.cost_code %}· <span class="badge bg-secondary">{{ item.cost_code }}</span>{% endif %}</div>
+                                            <div class="progress mb-2" style="height:16px;">
+                                                <div class="progress-bar {% if item.is_behind %}bg-danger{% else %}bg-success{% endif %}" style="width:{{ item.percent_complete }}%">{{ item.percent_complete }}%</div>
                                             </div>
-                                            
-                                            <div class="ms-3">
-                                                <button 
-                                                    type="button" 
-                                                    class="btn btn-success btn-sm import-btn"
-                                                    onclick="importItem({{ item.id }}, '{{ item.title|escapejs }}')"
-                                                    data-item-id="{{ item.id }}">
-                                                    <i class="bi bi-plus-circle"></i> Import
-                                                </button>
+                                            <div class="small d-flex flex-wrap gap-2">
+                                                <span class="badge bg-info"><i class="bi bi-calendar"></i> {{ item.planned_start|date:"M j" }}–{{ item.planned_end|date:"M j" }}</span>
+                                                <span class="badge {% if item.days_remaining <= 2 %}bg-danger{% elif item.days_remaining <= 5 %}bg-warning{% else %}bg-secondary{% endif %}"><i class="bi bi-clock"></i> {{ item.days_remaining }}d</span>
+                                                {% if item.is_urgent %}<span class="badge bg-danger"><i class="bi bi-fire"></i> {% trans "Urgent" %}</span>{% endif %}
+                                                {% if item.is_behind %}<span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> {% trans "Behind" %}</span>{% endif %}
+                                                <span class="badge bg-light text-dark">{{ item.status_display }}</span>
                                             </div>
+                                            {% if item.description %}<p class="small text-muted mb-0 mt-2">{{ item.description|truncatewords:20 }}</p>{% endif %}
+                                        </div>
+                                        <div class="text-end">
+                                            <button type="button" class="btn btn-success btn-sm import-btn" data-item-id="{{ item.id }}" onclick="importItem({{ item.id }}, '{{ item.title|escapejs }}')"><i class="bi bi-plus-circle"></i></button>
                                         </div>
                                     </div>
                                 </div>
-                                {% endfor %}
                             </div>
-
-                        {% else %}
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle"></i>
-                                <strong>No schedule items found for {{ target_date|date:"F j, Y" }}</strong>
-                                <p class="mb-0">
-                                    There are no active schedule items planned for this date. 
-                                    You can still create a daily plan and add activities manually.
-                                </p>
-                            </div>
-                        {% endif %}
-
-                        <!-- Change Date Link -->
-                        <div class="mt-3 text-center">
-                            <a href="#" class="text-muted" onclick="changeSuggestionDate(); return false;">
-                                <i class="bi bi-calendar"></i> View suggestions for a different date
-                            </a>
+                            {% endfor %}
                         </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0"><i class="bi bi-info-circle me-1"></i> {% trans "No schedule items active for this date." %}</div>
+                    {% endif %}
+                    <div class="mt-3 text-center">
+                        <a href="#" onclick="changeSuggestionDate();return false;" class="small text-muted"><i class="bi bi-calendar me-1"></i>{% trans "Pick another date" %}</a>
                     </div>
                 </div>
             </div>
@@ -238,183 +90,22 @@
 </div>
 
 <script>
-// Track selected items
 let selectedItems = new Set();
-
-function setDate(daysFromNow) {
-    const today = new Date();
-    today.setDate(today.getDate() + daysFromNow);
-    const dateStr = today.toISOString().split('T')[0];
-    document.getElementById('plan_date').value = dateStr;
-    
-    // Reload page with new date to get new suggestions
-    const url = new URL(window.location.href);
-    url.searchParams.set('date', dateStr);
-    window.location.href = url.toString();
-}
-
-function importItem(itemId, itemTitle) {
-    // Check if already imported
-    if (selectedItems.has(itemId)) {
-        alert('This item is already imported');
-        return;
-    }
-    
-    // Add to selected set
-    selectedItems.add(itemId);
-    
-    // Add hidden input for form submission
-    const form = document.getElementById('plan-form');
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'import_items';
-    input.value = itemId;
-    input.id = 'import-item-' + itemId;
-    form.appendChild(input);
-    
-    // Update UI
-    updateSelectedActivitiesList();
-    
-    // Disable import button
-    const btn = document.querySelector(`button[data-item-id="${itemId}"]`);
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-check-circle"></i> Imported';
-        btn.classList.remove('btn-success');
-        btn.classList.add('btn-secondary');
-    }
-    
-    // Highlight card
-    const card = document.querySelector(`.suggestion-card[data-item-id="${itemId}"]`);
-    if (card) {
-        card.classList.add('border-success');
-        card.style.borderWidth = '2px';
-    }
-}
-
-function removeItem(itemId) {
-    // Remove from set
-    selectedItems.delete(itemId);
-    
-    // Remove hidden input
-    const input = document.getElementById('import-item-' + itemId);
-    if (input) {
-        input.remove();
-    }
-    
-    // Update UI
-    updateSelectedActivitiesList();
-    
-    // Re-enable import button
-    const btn = document.querySelector(`button[data-item-id="${itemId}"]`);
-    if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-plus-circle"></i> Import';
-        btn.classList.remove('btn-secondary');
-        btn.classList.add('btn-success');
-    }
-    
-    // Remove highlight
-    const card = document.querySelector(`.suggestion-card[data-item-id="${itemId}"]`);
-    if (card) {
-        card.classList.remove('border-success');
-        card.style.borderWidth = '1px';
-    }
-}
-
-function updateSelectedActivitiesList() {
-    const container = document.getElementById('selected-activities-list');
-    const noMsg = document.getElementById('no-activities-msg');
-    
-    if (selectedItems.size === 0) {
-        noMsg.style.display = 'block';
-        container.querySelectorAll('.selected-item').forEach(el => el.remove());
-        return;
-    }
-    
-    noMsg.style.display = 'none';
-    
-    // Get titles from cards
-    selectedItems.forEach(itemId => {
-        // Check if already in list
-        if (document.getElementById('selected-' + itemId)) {
-            return;
-        }
-        
-        const card = document.querySelector(`.suggestion-card[data-item-id="${itemId}"]`);
-        if (!card) return;
-        
-        const title = card.querySelector('.card-title').textContent.trim();
-        
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'selected-item d-flex justify-content-between align-items-center mb-2 p-2 bg-white border rounded';
-        itemDiv.id = 'selected-' + itemId;
-        itemDiv.innerHTML = `
-            <span><i class="bi bi-check-circle text-success"></i> ${title}</span>
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItem(${itemId})">
-                <i class="bi bi-x"></i>
-            </button>
-        `;
-        container.appendChild(itemDiv);
-    });
-}
-
-function changeSuggestionDate() {
-    const newDate = prompt('Enter date (YYYY-MM-DD):', document.getElementById('plan_date').value);
-    if (newDate) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('date', newDate);
-        window.location.href = url.toString();
-    }
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Set min date on date input
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('plan_date').min = today;
-});
+function setDate(days){const d=new Date();d.setDate(d.getDate()+days);const v=d.toISOString().split('T')[0];document.getElementById('plan_date').value=v;const url=new URL(window.location.href);url.searchParams.set('date',v);window.location.href=url.toString();}
+function importItem(id,title){if(selectedItems.has(id)){return;}selectedItems.add(id);const form=document.getElementById('plan-form');const input=document.createElement('input');input.type='hidden';input.name='import_items';input.value=id;input.id='import-item-'+id;form.appendChild(input);updateSelectedActivitiesList();const btn=document.querySelector(`button[data-item-id="${id}"]`);if(btn){btn.disabled=true;btn.innerHTML='<i class="bi bi-check-circle"></i>';btn.classList.replace('btn-success','btn-secondary');}const card=document.querySelector(`.suggestion-card[data-item-id="${id}"]`);if(card){card.classList.add('border-success');}}
+function removeItem(id){selectedItems.delete(id);const input=document.getElementById('import-item-'+id);if(input)input.remove();updateSelectedActivitiesList();const btn=document.querySelector(`button[data-item-id="${id}"]`);if(btn){btn.disabled=false;btn.innerHTML='<i class="bi bi-plus-circle"></i>';btn.classList.replace('btn-secondary','btn-success');}const card=document.querySelector(`.suggestion-card[data-item-id="${id}"]`);if(card){card.classList.remove('border-success');}}
+function updateSelectedActivitiesList(){const cont=document.getElementById('selected-activities-list');const msg=document.getElementById('no-activities-msg');if(selectedItems.size===0){msg.style.display='block';cont.querySelectorAll('.selected-item').forEach(e=>e.remove());return;}msg.style.display='none';selectedItems.forEach(id=>{if(document.getElementById('selected-'+id))return;const card=document.querySelector(`.suggestion-card[data-item-id="${id}"]`);if(!card)return;const title=card.querySelector('.card-title').textContent.trim();const div=document.createElement('div');div.className='selected-item d-flex justify-content-between align-items-center mb-2 p-2 bg-white border rounded';div.id='selected-'+id;div.innerHTML=`<span><i class=\"bi bi-check-circle text-success\"></i> ${title}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger\" onclick=\"removeItem(${id})\"><i class=\"bi bi-x\"></i></button>`;cont.appendChild(div);});}
+function changeSuggestionDate(){const nd=prompt('YYYY-MM-DD',document.getElementById('plan_date').value);if(nd){const url=new URL(window.location.href);url.searchParams.set('date',nd);window.location.href=url.toString();}}
+document.addEventListener('DOMContentLoaded',()=>{document.getElementById('plan_date').min=new Date().toISOString().split('T')[0];});
 </script>
 
 <style>
-.suggestion-card {
-    transition: all 0.3s ease;
-}
-
-.suggestion-card:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.import-btn {
-    white-space: nowrap;
-}
-
-#selected-activities-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.selected-item {
-    animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.progress {
-    border-radius: 10px;
-}
-
-.progress-bar {
-    transition: width 0.3s ease;
-}
+.suggestion-card{transition:.25s box-shadow, .25s border-color;}
+.suggestion-card:hover{box-shadow:0 4px 10px rgba(0,0,0,.08);}
+#selected-activities-list{max-height:380px;overflow-y:auto;}
+.selected-item{animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.progress{border-radius:10px;}
+.progress-bar{transition:width .3s ease;}
 </style>
 {% endblock %}
