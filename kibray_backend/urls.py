@@ -31,6 +31,7 @@ urlpatterns = [
     path("dashboard/", views.dashboard_view, name="dashboard"),
     path("dashboard/admin/", views.dashboard_admin, name="dashboard_admin"),
     path("dashboard/bi/", views.executive_bi_dashboard, name="dashboard_bi"),
+    path("schedule/master/", views.master_schedule_center, name="master_schedule_center"),
     path("dashboard/employee/", views.dashboard_employee, name="dashboard_employee"),
     path("dashboard/pm/", views.dashboard_pm, name="dashboard_pm"),
     path("dashboard/pm/select/<str:action>/", views.pm_select_project, name="pm_select_project"),

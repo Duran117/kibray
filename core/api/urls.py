@@ -195,4 +195,6 @@ urlpatterns = [
     # Gap F: Client Portal
     path("client/invoices/", ClientInvoiceListAPIView.as_view(), name="client-invoices"),
     path("client/invoices/<int:invoice_id>/approve/", ClientInvoiceApprovalAPIView.as_view(), name="client-invoice-approve"),
+    # Master Schedule Center
+    path("schedule/master/", lambda req: __import__('core.api.schedule_api', fromlist=['get_master_schedule_data']).get_master_schedule_data(req), name="master-schedule-data"),
 ]

@@ -1,0 +1,585 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Master Schedule Center{% endblock %}
+
+{% block extra_head %}
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<style>
+  body.schedule-center { background:#f8fafc; }
+  
+  .schedule-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  }
+  
+  .view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    padding: 0.5rem;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .toggle-btn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .toggle-btn:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+  }
+  
+  .toggle-btn.active {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .view-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .view-content.active {
+    display: block;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Gantt View Styles */
+  .gantt-container {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow-x: auto;
+  }
+  
+  .gantt-timeline {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 1rem;
+    min-width: 1200px;
+  }
+  
+  .gantt-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .gantt-label {
+    padding: 1rem;
+    background: #f1f5f9;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-height: 60px;
+  }
+  
+  .gantt-label-name {
+    color: #1e293b;
+  }
+  
+  .gantt-label-meta {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 400;
+  }
+  
+  .gantt-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+  }
+  
+  .gantt-bar-container {
+    position: relative;
+    height: 60px;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+  
+  .gantt-bar {
+    position: absolute;
+    height: 100%;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .gantt-bar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  
+  .gantt-bar-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px 0 0 8px;
+    transition: width 0.5s ease;
+  }
+  
+  .gantt-bar-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .gantt-bar-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .gantt-bar-percent {
+    background: rgba(0,0,0,0.2);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+  }
+  
+  /* Calendar View Styles */
+  .calendar-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  
+  #calendar {
+    max-width: 100%;
+  }
+  
+  .fc {
+    font-family: inherit;
+  }
+  
+  .fc .fc-button-primary {
+    background: #667eea;
+    border-color: #667eea;
+  }
+  
+  .fc .fc-button-primary:hover {
+    background: #5568d3;
+    border-color: #5568d3;
+  }
+  
+  .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background: #4c51bf;
+    border-color: #4c51bf;
+  }
+  
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+  }
+  
+  /* Loading State */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #e2e8f0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .stat-card {
+    background: rgba(255,255,255,0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+  }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<div class="schedule-header">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="text-4xl font-bold mb-2">📊 Master Schedule Center</h1>
+      <p class="text-white/80">Strategic Overview & Tactical Planning</p>
+    </div>
+    <div class="view-toggle">
+      <button class="toggle-btn active" data-view="gantt">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        Gantt View
+      </button>
+      <button class="toggle-btn" data-view="calendar">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        Calendar View
+      </button>
+    </div>
+  </div>
+  
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-label">Active Projects</div>
+      <div class="stat-value" id="statProjects">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Upcoming Events</div>
+      <div class="stat-value" id="statEvents">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">View Range</div>
+      <div class="stat-value text-2xl" id="statRange">--</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Gantt View -->
+<div class="view-content active" id="ganttView">
+  <div class="gantt-container">
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">Strategic Project Timeline</h2>
+    <div id="ganttContent">
+      <div class="text-center py-12 text-gray-400">Loading projects...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar View -->
+<div class="view-content" id="calendarView">
+  <div class="calendar-container">
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">Tactical Event Calendar</h2>
+    <div id="calendar"></div>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background:#dc2626;"></div>
+        <span>Invoices Due</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#f59e0b;"></div>
+        <span>Change Orders</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#3b82f6;"></div>
+        <span>Critical Tasks</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#8b5cf6;"></div>
+        <span>Meetings</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#10b981;"></div>
+        <span>Client Requests</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#06b6d4;"></div>
+        <span>Material Requests</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<script>
+(function() {
+  'use strict';
+  
+  let scheduleData = null;
+  let calendar = null;
+  
+  // View Toggle Logic
+  const toggleButtons = document.querySelectorAll('.toggle-btn');
+  const viewContents = document.querySelectorAll('.view-content');
+  
+  toggleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const viewType = btn.dataset.view;
+      
+      // Update active states
+      toggleButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      viewContents.forEach(v => v.classList.remove('active'));
+      document.getElementById(viewType + 'View').classList.add('active');
+      
+      // Render calendar if switching to it
+      if (viewType === 'calendar' && calendar) {
+        calendar.render();
+      }
+    });
+  });
+  
+  // Fetch Schedule Data
+  async function fetchScheduleData() {
+    try {
+      const response = await fetch('/api/v1/schedule/master/', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`,
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch schedule data');
+      }
+      
+      scheduleData = await response.json();
+      
+      // Update stats
+      document.getElementById('statProjects').textContent = scheduleData.metadata.total_projects;
+      document.getElementById('statEvents').textContent = scheduleData.metadata.total_events;
+      
+      const startDate = new Date(scheduleData.metadata.date_range.start);
+      const endDate = new Date(scheduleData.metadata.date_range.end);
+      const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+      document.getElementById('statRange').textContent = `${daysDiff} days`;
+      
+      // Render views
+      renderGantt(scheduleData.projects);
+      initCalendar(scheduleData.events);
+      
+      document.getElementById('loadingOverlay').style.display = 'none';
+    } catch (error) {
+      console.error('Error fetching schedule:', error);
+      alert('Failed to load schedule data. Please refresh the page.');
+    }
+  }
+  
+  // Render Gantt Chart
+  function renderGantt(projects) {
+    if (!projects || projects.length === 0) {
+      document.getElementById('ganttContent').innerHTML = '<div class="text-center py-12 text-gray-400">No active projects found.</div>';
+      return;
+    }
+    
+    // Calculate date range
+    const allDates = projects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]);
+    const minDate = new Date(Math.min(...allDates));
+    const maxDate = new Date(Math.max(...allDates));
+    const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
+    
+    // Build Gantt HTML
+    const labelsHTML = projects.map(p => `
+      <div class="gantt-label">
+        <div class="gantt-label-name">${escapeHtml(p.name)}</div>
+        <div class="gantt-label-meta">PM: ${escapeHtml(p.pm_name)}</div>
+        <div class="gantt-label-meta">Client: ${escapeHtml(p.client_name)}</div>
+      </div>
+    `).join('');
+    
+    const barsHTML = projects.map(p => {
+      const start = new Date(p.start_date);
+      const end = new Date(p.end_date);
+      const daysFromStart = Math.ceil((start - minDate) / (1000 * 60 * 60 * 24));
+      const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      
+      const leftPercent = (daysFromStart / totalDays) * 100;
+      const widthPercent = (duration / totalDays) * 100;
+      
+      return `
+        <div class="gantt-bar-container">
+          <div class="gantt-bar" 
+               style="left: ${leftPercent}%; width: ${widthPercent}%; background: ${p.color};"
+               onclick="window.location.href='${p.url}'"
+               title="${escapeHtml(p.name)} - PM: ${escapeHtml(p.pm_name)} - Client: ${escapeHtml(p.client_name)}">
+            <div class="gantt-bar-progress" style="width: ${p.progress_pct}%;"></div>
+            <div class="gantt-bar-content">
+              <span class="gantt-bar-text">${escapeHtml(p.name)}</span>
+              <span class="gantt-bar-percent">${p.progress_pct}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    document.getElementById('ganttContent').innerHTML = `
+      <div class="gantt-timeline">
+        <div class="gantt-labels">${labelsHTML}</div>
+        <div class="gantt-bars">${barsHTML}</div>
+      </div>
+    `;
+  }
+  
+  // Initialize FullCalendar
+  function initCalendar(events) {
+    const calendarEl = document.getElementById('calendar');
+    
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,listWeek'
+      },
+      events: events.map(e => ({
+        title: e.title,
+        start: e.start,
+        end: e.end || e.start,
+        backgroundColor: e.color,
+        borderColor: e.color,
+        url: e.url,
+        extendedProps: {
+          description: e.description,
+          type: e.type
+        }
+      })),
+      eventClick: function(info) {
+        info.jsEvent.preventDefault();
+        if (info.event.url) {
+          window.location.href = info.event.url;
+        }
+      },
+      eventDidMount: function(info) {
+        // Add tooltip
+        if (info.event.extendedProps.description) {
+          info.el.title = info.event.extendedProps.description;
+        }
+      },
+      height: 'auto',
+      eventTimeFormat: {
+        hour: '2-digit',
+        minute: '2-digit',
+        meridiem: false
+      }
+    });
+    
+    // Don't render calendar immediately if not visible
+    if (document.getElementById('calendarView').classList.contains('active')) {
+      calendar.render();
+    }
+  }
+  
+  // Utility Functions
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('schedule-center');
+    fetchScheduleData();
+  });
+})();
+</script>
+{% endblock %}

@@ -610,6 +610,22 @@ def executive_bi_dashboard(request):
     return render(request, "core/dashboard_bi.html", context)
 
 
+@login_required
+def master_schedule_center(request):
+    """Master Schedule Center: unified view for strategic project timeline and tactical event calendar.
+    
+    Requires admin/staff access. Data is loaded asynchronously via API.
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        messages.error(request, "Acceso solo para Admin/Staff.")
+        return redirect("dashboard")
+    
+    context = {
+        "title": "Master Schedule Center",
+    }
+    return render(request, "core/master_schedule.html", context)
+
+
 # --- DASHBOARD (Redirect to role-based dashboards) ---
 @login_required
 def dashboard_view(request):
