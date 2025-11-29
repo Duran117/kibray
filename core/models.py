@@ -185,6 +185,13 @@ class Project(models.Model):
         default=Decimal("0.00"),
         help_text=_("Presupuesto para otros gastos (seguros, almacenamiento, etc.)"),
     )
+    # Financial: Default labor rate for Change Orders
+    default_co_labor_rate = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal("50.00"),
+        help_text=_("Tarifa por hora por defecto para Change Orders en este proyecto")
+    )
 
     if TYPE_CHECKING:
         id: int
@@ -591,6 +598,24 @@ class TimeEntry(models.Model):
         "CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="time_entries"
     )
 
+    # Financial Snapshots: Costos y tarifas al momento de la entrada
+    cost_rate_snapshot = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        editable=False,
+        null=True,
+        blank=True,
+        help_text=_("Costo del empleado (hourly_rate) al momento de esta entrada")
+    )
+    billable_rate_snapshot = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        editable=False,
+        null=True,
+        blank=True,
+        help_text=_("Tarifa cobrada (según CO o proyecto) al momento de esta entrada")
+    )
+
     @property
     def labor_cost(self):
         if self.hours_worked is not None and self.employee and self.employee.hourly_rate is not None:
@@ -600,6 +625,7 @@ class TimeEntry(models.Model):
         return Decimal("0.00")
 
     def save(self, *args, **kwargs):
+        # Calculate hours_worked
         if self.start_time and self.end_time:
             s = self.start_time.hour * 60 + self.start_time.minute
             e = self.end_time.hour * 60 + self.end_time.minute
@@ -620,6 +646,25 @@ class TimeEntry(models.Model):
                 hours = Decimal("0.00")
 
             self.hours_worked = hours.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        
+        # Financial Snapshots: Guardar tasas al momento de creación
+        if self.pk is None:  # Solo en creación
+            # Snapshot del costo del empleado
+            if self.cost_rate_snapshot is None and self.employee:
+                self.cost_rate_snapshot = self.employee.hourly_rate or Decimal("0.00")
+            
+            # Snapshot de la tarifa cobrable
+            if self.billable_rate_snapshot is None:
+                if self.change_order is not None:
+                    # Usar tarifa del Change Order
+                    self.billable_rate_snapshot = self.change_order.get_effective_labor_rate()
+                elif self.project:
+                    # Usar tarifa default del proyecto para trabajo regular
+                    self.billable_rate_snapshot = self.project.default_co_labor_rate
+                else:
+                    # Sin proyecto ni CO, usar 0
+                    self.billable_rate_snapshot = Decimal("0.00")
+        
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -1519,6 +1564,20 @@ class ChangeOrder(models.Model):
         default="draft",
     )
     notes = models.TextField(blank=True)
+    # Financial: Labor rate and material markup
+    labor_rate_override = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_("Tarifa por hora específica para este CO. Si está vacío, usa default_co_labor_rate del proyecto")
+    )
+    material_markup_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("15.00"),
+        help_text=_("Porcentaje de markup en materiales (por defecto 15%)")
+    )
     color = models.CharField(max_length=7, blank=True, null=True, help_text="Color hex (ej: #FF5733)")
     reference_code = models.CharField(max_length=50, blank=True, null=True, help_text="Código de referencia o color")
     
@@ -1531,6 +1590,12 @@ class ChangeOrder(models.Model):
         related_name='change_order_signatures',
         help_text="Cryptographic signature for approval"
     )
+
+    def get_effective_labor_rate(self):
+        """Retorna la tarifa efectiva: override del CO o default del proyecto"""
+        if self.labor_rate_override is not None:
+            return self.labor_rate_override
+        return self.project.default_co_labor_rate if self.project else Decimal("50.00")
 
     def __str__(self):
         return f"CO {self.id} | {self.project.name} | ${self.amount:.2f}"

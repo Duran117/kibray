@@ -69,7 +69,7 @@ class EmployeeAdmin(admin.ModelAdmin):
     search_fields = ("employee_key", "first_name", "last_name", "social_security_number")
     list_filter = ("is_active",)
     ordering = ("employee_key",)
-    readonly_fields = ("employee_key", "created_at", "updated_at")
+    readonly_fields = ("employee_key", "created_at")
 
 
 # Ingreso
