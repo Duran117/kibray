@@ -30,10 +30,10 @@ class RolesPermissionsTestCase(TestCase):
             )
     
     def test_general_manager_permissions_count(self):
-        """TEST 2: General Manager debe tener 48 permisos"""
+        """TEST 2: General Manager debe tener 65 permisos (Arquitectura Final)"""
         gm = Group.objects.get(name='General Manager')
-        self.assertEqual(gm.permissions.count(), 48,
-                        "General Manager debe tener exactamente 48 permisos")
+        self.assertEqual(gm.permissions.count(), 65,
+                        "General Manager debe tener exactamente 65 permisos")
     
     def test_general_manager_has_financial_access(self):
         """TEST 3: General Manager debe tener acceso completo a financieros"""
@@ -52,10 +52,10 @@ class RolesPermissionsTestCase(TestCase):
                          f"General Manager debe tener permiso '{perm}'")
     
     def test_project_manager_permissions_count(self):
-        """TEST 4: Project Manager debe tener 31 permisos"""
+        """TEST 4: Project Manager debe tener 51 permisos (Arquitectura Final)"""
         pm = Group.objects.get(name='Project Manager')
-        self.assertEqual(pm.permissions.count(), 31,
-                        "Project Manager debe tener exactamente 31 permisos")
+        self.assertEqual(pm.permissions.count(), 51,
+                        "Project Manager debe tener exactamente 51 permisos")
     
     def test_project_manager_cannot_delete_employees(self):
         """TEST 5: Project Manager NO puede borrar empleados"""
@@ -66,23 +66,25 @@ class RolesPermissionsTestCase(TestCase):
                         "Project Manager NO debe poder borrar empleados")
     
     def test_project_manager_can_view_finances(self):
-        """TEST 6: Project Manager puede VER finanzas pero no modificar todas"""
+        """TEST 6: Project Manager (Full) tiene CRUD completo en finanzas (Arquitectura Final)"""
         pm = Group.objects.get(name='Project Manager')
         perms = list(pm.permissions.values_list('codename', flat=True))
         
-        # Puede ver
-        self.assertIn('view_expense', perms, "PM debe poder ver expenses")
+        # PM Full tiene CRUD completo en Invoice y ChangeOrder
         self.assertIn('view_invoice', perms, "PM debe poder ver invoices")
+        self.assertIn('add_invoice', perms, "PM debe poder agregar invoices")
+        self.assertIn('change_invoice', perms, "PM debe poder modificar invoices")
+        self.assertIn('delete_invoice', perms, "PM Full puede borrar invoices")
         
-        # NO puede modificar todo
+        # NO puede modificar expense ni income (solo VIEW)
         self.assertNotIn('delete_expense', perms, "PM NO debe poder borrar expenses")
-        self.assertNotIn('delete_invoice', perms, "PM NO debe poder borrar invoices")
+        self.assertNotIn('delete_income', perms, "PM NO debe poder borrar income")
     
     def test_superintendent_permissions_count(self):
-        """TEST 7: Superintendent debe tener 10 permisos"""
+        """TEST 7: Superintendent debe tener 11 permisos (Arquitectura Final)"""
         super_group = Group.objects.get(name='Superintendent')
-        self.assertEqual(super_group.permissions.count(), 10,
-                        "Superintendent debe tener exactamente 10 permisos")
+        self.assertEqual(super_group.permissions.count(), 11,
+                        "Superintendent debe tener exactamente 11 permisos")
     
     def test_superintendent_financial_firewall(self):
         """TEST 8 (CRÍTICO): Superintendent NO debe ver datos financieros"""
@@ -142,26 +144,30 @@ class RolesPermissionsTestCase(TestCase):
                            f"Employee NO debe tener permiso '{perm}' (ACCESO MÍNIMO)")
     
     def test_client_permissions_count(self):
-        """TEST 12: Client debe tener 4 permisos"""
+        """TEST 12: Client debe tener 9 permisos (Arquitectura Final)"""
         client = Group.objects.get(name='Client')
-        self.assertEqual(client.permissions.count(), 4,
-                        "Client debe tener exactamente 4 permisos")
+        self.assertEqual(client.permissions.count(), 9,
+                        "Client debe tener exactamente 9 permisos")
     
     def test_client_view_only_external(self):
-        """TEST 13: Client solo puede VER información externa"""
+        """TEST 13: Client solo puede VER información externa (+ add_chatchannel)"""
         client = Group.objects.get(name='Client')
         perms = list(client.permissions.values_list('codename', flat=True))
         
-        # Puede ver (solo VIEW)
-        allowed = ['view_project', 'view_schedule', 'view_invoice', 'view_changeorder']
+        # Puede ver (solo VIEW) - Arquitectura Final
+        allowed = [
+            'view_project', 'view_schedule', 'view_invoice', 'view_changeorder',
+            'view_task', 'view_colorsample', 'view_floorplan', 
+            'view_chatchannel', 'add_chatchannel'  # ChatChannel permite agregar mensajes
+        ]
         for perm in allowed:
             self.assertIn(perm, perms,
                          f"Client debe tener permiso '{perm}'")
         
-        # NO puede modificar nada
+        # NO puede modificar nada (excepto add_chatchannel para comunicarse)
         for perm in perms:
-            self.assertTrue(perm.startswith('view_'),
-                          f"Client solo debe tener permisos 'view_*', encontrado: '{perm}'")
+            self.assertTrue(perm.startswith('view_') or perm == 'add_chatchannel',
+                          f"Client solo debe tener permisos 'view_*' o 'add_chatchannel', encontrado: '{perm}'")
     
     def test_client_financial_firewall(self):
         """TEST 14 (CRÍTICO): Client NO debe ver datos internos"""
@@ -209,7 +215,7 @@ class UserRoleAssignmentTestCase(TestCase):
         call_command('setup_roles')
     
     def test_assign_general_manager_to_user(self):
-        """TEST 16: Asignar rol General Manager a usuario"""
+        """TEST 16: Asignar rol General Manager a usuario (Arquitectura Final)"""
         user = User.objects.create_user(username='gm_test', password='test123')
         gm_group = Group.objects.get(name='General Manager')
         user.groups.add(gm_group)
@@ -219,12 +225,13 @@ class UserRoleAssignmentTestCase(TestCase):
         
         # Verificar que el usuario tiene los permisos del grupo
         user_perms = user.get_all_permissions()
-        self.assertEqual(len(user_perms), 48,
-                       "Usuario con rol GM debe tener 48 permisos del grupo")
+        self.assertEqual(len(user_perms), 65,
+                       "Usuario con rol GM debe tener 65 permisos del grupo")
         
         # Verificar algunos permisos críticos
         self.assertIn('core.view_expense', user_perms)
         self.assertIn('core.add_payrollrecord', user_perms)
+        self.assertIn('core.can_send_external_emails', user_perms)
     
     def test_user_can_have_multiple_roles(self):
         """TEST 17: Usuario puede tener múltiples roles"""

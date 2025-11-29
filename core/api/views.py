@@ -14,6 +14,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -400,7 +401,22 @@ class ChatChannelViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return ChatChannel.objects.filter(participants=self.request.user).order_by("-created_at")
+        qs = ChatChannel.objects.filter(participants=self.request.user).order_by("-created_at")
+        user = self.request.user
+        # Role-based filtering per channel_type
+        # Detect role via groups (consistent con setup_roles.py)
+        groups = set(user.groups.values_list("name", flat=True))
+        if "Client" in groups:
+            # Client: only general_client and design
+            qs = qs.filter(channel_type__in=["general_client", "design"])
+        elif "Superintendent" in groups:
+            # Superintendent: ve todo MENOS general_client (o sólo lectura).
+            qs = qs.exclude(channel_type__in=["general_client"])
+        elif "Project Manager Trainee" in groups:
+            # PM Trainee: solo lectura en general_client; aquí limitamos listado
+            qs = qs.filter(channel_type__in=["general_client", "internal_team", "design", "field_supervision"])
+            # Nota: las acciones de escritura deberían validarse por permisos en endpoints de mensajes
+        return qs
 
 
 # Invoices (Module 6) - DRF API
@@ -3641,7 +3657,21 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
     search_fields = ["message"]
     ordering_fields = ["created_at"]
 
+    def _check_pm_trainee_write_permission(self, message=None, channel=None):
+        """Helper: deny PM Trainee write access on general_client channel"""
+        user = self.request.user
+        groups = set(user.groups.values_list("name", flat=True))
+        if "Project Manager Trainee" not in groups:
+            return
+        c = channel or (message.channel if message else None)
+        if c and getattr(c, "channel_type", "") == "general_client":
+            raise PermissionDenied("PM Trainee has read-only access in general_client channel")
+
     def perform_create(self, serializer):
+        # Enforce read-only for PM Trainee in general_client channels
+        channel = serializer.validated_data.get("channel")
+        self._check_pm_trainee_write_permission(channel=channel)
+
         message = serializer.save(user=self.request.user)
 
         # Parse @mentions from message text
@@ -3719,6 +3749,16 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        message = self.get_object()
+        self._check_pm_trainee_write_permission(message=message)
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        message = self.get_object()
+        self._check_pm_trainee_write_permission(message=message)
+        return super().destroy(request, *args, **kwargs)
 
 
 class SitePhotoViewSet(viewsets.ModelViewSet):

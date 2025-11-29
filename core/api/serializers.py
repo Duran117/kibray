@@ -1047,6 +1047,8 @@ class ClientRequestSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_by", "created_at"]
 
+    # No channel_type normalization here; ClientRequest does not include channel_type
+
     def create(self, validated_data):
         # auto-assign created_by from request context
         req = self.context.get("request")

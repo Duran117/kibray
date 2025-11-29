@@ -192,6 +192,21 @@ class Project(models.Model):
         default=Decimal("50.00"),
         help_text=_("Tarifa por hora por defecto para Change Orders en este proyecto")
     )
+    material_markup_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("15.00"),
+        help_text=_("Porcentaje de markup para materiales en este proyecto (default 15%)")
+    )
+    is_archived_for_pm = models.BooleanField(
+        default=False,
+        help_text=_("Si es True, el proyecto no aparece en dashboard de PM pero sigue activo para Admin")
+    )
+    approved_finishes = models.JSONField(
+        blank=True,
+        null=True,
+        help_text=_("Registro de acabados aprobados por ubicación {room: {finish_type: {details}}}")
+    )
 
     if TYPE_CHECKING:
         id: int
@@ -206,6 +221,33 @@ class Project(models.Model):
             errors["start_date"] = _("La fecha de inicio es obligatoria.")
         if errors:
             raise ValidationError(errors)
+
+    def get_material_markup_multiplier(self) -> Decimal:
+        """Retorna el multiplicador de markup de materiales (ej: 1.15 para 15%)"""
+        return Decimal("1.00") + (self.material_markup_percent / Decimal("100.00"))
+    
+    def calculate_remaining_balance(self) -> Decimal:
+        """
+        Calcula el saldo restante considerando:
+        - Presupuesto original (budget_total)
+        - Change Orders aprobados
+        - Invoices emitidos
+        """
+        from django.db.models import Sum
+        
+        # Budget total + COs aprobados
+        co_total = self.change_orders.filter(
+            status='approved'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        
+        adjusted_budget = self.budget_total + co_total
+        
+        # Total facturado
+        invoiced = self.invoices.aggregate(
+            total=Sum('total_amount')
+        )['total'] or Decimal('0')
+        
+        return adjusted_budget - invoiced
 
     def save(self, *args, **kwargs):
         # Ejecuta validaciones antes de guardar (incluye create y update)
@@ -480,6 +522,13 @@ class Income(models.Model):
 # Modelo de Gasto
 # ---------------------
 class Expense(models.Model):
+    REIMBURSEMENT_STATUS_CHOICES = [
+        ('pending', 'Pendiente Reembolso'),
+        ('paid_in_payroll', 'Pagado en Nómina'),
+        ('paid_direct', 'Pagado Directamente'),
+        ('not_applicable', 'No Aplica'),
+    ]
+    
     project = models.ForeignKey(Project, related_name="expenses", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     project_name = models.CharField(max_length=255)
@@ -493,6 +542,7 @@ class Expense(models.Model):
             ("ALMACÉN", _("Almacén / Storage")),
             ("MANO_OBRA", _("Mano de obra")),
             ("OFICINA", _("Oficina")),
+            ("HERRAMIENTAS", _("Herramientas")),
             ("OTRO", _("Otro")),
         ],
     )
@@ -503,9 +553,74 @@ class Expense(models.Model):
         "ChangeOrder", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses"
     )
     cost_code = models.ForeignKey("CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses")
+    
+    # Arquitectura Final: Sistema de Reembolsos
+    paid_by_employee = models.ForeignKey(
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='expenses_paid',
+        help_text=_("Empleado que pagó de su bolsillo y requiere reembolso")
+    )
+    reimbursement_status = models.CharField(
+        max_length=20,
+        choices=REIMBURSEMENT_STATUS_CHOICES,
+        default='not_applicable',
+        help_text=_("Estado del reembolso si fue pagado por empleado")
+    )
+    reimbursement_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text=_("Fecha en que se reembolsó al empleado")
+    )
+    reimbursement_reference = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text=_("Número de cheque o referencia de transferencia")
+    )
 
     def __str__(self):
         return f"{self.project_name} - {self.category} - ${self.amount}"
+    
+    def save(self, *args, **kwargs):
+        """Auto-set reimbursement_status based on paid_by_employee"""
+        if self.paid_by_employee and self.reimbursement_status == 'not_applicable':
+            self.reimbursement_status = 'pending'
+        elif not self.paid_by_employee:
+            self.reimbursement_status = 'not_applicable'
+        
+        super().save(*args, **kwargs)
+    
+    def mark_reimbursed(self, method='paid_direct', reference='', user=None):
+        """
+        Marca el gasto como reembolsado
+        
+        Args:
+            method: 'paid_in_payroll' o 'paid_direct'
+            reference: Número de cheque/transferencia
+            user: Usuario que procesó el reembolso
+        """
+        from django.utils import timezone
+        
+        if not self.paid_by_employee:
+            raise ValueError("Este gasto no fue pagado por un empleado")
+        
+        self.reimbursement_status = method
+        self.reimbursement_date = timezone.now().date()
+        self.reimbursement_reference = reference
+        self.save(update_fields=['reimbursement_status', 'reimbursement_date', 'reimbursement_reference'])
+        
+        # Audit log
+        if user:
+            from core.models import AuditLog
+            AuditLog.objects.create(
+                user=user,
+                action='expense_reimbursed',
+                entity_type='expense',
+                entity_id=self.id,
+                description=f"Reembolsó ${self.amount} a {self.paid_by_employee.first_name} vía {method}"
+            )
 
 
 # ---------------------
@@ -923,6 +1038,51 @@ class Task(models.Model):
         blank=True,
         help_text="Tareas que deben completarse antes de esta",
     )
+    
+    # Arquitectura Final: Planner & Visualización
+    schedule_weight = models.IntegerField(
+        default=50,
+        help_text=_("Peso en el scheduler (0-100). Mayor peso = mayor prioridad en algoritmo de planificación")
+    )
+    is_subtask = models.BooleanField(
+        default=False,
+        help_text=_("True si esta tarea es una subtarea de otra")
+    )
+    parent_task = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="subtasks",
+        help_text=_("Tarea padre si es subtarea")
+    )
+    is_client_responsibility = models.BooleanField(
+        default=False,
+        help_text=_("True si la responsabilidad es del cliente (ej: aprobar color, entregar llaves)")
+    )
+    checklist = models.JSONField(
+        blank=True,
+        null=True,
+        help_text=_("Checklist heredado de SOPs: [{item: 'texto', checked: false}, ...]")
+    )
+    initial_photo = models.ForeignKey(
+        "PlanPin",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tasks_initial",
+        help_text=_("Referencia a pin con foto inicial del área")
+    )
+    completion_photo = models.ImageField(
+        upload_to="tasks/completion/",
+        blank=True,
+        null=True,
+        help_text=_("Foto de cierre al completar tarea")
+    )
+    progress_percent = models.IntegerField(
+        default=0,
+        help_text=_("Porcentaje de progreso (0-100)")
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -1056,22 +1216,34 @@ class Task(models.Model):
         return True
 
     def save(self, *args, **kwargs):
-        """Registrar cambios de estado y notificaciones de asignación."""
+        """Registrar cambios de estado y notificaciones de asignación. Arquitectura Final: Pin cleanup."""
         skip_validation = kwargs.pop("skip_validation", False)
         if not skip_validation:
             self.full_clean()
         is_new = self.pk is None
         old_assigned_to = None
         old_status = None
+        old_progress = None
         if not is_new:
             old_obj = Task.objects.filter(pk=self.pk).first()
             if old_obj:
                 if old_obj.assigned_to != self.assigned_to:
                     old_assigned_to = old_obj.assigned_to
                 old_status = old_obj.status
+                old_progress = old_obj.progress_percent
         super().save(*args, **kwargs)
         if old_assigned_to != self.assigned_to and self.assigned_to:
             self._notify_assignment()
+        
+        # Arquitectura Final: Higiene de Planos (Pin Cleanup)
+        # Si progress_percent llega a 100, ocultar pines tipo 'task' o 'touchup'
+        if not is_new and old_progress != 100 and self.progress_percent == 100:
+            if self.initial_photo:
+                pin = self.initial_photo
+                if pin.pin_type in ['task', 'touchup']:
+                    pin.is_visible = False
+                    pin.save(update_fields=['is_visible'])
+                # 'info' y 'hazard' siguen visibles
 
     def _notify_status_change(self, old_status):
         from django.contrib.auth.models import User
@@ -2258,6 +2430,12 @@ class Invoice(models.Model):
         ("OVERDUE", "Vencida"),
         ("CANCELLED", "Cancelada"),
     ]
+    
+    INVOICE_TYPE_CHOICES = [
+        ('standard', 'Por Items'),
+        ('deposit', 'Anticipo/Porcentaje'),
+        ('final', 'Cierre'),
+    ]
 
     if TYPE_CHECKING:
         project_id: int
@@ -2287,6 +2465,24 @@ class Invoice(models.Model):
 
     # Payment tracking (NEW)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    
+    # Arquitectura Final: Facturación Híbrida
+    invoice_type = models.CharField(
+        max_length=20,
+        choices=INVOICE_TYPE_CHOICES,
+        default='standard',
+        help_text=_("Tipo de factura: Items, Anticipo o Cierre final")
+    )
+    retention_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text=_("Monto de retención contractual (oculto en forms por ahora)")
+    )
+    is_draft_for_review = models.BooleanField(
+        default=False,
+        help_text=_("True si es borrador de PM en entrenamiento que requiere revisión de Admin")
+    )
 
     # Legacy field (DEPRECATED): mantener temporalmente para reportes antiguos.
     # Será removido en futura migración; usar amount_paid >= total_amount para determinar pago completo.
@@ -2314,6 +2510,42 @@ class Invoice(models.Model):
         if self.total_amount == 0:
             return 0
         return (self.amount_paid / self.total_amount) * 100
+    
+    def calculate_net_payable(self) -> Decimal:
+        """
+        Calcula el monto neto a pagar considerando retención:
+        Net Payable = Total Amount - Retention Amount
+        """
+        return self.total_amount - self.retention_amount
+    
+    def mark_for_admin_review(self, user):
+        """
+        Marca invoice como 'draft_for_review' si user es PM en entrenamiento
+        """
+        if hasattr(user, 'profile') and user.profile.role == 'project_manager':
+            # Check if PM has permission to send emails (trainee check)
+            from django.contrib.auth.models import Permission
+            can_send = user.has_perm('core.can_send_external_emails')
+            
+            if not can_send:
+                self.is_draft_for_review = True
+                self.status = 'DRAFT'
+                self.save(update_fields=['is_draft_for_review', 'status'])
+                
+                # Notify admins
+                from core.models import Notification
+                admins = User.objects.filter(is_superuser=True)
+                for admin in admins:
+                    Notification.objects.create(
+                        user=admin,
+                        message=f"Invoice #{self.invoice_number} requiere revisión (creada por {user.username})",
+                        notification_type='invoice_review',
+                        related_object_type='invoice',
+                        related_object_id=self.id
+                    )
+                
+                return True
+        return False
 
     @property
     def fully_paid(self) -> bool:
@@ -2830,6 +3062,28 @@ class DailyLog(models.Model):
         self.save(update_fields=["is_complete", "incomplete_reason"])
         return self.is_complete
 
+    def get_sanitized_report(self):
+        """Reporte sanitizado (para cliente): progreso, clima y fotos públicas; excluye incidentes/notas internas/delays."""
+        tasks = []
+        for t in self.completed_tasks.all().only("id", "title", "progress_percent"):
+            tasks.append({"id": t.id, "title": t.title, "progress_percent": getattr(t, "progress_percent", None)})
+
+        public_photos = []
+        # DailyLogPhoto no tiene is_public; usamos todas por defecto o futura extensión.
+        for p in self.photos.all().only("id", "image"):
+            public_photos.append({"id": p.id, "image_url": getattr(p.image, "url", None)})
+
+        return {
+            "project_id": self.project_id,
+            "date": self.date.isoformat(),
+            "weather": self.weather,
+            "crew_count": self.crew_count,
+            "schedule_item_id": getattr(self.schedule_item, "id", None),
+            "schedule_progress_percent": str(self.schedule_progress_percent),
+            "tasks": tasks,
+            "photos": public_photos,
+        }
+
 
 class DailyLogPhoto(models.Model):
     """Fotos adjuntas a un Daily Log"""
@@ -2838,6 +3092,7 @@ class DailyLogPhoto(models.Model):
     caption = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    is_public = models.BooleanField(default=True, help_text="Visible para cliente en reportes sanitizados")
 
     def __str__(self):
         return f"Photo {self.id} - {self.caption[:30]}"
@@ -2858,8 +3113,42 @@ class RFI(models.Model):
         unique_together = ("project", "number")
         ordering = ["-created_at"]
 
+
+# ---------------------
+# Meeting Minutes
+# ---------------------
+class MeetingMinute(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="meeting_minutes")
+    date = models.DateField()
+    attendees = models.TextField(blank=True, help_text="Lista de asistentes")
+    content = models.TextField(help_text="Contenido enriquecido / markdown")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+
     def __str__(self):
-        return f"RFI #{self.number} - {self.project.name}"
+        return f"Minute {self.project_id} - {self.date}"
+
+    def create_task_from_minute(self, text_segment: str, **kwargs):
+        """Crea una Task desde un segmento del acta.
+        kwargs puede incluir: assigned_to, priority, due_date, schedule_weight, is_client_responsibility.
+        """
+        from core.models import Task
+
+        title = (text_segment or "Tarea desde Acta").strip()[:200]
+        description = f"Creada desde acta del {self.date}.\n\n{text_segment}"
+        task = Task.objects.create(
+            project=self.project,
+            title=title,
+            description=description,
+            status="Pendiente",
+            created_by=self.created_by,
+            **{k: v for k, v in kwargs.items() if v is not None}
+        )
+        return task
+    # Nota: Acta de reunión no usa numeración única por defecto.
 
 
 class Issue(models.Model):
@@ -3786,7 +4075,7 @@ class ColorSample(models.Model):
 
     def approve(self, user, ip_address=None, signature_canvas_data=None, 
                 user_agent='', geolocation=None):
-        """Q19.13: Approve with enhanced digital signature (Gap A)"""
+        """Q19.13: Approve with enhanced digital signature (Gap A). Arquitectura Final: Update project finishes"""
         import hashlib
 
         from django.utils import timezone
@@ -3822,9 +4111,37 @@ class ColorSample(models.Model):
             logger.error(f"Failed to create digital signature for ColorSample {self.id}: {e}")
 
         self.save()
+        
+        # Arquitectura Final: Update project approved finishes
+        self._update_project_approved_finishes()
 
         # Q19.5: Notify all project stakeholders
         self._notify_status_change("approved", user)
+    
+    def _update_project_approved_finishes(self):
+        """
+        Actualiza el registro de acabados aprobados en el proyecto
+        """
+        if not hasattr(self.project, 'approved_finishes') or self.project.approved_finishes is None:
+            self.project.approved_finishes = {}
+        
+        # Structure: {room_location: {finish_type: color_code}}
+        location = self.room_location or 'General'
+        finish_type = f"{self.finish}_{self.gloss}" if self.gloss else self.finish
+        
+        if location not in self.project.approved_finishes:
+            self.project.approved_finishes[location] = {}
+        
+        self.project.approved_finishes[location][finish_type] = {
+            'code': self.code,
+            'name': self.name,
+            'brand': self.brand,
+            'sample_id': self.id,
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
+            'approved_by': self.approved_by.username if self.approved_by else None
+        }
+        
+        self.project.save(update_fields=['approved_finishes'])
 
     def reject(self, user, reason):
         """Q19.12: Reject with required reason"""
@@ -3984,10 +4301,14 @@ class FloorPlan(models.Model):
 class PlanPin(models.Model):
     PIN_TYPES = [
         ("note", "Nota"),
+        ("task", "Tarea"),
         ("touchup", "Touch-up"),
         ("color", "Color"),
+        ("info", "Información"),
+        ("hazard", "Peligro"),
         ("alert", "Alerta"),
         ("damage", "Daño"),
+        ("leftover", "Sobrante de Material"),
     ]
     PIN_COLORS = [
         "#0d6efd",
@@ -4043,6 +4364,17 @@ class PlanPin(models.Model):
     )
     # Q20.10: Client commenting on pins
     client_comments = models.JSONField(default=list, blank=True, help_text="Array of client comments with timestamps")
+    
+    # Arquitectura Final: Protección de pines y visualización
+    owner_role = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text=_("Rol del creador para proteger pines del Designer")
+    )
+    is_visible = models.BooleanField(
+        default=True,
+        help_text=_("False para ocultar pin completado (higiene de planos)")
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -4054,6 +4386,13 @@ class PlanPin(models.Model):
         # Auto-asignar color rotativo si no se especificó
         # Guardrails: solo crear tareas automáticamente para pin_types de tipo "issue"
         # (touchup, alert, damage). Los tipos note/color NO crean tareas.
+        # Auto-set owner_role based on creator
+        if not self.owner_role and self.created_by:
+            if hasattr(self.created_by, 'profile'):
+                self.owner_role = self.created_by.profile.role
+            elif self.created_by.groups.exists():
+                self.owner_role = self.created_by.groups.first().name.lower()
+        
         if not self.pin_color or self.pin_color == "#0d6efd":
             existing_count = PlanPin.objects.filter(plan=self.plan).count()
             self.pin_color = self.PIN_COLORS[existing_count % len(self.PIN_COLORS)]
@@ -4365,12 +4704,18 @@ class DesignChatMessage(models.Model):
 # ---------------------
 class ChatChannel(models.Model):
     CHANNEL_TYPES = [
-        ("group", "Grupo"),
+        ("general_client", "Cliente - General"),
+        ("design", "Diseño"),
+        ("field_supervision", "Supervisión de Campo"),
+        ("internal_team", "Equipo Interno"),
         ("direct", "Directo"),
+        # Legacy aliases to keep API/backwards compatibility for tests and older clients
+        ("group", "Grupo (Legacy)"),
+        ("general", "General (Legacy)"),
     ]
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="chat_channels")
     name = models.CharField(max_length=120)
-    channel_type = models.CharField(max_length=10, choices=CHANNEL_TYPES, default="group")
+    channel_type = models.CharField(max_length=20, choices=CHANNEL_TYPES, default="internal_team")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="chat_channels", blank=True)
     is_default = models.BooleanField(default=False)
@@ -4382,6 +4727,30 @@ class ChatChannel(models.Model):
 
     def __str__(self):
         return f"[{self.project}] {self.name}"
+
+
+# Señal para crear canales por defecto al crear un proyecto
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+@receiver(post_save, sender=Project)
+def create_default_chat_channels(sender, instance: Project, created: bool, **kwargs):
+    if not created:
+        return
+    # Crear 4 canales fijos: general_client, design, field_supervision, internal_team
+    defaults = [
+        ("General (Client)", "general_client"),
+        ("Diseño", "design"),
+        ("Supervisión Campo", "field_supervision"),
+        ("Equipo Interno", "internal_team"),
+    ]
+    for name, ctype in defaults:
+        ChatChannel.objects.get_or_create(
+            project=instance,
+            name=name,
+            defaults={"channel_type": ctype, "is_default": True},
+        )
 
 
 class ChatMessage(models.Model):
@@ -4409,6 +4778,23 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"ChatMsg ch={self.channel_id} by {getattr(self.user,'username','?')}"
+
+    def save(self, *args, **kwargs):
+        creating = self.pk is None
+        super().save(*args, **kwargs)
+        # Media Gallery integration: if message has image, archive it to SitePhoto (central gallery)
+        try:
+            if creating and self.image and self.channel and self.channel.project:
+                from core.models import SitePhoto
+                SitePhoto.objects.create(
+                    project=self.channel.project,
+                    uploaded_by=self.user,
+                    image=self.image,
+                    caption=self.message[:200] if self.message else "",
+                )
+        except Exception:
+            # Avoid breaking chat flow if media archival fails
+            pass
 
 
 class ChatMention(models.Model):
@@ -4941,6 +5327,14 @@ class ProjectInventory(models.Model):
     location = models.ForeignKey(InventoryLocation, on_delete=models.CASCADE, related_name="stocks")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     threshold_override = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    
+    # Arquitectura Final: Planner inteligente
+    reserved_quantity = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text=_("Cantidad reservada para tareas futuras (no disponible para consumo)")
+    )
 
     class Meta:
         unique_together = ("item", "location")
@@ -4952,9 +5346,106 @@ class ProjectInventory(models.Model):
     def is_below(self):
         th = self.threshold()
         return th is not None and self.quantity < th
+    
+    @property
+    def available_quantity(self):
+        """Cantidad disponible = quantity - reserved_quantity"""
+        return self.quantity - self.reserved_quantity
 
     def __str__(self):
         return f"{self.location} · {self.item} = {self.quantity}"
+    
+    @classmethod
+    def bulk_transfer(cls, project, category_list, exclude_leftover=True):
+        """
+        Mueve items de las categorías seleccionadas a Bodega Central.
+        
+        Args:
+            project: Proyecto origen
+            category_list: Lista de categorías a transferir ['tools', 'equipment', ...]
+            exclude_leftover: Si True, ignora items marcados como 'Paint Leftover'
+        
+        Returns:
+            dict con resultados del transfer
+        """
+        from core.models import InventoryMovement, InventoryLocation, PlanPin
+        from django.db.models import Q
+        
+        # Get bodega central location
+        bodega_central, _ = InventoryLocation.objects.get_or_create(
+            name='Bodega Central',
+            defaults={
+                'location_type': 'warehouse',
+                'address': 'Oficina Principal',
+                'is_active': True
+            }
+        )
+        
+        # Get project location
+        project_location = InventoryLocation.objects.filter(
+            project=project,
+            is_active=True
+        ).first()
+        
+        if not project_location:
+            return {
+                'success': False,
+                'error': 'Proyecto no tiene ubicación de inventario activa'
+            }
+        
+        # Find items to transfer
+        items_query = cls.objects.filter(
+            location=project_location,
+            item__category__in=category_list,
+            quantity__gt=0
+        ).select_related('item')
+        
+        # Exclude Paint Leftovers
+        if exclude_leftover:
+            # Check if item has related PlanPin with type='leftover'
+            leftover_item_ids = PlanPin.objects.filter(
+                plan__project=project,
+                pin_type='leftover'
+            ).values_list('linked_task__id', flat=True)
+            
+            items_query = items_query.exclude(item_id__in=leftover_item_ids)
+        
+        # Execute transfers
+        transfers = []
+        errors = []
+        
+        for proj_inv in items_query:
+            try:
+                # Create movement record
+                movement = InventoryMovement.objects.create(
+                    item=proj_inv.item,
+                    movement_type='TRANSFER',
+                    quantity=proj_inv.quantity,
+                    from_location=project_location,
+                    to_location=bodega_central,
+                    reason=f'Bulk transfer from {project.name} - Project closed/paused'
+                )
+                
+                # Update stock levels (handled by InventoryMovement.save())
+                transfers.append({
+                    'item': proj_inv.item.name,
+                    'quantity': proj_inv.quantity,
+                    'category': proj_inv.item.category
+                })
+                
+            except Exception as e:
+                errors.append({
+                    'item': proj_inv.item.name,
+                    'error': str(e)
+                })
+        
+        return {
+            'success': len(errors) == 0,
+            'transfers': transfers,
+            'errors': errors,
+            'total_transferred': len(transfers),
+            'total_errors': len(errors)
+        }
 
 
 class InventoryMovement(models.Model):
