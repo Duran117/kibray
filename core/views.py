@@ -6018,7 +6018,10 @@ def daily_planning_dashboard(request):
 @login_required
 def daily_plan_create(request, project_id):
     """
-    Create a new daily plan for a project
+    Create a new daily plan for a project with smart suggestions from schedule.
+    
+    GET: Shows form with suggested schedule items for the target date
+    POST: Creates plan and optionally imports activities from schedule items
     """
     if not _is_staffish(request.user):
         return HttpResponseForbidden("Access denied")
@@ -6053,16 +6056,60 @@ def daily_plan_create(request, project_id):
             status="DRAFT",
         )
 
-        messages.success(request, f"Daily plan created for {plan_date}")
+        # Import selected schedule items as activities
+        selected_items = request.POST.getlist('import_items')  # List of schedule_item IDs
+        if selected_items:
+            from core.models import PlannedActivity
+            
+            for idx, item_id in enumerate(selected_items):
+                try:
+                    schedule_item = ScheduleItem.objects.get(id=int(item_id), project=project)
+                    PlannedActivity.objects.create(
+                        daily_plan=plan,
+                        schedule_item=schedule_item,
+                        title=schedule_item.title,
+                        description=schedule_item.description,
+                        order=idx,
+                        status='PENDING',
+                        progress_percentage=0,
+                    )
+                except ScheduleItem.DoesNotExist:
+                    continue
+            
+            messages.success(
+                request, 
+                f"Daily plan created with {len(selected_items)} imported activities for {plan_date}"
+            )
+        else:
+            messages.success(request, f"Daily plan created for {plan_date}")
+
         return redirect("daily_plan_edit", plan_id=plan.id)
 
-    # GET request - show form
+    # GET request - show form with suggestions
+    from core.services.planning_service import get_suggested_items_for_date
+    
+    # Get target date from query param, default to tomorrow
+    date_param = request.GET.get('date')
+    if date_param:
+        try:
+            target_date = datetime.strptime(date_param, "%Y-%m-%d").date()
+        except ValueError:
+            target_date = timezone.now().date() + timedelta(days=1)
+    else:
+        target_date = timezone.now().date() + timedelta(days=1)
+    
+    # Get suggested items for target date
+    suggested_items = get_suggested_items_for_date(project, target_date)
+    
     return render(
         request,
         "core/daily_plan_create.html",
         {
             "project": project,
             "min_date": timezone.now().date(),
+            "target_date": target_date,
+            "suggested_items": suggested_items,
+            "has_suggestions": len(suggested_items) > 0,
         },
     )
 
