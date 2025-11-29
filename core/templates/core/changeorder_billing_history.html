@@ -1,0 +1,453 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Facturación - CO-{{ changeorder.id|stringformat:"04d" }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --success-color: #059669;
+            --danger-color: #dc2626;
+            --warning-color: #f59e0b;
+            --info-color: #0284c7;
+            --purple-color: #8b5cf6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .billing-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            padding: 2.5rem;
+        }
+
+        .billing-header {
+            border-bottom: 3px solid #e2e8f0;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .billing-header h1 {
+            color: #1e293b;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .billing-header .subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 5px solid;
+        }
+
+        .summary-card.labor {
+            border-color: var(--info-color);
+        }
+
+        .summary-card.materials {
+            border-color: var(--purple-color);
+        }
+
+        .summary-card.total {
+            border-color: var(--success-color);
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+
+        .summary-card .label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #475569;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card .amount {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .section-title.labor {
+            color: var(--info-color);
+        }
+
+        .section-title.materials {
+            color: var(--purple-color);
+        }
+
+        .invoice-line-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+        }
+
+        .invoice-line-card.labor {
+            border-color: var(--info-color);
+        }
+
+        .invoice-line-card.materials {
+            border-color: var(--purple-color);
+        }
+
+        .invoice-line-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .invoice-line-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .invoice-line-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--success-color);
+        }
+
+        .invoice-line-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+
+        .invoice-line-meta .item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .details-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .details-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .details-table th {
+            background: #f1f5f9;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .details-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+        }
+
+        .details-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .details-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 2rem;
+        }
+
+        .back-button:hover {
+            background: #5568d3;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #dcfce7;
+            color: #065f46;
+        }
+
+        .badge.info {
+            background: #dbeafe;
+            color: #075985;
+        }
+
+        @media (max-width: 768px) {
+            .billing-page {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .invoice-line-header {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .invoice-line-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="billing-page">
+        <!-- HEADER -->
+        <div class="billing-header">
+            <h1><i class="bi bi-receipt-cutoff"></i> Historial de Facturación</h1>
+            <p class="subtitle">
+                Change Order: <strong>CO-{{ changeorder.id|stringformat:"04d" }}</strong> - {{ changeorder.project.name }}
+                {% if changeorder.pricing_type == 'T_AND_M' %}
+                <span class="badge info"><i class="bi bi-clock-history"></i> Time & Materials</span>
+                {% else %}
+                <span class="badge success"><i class="bi bi-check-circle"></i> Fixed Price</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- SUMMARY CARDS -->
+        <div class="summary-cards">
+            <div class="summary-card labor">
+                <div class="label">
+                    <i class="bi bi-clock-history"></i> Total Mano de Obra
+                </div>
+                <div class="amount">${{ total_labor|floatformat:2 }}</div>
+            </div>
+
+            <div class="summary-card materials">
+                <div class="label">
+                    <i class="bi bi-box-seam"></i> Total Materiales
+                </div>
+                <div class="amount">${{ total_materials|floatformat:2 }}</div>
+            </div>
+
+            <div class="summary-card total">
+                <div class="label">
+                    <i class="bi bi-currency-dollar"></i> Total Facturado
+                </div>
+                <div class="amount">${{ grand_total|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <!-- LABOR SECTION -->
+        {% if labor_lines %}
+        <h2 class="section-title labor"><i class="bi bi-clock-history"></i> Mano de Obra Facturada</h2>
+        {% for line_data in labor_lines %}
+        <div class="invoice-line-card labor">
+            <div class="invoice-line-header">
+                <div>
+                    <div class="invoice-line-title">{{ line_data.invoice_line.description }}</div>
+                    <div class="invoice-line-meta">
+                        <div class="item">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Factura #{{ line_data.invoice_line.invoice.id }}
+                        </div>
+                        <div class="item">
+                            <i class="bi bi-calendar"></i>
+                            {{ line_data.invoice_line.invoice.date|date:"d/m/Y" }}
+                        </div>
+                        {% if line_data.invoice_line.quantity %}
+                        <div class="item">
+                            <i class="bi bi-hash"></i>
+                            {{ line_data.invoice_line.quantity|floatformat:2 }} {{ line_data.invoice_line.unit|default:"hrs" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="invoice-line-amount">${{ line_data.invoice_line.total|floatformat:2 }}</div>
+            </div>
+
+            {% if line_data.time_entries %}
+            <div class="details-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Fecha</th>
+                            <th>Cost Code</th>
+                            <th>Horas</th>
+                            <th>Tasa</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in line_data.time_entries %}
+                        <tr>
+                            <td>{{ entry.employee.user.get_full_name|default:entry.employee.user.username }}</td>
+                            <td>{{ entry.date|date:"d/m/Y" }}</td>
+                            <td>{{ entry.cost_code.code|default:"N/A" }}</td>
+                            <td>{{ entry.hours_worked|floatformat:2 }}</td>
+                            <td>${{ entry.cost_rate_snapshot|default:0|floatformat:2 }}/hr</td>
+                            <td>${{ entry.hours_worked|default:0|floatformat:2|add:entry.cost_rate_snapshot|default:0|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- MATERIALS SECTION -->
+        {% if material_lines %}
+        <h2 class="section-title materials"><i class="bi bi-box-seam"></i> Materiales Facturados</h2>
+        {% for line_data in material_lines %}
+        <div class="invoice-line-card materials">
+            <div class="invoice-line-header">
+                <div>
+                    <div class="invoice-line-title">{{ line_data.invoice_line.description }}</div>
+                    <div class="invoice-line-meta">
+                        <div class="item">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Factura #{{ line_data.invoice_line.invoice.id }}
+                        </div>
+                        <div class="item">
+                            <i class="bi bi-calendar"></i>
+                            {{ line_data.invoice_line.invoice.date|date:"d/m/Y" }}
+                        </div>
+                        {% if line_data.invoice_line.quantity %}
+                        <div class="item">
+                            <i class="bi bi-hash"></i>
+                            {{ line_data.invoice_line.quantity|floatformat:2 }} {{ line_data.invoice_line.unit|default:"units" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="invoice-line-amount">${{ line_data.invoice_line.total|floatformat:2 }}</div>
+            </div>
+
+            {% if line_data.expenses %}
+            <div class="details-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Fecha</th>
+                            <th>Categoría</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in line_data.expenses %}
+                        <tr>
+                            <td>{{ expense.description }}</td>
+                            <td>{{ expense.date|date:"d/m/Y" }}</td>
+                            <td>{{ expense.category|default:"Material" }}</td>
+                            <td>${{ expense.amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- EMPTY STATE -->
+        {% if not labor_lines and not material_lines %}
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h3>No hay historial de facturación</h3>
+            <p>Este Change Order aún no ha sido facturado.</p>
+        </div>
+        {% endif %}
+
+        <!-- BACK BUTTON -->
+        <a href="{% url 'changeorder_detail' changeorder.id %}" class="back-button">
+            <i class="bi bi-arrow-left"></i> Volver al Change Order
+        </a>
+    </div>
+</body>
+</html>

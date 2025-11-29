@@ -2237,6 +2237,67 @@ def changeorder_detail_view(request, changeorder_id):
 
 
 @login_required
+def changeorder_billing_history_view(request, changeorder_id):
+    """
+    Billing history report for a Change Order.
+    Shows all InvoiceLines with breakdown of labor vs materials.
+    Admin/PM only.
+    """
+    changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
+    
+    # Get all invoice lines related to this CO through TimeEntry or Expense
+    from core.models import InvoiceLine
+    from django.db.models import Q
+    
+    invoice_lines = InvoiceLine.objects.filter(
+        Q(time_entry__change_order=changeorder) | Q(expense__change_order=changeorder)
+    ).select_related('invoice').distinct().order_by('-invoice__date_issued', 'id')
+    
+    # Separate labor and material lines
+    labor_lines = []
+    material_lines = []
+    
+    for line in invoice_lines:
+        # Get related time entries and expenses
+        time_entries = []
+        expenses = []
+        
+        if line.time_entry and line.time_entry.change_order == changeorder:
+            time_entries = [line.time_entry]
+        
+        if line.expense and line.expense.change_order == changeorder:
+            expenses = [line.expense]
+        
+        line_data = {
+            'invoice_line': line,
+            'time_entries': time_entries,
+            'expenses': expenses,
+        }
+        
+        # Check if it's labor or materials based on description or related entries
+        if time_entries or 'labor' in line.description.lower() or 'mano de obra' in line.description.lower():
+            labor_lines.append(line_data)
+        else:
+            material_lines.append(line_data)
+    
+    # Calculate totals
+    total_labor = sum(l['invoice_line'].amount for l in labor_lines)
+    total_materials = sum(l['invoice_line'].amount for l in material_lines)
+    grand_total = total_labor + total_materials
+    
+    context = {
+        'changeorder': changeorder,
+        'labor_lines': labor_lines,
+        'material_lines': material_lines,
+        'total_labor': total_labor,
+        'total_materials': total_materials,
+        'grand_total': grand_total,
+    }
+    
+    return render(request, "core/changeorder_billing_history.html", context)
+
+
+@login_required
 def changeorder_create_view(request):
     if request.method == "POST":
         form = ChangeOrderForm(request.POST, request.FILES)
