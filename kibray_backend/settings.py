@@ -208,3 +208,14 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@kibray.com")
+
+# ============================================================================
+# Module 21: Business Intelligence Configuration
+# ============================================================================
+
+# Alert Thresholds for BI Dashboard
+BI_LOW_MARGIN_THRESHOLD = float(os.getenv("BI_LOW_MARGIN_THRESHOLD", "15.0"))  # Projects below 15% margin flagged as red
+BI_HIGH_MARGIN_THRESHOLD = float(os.getenv("BI_HIGH_MARGIN_THRESHOLD", "30.0"))  # Projects above 30% considered high performers
+BI_CACHE_TTL = int(os.getenv("BI_CACHE_TTL", "300"))  # Cache timeout in seconds (default: 5 minutes)
+BI_CASH_FLOW_DAYS = int(os.getenv("BI_CASH_FLOW_DAYS", "30"))  # Default projection horizon
+BI_TOP_PERFORMERS_LIMIT = int(os.getenv("BI_TOP_PERFORMERS_LIMIT", "5"))  # Number of top employees to show

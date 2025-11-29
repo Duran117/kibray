@@ -564,10 +564,26 @@ def executive_bi_dashboard(request):
 
     Uses FinancialAnalyticsService to avoid duplicated financial logic across
     various views and ensures consistency of KPIs.
+    
+    Supports cache invalidation via ?refresh query parameter.
     """
     if not (request.user.is_superuser or request.user.is_staff):
         messages.error(request, "Acceso solo para Admin/Staff.")
         return redirect("dashboard")
+
+    # Check if refresh is requested
+    if request.GET.get('refresh'):
+        from django.core.cache import cache
+        # Clear all BI-related caches
+        today = timezone.localdate()
+        cache_keys = [
+            f"fa:cashflow:{today.isoformat()}:30",
+            "fa:project_margins",
+            f"fa:kpis:{today.isoformat()}",
+            "fa:inventory_risk",
+        ]
+        for key in cache_keys:
+            cache.delete(key)
 
     service = FinancialAnalyticsService()
     cash_flow = service.get_cash_flow_projection(days=30)
@@ -576,7 +592,10 @@ def executive_bi_dashboard(request):
     top_employees = service.get_top_performing_employees(limit=8)
     inventory_risk = service.get_inventory_risk_items()
 
-    low_margin_projects = [m for m in margins if m["margin_pct"] < 15.0]
+    from django.conf import settings
+    low_margin_threshold = getattr(settings, 'BI_LOW_MARGIN_THRESHOLD', 15.0)
+    
+    low_margin_projects = [m for m in margins if m["margin_pct"] < low_margin_threshold]
     high_margin_projects = sorted(margins, key=lambda m: m["margin_pct"], reverse=True)[:5]
 
     context = {

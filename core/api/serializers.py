@@ -1844,6 +1844,58 @@ class MaterialCatalogSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_by", "created_at"]
 
 
+# ---------------------------------------------------------------------------
+# Module 15: Field Materials (Employee quick usage & requests)
+# Added lightweight serializers to support new FieldMaterialsViewSet custom
+# actions without bloating existing MaterialRequest serializer (which expects
+# nested items). These are intentionally minimal and read-only.
+# ---------------------------------------------------------------------------
+
+class ProjectStockSerializer(serializers.Serializer):
+    """Lightweight representation of project inventory for employee dashboard."""
+    item_id = serializers.IntegerField()
+    item_name = serializers.CharField()
+    sku = serializers.CharField()
+    quantity = serializers.DecimalField(max_digits=10, decimal_places=2)
+    available_quantity = serializers.DecimalField(max_digits=10, decimal_places=2)
+    is_below = serializers.BooleanField()
+
+
+class ReportUsageResultSerializer(serializers.Serializer):
+    """Serializer for usage reporting response payload.
+    Not tied to a model; provides a consistent structure for frontend.
+    """
+    success = serializers.BooleanField()
+    movement_id = serializers.IntegerField(required=False, allow_null=True)
+    item_id = serializers.IntegerField(required=False, allow_null=True)
+    item_name = serializers.CharField(required=False, allow_blank=True)
+    consumed_quantity = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    remaining_quantity = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    message = serializers.CharField(required=False, allow_blank=True)
+    error = serializers.CharField(required=False, allow_blank=True)
+
+
+class QuickMaterialRequestSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source="project.name", read_only=True)
+    requested_by_name = serializers.CharField(source="requested_by.get_full_name", read_only=True, allow_null=True)
+
+    class Meta:
+        from core.models import MaterialRequest
+        model = MaterialRequest
+        fields = [
+            "id",
+            "project",
+            "project_name",
+            "requested_by",
+            "requested_by_name",
+            "needed_when",
+            "notes",
+            "status",
+            "created_at",
+        ]
+        read_only_fields = ["requested_by", "status", "created_at"]
+
+
 # ============================================================================
 # PHASE 4: Module 16 - Payroll API
 # ============================================================================

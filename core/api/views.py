@@ -110,6 +110,10 @@ from .serializers import (
     TwoFactorEnableSerializer,
     TwoFactorTokenObtainPairSerializer,
     WeatherSnapshotSerializer,
+    # Module 15: Field Materials (new lightweight serializers)
+    ProjectStockSerializer,
+    ReportUsageResultSerializer,
+    QuickMaterialRequestSerializer,
 )
 
 User = get_user_model()
@@ -3458,6 +3462,179 @@ class MaterialRequestViewSet(viewsets.ModelViewSet):
         return Response({"expense_id": expense.id, "status": mr.status})
 
 
+class FieldMaterialsViewSet(viewsets.ViewSet):
+    """Module 15: Simple endpoints for field employees to:
+    - Report material usage (consumption)
+    - Submit a quick material request (single-line request)
+    - View current project stock (available quantities)
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def _get_project_location(self, project_id):
+        from core.models import InventoryLocation
+        return InventoryLocation.objects.filter(project_id=project_id).order_by('id').first()
+
+    @action(detail=False, methods=["get"], url_path="project-stock")
+    def project_stock(self, request):
+        from core.models import ProjectInventory, InventoryItem
+        project_id = request.query_params.get('project_id') or request.query_params.get('project')
+        if not project_id:
+            return Response({"success": False, "error": "project_id requerido"}, status=400)
+        location = self._get_project_location(project_id)
+        if not location:
+            return Response({"success": False, "error": "Proyecto sin ubicación de inventario"}, status=404)
+        stocks = (
+            ProjectInventory.objects
+            .select_related('item')
+            .filter(location=location, quantity__gt=0)
+            .order_by('item__name')
+        )
+        data = []
+        for s in stocks:
+            data.append({
+                'item_id': s.item.id,
+                'item_name': s.item.name,
+                'sku': s.item.sku,
+                'quantity': s.quantity,
+                'available_quantity': s.available_quantity,
+                'is_below': s.is_below,
+            })
+        return Response(ProjectStockSerializer(data, many=True).data)
+
+    @action(detail=False, methods=["post"], url_path="report-usage")
+    def report_usage(self, request):
+        from decimal import Decimal, InvalidOperation
+        from django.db import transaction
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        from core.models import InventoryItem, InventoryMovement, ProjectInventory, ProjectManagerAssignment, Notification
+
+        item_id = request.data.get('item_id')
+        project_id = request.data.get('project_id') or request.data.get('project')
+        task_id = request.data.get('task_id')
+        qty_raw = request.data.get('quantity')
+        if not all([item_id, project_id, qty_raw]):
+            return Response({"success": False, "error": "item_id, project_id y quantity son requeridos"}, status=400)
+        try:
+            quantity = Decimal(str(qty_raw))
+        except (InvalidOperation, TypeError, ValueError):
+            return Response({"success": False, "error": "Cantidad inválida"}, status=400)
+        if quantity <= 0:
+            return Response({"success": False, "error": "La cantidad debe ser > 0"}, status=400)
+        try:
+            item = InventoryItem.objects.get(pk=item_id)
+        except InventoryItem.DoesNotExist:
+            return Response({"success": False, "error": "Item no encontrado"}, status=404)
+        location = self._get_project_location(project_id)
+        if not location:
+            return Response({"success": False, "error": "Proyecto sin ubicación de inventario"}, status=404)
+        movement_kwargs = {
+            'item': item,
+            'movement_type': 'CONSUME',
+            'from_location': location,
+            'quantity': quantity,
+            'related_project_id': project_id,
+            'created_by': request.user,
+            'reason': f'Consumo en campo reportado por {request.user.username}',
+        }
+        if task_id:
+            movement_kwargs['related_task_id'] = task_id
+        try:
+            with transaction.atomic():
+                movement = InventoryMovement.objects.create(**movement_kwargs)
+                movement.apply()  # may raise ValidationError if insufficient stock
+                # Remaining stock
+                remaining = ProjectInventory.objects.get(item=item, location=location).quantity
+        except DjangoValidationError as ve:
+            payload = {"success": False, "error": str(ve)}
+            return Response(ReportUsageResultSerializer(payload).data, status=400)
+        except Exception as e:
+            return Response({"success": False, "error": str(e)}, status=400)
+
+        # Notifications to PMs
+        pms = ProjectManagerAssignment.objects.filter(project_id=project_id).select_related('pm')
+        for assign in pms:
+            Notification.objects.create(
+                user=assign.pm,
+                notification_type="material_usage",
+                title="Consumo de material",
+                message=f"{request.user.get_full_name()} consumió {quantity} de {item.name}.",
+                related_object_type="inventory-movement",
+                related_object_id=movement.id,
+            )
+        # Basic admin broadcast (optional)
+        for admin in User.objects.filter(is_staff=True, is_active=True):
+            Notification.objects.create(
+                user=admin,
+                notification_type="material_usage",
+                title="Consumo registrado",
+                message=f"{quantity} de {item.name} consumido en proyecto {project_id}.",
+                related_object_type="inventory-movement",
+                related_object_id=movement.id,
+            )
+
+        payload = {
+            'success': True,
+            'movement_id': movement.id,
+            'item_id': item.id,
+            'item_name': item.name,
+            'consumed_quantity': quantity,
+            'remaining_quantity': remaining,
+            'message': 'Consumo registrado correctamente'
+        }
+        return Response(ReportUsageResultSerializer(payload).data, status=201)
+
+    @action(detail=False, methods=["post"], url_path="quick-request")
+    def quick_request(self, request):
+        from decimal import Decimal, InvalidOperation
+        from core.models import MaterialRequest, MaterialRequestItem, ProjectManagerAssignment, Notification
+        project_id = request.data.get('project_id') or request.data.get('project')
+        item_name = request.data.get('item_name') or request.data.get('name')
+        qty_raw = request.data.get('quantity')
+        urgency = request.data.get('urgency')  # boolean-like
+        notes = request.data.get('notes', '')
+        if not all([project_id, item_name, qty_raw]):
+            return Response({"success": False, "error": "project_id, item_name y quantity son requeridos"}, status=400)
+        try:
+            quantity = Decimal(str(qty_raw))
+        except (InvalidOperation, TypeError, ValueError):
+            return Response({"success": False, "error": "Cantidad inválida"}, status=400)
+        if quantity <= 0:
+            return Response({"success": False, "error": "La cantidad debe ser > 0"}, status=400)
+        needed_when = 'now' if str(urgency).lower() in ['1', 'true', 'yes', 'urgent'] else 'tomorrow'
+        req = MaterialRequest.objects.create(
+            project_id=project_id,
+            requested_by=request.user,
+            needed_when=needed_when,
+            notes=notes,
+            status='pending'
+        )
+        # Create a single item entry (category 'other' as generic)
+        MaterialRequestItem.objects.create(
+            request=req,
+            category='other',
+            product_name=item_name,
+            quantity=quantity,
+            unit='unit',
+            comments='Quick request',
+            qty_requested=quantity,
+        )
+        # Notify PMs
+        pms = ProjectManagerAssignment.objects.filter(project_id=project_id).select_related('pm')
+        for assign in pms:
+            Notification.objects.create(
+                user=assign.pm,
+                notification_type="material_request",
+                title="Nueva solicitud rápida",
+                message=f"{request.user.get_full_name()} solicitó {quantity} de {item_name} (urgencia: {needed_when}).",
+                related_object_type="material-request",
+                related_object_id=req.id,
+            )
+        payload = QuickMaterialRequestSerializer(req).data
+        payload['success'] = True
+        return Response(payload, status=201)
+
+
 class ClientRequestViewSet(viewsets.ModelViewSet):
     """Client Requests: Material, Change Order, Info"""
 
@@ -5075,3 +5252,157 @@ class ClientInvoiceApprovalAPIView(APIView):
                 "approved_date": invoice.approved_date.isoformat() if invoice.approved_date else None
             }
         })
+
+
+# ============================================================================
+# Module 21: Business Intelligence Analytics API Endpoints
+# ============================================================================
+
+class BIAnalyticsViewSet(viewsets.ViewSet):
+    """API endpoints for Business Intelligence metrics and analytics.
+    
+    Provides JSON access to financial KPIs, cash flow projections, 
+    project margins, and inventory risk data for SPA/dashboard consumption.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    @action(detail=False, methods=["get"], url_path="kpis")
+    def company_kpis(self, request):
+        """Get company health KPIs: net profit, receivables, burn rate.
+        
+        Query params:
+            as_of (str): Date in YYYY-MM-DD format (default: today)
+        """
+        from core.services.financial_service import FinancialAnalyticsService
+        from django.utils import timezone
+        
+        as_of_str = request.query_params.get("as_of")
+        if as_of_str:
+            try:
+                as_of = datetime.strptime(as_of_str, "%Y-%m-%d").date()
+            except ValueError:
+                return Response(
+                    {"error": "Invalid date format. Use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            as_of = timezone.localdate()
+        
+        service = FinancialAnalyticsService(as_of=as_of)
+        kpis = service.get_company_health_kpis()
+        
+        return Response(kpis)
+    
+    @action(detail=False, methods=["get"], url_path="cash-flow")
+    def cash_flow_projection(self, request):
+        """Get cash flow projection for next N days.
+        
+        Query params:
+            days (int): Forecast horizon in days (default: 30)
+            as_of (str): Date in YYYY-MM-DD format (default: today)
+        """
+        from core.services.financial_service import FinancialAnalyticsService
+        from django.utils import timezone
+        
+        as_of_str = request.query_params.get("as_of")
+        if as_of_str:
+            try:
+                as_of = datetime.strptime(as_of_str, "%Y-%m-%d").date()
+            except ValueError:
+                return Response(
+                    {"error": "Invalid date format. Use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            as_of = timezone.localdate()
+        
+        days = request.query_params.get("days", "30")
+        try:
+            days = int(days)
+        except ValueError:
+            return Response(
+                {"error": "Invalid days parameter. Must be integer."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        service = FinancialAnalyticsService(as_of=as_of)
+        data = service.get_cash_flow_projection(days=days)
+        
+        # Serialize dataclass rows to dicts
+        serialized_rows = [
+            {
+                "label": row.label,
+                "expected_income": float(row.expected_income),
+                "expected_expense": float(row.expected_expense),
+                "net": float(row.net),
+            }
+            for row in data["rows"]
+        ]
+        
+        return Response({
+            "rows": serialized_rows,
+            "chart": data["chart"]
+        })
+    
+    @action(detail=False, methods=["get"], url_path="margins")
+    def project_margins(self, request):
+        """Get project margin analysis (invoiced vs costs).
+        
+        Returns list of active projects with margin percentages.
+        """
+        from core.services.financial_service import FinancialAnalyticsService
+        
+        service = FinancialAnalyticsService()
+        margins = service.get_project_margins()
+        
+        return Response({"projects": margins})
+    
+    @action(detail=False, methods=["get"], url_path="inventory-risk")
+    def inventory_risk(self, request):
+        """Get inventory items below threshold (critical stock levels).
+        
+        Returns list of items requiring reorder.
+        """
+        from core.services.financial_service import FinancialAnalyticsService
+        
+        service = FinancialAnalyticsService()
+        items = service.get_inventory_risk_items()
+        
+        return Response({"items": items})
+    
+    @action(detail=False, methods=["get"], url_path="top-performers")
+    def top_performers(self, request):
+        """Get top performing employees by productivity percentage.
+        
+        Query params:
+            limit (int): Number of employees to return (default: 5)
+            as_of (str): Date in YYYY-MM-DD format (default: today)
+        """
+        from core.services.financial_service import FinancialAnalyticsService
+        from django.utils import timezone
+        
+        as_of_str = request.query_params.get("as_of")
+        if as_of_str:
+            try:
+                as_of = datetime.strptime(as_of_str, "%Y-%m-%d").date()
+            except ValueError:
+                return Response(
+                    {"error": "Invalid date format. Use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            as_of = timezone.localdate()
+        
+        limit = request.query_params.get("limit", "5")
+        try:
+            limit = int(limit)
+        except ValueError:
+            return Response(
+                {"error": "Invalid limit parameter. Must be integer."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        service = FinancialAnalyticsService(as_of=as_of)
+        employees = service.get_top_performing_employees(limit=limit)
+        
+        return Response({"employees": employees})

@@ -1,4 +1,4 @@
-{% load static %}
+{% load static currency_extras %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -358,8 +358,8 @@
         <!-- CONTENT -->
         <div class="content">
             {% if error %}
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle"></i> {{ error }}
+            <div class="alert alert-danger" role="alert" aria-live="polite" tabindex="0">
+                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> <span>{{ error }}</span>
             </div>
             {% endif %}
 
@@ -400,14 +400,14 @@
                 <!-- FIXED PRICE -->
                 <div class="amount-display">
                     <div class="amount-label">Monto Total - Precio Fijo</div>
-                    <div class="amount-value">${{ changeorder.amount|floatformat:2 }}</div>
+                    <div class="amount-value">{{ changeorder.amount|currency_es }}</div>
                 </div>
 
                 <div class="legal-text">
                     <p>
                         <i class="bi bi-shield-check"></i>
                         <strong>Acuerdo de Precio Fijo:</strong> Yo, el cliente, acepto pagar la suma fija de 
-                        <strong>${{ changeorder.amount|floatformat:2 }}</strong> por el trabajo descrito arriba. 
+                        <strong>{{ changeorder.amount|currency_es }}</strong> por el trabajo descrito arriba. 
                         Este monto es definitivo y no estará sujeto a cambios basados en horas trabajadas o materiales utilizados.
                     </p>
                 </div>
@@ -428,7 +428,7 @@
                         <span class="rate-label">
                             <i class="bi bi-person-badge"></i> Tarifa por Hora de Mano de Obra
                         </span>
-                        <span class="rate-value">${{ changeorder.billing_hourly_rate|floatformat:2 }}/hr</span>
+                        <span class="rate-value">{{ changeorder.billing_hourly_rate|currency_es }}/hr</span>
                     </div>
 
                     <div class="rate-item">
@@ -447,7 +447,7 @@
                         basándose en:
                     </p>
                     <ul style="margin: 0.5rem 0 0 1.5rem;">
-                        <li><strong>Mano de Obra:</strong> Horas trabajadas × ${{ changeorder.billing_hourly_rate|floatformat:2 }}/hora</li>
+                        <li><strong>Mano de Obra:</strong> Horas trabajadas × {{ changeorder.billing_hourly_rate|currency_es }}/hora</li>
                         <li><strong>Materiales:</strong> Costo de materiales + {{ changeorder.material_markup_pct|floatformat:0 }}% de markup</li>
                     </ul>
                     <p style="margin-top: 0.5rem; font-style: italic;">
@@ -463,9 +463,10 @@
                     <i class="bi bi-pencil-square"></i> Firma Digital
                 </div>
 
-                <form method="post" id="signatureForm">
+                <form method="post" id="signatureForm" novalidate aria-describedby="signatureInstructions">
                     {% csrf_token %}
                     <input type="hidden" name="signature_data" id="signatureData">
+                    <p id="signatureInstructions" class="visually-hidden">Complete su nombre y dibuje su firma en el recuadro. Todos los campos marcados con asterisco son obligatorios.</p>
 
                     <div class="form-group">
                         <label for="signerName" class="form-label">
@@ -478,6 +479,22 @@
                             name="signer_name" 
                             placeholder="Ingrese su nombre completo"
                             required
+                            aria-required="true"
+                            aria-label="Nombre completo del firmante"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customerEmail" class="form-label">
+                            <i class="bi bi-envelope"></i> Correo Electrónico (para confirmación opcional)
+                        </label>
+                        <input
+                            type="email"
+                            class="form-control"
+                            id="customerEmail"
+                            name="customer_email"
+                            placeholder="cliente@ejemplo.com"
+                            aria-label="Correo electrónico para recibir confirmación de firma"
                         >
                     </div>
 
@@ -485,8 +502,8 @@
                         <label class="form-label">
                             <i class="bi bi-pen"></i> Firme en el Recuadro *
                         </label>
-                        <div class="signature-pad-container">
-                            <canvas id="signaturePad" class="signature-pad"></canvas>
+                        <div class="signature-pad-container" aria-label="Área de firma">
+                            <canvas id="signaturePad" class="signature-pad" aria-label="Lienzo para dibujar su firma" role="img"></canvas>
                             <div class="signature-controls">
                                 <small style="color: #64748b;">
                                     <i class="bi bi-info-circle"></i> Dibuje su firma con el dedo o mouse
@@ -496,8 +513,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div id="emptySignatureWarning" class="empty-signature-warning">
-                            <i class="bi bi-exclamation-triangle"></i> Por favor, firme en el recuadro antes de continuar.
+                        <div id="emptySignatureWarning" class="empty-signature-warning" role="alert" aria-live="assertive">
+                            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> <span>Por favor, firme en el recuadro antes de continuar.</span>
                         </div>
                     </div>
 
@@ -546,14 +563,16 @@
 
             // Validate signer name
             if (!signerName) {
-                alert('Por favor, ingrese su nombre completo.');
-                document.getElementById('signerName').focus();
+                const nameField = document.getElementById('signerName');
+                nameField.setAttribute('aria-invalid', 'true');
+                nameField.focus();
                 return false;
             }
 
             // Validate signature
             if (signaturePad.isEmpty()) {
                 warningDiv.style.display = 'block';
+                warningDiv.focus();
                 canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return false;
             }

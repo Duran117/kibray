@@ -6,6 +6,7 @@ from .dashboard_extra import ClientDashboardView, ProjectDashboardView
 from .views import (
     AdminDashboardView,
     AuditLogViewSet,
+    BIAnalyticsViewSet,
     BudgetLineViewSet,
     BudgetVarianceAnalysisAPIView,
     CashFlowProjectionAPIView,
@@ -29,6 +30,7 @@ from .views import (
     InventoryItemViewSet,
     InventoryLocationViewSet,
     InventoryMovementViewSet,
+    FieldMaterialsViewSet,
     InventoryValuationReportView,
     InvoiceAgingReportAPIView,
     InvoiceDashboardView,
@@ -130,6 +132,7 @@ router.register(r"inventory/items", InventoryItemViewSet, basename="inventory-it
 router.register(r"inventory/locations", InventoryLocationViewSet, basename="inventory-location")
 router.register(r"inventory/stocks", ProjectInventoryViewSet, basename="project-inventory")
 router.register(r"inventory/movements", InventoryMovementViewSet, basename="inventory-movement")
+router.register(r"field-materials", FieldMaterialsViewSet, basename="field-materials")
 
 # Module 16: Payroll
 router.register(r"payroll/periods", PayrollPeriodViewSet, basename="payroll-period")
@@ -139,6 +142,9 @@ router.register(r"payroll/tax-profiles", TaxProfileViewSet, basename="tax-profil
 
 # Security: 2FA
 router.register(r"2fa", TwoFactorViewSet, basename="twofactor")
+
+# Module 21: Business Intelligence Analytics
+router.register(r"bi", BIAnalyticsViewSet, basename="bi-analytics")
 
 urlpatterns = [
     # JWT Auth

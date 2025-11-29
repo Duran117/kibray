@@ -26,6 +26,14 @@
     <h1 class="text-3xl font-bold text-slate-50">Executive BI</h1>
     <p class="text-slate-400 text-sm">{{ today|date:"F d, Y" }} · Consolidated KPIs</p>
   </div>
+  <div>
+    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+      <svg id="refreshIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+      </svg>
+      <span id="refreshText">Actualizar</span>
+    </button>
+  </div>
 </div>
 {% endblock %}
 
@@ -132,6 +140,32 @@
       options: { responsive:true, plugins:{ legend:{ labels:{ color:'#cbd5e1' } } }, scales:{ x:{ ticks:{ color:'#94a3b8'} }, y:{ ticks:{ color:'#94a3b8'} } } }
     });
     document.body.classList.add('dark-bi');
+
+    // Refresh button functionality
+    const refreshBtn = document.getElementById('refreshBtn');
+    const refreshIcon = document.getElementById('refreshIcon');
+    const refreshText = document.getElementById('refreshText');
+    
+    refreshBtn.addEventListener('click', async function() {
+      // Disable button and show loading state
+      refreshBtn.disabled = true;
+      refreshIcon.classList.add('animate-spin');
+      refreshText.textContent = 'Actualizando...';
+      
+      try {
+        // Add cache-busting parameter to force refresh
+        const url = new URL(window.location.href);
+        url.searchParams.set('refresh', Date.now());
+        
+        // Reload page with cache bust
+        window.location.href = url.toString();
+      } catch (error) {
+        console.error('Error refreshing:', error);
+        refreshBtn.disabled = false;
+        refreshIcon.classList.remove('animate-spin');
+        refreshText.textContent = 'Actualizar';
+      }
+    });
   })();
 </script>
 {% endblock %}

@@ -216,12 +216,16 @@ class TestCustomerSignatureView:
         assert tm_change_order.signature_image
 
     def test_signature_url_with_token_parameter(self, client, fixed_change_order):
-        """Test that URL with token parameter is accessible."""
+        """Test that URL with valid token parameter is accessible."""
+        from django.core import signing
+        
+        # Generate valid token
+        token = signing.dumps({"co": fixed_change_order.id})
         url = reverse('changeorder_customer_signature_token', 
-                     args=[fixed_change_order.id, 'test-token-123'])
+                     args=[fixed_change_order.id, token])
         response = client.get(url)
         
-        # Should be accessible (token validation not implemented yet)
+        # Should be accessible with valid token
         assert response.status_code == 200
         assert 'changeorder' in response.context
 

@@ -393,3 +393,118 @@ The system now provides:
 - **Data integrity**: Proper approval audit trails and permission checks
 
 **Status**: Production-ready, all features tested and functional.
+
+---
+
+## Post-Implementation Security & UX Enhancements (En Curso)
+
+Esta sección documenta mejoras adicionales aplicadas al sistema tras la reorganización del panel. Se añaden de forma incremental y cada paso se marca cuando se completa.
+
+### Objetivos
+1. Fortalecer seguridad (tokens firmados, expiración, auditoría).
+2. Mejorar confianza del cliente (PDF con firma, notificaciones email).
+3. Incrementar trazabilidad (IP/User-Agent, registro de eventos).
+4. Accesibilidad y localización monetaria.
+
+### Pasos Planificados
+| Paso | Mejora | Estado | Descripción |
+|------|--------|--------|-------------|
+| 1 | Token seguro para firma CO | ✅ Completado | Validación con `django.core.signing`, expiración 7 días, protección contra manipulación. |
+| 2 | Email post‑firma | ✅ Completado | Notificación a staff y correo opcional al cliente tras firma usando `send_mail`. |
+| 3 | Generación PDF firmado | ✅ Completado | Render HTML → PDF (`xhtml2pdf`) con datos del CO y firma; guardado en `signed_pdf`. |
+| 4 | Campos auditoría firma | ✅ Completado | Registro de IP y User-Agent al firmar (`signed_ip`, `signed_user_agent`). |
+| 5 | Accesibilidad firma | ✅ Completado | ARIA labels, alerts con `role`, instrucciones ocultas, foco en errores, campo email opcional. |
+| 6 | Localización moneda | ✅ Completado | Filtro `currency_es` aplicado en formularios y historial de facturación. |
+### Paso 6: Localización Monetaria
+**Cambios**:
+- Nuevo templatetag: `core/templatetags/currency_extras.py` con filtro `currency_es`.
+- Plantillas actualizadas: `changeorder_signature_form.html`, `changeorder_billing_history.html`.
+
+**Formato**: Usa separadores locales si `USE_I18N` + configuración regional; fallback a formato estándar con dos decimales.
+
+**Ventajas**:
+- Mayor claridad para clientes hispanohablantes.
+- Listo para futura expansión multi‑divisa (extender filtro con símbolo dinámico).
+
+**Siguientes pasos**: Documentación consolidada (Paso 7) y suite de tests (Paso 8).
+| 7 | Documentación ampliada | ✅ Completado | Sección detallada añadida aquí; README pendiente de sincronizar. |
+| 8 | Suite de tests nuevas | ✅ Completado | Archivo `tests/test_changeorder_signature_enhancements.py` cubre token, firma, PDF, currency. |
+
+### Paso 1: Token Seguro para Firma (Detalle)
+**Archivos modificados**:
+- `core/views.py`: Validación de token en `changeorder_customer_signature_view` (HMAC + expiración).
+- `core/services/signature.py`: Nuevo helper para generar y validar tokens (`generate_signature_token`, `validate_signature_token`).
+
+**Comportamiento**:
+- Si la URL incluye `/sign/<token>/` se valida integridad y expiración.
+- Tokens expirados devuelven `403 Forbidden` con mensaje legible.
+- Tokens manipulados (firma inválida) devuelven `403 Forbidden`.
+- Flujo interno sin token sigue funcionando (compatibilidad). 
+
+**Seguridad**:
+- Uso de `SECRET_KEY` para HMAC interno (no expone datos sensibles).
+- Payload mínimo (`co`, `ts`).
+- Expiración configurable (default 7 días).
+
+**Siguientes pasos**: Implementar envío de email tras firma (Paso 2).
+
+### Paso 2: Email Automático Post-Firma
+**Cambios**:
+- `core/views.py`: Bloque de envío de correo en POST de firma (usa `send_mail`).
+- Destinatarios internos: usuarios `is_staff=True` con email válido.
+- Email cliente opcional si se incluye `customer_email` en el formulario.
+
+**Contenido del correo**:
+- Proyecto, descripción recortada, tipo de pricing, firmante y timestamp.
+- Para T&M: incluye tarifa y markup.
+
+**Fallback**: Errores de SMTP se silencian para no afectar UX pública.
+
+### Paso 3: PDF Firmado
+**Cambios**:
+- Campo nuevo en modelo: `signed_pdf` (migration 0106).
+- Plantilla: `core/templates/core/changeorder_pdf.html` (HTML minimalista, estilos inline, firma embebida).
+- Generación: `pisa.CreatePDF` en flujo POST tras guardar firma y correos.
+
+**Ventajas**:
+- Evidencia congelada del estado del CO al momento de la firma.
+- Facilita envío posterior o archivado externo (S3 / cold storage futuro).
+
+**Consideraciones Técnicas**:
+- Uso de `BytesIO` en memoria (sin I/O extra).
+- Fallos de render no bloquean la aprobación (try/except).
+
+**Siguientes pasos**: Agregar campos de auditoría (Paso 4).
+
+### Paso 4: Auditoría de Firma
+**Cambios**:
+- Modelo: Campos `signed_ip` y `signed_user_agent` (migration 0107).
+- Vista: Captura de IP (prioriza `X-Forwarded-For`) y User-Agent en el POST de firma.
+
+**Beneficios**:
+- Mayor trazabilidad para disputas o verificación.
+- Listo para futura correlación con logs de seguridad / WAF.
+
+**Privacidad**:
+- Solo se guardan metadatos mínimos necesarios.
+- No se realiza geolocalización automática (posible mejora futura).
+
+**Siguientes pasos**: Mejoras de accesibilidad en la interfaz de firma (Paso 5).
+
+### Paso 5: Accesibilidad y UX Inclusiva
+**Cambios**:
+- `changeorder_signature_form.html`: Añadidos `aria-label`, `role="alert"`, `aria-live`, instrucciones ocultas (`visually-hidden`), foco automático en errores, atributo `aria-invalid` cuando falta nombre.
+- Campo nuevo opcional para correo del cliente (`customer_email`) para recibir confirmación.
+- Área de firma marcada como región accesible.
+
+**Beneficios**:
+- Compatible con lectores de pantalla.
+- Mejor feedback inmediato para usuarios con dificultades visuales.
+
+**Mejoras Futuras**:
+- Atajo de teclado para limpiar firma.
+- Texto alternativo dinámico de la firma una vez capturada.
+
+**Siguientes pasos**: Localización monetaria (Paso 6).
+
+---

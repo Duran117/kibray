@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Change Order Firmado #{{ changeorder.id }}</title>
+  <style>
+    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .meta { margin-bottom: 12px; }
+    .box { border: 1px solid #555; padding: 8px; margin-bottom: 10px; }
+    .sig { margin-top: 20px; }
+    .label { font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { border: 1px solid #999; padding: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Change Order #{{ changeorder.id }}</h1>
+  <div class="meta">
+    <div><span class="label">Proyecto:</span> {{ changeorder.project.name }}</div>
+    <div><span class="label">Tipo Precio:</span> {{ changeorder.pricing_type }}</div>
+    {% if changeorder.pricing_type == 'FIXED' %}
+      <div><span class="label">Monto Fijo:</span> ${{ changeorder.amount }}</div>
+    {% else %}
+      <div><span class="label">Tarifa Labor:</span> ${{ changeorder.get_effective_billing_rate }}</div>
+      <div><span class="label">Markup Materiales:</span> {{ changeorder.material_markup_pct }}%</div>
+    {% endif %}
+    <div><span class="label">Estado:</span> {{ changeorder.status }}</div>
+    <div><span class="label">Firmado Por:</span> {{ changeorder.signed_by }}</div>
+    <div><span class="label">Fecha Firma:</span> {{ changeorder.signed_at }}</div>
+  </div>
+  <div class="box">
+    <span class="label">Descripción:</span><br />
+    {{ changeorder.description|linebreaksbr }}
+  </div>
+  {% if changeorder.signature_image %}
+    <div class="sig">
+      <span class="label">Firma del Cliente:</span><br />
+      <img src="{{ changeorder.signature_image.url }}" alt="Firma" style="height:140px;" />
+    </div>
+  {% endif %}
+  <p style="margin-top:30px;font-size:10px;color:#666;">Documento generado automáticamente. Uso interno y de cliente. No requiere firma adicional.</p>
+</body>
+</html>

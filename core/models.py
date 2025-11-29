@@ -1971,6 +1971,23 @@ class ChangeOrder(models.Model):
         blank=True,
         help_text="Timestamp when signature was captured"
     )
+    signed_pdf = models.FileField(
+        upload_to='signatures/change_orders/pdf/',
+        null=True,
+        blank=True,
+        help_text="PDF snapshot of signed Change Order"
+    )
+    signed_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of signer"
+    )
+    signed_user_agent = models.CharField(
+        max_length=512,
+        null=True,
+        blank=True,
+        help_text="User-Agent header of signer"
+    )
 
     def get_effective_labor_rate(self):
         """Retorna la tarifa efectiva: override del CO o default del proyecto"""

@@ -59,6 +59,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db.models import F, Q
 from django.core.cache import cache
+from django.conf import settings
 from core.models import (
     Project,
     Invoice,
@@ -144,7 +145,8 @@ class FinancialAnalyticsService:
             "net": [float(r.net) for r in rows],
         }
         payload = {"rows": rows, "chart": chart}
-        cache.set(cache_key, payload, 300)  # 5 min cache
+        cache_ttl = getattr(settings, 'BI_CACHE_TTL', 300)
+        cache.set(cache_key, payload, cache_ttl)
         return payload
 
     # Project Margins ------------------------------------------------------
@@ -176,7 +178,8 @@ class FinancialAnalyticsService:
                     "margin_pct": margin_pct,
                 }
             )
-        cache.set(cache_key, data, 300)
+        cache_ttl = getattr(settings, 'BI_CACHE_TTL', 300)
+        cache.set(cache_key, data, cache_ttl)
         return data
 
     # Company Health KPIs --------------------------------------------------
@@ -188,14 +191,21 @@ class FinancialAnalyticsService:
         income_sum = Project.objects.aggregate(t=Sum("total_income"))["t"] or Decimal("0")
         expense_sum = Project.objects.aggregate(t=Sum("total_expenses"))["t"] or Decimal("0")
         net_profit = income_sum - expense_sum
-        # Refined receivables: remaining balance (total - amount_paid)
-        remaining = Decimal("0")
-        for inv in Invoice.objects.filter(status__in=self.COLLECTIBLE_INVOICE_STATUSES).values("total_amount", "amount_paid"):
-            total = inv["total_amount"] or Decimal("0")
-            paid = inv["amount_paid"] or Decimal("0")
-            bal = total - paid
-            if bal > 0:
-                remaining += bal
+        # Refined receivables: optimized with DB expression (balance > 0)
+        from django.db.models import Case, When, Value, DecimalField
+        receivables_qs = Invoice.objects.filter(status__in=self.COLLECTIBLE_INVOICE_STATUSES).aggregate(
+            remaining=Sum(
+                Case(
+                    When(
+                        total_amount__gt=F("amount_paid"),
+                        then=F("total_amount") - F("amount_paid")
+                    ),
+                    default=Value(0),
+                    output_field=DecimalField()
+                )
+            )
+        )
+        remaining = receivables_qs["remaining"] or Decimal("0")
         horizon_start = self.as_of - timedelta(days=30)
         expenses_30 = Expense.objects.filter(date__gte=horizon_start, date__lte=self.as_of).aggregate(t=Sum("amount"))["t"] or Decimal("0")
         payroll_30 = PayrollRecord.objects.filter(week_start__gte=horizon_start).aggregate(t=Sum("net_pay"))["t"] or Decimal("0")
@@ -205,7 +215,8 @@ class FinancialAnalyticsService:
             "total_receivables": float(remaining),
             "burn_rate": float(burn_rate),
         }
-        cache.set(cache_key, data, 300)
+        cache_ttl = getattr(settings, 'BI_CACHE_TTL', 300)
+        cache.set(cache_key, data, cache_ttl)
         return data
 
     # Inventory Risk -------------------------------------------------------
@@ -229,7 +240,8 @@ class FinancialAnalyticsService:
                         "threshold": float(threshold),
                     }
                 )
-        cache.set(cache_key, items, 300)
+        cache_ttl = getattr(settings, 'BI_CACHE_TTL', 300)
+        cache.set(cache_key, items, cache_ttl)
         return items
 
     # Top Performing Employees --------------------------------------------

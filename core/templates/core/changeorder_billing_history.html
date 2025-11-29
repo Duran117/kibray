@@ -1,4 +1,4 @@
-{% load static %}
+{% load static currency_extras %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -301,21 +301,21 @@
                 <div class="label">
                     <i class="bi bi-clock-history"></i> Total Mano de Obra
                 </div>
-                <div class="amount">${{ total_labor|floatformat:2 }}</div>
+                <div class="amount">{{ total_labor|currency_es }}</div>
             </div>
 
             <div class="summary-card materials">
                 <div class="label">
                     <i class="bi bi-box-seam"></i> Total Materiales
                 </div>
-                <div class="amount">${{ total_materials|floatformat:2 }}</div>
+                <div class="amount">{{ total_materials|currency_es }}</div>
             </div>
 
             <div class="summary-card total">
                 <div class="label">
                     <i class="bi bi-currency-dollar"></i> Total Facturado
                 </div>
-                <div class="amount">${{ grand_total|floatformat:2 }}</div>
+                <div class="amount">{{ grand_total|currency_es }}</div>
             </div>
         </div>
 
@@ -344,7 +344,7 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="invoice-line-amount">${{ line_data.invoice_line.total|floatformat:2 }}</div>
+                <div class="invoice-line-amount">{{ line_data.invoice_line.total|currency_es }}</div>
             </div>
 
             {% if line_data.time_entries %}
@@ -367,7 +367,7 @@
                             <td>{{ entry.date|date:"d/m/Y" }}</td>
                             <td>{{ entry.cost_code.code|default:"N/A" }}</td>
                             <td>{{ entry.hours_worked|floatformat:2 }}</td>
-                            <td>${{ entry.cost_rate_snapshot|default:0|floatformat:2 }}/hr</td>
+                            <td>{{ entry.cost_rate_snapshot|default:0|currency_es }}/hr</td>
                             <td>${{ entry.hours_worked|default:0|floatformat:2|add:entry.cost_rate_snapshot|default:0|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
@@ -424,7 +424,7 @@
                             <td>{{ expense.description }}</td>
                             <td>{{ expense.date|date:"d/m/Y" }}</td>
                             <td>{{ expense.category|default:"Material" }}</td>
-                            <td>${{ expense.amount|floatformat:2 }}</td>
+                            <td>{{ expense.amount|currency_es }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
