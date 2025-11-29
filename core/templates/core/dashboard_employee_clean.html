@@ -55,10 +55,14 @@
         <form method="post" class="max-w-2xl mx-auto">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div class="text-left">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Project" %}:</label>
                     {{ form.project }}
+                </div>
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">CO (T&M / Fijo):</label>
+                    {{ form.change_order }}
                 </div>
                 <div class="text-left">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">Cost Code:</label>

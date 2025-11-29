@@ -2746,21 +2746,56 @@ def invoice_builder_view(request, project_id):
                 lines_created += 1
 
         # Add ChangeOrders
+        # Change Orders (Fixed or T&M)
+        from core.services.financial_service import ChangeOrderService
         for co_id in selected_co_ids:
             try:
                 co = ChangeOrder.objects.get(pk=int(co_id))
-                InvoiceLine.objects.create(
-                    invoice=invoice,
-                    description=f"Change Order #{co.id}: {co.description[:100]}",
-                    amount=co.amount,
-                )
-                # Mark CO as billed and link to invoice
-                co.status = "billed"
-                co.save()
+                if co.pricing_type == 'FIXED':
+                    InvoiceLine.objects.create(
+                        invoice=invoice,
+                        description=f"CO #{co.id} (Fijo): {co.description[:90]}",
+                        amount=co.amount,
+                    )
+                    lines_created += 1
+                else:
+                    # T&M breakdown
+                    breakdown = ChangeOrderService.get_billable_amount(co)
+                    # Labor line
+                    labor_line = InvoiceLine.objects.create(
+                        invoice=invoice,
+                        description=(
+                            f"Mano de Obra CO #{co.id}: {breakdown['labor_hours']} hrs @ ${breakdown['billing_rate']}/hr"
+                        ),
+                        amount=breakdown['labor_total'],
+                    )
+                    lines_created += 1
+                    # Materials line (only if there is material cost)
+                    if breakdown['material_total'] > 0:
+                        material_line = InvoiceLine.objects.create(
+                            invoice=invoice,
+                            description=(
+                                f"Materiales CO #{co.id}: costo ${breakdown['raw_material_cost']} + {breakdown['material_markup_pct']}%"
+                            ),
+                            amount=breakdown['material_total'],
+                        )
+                        lines_created += 1
+                    else:
+                        material_line = None
+                    # Mark involved entries/expenses as billed
+                    for te in breakdown['time_entries']:
+                        te.invoice_line = labor_line
+                        te.save(update_fields=['invoice_line'])
+                    for ex in breakdown['expenses']:
+                        if material_line:
+                            ex.invoice_line = material_line
+                            ex.save(update_fields=['invoice_line'])
+                # Mark CO billed
+                co.status = 'billed'
+                co.save(update_fields=['status'])
                 invoice.change_orders.add(co)
-                lines_created += 1
             except (ChangeOrder.DoesNotExist, ValueError):
-                pass
+                continue
 
         # Add Time & Materials (general - not linked to COs)
         if include_time_general and time_general:
@@ -4386,6 +4421,7 @@ def dashboard_employee(request):
                 te = TimeEntry.objects.create(
                     employee=employee,
                     project=form.cleaned_data["project"],
+                    change_order=form.cleaned_data.get("change_order"),
                     date=today,
                     start_time=now.time(),
                     end_time=None,

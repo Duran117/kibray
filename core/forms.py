@@ -509,11 +509,17 @@ class TaskForm(forms.ModelForm):
 class ChangeOrderForm(forms.ModelForm):
     class Meta:
         model = ChangeOrder
-        fields = ["project", "description", "amount", "status", "notes", "color", "reference_code"]
+        fields = [
+            "project", "description", "pricing_type", "amount", "billing_hourly_rate",
+            "material_markup_pct", "status", "notes", "color", "reference_code"
+        ]
         widgets = {
             "project": forms.Select(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
             "amount": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
+            "pricing_type": forms.Select(attrs={"class": "form-control"}),
+            "billing_hourly_rate": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
+            "material_markup_pct": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
             "notes": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
             "color": forms.TextInput(attrs={"type": "color", "class": "form-control"}),
@@ -609,6 +615,11 @@ class BudgetProgressEditForm(forms.ModelForm):
 
 class ClockInForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), label="Proyecto")
+    change_order = forms.ModelChoiceField(
+        queryset=ChangeOrder.objects.filter(status__in=["approved", "sent"]).exclude(status__in=["billed", "paid"]),
+        required=False,
+        label="Change Order (opcional)"
+    )
     cost_code = forms.ModelChoiceField(queryset=CostCode.objects.filter(active=True), required=False, label="Cost Code")
     notes = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Notas")
 

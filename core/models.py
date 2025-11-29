@@ -602,6 +602,11 @@ class Expense(models.Model):
         blank=True,
         help_text=_("Número de cheque o referencia de transferencia")
     )
+    invoice_line = models.ForeignKey(
+        "InvoiceLine", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="expenses_billed",
+        help_text="Línea de factura que facturó este gasto (evita duplicados en T&M)"
+    )
 
     def __str__(self):
         return f"{self.project_name} - {self.category} - ${self.amount}"
@@ -813,6 +818,11 @@ class TimeEntry(models.Model):
         null=True,
         blank=True,
         help_text=_("Tarifa cobrada (según CO o proyecto) al momento de esta entrada")
+    )
+    invoice_line = models.ForeignKey(
+        "InvoiceLine", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="time_entries_billed",
+        help_text="Línea de factura que cobró esta entrada (para evitar doble facturación)"
     )
 
     @property
@@ -1911,6 +1921,25 @@ class ChangeOrder(models.Model):
         default=Decimal("15.00"),
         help_text=_("Porcentaje de markup en materiales (por defecto 15%)")
     )
+    # ==== NUEVO SISTEMA T&M ====
+    pricing_type = models.CharField(
+        max_length=10,
+        choices=[("FIXED", "Precio Fijo"), ("T_AND_M", "Tiempo y Materiales")],
+        default="FIXED",
+        help_text="Tipo de facturación para este CO"
+    )
+    billing_hourly_rate = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Tarifa por hora cobrada al cliente (venta) en modalidad T&M"
+    )
+    material_markup_pct = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal("20.00"),
+        help_text="Markup (%) sobre materiales para T&M"
+    )
     color = models.CharField(max_length=7, blank=True, null=True, help_text="Color hex (ej: #FF5733)")
     reference_code = models.CharField(max_length=50, blank=True, null=True, help_text="Código de referencia o color")
     
@@ -1927,6 +1956,14 @@ class ChangeOrder(models.Model):
     def get_effective_labor_rate(self):
         """Retorna la tarifa efectiva: override del CO o default del proyecto"""
         if self.labor_rate_override is not None:
+            return self.labor_rate_override
+        return self.project.default_co_labor_rate if self.project else Decimal("50.00")
+
+    def get_effective_billing_rate(self):
+        """Tarifa de facturación usada para T&M (prioriza billing_hourly_rate)."""
+        if self.billing_hourly_rate and self.billing_hourly_rate > 0:
+            return self.billing_hourly_rate
+        if self.labor_rate_override:
             return self.labor_rate_override
         return self.project.default_co_labor_rate if self.project else Decimal("50.00")
 
