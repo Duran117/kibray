@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.shortcuts import redirect
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import (
     ActivityCompletion,
@@ -442,10 +444,30 @@ class ChatMessageAdmin(admin.ModelAdmin):
 
 @admin.register(MeetingMinute)
 class MeetingMinuteAdmin(admin.ModelAdmin):
-    list_display = ("project", "date", "created_by", "created_at")
+    list_display = ("project", "date", "created_by", "created_at", "tasks_summary")
     list_filter = ("project", "date")
     search_fields = ("project__name", "content")
     readonly_fields = ("created_at",)
+
+    def tasks_summary(self, obj: MeetingMinute):
+        """Show count of tasks created from this minute and link to Task admin filtered view if available."""
+        try:
+            from core.models import Task  # type: ignore
+        except Exception:
+            return "—"
+        # If Task has FK `source_minute`, provide link; else show em dash
+        if hasattr(Task, "source_minute"):
+            count = Task.objects.filter(source_minute=obj).count()
+            if count == 0:
+                return "0"
+            try:
+                url = reverse("admin:core_task_changelist") + f"?source_minute__id__exact={obj.id}"
+                return format_html("<a href='{}'>{} task(s)</a>", url, count)
+            except Exception:
+                return str(count)
+        return "—"
+
+    tasks_summary.short_description = "Tasks from minute"
 
 
 @admin.register(Notification)
