@@ -6,6 +6,8 @@ from core.models import (
     BudgetLine,
     ChatChannel,
     ChatMessage,
+    MeetingMinute,
+    DailyLog,
     ColorSample,
     CostCode,
     DailyLog,
@@ -226,6 +228,52 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         if content is not None and not attrs.get("message"):
             attrs["message"] = content
         return super().validate(attrs)
+
+
+class MeetingMinuteSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source="project.name", read_only=True)
+    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True, allow_null=True)
+
+    class Meta:
+        model = MeetingMinute
+        fields = [
+            "id",
+            "project",
+            "project_name",
+            "date",
+            "attendees",
+            "content",
+            "created_by",
+            "created_by_name",
+            "created_at",
+        ]
+        read_only_fields = ["created_by", "created_at"]
+
+    def create(self, validated_data):
+        req = self.context.get("request")
+        user = getattr(req, "user", None)
+        if user and not validated_data.get("created_by"):
+            validated_data["created_by"] = user
+        return super().create(validated_data)
+
+
+class DailyLogSanitizedSerializer(serializers.ModelSerializer):
+    report = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DailyLog
+        fields = [
+            "id",
+            "project",
+            "date",
+            "report",
+        ]
+
+    def get_report(self, obj):
+        try:
+            return obj.get_sanitized_report()
+        except Exception as e:
+            return {"error": str(e)}
 
     def create(self, validated_data):
         if not validated_data.get("message") and "content" in self.initial_data:

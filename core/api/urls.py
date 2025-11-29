@@ -36,6 +36,8 @@ from .views import (
     InvoiceViewSet,
     LoginAttemptViewSet,
     MaterialCatalogViewSet,
+    MeetingMinuteViewSet,
+    DailyLogSanitizedViewSet,
     MaterialRequestViewSet,
     MaterialsDashboardView,
     MaterialsUsageAnalyticsView,
@@ -81,6 +83,8 @@ router.register(r"login-attempts", LoginAttemptViewSet, basename="login-attempt"
 
 router.register(r"chat/channels", ChatChannelViewSet, basename="chat-channel")
 router.register(r"chat/messages", ChatMessageViewSet, basename="chat-message")
+router.register(r"meeting-minutes", MeetingMinuteViewSet, basename="meeting-minute")
+router.register(r"daily-logs-sanitized", DailyLogSanitizedViewSet, basename="daily-log-sanitized")
 
 # Tasks & Reports
 router.register(r"tasks", TaskViewSet, basename="task")

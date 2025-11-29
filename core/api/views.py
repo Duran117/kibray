@@ -37,6 +37,8 @@ from core.models import (
     InventoryItem,
     InventoryLocation,
     InventoryMovement,
+    MeetingMinute,
+    DailyLog,
     LoginAttempt,
     MaterialCatalog,
     MaterialRequest,
@@ -3749,6 +3751,61 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
+
+
+class MeetingMinuteViewSet(viewsets.ModelViewSet):
+    """Meeting Minutes API - simple CRUD and convert-to-task"""
+
+    from core.api.serializers import MeetingMinuteSerializer as Serializer
+    from core.models import MeetingMinute as Model
+
+    queryset = Model.objects.select_related("project", "created_by").all().order_by("-date", "-id")
+    serializer_class = Serializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["project", "date"]
+    search_fields = ["content", "attendees"]
+    ordering_fields = ["date", "created_at"]
+
+    @action(detail=True, methods=["post"]) 
+    def create_task(self, request, pk=None):
+        minute = self.get_object()
+        text_segment = request.data.get("text", "")
+        kwargs = {
+            "assigned_to": request.data.get("assigned_to"),
+            "priority": request.data.get("priority"),
+            "due_date": request.data.get("due_date"),
+        }
+        task = minute.create_task_from_minute(text_segment, **kwargs)
+        from core.api.serializers import TaskSerializer
+
+        return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
+
+
+class DailyLogSanitizedViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only sanitized DailyLog reports for client-facing consumption"""
+
+    from core.api.serializers import DailyLogSanitizedSerializer as Serializer
+    from core.models import DailyLog as Model
+
+    queryset = Model.objects.select_related("project").all().order_by("-date", "-id")
+    serializer_class = Serializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["project", "date"]
+    search_fields = []
+    ordering_fields = ["date"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if user.is_staff:
+            return qs
+        # Restrict to projects user has ClientProjectAccess
+        from core.models import ClientProjectAccess
+
+        project_ids = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+        return qs.filter(project_id__in=list(project_ids))
 
     def update(self, request, *args, **kwargs):
         message = self.get_object()

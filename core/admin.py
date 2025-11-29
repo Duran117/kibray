@@ -9,6 +9,7 @@ from .models import (
     ChangeOrder,
     ChatChannel,
     ChatMessage,
+    MeetingMinute,
     ClientProjectAccess,
     ColorSample,
     CostCode,
@@ -436,6 +437,14 @@ class ChatMessageAdmin(admin.ModelAdmin):
     list_display = ("channel", "user", "message", "created_at")
     list_filter = ("created_at", "channel__project")
     search_fields = ("message", "user__username")
+    readonly_fields = ("created_at",)
+
+
+@admin.register(MeetingMinute)
+class MeetingMinuteAdmin(admin.ModelAdmin):
+    list_display = ("project", "date", "created_by", "created_at")
+    list_filter = ("project", "date")
+    search_fields = ("project__name", "content")
     readonly_fields = ("created_at",)
 
 
