@@ -448,6 +448,64 @@
             </div>
         </header>
 
+        <!-- T&M PREVIEW (for Time & Materials COs) -->
+        {% if tm_preview %}
+        <section class="co-section" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #10b981;">
+            <h2 style="color: #065f46;"><i class="bi bi-calculator"></i> Vista Previa T&M - Monto por Facturar</h2>
+            
+            <div style="background: white; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
+                <div class="co-two-cols" style="gap: 1.5rem;">
+                    <!-- Labor -->
+                    <div class="co-label" style="color: #0369a1; font-weight: 600;">
+                        <i class="bi bi-clock-history"></i> Mano de Obra
+                    </div>
+                    <div class="co-value">
+                        <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.3rem;">
+                            {{ tm_preview.labor_hours|floatformat:2 }} horas × ${{ changeorder.billing_hourly_rate|floatformat:2 }}/hr
+                        </div>
+                        <div style="font-size: 1.3rem; font-weight: 700; color: #0284c7;">
+                            ${{ tm_preview.labor_total|floatformat:2 }}
+                        </div>
+                    </div>
+
+                    <!-- Materials -->
+                    <div class="co-label" style="color: #7c3aed; font-weight: 600;">
+                        <i class="bi bi-box-seam"></i> Materiales
+                    </div>
+                    <div class="co-value">
+                        <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.3rem;">
+                            Costo: ${{ tm_preview.raw_material_cost|floatformat:2 }} + {{ changeorder.material_markup_pct|floatformat:0 }}% markup
+                        </div>
+                        <div style="font-size: 1.3rem; font-weight: 700; color: #8b5cf6;">
+                            ${{ tm_preview.material_total|floatformat:2 }}
+                        </div>
+                    </div>
+
+                    <!-- Grand Total -->
+                    <div class="co-label" style="color: #059669; font-weight: 700; font-size: 1.1rem;">
+                        <i class="bi bi-currency-dollar"></i> Total a Facturar
+                    </div>
+                    <div class="co-value">
+                        <div style="font-size: 1.8rem; font-weight: 800; color: #047857;">
+                            ${{ tm_preview.grand_total|floatformat:2 }}
+                        </div>
+                        <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; font-style: italic;">
+                            <i class="bi bi-info-circle"></i> Monto calculado dinámicamente (Time & Materials)
+                        </div>
+                    </div>
+                </div>
+
+                {% if tm_preview.labor_hours == 0 and tm_preview.raw_material_cost == 0 %}
+                <div style="text-align: center; padding: 1.5rem; background: #fef3c7; border-radius: 8px; margin-top: 1rem; color: #92400e;">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <p style="margin: 0; font-weight: 600;">No hay horas ni gastos registrados para este Change Order.</p>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">El monto facturable es $0.00 hasta que se agreguen entradas de tiempo o materiales.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
         <!-- INFO PRINCIPAL -->
         <section class="co-section">
             <h2><i class="bi bi-info-circle"></i> Información del Change Order</h2>

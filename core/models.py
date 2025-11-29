@@ -2010,6 +2010,15 @@ class ChangeOrder(models.Model):
         """Verify digital signature integrity"""
         from core.signature_utils import verify_signature
         return verify_signature(self)
+    
+    def clean(self):
+        """Validate ChangeOrder business rules: T&M COs should have amount=0 (calculated dynamically)."""
+        super().clean()
+        if self.pricing_type == 'T_AND_M' and self.amount and self.amount != Decimal('0.00'):
+            from django.core.exceptions import ValidationError
+            raise ValidationError({
+                'amount': 'Change Orders de Tiempo y Materiales deben tener amount=0 (se calcula dinámicamente al facturar).'
+            })
 
 
 class ChangeOrderPhoto(models.Model):

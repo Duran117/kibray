@@ -2223,7 +2223,17 @@ def agregar_comentario(request, project_id):
 @login_required
 def changeorder_detail_view(request, changeorder_id):
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
-    return render(request, "core/changeorder_detail_standalone.html", {"changeorder": changeorder})
+    
+    # Compute T&M preview if applicable
+    tm_preview = None
+    if changeorder.pricing_type == 'T_AND_M':
+        from core.services.financial_service import ChangeOrderService
+        tm_preview = ChangeOrderService.get_billable_amount(changeorder)
+    
+    return render(request, "core/changeorder_detail_standalone.html", {
+        "changeorder": changeorder,
+        "tm_preview": tm_preview
+    })
 
 
 @login_required
