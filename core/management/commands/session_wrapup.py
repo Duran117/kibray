@@ -79,9 +79,14 @@ class Command(BaseCommand):
             else:
                 self.stderr.write(err or "Commit failed.")
 
-        # git push origin main
-        code, out, err = run_cmd(["git", "push", "origin", "main"])
-        self.stdout.write("$ git push origin main")
+        # Detect current branch and push to it
+        code_branch, out_branch, err_branch = run_cmd(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+        current_branch = out_branch.strip() if code_branch == 0 and out_branch else "main"
+        if not current_branch:
+            current_branch = "main"
+        # git push origin <current_branch>
+        code, out, err = run_cmd(["git", "push", "origin", current_branch])
+        self.stdout.write(f"$ git push origin {current_branch}")
         if out:
             self.stdout.write(out)
         if err:
