@@ -148,6 +148,7 @@ router.register(r"bi", BIAnalyticsViewSet, basename="bi-analytics")
 
 # Module 25: Executive Focus Workflow (Productivity)
 from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet, focus_stats
+from .bulk_views import BulkTaskUpdateAPIView
 router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-session")
 router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
 
@@ -168,6 +169,7 @@ urlpatterns = [
         "changeorder-photo/<int:photo_id>/annotated-image/", update_changeorder_photo_image, name="update_photo_image"
     ),
     # API routes
+    path("tasks/bulk-update/", BulkTaskUpdateAPIView.as_view(), name="tasks-bulk-update"),
     path("", include(router.urls)),
     # Ensure gantt endpoint resolves under router and direct mapping
     path("tasks/gantt/", TaskGanttView.as_view(), name="tasks-gantt"),
@@ -216,5 +218,7 @@ urlpatterns = [
     path("planner/action/<int:action_id>/step/<int:step_index>/", lambda req, action_id, step_index: __import__('core.views_planner', fromlist=['update_micro_step']).update_micro_step(req, action_id, step_index), name="planner-update-step"),
     path("planner/stats/", lambda req: __import__('core.views_planner', fromlist=['planner_stats']).planner_stats(req), name="planner-stats"),
     path("planner/feed/<str:user_token>.ics", lambda req, user_token: __import__('core.views_planner', fromlist=['planner_calendar_feed']).planner_calendar_feed(req, user_token), name="planner-calendar-feed"),
+    # Bulk Task Operations
+    path("tasks/bulk-update/", BulkTaskUpdateAPIView.as_view(), name="tasks-bulk-update"),
 ]
 
