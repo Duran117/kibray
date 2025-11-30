@@ -1266,3 +1266,238 @@ class FocusTaskAdmin(admin.ModelAdmin):
     def calendar_description(self, obj):
         return obj.get_calendar_description()
     calendar_description.short_description = 'Calendar Description'
+
+
+# ===================================
+# STRATEGIC PLANNER ADMIN (Module 25 Part B)
+# ===================================
+
+from .models import (
+    LifeVision, ExecutiveHabit, DailyRitualSession,
+    PowerAction, HabitCompletion
+)
+
+
+@admin.register(LifeVision)
+class LifeVisionAdmin(admin.ModelAdmin):
+    list_display = (
+        'title', 'user', 'scope', 'progress_pct', 
+        'deadline', 'created_at'
+    )
+    list_filter = ('scope', 'user')
+    search_fields = ('title', 'deep_why', 'user__username')
+    readonly_fields = ('created_at', 'updated_at')
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)
+    
+    fieldsets = (
+        ('Vision Info', {
+            'fields': ('user', 'title', 'scope')
+        }),
+        ('Emotional Anchor', {
+            'fields': ('deep_why',),
+            'description': 'The WHY - This is mandatory and must be emotionally compelling'
+        }),
+        ('Progress Tracking', {
+            'fields': ('progress_pct', 'deadline')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(ExecutiveHabit)
+class ExecutiveHabitAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'frequency', 'is_active', 'created_at')
+    list_filter = ('frequency', 'is_active', 'user')
+    search_fields = ('title', 'user__username')
+    readonly_fields = ('created_at',)
+    ordering = ('frequency', 'title')
+
+
+class PowerActionInline(admin.TabularInline):
+    model = PowerAction
+    extra = 0
+    fields = (
+        'title', 'is_80_20', 'is_frog', 'status', 
+        'scheduled_start', 'scheduled_end', 'order'
+    )
+    readonly_fields = ()
+    ordering = ('order', '-is_frog', '-is_80_20')
+
+
+class HabitCompletionInline(admin.TabularInline):
+    model = HabitCompletion
+    extra = 0
+    fields = ('habit', 'completed_date', 'notes')
+    readonly_fields = ('created_at',)
+
+
+@admin.register(DailyRitualSession)
+class DailyRitualSessionAdmin(admin.ModelAdmin):
+    list_display = (
+        'user', 'date', 'is_completed_display', 
+        'energy_level', 'total_actions_display',
+        'high_impact_display', 'frog_display'
+    )
+    list_filter = ('user', 'date', 'physiology_check')
+    search_fields = ('user__username', 'daily_intention')
+    readonly_fields = (
+        'created_at', 'updated_at', 'completed_at',
+        'total_power_actions', 'completed_power_actions',
+        'high_impact_actions', 'frog_action'
+    )
+    date_hierarchy = 'date'
+    ordering = ('-date',)
+    inlines = [PowerActionInline, HabitCompletionInline]
+    
+    fieldsets = (
+        ('Session Info', {
+            'fields': ('user', 'date', 'completed_at')
+        }),
+        ('Phase 1: State & Foundation (Tony Robbins Triad)', {
+            'fields': (
+                'physiology_check', 'energy_level',
+                'gratitude_entries', 'daily_intention', 'habits_checked'
+            )
+        }),
+        ('Metrics', {
+            'fields': (
+                'total_power_actions', 'completed_power_actions',
+                'high_impact_actions', 'frog_action'
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def is_completed_display(self, obj):
+        return obj.is_completed
+    is_completed_display.boolean = True
+    is_completed_display.short_description = 'Completed'
+    
+    def total_actions_display(self, obj):
+        return obj.total_power_actions
+    total_actions_display.short_description = 'Total Actions'
+    
+    def high_impact_display(self, obj):
+        return obj.high_impact_actions
+    high_impact_display.short_description = '⚡ High Impact'
+    
+    def frog_display(self, obj):
+        frog = obj.frog_action
+        if frog:
+            return f"🐸 {frog.title}"
+        return "-"
+    frog_display.short_description = 'The Frog'
+
+
+@admin.register(PowerAction)
+class PowerActionAdmin(admin.ModelAdmin):
+    list_display = (
+        'title_display', 'session_user', 'session_date',
+        'is_80_20', 'is_frog', 'status',
+        'linked_vision', 'scheduled_start', 'duration_display'
+    )
+    list_filter = (
+        'is_80_20', 'is_frog', 'status',
+        'session__date', 'session__user'
+    )
+    search_fields = (
+        'title', 'description', 'impact_reason',
+        'session__user__username', 'linked_vision__title'
+    )
+    readonly_fields = (
+        'ical_uid', 'completed_at', 'created_at', 'updated_at',
+        'duration_minutes', 'micro_steps_progress',
+        'micro_steps_completed', 'micro_steps_total',
+        'calendar_title', 'calendar_description'
+    )
+    date_hierarchy = 'session__date'
+    ordering = ('-session__date', 'order', '-is_frog', '-is_80_20')
+    
+    fieldsets = (
+        ('Action Info', {
+            'fields': ('session', 'title', 'description', 'order')
+        }),
+        ('Strategic Alignment', {
+            'fields': (
+                'is_80_20', 'impact_reason',
+                'is_frog', 'linked_vision'
+            ),
+            'description': 'Pareto (80/20), Eat The Frog, and Vision alignment'
+        }),
+        ('Execution Plan', {
+            'fields': (
+                'micro_steps', 'micro_steps_progress',
+                'micro_steps_completed', 'micro_steps_total'
+            )
+        }),
+        ('Time Blocking', {
+            'fields': (
+                'scheduled_start', 'scheduled_end', 'duration_minutes'
+            )
+        }),
+        ('Status', {
+            'fields': ('status', 'completed_at')
+        }),
+        ('Calendar Integration', {
+            'fields': (
+                'ical_uid', 'calendar_title', 'calendar_description'
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def title_display(self, obj):
+        prefix = "🐸 " if obj.is_frog else "⚡ " if obj.is_80_20 else ""
+        return f"{prefix}{obj.title}"
+    title_display.short_description = 'Title'
+    
+    def session_user(self, obj):
+        return obj.session.user.username
+    session_user.short_description = 'User'
+    session_user.admin_order_field = 'session__user__username'
+    
+    def session_date(self, obj):
+        return obj.session.date
+    session_date.short_description = 'Date'
+    session_date.admin_order_field = 'session__date'
+    
+    def duration_display(self, obj):
+        if obj.duration_minutes:
+            hours = obj.duration_minutes // 60
+            minutes = obj.duration_minutes % 60
+            if hours > 0:
+                return f"{hours}h {minutes}m"
+            return f"{minutes}m"
+        return "-"
+    duration_display.short_description = 'Duration'
+    
+    def calendar_title(self, obj):
+        return obj.get_calendar_title()
+    calendar_title.short_description = 'Calendar Title'
+    
+    def calendar_description(self, obj):
+        return obj.get_calendar_description()
+    calendar_description.short_description = 'Calendar Description'
+
+
+@admin.register(HabitCompletion)
+class HabitCompletionAdmin(admin.ModelAdmin):
+    list_display = ('habit', 'completed_date', 'session', 'created_at')
+    list_filter = ('habit', 'completed_date', 'habit__user')
+    search_fields = ('habit__title', 'notes', 'habit__user__username')
+    readonly_fields = ('created_at',)
+    date_hierarchy = 'completed_date'
+    ordering = ('-completed_date',)
+

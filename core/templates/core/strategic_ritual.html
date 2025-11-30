@@ -1,0 +1,1239 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Strategic Ritual" %} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ritual-wizard {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .wizard-progress {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+    
+    .wizard-progress::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e0e0e0;
+        z-index: 0;
+    }
+    
+    .wizard-step {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        flex: 1;
+    }
+    
+    .wizard-step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e0e0e0;
+        color: #999;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s;
+    }
+    
+    .wizard-step.active .wizard-step-circle {
+        background: #007bff;
+        color: white;
+    }
+    
+    .wizard-step.completed .wizard-step-circle {
+        background: #28a745;
+        color: white;
+    }
+    
+    .wizard-step-label {
+        font-size: 0.875rem;
+        color: #666;
+    }
+    
+    .wizard-step.active .wizard-step-label {
+        color: #007bff;
+        font-weight: 600;
+    }
+    
+    .phase-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+    }
+    
+    .phase-header h2 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    
+    .phase-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+    }
+    
+    .step-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        min-height: 400px;
+    }
+    
+    .step-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+    
+    .step-description {
+        color: #666;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    
+    /* Phase 1: Priming */
+    .priming-screen {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .priming-icon {
+        font-size: 5rem;
+        margin-bottom: 2rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .priming-instructions {
+        font-size: 1.25rem;
+        line-height: 2;
+        color: #555;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Phase 1: Gratitude */
+    .gratitude-input {
+        margin-bottom: 1.5rem;
+    }
+    
+    .gratitude-input input {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .gratitude-input input:focus {
+        border-color: #667eea;
+        outline: none;
+    }
+    
+    .gratitude-input label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #555;
+    }
+    
+    /* Phase 1: Habits */
+    .habits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .habit-card {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: white;
+    }
+    
+    .habit-card:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    .habit-card.selected {
+        border-color: #28a745;
+        background: #f0f9f4;
+    }
+    
+    .habit-card .habit-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .habit-card .habit-title {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .habit-card .habit-frequency {
+        font-size: 0.875rem;
+        color: #666;
+    }
+    
+    /* Phase 1: Vision Anchor */
+    .vision-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    
+    .vision-card h3 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .vision-card .vision-why {
+        font-size: 1.1rem;
+        font-style: italic;
+        opacity: 0.95;
+        line-height: 1.6;
+    }
+    
+    .vision-card .vision-scope {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Phase 2: Brain Dump */
+    .brain-dump-area {
+        width: 100%;
+        min-height: 300px;
+        padding: 1.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-family: inherit;
+        resize: vertical;
+    }
+    
+    .brain-dump-area:focus {
+        border-color: #667eea;
+        outline: none;
+    }
+    
+    /* Phase 2: 80/20 Sort */
+    .sort-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .sort-column {
+        border: 2px dashed #e0e0e0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        min-height: 400px;
+    }
+    
+    .sort-column.noise {
+        background: #f5f5f5;
+    }
+    
+    .sort-column.impact {
+        background: #fff3cd;
+        border-color: #ffc107;
+    }
+    
+    .sort-column-header {
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .sort-column.impact .sort-column-header {
+        color: #d39e00;
+    }
+    
+    .sort-item {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        cursor: move;
+        transition: all 0.3s;
+    }
+    
+    .sort-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .sort-item.dragging {
+        opacity: 0.5;
+    }
+    
+    .sort-item.in-impact {
+        border-color: #ffc107;
+        background: #fffbef;
+    }
+    
+    .impact-limit-warning {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        color: #856404;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Phase 3: Frog Selection */
+    .frog-candidates {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .frog-candidate {
+        background: white;
+        border: 3px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .frog-candidate:hover {
+        border-color: #28a745;
+        transform: translateX(8px);
+    }
+    
+    .frog-candidate.selected {
+        border-color: #28a745;
+        background: #f0f9f4;
+        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+    }
+    
+    .frog-candidate .frog-icon {
+        font-size: 2rem;
+        margin-right: 1rem;
+    }
+    
+    .frog-candidate.selected .frog-icon {
+        animation: bounce 0.5s;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    /* Phase 3: Battle Plan */
+    .battle-plan-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .battle-plan-item input[type="text"] {
+        flex: 1;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+    }
+    
+    .battle-plan-item .time-block {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .battle-plan-item .time-block input {
+        padding: 0.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+    }
+    
+    .add-micro-step-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+    
+    .add-micro-step-btn:hover {
+        background: #218838;
+    }
+    
+    /* Navigation Buttons */
+    .wizard-nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e0e0e0;
+    }
+    
+    .wizard-btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .wizard-btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    
+    .wizard-btn-primary:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    
+    .wizard-btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .wizard-btn-secondary:hover {
+        background: #5a6268;
+    }
+    
+    .wizard-btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    .wizard-btn-success:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .wizard-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    /* Energy Slider */
+    .energy-slider-container {
+        margin: 2rem 0;
+    }
+    
+    .energy-slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(to right, #dc3545, #ffc107, #28a745);
+        outline: none;
+    }
+    
+    .energy-value {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ritual-wizard">
+    <!-- Progress Bar -->
+    <div class="wizard-progress">
+        <div class="wizard-step" data-step="0">
+            <div class="wizard-step-circle">1</div>
+            <div class="wizard-step-label">{% trans "Prime" %}</div>
+        </div>
+        <div class="wizard-step" data-step="1">
+            <div class="wizard-step-circle">2</div>
+            <div class="wizard-step-label">{% trans "Gratitude" %}</div>
+        </div>
+        <div class="wizard-step" data-step="2">
+            <div class="wizard-step-circle">3</div>
+            <div class="wizard-step-label">{% trans "Habits" %}</div>
+        </div>
+        <div class="wizard-step" data-step="3">
+            <div class="wizard-step-circle">4</div>
+            <div class="wizard-step-label">{% trans "Vision" %}</div>
+        </div>
+        <div class="wizard-step" data-step="4">
+            <div class="wizard-step-circle">5</div>
+            <div class="wizard-step-label">{% trans "Brain Dump" %}</div>
+        </div>
+        <div class="wizard-step" data-step="5">
+            <div class="wizard-step-circle">6</div>
+            <div class="wizard-step-label">{% trans "80/20 Sort" %}</div>
+        </div>
+        <div class="wizard-step" data-step="6">
+            <div class="wizard-step-circle">7</div>
+            <div class="wizard-step-label">{% trans "The Frog" %}</div>
+        </div>
+        <div class="wizard-step" data-step="7">
+            <div class="wizard-step-circle">8</div>
+            <div class="wizard-step-label">{% trans "Battle Plan" %}</div>
+        </div>
+    </div>
+
+    <!-- Step Content Container -->
+    <div id="stepContainer">
+        <!-- Content will be dynamically loaded here -->
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="wizard-nav">
+        <button type="button" class="wizard-btn wizard-btn-secondary" id="prevBtn" style="display: none;">
+            ← {% trans "Previous" %}
+        </button>
+        <button type="button" class="wizard-btn wizard-btn-primary" id="nextBtn">
+            {% trans "Next" %} →
+        </button>
+    </div>
+</div>
+
+<!-- Templates for each step -->
+<template id="step0-template">
+    <div class="phase-header">
+        <h2>🧘 Phase 1: State & Foundation</h2>
+        <p>{% trans "Tony Robbins' Triad: Physiology, Focus, Language" %}</p>
+    </div>
+    <div class="step-content priming-screen">
+        <div class="priming-icon">💪</div>
+        <h3 class="step-title">{% trans "Priming Exercise" %}</h3>
+        <div class="priming-instructions">
+            <p>{% trans "Stand up. Take 3 deep breaths." %}</p>
+            <p>{% trans "Roll your shoulders back." %}</p>
+            <p>{% trans "Smile." %}</p>
+            <p><strong>{% trans "Your physiology affects your psychology." %}</strong></p>
+        </div>
+        <div class="form-check" style="margin-top: 2rem;">
+            <input type="checkbox" class="form-check-input" id="physiologyCheck">
+            <label class="form-check-label" for="physiologyCheck" style="font-size: 1.1rem;">
+                {% trans "I've completed my priming" %}
+            </label>
+        </div>
+        <div class="energy-slider-container">
+            <label style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: block;">
+                {% trans "Current Energy Level:" %}
+            </label>
+            <input type="range" min="1" max="10" value="5" class="energy-slider" id="energySlider">
+            <div class="energy-value" id="energyValue">5</div>
+        </div>
+    </div>
+</template>
+
+<template id="step1-template">
+    <div class="step-content">
+        <h3 class="step-title">🙏 {% trans "3 Things I'm Grateful For" %}</h3>
+        <p class="step-description">{% trans "Gratitude shifts your focus from scarcity to abundance." %}</p>
+        
+        <div class="gratitude-input">
+            <label for="gratitude1">{% trans "1. I'm grateful for..." %}</label>
+            <input type="text" id="gratitude1" placeholder="{% trans 'Example: My health, my family, this opportunity...' %}">
+        </div>
+        
+        <div class="gratitude-input">
+            <label for="gratitude2">{% trans "2. I'm grateful for..." %}</label>
+            <input type="text" id="gratitude2" placeholder="{% trans 'Example: The roof over my head, my skills...' %}">
+        </div>
+        
+        <div class="gratitude-input">
+            <label for="gratitude3">{% trans "3. I'm grateful for..." %}</label>
+            <input type="text" id="gratitude3" placeholder="{% trans 'Example: The challenges that make me stronger...' %}">
+        </div>
+        
+        <div class="gratitude-input">
+            <label for="dailyIntention">{% trans "Today's Intention/Focus:" %}</label>
+            <input type="text" id="dailyIntention" placeholder="{% trans 'Example: Be present, create value, lead with clarity...' %}">
+        </div>
+    </div>
+</template>
+
+<template id="step2-template">
+    <div class="step-content">
+        <h3 class="step-title">✅ {% trans "Daily Habits Check-In" %}</h3>
+        <p class="step-description">{% trans "Which habits are you committing to today?" %}</p>
+        
+        <div class="habits-grid" id="habitsGrid">
+            <!-- Habits will be loaded dynamically -->
+        </div>
+        
+        <p style="text-align: center; color: #999; font-style: italic;">
+            {% trans "No habits yet?" %} 
+            <a href="{% url 'core:settings' %}" target="_blank">{% trans "Create your first habit" %}</a>
+        </p>
+    </div>
+</template>
+
+<template id="step3-template">
+    <div class="step-content">
+        <h3 class="step-title">🎯 {% trans "Vision Anchor" %}</h3>
+        <p class="step-description">{% trans "Remember WHY you're doing this. Connect with your deeper purpose." %}</p>
+        
+        <div id="visionContainer">
+            <!-- Vision will be loaded dynamically -->
+        </div>
+        
+        <p style="text-align: center; color: #999; font-style: italic; margin-top: 2rem;">
+            {% trans "No life visions yet?" %} 
+            <a href="{% url 'core:settings' %}" target="_blank">{% trans "Create your North Star goals" %}</a>
+        </p>
+    </div>
+</template>
+
+<template id="step4-template">
+    <div class="phase-header">
+        <h2>🧠 Phase 2: Strategy</h2>
+        <p>{% trans "Capture everything, then apply the 80/20 rule" %}</p>
+    </div>
+    <div class="step-content">
+        <h3 class="step-title">📝 {% trans "Brain Dump" %}</h3>
+        <p class="step-description">{% trans "Write down everything that's on your mind. Don't filter yet." %}</p>
+        
+        <textarea class="brain-dump-area" id="brainDump" 
+                  placeholder="{% trans 'Everything you think you need to do today...' %}&#10;• Meeting with contractor&#10;• Review financial reports&#10;• Call new client&#10;• Update project schedule&#10;• Email team..."></textarea>
+    </div>
+</template>
+
+<template id="step5-template">
+    <div class="step-content">
+        <h3 class="step-title">⚖️ {% trans "80/20 Sort: What Really Matters?" %}</h3>
+        <p class="step-description">{% trans "Drag items to the right column if they advance a Life Vision goal." %}</p>
+        
+        <div class="impact-limit-warning">
+            ⚠️ {% trans "The 80/20 Rule: Only 20% of actions create 80% of results. Limit yourself to 5 high-impact items." %}
+        </div>
+        
+        <div class="sort-container">
+            <div class="sort-column noise" id="noiseColumn" data-column="noise">
+                <div class="sort-column-header">
+                    🌫️ {% trans "Noise / Busy Work" %}
+                </div>
+                <div class="sort-items" id="noiseItems">
+                    <!-- Items will be loaded from brain dump -->
+                </div>
+            </div>
+            
+            <div class="sort-column impact" id="impactColumn" data-column="impact">
+                <div class="sort-column-header">
+                    ⚡ {% trans "High Impact (Max 5)" %}
+                    <span id="impactCount" style="margin-left: auto;">0/5</span>
+                </div>
+                <div class="sort-items" id="impactItems">
+                    <!-- High impact items dragged here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="step6-template">
+    <div class="phase-header">
+        <h2>🐸 Phase 3: Tactics</h2>
+        <p>{% trans "Eat That Frog - Do the hardest thing first" %}</p>
+    </div>
+    <div class="step-content">
+        <h3 class="step-title">🐸 {% trans "Choose Your Frog" %}</h3>
+        <p class="step-description">{% trans "Which ONE high-impact action will you tackle FIRST today?" %}</p>
+        
+        <div class="frog-candidates" id="frogCandidates">
+            <!-- High impact items will be shown as candidates -->
+        </div>
+    </div>
+</template>
+
+<template id="step7-template">
+    <div class="step-content">
+        <h3 class="step-title">📋 {% trans "Battle Plan for Your Frog" %}</h3>
+        <p class="step-description">{% trans "Break it down into micro-steps and time-block them." %}</p>
+        
+        <div id="frogTitle" style="font-size: 1.5rem; font-weight: 700; color: #28a745; margin-bottom: 2rem;">
+            <!-- Frog title will be shown here -->
+        </div>
+        
+        <div id="microStepsList">
+            <!-- Micro steps will be added here -->
+        </div>
+        
+        <button type="button" class="add-micro-step-btn" id="addMicroStepBtn">
+            + {% trans "Add Micro-Step" %}
+        </button>
+        
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e0e0e0;">
+            <h4 style="margin-bottom: 1rem;">{% trans "Time Block for Frog:" %}</h4>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div>
+                    <label>{% trans "Start Time:" %}</label>
+                    <input type="time" id="frogStartTime" class="form-control">
+                </div>
+                <div>
+                    <label>{% trans "End Time:" %}</label>
+                    <input type="time" id="frogEndTime" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+// Wizard State Management
+const wizardState = {
+    currentStep: 0,
+    totalSteps: 8,
+    data: {
+        physiology_check: false,
+        energy_level: 5,
+        gratitude: ['', '', ''],
+        daily_intention: '',
+        habits: [],
+        brain_dump: '',
+        noise_items: [],
+        impact_items: [],
+        frog_id: null,
+        micro_steps: [],
+        frog_start: null,
+        frog_end: null
+    }
+};
+
+// Initialize wizard on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadStep(0);
+    updateProgressBar();
+});
+
+// Load specific step
+function loadStep(stepNum) {
+    const container = document.getElementById('stepContainer');
+    const template = document.getElementById(`step${stepNum}-template`);
+    
+    if (!template) {
+        console.error(`Template for step ${stepNum} not found`);
+        return;
+    }
+    
+    container.innerHTML = '';
+    const clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+    
+    // Load step-specific data and add event listeners
+    switch(stepNum) {
+        case 0:
+            initStep0();
+            break;
+        case 1:
+            initStep1();
+            break;
+        case 2:
+            initStep2();
+            break;
+        case 3:
+            initStep3();
+            break;
+        case 4:
+            initStep4();
+            break;
+        case 5:
+            initStep5();
+            break;
+        case 6:
+            initStep6();
+            break;
+        case 7:
+            initStep7();
+            break;
+    }
+    
+    updateNavigationButtons();
+}
+
+// Step 0: Priming
+function initStep0() {
+    const checkbox = document.getElementById('physiologyCheck');
+    const slider = document.getElementById('energySlider');
+    const valueDisplay = document.getElementById('energyValue');
+    
+    checkbox.checked = wizardState.data.physiology_check;
+    slider.value = wizardState.data.energy_level;
+    valueDisplay.textContent = wizardState.data.energy_level;
+    
+    checkbox.addEventListener('change', (e) => {
+        wizardState.data.physiology_check = e.target.checked;
+    });
+    
+    slider.addEventListener('input', (e) => {
+        const value = e.target.value;
+        wizardState.data.energy_level = parseInt(value);
+        valueDisplay.textContent = value;
+    });
+}
+
+// Step 1: Gratitude
+function initStep1() {
+    for (let i = 1; i <= 3; i++) {
+        const input = document.getElementById(`gratitude${i}`);
+        input.value = wizardState.data.gratitude[i - 1];
+        input.addEventListener('input', (e) => {
+            wizardState.data.gratitude[i - 1] = e.target.value;
+        });
+    }
+    
+    const intentionInput = document.getElementById('dailyIntention');
+    intentionInput.value = wizardState.data.daily_intention;
+    intentionInput.addEventListener('input', (e) => {
+        wizardState.data.daily_intention = e.target.value;
+    });
+}
+
+// Step 2: Habits (Load from server)
+async function initStep2() {
+    try {
+        const response = await fetch('/api/planner/habits/active/');
+        const habits = await response.json();
+        
+        const grid = document.getElementById('habitsGrid');
+        grid.innerHTML = '';
+        
+        habits.forEach(habit => {
+            const card = document.createElement('div');
+            card.className = 'habit-card';
+            if (wizardState.data.habits.includes(habit.id)) {
+                card.classList.add('selected');
+            }
+            
+            card.innerHTML = `
+                <div class="habit-icon">${getHabitIcon(habit.frequency)}</div>
+                <div class="habit-title">${habit.title}</div>
+                <div class="habit-frequency">${habit.frequency}</div>
+            `;
+            
+            card.addEventListener('click', () => {
+                card.classList.toggle('selected');
+                if (card.classList.contains('selected')) {
+                    wizardState.data.habits.push(habit.id);
+                } else {
+                    wizardState.data.habits = wizardState.data.habits.filter(id => id !== habit.id);
+                }
+            });
+            
+            grid.appendChild(card);
+        });
+    } catch (error) {
+        console.error('Error loading habits:', error);
+    }
+}
+
+function getHabitIcon(frequency) {
+    const icons = {
+        'DAILY': '☀️',
+        'WEEKLY': '📅',
+        'MONTHLY': '📆'
+    };
+    return icons[frequency] || '✓';
+}
+
+// Step 3: Vision Anchor (Load from server)
+async function initStep3() {
+    try {
+        const response = await fetch('/api/planner/visions/random/');
+        const vision = await response.json();
+        
+        const container = document.getElementById('visionContainer');
+        if (vision) {
+            container.innerHTML = `
+                <div class="vision-card">
+                    <div class="vision-scope">${vision.scope}</div>
+                    <h3>${vision.title}</h3>
+                    <div class="vision-why">
+                        <strong>Why this matters:</strong><br>
+                        ${vision.deep_why}
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <p style="text-align: center; color: #999;">
+                    {% trans "No visions yet. Skip this step for now." %}
+                </p>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading vision:', error);
+    }
+}
+
+// Step 4: Brain Dump
+function initStep4() {
+    const textarea = document.getElementById('brainDump');
+    textarea.value = wizardState.data.brain_dump;
+    textarea.addEventListener('input', (e) => {
+        wizardState.data.brain_dump = e.target.value;
+    });
+}
+
+// Step 5: 80/20 Sort
+function initStep5() {
+    // Parse brain dump into items
+    if (wizardState.data.noise_items.length === 0 && wizardState.data.brain_dump) {
+        const lines = wizardState.data.brain_dump.split('\n').filter(line => line.trim());
+        wizardState.data.noise_items = lines.map((line, idx) => ({
+            id: `item-${idx}`,
+            text: line.replace(/^[•\-*]\s*/, '').trim()
+        }));
+    }
+    
+    const noiseItems = document.getElementById('noiseItems');
+    const impactItems = document.getElementById('impactItems');
+    
+    // Render noise items
+    noiseItems.innerHTML = '';
+    wizardState.data.noise_items.forEach(item => {
+        const div = createSortItem(item);
+        noiseItems.appendChild(div);
+    });
+    
+    // Render impact items
+    impactItems.innerHTML = '';
+    wizardState.data.impact_items.forEach(item => {
+        const div = createSortItem(item);
+        div.classList.add('in-impact');
+        impactItems.appendChild(div);
+    });
+    
+    updateImpactCount();
+    initDragAndDrop();
+}
+
+function createSortItem(item) {
+    const div = document.createElement('div');
+    div.className = 'sort-item';
+    div.draggable = true;
+    div.dataset.itemId = item.id;
+    div.textContent = item.text;
+    return div;
+}
+
+function initDragAndDrop() {
+    const items = document.querySelectorAll('.sort-item');
+    const columns = document.querySelectorAll('.sort-items');
+    
+    items.forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+    });
+    
+    columns.forEach(column => {
+        column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('drop', handleDrop);
+    });
+}
+
+function handleDragStart(e) {
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.dataset.itemId);
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    
+    const itemId = e.dataTransfer.getData('text/html');
+    const draggedItem = document.querySelector(`[data-item-id="${itemId}"]`);
+    
+    // Check if dropping into impact column
+    const targetColumn = e.target.closest('.sort-items');
+    const isImpactColumn = targetColumn.closest('.sort-column').id === 'impactColumn';
+    
+    if (isImpactColumn && wizardState.data.impact_items.length >= 5 && !draggedItem.classList.contains('in-impact')) {
+        alert('{% trans "Maximum 5 high-impact items allowed! Focus on what truly matters." %}');
+        return false;
+    }
+    
+    targetColumn.appendChild(draggedItem);
+    
+    // Update state
+    const item = [...wizardState.data.noise_items, ...wizardState.data.impact_items]
+        .find(i => i.id === itemId);
+    
+    if (isImpactColumn) {
+        draggedItem.classList.add('in-impact');
+        if (!wizardState.data.impact_items.find(i => i.id === itemId)) {
+            wizardState.data.impact_items.push(item);
+            wizardState.data.noise_items = wizardState.data.noise_items.filter(i => i.id !== itemId);
+        }
+    } else {
+        draggedItem.classList.remove('in-impact');
+        if (!wizardState.data.noise_items.find(i => i.id === itemId)) {
+            wizardState.data.noise_items.push(item);
+            wizardState.data.impact_items = wizardState.data.impact_items.filter(i => i.id !== itemId);
+        }
+    }
+    
+    updateImpactCount();
+    return false;
+}
+
+function updateImpactCount() {
+    const countDisplay = document.getElementById('impactCount');
+    if (countDisplay) {
+        countDisplay.textContent = `${wizardState.data.impact_items.length}/5`;
+    }
+}
+
+// Step 6: Choose Frog
+function initStep6() {
+    const container = document.getElementById('frogCandidates');
+    container.innerHTML = '';
+    
+    if (wizardState.data.impact_items.length === 0) {
+        container.innerHTML = `
+            <p style="text-align: center; color: #999;">
+                {% trans "No high-impact items to choose from. Go back and sort your tasks." %}
+            </p>
+        `;
+        return;
+    }
+    
+    wizardState.data.impact_items.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'frog-candidate';
+        if (wizardState.data.frog_id === item.id) {
+            card.classList.add('selected');
+        }
+        
+        card.innerHTML = `
+            <span class="frog-icon">🐸</span>
+            <strong>${item.text}</strong>
+        `;
+        
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.frog-candidate').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            wizardState.data.frog_id = item.id;
+        });
+        
+        container.appendChild(card);
+    });
+}
+
+// Step 7: Battle Plan
+function initStep7() {
+    const frogItem = wizardState.data.impact_items.find(i => i.id === wizardState.data.frog_id);
+    if (!frogItem) {
+        return;
+    }
+    
+    document.getElementById('frogTitle').innerHTML = `🐸 ${frogItem.text}`;
+    
+    // Initialize micro steps if empty
+    if (wizardState.data.micro_steps.length === 0) {
+        wizardState.data.micro_steps = [
+            { text: '', done: false }
+        ];
+    }
+    
+    renderMicroSteps();
+    
+    document.getElementById('addMicroStepBtn').addEventListener('click', () => {
+        wizardState.data.micro_steps.push({ text: '', done: false });
+        renderMicroSteps();
+    });
+    
+    // Time blocking
+    if (wizardState.data.frog_start) {
+        document.getElementById('frogStartTime').value = wizardState.data.frog_start;
+    }
+    if (wizardState.data.frog_end) {
+        document.getElementById('frogEndTime').value = wizardState.data.frog_end;
+    }
+    
+    document.getElementById('frogStartTime').addEventListener('change', (e) => {
+        wizardState.data.frog_start = e.target.value;
+    });
+    document.getElementById('frogEndTime').addEventListener('change', (e) => {
+        wizardState.data.frog_end = e.target.value;
+    });
+}
+
+function renderMicroSteps() {
+    const container = document.getElementById('microStepsList');
+    container.innerHTML = '';
+    
+    wizardState.data.micro_steps.forEach((step, idx) => {
+        const div = document.createElement('div');
+        div.className = 'battle-plan-item';
+        div.innerHTML = `
+            <span style="font-weight: 700; color: #999;">${idx + 1}.</span>
+            <input type="text" placeholder="{% trans 'Micro-step description...' %}" 
+                   value="${step.text}" data-step-idx="${idx}">
+            <button type="button" class="btn btn-sm btn-danger" data-remove-idx="${idx}">×</button>
+        `;
+        
+        const input = div.querySelector('input');
+        input.addEventListener('input', (e) => {
+            wizardState.data.micro_steps[idx].text = e.target.value;
+        });
+        
+        const removeBtn = div.querySelector('button');
+        removeBtn.addEventListener('click', () => {
+            wizardState.data.micro_steps.splice(idx, 1);
+            renderMicroSteps();
+        });
+        
+        container.appendChild(div);
+    });
+}
+
+// Navigation
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    // Show/hide prev button
+    prevBtn.style.display = wizardState.currentStep === 0 ? 'none' : 'inline-block';
+    
+    // Update next button text and style
+    if (wizardState.currentStep === wizardState.totalSteps - 1) {
+        nextBtn.textContent = '✓ {% trans "Complete Ritual" %}';
+        nextBtn.className = 'wizard-btn wizard-btn-success';
+    } else {
+        nextBtn.textContent = '{% trans "Next" %} →';
+        nextBtn.className = 'wizard-btn wizard-btn-primary';
+    }
+}
+
+function updateProgressBar() {
+    document.querySelectorAll('.wizard-step').forEach((step, idx) => {
+        if (idx < wizardState.currentStep) {
+            step.classList.add('completed');
+            step.classList.remove('active');
+        } else if (idx === wizardState.currentStep) {
+            step.classList.add('active');
+            step.classList.remove('completed');
+        } else {
+            step.classList.remove('active', 'completed');
+        }
+    });
+}
+
+// Event Listeners
+document.getElementById('prevBtn').addEventListener('click', () => {
+    if (wizardState.currentStep > 0) {
+        wizardState.currentStep--;
+        loadStep(wizardState.currentStep);
+        updateProgressBar();
+    }
+});
+
+document.getElementById('nextBtn').addEventListener('click', async () => {
+    if (wizardState.currentStep < wizardState.totalSteps - 1) {
+        wizardState.currentStep++;
+        loadStep(wizardState.currentStep);
+        updateProgressBar();
+    } else {
+        // Complete ritual - submit to server
+        await submitRitual();
+    }
+});
+
+async function submitRitual() {
+    try {
+        const response = await fetch('/api/planner/ritual/complete/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(wizardState.data)
+        });
+        
+        if (response.ok) {
+            alert('{% trans "Ritual completed! Your strategic day is planned." %}');
+            window.location.href = '{% url "core:dashboard" %}';
+        } else {
+            alert('{% trans "Error completing ritual. Please try again." %}');
+        }
+    } catch (error) {
+        console.error('Error submitting ritual:', error);
+        alert('{% trans "Error completing ritual. Please try again." %}');
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

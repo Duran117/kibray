@@ -46,6 +46,12 @@
       </h6>
       <div class="row g-2">
         <div class="col-6 col-md-3 col-lg-2">
+          <a href="{% url 'strategic_planner' %}" class="btn btn-warning w-100 d-flex flex-column align-items-center p-3">
+            <i class="bi bi-compass-fill fs-4 mb-2"></i>
+            <span class="small">{% trans "Strategic Planner" %}</span>
+          </a>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
           <a href="{% url 'client_create' %}" class="btn btn-primary w-100 d-flex flex-column align-items-center p-3">
             <i class="bi bi-person-plus-fill fs-4 mb-2"></i>
             <span class="small">{% trans "Nuevo Cliente" %}</span>
@@ -86,6 +92,23 @@
             <i class="bi bi-file-earmark-plus fs-4 mb-2"></i>
             <span class="small">{% trans "Nuevo CO" %}</span>
           </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === STRATEGIC FOCUS === -->
+  <div class="card shadow-sm mb-3 mb-md-4 border-warning">
+    <div class="card-header bg-warning text-dark">
+      <h5 class="mb-0">
+        <i class="bi bi-compass-fill me-2"></i>
+        {% trans "Strategic Focus Today" %}
+      </h5>
+    </div>
+    <div class="card-body p-3" id="strategicFocusWidget">
+      <div class="text-center">
+        <div class="spinner-border text-warning" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
       </div>
     </div>
@@ -676,6 +699,182 @@ if (ctx2) {
     }
   });
 }
+
+// Load Strategic Focus Widget
+async function loadStrategicFocus() {
+  const widget = document.getElementById('strategicFocusWidget');
+  if (!widget) return;
+  
+  try {
+    const response = await fetch('/api/planner/ritual/today/');
+    const data = await response.json();
+    
+    if (!data.has_ritual) {
+      widget.innerHTML = `
+        <div class="text-center py-4">
+          <i class="bi bi-compass display-1 text-muted mb-3"></i>
+          <h5>{% trans "No ritual completed today" %}</h5>
+          <p class="text-muted">{% trans "Start your Strategic Ritual to plan your day" %}</p>
+          <a href="{% url 'strategic_planner' %}" class="btn btn-warning">
+            <i class="bi bi-play-fill me-2"></i>
+            {% trans "Start Daily Ritual" %}
+          </a>
+        </div>
+      `;
+      return;
+    }
+    
+    if (!data.has_frog) {
+      widget.innerHTML = `
+        <div class="text-center py-4">
+          <i class="bi bi-check-circle display-1 text-success mb-3"></i>
+          <h5>{% trans "Ritual completed!" %}</h5>
+          <p class="text-muted">{% trans "But no Frog was selected. Consider reviewing your high-impact actions." %}</p>
+          <a href="{% url 'strategic_planner' %}" class="btn btn-outline-warning">
+            <i class="bi bi-pencil-fill me-2"></i>
+            {% trans "Review Ritual" %}
+          </a>
+        </div>
+      `;
+      return;
+    }
+    
+    const frog = data.frog;
+    const ritual = data.ritual;
+    
+    // Build micro-steps HTML
+    let microStepsHtml = '';
+    if (frog.micro_steps && frog.micro_steps.length > 0) {
+      microStepsHtml = '<div class="mt-3"><h6 class="mb-2">{% trans "Battle Plan:" %}</h6>';
+      frog.micro_steps.forEach((step, idx) => {
+        const checked = step.done ? 'checked' : '';
+        const textClass = step.done ? 'text-decoration-line-through text-muted' : '';
+        microStepsHtml += `
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" ${checked} 
+                   onchange="toggleMicroStep(${frog.id}, ${idx})">
+            <label class="form-check-label ${textClass}">
+              ${step.text}
+            </label>
+          </div>
+        `;
+      });
+      microStepsHtml += '</div>';
+    }
+    
+    // Time block info
+    let timeBlockHtml = '';
+    if (frog.scheduled_start && frog.scheduled_end) {
+      const start = new Date(frog.scheduled_start).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+      const end = new Date(frog.scheduled_end).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+      timeBlockHtml = `
+        <div class="alert alert-info mt-3 mb-0">
+          <i class="bi bi-clock-fill me-2"></i>
+          <strong>{% trans "Time Block:" %}</strong> ${start} - ${end} (${frog.duration_minutes} min)
+        </div>
+      `;
+    }
+    
+    // Status badge
+    const statusBadges = {
+      'DRAFT': '<span class="badge bg-secondary">Draft</span>',
+      'SCHEDULED': '<span class="badge bg-primary">Scheduled</span>',
+      'DONE': '<span class="badge bg-success">✓ Done</span>'
+    };
+    
+    widget.innerHTML = `
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h4 class="mb-1">🐸 ${frog.title}</h4>
+          ${statusBadges[frog.status]}
+          <div class="small text-muted mt-1">
+            {% trans "Energy Level:" %} ${ritual.energy_level}/10 | 
+            {% trans "High Impact Actions:" %} ${ritual.high_impact_actions}
+          </div>
+        </div>
+        <button class="btn btn-${frog.is_completed ? 'success' : 'outline-success'}" 
+                onclick="toggleFrogStatus(${frog.id})">
+          <i class="bi bi-check2-circle me-2"></i>
+          ${frog.is_completed ? '{% trans "Completed" %}' : '{% trans "Mark Done" %}'}
+        </button>
+      </div>
+      
+      ${microStepsHtml}
+      ${timeBlockHtml}
+      
+      <div class="progress mt-3" style="height: 8px;">
+        <div class="progress-bar bg-success" role="progressbar" 
+             style="width: ${frog.micro_steps_progress}%" 
+             aria-valuenow="${frog.micro_steps_progress}" aria-valuemin="0" aria-valuemax="100">
+        </div>
+      </div>
+      <div class="text-end small text-muted mt-1">
+        ${frog.micro_steps_progress}% {% trans "Complete" %}
+      </div>
+    `;
+    
+  } catch (error) {
+    console.error('Error loading strategic focus:', error);
+    widget.innerHTML = `
+      <div class="alert alert-warning mb-0">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {% trans "Could not load strategic focus. Please refresh." %}
+      </div>
+    `;
+  }
+}
+
+async function toggleFrogStatus(actionId) {
+  try {
+    const response = await fetch(`/api/planner/action/${actionId}/toggle/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    });
+    
+    if (response.ok) {
+      loadStrategicFocus(); // Reload widget
+    }
+  } catch (error) {
+    console.error('Error toggling frog status:', error);
+  }
+}
+
+async function toggleMicroStep(actionId, stepIndex) {
+  try {
+    const response = await fetch(`/api/planner/action/${actionId}/step/${stepIndex}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    });
+    
+    if (response.ok) {
+      loadStrategicFocus(); // Reload widget
+    }
+  } catch (error) {
+    console.error('Error toggling micro step:', error);
+  }
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', loadStrategicFocus);
 </script>
 {% endblock %}
 TEST - Wed Nov 19 16:01:13 MST 2025

@@ -207,4 +207,14 @@ urlpatterns = [
     # iCal Calendar Feeds
     path("calendar/feed/<int:user_token>.ics", lambda req, user_token: __import__('core.api.calendar_feed', fromlist=['generate_focus_calendar_feed']).generate_focus_calendar_feed(req, user_token), name="focus-calendar-feed"),
     path("calendar/master/<int:user_token>.ics", lambda req, user_token: __import__('core.api.calendar_feed', fromlist=['generate_master_calendar_feed']).generate_master_calendar_feed(req, user_token), name="master-calendar-feed"),
+    # Strategic Planner (Module 25 Part B)
+    path("planner/habits/active/", lambda req: __import__('core.views_planner', fromlist=['get_active_habits']).get_active_habits(req), name="planner-active-habits"),
+    path("planner/visions/random/", lambda req: __import__('core.views_planner', fromlist=['get_random_vision']).get_random_vision(req), name="planner-random-vision"),
+    path("planner/ritual/complete/", lambda req: __import__('core.views_planner', fromlist=['complete_ritual']).complete_ritual(req), name="planner-complete-ritual"),
+    path("planner/ritual/today/", lambda req: __import__('core.views_planner', fromlist=['today_ritual_summary']).today_ritual_summary(req), name="planner-today-ritual"),
+    path("planner/action/<int:action_id>/toggle/", lambda req, action_id: __import__('core.views_planner', fromlist=['toggle_power_action_status']).toggle_power_action_status(req, action_id), name="planner-toggle-action"),
+    path("planner/action/<int:action_id>/step/<int:step_index>/", lambda req, action_id, step_index: __import__('core.views_planner', fromlist=['update_micro_step']).update_micro_step(req, action_id, step_index), name="planner-update-step"),
+    path("planner/stats/", lambda req: __import__('core.views_planner', fromlist=['planner_stats']).planner_stats(req), name="planner-stats"),
+    path("planner/feed/<str:user_token>.ics", lambda req, user_token: __import__('core.views_planner', fromlist=['planner_calendar_feed']).planner_calendar_feed(req, user_token), name="planner-calendar-feed"),
 ]
+

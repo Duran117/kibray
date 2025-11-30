@@ -33,6 +33,7 @@ urlpatterns = [
     path("dashboard/bi/", views.executive_bi_dashboard, name="dashboard_bi"),
     path("schedule/master/", views.master_schedule_center, name="master_schedule_center"),
     path("focus/", views.focus_wizard, name="focus_wizard"),
+    path("planner/", lambda req: __import__('core.views_planner', fromlist=['strategic_ritual_wizard']).strategic_ritual_wizard(req), name="strategic_planner"),
     path("dashboard/employee/", views.dashboard_employee, name="dashboard_employee"),
     path("dashboard/pm/", views.dashboard_pm, name="dashboard_pm"),
     path("dashboard/pm/select/<str:action>/", views.pm_select_project, name="pm_select_project"),
