@@ -203,8 +203,13 @@ def send_task_status_notification(task, old_status, new_status):
         recipients.add(task.assigned_to.user)
 
     # 3. PMs del proyecto (usuarios con perfil project_manager relacionados al proyecto)
-    # Por ahora omitimos esta funcionalidad hasta tener la relación explícita
-    # TODO: Agregar cuando se implemente Project.manager o Project.team_members
+    # Q11.10: Agregar project managers del proyecto
+    if task.project:
+        # Obtener todos los PMs asignados al proyecto a través de ProjectManagerAssignment
+        pm_assignments = task.project.pm_assignments.select_related("pm").all()
+        for assignment in pm_assignments:
+            if assignment.pm:
+                recipients.add(assignment.pm)
 
     # Crear notificación para cada destinatario
     for user in recipients:

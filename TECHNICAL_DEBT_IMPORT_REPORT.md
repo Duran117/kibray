@@ -25,9 +25,13 @@ Command: `python manage.py import_technical_debt`
 - Deduplication is by PowerAction title; titles already present are skipped.
 
 ## Next Steps
-- Migrate any remaining silenced `print(...)` to structured logging via Python `logging` and Django log config.
-- Optional CI check: add a lightweight job to scan the repo and report counts of TODO/FIXME/PENDING/BUG on PRs.
-- Periodically re-run this importer to capture new technical debt into actionable tasks.
+1) Logging migration
+  - Replace any remaining `print(...)` with `logging.getLogger(__name__)` calls.
+  - Configure Django LOGGING in `kibray_backend/settings.py` to route errors/warnings to console and file.
+2) CI check (optional)
+  - Add a GitHub Actions workflow `.github/workflows/tech-debt.yml` that runs the importer in `--dry-run` and posts counts as a PR comment.
+3) Maintenance
+  - Re-run this importer monthly or before releases to capture new technical debt into actionable tasks.
 
 ## Troubleshooting
 - Ensure virtualenv Python path is used when running commands:
