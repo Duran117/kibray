@@ -21,9 +21,10 @@ from typing import Dict, List, Tuple, Set
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.conf import settings
+from django.utils import timezone
 
 # Import strategic planning models (available via core.models package)
-from core.models import LifeVision, PowerAction
+from core.models import LifeVision, PowerAction, DailyRitualSession
 
 COMMENT_PATTERNS = [
     r"TODO\s*:",
@@ -128,6 +129,20 @@ class Command(BaseCommand):
                 },
             )
 
+            # Ensure we have a DailyRitualSession for today to attach PowerActions
+            default_user = life_vision.user or self.get_default_user()
+            session, _sess_created = DailyRitualSession.objects.get_or_create(
+                user=default_user,
+                date=timezone.localdate(),
+                defaults={
+                    "physiology_check": False,
+                    "gratitude_entries": [],
+                    "daily_intention": "Technical debt triage",
+                    "energy_level": 5,
+                    "habits_checked": [],
+                },
+            )
+
         # Build existing titles set for deduplication
         existing_titles = set(
             PowerAction.objects.all().values_list("title", flat=True)
@@ -144,30 +159,21 @@ class Command(BaseCommand):
                     continue  # skip duplicates
                 try:
                     pa = PowerAction.objects.create(
-                        life_vision=life_vision,
+                        session=session,
                         title=title,
-                        action_type="DEEP_WORK",
-                        energy_required="HIGH",
+                        is_80_20=False,
                         is_frog=False,
-                        status="PENDING",
+                        status="DRAFT",
+                        linked_vision=life_vision,
                         description=(
                             f"Imported from {rel_path}:{line_no}\n"
                             f"Tag: {tag}\n"
                             f"Context: Address technical debt item from code comment."
                         ),
                         micro_steps=[
-                            {
-                                "step": "Investigate the root cause/context",
-                                "done": False,
-                            },
-                            {
-                                "step": f"Implement fix/refactor for: {title}",
-                                "done": False,
-                            },
-                            {
-                                "step": f"Validate in affected file: {rel_path}:{line_no}",
-                                "done": False,
-                            },
+                            {"text": "Investigate the root cause/context", "done": False},
+                            {"text": f"Implement fix/refactor for: {title}", "done": False},
+                            {"text": f"Validate in affected file: {rel_path}:{line_no}", "done": False},
                         ],
                     )
                     created_count += 1
