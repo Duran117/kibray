@@ -66,6 +66,33 @@ class Project(models.Model):
         help_text=_("Presupuesto para otros gastos (seguros, almacenamiento, etc.)"),
     )
 
+    # Navigation System - Phase 1: Client Organization fields
+    billing_organization = models.ForeignKey(
+        "ClientOrganization",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects",
+        verbose_name=_("Billing Organization"),
+        help_text=_("If part of a corporate client, select here"),
+    )
+    project_lead = models.ForeignKey(
+        "ClientContact",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="led_projects",
+        verbose_name=_("Project Lead (Client)"),
+        help_text=_("Main client contact for this project"),
+    )
+    observers = models.ManyToManyField(
+        "ClientContact",
+        blank=True,
+        related_name="observer_projects",
+        verbose_name=_("Observers"),
+        help_text=_("Other client contacts with read access"),
+    )
+
     if TYPE_CHECKING:
         id: int
         estimates: "RelatedManager[Estimate]"
@@ -104,6 +131,32 @@ class Project(models.Model):
         from core.services.earned_value import compute_project_ev
 
         return compute_project_ev(self, as_of=as_of)
+
+    def get_billing_entity(self):
+        """
+        Returns the billing entity for this project.
+        Can be organization or individual client.
+
+        Returns:
+            dict with keys: type, name, address, email, payment_terms
+            or None if no billing entity configured
+        """
+        if self.billing_organization:
+            return {
+                "type": "organization",
+                "name": self.billing_organization.name,
+                "address": self.billing_organization.billing_address,
+                "email": self.billing_organization.billing_email,
+                "payment_terms": self.billing_organization.payment_terms_days,
+            }
+        elif self.project_lead:
+            return {
+                "type": "individual",
+                "name": self.project_lead.user.get_full_name(),
+                "email": self.project_lead.user.email,
+                "payment_terms": 30,
+            }
+        return None
 
 
 class ProjectManagerAssignment(models.Model):
@@ -6618,3 +6671,292 @@ class TouchUpCompletionPhoto(models.Model):
 # Extend existing SitePhoto with new fields - agregar migration
 # NOTE: Esto requiere modificar el modelo SitePhoto existente
 # Ver líneas ~450-480 en models.py
+
+
+# ========================================================================================
+# NAVIGATION SYSTEM - PHASE 1: CLIENT ORGANIZATION MODELS
+# ========================================================================================
+
+
+class ClientOrganization(models.Model):
+    """
+    Corporate client entity for billing purposes.
+    Supports organizations like "New West Partners" with multiple projects,
+    different contacts per project, and centralized billing.
+    """
+
+    name = models.CharField(
+        max_length=255,
+        help_text=_("Organization name (e.g., 'New West Partners')"),
+    )
+    legal_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text=_("Legal name for invoicing"),
+    )
+    tax_id = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text=_("EIN/Tax ID"),
+    )
+
+    # Billing address
+    billing_address = models.TextField(
+        help_text=_("Billing address"),
+    )
+    billing_city = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+    billing_state = models.CharField(
+        max_length=50,
+        blank=True,
+    )
+    billing_zip = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+
+    # Contact information
+    billing_email = models.EmailField(
+        help_text=_("Email for invoices"),
+    )
+    billing_phone = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+    billing_contact = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="billing_contact_organizations",
+        help_text=_("Main billing contact"),
+    )
+
+    # Payment terms
+    payment_terms_days = models.IntegerField(
+        default=30,
+        help_text=_("Payment terms in days (Net 30, Net 60, etc.)"),
+    )
+
+    # Additional info
+    logo = models.ImageField(
+        upload_to="client_organizations/logos/",
+        blank=True,
+        null=True,
+        help_text=_("Company logo"),
+    )
+    website = models.URLField(
+        blank=True,
+        help_text=_("Company website"),
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text=_("Internal notes"),
+    )
+
+    # Status and audit
+    is_active = models.BooleanField(
+        default=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_organizations",
+    )
+
+    class Meta:
+        db_table = "client_organizations"
+        ordering = ["name"]
+        verbose_name = _("Client Organization")
+        verbose_name_plural = _("Client Organizations")
+        indexes = [
+            models.Index(fields=["name"]),
+            models.Index(fields=["is_active"]),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def active_projects_count(self):
+        """Count of active projects associated with this organization."""
+        return self.projects.filter(
+            end_date__isnull=True
+        ).count() | self.projects.filter(
+            end_date__gte=timezone.now().date()
+        ).count()
+
+    @property
+    def total_contract_value(self):
+        """Sum of budget_total for all active projects."""
+        from django.db.models import Sum
+
+        result = self.projects.aggregate(total=Sum("budget_total"))
+        return result["total"] or Decimal("0.00")
+
+    @property
+    def outstanding_balance(self):
+        """Total unpaid invoices for all projects in this organization."""
+        from django.db.models import Sum
+
+        total_balance = Decimal("0.00")
+        for project in self.projects.all():
+            for invoice in project.invoices.all():
+                total_balance += invoice.balance_due
+        return total_balance
+
+
+class ClientContact(models.Model):
+    """
+    Individual client contact (project leads, observers).
+    Links to User for authentication and can be associated with an organization.
+    """
+
+    ROLE_CHOICES = [
+        ("owner", _("Owner")),
+        ("project_lead", _("Project Lead")),
+        ("project_manager", _("Project Manager")),
+        ("observer", _("Observer")),
+        ("accounting", _("Accounting")),
+        ("executive", _("Executive")),
+    ]
+
+    CONTACT_METHOD_CHOICES = [
+        ("email", _("Email")),
+        ("phone", _("Phone")),
+        ("sms", _("SMS")),
+        ("app", _("App")),
+    ]
+
+    # User and organization
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="client_contact",
+        help_text=_("Base user account"),
+    )
+    organization = models.ForeignKey(
+        ClientOrganization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contacts",
+        help_text=_("Parent organization"),
+    )
+
+    # Role and job info
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default="project_lead",
+    )
+    job_title = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+    department = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    # Contact details
+    phone_direct = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+    phone_mobile = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+    preferred_contact_method = models.CharField(
+        max_length=10,
+        choices=CONTACT_METHOD_CHOICES,
+        default="email",
+    )
+
+    # Permission flags
+    can_approve_change_orders = models.BooleanField(
+        default=True,
+        help_text=_("Can approve change orders"),
+    )
+    can_view_financials = models.BooleanField(
+        default=True,
+        help_text=_("Can view financial information"),
+    )
+    can_create_tasks = models.BooleanField(
+        default=True,
+        help_text=_("Can create tasks"),
+    )
+    can_approve_colors = models.BooleanField(
+        default=False,
+        help_text=_("Can approve color samples"),
+    )
+    receive_daily_reports = models.BooleanField(
+        default=True,
+        help_text=_("Receive daily project reports"),
+    )
+    receive_invoice_notifications = models.BooleanField(
+        default=True,
+        help_text=_("Receive invoice notifications"),
+    )
+
+    # Status and audit
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "client_contacts"
+        ordering = ["user__last_name", "user__first_name"]
+        verbose_name = _("Client Contact")
+        verbose_name_plural = _("Client Contacts")
+        indexes = [
+            models.Index(fields=["organization", "is_active"]),
+            models.Index(fields=["role"]),
+        ]
+
+    def __str__(self):
+        full_name = self.user.get_full_name() or self.user.username
+        if self.organization:
+            return f"{full_name} ({self.organization.name})"
+        return full_name
+
+    @property
+    def assigned_projects(self):
+        """Projects where this contact is the project_lead."""
+        return Project.objects.filter(project_lead=self)
+
+    @property
+    def observable_projects(self):
+        """Projects where this contact is an observer."""
+        return Project.objects.filter(observers=self)
+
+    @property
+    def all_accessible_projects(self):
+        """All projects this contact has access to (lead + observer + org projects)."""
+        from django.db.models import Q
+
+        qs = Project.objects.filter(
+            Q(project_lead=self) | Q(observers=self)
+        )
+        if self.organization:
+            qs = qs | Project.objects.filter(billing_organization=self.organization)
+        return qs.distinct()
+
+    def has_project_access(self, project):
+        """Check if contact has access to a specific project."""
+        if project.project_lead == self:
+            return True
+        if self in project.observers.all():
+            return True
+        if self.organization and project.billing_organization == self.organization:
+            # Executives and accounting can see all org projects
+            if self.role in ["executive", "accounting", "owner"]:
+                return True
+        return False
