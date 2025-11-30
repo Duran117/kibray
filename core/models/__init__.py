@@ -6273,7 +6273,7 @@ class DailyPlan(models.Model):
             return self.weather_data
         except Exception as e:
             # Log error and return None
-            print(f"Weather fetch failed: {e}")
+            # [SILENCED] print(f"Weather fetch failed: {e}")
             return None
 
     def convert_activities_to_tasks(self, user=None):
