@@ -4,6 +4,7 @@ import { RoleProvider } from './contexts/RoleContext.jsx';
 import { ThemeProvider } from './contexts/ThemeContext.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import Breadcrumbs from '../components/navigation/Breadcrumbs.jsx';
+import PanelLauncher from '../components/navigation/PanelLauncher.jsx';
 import ProjectSelector from '../components/navigation/ProjectSelector.jsx';
 import DashboardPM from '../components/navigation/DashboardPM.jsx';
 import SlidingPanel from '../components/navigation/SlidingPanel.jsx';
@@ -16,7 +17,8 @@ const MainLayout = () => {
     <div className={`navigation-shell ${sidebarCollapsed ? 'collapsed' : ''}`}>      
       <Sidebar />
       <main className="navigation-main">
-        <ProjectSelector />
+  <ProjectSelector />
+  <PanelLauncher />
         <Breadcrumbs />
         <DashboardPM />
         {panelStack.map((p, idx) => (
