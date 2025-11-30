@@ -9,7 +9,10 @@ from .models import (
     ChangeOrder,
     ChatChannel,
     ChatMessage,
+    ClientContact,
+    ClientOrganization,
     ClientProjectAccess,
+    ColorApproval,
     ColorSample,
     CostCode,
     DailyPlan,
@@ -45,7 +48,6 @@ from .models import (
     Project,
     ProjectInventory,
     ProjectManagerAssignment,
-    ColorApproval,
     PunchListItem,
     QualityDefect,
     QualityInspection,
@@ -97,6 +99,8 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "client",
+        "billing_organization",
+        "project_lead",
         "start_date",
         "end_date",
         "budget_labor",
@@ -107,9 +111,11 @@ class ProjectAdmin(admin.ModelAdmin):
         "total_expenses",
         "profit",
     )
-    search_fields = ("name", "client")
-    list_filter = ("start_date", "end_date")
+    search_fields = ("name", "client", "billing_organization__name")
+    list_filter = ("start_date", "end_date", "billing_organization")
     ordering = ("-start_date",)
+    autocomplete_fields = ("billing_organization", "project_lead")
+    filter_horizontal = ("observers",)
 
 
 # Registro de Horas
@@ -994,3 +1000,57 @@ class TaskTemplateAdmin(admin.ModelAdmin):
     search_fields = ("title", "description", "tags")
     list_filter = ("default_priority", "is_active")
     readonly_fields = ("created_at", "updated_at")
+
+
+# ===========================
+# NAVIGATION SYSTEM - PHASE 1
+# ===========================
+
+
+@admin.register(ClientOrganization)
+class ClientOrganizationAdmin(admin.ModelAdmin):
+    list_display = ("name", "billing_email", "payment_terms_days", "active_projects_count", "is_active")
+    list_filter = ("is_active", "created_at")
+    search_fields = ("name", "legal_name", "billing_email", "tax_id")
+    readonly_fields = ("created_at", "updated_at", "active_projects_count", "total_contract_value", "outstanding_balance")
+
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("name", "legal_name", "tax_id", "logo", "website")
+        }),
+        ("Billing Information", {
+            "fields": ("billing_address", "billing_city", "billing_state", "billing_zip",
+                      "billing_email", "billing_phone", "billing_contact", "payment_terms_days")
+        }),
+        ("Metrics", {
+            "fields": ("active_projects_count", "total_contract_value", "outstanding_balance"),
+            "classes": ("collapse",)
+        }),
+        ("Status & Notes", {
+            "fields": ("is_active", "notes", "created_at", "updated_at", "created_by")
+        }),
+    )
+
+
+@admin.register(ClientContact)
+class ClientContactAdmin(admin.ModelAdmin):
+    list_display = ("user", "organization", "role", "job_title", "is_active")
+    list_filter = ("role", "is_active", "organization")
+    search_fields = ("user__first_name", "user__last_name", "user__email", "job_title")
+    readonly_fields = ("created_at", "updated_at")
+
+    fieldsets = (
+        ("User & Organization", {
+            "fields": ("user", "organization", "role", "job_title", "department")
+        }),
+        ("Contact Information", {
+            "fields": ("phone_direct", "phone_mobile", "preferred_contact_method")
+        }),
+        ("Permissions", {
+            "fields": ("can_approve_change_orders", "can_view_financials", "can_create_tasks",
+                      "can_approve_colors", "receive_daily_reports", "receive_invoice_notifications")
+        }),
+        ("Status", {
+            "fields": ("is_active", "created_at", "updated_at")
+        }),
+    )
