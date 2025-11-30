@@ -796,11 +796,7 @@
     <!-- React Navigation System (Phase 2) -->
     {% if user.is_authenticated %}
     <script id="user-data" type="application/json">
-      {
-        "id": {{ user.id|default:0 }},
-        "username": "{{ user.username|default:'' }}",
-        "role": "{{ user.profile.role|default:'pm' }}"
-      }
+  {"id":{{ user.id|default:0 }},"username":"{{ user.username|default:'' }}","first_name":"{{ user.first_name|default:'' }}","last_name":"{{ user.last_name|default:'' }}","role":"{{ user.profile.role|default:'pm' }}"}
     </script>
     <div id="react-navigation-root"></div>
     <script src="{% static 'js/kibray-navigation.js' %}"></script>
