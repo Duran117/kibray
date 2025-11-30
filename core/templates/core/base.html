@@ -793,6 +793,19 @@
       }, 30000); // 30 seconds after first interaction
     </script>
     
+    <!-- React Navigation System (Phase 2) -->
+    {% if user.is_authenticated %}
+    <script id="user-data" type="application/json">
+      {
+        "id": {{ user.id|default:0 }},
+        "username": "{{ user.username|default:'' }}",
+        "role": "{{ user.profile.role|default:'pm' }}"
+      }
+    </script>
+    <div id="react-navigation-root"></div>
+    <script src="{% static 'js/kibray-navigation.js' %}"></script>
+    {% endif %}
+    
     <!-- NotificationCenter React Bundle -->
     {% if user.is_authenticated %}
     <script type="module" src="{% static 'gantt/notification.DugCJ5ir.js' %}"></script>

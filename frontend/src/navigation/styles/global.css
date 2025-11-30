@@ -1,0 +1,59 @@
+.kibray-navigation {
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.kibray-navigation a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition);
+}
+
+.kibray-navigation button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kibray-navigation ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kibray-navigation .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kibray-navigation .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--danger);
+  color: white;
+}
+
+.kibray-navigation .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
