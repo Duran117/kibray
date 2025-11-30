@@ -6786,10 +6786,11 @@ class ClientOrganization(models.Model):
     @property
     def active_projects_count(self):
         """Count of active projects associated with this organization."""
+        from django.db.models import Q
+
+        today = timezone.now().date()
         return self.projects.filter(
-            end_date__isnull=True
-        ).count() | self.projects.filter(
-            end_date__gte=timezone.now().date()
+            Q(end_date__isnull=True) | Q(end_date__gte=today)
         ).count()
 
     @property
@@ -6803,13 +6804,21 @@ class ClientOrganization(models.Model):
     @property
     def outstanding_balance(self):
         """Total unpaid invoices for all projects in this organization."""
-        from django.db.models import Sum
+        from django.db.models import F, Sum
+        from django.db.models.functions import Coalesce
 
-        total_balance = Decimal("0.00")
-        for project in self.projects.all():
-            for invoice in project.invoices.all():
-                total_balance += invoice.balance_due
-        return total_balance
+        # Use aggregation to avoid N+1 queries
+        # balance_due = total_amount - amount_paid
+        result = (
+            self.projects.prefetch_related("invoices")
+            .aggregate(
+                total_billed=Coalesce(Sum("invoices__total_amount"), Decimal("0.00")),
+                total_paid=Coalesce(Sum("invoices__amount_paid"), Decimal("0.00")),
+            )
+        )
+        billed = result.get("total_billed") or Decimal("0.00")
+        paid = result.get("total_paid") or Decimal("0.00")
+        return max(billed - paid, Decimal("0.00"))
 
 
 class ClientContact(models.Model):
