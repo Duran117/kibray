@@ -57,3 +57,8 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Phase 3 layout shell */
+.navigation-shell{display:flex;min-height:100vh;background:var(--bg-secondary);}
+.navigation-main{flex:1;display:flex;flex-direction:column;gap:0;background:var(--bg-secondary);margin-left:var(--sidebar-width);transition:margin-left var(--transition);}
+.navigation-shell.collapsed .navigation-main{margin-left:var(--sidebar-collapsed);}
