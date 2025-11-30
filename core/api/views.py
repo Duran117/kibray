@@ -37,7 +37,6 @@ from core.models import (
     InventoryItem,
     InventoryLocation,
     InventoryMovement,
-    MeetingMinute,
     DailyLog,
     LoginAttempt,
     MaterialCatalog,
@@ -1382,20 +1381,6 @@ class PayrollPaymentViewSet(viewsets.ModelViewSet):
                 return Response({"warning": "Overpayment detected"}, status=201)
         except Exception:
             pass
-
-
-# Gap B: TaxProfile ViewSet
-class TaxProfileViewSet(viewsets.ModelViewSet):
-    from core.api.serializers import TaxProfileSerializer
-    serializer_class = TaxProfileSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ["active", "method"]
-    ordering_fields = ["name", "created_at"]
-
-    def get_queryset(self):
-        from core.models import TaxProfile
-        return TaxProfile.objects.all().order_by("name")
 
 
 # ================================
@@ -3928,35 +3913,6 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
-
-
-class MeetingMinuteViewSet(viewsets.ModelViewSet):
-    """Meeting Minutes API - simple CRUD and convert-to-task"""
-
-    from core.api.serializers import MeetingMinuteSerializer as Serializer
-    from core.models import MeetingMinute as Model
-
-    queryset = Model.objects.select_related("project", "created_by").all().order_by("-date", "-id")
-    serializer_class = Serializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ["project", "date"]
-    search_fields = ["content", "attendees"]
-    ordering_fields = ["date", "created_at"]
-
-    @action(detail=True, methods=["post"]) 
-    def create_task(self, request, pk=None):
-        minute = self.get_object()
-        text_segment = request.data.get("text", "")
-        kwargs = {
-            "assigned_to": request.data.get("assigned_to"),
-            "priority": request.data.get("priority"),
-            "due_date": request.data.get("due_date"),
-        }
-        task = minute.create_task_from_minute(text_segment, **kwargs)
-        from core.api.serializers import TaskSerializer
-
-        return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
 
 
 class DailyLogSanitizedViewSet(viewsets.ReadOnlyModelViewSet):

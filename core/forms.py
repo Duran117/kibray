@@ -510,16 +510,12 @@ class ChangeOrderForm(forms.ModelForm):
     class Meta:
         model = ChangeOrder
         fields = [
-            "project", "description", "pricing_type", "amount", "billing_hourly_rate",
-            "material_markup_pct", "status", "notes", "color", "reference_code"
+            "project", "description", "amount", "status", "notes", "color", "reference_code"
         ]
         widgets = {
             "project": forms.Select(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
             "amount": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
-            "pricing_type": forms.Select(attrs={"class": "form-control"}),
-            "billing_hourly_rate": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
-            "material_markup_pct": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
             "notes": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
             "color": forms.TextInput(attrs={"type": "color", "class": "form-control"}),

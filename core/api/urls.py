@@ -38,7 +38,6 @@ from .views import (
     InvoiceViewSet,
     LoginAttemptViewSet,
     MaterialCatalogViewSet,
-    MeetingMinuteViewSet,
     DailyLogSanitizedViewSet,
     MaterialRequestViewSet,
     MaterialsDashboardView,
@@ -52,7 +51,6 @@ from .views import (
     PayrollPeriodViewSet,
     PayrollRecordViewSet,
     PermissionMatrixViewSet,
-    TaxProfileViewSet,
     PlannedActivityViewSet,
     PlanPinViewSet,
     ProjectInventoryViewSet,
@@ -85,7 +83,6 @@ router.register(r"login-attempts", LoginAttemptViewSet, basename="login-attempt"
 
 router.register(r"chat/channels", ChatChannelViewSet, basename="chat-channel")
 router.register(r"chat/messages", ChatMessageViewSet, basename="chat-message")
-router.register(r"meeting-minutes", MeetingMinuteViewSet, basename="meeting-minute")
 router.register(r"daily-logs-sanitized", DailyLogSanitizedViewSet, basename="daily-log-sanitized")
 
 # Tasks & Reports
@@ -138,7 +135,6 @@ router.register(r"field-materials", FieldMaterialsViewSet, basename="field-mater
 router.register(r"payroll/periods", PayrollPeriodViewSet, basename="payroll-period")
 router.register(r"payroll/records", PayrollRecordViewSet, basename="payroll-record")
 router.register(r"payroll/payments", PayrollPaymentViewSet, basename="payroll-payment")
-router.register(r"payroll/tax-profiles", TaxProfileViewSet, basename="tax-profile")  # Gap B
 
 # Security: 2FA
 router.register(r"2fa", TwoFactorViewSet, basename="twofactor")
@@ -147,10 +143,10 @@ router.register(r"2fa", TwoFactorViewSet, basename="twofactor")
 router.register(r"bi", BIAnalyticsViewSet, basename="bi-analytics")
 
 # Module 25: Executive Focus Workflow (Productivity)
-from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet, focus_stats
+# from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet, focus_stats
 from .bulk_views import BulkTaskUpdateAPIView
-router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-session")
-router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
+# router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-session")
+# router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
 
 urlpatterns = [
     # JWT Auth
@@ -205,7 +201,7 @@ urlpatterns = [
     # Master Schedule Center
     path("schedule/master/", lambda req: __import__('core.api.schedule_api', fromlist=['get_master_schedule_data']).get_master_schedule_data(req), name="master-schedule-data"),
     # Focus Workflow Stats & Calendar
-    path("focus/stats/", focus_stats, name="focus-stats"),
+    # path("focus/stats/", focus_stats, name="focus-stats"),
     # iCal Calendar Feeds
     path("calendar/feed/<int:user_token>.ics", lambda req, user_token: __import__('core.api.calendar_feed', fromlist=['generate_focus_calendar_feed']).generate_focus_calendar_feed(req, user_token), name="focus-calendar-feed"),
     path("calendar/master/<int:user_token>.ics", lambda req, user_token: __import__('core.api.calendar_feed', fromlist=['generate_master_calendar_feed']).generate_master_calendar_feed(req, user_token), name="master-calendar-feed"),
