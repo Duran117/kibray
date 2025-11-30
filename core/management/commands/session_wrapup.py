@@ -79,14 +79,24 @@ class Command(BaseCommand):
             else:
                 self.stderr.write(err or "Commit failed.")
 
-        # Detect current branch and push to it
+
+        # Detect current branch and push to it, handling first-time upstream
         code_branch, out_branch, err_branch = run_cmd(["git", "rev-parse", "--abbrev-ref", "HEAD"])
         current_branch = out_branch.strip() if code_branch == 0 and out_branch else "main"
         if not current_branch:
             current_branch = "main"
-        # git push origin <current_branch>
-        code, out, err = run_cmd(["git", "push", "origin", current_branch])
-        self.stdout.write(f"$ git push origin {current_branch}")
+
+        # Check if upstream is set
+        code_upstream, out_upstream, err_upstream = run_cmd([
+            "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"
+        ])
+        if code_upstream != 0:
+            # No upstream, set it
+            self.stdout.write(f"$ git push --set-upstream origin {current_branch}")
+            code, out, err = run_cmd(["git", "push", "--set-upstream", "origin", current_branch])
+        else:
+            self.stdout.write(f"$ git push origin {current_branch}")
+            code, out, err = run_cmd(["git", "push", "origin", current_branch])
         if out:
             self.stdout.write(out)
         if err:
