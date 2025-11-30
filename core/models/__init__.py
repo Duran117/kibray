@@ -20,126 +20,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-# =====================================================================
-# HELPER FUNCTIONS FOR HUMAN-READABLE IDs
-# =====================================================================
-
-def generate_project_code(year=None):
-    """
-    Generate unique project code in format: PRJ-{YYYY}-{000}
-    Example: PRJ-2025-001
-    
-    Thread-safe using select_for_update with database locking.
-    """
-    from django.db import transaction
-    
-    if year is None:
-        year = timezone.now().year
-    
-    with transaction.atomic():
-        # Get the last project for this year with a lock to prevent race conditions
-        last_project = (
-            Project.objects
-            .select_for_update()
-            .filter(project_code__startswith=f"PRJ-{year}-")
-            .order_by('-project_code')
-            .first()
-        )
-        
-        if last_project and last_project.project_code:
-            # Extract the sequence number from the last project code
-            try:
-                sequence = int(last_project.project_code.split('-')[-1]) + 1
-            except (ValueError, IndexError):
-                sequence = 1
-        else:
-            # First project of the year
-            sequence = 1
-        
-        return f"PRJ-{year}-{sequence:03d}"
-
-
-def generate_employee_key():
-    """
-    Generate unique employee key in format: EMP-{000}
-    Example: EMP-001
-    
-    Thread-safe using select_for_update with database locking.
-    """
-    from django.db import transaction
-    
-    with transaction.atomic():
-        # Get the last employee with a lock to prevent race conditions
-        last_employee = (
-            Employee.objects
-            .select_for_update()
-            .filter(employee_key__startswith="EMP-")
-            .order_by('-employee_key')
-            .first()
-        )
-        
-        if last_employee and last_employee.employee_key:
-            # Extract the sequence number
-            try:
-                sequence = int(last_employee.employee_key.split('-')[-1]) + 1
-            except (ValueError, IndexError):
-                sequence = 1
-        else:
-            # First employee
-            sequence = 1
-        
-        return f"EMP-{sequence:03d}"
-
-
-def generate_inventory_sku(category):
-    """
-    Generate unique SKU based on category in format: {CAT}-{000}
-    Examples: MAT-001 (Material), TOO-005 (Herramienta), PAI-003 (Pintura)
-    
-    Thread-safe using select_for_update with database locking.
-    """
-    from django.db import transaction
-    
-    # Category prefix mapping
-    category_prefixes = {
-        "MATERIAL": "MAT",
-        "PINTURA": "PAI",
-        "ESCALERA": "LAD",
-        "LIJADORA": "SAN",
-        "SPRAY": "SPR",
-        "HERRAMIENTA": "TOO",
-        "OTRO": "OTH",
-    }
-    
-    prefix = category_prefixes.get(category, "ITM")
-    
-    with transaction.atomic():
-        # Get the last item for this category with a lock
-        last_item = (
-            InventoryItem.objects
-            .select_for_update()
-            .filter(sku__startswith=f"{prefix}-")
-            .order_by('-sku')
-            .first()
-        )
-        
-        if last_item and last_item.sku:
-            # Extract the sequence number
-            try:
-                sequence = int(last_item.sku.split('-')[-1]) + 1
-            except (ValueError, IndexError):
-                sequence = 1
-        else:
-            # First item of this category
-            sequence = 1
-        
-        return f"{prefix}-{sequence:03d}"
-
-
-# =====================================================================
-# MODELS
-# =====================================================================
-
 # ---------------------
 class Project(models.Model):
     name = models.CharField(max_length=100)
@@ -185,29 +65,32 @@ class Project(models.Model):
         default=Decimal("0.00"),
         help_text=_("Presupuesto para otros gastos (seguros, almacenamiento, etc.)"),
     )
-    # Financial: Default labor rate for Change Orders
-    default_co_labor_rate = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-        default=Decimal("50.00"),
-        help_text=_("Tarifa por hora por defecto para Change Orders en este proyecto")
-    )
-    material_markup_percent = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=Decimal("15.00"),
-        help_text=_("Porcentaje de markup para materiales en este proyecto (default 15%)")
-    )
-    is_archived_for_pm = models.BooleanField(
-        default=False,
-        help_text=_("Si es True, el proyecto no aparece en dashboard de PM pero sigue activo para Admin")
-    )
-    # Long-Term maintenance: hard archive flag (read-only for non-admins)
-    is_archived = models.BooleanField(default=False, help_text=_("Proyecto archivado: solo editable por Admin"))
-    approved_finishes = models.JSONField(
-        blank=True,
+
+    # Navigation System - Phase 1: Client Organization fields
+    billing_organization = models.ForeignKey(
+        "ClientOrganization",
+        on_delete=models.SET_NULL,
         null=True,
-        help_text=_("Registro de acabados aprobados por ubicación {room: {finish_type: {details}}}")
+        blank=True,
+        related_name="projects",
+        verbose_name=_("Billing Organization"),
+        help_text=_("If part of a corporate client, select here"),
+    )
+    project_lead = models.ForeignKey(
+        "ClientContact",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="led_projects",
+        verbose_name=_("Project Lead (Client)"),
+        help_text=_("Main client contact for this project"),
+    )
+    observers = models.ManyToManyField(
+        "ClientContact",
+        blank=True,
+        related_name="observer_projects",
+        verbose_name=_("Observers"),
+        help_text=_("Other client contacts with read access"),
     )
 
     if TYPE_CHECKING:
@@ -224,44 +107,15 @@ class Project(models.Model):
         if errors:
             raise ValidationError(errors)
 
-    def get_material_markup_multiplier(self) -> Decimal:
-        """Retorna el multiplicador de markup de materiales (ej: 1.15 para 15%)"""
-        return Decimal("1.00") + (self.material_markup_percent / Decimal("100.00"))
-    
-    def calculate_remaining_balance(self) -> Decimal:
-        """
-        Calcula el saldo restante considerando:
-        - Presupuesto original (budget_total)
-        - Change Orders aprobados
-        - Invoices emitidos
-        """
-        from django.db.models import Sum
-        
-        # Budget total + COs aprobados
-        co_total = self.change_orders.filter(
-            status='approved'
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        
-        adjusted_budget = self.budget_total + co_total
-        
-        # Total facturado
-        invoiced = self.invoices.aggregate(
-            total=Sum('total_amount')
-        )['total'] or Decimal('0')
-        
-        return adjusted_budget - invoiced
-
     def save(self, *args, **kwargs):
         # Ejecuta validaciones antes de guardar (incluye create y update)
         self.full_clean()
         creating = self.pk is None
-        
-        # Generate project code before first save if not provided
-        if creating and not self.project_code:
-            # Generate code with current year
-            self.project_code = generate_project_code()
-        
         super().save(*args, **kwargs)
+        # Asignar project_code después de tener PK
+        if creating and not self.project_code:
+            self.project_code = f"PRJ-{self.id:04d}"
+            super().save(update_fields=["project_code"])
 
     def profit(self):
         return round(self.total_income - self.total_expenses, 2)
@@ -278,20 +132,31 @@ class Project(models.Model):
 
         return compute_project_ev(self, as_of=as_of)
 
-    # Archiving Strategy
-    def archive_project(self):
-        """Mark project as archived and set status placeholder."""
-        self.is_archived = True
-        # If a status field exists in future, set to 'archived'. Kept as comment per spec.
-        # self.status = 'archived'
-        self.save(update_fields=["is_archived"])  # minimal write
-        # Placeholder for cold storage offloading (future AWS Glacier migration)
-        self.trigger_cold_storage_migration()
+    def get_billing_entity(self):
+        """
+        Returns the billing entity for this project.
+        Can be organization or individual client.
 
-    def trigger_cold_storage_migration(self):
-        """Placeholder hook: implement media offload to cold storage (e.g., AWS Glacier)."""
-        # TODO: Implement cold storage migration.
-        pass
+        Returns:
+            dict with keys: type, name, address, email, payment_terms
+            or None if no billing entity configured
+        """
+        if self.billing_organization:
+            return {
+                "type": "organization",
+                "name": self.billing_organization.name,
+                "address": self.billing_organization.billing_address,
+                "email": self.billing_organization.billing_email,
+                "payment_terms": self.billing_organization.payment_terms_days,
+            }
+        elif self.project_lead:
+            return {
+                "type": "individual",
+                "name": self.project_lead.user.get_full_name(),
+                "email": self.project_lead.user.email,
+                "payment_terms": 30,
+            }
+        return None
 
 
 class ProjectManagerAssignment(models.Model):
@@ -348,12 +213,8 @@ class ColorApproval(models.Model):
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="color_approvals")
-    requested_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests"
-    )
-    approved_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done"
-    )
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests")
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     color_name = models.CharField(max_length=100)
     color_code = models.CharField(max_length=50, blank=True)
@@ -382,7 +243,6 @@ class ColorApproval(models.Model):
         self.save(update_fields=["status", "approved_by", "client_signature", "signed_at"])
         # Notificar PMs y cliente
         from core.models import Notification
-
         pms = User.objects.filter(profile__role="project_manager", is_active=True)
         for pm in pms:
             Notification.objects.create(
@@ -401,110 +261,6 @@ class ColorApproval(models.Model):
         if reason:
             self.notes = (self.notes or "") + f"\nRechazo: {reason}"
         self.save(update_fields=["status", "approved_by", "notes"])
-
-
-# ---------------------
-# Digital Signature Model (Gap A Implementation)
-# ---------------------
-class DigitalSignature(models.Model):
-    """
-    Cryptographic digital signature for document integrity verification.
-    Implements Gap A requirements from audit report.
-    """
-    
-    # Link to base signature from signatures app
-    base_signature = models.OneToOneField(
-        'signatures.Signature',
-        on_delete=models.CASCADE,
-        related_name='digital_signature',
-        help_text="Link to the base signature model"
-    )
-    
-    # Entity tracking
-    entity_type = models.CharField(
-        max_length=50,
-        choices=[
-            ('color_sample', 'Color Sample'),
-            ('change_order', 'Change Order'),
-        ],
-        help_text="Type of entity being signed"
-    )
-    entity_id = models.PositiveIntegerField(help_text="ID of the signed entity")
-    
-    # Signature details
-    signer = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name='digital_signatures',
-        help_text="User who created the signature"
-    )
-    timestamp = models.DateTimeField(auto_now_add=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    
-    # Signature data
-    signature_data = models.TextField(
-        help_text="Base64-encoded signature canvas data"
-    )
-    
-    # Document snapshot for integrity verification
-    document_snapshot = models.JSONField(
-        help_text="JSON snapshot of document state at signing time"
-    )
-    signed_hash = models.CharField(
-        max_length=64,
-        help_text="SHA256 hash of document snapshot"
-    )
-    
-    # Metadata
-    user_agent = models.TextField(blank=True)
-    geolocation = models.JSONField(null=True, blank=True)
-    
-    # Verification tracking
-    verified_at = models.DateTimeField(null=True, blank=True)
-    verification_count = models.PositiveIntegerField(default=0)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['entity_type', 'entity_id']),
-            models.Index(fields=['signer', 'timestamp']),
-        ]
-    
-    def __str__(self):
-        return f"DigitalSignature for {self.entity_type} #{self.entity_id} by {self.signer.username}"
-    
-    def _compute_hash(self):
-        """Compute SHA256 hash of current document snapshot"""
-        import json
-        snapshot_str = json.dumps(self.document_snapshot, sort_keys=True)
-        return hashlib.sha256(snapshot_str.encode()).hexdigest()
-    
-    def verify_integrity(self):
-        """
-        Verify document integrity by comparing current hash with signed hash.
-        Returns tuple (is_valid: bool, message: str)
-        """
-        current_hash = self._compute_hash()
-        is_valid = current_hash == self.signed_hash
-        
-        # Update verification tracking
-        from django.utils import timezone
-        self.verified_at = timezone.now()
-        self.verification_count += 1
-        self.save(update_fields=['verified_at', 'verification_count'])
-        
-        if is_valid:
-            return True, "Document integrity verified - no tampering detected"
-        else:
-            return False, f"TAMPER DETECTED: Hash mismatch (expected: {self.signed_hash}, got: {current_hash})"
-    
-    def save(self, *args, **kwargs):
-        """Auto-compute signed_hash on creation"""
-        if not self.pk and not self.signed_hash:
-            self.signed_hash = self._compute_hash()
-        super().save(*args, **kwargs)
 
 
 # ---------------------
@@ -539,20 +295,7 @@ class Income(models.Model):
 # Modelo de Gasto
 # ---------------------
 class Expense(models.Model):
-    REIMBURSEMENT_STATUS_CHOICES = [
-        ('pending', 'Pendiente Reembolso'),
-        ('paid_in_payroll', 'Pagado en Nómina'),
-        ('paid_direct', 'Pagado Directamente'),
-        ('not_applicable', 'No Aplica'),
-    ]
-    
-    project = models.ForeignKey(Project, related_name="expenses", on_delete=models.CASCADE, null=True, blank=True)
-    # Warranty linkage: expenses tied to warranty tickets (post-sale repairs)
-    # Added to avoid impacting original project profit
-    # Declared below after WarrantyTicket definition but referenced via string to avoid ordering issues
-    warranty_ticket = models.ForeignKey(
-        "WarrantyTicket", on_delete=models.CASCADE, null=True, blank=True, related_name="expenses"
-    )
+    project = models.ForeignKey(Project, related_name="expenses", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     project_name = models.CharField(max_length=255)
     date = models.DateField()
@@ -565,7 +308,6 @@ class Expense(models.Model):
             ("ALMACÉN", _("Almacén / Storage")),
             ("MANO_OBRA", _("Mano de obra")),
             ("OFICINA", _("Oficina")),
-            ("HERRAMIENTAS", _("Herramientas")),
             ("OTRO", _("Otro")),
         ],
     )
@@ -576,140 +318,9 @@ class Expense(models.Model):
         "ChangeOrder", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses"
     )
     cost_code = models.ForeignKey("CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses")
-    
-    # Arquitectura Final: Sistema de Reembolsos
-    paid_by_employee = models.ForeignKey(
-        "Employee",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='expenses_paid',
-        help_text=_("Empleado que pagó de su bolsillo y requiere reembolso")
-    )
-    reimbursement_status = models.CharField(
-        max_length=20,
-        choices=REIMBURSEMENT_STATUS_CHOICES,
-        default='not_applicable',
-        help_text=_("Estado del reembolso si fue pagado por empleado")
-    )
-    reimbursement_date = models.DateField(
-        null=True,
-        blank=True,
-        help_text=_("Fecha en que se reembolsó al empleado")
-    )
-    reimbursement_reference = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text=_("Número de cheque o referencia de transferencia")
-    )
-    invoice_line = models.ForeignKey(
-        "InvoiceLine", on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="expenses_billed",
-        help_text="Línea de factura que facturó este gasto (evita duplicados en T&M)"
-    )
 
     def __str__(self):
         return f"{self.project_name} - {self.category} - ${self.amount}"
-    
-    def save(self, *args, **kwargs):
-        """Auto-set reimbursement_status based on paid_by_employee"""
-        # Validation: expense must belong to either a project or a warranty ticket, but not both
-        if self.project and self.warranty_ticket:
-            raise ValidationError("Un gasto no puede estar vinculado a proyecto y garantía a la vez.")
-        if not self.project and not self.warranty_ticket:
-            raise ValidationError("El gasto debe pertenecer a un proyecto o a un ticket de garantía.")
-        if self.paid_by_employee and self.reimbursement_status == 'not_applicable':
-            self.reimbursement_status = 'pending'
-        elif not self.paid_by_employee:
-            self.reimbursement_status = 'not_applicable'
-        
-        super().save(*args, **kwargs)
-    
-    def mark_reimbursed(self, method='paid_direct', reference='', user=None):
-        """
-        Marca el gasto como reembolsado
-        
-        Args:
-            method: 'paid_in_payroll' o 'paid_direct'
-            reference: Número de cheque/transferencia
-            user: Usuario que procesó el reembolso
-        """
-        from django.utils import timezone
-        
-        if not self.paid_by_employee:
-            raise ValueError("Este gasto no fue pagado por un empleado")
-        
-        self.reimbursement_status = method
-        self.reimbursement_date = timezone.now().date()
-        self.reimbursement_reference = reference
-        self.save(update_fields=['reimbursement_status', 'reimbursement_date', 'reimbursement_reference'])
-        
-        # Audit log
-        if user:
-            from core.models import AuditLog
-            AuditLog.objects.create(
-                user=user,
-                action='expense_reimbursed',
-                entity_type='expense',
-                entity_id=self.id,
-                description=f"Reembolsó ${self.amount} a {self.paid_by_employee.first_name} vía {method}"
-            )
-
-
-# ---------------------
-# Warranty Tickets (Long-Term Maintenance)
-# ---------------------
-class WarrantyTicket(models.Model):
-    STATUS_CHOICES = [
-        ("open", "Open"),
-        ("scheduled", "Scheduled"),
-        ("resolved", "Resolved"),
-    ]
-    PRIORITY_CHOICES = [
-        ("low", "Low"),
-        ("medium", "Medium"),
-        ("urgent", "Urgent"),
-    ]
-
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="warranties")
-    ticket_number = models.CharField(max_length=20, unique=True, editable=False)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open")
-    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")
-    issue_description = models.TextField()
-    client_contact = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="client_warranty_tickets")
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_warranty_tickets")
-    created_at = models.DateTimeField(auto_now_add=True)
-    resolved_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"{self.ticket_number} · {self.project.name}"
-
-    def clean(self):
-        # Ensure project is effectively completed or archived
-        if not self.project.end_date and not self.project.is_archived:
-            raise ValidationError("Solo se pueden crear tickets de garantía para proyectos cerrados o archivados.")
-
-    def save(self, *args, **kwargs):
-        creating = self.pk is None
-        if creating and not self.ticket_number:
-            # Generate sequential WAR-XXX per project or globally
-            self.ticket_number = self._generate_ticket_number()
-        super().save(*args, **kwargs)
-
-    @staticmethod
-    def _generate_ticket_number():
-        """Generate unique ticket number WAR-001, WAR-002 (global sequence)."""
-        last = WarrantyTicket.objects.order_by('-ticket_number').first()
-        seq = 1
-        if last and last.ticket_number and last.ticket_number.startswith('WAR-'):
-            try:
-                seq = int(last.ticket_number.split('-')[-1]) + 1
-            except Exception:
-                seq = 1
-        return f"WAR-{seq:03d}"
 
 
 # ---------------------
@@ -723,16 +334,6 @@ class Employee(models.Model):
     """
 
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="employee_profile")
-    
-    # Human-readable employee key (EMP-001, EMP-002, etc.)
-    employee_key = models.CharField(
-        max_length=20,
-        unique=True,
-        blank=True,
-        editable=False,
-        help_text=_("Código único del empleado (EMP-001, EMP-002...). Se genera automáticamente.")
-    )
-    
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     social_security_number = models.CharField(max_length=20, unique=True)
@@ -756,19 +357,8 @@ class Employee(models.Model):
     has_custom_overtime = models.BooleanField(
         default=False, help_text="Q16.11: True if employee has custom overtime rate"
     )
-    # Gap B: Optional tax profile linkage for withholding calculations
-    tax_profile = models.ForeignKey(
-        'core.TaxProfile', on_delete=models.SET_NULL, null=True, blank=True,
-        help_text="Gap B: Tax profile used to compute tax_withheld"
-    )
     # New audit field (was missing from migration chain – added now) using explicit default for existing rows
     created_at = models.DateTimeField(default=timezone.now)
-
-    def save(self, *args, **kwargs):
-        # Generate employee key on creation if not provided
-        if not self.pk and not self.employee_key:
-            self.employee_key = generate_employee_key()
-        super().save(*args, **kwargs)
 
     def __str__(self):
         base = f"{self.first_name} {self.last_name}".strip()
@@ -802,29 +392,6 @@ class TimeEntry(models.Model):
         "CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="time_entries"
     )
 
-    # Financial Snapshots: Costos y tarifas al momento de la entrada
-    cost_rate_snapshot = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-        editable=False,
-        null=True,
-        blank=True,
-        help_text=_("Costo del empleado (hourly_rate) al momento de esta entrada")
-    )
-    billable_rate_snapshot = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-        editable=False,
-        null=True,
-        blank=True,
-        help_text=_("Tarifa cobrada (según CO o proyecto) al momento de esta entrada")
-    )
-    invoice_line = models.ForeignKey(
-        "InvoiceLine", on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="time_entries_billed",
-        help_text="Línea de factura que cobró esta entrada (para evitar doble facturación)"
-    )
-
     @property
     def labor_cost(self):
         if self.hours_worked is not None and self.employee and self.employee.hourly_rate is not None:
@@ -834,7 +401,6 @@ class TimeEntry(models.Model):
         return Decimal("0.00")
 
     def save(self, *args, **kwargs):
-        # Calculate hours_worked
         if self.start_time and self.end_time:
             s = self.start_time.hour * 60 + self.start_time.minute
             e = self.end_time.hour * 60 + self.end_time.minute
@@ -855,25 +421,6 @@ class TimeEntry(models.Model):
                 hours = Decimal("0.00")
 
             self.hours_worked = hours.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        
-        # Financial Snapshots: Guardar tasas al momento de creación
-        if self.pk is None:  # Solo en creación
-            # Snapshot del costo del empleado
-            if self.cost_rate_snapshot is None and self.employee:
-                self.cost_rate_snapshot = self.employee.hourly_rate or Decimal("0.00")
-            
-            # Snapshot de la tarifa cobrable
-            if self.billable_rate_snapshot is None:
-                if self.change_order is not None:
-                    # Usar tarifa del Change Order
-                    self.billable_rate_snapshot = self.change_order.get_effective_labor_rate()
-                elif self.project:
-                    # Usar tarifa default del proyecto para trabajo regular
-                    self.billable_rate_snapshot = self.project.default_co_labor_rate
-                else:
-                    # Sin proyecto ni CO, usar 0
-                    self.billable_rate_snapshot = Decimal("0.00")
-        
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -1069,7 +616,6 @@ class Task(models.Model):
         choices=[
             ("Pendiente", _("Pendiente")),
             ("En Progreso", _("En Progreso")),
-            ("En Revisión", _("En Revisión")),
             ("Completada", _("Completada")),
             ("Cancelada", _("Cancelada")),
         ],
@@ -1132,53 +678,6 @@ class Task(models.Model):
         related_name="dependent_tasks",
         blank=True,
         help_text="Tareas que deben completarse antes de esta",
-    )
-    
-    # Arquitectura Final: Planner & Visualización
-    schedule_weight = models.IntegerField(
-        default=50,
-        help_text=_("Peso en el scheduler (0-100). Mayor peso = mayor prioridad en algoritmo de planificación")
-    )
-    is_subtask = models.BooleanField(
-        default=False,
-        help_text=_("True si esta tarea es una subtarea de otra")
-    )
-    parent_task = models.ForeignKey(
-        "self",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="subtasks",
-        help_text=_("Tarea padre si es subtarea")
-    )
-    is_client_responsibility = models.BooleanField(
-        default=False,
-        help_text=_("True si la responsabilidad es del cliente (ej: aprobar color, entregar llaves)")
-    )
-    checklist = models.JSONField(
-        blank=True,
-        null=True,
-        help_text=_("Checklist heredado de SOPs: [{item: 'texto', checked: false}, ...]")
-    )
-    initial_photo = models.ForeignKey(
-        "PlanPin",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="tasks_initial",
-        help_text=_("Referencia a pin con foto inicial del área")
-    )
-    completion_photo = models.ImageField(
-        upload_to="tasks/completion/",
-        blank=True,
-        null=True,
-        help_text=_("Foto de cierre al completar tarea")
-    )
-    # Visibilidad al cliente tras aprobación
-    is_visible_to_client = models.BooleanField(default=False)
-    progress_percent = models.IntegerField(
-        default=0,
-        help_text=_("Porcentaje de progreso (0-100)")
     )
 
     class Meta:
@@ -1313,39 +812,22 @@ class Task(models.Model):
         return True
 
     def save(self, *args, **kwargs):
-        """Registrar cambios de estado y notificaciones de asignación. Arquitectura Final: Pin cleanup."""
+        """Registrar cambios de estado y notificaciones de asignación."""
         skip_validation = kwargs.pop("skip_validation", False)
         if not skip_validation:
             self.full_clean()
         is_new = self.pk is None
         old_assigned_to = None
         old_status = None
-        old_progress = None
         if not is_new:
             old_obj = Task.objects.filter(pk=self.pk).first()
             if old_obj:
                 if old_obj.assigned_to != self.assigned_to:
                     old_assigned_to = old_obj.assigned_to
                 old_status = old_obj.status
-                old_progress = old_obj.progress_percent
-        # Auto-move to review when progress hits 100 (unless currently approved/completed)
-        # Role-based exception (Admin/PM may directly complete). We rely on caller to be employee in typical flow.
-        if not is_new and old_progress != 100 and self.progress_percent == 100:
-            if self.status not in ["Completada"]:
-                self.status = "En Revisión"
         super().save(*args, **kwargs)
         if old_assigned_to != self.assigned_to and self.assigned_to:
             self._notify_assignment()
-        
-        # Arquitectura Final: Higiene de Planos (Pin Cleanup)
-        # Si progress_percent llega a 100, ocultar pines tipo 'task' o 'touchup'
-        if not is_new and old_progress != 100 and self.progress_percent == 100:
-            if self.initial_photo:
-                pin = self.initial_photo
-                if pin.pin_type in ['task', 'touchup']:
-                    pin.is_visible = False
-                    pin.save(update_fields=['is_visible'])
-                # 'info' y 'hazard' siguen visibles
 
     def _notify_status_change(self, old_status):
         from django.contrib.auth.models import User
@@ -1400,73 +882,6 @@ class Task(models.Model):
                 related_object_id=self.id,
                 link_url=link,
             )
-
-    # Módulo 23: Aprobación/Rechazo por Admin/PM
-    def approve_by_pm(self, approver: User):
-        """Admin/PM aprueba: completar, hacer visible y generar imagen Before/After si disponible."""
-        self.status = "Completada"
-        self.is_visible_to_client = True
-        from django.utils import timezone
-        self.completed_at = timezone.now()
-        # Generar imagen combinada si hay initial_photo y completion_photo
-        try:
-            self._generate_before_after_image()
-        except Exception:
-            # Falla silenciosa: la imagen es opcional
-            pass
-        self.save(skip_validation=True)
-
-    def reject_by_pm(self, approver: User, reason: str = ""):
-        """Admin/PM rechaza: volver a En Progreso, set progress 50 y contar rechazo en perfil del empleado."""
-        self.status = "En Progreso"
-        self.progress_percent = 50
-        # Incrementar contador de rechazos en perfil del empleado
-        try:
-            if self.assigned_to and hasattr(self.assigned_to, 'user') and self.assigned_to.user:
-                profile = Profile.objects.filter(user=self.assigned_to.user).first()
-                if profile:
-                    profile.rejections_count = (getattr(profile, 'rejections_count', 0) or 0) + 1
-                    profile.save(update_fields=['rejections_count'])
-        except Exception:
-            pass
-        # Registrar cambio
-        self._current_user = approver
-        self.save(skip_validation=True)
-
-    def _generate_before_after_image(self):
-        """Combine initial and completion images side-by-side with a watermark using Pillow."""
-        if not (self.initial_photo and self.completion_photo):
-            return
-        try:
-            from PIL import Image, ImageDraw, ImageFont
-            import os
-            # initial_photo is PlanPin; assume it has a photo field named 'photo'
-            init_img_path = getattr(self.initial_photo, 'photo', None)
-            if hasattr(init_img_path, 'path'):
-                init_path = init_img_path.path
-            else:
-                return
-            comp_path = self.completion_photo.path
-            img1 = Image.open(init_path).convert('RGB')
-            img2 = Image.open(comp_path).convert('RGB')
-            # Resize to same height
-            h = min(img1.height, img2.height)
-            img1 = img1.resize((int(img1.width * h / img1.height), h))
-            img2 = img2.resize((int(img2.width * h / img2.height), h))
-            combined = Image.new('RGB', (img1.width + img2.width, h))
-            combined.paste(img1, (0, 0))
-            combined.paste(img2, (img1.width, 0))
-            # Watermark
-            draw = ImageDraw.Draw(combined)
-            watermark = "Kibray Before/After"
-            draw.text((10, h - 20), watermark, fill=(255, 255, 255))
-            out_dir = os.path.join(settings.MEDIA_ROOT, 'tasks', 'before_after')
-            os.makedirs(out_dir, exist_ok=True)
-            out_path = os.path.join(out_dir, f"task_{self.id}_before_after.jpg")
-            combined.save(out_path, format='JPEG', quality=85)
-        except Exception:
-            # Do not break task flow if Pillow not available or images missing
-            pass
 
     class Meta:
         ordering = ["-created_at"]
@@ -1835,8 +1250,6 @@ class Profile(models.Model):
     language = models.CharField(
         max_length=5, choices=[("en", "English"), ("es", "Español")], default="en", help_text="Preferred UI language"
     )
-    # Módulo 23: contador de rechazos para tracking de desempeño
-    rejections_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
@@ -1907,101 +1320,8 @@ class ChangeOrder(models.Model):
         default="draft",
     )
     notes = models.TextField(blank=True)
-    # Financial: Labor rate and material markup
-    labor_rate_override = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text=_("Tarifa por hora específica para este CO. Si está vacío, usa default_co_labor_rate del proyecto")
-    )
-    material_markup_percent = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=Decimal("15.00"),
-        help_text=_("Porcentaje de markup en materiales (por defecto 15%)")
-    )
-    # ==== NUEVO SISTEMA T&M ====
-    pricing_type = models.CharField(
-        max_length=10,
-        choices=[("FIXED", "Precio Fijo"), ("T_AND_M", "Tiempo y Materiales")],
-        default="FIXED",
-        help_text="Tipo de facturación para este CO"
-    )
-    billing_hourly_rate = models.DecimalField(
-        max_digits=7,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        help_text="Tarifa por hora cobrada al cliente (venta) en modalidad T&M"
-    )
-    material_markup_pct = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-        default=Decimal("20.00"),
-        help_text="Markup (%) sobre materiales para T&M"
-    )
     color = models.CharField(max_length=7, blank=True, null=True, help_text="Color hex (ej: #FF5733)")
     reference_code = models.CharField(max_length=50, blank=True, null=True, help_text="Código de referencia o color")
-    
-    # Digital signature (Gap A)
-    digital_signature = models.ForeignKey(
-        'DigitalSignature',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='change_order_signatures',
-        help_text="Cryptographic signature for approval"
-    )
-    
-    # Customer signature fields (simple implementation)
-    signature_image = models.ImageField(
-        upload_to='signatures/change_orders/',
-        null=True,
-        blank=True,
-        help_text="Customer signature image from canvas"
-    )
-    signed_by = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Name of person who signed"
-    )
-    signed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Timestamp when signature was captured"
-    )
-    signed_pdf = models.FileField(
-        upload_to='signatures/change_orders/pdf/',
-        null=True,
-        blank=True,
-        help_text="PDF snapshot of signed Change Order"
-    )
-    signed_ip = models.GenericIPAddressField(
-        null=True,
-        blank=True,
-        help_text="IP address of signer"
-    )
-    signed_user_agent = models.CharField(
-        max_length=512,
-        null=True,
-        blank=True,
-        help_text="User-Agent header of signer"
-    )
-
-    def get_effective_labor_rate(self):
-        """Retorna la tarifa efectiva: override del CO o default del proyecto"""
-        if self.labor_rate_override is not None:
-            return self.labor_rate_override
-        return self.project.default_co_labor_rate if self.project else Decimal("50.00")
-
-    def get_effective_billing_rate(self):
-        """Tarifa de facturación usada para T&M (prioriza billing_hourly_rate)."""
-        if self.billing_hourly_rate and self.billing_hourly_rate > 0:
-            return self.billing_hourly_rate
-        if self.labor_rate_override:
-            return self.labor_rate_override
-        return self.project.default_co_labor_rate if self.project else Decimal("50.00")
 
     def __str__(self):
         return f"CO {self.id} | {self.project.name} | ${self.amount:.2f}"
@@ -2010,51 +1330,6 @@ class ChangeOrder(models.Model):
     def title(self) -> str:
         """Synthetic title used by API/tests. Falls back to reference_code or formatted ID."""
         return self.reference_code or f"CO: {self.id}"
-    
-    def get_signature_snapshot(self):
-        """Generate snapshot of change order for signature verification"""
-        return {
-            'id': self.id,
-            'project_id': self.project_id,
-            'description': self.description,
-            'amount': str(self.amount),
-            'status': self.status,
-            'reference_code': self.reference_code,
-        }
-    
-    def sign_document(self, signer, ip_address=None, signature_canvas_data=None, 
-                     user_agent='', geolocation=None):
-        """
-        Create digital signature for this change order
-        """
-        from core.signature_utils import create_signature
-        
-        signature = create_signature(
-            entity=self,
-            signer=signer,
-            ip_address=ip_address,
-            signature_canvas_data=signature_canvas_data,
-            user_agent=user_agent,
-            geolocation=geolocation
-        )
-        
-        self.digital_signature = signature
-        self.save(update_fields=['digital_signature'])
-        return signature
-    
-    def verify_signature(self):
-        """Verify digital signature integrity"""
-        from core.signature_utils import verify_signature
-        return verify_signature(self)
-    
-    def clean(self):
-        """Validate ChangeOrder business rules: T&M COs should have amount=0 (calculated dynamically)."""
-        super().clean()
-        if self.pricing_type == 'T_AND_M' and self.amount and self.amount != Decimal('0.00'):
-            from django.core.exceptions import ValidationError
-            raise ValidationError({
-                'amount': 'Change Orders de Tiempo y Materiales deben tener amount=0 (se calcula dinámicamente al facturar).'
-            })
 
 
 class ChangeOrderPhoto(models.Model):
@@ -2139,10 +1414,6 @@ class PayrollPeriod(models.Model):
         help_text="Admin who approved this period",
     )
     approved_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when period was approved")
-    # Gap B: Locking & recompute metadata
-    locked = models.BooleanField(default=False, help_text="Gap B: When true, no further adjustments/payments allowed")
-    recomputed_at = models.DateTimeField(null=True, blank=True, help_text="Gap B: Last time period was recomputed")
-    split_expenses_by_project = models.BooleanField(default=False, help_text="Gap B: Generate per-project expenses on recompute")
 
     class Meta:
         ordering = ["-week_start"]
@@ -2269,8 +1540,6 @@ class PayrollRecord(models.Model):
     net_pay = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Net pay after deductions & tax"
     )
-    # Gap B: recompute timestamp
-    recalculated_at = models.DateTimeField(null=True, blank=True, help_text="Gap B: Last time this record was recomputed")
     # Q16.10 manual adjustment audit
     manually_adjusted = models.BooleanField(default=False, help_text="True if manually adjusted")
     adjusted_by = models.ForeignKey(
@@ -2391,9 +1660,6 @@ class PayrollRecord(models.Model):
     def manual_adjust(self, adjusted_by, reason, **field_updates):
         """Q16.10: Record manual adjustment with audit trail"""
         from django.utils import timezone
-        # Gap B: prevent changes if locked
-        if self.period and getattr(self.period, 'locked', False):
-            raise ValueError("PayrollPeriod is locked; cannot adjust record")
 
         self.manually_adjusted = True
         self.adjusted_by = adjusted_by
@@ -2401,31 +1667,11 @@ class PayrollRecord(models.Model):
         self.adjustment_reason = reason
 
         # Apply field updates
-        before = {}
         for field, value in field_updates.items():
             if hasattr(self, field):
-                before[field] = getattr(self, field)
                 setattr(self, field, value)
 
         self.save()
-        # Gap B: create granular audit entry
-        try:
-            from core.models import PayrollRecordAudit
-            changes = {}
-            for f, old_val in before.items():
-                new_val = getattr(self, f)
-                if old_val != new_val:
-                    changes[f] = {"old": str(old_val), "new": str(new_val)}
-            if changes:
-                PayrollRecordAudit.objects.create(
-                    payroll_record=self,
-                    changed_by=adjusted_by,
-                    reason=reason,
-                    changes=changes,
-                )
-        except Exception:
-            # Ignore if migration not yet applied
-            pass
 
     def create_expense_record(self):
         """Q16.13: Create linked expense for labor cost"""
@@ -2488,77 +1734,6 @@ class PayrollPayment(models.Model):
     def __str__(self):
         ref = f"#{self.check_number}" if self.check_number else self.reference
         return f"${self.amount} - {self.payroll_record.employee} - {ref}"
-
-    def save(self, *args, **kwargs):
-        # Gap B: Block payment creation if period locked (unless user is staff provided via context)
-        period = getattr(self.payroll_record, 'period', None)
-        if period and getattr(period, 'locked', False):
-            raise ValueError("Cannot register payment: PayrollPeriod is locked")
-        super().save(*args, **kwargs)
-
-
-# ---------------------
-# Gap B: Tax Profile & Payroll Record Audit Models
-# ---------------------
-class TaxProfile(models.Model):
-    METHOD_CHOICES = [
-        ("flat", "Flat Percentage"),
-        ("tiered", "Tiered Brackets"),
-    ]
-    name = models.CharField(max_length=100)
-    method = models.CharField(max_length=20, choices=METHOD_CHOICES, default="flat")
-    flat_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="% flat e.g. 12.50")
-    tiers = models.JSONField(default=list, blank=True, help_text="Tier list: [{'up_to': 1000, 'rate': 10.0}, ...]")
-    active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-    def compute_tax(self, gross: Decimal) -> Decimal:
-        from decimal import Decimal as D
-        if self.method == 'flat':
-            rate = self.flat_rate or D('0')
-            return (gross * rate / D('100')).quantize(D('0.01'))
-        # tiered
-        tax = D('0')
-        remaining = gross
-        last_limit = D('0')
-        for bracket in sorted(self.tiers, key=lambda b: b.get('up_to') or 10**12):
-            limit = D(str(bracket.get('up_to'))) if bracket.get('up_to') is not None else None
-            rate = D(str(bracket.get('rate', 0)))
-            if limit is None:  # final open bracket
-                span = remaining
-            else:
-                span = min(remaining, limit - last_limit)
-            if span <= 0:
-                continue
-            tax += (span * rate / D('100'))
-            remaining -= span
-            if limit is not None:
-                last_limit = limit
-            if remaining <= 0:
-                break
-        return tax.quantize(D('0.01'))
-
-
-class PayrollRecordAudit(models.Model):
-    payroll_record = models.ForeignKey(PayrollRecord, related_name='audits', on_delete=models.CASCADE)
-    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    changed_at = models.DateTimeField(auto_now_add=True)
-    reason = models.TextField(blank=True)
-    changes = models.JSONField(help_text="Field diffs: {field: {old, new}}")
-
-    class Meta:
-        ordering = ['-changed_at']
-        indexes = [models.Index(fields=['payroll_record'])]
-
-    def __str__(self):
-        return f"Audit #{self.id} for PayrollRecord {self.payroll_record_id}"
 
 
 # ---------------------
@@ -2673,12 +1848,6 @@ class Invoice(models.Model):
         ("OVERDUE", "Vencida"),
         ("CANCELLED", "Cancelada"),
     ]
-    
-    INVOICE_TYPE_CHOICES = [
-        ('standard', 'Por Items'),
-        ('deposit', 'Anticipo/Porcentaje'),
-        ('final', 'Cierre'),
-    ]
 
     if TYPE_CHECKING:
         project_id: int
@@ -2708,24 +1877,6 @@ class Invoice(models.Model):
 
     # Payment tracking (NEW)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
-    
-    # Arquitectura Final: Facturación Híbrida
-    invoice_type = models.CharField(
-        max_length=20,
-        choices=INVOICE_TYPE_CHOICES,
-        default='standard',
-        help_text=_("Tipo de factura: Items, Anticipo o Cierre final")
-    )
-    retention_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        help_text=_("Monto de retención contractual (oculto en forms por ahora)")
-    )
-    is_draft_for_review = models.BooleanField(
-        default=False,
-        help_text=_("True si es borrador de PM en entrenamiento que requiere revisión de Admin")
-    )
 
     # Legacy field (DEPRECATED): mantener temporalmente para reportes antiguos.
     # Será removido en futura migración; usar amount_paid >= total_amount para determinar pago completo.
@@ -2753,42 +1904,6 @@ class Invoice(models.Model):
         if self.total_amount == 0:
             return 0
         return (self.amount_paid / self.total_amount) * 100
-    
-    def calculate_net_payable(self) -> Decimal:
-        """
-        Calcula el monto neto a pagar considerando retención:
-        Net Payable = Total Amount - Retention Amount
-        """
-        return self.total_amount - self.retention_amount
-    
-    def mark_for_admin_review(self, user):
-        """
-        Marca invoice como 'draft_for_review' si user es PM en entrenamiento
-        """
-        if hasattr(user, 'profile') and user.profile.role == 'project_manager':
-            # Check if PM has permission to send emails (trainee check)
-            from django.contrib.auth.models import Permission
-            can_send = user.has_perm('core.can_send_external_emails')
-            
-            if not can_send:
-                self.is_draft_for_review = True
-                self.status = 'DRAFT'
-                self.save(update_fields=['is_draft_for_review', 'status'])
-                
-                # Notify admins
-                from core.models import Notification
-                admins = User.objects.filter(is_superuser=True)
-                for admin in admins:
-                    Notification.objects.create(
-                        user=admin,
-                        message=f"Invoice #{self.invoice_number} requiere revisión (creada por {user.username})",
-                        notification_type='invoice_review',
-                        related_object_type='invoice',
-                        related_object_id=self.id
-                    )
-                
-                return True
-        return False
 
     @property
     def fully_paid(self) -> bool:
@@ -3160,32 +2275,6 @@ class Proposal(models.Model):
         return f"Proposal {self.estimate.code} ({self.estimate.project.name})"
 
 
-class ProposalEmailLog(models.Model):
-    """Registro de envíos de propuesta por email para auditoría y seguimiento.
-
-    success: indica si el envío se realizó sin excepción.
-    error_message: texto de error si falla.
-    message_preview: primeras ~500 chars del cuerpo enviado.
-    """
-    proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE, related_name="email_logs")
-    estimate = models.ForeignKey(Estimate, on_delete=models.CASCADE, related_name="email_logs")
-    recipient = models.EmailField()
-    subject = models.CharField(max_length=200)
-    message_preview = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
-    success = models.BooleanField(default=True)
-    error_message = models.TextField(blank=True, null=True)
-
-    class Meta:
-        ordering = ["-sent_at"]
-        verbose_name = "Proposal Email Log"
-        verbose_name_plural = "Proposal Email Logs"
-
-    def __str__(self):
-        status = "OK" if self.success else "ERROR"
-        return f"EmailLog {self.proposal_id} -> {self.recipient} [{status}]"
-
-
 # --- Field Communication ---
 # Weather snapshot (caching daily outdoor conditions for a project)
 class WeatherSnapshot(models.Model):
@@ -3331,28 +2420,6 @@ class DailyLog(models.Model):
         self.save(update_fields=["is_complete", "incomplete_reason"])
         return self.is_complete
 
-    def get_sanitized_report(self):
-        """Reporte sanitizado (para cliente): progreso, clima y fotos públicas; excluye incidentes/notas internas/delays."""
-        tasks = []
-        for t in self.completed_tasks.all().only("id", "title", "progress_percent"):
-            tasks.append({"id": t.id, "title": t.title, "progress_percent": getattr(t, "progress_percent", None)})
-
-        public_photos = []
-        # DailyLogPhoto no tiene is_public; usamos todas por defecto o futura extensión.
-        for p in self.photos.all().only("id", "image"):
-            public_photos.append({"id": p.id, "image_url": getattr(p.image, "url", None)})
-
-        return {
-            "project_id": self.project_id,
-            "date": self.date.isoformat(),
-            "weather": self.weather,
-            "crew_count": self.crew_count,
-            "schedule_item_id": getattr(self.schedule_item, "id", None),
-            "schedule_progress_percent": str(self.schedule_progress_percent),
-            "tasks": tasks,
-            "photos": public_photos,
-        }
-
 
 class DailyLogPhoto(models.Model):
     """Fotos adjuntas a un Daily Log"""
@@ -3361,7 +2428,6 @@ class DailyLogPhoto(models.Model):
     caption = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    is_public = models.BooleanField(default=True, help_text="Visible para cliente en reportes sanitizados")
 
     def __str__(self):
         return f"Photo {self.id} - {self.caption[:30]}"
@@ -3382,42 +2448,8 @@ class RFI(models.Model):
         unique_together = ("project", "number")
         ordering = ["-created_at"]
 
-
-# ---------------------
-# Meeting Minutes
-# ---------------------
-class MeetingMinute(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="meeting_minutes")
-    date = models.DateField()
-    attendees = models.TextField(blank=True, help_text="Lista de asistentes")
-    content = models.TextField(help_text="Contenido enriquecido / markdown")
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-date", "-id"]
-
     def __str__(self):
-        return f"Minute {self.project_id} - {self.date}"
-
-    def create_task_from_minute(self, text_segment: str, **kwargs):
-        """Crea una Task desde un segmento del acta.
-        kwargs puede incluir: assigned_to, priority, due_date, schedule_weight, is_client_responsibility.
-        """
-        from core.models import Task
-
-        title = (text_segment or "Tarea desde Acta").strip()[:200]
-        description = f"Creada desde acta del {self.date}.\n\n{text_segment}"
-        task = Task.objects.create(
-            project=self.project,
-            title=title,
-            description=description,
-            status="Pendiente",
-            created_by=self.created_by,
-            **{k: v for k, v in kwargs.items() if v is not None}
-        )
-        return task
-    # Nota: Acta de reunión no usa numeración única por defecto.
+        return f"RFI #{self.number} - {self.project.name}"
 
 
 class Issue(models.Model):
@@ -4277,15 +3309,6 @@ class ColorSample(models.Model):
     approval_ip = models.GenericIPAddressField(
         null=True, blank=True, help_text="IP address of approver for legal purposes"
     )
-    # Gap A: Enhanced digital signature
-    digital_signature = models.ForeignKey(
-        'DigitalSignature',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='color_sample_signatures',
-        help_text="Cryptographic signature for approval"
-    )
     # Q19.7 Linked tasks
     linked_tasks = models.ManyToManyField(
         "Task", blank=True, related_name="color_samples", help_text="Tasks that use this color"
@@ -4342,9 +3365,8 @@ class ColorSample(models.Model):
             return self.is_active_choice()
         return user.is_staff and self.is_active_choice()
 
-    def approve(self, user, ip_address=None, signature_canvas_data=None, 
-                user_agent='', geolocation=None):
-        """Q19.13: Approve with enhanced digital signature (Gap A). Arquitectura Final: Update project finishes"""
+    def approve(self, user, ip_address=None):
+        """Q19.13: Approve with digital signature"""
         import hashlib
 
         from django.utils import timezone
@@ -4355,62 +3377,15 @@ class ColorSample(models.Model):
         self.status_changed_by = user
         self.status_changed_at = timezone.now()
 
-        # Q19.13: Generate cryptographic signature (legacy)
+        # Q19.13: Generate cryptographic signature
         signature_data = f"{self.id}|{self.project_id}|{user.id}|{self.approved_at.isoformat()}|{self.code}|{self.name}"
         self.approval_signature = hashlib.sha256(signature_data.encode()).hexdigest()
         self.approval_ip = ip_address
 
-        # Gap A: Create enhanced digital signature
-        from core.signature_utils import create_signature
-        
-        try:
-            digital_sig = create_signature(
-                entity=self,
-                signer=user,
-                ip_address=ip_address,
-                signature_canvas_data=signature_canvas_data,
-                user_agent=user_agent,
-                geolocation=geolocation
-            )
-            self.digital_signature = digital_sig
-        except Exception as e:
-            # Log error but don't fail approval
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Failed to create digital signature for ColorSample {self.id}: {e}")
-
         self.save()
-        
-        # Arquitectura Final: Update project approved finishes
-        self._update_project_approved_finishes()
 
         # Q19.5: Notify all project stakeholders
         self._notify_status_change("approved", user)
-    
-    def _update_project_approved_finishes(self):
-        """
-        Actualiza el registro de acabados aprobados en el proyecto
-        """
-        if not hasattr(self.project, 'approved_finishes') or self.project.approved_finishes is None:
-            self.project.approved_finishes = {}
-        
-        # Structure: {room_location: {finish_type: color_code}}
-        location = self.room_location or 'General'
-        finish_type = f"{self.finish}_{self.gloss}" if self.gloss else self.finish
-        
-        if location not in self.project.approved_finishes:
-            self.project.approved_finishes[location] = {}
-        
-        self.project.approved_finishes[location][finish_type] = {
-            'code': self.code,
-            'name': self.name,
-            'brand': self.brand,
-            'sample_id': self.id,
-            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
-            'approved_by': self.approved_by.username if self.approved_by else None
-        }
-        
-        self.project.save(update_fields=['approved_finishes'])
 
     def reject(self, user, reason):
         """Q19.12: Reject with required reason"""
@@ -4430,23 +3405,6 @@ class ColorSample(models.Model):
 
         # Q19.5: Notify on rejection
         self._notify_status_change("rejected", user)
-    
-    def get_signature_snapshot(self):
-        """Generate snapshot of color sample for signature verification"""
-        return {
-            'id': self.id,
-            'project_id': self.project_id,
-            'code': self.code,
-            'name': self.name,
-            'brand': self.brand,
-            'status': self.status,
-            'version': self.version,
-        }
-    
-    def verify_signature(self):
-        """Verify digital signature integrity"""
-        from core.signature_utils import verify_signature
-        return verify_signature(self)
 
     def _notify_status_change(self, new_status, changed_by):
         """Q19.5: Notify admin and all project team when status changes"""
@@ -4570,14 +3528,10 @@ class FloorPlan(models.Model):
 class PlanPin(models.Model):
     PIN_TYPES = [
         ("note", "Nota"),
-        ("task", "Tarea"),
         ("touchup", "Touch-up"),
         ("color", "Color"),
-        ("info", "Información"),
-        ("hazard", "Peligro"),
         ("alert", "Alerta"),
         ("damage", "Daño"),
-        ("leftover", "Sobrante de Material"),
     ]
     PIN_COLORS = [
         "#0d6efd",
@@ -4633,17 +3587,6 @@ class PlanPin(models.Model):
     )
     # Q20.10: Client commenting on pins
     client_comments = models.JSONField(default=list, blank=True, help_text="Array of client comments with timestamps")
-    
-    # Arquitectura Final: Protección de pines y visualización
-    owner_role = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text=_("Rol del creador para proteger pines del Designer")
-    )
-    is_visible = models.BooleanField(
-        default=True,
-        help_text=_("False para ocultar pin completado (higiene de planos)")
-    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -4655,13 +3598,6 @@ class PlanPin(models.Model):
         # Auto-asignar color rotativo si no se especificó
         # Guardrails: solo crear tareas automáticamente para pin_types de tipo "issue"
         # (touchup, alert, damage). Los tipos note/color NO crean tareas.
-        # Auto-set owner_role based on creator
-        if not self.owner_role and self.created_by:
-            if hasattr(self.created_by, 'profile'):
-                self.owner_role = self.created_by.profile.role
-            elif self.created_by.groups.exists():
-                self.owner_role = self.created_by.groups.first().name.lower()
-        
         if not self.pin_color or self.pin_color == "#0d6efd":
             existing_count = PlanPin.objects.filter(plan=self.plan).count()
             self.pin_color = self.PIN_COLORS[existing_count % len(self.PIN_COLORS)]
@@ -4973,18 +3909,12 @@ class DesignChatMessage(models.Model):
 # ---------------------
 class ChatChannel(models.Model):
     CHANNEL_TYPES = [
-        ("general_client", "Cliente - General"),
-        ("design", "Diseño"),
-        ("field_supervision", "Supervisión de Campo"),
-        ("internal_team", "Equipo Interno"),
+        ("group", "Grupo"),
         ("direct", "Directo"),
-        # Legacy aliases to keep API/backwards compatibility for tests and older clients
-        ("group", "Grupo (Legacy)"),
-        ("general", "General (Legacy)"),
     ]
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="chat_channels")
     name = models.CharField(max_length=120)
-    channel_type = models.CharField(max_length=20, choices=CHANNEL_TYPES, default="internal_team")
+    channel_type = models.CharField(max_length=10, choices=CHANNEL_TYPES, default="group")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="chat_channels", blank=True)
     is_default = models.BooleanField(default=False)
@@ -4996,30 +3926,6 @@ class ChatChannel(models.Model):
 
     def __str__(self):
         return f"[{self.project}] {self.name}"
-
-
-# Señal para crear canales por defecto al crear un proyecto
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-
-@receiver(post_save, sender=Project)
-def create_default_chat_channels(sender, instance: Project, created: bool, **kwargs):
-    if not created:
-        return
-    # Crear 4 canales fijos: general_client, design, field_supervision, internal_team
-    defaults = [
-        ("General (Client)", "general_client"),
-        ("Diseño", "design"),
-        ("Supervisión Campo", "field_supervision"),
-        ("Equipo Interno", "internal_team"),
-    ]
-    for name, ctype in defaults:
-        ChatChannel.objects.get_or_create(
-            project=instance,
-            name=name,
-            defaults={"channel_type": ctype, "is_default": True},
-        )
 
 
 class ChatMessage(models.Model):
@@ -5047,23 +3953,6 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"ChatMsg ch={self.channel_id} by {getattr(self.user,'username','?')}"
-
-    def save(self, *args, **kwargs):
-        creating = self.pk is None
-        super().save(*args, **kwargs)
-        # Media Gallery integration: if message has image, archive it to SitePhoto (central gallery)
-        try:
-            if creating and self.image and self.channel and self.channel.project:
-                from core.models import SitePhoto
-                SitePhoto.objects.create(
-                    project=self.channel.project,
-                    uploaded_by=self.user,
-                    image=self.image,
-                    caption=self.message[:200] if self.message else "",
-                )
-        except Exception:
-            # Avoid breaking chat flow if media archival fails
-            pass
 
 
 class ChatMention(models.Model):
@@ -5441,12 +4330,6 @@ class InventoryItem(models.Model):
             models.Index(fields=["sku"]),
         ]
 
-    def save(self, *args, **kwargs):
-        # Auto-generate SKU if not provided by user
-        if not self.sku and self.category:
-            self.sku = generate_inventory_sku(self.category)
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.name} ({self.get_category_display()})"
 
@@ -5596,14 +4479,6 @@ class ProjectInventory(models.Model):
     location = models.ForeignKey(InventoryLocation, on_delete=models.CASCADE, related_name="stocks")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     threshold_override = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    
-    # Arquitectura Final: Planner inteligente
-    reserved_quantity = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0"),
-        help_text=_("Cantidad reservada para tareas futuras (no disponible para consumo)")
-    )
 
     class Meta:
         unique_together = ("item", "location")
@@ -5615,106 +4490,9 @@ class ProjectInventory(models.Model):
     def is_below(self):
         th = self.threshold()
         return th is not None and self.quantity < th
-    
-    @property
-    def available_quantity(self):
-        """Cantidad disponible = quantity - reserved_quantity"""
-        return self.quantity - self.reserved_quantity
 
     def __str__(self):
         return f"{self.location} · {self.item} = {self.quantity}"
-    
-    @classmethod
-    def bulk_transfer(cls, project, category_list, exclude_leftover=True):
-        """
-        Mueve items de las categorías seleccionadas a Bodega Central.
-        
-        Args:
-            project: Proyecto origen
-            category_list: Lista de categorías a transferir ['tools', 'equipment', ...]
-            exclude_leftover: Si True, ignora items marcados como 'Paint Leftover'
-        
-        Returns:
-            dict con resultados del transfer
-        """
-        from core.models import InventoryMovement, InventoryLocation, PlanPin
-        from django.db.models import Q
-        
-        # Get bodega central location
-        bodega_central, _ = InventoryLocation.objects.get_or_create(
-            name='Bodega Central',
-            defaults={
-                'location_type': 'warehouse',
-                'address': 'Oficina Principal',
-                'is_active': True
-            }
-        )
-        
-        # Get project location
-        project_location = InventoryLocation.objects.filter(
-            project=project,
-            is_active=True
-        ).first()
-        
-        if not project_location:
-            return {
-                'success': False,
-                'error': 'Proyecto no tiene ubicación de inventario activa'
-            }
-        
-        # Find items to transfer
-        items_query = cls.objects.filter(
-            location=project_location,
-            item__category__in=category_list,
-            quantity__gt=0
-        ).select_related('item')
-        
-        # Exclude Paint Leftovers
-        if exclude_leftover:
-            # Check if item has related PlanPin with type='leftover'
-            leftover_item_ids = PlanPin.objects.filter(
-                plan__project=project,
-                pin_type='leftover'
-            ).values_list('linked_task__id', flat=True)
-            
-            items_query = items_query.exclude(item_id__in=leftover_item_ids)
-        
-        # Execute transfers
-        transfers = []
-        errors = []
-        
-        for proj_inv in items_query:
-            try:
-                # Create movement record
-                movement = InventoryMovement.objects.create(
-                    item=proj_inv.item,
-                    movement_type='TRANSFER',
-                    quantity=proj_inv.quantity,
-                    from_location=project_location,
-                    to_location=bodega_central,
-                    reason=f'Bulk transfer from {project.name} - Project closed/paused'
-                )
-                
-                # Update stock levels (handled by InventoryMovement.save())
-                transfers.append({
-                    'item': proj_inv.item.name,
-                    'quantity': proj_inv.quantity,
-                    'category': proj_inv.item.category
-                })
-                
-            except Exception as e:
-                errors.append({
-                    'item': proj_inv.item.name,
-                    'error': str(e)
-                })
-        
-        return {
-            'success': len(errors) == 0,
-            'transfers': transfers,
-            'errors': errors,
-            'total_transferred': len(transfers),
-            'total_errors': len(errors)
-        }
 
 
 class InventoryMovement(models.Model):
@@ -6273,7 +5051,7 @@ class DailyPlan(models.Model):
             return self.weather_data
         except Exception as e:
             # Log error and return None
-            # [SILENCED] print(f"Weather fetch failed: {e}")
+            print(f"Weather fetch failed: {e}")
             return None
 
     def convert_activities_to_tasks(self, user=None):
@@ -6377,15 +5155,6 @@ class DailyPlan(models.Model):
                 logger.error(f"Error applying consumption for {material_name}: {e}")
 
         return movements
-
-    # Backwards compatibility for older code/tests expecting the default
-    # Django reverse accessor name `plannedactivity_set` when no related_name
-    # was specified on PlannedActivity.daily_plan ForeignKey. Our current
-    # related_name is `activities`; expose an alias so external code and
-    # existing tests don't break.
-    @property
-    def plannedactivity_set(self):  # pragma: no cover - simple alias
-        return self.activities
 
 
 class PlannedActivity(models.Model):
@@ -7904,30 +6673,299 @@ class TouchUpCompletionPhoto(models.Model):
 # Ver líneas ~450-480 en models.py
 
 
-# =====================================================================
-# MODULE 25: EXECUTIVE FOCUS WORKFLOW (PRODUCTIVITY)
-# Part A: Daily Focus (Pareto + Eat That Frog) - for task-level planning
-# Part B: Strategic Planner (Tony Robbins + Goals) - for executive strategy
-# =====================================================================
+# ========================================================================================
+# NAVIGATION SYSTEM - PHASE 1: CLIENT ORGANIZATION MODELS
+# ========================================================================================
 
 
+class ClientOrganization(models.Model):
+    """
+    Corporate client entity for billing purposes.
+    Supports organizations like "New West Partners" with multiple projects,
+    different contacts per project, and centralized billing.
+    """
 
-# ==================================================
-# MÓDULO 26: FOCUS WORKFLOW (Pareto + Eat That Frog)
-# ==================================================
-from .focus_workflow import (
-    DailyFocusSession,
-    FocusTask
-)
+    name = models.CharField(
+        max_length=255,
+        help_text=_("Organization name (e.g., 'New West Partners')"),
+    )
+    legal_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text=_("Legal name for invoicing"),
+    )
+    tax_id = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text=_("EIN/Tax ID"),
+    )
 
-# ==================================================
-# MÓDULO 25: STRATEGIC PLANNER (Executive Strategy)
-# ==================================================
-from .strategic_planning import (
-    LifeVision,
-    ExecutiveHabit,
-    DailyRitualSession,
-    PowerAction,
-    HabitCompletion
-)
+    # Billing address
+    billing_address = models.TextField(
+        help_text=_("Billing address"),
+    )
+    billing_city = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+    billing_state = models.CharField(
+        max_length=50,
+        blank=True,
+    )
+    billing_zip = models.CharField(
+        max_length=20,
+        blank=True,
+    )
 
+    # Contact information
+    billing_email = models.EmailField(
+        help_text=_("Email for invoices"),
+    )
+    billing_phone = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+    billing_contact = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="billing_contact_organizations",
+        help_text=_("Main billing contact"),
+    )
+
+    # Payment terms
+    payment_terms_days = models.IntegerField(
+        default=30,
+        help_text=_("Payment terms in days (Net 30, Net 60, etc.)"),
+    )
+
+    # Additional info
+    logo = models.ImageField(
+        upload_to="client_organizations/logos/",
+        blank=True,
+        null=True,
+        help_text=_("Company logo"),
+    )
+    website = models.URLField(
+        blank=True,
+        help_text=_("Company website"),
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text=_("Internal notes"),
+    )
+
+    # Status and audit
+    is_active = models.BooleanField(
+        default=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_organizations",
+    )
+
+    class Meta:
+        db_table = "client_organizations"
+        ordering = ["name"]
+        verbose_name = _("Client Organization")
+        verbose_name_plural = _("Client Organizations")
+        indexes = [
+            models.Index(fields=["name"]),
+            models.Index(fields=["is_active"]),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def active_projects_count(self):
+        """Count of active projects associated with this organization."""
+        from django.db.models import Q
+
+        today = timezone.now().date()
+        return self.projects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=today)
+        ).count()
+
+    @property
+    def total_contract_value(self):
+        """Sum of budget_total for all active projects."""
+        from django.db.models import Sum
+
+        result = self.projects.aggregate(total=Sum("budget_total"))
+        return result["total"] or Decimal("0.00")
+
+    @property
+    def outstanding_balance(self):
+        """Total unpaid invoices for all projects in this organization."""
+        from django.db.models import F, Sum
+        from django.db.models.functions import Coalesce
+
+        # Use aggregation to avoid N+1 queries
+        # balance_due = total_amount - amount_paid
+        result = (
+            self.projects.prefetch_related("invoices")
+            .aggregate(
+                total_billed=Coalesce(Sum("invoices__total_amount"), Decimal("0.00")),
+                total_paid=Coalesce(Sum("invoices__amount_paid"), Decimal("0.00")),
+            )
+        )
+        billed = result.get("total_billed") or Decimal("0.00")
+        paid = result.get("total_paid") or Decimal("0.00")
+        return max(billed - paid, Decimal("0.00"))
+
+
+class ClientContact(models.Model):
+    """
+    Individual client contact (project leads, observers).
+    Links to User for authentication and can be associated with an organization.
+    """
+
+    ROLE_CHOICES = [
+        ("owner", _("Owner")),
+        ("project_lead", _("Project Lead")),
+        ("project_manager", _("Project Manager")),
+        ("observer", _("Observer")),
+        ("accounting", _("Accounting")),
+        ("executive", _("Executive")),
+    ]
+
+    CONTACT_METHOD_CHOICES = [
+        ("email", _("Email")),
+        ("phone", _("Phone")),
+        ("sms", _("SMS")),
+        ("app", _("App")),
+    ]
+
+    # User and organization
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="client_contact",
+        help_text=_("Base user account"),
+    )
+    organization = models.ForeignKey(
+        ClientOrganization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contacts",
+        help_text=_("Parent organization"),
+    )
+
+    # Role and job info
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default="project_lead",
+    )
+    job_title = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+    department = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    # Contact details
+    phone_direct = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+    phone_mobile = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+    preferred_contact_method = models.CharField(
+        max_length=10,
+        choices=CONTACT_METHOD_CHOICES,
+        default="email",
+    )
+
+    # Permission flags
+    can_approve_change_orders = models.BooleanField(
+        default=True,
+        help_text=_("Can approve change orders"),
+    )
+    can_view_financials = models.BooleanField(
+        default=True,
+        help_text=_("Can view financial information"),
+    )
+    can_create_tasks = models.BooleanField(
+        default=True,
+        help_text=_("Can create tasks"),
+    )
+    can_approve_colors = models.BooleanField(
+        default=False,
+        help_text=_("Can approve color samples"),
+    )
+    receive_daily_reports = models.BooleanField(
+        default=True,
+        help_text=_("Receive daily project reports"),
+    )
+    receive_invoice_notifications = models.BooleanField(
+        default=True,
+        help_text=_("Receive invoice notifications"),
+    )
+
+    # Status and audit
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "client_contacts"
+        ordering = ["user__last_name", "user__first_name"]
+        verbose_name = _("Client Contact")
+        verbose_name_plural = _("Client Contacts")
+        indexes = [
+            models.Index(fields=["organization", "is_active"]),
+            models.Index(fields=["role"]),
+        ]
+
+    def __str__(self):
+        full_name = self.user.get_full_name() or self.user.username
+        if self.organization:
+            return f"{full_name} ({self.organization.name})"
+        return full_name
+
+    @property
+    def assigned_projects(self):
+        """Projects where this contact is the project_lead."""
+        return Project.objects.filter(project_lead=self)
+
+    @property
+    def observable_projects(self):
+        """Projects where this contact is an observer."""
+        return Project.objects.filter(observers=self)
+
+    @property
+    def all_accessible_projects(self):
+        """All projects this contact has access to (lead + observer + org projects)."""
+        from django.db.models import Q
+
+        qs = Project.objects.filter(
+            Q(project_lead=self) | Q(observers=self)
+        )
+        if self.organization:
+            qs = qs | Project.objects.filter(billing_organization=self.organization)
+        return qs.distinct()
+
+    def has_project_access(self, project):
+        """Check if contact has access to a specific project."""
+        if project.project_lead == self:
+            return True
+        if self in project.observers.all():
+            return True
+        if self.organization and project.billing_organization == self.organization:
+            # Executives and accounting can see all org projects
+            if self.role in ["executive", "accounting", "owner"]:
+                return True
+        return False

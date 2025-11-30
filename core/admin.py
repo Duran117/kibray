@@ -1,7 +1,5 @@
 from django.contrib import admin
 from django.shortcuts import redirect
-from django.urls import reverse
-from django.utils.html import format_html
 
 from .models import (
     ActivityCompletion,
@@ -11,8 +9,10 @@ from .models import (
     ChangeOrder,
     ChatChannel,
     ChatMessage,
-    MeetingMinute,
+    ClientContact,
+    ClientOrganization,
     ClientProjectAccess,
+    ColorApproval,
     ColorSample,
     CostCode,
     DailyPlan,
@@ -25,7 +25,6 @@ from .models import (
     EmployeeSkillLevel,
     EVSnapshot,
     Expense,
-    WarrantyTicket,
     ExpenseOCRData,
     FloorPlan,
     GPSCheckIn,
@@ -49,9 +48,6 @@ from .models import (
     Project,
     ProjectInventory,
     ProjectManagerAssignment,
-    ColorApproval,
-    Proposal,
-    ProposalEmailLog,
     PunchListItem,
     QualityDefect,
     QualityInspection,
@@ -71,11 +67,10 @@ from .models import (
 # Empleado
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ("employee_key", "first_name", "last_name", "hourly_rate", "is_active")
-    search_fields = ("employee_key", "first_name", "last_name", "social_security_number")
+    list_display = ("first_name", "last_name", "hourly_rate", "is_active")
+    search_fields = ("first_name", "last_name")
     list_filter = ("is_active",)
-    ordering = ("employee_key",)
-    readonly_fields = ("employee_key", "created_at")
+    ordering = ("-created_at",)
 
 
 # Ingreso
@@ -91,75 +86,57 @@ class IncomeAdmin(admin.ModelAdmin):
 # Gasto
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
-    list_display = ("project_name", "category", "amount", "date", "project", "warranty_ticket")
-    list_filter = ("category", "date", "project", "warranty_ticket")
+    list_display = ("project_name", "category", "amount", "date")
+    list_filter = ("category", "date")
     search_fields = ("project_name", "description")
     date_hierarchy = "date"
     ordering = ("-date",)
-
-
-@admin.register(WarrantyTicket)
-class WarrantyTicketAdmin(admin.ModelAdmin):
-    list_display = ("ticket_number", "project", "priority", "status", "created_at", "resolved_at")
-    list_filter = ("status", "priority", "project")
-    search_fields = ("ticket_number", "project__name", "issue_description")
-    readonly_fields = ("created_at",)
 
 
 # Proyecto
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
-        "project_code",
         "name",
         "client",
+        "billing_organization",
+        "project_lead",
         "start_date",
         "end_date",
+        "budget_labor",
+        "budget_materials",
+        "budget_other",
         "budget_total",
         "total_income",
         "total_expenses",
         "profit",
     )
-    search_fields = ("project_code", "name", "client")
-    list_filter = ("start_date", "end_date")
-    ordering = ("-project_code",)
-    readonly_fields = ("project_code", "total_income", "total_expenses", "profit")
+    search_fields = ("name", "client", "billing_organization__name")
+    list_filter = ("start_date", "end_date", "billing_organization")
+    ordering = ("-start_date",)
+    autocomplete_fields = ("billing_organization", "project_lead")
+    filter_horizontal = ("observers",)
 
 
 # Registro de Horas
 @admin.register(TimeEntry)
 class TimeEntryAdmin(admin.ModelAdmin):
-    list_display = ("employee", "employee_key_display", "project", "project_code_display", "date", "hours_worked", "labor_cost")
+    list_display = ("employee", "project", "date", "hours_worked", "labor_cost")
     list_filter = ("project", "employee", "date")
-    search_fields = ("employee__employee_key", "employee__first_name", "employee__last_name", "project__project_code", "project__name")
+    search_fields = ("employee__first_name", "employee__last_name", "project__name")
     readonly_fields = ("hours_worked", "labor_cost")
     date_hierarchy = "date"
     ordering = ("-date",)
-    
-    def employee_key_display(self, obj):
-        return obj.employee.employee_key if obj.employee else "-"
-    employee_key_display.short_description = "Employee Key"
-    employee_key_display.admin_order_field = "employee__employee_key"
-    
-    def project_code_display(self, obj):
-        return obj.project.project_code if obj.project else "-"
-    project_code_display.short_description = "Project Code"
-    project_code_display.admin_order_field = "project__project_code"
 
 
 # Cronograma
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ("project", "project_code_display", "title", "start_datetime", "end_datetime", "is_complete", "is_personal")
+    list_display = ("project", "title", "start_datetime", "end_datetime", "is_complete", "is_personal")
     list_filter = ("project", "is_complete", "is_personal", "stage")
-    search_fields = ("project__project_code", "title", "description", "delay_reason", "advance_reason")
+    search_fields = ("title", "description", "delay_reason", "advance_reason")
     date_hierarchy = "start_datetime"
     ordering = ("-start_datetime",)
-    
-    def project_code_display(self, obj):
-        return obj.project.project_code if obj.project else "-"
-    project_code_display.short_description = "Project Code"
-    project_code_display.admin_order_field = "project__project_code"
 
 
 # Cronograma jerárquico (ScheduleItem)
@@ -202,16 +179,11 @@ class InvoicePaymentInline(admin.TabularInline):
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ("invoice_number", "project", "project_code_display", "status", "total_amount", "amount_paid", "balance_due", "date_issued")
+    list_display = ("invoice_number", "project", "status", "total_amount", "amount_paid", "balance_due", "date_issued")
     inlines = [InvoiceLineInline, InvoicePaymentInline]
-    search_fields = ("invoice_number", "project__project_code", "project__name", "project__client")
+    search_fields = ("invoice_number", "project__name", "project__client")
     list_filter = ("status", "is_paid", "project")
     readonly_fields = ("invoice_number", "payment_progress", "balance_due")
-    
-    def project_code_display(self, obj):
-        return obj.project.project_code if obj.project else "-"
-    project_code_display.short_description = "Project Code"
-    project_code_display.admin_order_field = "project__project_code"
 
 
 @admin.register(InvoiceLine)
@@ -341,7 +313,6 @@ class ColorApprovalAdmin(admin.ModelAdmin):
         if request.user.is_superuser or request.user.is_staff:
             return True
         from .models import ProjectManagerAssignment
-
         return ProjectManagerAssignment.objects.filter(project=obj.project, pm=request.user).exists()
 
     def approve_selected(self, request, queryset):
@@ -355,7 +326,6 @@ class ColorApprovalAdmin(admin.ModelAdmin):
             obj.approve(approver=request.user)
             approved += 1
         self.message_user(request, f"Approved {approved} color approvals.")
-
     approve_selected.short_description = "Approve selected color approvals"
 
     def reject_selected(self, request, queryset):
@@ -369,7 +339,6 @@ class ColorApprovalAdmin(admin.ModelAdmin):
             obj.reject(approver=request.user, reason="Rejected via admin action")
             rejected += 1
         self.message_user(request, f"Rejected {rejected} color approvals.")
-
     reject_selected.short_description = "Reject selected color approvals"
 
 
@@ -453,34 +422,6 @@ class ChatMessageAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at",)
 
 
-@admin.register(MeetingMinute)
-class MeetingMinuteAdmin(admin.ModelAdmin):
-    list_display = ("project", "date", "created_by", "created_at", "tasks_summary")
-    list_filter = ("project", "date")
-    search_fields = ("project__name", "content")
-    readonly_fields = ("created_at",)
-
-    def tasks_summary(self, obj: MeetingMinute):
-        """Show count of tasks created from this minute and link to Task admin filtered view if available."""
-        try:
-            from core.models import Task  # type: ignore
-        except Exception:
-            return "—"
-        # If Task has FK `source_minute`, provide link; else show em dash
-        if hasattr(Task, "source_minute"):
-            count = Task.objects.filter(source_minute=obj).count()
-            if count == 0:
-                return "0"
-            try:
-                url = reverse("admin:core_task_changelist") + f"?source_minute__id__exact={obj.id}"
-                return format_html("<a href='{}'>{} task(s)</a>", url, count)
-            except Exception:
-                return str(count)
-        return "—"
-
-    tasks_summary.short_description = "Tasks from minute"
-
-
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ("user", "notification_type", "title", "is_read", "created_at")
@@ -491,11 +432,9 @@ class NotificationAdmin(admin.ModelAdmin):
 
 @admin.register(InventoryItem)
 class InventoryItemAdmin(admin.ModelAdmin):
-    list_display = ("sku", "name", "category", "unit", "default_threshold", "active")
+    list_display = ("name", "category", "unit", "default_threshold", "active")
     list_filter = ("category", "active")
-    search_fields = ("sku", "name", "category")
-    ordering = ("sku",)
-    readonly_fields = ("sku",)
+    search_fields = ("name",)
 
 
 @admin.register(InventoryLocation)
@@ -507,14 +446,9 @@ class InventoryLocationAdmin(admin.ModelAdmin):
 
 @admin.register(ProjectInventory)
 class ProjectInventoryAdmin(admin.ModelAdmin):
-    list_display = ("item", "item_sku_display", "location", "quantity", "threshold_override")
+    list_display = ("item", "location", "quantity", "threshold_override")
     list_filter = ("location__project", "item__category")
-    search_fields = ("item__sku", "item__name", "location__name")
-    
-    def item_sku_display(self, obj):
-        return obj.item.sku if obj.item else "-"
-    item_sku_display.short_description = "SKU"
-    item_sku_display.admin_order_field = "item__sku"
+    search_fields = ("item__name", "location__name")
 
 
 @admin.register(InventoryMovement)
@@ -1068,436 +1002,55 @@ class TaskTemplateAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-@admin.register(Proposal)
-class ProposalAdmin(admin.ModelAdmin):
-    list_display = ("estimate", "project_name", "issued_at", "accepted", "accepted_at")
-    search_fields = ("estimate__project__name", "estimate__project__project_code", "client_view_token")
-    list_filter = ("accepted", "issued_at")
-    readonly_fields = ("client_view_token", "issued_at", "accepted_at")
-    date_hierarchy = "issued_at"
-    ordering = ("-issued_at",)
-    
-    def project_name(self, obj):
-        return obj.estimate.project.name if obj.estimate and obj.estimate.project else "-"
-    project_name.short_description = "Project"
-    project_name.admin_order_field = "estimate__project__name"
+# ===========================
+# NAVIGATION SYSTEM - PHASE 1
+# ===========================
 
 
-@admin.register(ProposalEmailLog)
-class ProposalEmailLogAdmin(admin.ModelAdmin):
-    list_display = ("proposal_display", "recipient", "subject", "sent_at", "success_display")
-    search_fields = ("recipient", "subject", "proposal__estimate__project__name", "error_message")
-    list_filter = ("success", "sent_at")
-    readonly_fields = ("proposal", "estimate", "recipient", "subject", "message_preview", "sent_at", "success", "error_message")
-    date_hierarchy = "sent_at"
-    ordering = ("-sent_at",)
-    
-    def proposal_display(self, obj):
-        project_name = obj.estimate.project.name if obj.estimate and obj.estimate.project else "N/A"
-        return f"{obj.proposal_id} ({project_name})"
-    proposal_display.short_description = "Proposal"
-    
-    def success_display(self, obj):
-        return "✅" if obj.success else "❌"
-    success_display.short_description = "Status"
-    success_display.admin_order_field = "success"
-    
-    def has_add_permission(self, request):
-        # Logs are created programmatically only
-        return False
-    
-    def has_change_permission(self, request, obj=None):
-        # Logs are read-only
-        return False
+@admin.register(ClientOrganization)
+class ClientOrganizationAdmin(admin.ModelAdmin):
+    list_display = ("name", "billing_email", "payment_terms_days", "active_projects_count", "is_active")
+    list_filter = ("is_active", "created_at")
+    search_fields = ("name", "legal_name", "billing_email", "tax_id")
+    readonly_fields = ("created_at", "updated_at", "active_projects_count", "total_contract_value", "outstanding_balance")
 
-
-# =============================================================================
-# MODULE 25: EXECUTIVE FOCUS WORKFLOW (PRODUCTIVITY)
-# =============================================================================
-
-from .models import DailyFocusSession, FocusTask
-
-
-class FocusTaskInline(admin.TabularInline):
-    model = FocusTask
-    extra = 0
-    fields = (
-        'order', 'title', 'is_high_impact', 'is_frog', 
-        'scheduled_start', 'scheduled_end', 'is_completed'
-    )
-    readonly_fields = ('calendar_token',)
-    ordering = ['order', '-is_frog', '-is_high_impact']
-
-
-@admin.register(DailyFocusSession)
-class DailyFocusSessionAdmin(admin.ModelAdmin):
-    list_display = (
-        'date', 'user', 'energy_level', 
-        'total_tasks_display', 'completed_tasks_display', 
-        'frog_display', 'created_at'
-    )
-    list_filter = ('date', 'energy_level', 'user')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'notes')
-    readonly_fields = ('created_at', 'updated_at')
-    date_hierarchy = 'date'
-    ordering = ('-date',)
-    
-    inlines = [FocusTaskInline]
-    
     fieldsets = (
-        ('Session Info', {
-            'fields': ('user', 'date', 'energy_level')
+        ("Basic Information", {
+            "fields": ("name", "legal_name", "tax_id", "logo", "website")
         }),
-        ('Notes', {
-            'fields': ('notes',),
-            'classes': ('collapse',)
+        ("Billing Information", {
+            "fields": ("billing_address", "billing_city", "billing_state", "billing_zip",
+                      "billing_email", "billing_phone", "billing_contact", "payment_terms_days")
         }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
+        ("Metrics", {
+            "fields": ("active_projects_count", "total_contract_value", "outstanding_balance"),
+            "classes": ("collapse",)
+        }),
+        ("Status & Notes", {
+            "fields": ("is_active", "notes", "created_at", "updated_at", "created_by")
         }),
     )
-    
-    def total_tasks_display(self, obj):
-        return obj.total_tasks
-    total_tasks_display.short_description = 'Total Tasks'
-    
-    def completed_tasks_display(self, obj):
-        completed = obj.completed_tasks
-        total = obj.total_tasks
-        if total > 0:
-            pct = int((completed / total) * 100)
-            return f"{completed}/{total} ({pct}%)"
-        return "0/0"
-    completed_tasks_display.short_description = 'Completed'
-    
-    def frog_display(self, obj):
-        frog = obj.frog_task
-        if frog:
-            status = "✅" if frog.is_completed else "⏳"
-            return f"🐸 {status} {frog.title[:30]}"
-        return "-"
-    frog_display.short_description = 'Frog Task'
 
 
-@admin.register(FocusTask)
-class FocusTaskAdmin(admin.ModelAdmin):
-    list_display = (
-        'title_display', 'session_user', 'session_date', 
-        'is_high_impact', 'is_frog', 'is_completed', 
-        'scheduled_start', 'duration_display'
-    )
-    list_filter = (
-        'is_high_impact', 'is_frog', 'is_completed', 
-        'session__date', 'session__user'
-    )
-    search_fields = (
-        'title', 'description', 'impact_reason', 
-        'session__user__username'
-    )
-    readonly_fields = (
-        'calendar_token', 'completed_at', 'created_at', 'updated_at',
-        'duration_minutes', 'checklist_progress', 'calendar_title', 
-        'calendar_description'
-    )
-    date_hierarchy = 'session__date'
-    ordering = ('-session__date', 'order', '-is_frog', '-is_high_impact')
-    
+@admin.register(ClientContact)
+class ClientContactAdmin(admin.ModelAdmin):
+    list_display = ("user", "organization", "role", "job_title", "is_active")
+    list_filter = ("role", "is_active", "organization")
+    search_fields = ("user__first_name", "user__last_name", "user__email", "job_title")
+    readonly_fields = ("created_at", "updated_at")
+
     fieldsets = (
-        ('Task Info', {
-            'fields': ('session', 'title', 'description', 'order')
+        ("User & Organization", {
+            "fields": ("user", "organization", "role", "job_title", "department")
         }),
-        ('Pareto & Frog', {
-            'fields': ('is_high_impact', 'impact_reason', 'is_frog')
+        ("Contact Information", {
+            "fields": ("phone_direct", "phone_mobile", "preferred_contact_method")
         }),
-        ('Battle Plan', {
-            'fields': ('checklist',),
-            'classes': ('collapse',)
+        ("Permissions", {
+            "fields": ("can_approve_change_orders", "can_view_financials", "can_create_tasks",
+                      "can_approve_colors", "receive_daily_reports", "receive_invoice_notifications")
         }),
-        ('Time Blocking', {
-            'fields': (
-                'scheduled_start', 'scheduled_end', 'duration_minutes'
-            )
-        }),
-        ('Status', {
-            'fields': ('is_completed', 'completed_at', 'checklist_progress')
-        }),
-        ('Calendar Integration', {
-            'fields': (
-                'calendar_token', 'calendar_title', 'calendar_description'
-            ),
-            'classes': ('collapse',)
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
+        ("Status", {
+            "fields": ("is_active", "created_at", "updated_at")
         }),
     )
-    
-    def title_display(self, obj):
-        prefix = "🐸 " if obj.is_frog else "⚡ " if obj.is_high_impact else ""
-        return f"{prefix}{obj.title}"
-    title_display.short_description = 'Title'
-    
-    def session_user(self, obj):
-        return obj.session.user.get_full_name() or obj.session.user.username
-    session_user.short_description = 'User'
-    session_user.admin_order_field = 'session__user'
-    
-    def session_date(self, obj):
-        return obj.session.date
-    session_date.short_description = 'Date'
-    session_date.admin_order_field = 'session__date'
-    
-    def duration_display(self, obj):
-        if obj.duration_minutes:
-            hours = obj.duration_minutes // 60
-            minutes = obj.duration_minutes % 60
-            if hours > 0:
-                return f"{hours}h {minutes}m"
-            return f"{minutes}m"
-        return "-"
-    duration_display.short_description = 'Duration'
-    
-    def calendar_title(self, obj):
-        return obj.get_calendar_title()
-    calendar_title.short_description = 'Calendar Title'
-    
-    def calendar_description(self, obj):
-        return obj.get_calendar_description()
-    calendar_description.short_description = 'Calendar Description'
-
-
-# ===================================
-# STRATEGIC PLANNER ADMIN (Module 25 Part B)
-# ===================================
-
-from .models import (
-    LifeVision, ExecutiveHabit, DailyRitualSession,
-    PowerAction, HabitCompletion
-)
-
-
-@admin.register(LifeVision)
-class LifeVisionAdmin(admin.ModelAdmin):
-    list_display = (
-        'title', 'user', 'scope', 'progress_pct', 
-        'deadline', 'created_at'
-    )
-    list_filter = ('scope', 'user')
-    search_fields = ('title', 'deep_why', 'user__username')
-    readonly_fields = ('created_at', 'updated_at')
-    date_hierarchy = 'created_at'
-    ordering = ('-created_at',)
-    
-    fieldsets = (
-        ('Vision Info', {
-            'fields': ('user', 'title', 'scope')
-        }),
-        ('Emotional Anchor', {
-            'fields': ('deep_why',),
-            'description': 'The WHY - This is mandatory and must be emotionally compelling'
-        }),
-        ('Progress Tracking', {
-            'fields': ('progress_pct', 'deadline')
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        })
-    )
-
-
-@admin.register(ExecutiveHabit)
-class ExecutiveHabitAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'frequency', 'is_active', 'created_at')
-    list_filter = ('frequency', 'is_active', 'user')
-    search_fields = ('title', 'user__username')
-    readonly_fields = ('created_at',)
-    ordering = ('frequency', 'title')
-
-
-class PowerActionInline(admin.TabularInline):
-    model = PowerAction
-    extra = 0
-    fields = (
-        'title', 'is_80_20', 'is_frog', 'status', 
-        'scheduled_start', 'scheduled_end', 'order'
-    )
-    readonly_fields = ()
-    ordering = ('order', '-is_frog', '-is_80_20')
-
-
-class HabitCompletionInline(admin.TabularInline):
-    model = HabitCompletion
-    extra = 0
-    fields = ('habit', 'completed_date', 'notes')
-    readonly_fields = ('created_at',)
-
-
-@admin.register(DailyRitualSession)
-class DailyRitualSessionAdmin(admin.ModelAdmin):
-    list_display = (
-        'user', 'date', 'is_completed_display', 
-        'energy_level', 'total_actions_display',
-        'high_impact_display', 'frog_display'
-    )
-    list_filter = ('user', 'date', 'physiology_check')
-    search_fields = ('user__username', 'daily_intention')
-    readonly_fields = (
-        'created_at', 'updated_at', 'completed_at',
-        'total_power_actions', 'completed_power_actions',
-        'high_impact_actions', 'frog_action'
-    )
-    date_hierarchy = 'date'
-    ordering = ('-date',)
-    inlines = [PowerActionInline, HabitCompletionInline]
-    
-    fieldsets = (
-        ('Session Info', {
-            'fields': ('user', 'date', 'completed_at')
-        }),
-        ('Phase 1: State & Foundation (Tony Robbins Triad)', {
-            'fields': (
-                'physiology_check', 'energy_level',
-                'gratitude_entries', 'daily_intention', 'habits_checked'
-            )
-        }),
-        ('Metrics', {
-            'fields': (
-                'total_power_actions', 'completed_power_actions',
-                'high_impact_actions', 'frog_action'
-            ),
-            'classes': ('collapse',)
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        })
-    )
-    
-    def is_completed_display(self, obj):
-        return obj.is_completed
-    is_completed_display.boolean = True
-    is_completed_display.short_description = 'Completed'
-    
-    def total_actions_display(self, obj):
-        return obj.total_power_actions
-    total_actions_display.short_description = 'Total Actions'
-    
-    def high_impact_display(self, obj):
-        return obj.high_impact_actions
-    high_impact_display.short_description = '⚡ High Impact'
-    
-    def frog_display(self, obj):
-        frog = obj.frog_action
-        if frog:
-            return f"🐸 {frog.title}"
-        return "-"
-    frog_display.short_description = 'The Frog'
-
-
-@admin.register(PowerAction)
-class PowerActionAdmin(admin.ModelAdmin):
-    list_display = (
-        'title_display', 'session_user', 'session_date',
-        'is_80_20', 'is_frog', 'status',
-        'linked_vision', 'scheduled_start', 'duration_display'
-    )
-    list_filter = (
-        'is_80_20', 'is_frog', 'status',
-        'session__date', 'session__user'
-    )
-    search_fields = (
-        'title', 'description', 'impact_reason',
-        'session__user__username', 'linked_vision__title'
-    )
-    readonly_fields = (
-        'ical_uid', 'completed_at', 'created_at', 'updated_at',
-        'duration_minutes', 'micro_steps_progress',
-        'micro_steps_completed', 'micro_steps_total',
-        'calendar_title', 'calendar_description'
-    )
-    date_hierarchy = 'session__date'
-    ordering = ('-session__date', 'order', '-is_frog', '-is_80_20')
-    
-    fieldsets = (
-        ('Action Info', {
-            'fields': ('session', 'title', 'description', 'order')
-        }),
-        ('Strategic Alignment', {
-            'fields': (
-                'is_80_20', 'impact_reason',
-                'is_frog', 'linked_vision'
-            ),
-            'description': 'Pareto (80/20), Eat The Frog, and Vision alignment'
-        }),
-        ('Execution Plan', {
-            'fields': (
-                'micro_steps', 'micro_steps_progress',
-                'micro_steps_completed', 'micro_steps_total'
-            )
-        }),
-        ('Time Blocking', {
-            'fields': (
-                'scheduled_start', 'scheduled_end', 'duration_minutes'
-            )
-        }),
-        ('Status', {
-            'fields': ('status', 'completed_at')
-        }),
-        ('Calendar Integration', {
-            'fields': (
-                'ical_uid', 'calendar_title', 'calendar_description'
-            ),
-            'classes': ('collapse',)
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        })
-    )
-    
-    def title_display(self, obj):
-        prefix = "🐸 " if obj.is_frog else "⚡ " if obj.is_80_20 else ""
-        return f"{prefix}{obj.title}"
-    title_display.short_description = 'Title'
-    
-    def session_user(self, obj):
-        return obj.session.user.username
-    session_user.short_description = 'User'
-    session_user.admin_order_field = 'session__user__username'
-    
-    def session_date(self, obj):
-        return obj.session.date
-    session_date.short_description = 'Date'
-    session_date.admin_order_field = 'session__date'
-    
-    def duration_display(self, obj):
-        if obj.duration_minutes:
-            hours = obj.duration_minutes // 60
-            minutes = obj.duration_minutes % 60
-            if hours > 0:
-                return f"{hours}h {minutes}m"
-            return f"{minutes}m"
-        return "-"
-    duration_display.short_description = 'Duration'
-    
-    def calendar_title(self, obj):
-        return obj.get_calendar_title()
-    calendar_title.short_description = 'Calendar Title'
-    
-    def calendar_description(self, obj):
-        return obj.get_calendar_description()
-    calendar_description.short_description = 'Calendar Description'
-
-
-@admin.register(HabitCompletion)
-class HabitCompletionAdmin(admin.ModelAdmin):
-    list_display = ('habit', 'completed_date', 'session', 'created_at')
-    list_filter = ('habit', 'completed_date', 'habit__user')
-    search_fields = ('habit__title', 'notes', 'habit__user__username')
-    readonly_fields = ('created_at',)
-    date_hierarchy = 'completed_date'
-    ordering = ('-completed_date',)
-
