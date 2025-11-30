@@ -73,49 +73,72 @@ class OpenWeatherMapProvider(WeatherProvider):
         """
         Fetch weather from OpenWeatherMap API
 
-        Note: Currently returns mock data. Implement API call when ready.
-        TODO: Add requests library call to OpenWeatherMap API
+        Implements robust error handling with fallback to mock data.
         """
-        if not self.api_key:
-            raise ValueError("OpenWeatherMap API key not configured")
+        import logging
+        import requests
 
-        # TODO: Implement actual API call
-        # For now, return mock data with note
-        return {
+        logger = logging.getLogger(__name__)
+
+        # Fallback mock data
+        mock_fallback = {
             "temperature": 20.0,
             "condition": "Partly Cloudy",
             "humidity": 70,
             "wind_speed": 15.0,
             "description": "Scattered clouds",
             "icon": "02d",
-            "provider": "openweathermap",
+            "provider": "openweathermap_mock",
             "fetched_at": datetime.now().isoformat(),
-            "note": "Mock data - API integration pending",
         }
 
-        # Real implementation would look like:
-        # import requests
-        # url = f"{self.base_url}/weather"
-        # params = {
-        #     'lat': latitude,
-        #     'lon': longitude,
-        #     'appid': self.api_key,
-        #     'units': 'metric',
-        #     'lang': 'es'
-        # }
-        # response = requests.get(url, params=params)
-        # response.raise_for_status()
-        # data = response.json()
-        # return {
-        #     'temperature': data['main']['temp'],
-        #     'condition': data['weather'][0]['main'],
-        #     'humidity': data['main']['humidity'],
-        #     'wind_speed': data['wind']['speed'] * 3.6,  # m/s to km/h
-        #     'description': data['weather'][0]['description'],
-        #     'icon': data['weather'][0]['icon'],
-        #     'provider': 'openweathermap',
-        #     'fetched_at': datetime.now().isoformat()
-        # }
+        # Check API key
+        if not self.api_key:
+            logger.warning("OpenWeatherMap API key not configured. Using fallback mock data.")
+            return mock_fallback
+
+        # Build request
+        url = f"{self.base_url}/weather"
+        params = {
+            "lat": latitude,
+            "lon": longitude,
+            "appid": self.api_key,
+            "units": "metric",
+            "lang": "es",
+        }
+
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            # Map OpenWeatherMap response to our format
+            return {
+                "temperature": data["main"]["temp"],
+                "condition": data["weather"][0]["main"],
+                "humidity": data["main"]["humidity"],
+                "wind_speed": data["wind"]["speed"] * 3.6,  # m/s to km/h
+                "description": data["weather"][0]["description"],
+                "icon": data["weather"][0]["icon"],
+                "provider": "openweathermap",
+                "fetched_at": datetime.now().isoformat(),
+            }
+
+        except requests.exceptions.Timeout:
+            logger.error(f"OpenWeatherMap API timeout for lat={latitude}, lon={longitude}. Using fallback.")
+            return mock_fallback
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"OpenWeatherMap HTTP error {e.response.status_code}: {e}. Using fallback.")
+            return mock_fallback
+        except requests.exceptions.RequestException as e:
+            logger.error(f"OpenWeatherMap request failed: {e}. Using fallback.")
+            return mock_fallback
+        except (KeyError, IndexError, ValueError) as e:
+            logger.error(f"OpenWeatherMap response parsing error: {e}. Using fallback.")
+            return mock_fallback
+        except Exception as e:
+            logger.error(f"Unexpected error fetching weather: {e}. Using fallback.")
+            return mock_fallback
 
 
 class WeatherService:
