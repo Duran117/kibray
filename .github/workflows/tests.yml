@@ -5,6 +5,7 @@ on:
     branches: [ chore/security/upgrade-django-requests ]
   pull_request:
     branches: [ chore/security/upgrade-django-requests ]
+  workflow_dispatch:
 
 jobs:
   test:
