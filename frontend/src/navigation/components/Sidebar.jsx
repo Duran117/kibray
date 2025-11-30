@@ -1,6 +1,7 @@
 import React from 'react';
 import * as Icons from 'lucide-react';
-import { useNavigation } from '../contexts/NavigationContext.jsx';
+// Updated to use consolidated NavigationContext (Phase 3)
+import { useNavigation } from '../../context/NavigationContext.jsx';
 import { useRole } from '../contexts/RoleContext.jsx';
 import { useTheme } from '../contexts/ThemeContext.jsx';
 import { getSectionsForRole, getRoleLabel } from '../utils/rolePermissions.js';
