@@ -218,7 +218,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function getSelectedTasks() {
   const checked = document.querySelectorAll('.task-checkbox:checked');
-  return Array.from(checked).map(cb => cb.value);
+  return Array.from(checked).map(cb => parseInt(cb.value));
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+async function bulkUpdate(action, value) {
+  const taskIds = getSelectedTasks();
+  if (taskIds.length === 0) {
+    alert('{% trans "Por favor selecciona al menos una tarea" %}');
+    return;
+  }
+
+  const csrftoken = getCookie('csrftoken');
+  const payload = {
+    task_ids: taskIds,
+    action: action,
+    value: value
+  };
+
+  try {
+    const response = await fetch('/api/v1/tasks/bulk-update/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMsg = data.error || data.detail || JSON.stringify(data);
+      alert('{% trans "Error" %}: ' + errorMsg);
+      return;
+    }
+
+    // Success
+    alert(`{% trans "Éxito" %}: ${data.updated_count} {% trans "tareas actualizadas" %}`);
+    window.location.reload();
+  } catch (error) {
+    alert('{% trans "Error de red" %}: ' + error.message);
+  }
 }
 
 function bulkAssign() {
@@ -228,8 +283,7 @@ function bulkAssign() {
   const employee = prompt('{% trans "ID del empleado a asignar" %}:');
   if (!employee) return;
   
-  // TODO: Implement bulk assign API endpoint
-  alert('{% trans "Funcionalidad en desarrollo" %}: asignar ' + tasks.length + ' tareas al empleado #' + employee);
+  bulkUpdate('assign', employee);
 }
 
 function bulkChangePriority() {
@@ -239,8 +293,7 @@ function bulkChangePriority() {
   const priority = prompt('{% trans "Nueva prioridad (low/normal/high/urgent)" %}:');
   if (!priority) return;
   
-  // TODO: Implement bulk priority API endpoint
-  alert('{% trans "Funcionalidad en desarrollo" %}: cambiar prioridad de ' + tasks.length + ' tareas a ' + priority);
+  bulkUpdate('priority', priority);
 }
 
 function bulkChangeStatus() {
@@ -250,8 +303,7 @@ function bulkChangeStatus() {
   const status = prompt('{% trans "Nuevo estado (Pendiente/En Progreso/Completada/Cancelada)" %}:');
   if (!status) return;
   
-  // TODO: Implement bulk status API endpoint
-  alert('{% trans "Funcionalidad en desarrollo" %}: cambiar estado de ' + tasks.length + ' tareas a ' + status);
+  bulkUpdate('status', status);
 }
 </script>
 {% endblock %}
