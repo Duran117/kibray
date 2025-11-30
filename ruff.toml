@@ -1,0 +1,42 @@
+# Ruff configuration for kibray
+
+target-version = "py311"
+line-length = 100
+
+exclude = [
+  ".git",
+  "__pycache__",
+  "build",
+  "dist",
+  "tests/e2e",
+  "e2e",
+]
+
+[lint]
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "W",  # warnings
+  "I",  # isort
+  "N",  # pep8-naming
+  "UP", # pyupgrade
+  "B",  # bugbear
+  "C4", # comprehensions
+  "SIM",# simplify
+  "PT", # pytest style
+  "DJ", # django lints
+]
+ignore = [
+  "E501", # line length handled by formatter/teams
+]
+
+[lint.isort]
+known-first-party = ["core", "kibray_backend"]
+force-sort-within-sections = true
+
+[lint.per-file-ignores]
+"tests/**" = ["S101", "PT011"]
+
+[format]
+quote-style = "double"
+docstring-code-format = true
