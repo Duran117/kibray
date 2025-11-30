@@ -46,6 +46,31 @@ class Command(BaseCommand):
             except Exception as e:
                 return 1, "", f"Command failed: {e}"
 
+        # Determine current branch early for pull --rebase workflow
+        code_branch, out_branch, err_branch = run_cmd(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+        current_branch = out_branch.strip() if code_branch == 0 and out_branch else "main"
+        if not current_branch:
+            current_branch = "main"
+
+        # git fetch
+        self.stdout.write("$ git fetch origin")
+        _, out, err = run_cmd(["git", "fetch", "origin"])
+        if out:
+            self.stdout.write(out)
+        if err:
+            self.stderr.write(err)
+
+        # git pull --rebase origin <current_branch>
+        self.stdout.write(f"$ git pull --rebase origin {current_branch}")
+        code, out, err = run_cmd(["git", "pull", "--rebase", "origin", current_branch])
+        if out:
+            self.stdout.write(out)
+        if err:
+            self.stderr.write(err)
+        if code != 0:
+            self.stderr.write("Rebase failed. Please resolve conflicts and re-run this command.")
+            return
+
         # git status
         code, out, err = run_cmd(["git", "status"])
         self.stdout.write("$ git status")
@@ -81,10 +106,7 @@ class Command(BaseCommand):
 
 
         # Detect current branch and push to it, handling first-time upstream
-        code_branch, out_branch, err_branch = run_cmd(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-        current_branch = out_branch.strip() if code_branch == 0 and out_branch else "main"
-        if not current_branch:
-            current_branch = "main"
+        # (branch value already computed above)
 
         # Check if upstream is set
         code_upstream, out_upstream, err_upstream = run_cmd([
