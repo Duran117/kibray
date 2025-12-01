@@ -786,3 +786,124 @@ def fetch_weather_for_plan(plan_id):
     except Exception as e:
         logger.error(f"Error fetching weather for DailyPlan {plan_id}: {e}")
         return {"status": "error", "plan_id": plan_id, "error": str(e)}
+
+
+# ============================================================================
+# PHASE 6: Real-Time WebSocket Tasks
+# ============================================================================
+
+
+@shared_task(name="core.tasks.cleanup_stale_user_status")
+def cleanup_stale_user_status(threshold_minutes=5):
+    """
+    Mark users as offline if their last heartbeat is older than threshold.
+    Runs every 5 minutes to keep online status accurate.
+    
+    Args:
+        threshold_minutes: Minutes without heartbeat before marking offline
+        
+    Returns:
+        dict: Status with count of users marked offline
+    """
+    from core.models import UserStatus
+    
+    try:
+        count = UserStatus.cleanup_stale_online_status(threshold_minutes=threshold_minutes)
+        logger.info(f"Cleaned up {count} stale user status records")
+        return {
+            "status": "success",
+            "users_marked_offline": count,
+            "threshold_minutes": threshold_minutes,
+        }
+    except Exception as e:
+        logger.error(f"Error cleaning up user status: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@shared_task(name="core.tasks.send_websocket_notification")
+def send_websocket_notification(user_id, title, message, category="info", url=""):
+    """
+    Send a notification via WebSocket to a specific user.
+    Falls back to database-only if WebSocket fails.
+    
+    Args:
+        user_id: Target user ID
+        title: Notification title
+        message: Notification message
+        category: Notification category (info/success/warning/error/task/chat)
+        url: Optional URL to link
+        
+    Returns:
+        dict: Status of notification delivery
+    """
+    from django.contrib.auth import get_user_model
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    from core.models import NotificationLog
+    
+    User = get_user_model()
+    channel_layer = get_channel_layer()
+    
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # Create notification log
+        notification = NotificationLog.objects.create(
+            user=user,
+            title=title,
+            message=message,
+            category=category,
+            url=url,
+        )
+        
+        # Try to send via WebSocket
+        try:
+            async_to_sync(channel_layer.group_send)(
+                f"notifications_{user_id}",
+                {
+                    "type": "send_notification",
+                    "notification": {
+                        "id": notification.id,
+                        "title": title,
+                        "message": message,
+                        "category": category,
+                        "url": url,
+                        "created_at": notification.created_at.isoformat(),
+                    }
+                }
+            )
+            notification.mark_as_delivered()
+            logger.info(f"WebSocket notification sent to user {user_id}: {title}")
+            return {
+                "status": "success",
+                "user_id": user_id,
+                "notification_id": notification.id,
+                "delivered_via_websocket": True,
+            }
+        except Exception as ws_error:
+            logger.warning(f"WebSocket send failed for user {user_id}, stored in DB only: {ws_error}")
+            return {
+                "status": "partial",
+                "user_id": user_id,
+                "notification_id": notification.id,
+                "delivered_via_websocket": False,
+                "error": str(ws_error),
+            }
+            
+    except User.DoesNotExist:
+        logger.error(f"User {user_id} not found for notification")
+        return {
+            "status": "error",
+            "error": "User not found",
+            "user_id": user_id,
+        }
+    except Exception as e:
+        logger.error(f"Error sending notification to user {user_id}: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "user_id": user_id,
+        }

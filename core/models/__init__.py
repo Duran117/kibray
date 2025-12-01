@@ -3947,12 +3947,36 @@ class ChatMessage(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="deleted_chat_messages"
     )
     deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Phase 6: Read receipts for real-time messaging
+    read_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='read_chat_messages',
+        blank=True,
+        verbose_name="Read By",
+    )
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=['channel', '-created_at']),
+        ]
 
     def __str__(self):
         return f"ChatMsg ch={self.channel_id} by {getattr(self.user,'username','?')}"
+    
+    def mark_as_read(self, user):
+        """Mark this message as read by a user"""
+        self.read_by.add(user)
+    
+    def is_read_by(self, user):
+        """Check if message was read by user"""
+        return self.read_by.filter(id=user.id).exists()
+    
+    @property
+    def read_count(self):
+        """Number of users who have read this message"""
+        return self.read_by.count()
 
 
 class ChatMention(models.Model):
@@ -6969,3 +6993,223 @@ class ClientContact(models.Model):
             if self.role in ["executive", "accounting", "owner"]:
                 return True
         return False
+
+
+# ============================================================================
+# PHASE 6: Real-Time WebSocket Models
+# ============================================================================
+
+
+class UserStatus(models.Model):
+    """
+    Track user online/offline presence and last activity.
+    Used for real-time status indicators and "last seen" timestamps.
+    """
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='status',
+        verbose_name="User",
+    )
+    is_online = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Is Online",
+    )
+    last_seen = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Last Seen",
+    )
+    last_heartbeat = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Last Heartbeat",
+        help_text="Last WebSocket heartbeat received",
+    )
+    device_type = models.CharField(
+        max_length=20,
+        blank=True,
+        choices=[
+            ('desktop', 'Desktop'),
+            ('mobile', 'Mobile'),
+            ('tablet', 'Tablet'),
+        ],
+        verbose_name="Device Type",
+    )
+    connection_count = models.IntegerField(
+        default=0,
+        verbose_name="Active Connections",
+        help_text="Number of active WebSocket connections",
+    )
+    
+    class Meta:
+        verbose_name = "User Status"
+        verbose_name_plural = "User Statuses"
+        indexes = [
+            models.Index(fields=['is_online', '-last_seen']),
+        ]
+    
+    def __str__(self):
+        status = "Online" if self.is_online else "Offline"
+        return f"{self.user.username} - {status}"
+    
+    def mark_online(self):
+        """Mark user as online and update heartbeat"""
+        from django.utils import timezone
+        self.is_online = True
+        self.last_heartbeat = timezone.now()
+        self.connection_count += 1
+        self.save(update_fields=['is_online', 'last_heartbeat', 'last_seen', 'connection_count'])
+    
+    def mark_offline(self):
+        """Mark user as offline"""
+        self.connection_count = max(0, self.connection_count - 1)
+        if self.connection_count == 0:
+            self.is_online = False
+        self.save(update_fields=['is_online', 'last_seen', 'connection_count'])
+    
+    def update_heartbeat(self):
+        """Update heartbeat timestamp"""
+        from django.utils import timezone
+        self.last_heartbeat = timezone.now()
+        self.save(update_fields=['last_heartbeat', 'last_seen'])
+    
+    @property
+    def last_seen_ago(self):
+        """Human-readable last seen time"""
+        from django.utils import timezone
+        
+        if self.is_online:
+            return "Online now"
+        
+        delta = timezone.now() - self.last_seen
+        
+        if delta.seconds < 60:
+            return "Just now"
+        elif delta.seconds < 3600:
+            minutes = delta.seconds // 60
+            return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+        elif delta.days == 0:
+            hours = delta.seconds // 3600
+            return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        elif delta.days == 1:
+            return "Yesterday"
+        elif delta.days < 7:
+            return f"{delta.days} days ago"
+        else:
+            return self.last_seen.strftime("%b %d, %Y")
+    
+    @classmethod
+    def get_online_users(cls):
+        """Get all currently online users"""
+        return cls.objects.filter(is_online=True).select_related('user')
+    
+    @classmethod
+    def cleanup_stale_online_status(cls, threshold_minutes=5):
+        """
+        Mark users as offline if their last heartbeat is older than threshold.
+        Should be called periodically via Celery task.
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        threshold = timezone.now() - timedelta(minutes=threshold_minutes)
+        stale = cls.objects.filter(
+            is_online=True,
+            last_heartbeat__lt=threshold
+        )
+        count = stale.update(is_online=False, connection_count=0)
+        return count
+
+
+class NotificationLog(models.Model):
+    """
+    Log of all notifications sent via WebSocket.
+    Complements existing Notification model with delivery tracking.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notification_logs',
+        verbose_name="User",
+    )
+    title = models.CharField(
+        max_length=200,
+        verbose_name="Title",
+    )
+    message = models.TextField(
+        verbose_name="Message",
+    )
+    category = models.CharField(
+        max_length=20,
+        choices=[
+            ('info', 'Info'),
+            ('success', 'Success'),
+            ('warning', 'Warning'),
+            ('error', 'Error'),
+            ('task', 'Task'),
+            ('chat', 'Chat'),
+        ],
+        default='info',
+        verbose_name="Category",
+    )
+    url = models.CharField(
+        max_length=500,
+        blank=True,
+        verbose_name="URL",
+        help_text="Link to relevant page",
+    )
+    read = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Read",
+    )
+    delivered_via_websocket = models.BooleanField(
+        default=False,
+        verbose_name="Delivered via WebSocket",
+    )
+    delivered_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Delivered At",
+    )
+    read_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Read At",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name="Created At",
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'read', '-created_at']),
+        ]
+        verbose_name = "Notification Log"
+        verbose_name_plural = "Notification Logs"
+    
+    def __str__(self):
+        return f"{self.user.username}: {self.title}"
+    
+    def mark_as_read(self):
+        """Mark notification as read"""
+        from django.utils import timezone
+        
+        if not self.read:
+            self.read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=['read', 'read_at'])
+    
+    def mark_as_delivered(self):
+        """Mark notification as delivered via WebSocket"""
+        from django.utils import timezone
+        
+        if not self.delivered_via_websocket:
+            self.delivered_via_websocket = True
+            self.delivered_at = timezone.now()
+            self.save(update_fields=['delivered_via_websocket', 'delivered_at'])

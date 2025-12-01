@@ -72,6 +72,12 @@ app.conf.beat_schedule = {
         "task": "core.tasks.cleanup_old_notifications",
         "schedule": crontab(hour=2, minute=0, day_of_week=0),  # Sunday
     },
+    # Phase 6: Cleanup stale online status every 5 minutes
+    "cleanup-stale-user-status": {
+        "task": "core.tasks.cleanup_stale_user_status",
+        "schedule": 300.0,  # Every 5 minutes (in seconds)
+        "kwargs": {"threshold_minutes": 5},
+    },
 }
 
 # Celery configuration

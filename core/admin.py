@@ -41,6 +41,7 @@ from .models import (
     MaterialRequest,
     MaterialRequestItem,
     Notification,
+    NotificationLog,
     PlannedActivity,
     PlanPin,
     PlanPinAttachment,
@@ -61,6 +62,7 @@ from .models import (
     SubcontractorAssignment,
     TaskTemplate,
     TimeEntry,
+    UserStatus,
 )
 
 
@@ -1054,3 +1056,78 @@ class ClientContactAdmin(admin.ModelAdmin):
             "fields": ("is_active", "created_at", "updated_at")
         }),
     )
+
+
+# ============================================================================
+# PHASE 6: Real-Time WebSocket Models Admin
+# ============================================================================
+
+
+@admin.register(UserStatus)
+class UserStatusAdmin(admin.ModelAdmin):
+    """Admin for user online/offline status tracking"""
+    list_display = ("user", "is_online", "last_seen", "last_heartbeat", "connection_count", "device_type")
+    list_filter = ("is_online", "device_type")
+    search_fields = ("user__username", "user__email")
+    readonly_fields = ("last_seen", "last_heartbeat")
+    ordering = ("-last_seen",)
+    
+    fieldsets = (
+        ("User", {
+            "fields": ("user",)
+        }),
+        ("Status", {
+            "fields": ("is_online", "connection_count", "device_type")
+        }),
+        ("Timestamps", {
+            "fields": ("last_seen", "last_heartbeat")
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        """Prevent manual creation - status is auto-created"""
+        return False
+
+
+@admin.register(NotificationLog)
+class NotificationLogAdmin(admin.ModelAdmin):
+    """Admin for notification delivery tracking"""
+    list_display = ("user", "title", "category", "read", "delivered_via_websocket", "created_at")
+    list_filter = ("category", "read", "delivered_via_websocket", "created_at")
+    search_fields = ("user__username", "title", "message")
+    readonly_fields = ("created_at", "delivered_at", "read_at")
+    ordering = ("-created_at",)
+    
+    fieldsets = (
+        ("User & Content", {
+            "fields": ("user", "title", "message", "category", "url")
+        }),
+        ("Status", {
+            "fields": ("read", "read_at", "delivered_via_websocket", "delivered_at")
+        }),
+        ("Timestamps", {
+            "fields": ("created_at",)
+        }),
+    )
+    
+    actions = ["mark_as_read", "mark_as_delivered"]
+    
+    def mark_as_read(self, request, queryset):
+        """Bulk action to mark notifications as read"""
+        count = 0
+        for notification in queryset:
+            if not notification.read:
+                notification.mark_as_read()
+                count += 1
+        self.message_user(request, f"{count} notification(s) marked as read.")
+    mark_as_read.short_description = "Mark selected as read"
+    
+    def mark_as_delivered(self, request, queryset):
+        """Bulk action to mark notifications as delivered"""
+        count = 0
+        for notification in queryset:
+            if not notification.delivered_via_websocket:
+                notification.mark_as_delivered()
+                count += 1
+        self.message_user(request, f"{count} notification(s) marked as delivered.")
+    mark_as_delivered.short_description = "Mark selected as delivered"

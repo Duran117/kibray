@@ -10,13 +10,63 @@ Uses Django Channels to handle WebSocket connections for:
 
 import json
 from datetime import datetime
+import logging
 
 from channels.db import database_sync_to_async  # type: ignore
 from channels.generic.websocket import AsyncWebsocketConsumer  # type: ignore
+from django.core.cache import cache
+from django.utils import timezone
+
+logger = logging.getLogger(__name__)
+
+
+class RateLimitMixin:
+    """
+    Mixin to add rate limiting to WebSocket consumers.
+    Prevents abuse by limiting messages per user per minute.
+    """
+    
+    # Override these in consumer classes
+    rate_limit_messages = 30  # messages per minute
+    rate_limit_window = 60  # seconds
+    
+    def get_rate_limit_key(self):
+        """Generate cache key for rate limiting"""
+        user_id = getattr(self.user, 'id', 'anonymous')  # type: ignore[attr-defined]
+        return f"websocket_rate_limit:{user_id}:{self.__class__.__name__}"
+    
+    async def check_rate_limit(self):
+        """
+        Check if user has exceeded rate limit.
+        Returns True if allowed, False if rate limited.
+        """
+        key = self.get_rate_limit_key()
+        
+        # Get current count from cache
+        count = cache.get(key, 0)
+        
+        if count >= self.rate_limit_messages:
+            logger.warning(
+                f"Rate limit exceeded for user {getattr(self.user, 'id', 'anonymous')} "  # type: ignore[attr-defined]
+                f"in {self.__class__.__name__}: {count}/{self.rate_limit_messages} messages"
+            )
+            await self.send(  # type: ignore[attr-defined]
+                text_data=json.dumps({
+                    "type": "error",
+                    "error": "rate_limit_exceeded",
+                    "message": f"Rate limit exceeded. Maximum {self.rate_limit_messages} messages per minute.",
+                    "retry_after": self.rate_limit_window,
+                })
+            )
+            return False
+        
+        # Increment counter
+        cache.set(key, count + 1, self.rate_limit_window)
+        return True
 from django.contrib.auth.models import User
 
 
-class ProjectChatConsumer(AsyncWebsocketConsumer):
+class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
     """
     WebSocket consumer for project-specific chat rooms.
 
@@ -26,7 +76,12 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
     - Typing indicators
     - File attachment notifications
     - @mentions
+    - Rate limiting (30 messages/min)
     """
+    
+    # Rate limiting config
+    rate_limit_messages = 30
+    rate_limit_window = 60
 
     async def connect(self):
         """Accept WebSocket connection and join project chat group"""
@@ -68,6 +123,10 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         """Receive message from WebSocket and broadcast to group"""
+        # Check rate limit first
+        if not await self.check_rate_limit():
+            return  # Rate limit exceeded, error already sent
+        
         data = json.loads(text_data)
         message_type = data.get("type", "message")
 
@@ -208,7 +267,7 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
         message = ChatMessage.objects.create(
             channel=channel,
             user=user,
-            content=content,
+            message=content,  # Changed from content to message
         )
 
         return message.id
@@ -220,14 +279,20 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
 
         try:
             message = ChatMessage.objects.get(id=message_id)
-            # Add read tracking logic here (create MessageRead model if needed)
+            message.mark_as_read(user)  # Use the new method
             return True
         except ChatMessage.DoesNotExist:
             return False
 
 
-class DirectChatConsumer(AsyncWebsocketConsumer):
-    """WebSocket consumer for direct messages between two users"""
+class DirectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for direct messages between two users.
+    Rate limited to 30 messages per minute.
+    """
+    
+    rate_limit_messages = 30
+    rate_limit_window = 60
 
     async def connect(self):
         """Accept WebSocket connection for direct chat"""
@@ -249,6 +314,9 @@ class DirectChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         """Receive and broadcast direct message"""
+        # Rate limit check
+        if not await self.check_rate_limit():
+            return
         data = json.loads(text_data)
 
         # Save message to database
@@ -310,7 +378,7 @@ class DirectChatConsumer(AsyncWebsocketConsumer):
         return message.id
 
 
-class NotificationConsumer(AsyncWebsocketConsumer):
+class NotificationConsumer(RateLimitMixin, AsyncWebsocketConsumer):
     """
     WebSocket consumer for real-time notifications.
 
@@ -320,7 +388,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     - Project updates
     - Chat mentions
     - System alerts
+    
+    Rate limited to 100 messages per minute.
     """
+    
+    rate_limit_messages = 100
+    rate_limit_window = 60
 
     async def connect(self):
         """Connect to user's notification channel"""
@@ -348,6 +421,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         """Mark notification as read"""
+        # Rate limit check
+        if not await self.check_rate_limit():
+            return
+        
         data = json.loads(text_data)
 
         if data.get("type") == "mark_read":
@@ -547,11 +624,15 @@ class QualityInspectionConsumer(AsyncWebsocketConsumer):
         )
 
 
-class TaskConsumer(AsyncWebsocketConsumer):
+class TaskConsumer(RateLimitMixin, AsyncWebsocketConsumer):
     """
     WebSocket consumer for real-time task updates.
     Handles task creation, updates, deletion, and status changes.
+    Rate limited to 60 messages per minute.
     """
+    
+    rate_limit_messages = 60
+    rate_limit_window = 60
 
     async def connect(self):
         """Accept connection and join project task group"""
@@ -581,6 +662,10 @@ class TaskConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         """Handle task-related actions"""
+        # Rate limit check
+        if not await self.check_rate_limit():
+            return
+        
         try:
             data = json.loads(text_data)
             action = data.get("action")
@@ -658,11 +743,15 @@ class TaskConsumer(AsyncWebsocketConsumer):
         )
 
 
-class StatusConsumer(AsyncWebsocketConsumer):
+class StatusConsumer(RateLimitMixin, AsyncWebsocketConsumer):
     """
     WebSocket consumer for user online/offline status.
     Manages user presence and heartbeat.
+    Higher rate limit (120/min) due to frequent heartbeats every 30s.
     """
+    
+    rate_limit_messages = 120  # Higher limit for heartbeats
+    rate_limit_window = 60
 
     async def connect(self):
         """Accept connection and join status group"""
@@ -717,6 +806,10 @@ class StatusConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         """Handle status updates (heartbeat)"""
+        # Rate limit check
+        if not await self.check_rate_limit():
+            return
+        
         try:
             data = json.loads(text_data)
             action = data.get("action")
@@ -750,24 +843,47 @@ class StatusConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def set_user_online(self):
-        """Mark user as online in database (placeholder)"""
-        # TODO: Implement with UserStatus model
-        pass
+        """Mark user as online in database"""
+        from core.models import UserStatus
+        
+        status, created = UserStatus.objects.get_or_create(user=self.user)  # type: ignore[union-attr]
+        status.mark_online()
 
     @database_sync_to_async
     def set_user_offline(self):
-        """Mark user as offline in database (placeholder)"""
-        # TODO: Implement with UserStatus model
-        pass
+        """Mark user as offline in database"""
+        from core.models import UserStatus
+        
+        try:
+            status = UserStatus.objects.get(user=self.user)  # type: ignore[union-attr]
+            status.mark_offline()
+        except UserStatus.DoesNotExist:
+            pass
 
     @database_sync_to_async
     def update_heartbeat(self):
-        """Update user's last seen timestamp (placeholder)"""
-        # TODO: Implement with UserStatus model
-        pass
+        """Update user's last seen timestamp"""
+        from core.models import UserStatus
+        
+        try:
+            status = UserStatus.objects.get(user=self.user)  # type: ignore[union-attr]
+            status.update_heartbeat()
+        except UserStatus.DoesNotExist:
+            # Create if doesn't exist
+            status = UserStatus.objects.create(user=self.user)  # type: ignore[union-attr]
+            status.mark_online()
 
     @database_sync_to_async
     def get_online_users(self) -> list:
-        """Get list of online users (placeholder)"""
-        # TODO: Implement with UserStatus model
-        return []
+        """Get list of online users"""
+        from core.models import UserStatus
+        
+        online_statuses = UserStatus.get_online_users()
+        return [
+            {
+                "user_id": status.user.id,
+                "username": status.user.username,
+                "last_seen": status.last_seen.isoformat() if status.last_seen else None,
+            }
+            for status in online_statuses
+        ]
