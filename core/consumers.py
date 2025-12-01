@@ -16,6 +16,9 @@ from channels.db import database_sync_to_async  # type: ignore
 from channels.generic.websocket import AsyncWebsocketConsumer  # type: ignore
 from django.core.cache import cache
 from django.utils import timezone
+from django.utils.translation import gettext as _
+from django.utils import translation
+from urllib.parse import parse_qs
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +57,7 @@ class RateLimitMixin:
                 text_data=json.dumps({
                     "type": "error",
                     "error": "rate_limit_exceeded",
-                    "message": f"Rate limit exceeded. Maximum {self.rate_limit_messages} messages per minute.",
+                    "message": _("Rate limit exceeded. Maximum %(limit)s messages per minute.") % {"limit": self.rate_limit_messages},
                     "retry_after": self.rate_limit_window,
                 })
             )
@@ -85,6 +88,15 @@ class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
 
     async def connect(self):
         """Accept WebSocket connection and join project chat group"""
+        # Activate language from querystring
+        try:
+            query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
+            lang = (query.get("lang", [None])[0] or "").split('-')[0]
+            if lang:
+                translation.activate(lang)
+                self.lang = lang
+        except Exception:
+            self.lang = None
         self.project_id = self.scope["url_route"]["kwargs"]["project_id"]  # type: ignore[typeddict-item]
         self.room_group_name = f"chat_project_{self.project_id}"
         self.user = self.scope["user"]  # type: ignore[typeddict-item]
@@ -296,6 +308,14 @@ class DirectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
 
     async def connect(self):
         """Accept WebSocket connection for direct chat"""
+        try:
+            query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
+            lang = (query.get("lang", [None])[0] or "").split('-')[0]
+            if lang:
+                translation.activate(lang)
+                self.lang = lang
+        except Exception:
+            self.lang = None
         self.other_user_id = self.scope["url_route"]["kwargs"]["user_id"]  # type: ignore[typeddict-item]
         self.user = self.scope["user"]  # type: ignore[typeddict-item]
 
@@ -397,6 +417,14 @@ class NotificationConsumer(RateLimitMixin, AsyncWebsocketConsumer):
 
     async def connect(self):
         """Connect to user's notification channel"""
+        try:
+            query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
+            lang = (query.get("lang", [None])[0] or "").split('-')[0]
+            if lang:
+                translation.activate(lang)
+                self.lang = lang
+        except Exception:
+            self.lang = None
         self.user = self.scope["user"]  # type: ignore[typeddict-item]
         self.room_group_name = f"notifications_{self.user.id}"  # type: ignore[union-attr]
 
@@ -636,6 +664,14 @@ class TaskConsumer(RateLimitMixin, AsyncWebsocketConsumer):
 
     async def connect(self):
         """Accept connection and join project task group"""
+        try:
+            query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
+            lang = (query.get("lang", [None])[0] or "").split('-')[0]
+            if lang:
+                translation.activate(lang)
+                self.lang = lang
+        except Exception:
+            self.lang = None
         self.project_id = self.scope["url_route"]["kwargs"]["project_id"]  # type: ignore[typeddict-item]
         self.task_group_name = f"tasks_project_{self.project_id}"
         self.user = self.scope["user"]  # type: ignore[typeddict-item]
@@ -649,7 +685,7 @@ class TaskConsumer(RateLimitMixin, AsyncWebsocketConsumer):
             text_data=json.dumps(
                 {
                     "type": "connection_established",
-                    "message": "Connected to task updates",
+                    "message": _("Connected to task updates"),
                     "project_id": self.project_id,
                     "timestamp": datetime.now().isoformat(),
                 }

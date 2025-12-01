@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '../../context/NavigationContext.jsx';
 import { useRole } from '../../context/RoleContext.jsx';
 import { useTheme } from '../../context/ThemeContext.jsx';
@@ -21,6 +22,7 @@ import {
   Sun
 } from 'lucide-react';
 import './Sidebar.css';
+import LanguageSelector from './LanguageSelector.jsx';
 
 const iconMap = {
   'layout-dashboard': LayoutDashboard,
@@ -37,6 +39,7 @@ const iconMap = {
 };
 
 const Sidebar = () => {
+  const { t } = useTranslation();
   const { sidebarCollapsed, toggleSidebar, currentContext } = useNavigation();
   const { getSidebarMenu } = useRole();
   const { theme, toggleTheme, isDark } = useTheme();
@@ -63,6 +66,11 @@ const Sidebar = () => {
             <h1 className="logo-text">KIBRAY</h1>
           </div>
         )}
+        {!sidebarCollapsed && (
+          <div className="sidebar-tools">
+            <LanguageSelector compact />
+          </div>
+        )}
         <button className="sidebar-toggle" onClick={toggleSidebar}>
           {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -70,7 +78,7 @@ const Sidebar = () => {
 
       {!sidebarCollapsed && currentContext.projectName && (
         <div className="sidebar-context">
-          <div className="context-label">Current Project</div>
+          <div className="context-label">{t('navigation.current_project')}</div>
           <div className="context-value">{currentContext.projectName}</div>
         </div>
       )}
@@ -115,7 +123,7 @@ const Sidebar = () => {
       <div className="sidebar-footer">
         <button className="theme-toggle" onClick={toggleTheme}>
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
-          {!sidebarCollapsed && <span>{isDark ? 'Light' : 'Dark'} Mode</span>}
+          {!sidebarCollapsed && <span>{isDark ? t('common.light_mode') : t('common.dark_mode')}</span>}
         </button>
       </div>
     </aside>

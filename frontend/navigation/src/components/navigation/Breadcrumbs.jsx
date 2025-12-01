@@ -1,10 +1,12 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '../../context/NavigationContext';
 import { ChevronRight, Home } from 'lucide-react';
 import './Breadcrumbs.css';
 
 const Breadcrumbs = () => {
+  const { t } = useTranslation();
   const { breadcrumbs, navigateToBreadcrumb } = useNavigation();
   if (!breadcrumbs || breadcrumbs.length === 0) return null;
 
@@ -12,9 +14,9 @@ const Breadcrumbs = () => {
     <nav className="breadcrumbs" aria-label="Breadcrumb">
       <ol className="breadcrumb-list">
         <li className="breadcrumb-item">
-          <a href="/" className="breadcrumb-link">
+          <a href="/" className="breadcrumb-link" aria-label={t('navigation.dashboard')}>
             <Home size={16} />
-            <span>Home</span>
+            <span>{t('navigation.dashboard')}</span>
           </a>
         </li>
         {breadcrumbs.map((crumb, index) => {

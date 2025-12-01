@@ -49,6 +49,18 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         """Get current user details"""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['patch'])
+    def preferred_language(self, request):
+        """Update current user's preferred UI language (en or es)."""
+        lang = (request.data.get('preferred_language') or '').split('-')[0]
+        if lang not in ['en', 'es']:
+            return Response({'error': 'Invalid language'}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile, _ = Profile.objects.get_or_create(user=request.user, defaults={'role': 'employee'})
+        profile.language = lang
+        profile.save(update_fields=['language'])
+        return Response({'message': 'Language updated', 'preferred_language': lang})
     
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def invite(self, request):

@@ -49,12 +49,16 @@ class WebSocketClient {
     try {
       // Get auth token from localStorage
       const authToken = localStorage.getItem('authToken') || localStorage.getItem('kibray_access_token');
+      const lng = (localStorage.getItem('i18nextLng') || navigator.language || 'en').split('-')[0];
       
       // Build WebSocket URL with token if available
       let wsUrl = this.url;
-      if (authToken && !this.url.includes('?')) {
-        wsUrl += `?token=${authToken}`;
-      }
+      const hasQuery = this.url.includes('?');
+      const qp = [];
+      if (authToken) qp.push(`token=${encodeURIComponent(authToken)}`);
+      if (lng) qp.push(`lang=${encodeURIComponent(lng)}`);
+      if (!hasQuery && qp.length) wsUrl += `?${qp.join('&')}`;
+      else if (hasQuery && qp.length) wsUrl += `&${qp.join('&')}`;
 
       // Determine protocol (ws or wss)
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '../../context/NavigationContext';
 import UploadZone from './UploadZone';
 import FilePreview from './FilePreview';
@@ -8,6 +9,7 @@ import { useFileUpload } from '../../hooks/useFileUpload';
 import './FileManager.css';
 
 const FileManager = () => {
+  const { t } = useTranslation();
   const { currentContext } = useNavigation();
   const [files, setFiles] = useState([]);
   const [viewMode, setViewMode] = useState('grid');
@@ -30,8 +32,8 @@ const FileManager = () => {
       const data = await api.get(`/files/?ordering=-uploaded_at${projectParam}${categoryParam}`);
       setFiles(data.results || data);
     } catch (err) {
-      console.error('Failed to fetch files:', err);
-      setError('Failed to load files. Please try again.');
+  console.error('Failed to fetch files:', err);
+  setError(t('errors.server_error'));
     } finally {
       setLoading(false);
     }
@@ -55,20 +57,20 @@ const FileManager = () => {
       
       fetchFiles(); // Refresh list
     } catch (err) {
-      console.error('Upload failed:', err);
-      alert('Upload failed. Please try again.');
+  console.error('Upload failed:', err);
+  alert(t('errors.try_again'));
     }
   };
 
   const handleDelete = async (fileId) => {
-    if (!confirm('Are you sure you want to delete this file?')) return;
+  if (!confirm(t('files.delete_confirm'))) return;
     
     try {
       await api.delete(`/files/${fileId}/`);
       setFiles(prev => prev.filter(f => f.id !== fileId));
     } catch (err) {
-      console.error('Delete failed:', err);
-      alert('Delete failed. Please try again.');
+  console.error('Delete failed:', err);
+  alert(t('errors.try_again'));
     }
   };
 
@@ -83,8 +85,8 @@ const FileManager = () => {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Download failed:', err);
-      alert('Download failed. Please try again.');
+  console.error('Download failed:', err);
+  alert(t('errors.try_again'));
     }
   };
 
@@ -100,7 +102,10 @@ const FileManager = () => {
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Intl.DateTimeFormat(
+      (localStorage.getItem('i18nextLng') || navigator.language || 'en-US'),
+      { dateStyle: 'medium' }
+    ).format(date);
   };
 
   return (
@@ -108,7 +113,7 @@ const FileManager = () => {
       <div className="file-manager-header">
         <div className="file-manager-title-section">
           <Folder size={28} />
-          <h1>File Manager</h1>
+          <h1>{t('files.title')}</h1>
         </div>
         
         <div className="file-manager-controls">
@@ -116,7 +121,7 @@ const FileManager = () => {
             <Search size={18} />
             <input 
               type="text" 
-              placeholder="Search files..." 
+              placeholder={t('files.search')} 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -127,13 +132,13 @@ const FileManager = () => {
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
-            <option value="all">All Categories</option>
-            <option value="drawings">Drawings</option>
-            <option value="photos">Photos</option>
-            <option value="invoices">Invoices</option>
-            <option value="change-orders">Change Orders</option>
-            <option value="contracts">Contracts</option>
-            <option value="reports">Reports</option>
+            <option value="all">{t('common.all') || 'All'}</option>
+            <option value="drawings">{t('files.types')}: {t('files.documents')}</option>
+            <option value="photos">{t('files.images')}</option>
+            <option value="invoices">{t('reports.invoice')}</option>
+            <option value="change-orders">{t('reports.title')}</option>
+            <option value="contracts">{t('files.documents')}</option>
+            <option value="reports">{t('reports.title')}</option>
           </select>
           
           <div className="view-toggle">
@@ -162,12 +167,12 @@ const FileManager = () => {
       {loading ? (
         <div className="files-loading">
           <div className="spinner"></div>
-          <p>Loading files...</p>
+          <p>{t('common.loading')}</p>
         </div>
       ) : error ? (
         <div className="files-error">
           <p>{error}</p>
-          <button onClick={fetchFiles}>Retry</button>
+          <button onClick={fetchFiles}>{t('common.retry')}</button>
         </div>
       ) : (
         <div className={`files-${viewMode}`}>
@@ -186,7 +191,7 @@ const FileManager = () => {
           ) : (
             <div className="no-files">
               <Folder size={48} />
-              <p>No files found</p>
+              <p>{t('search.no_results')}</p>
             </div>
           )}
         </div>

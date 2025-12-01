@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '../utils/formatDate';
 
 interface Notification {
   id: number;
@@ -12,6 +14,7 @@ interface Notification {
 }
 
 export default function NotificationCenter() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -32,7 +35,7 @@ export default function NotificationCenter() {
       const data = await res.json();
       setNotifications(data.results || data);
     } catch (e: any) {
-      setError(e.message || 'Error loading notifications');
+  setError(e.message || t('errors.server_error'));
     } finally {
       setLoading(false);
     }
@@ -147,15 +150,15 @@ export default function NotificationCenter() {
           }}
         >
           <div style={{ padding: 12, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between' }}>
-            <strong>Notifications</strong>
+            <strong>{t('notifications.title')}</strong>
             <button onClick={markAllRead} style={{ fontSize: 12 }}>
-              Mark all read
+              {t('notifications.mark_all_read')}
             </button>
           </div>
           {error && <div style={{ padding: 12, color: 'red' }}>{error}</div>}
           <div style={{ maxHeight: 440, overflowY: 'auto' }}>
-            {loading && <div style={{ padding: 12 }}>Loading...</div>}
-            {!loading && notifications.length === 0 && <div style={{ padding: 12, color: '#999' }}>No notifications</div>}
+            {loading && <div style={{ padding: 12 }}>{t('common.loading')}</div>}
+            {!loading && notifications.length === 0 && <div style={{ padding: 12, color: '#999' }}>{t('notifications.unread_count_zero')}</div>}
             {notifications.map((n) => (
               <div
                 key={n.id}
@@ -169,7 +172,7 @@ export default function NotificationCenter() {
               >
                 <div style={{ fontWeight: n.is_read ? 'normal' : 'bold', fontSize: 14 }}>{n.title}</div>
                 <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{n.message}</div>
-                <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>{new Date(n.created_at).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>{formatDate(n.created_at)}</div>
               </div>
             ))}
           </div>

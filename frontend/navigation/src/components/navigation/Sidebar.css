@@ -25,6 +25,13 @@
   min-height: 64px;
 }
 
+.sidebar-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 0.5rem;
+}
+
 .sidebar-logo {
   display: flex;
   align-items: center;

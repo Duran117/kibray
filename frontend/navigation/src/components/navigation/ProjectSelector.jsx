@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '../../context/NavigationContext';
 import { ChevronDown, Search, Building2, MapPin, Check } from 'lucide-react';
 import { api, MOCK_MODE, mockApi } from '../../utils/api';
 import './ProjectSelector.css';
 
 const ProjectSelector = () => {
+  const { t } = useTranslation();
   const { currentContext, updateContext, pushBreadcrumb } = useNavigation();
   const [isOpen, setIsOpen] = useState(false);
   const [projects, setProjects] = useState([]);
@@ -89,7 +91,7 @@ const ProjectSelector = () => {
           ) : (
             <>
               <Building2 size={18} />
-              <span className="project-placeholder">Select Project</span>
+              <span className="project-placeholder">{t('navigation.current_project')}</span>
             </>
           )}
         </div>
@@ -103,7 +105,7 @@ const ProjectSelector = () => {
             <input
               type="text"
               className="search-input"
-              placeholder="Search projects..."
+              placeholder={`${t('search.placeholder')} ${t('navigation.projects') || 'projects'}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               autoFocus
@@ -112,7 +114,7 @@ const ProjectSelector = () => {
 
           <div className="project-list">
             {loading ? (
-              <div className="project-loading">Loading projects...</div>
+              <div className="project-loading">{t('common.loading')}</div>
             ) : filteredProjects.length > 0 ? (
               filteredProjects.map((project) => (
                 <button
@@ -141,7 +143,7 @@ const ProjectSelector = () => {
                 </button>
               ))
             ) : (
-              <div className="no-projects">No projects found</div>
+              <div className="no-projects">{t('search.no_results')}</div>
             )}
           </div>
         </div>
