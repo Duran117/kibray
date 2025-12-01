@@ -907,3 +907,98 @@ def send_websocket_notification(user_id, title, message, category="info", url=""
             "error": str(e),
             "user_id": user_id,
         }
+
+
+# ============================================================================
+# WEBSOCKET METRICS TASKS (Phase 6 - Improvement #17)
+# ============================================================================
+
+@shared_task(name="core.tasks.collect_websocket_metrics")
+def collect_websocket_metrics():
+    """
+    Collect and store WebSocket metrics every 5 minutes
+    
+    Stores metrics in cache with timestamp key for historical tracking.
+    Metrics are kept for 24 hours.
+    """
+    from core.websocket_metrics import get_metrics_summary
+    from django.core.cache import cache
+    from django.utils import timezone
+    
+    try:
+        # Get current metrics
+        metrics = get_metrics_summary()
+        
+        # Store with timestamp key
+        timestamp = timezone.now()
+        cache_key = f"ws_metrics_{timestamp.strftime('%Y%m%d%H%M')}"
+        
+        # Store for 24 hours
+        cache.set(cache_key, metrics, timeout=86400)
+        
+        # Also update the latest summary
+        cache.set('ws_metrics_summary', metrics, timeout=3600)
+        
+        logger.info(f"WebSocket metrics collected and stored: {cache_key}")
+        
+        return {
+            "status": "success",
+            "timestamp": timestamp.isoformat(),
+            "connections": metrics['connections']['total'],
+            "message_rate": metrics['messages']['rate_1m'],
+        }
+        
+    except Exception as e:
+        logger.error(f"Error collecting WebSocket metrics: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@shared_task(name="core.tasks.cleanup_old_websocket_metrics")
+def cleanup_old_websocket_metrics():
+    """
+    Clean up old WebSocket metrics from cache
+    
+    Runs daily to remove metrics older than 7 days.
+    """
+    from django.core.cache import cache
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    try:
+        cutoff_date = timezone.now() - timedelta(days=7)
+        deleted_count = 0
+        
+        # Generate keys for last 7 days
+        for day_offset in range(8, 365):  # Check up to a year back
+            check_date = timezone.now() - timedelta(days=day_offset)
+            
+            # Check each 5-minute interval
+            for hour in range(24):
+                for minute in range(0, 60, 5):
+                    timestamp_str = check_date.replace(
+                        hour=hour,
+                        minute=minute,
+                        second=0
+                    ).strftime('%Y%m%d%H%M')
+                    cache_key = f"ws_metrics_{timestamp_str}"
+                    
+                    if cache.get(cache_key):
+                        cache.delete(cache_key)
+                        deleted_count += 1
+        
+        logger.info(f"Cleaned up {deleted_count} old WebSocket metrics entries")
+        
+        return {
+            "status": "success",
+            "deleted_count": deleted_count,
+        }
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up WebSocket metrics: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+        }

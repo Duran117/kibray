@@ -248,6 +248,9 @@ urlpatterns = [
     path("tasks/bulk-update/", BulkTaskUpdateAPIView.as_view(), name="tasks-bulk-update"),
     # Push Notifications (Phase 6 - Improvement #16)
     path("notifications/preferences/", lambda req: __import__('core.api.views', fromlist=['PushNotificationPreferencesView']).PushNotificationPreferencesView.as_view()(req), name="notification-preferences"),
+    # WebSocket Metrics (Phase 6 - Improvement #17)
+    path("websocket/metrics/", lambda req: __import__('core.api.views', fromlist=['WebSocketMetricsView']).WebSocketMetricsView.as_view()(req), name="websocket-metrics"),
+    path("websocket/metrics/history/", lambda req: __import__('core.api.views', fromlist=['WebSocketMetricsHistoryView']).WebSocketMetricsHistoryView.as_view()(req), name="websocket-metrics-history"),
 ]
 
 # Add device token routes to router

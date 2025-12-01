@@ -5667,3 +5667,69 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
                 {'error': 'Failed to send test notification'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+# ============================================================================
+# WEBSOCKET METRICS DASHBOARD
+# ============================================================================
+
+class WebSocketMetricsView(APIView):
+    """
+    API endpoint for WebSocket metrics
+    
+    GET: Retrieve current metrics summary
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get WebSocket metrics summary"""
+        from core.websocket_metrics import get_metrics_summary
+        
+        # Check if user is staff
+        if not request.user.is_staff:
+            return Response(
+                {'error': 'Only staff can view metrics'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        summary = get_metrics_summary()
+        return Response(summary)
+
+
+class WebSocketMetricsHistoryView(APIView):
+    """
+    API endpoint for historical WebSocket metrics
+    
+    GET: Retrieve metrics history (last 24 hours)
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get historical metrics"""
+        from django.core.cache import cache
+        
+        # Check if user is staff
+        if not request.user.is_staff:
+            return Response(
+                {'error': 'Only staff can view metrics'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Get time range from query params
+        hours = int(request.GET.get('hours', 24))
+        hours = min(hours, 168)  # Max 7 days
+        
+        # Get metrics from cache
+        history = []
+        for i in range(hours * 12):  # 5-minute intervals
+            timestamp_key = f'ws_metrics_{i}'
+            data = cache.get(timestamp_key)
+            if data:
+                history.append(data)
+        
+        return Response({
+            'hours': hours,
+            'interval_minutes': 5,
+            'data_points': len(history),
+            'data': history,
+        })
