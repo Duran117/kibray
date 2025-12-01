@@ -29,12 +29,14 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost", "kibray-backend.onrender.com", "tests
 
 # 📦 Aplicaciones instaladas
 INSTALLED_APPS = [
+    "daphne",  # Must be first for Channels
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",  # Django Channels for WebSocket
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
@@ -285,3 +287,25 @@ SPECTACULAR_SETTINGS = {
         {"url": "http://localhost:8000", "description": "Development server"},
     ],
 }
+
+# ============================================================================
+# Django Channels Configuration for WebSocket Support
+# ============================================================================
+
+# ASGI Application
+ASGI_APPLICATION = "kibray_backend.asgi.application"
+
+# Channel Layers Configuration (Redis backend)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379/0")],
+            "capacity": 1500,  # Maximum number of messages to queue
+            "expiry": 10,  # Message expiry in seconds
+        },
+    },
+}
+
+# WebSocket settings
+WEBSOCKET_ACCEPT_ALL = os.getenv("WEBSOCKET_ACCEPT_ALL", "False") == "True"  # For development only

@@ -545,3 +545,229 @@ class QualityInspectionConsumer(AsyncWebsocketConsumer):
                 }
             )
         )
+
+
+class TaskConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for real-time task updates.
+    Handles task creation, updates, deletion, and status changes.
+    """
+
+    async def connect(self):
+        """Accept connection and join project task group"""
+        self.project_id = self.scope["url_route"]["kwargs"]["project_id"]  # type: ignore[typeddict-item]
+        self.task_group_name = f"tasks_project_{self.project_id}"
+        self.user = self.scope["user"]  # type: ignore[typeddict-item]
+
+        # Join task group
+        await self.channel_layer.group_add(self.task_group_name, self.channel_name)
+        await self.accept()
+
+        # Send connection confirmation
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "connection_established",
+                    "message": "Connected to task updates",
+                    "project_id": self.project_id,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+        )
+
+    async def disconnect(self, close_code):
+        """Leave task group"""
+        await self.channel_layer.group_discard(self.task_group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        """Handle task-related actions"""
+        try:
+            data = json.loads(text_data)
+            action = data.get("action")
+
+            if action == "subscribe_task":
+                task_id = data.get("task_id")
+                # Handle task subscription logic
+                await self.send(
+                    text_data=json.dumps(
+                        {
+                            "type": "task_subscribed",
+                            "task_id": task_id,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
+                )
+        except json.JSONDecodeError:
+            await self.send(
+                text_data=json.dumps(
+                    {"type": "error", "message": "Invalid JSON format"}
+                )
+            )
+
+    async def task_created(self, event):
+        """Send task created notification"""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "task_created",
+                    "task_id": event.get("task_id"),
+                    "task_data": event.get("task_data"),
+                    "timestamp": event.get("timestamp"),
+                }
+            )
+        )
+
+    async def task_updated(self, event):
+        """Send task updated notification"""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "task_updated",
+                    "task_id": event.get("task_id"),
+                    "task_data": event.get("task_data"),
+                    "changes": event.get("changes"),
+                    "timestamp": event.get("timestamp"),
+                }
+            )
+        )
+
+    async def task_deleted(self, event):
+        """Send task deleted notification"""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "task_deleted",
+                    "task_id": event.get("task_id"),
+                    "timestamp": event.get("timestamp"),
+                }
+            )
+        )
+
+    async def task_status_changed(self, event):
+        """Send task status change notification"""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "task_status_changed",
+                    "task_id": event.get("task_id"),
+                    "old_status": event.get("old_status"),
+                    "new_status": event.get("new_status"),
+                    "timestamp": event.get("timestamp"),
+                }
+            )
+        )
+
+
+class StatusConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for user online/offline status.
+    Manages user presence and heartbeat.
+    """
+
+    async def connect(self):
+        """Accept connection and join status group"""
+        self.user = self.scope["user"]  # type: ignore[typeddict-item]
+        self.status_group_name = "user_status"
+
+        # Join status group
+        await self.channel_layer.group_add(self.status_group_name, self.channel_name)
+        await self.accept()
+
+        # Mark user as online and broadcast
+        await self.set_user_online()
+        await self.channel_layer.group_send(
+            self.status_group_name,
+            {
+                "type": "user_status_changed",
+                "user_id": self.user.id,  # type: ignore[union-attr]
+                "username": self.user.username,  # type: ignore[union-attr]
+                "status": "online",
+                "timestamp": datetime.now().isoformat(),
+            },
+        )
+
+        # Send online users list
+        online_users = await self.get_online_users()
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "connection_established",
+                    "message": "Connected to status updates",
+                    "online_users": online_users,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+        )
+
+    async def disconnect(self, close_code):
+        """Mark user as offline and leave status group"""
+        if hasattr(self, "user") and hasattr(self.user, "is_authenticated"):  # type: ignore[union-attr]
+            await self.set_user_offline()
+            await self.channel_layer.group_send(
+                self.status_group_name,
+                {
+                    "type": "user_status_changed",
+                    "user_id": self.user.id,  # type: ignore[union-attr]
+                    "username": self.user.username,  # type: ignore[union-attr]
+                    "status": "offline",
+                    "timestamp": datetime.now().isoformat(),
+                },
+            )
+            await self.channel_layer.group_discard(self.status_group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        """Handle status updates (heartbeat)"""
+        try:
+            data = json.loads(text_data)
+            action = data.get("action")
+
+            if action == "heartbeat":
+                await self.update_heartbeat()
+                await self.send(
+                    text_data=json.dumps(
+                        {
+                            "type": "heartbeat_ack",
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
+                )
+        except json.JSONDecodeError:
+            pass
+
+    async def user_status_changed(self, event):
+        """Send user status change to WebSocket"""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "user_status_changed",
+                    "user_id": event["user_id"],
+                    "username": event["username"],
+                    "status": event["status"],
+                    "timestamp": event["timestamp"],
+                }
+            )
+        )
+
+    @database_sync_to_async
+    def set_user_online(self):
+        """Mark user as online in database (placeholder)"""
+        # TODO: Implement with UserStatus model
+        pass
+
+    @database_sync_to_async
+    def set_user_offline(self):
+        """Mark user as offline in database (placeholder)"""
+        # TODO: Implement with UserStatus model
+        pass
+
+    @database_sync_to_async
+    def update_heartbeat(self):
+        """Update user's last seen timestamp (placeholder)"""
+        # TODO: Implement with UserStatus model
+        pass
+
+    @database_sync_to_async
+    def get_online_users(self) -> list:
+        """Get list of online users (placeholder)"""
+        # TODO: Implement with UserStatus model
+        return []

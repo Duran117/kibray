@@ -15,6 +15,8 @@ from . import consumers
 websocket_urlpatterns = [
     # Chat WebSocket - project-specific channels
     re_path(r"ws/chat/project/(?P<project_id>\d+)/$", consumers.ProjectChatConsumer.as_asgi()),  # type: ignore[arg-type]
+    # Chat WebSocket - generic channel (for Phase 4 compatibility)
+    re_path(r"ws/chat/(?P<channel_id>[\w-]+)/$", consumers.ProjectChatConsumer.as_asgi()),  # type: ignore[arg-type]
     # Direct messages between users
     re_path(r"ws/chat/direct/(?P<user_id>\d+)/$", consumers.DirectChatConsumer.as_asgi()),  # type: ignore[arg-type]
     # Notifications WebSocket - user-specific
@@ -27,4 +29,8 @@ websocket_urlpatterns = [
     re_path(r"ws/daily-plan/(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})/$", consumers.DailyPlanConsumer.as_asgi()),  # type: ignore[arg-type]
     # Quality inspection live updates
     re_path(r"ws/quality/inspection/(?P<inspection_id>\d+)/$", consumers.QualityInspectionConsumer.as_asgi()),  # type: ignore[arg-type]
+    # Task updates for projects
+    re_path(r"ws/tasks/(?P<project_id>\d+)/$", consumers.TaskConsumer.as_asgi()),  # type: ignore[arg-type]
+    # User online/offline status
+    re_path(r"ws/status/$", consumers.StatusConsumer.as_asgi()),  # type: ignore[arg-type]
 ]
