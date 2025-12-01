@@ -4168,6 +4168,133 @@ class Notification(models.Model):
             self.save(update_fields=["is_read"])
 
 
+class DeviceToken(models.Model):
+    """
+    Store FCM device tokens for push notifications.
+    
+    Supports:
+    - Web push notifications
+    - iOS push (APNs via FCM)
+    - Android push (FCM)
+    """
+    
+    DEVICE_TYPE_CHOICES = [
+        ('web', 'Web Browser'),
+        ('ios', 'iOS'),
+        ('android', 'Android'),
+    ]
+    
+    if TYPE_CHECKING:
+        id: int
+        user_id: int
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='device_tokens',
+        help_text='User who owns this device'
+    )
+    token = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text='FCM device token'
+    )
+    device_type = models.CharField(
+        max_length=20,
+        choices=DEVICE_TYPE_CHOICES,
+        default='web',
+        help_text='Type of device'
+    )
+    device_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text='Device identifier (optional)'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Whether token is still valid'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(
+        auto_now=True,
+        help_text='Last time token was used'
+    )
+    
+    class Meta:
+        ordering = ['-last_used']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['token']),
+        ]
+    
+    def __str__(self):
+        return f"{self.device_type} token for {self.user.username}"
+
+
+class NotificationPreference(models.Model):
+    """
+    User preferences for push notifications.
+    
+    Allows users to control which notifications they receive.
+    """
+    
+    if TYPE_CHECKING:
+        id: int
+        user_id: int
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notification_preferences',
+        help_text='User who owns these preferences'
+    )
+    preferences = models.JSONField(
+        default=dict,
+        help_text='Notification category preferences (JSON)'
+    )
+    # Example preferences structure:
+    # {
+    #     'chat': True,
+    #     'mention': True,
+    #     'task': True,
+    #     'system': False,
+    #     'quiet_hours': {
+    #         'enabled': True,
+    #         'start': '22:00',
+    #         'end': '08:00'
+    #     }
+    # }
+    
+    push_enabled = models.BooleanField(
+        default=True,
+        help_text='Master switch for push notifications'
+    )
+    email_enabled = models.BooleanField(
+        default=True,
+        help_text='Master switch for email notifications'
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = 'Notification preferences'
+    
+    def __str__(self):
+        return f"Preferences for {self.user.username}"
+    
+    def get_preference(self, category: str, default: bool = True) -> bool:
+        """Get preference for specific notification category"""
+        if not self.push_enabled:
+            return False
+        
+        return self.preferences.get(category, default)
+    
+    def set_preference(self, category: str, enabled: bool):
+        """Set preference for specific notification category"""
+        self.preferences[category] = enabled
+        self.save(update_fields=['preferences', 'updated_at'])
+
+
 # =============================================================================
 # SECURITY & AUDIT MODELS (Phase 9)
 # =============================================================================

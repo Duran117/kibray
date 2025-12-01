@@ -246,5 +246,12 @@ urlpatterns = [
     path("planner/feed/<str:user_token>.ics", lambda req, user_token: __import__('core.views_planner', fromlist=['planner_calendar_feed']).planner_calendar_feed(req, user_token), name="planner-calendar-feed"),
     # Bulk Task Operations
     path("tasks/bulk-update/", BulkTaskUpdateAPIView.as_view(), name="tasks-bulk-update"),
+    # Push Notifications (Phase 6 - Improvement #16)
+    path("notifications/preferences/", lambda req: __import__('core.api.views', fromlist=['PushNotificationPreferencesView']).PushNotificationPreferencesView.as_view()(req), name="notification-preferences"),
 ]
+
+# Add device token routes to router
+from .views import DeviceTokenViewSet
+router.register(r"notifications/devices", DeviceTokenViewSet, basename="device-token")
+
 

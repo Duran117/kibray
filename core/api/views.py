@@ -5484,3 +5484,186 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
         instance.delete()
         
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ============================================================================
+# PUSH NOTIFICATIONS API
+# ============================================================================
+
+class PushNotificationPreferencesView(APIView):
+    """
+    API endpoint for managing user push notification preferences
+    
+    GET: Retrieve current preferences
+    PATCH: Update preferences
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get user's notification preferences"""
+        from core.models import NotificationPreference
+        
+        preference, created = NotificationPreference.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'push_enabled': False,
+                'email_enabled': True,
+                'preferences': {
+                    'chat': True,
+                    'mention': True,
+                    'task': True,
+                    'system': True,
+                }
+            }
+        )
+        
+        return Response({
+            'push_enabled': preference.push_enabled,
+            'email_enabled': preference.email_enabled,
+            'preferences': preference.preferences,
+            'updated_at': preference.updated_at,
+        })
+    
+    def patch(self, request):
+        """Update user's notification preferences"""
+        from core.models import NotificationPreference
+        
+        preference, created = NotificationPreference.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'push_enabled': False,
+                'email_enabled': True,
+                'preferences': {}
+            }
+        )
+        
+        # Update fields
+        if 'push_enabled' in request.data:
+            preference.push_enabled = request.data['push_enabled']
+        
+        if 'email_enabled' in request.data:
+            preference.email_enabled = request.data['email_enabled']
+        
+        if 'preferences' in request.data:
+            # Merge preferences instead of replacing
+            current_prefs = preference.preferences or {}
+            new_prefs = request.data['preferences']
+            current_prefs.update(new_prefs)
+            preference.preferences = current_prefs
+        
+        preference.save()
+        
+        return Response({
+            'push_enabled': preference.push_enabled,
+            'email_enabled': preference.email_enabled,
+            'preferences': preference.preferences,
+            'updated_at': preference.updated_at,
+        })
+
+
+class DeviceTokenViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing device tokens for push notifications
+    
+    list: Get all active device tokens for current user
+    create: Register a new device token
+    destroy: Unregister a device token
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = 'DeviceTokenSerializer'  # Will be imported
+    
+    def get_queryset(self):
+        """Return only current user's active tokens"""
+        from core.models import DeviceToken
+        return DeviceToken.objects.filter(
+            user=self.request.user,
+            is_active=True
+        ).order_by('-last_used')
+    
+    def create(self, request):
+        """Register a new device token"""
+        from core.models import DeviceToken
+        from core.push_notifications import PushNotificationService
+        
+        token = request.data.get('token')
+        device_type = request.data.get('device_type', 'web')
+        device_name = request.data.get('device_name', '')
+        
+        if not token:
+            return Response(
+                {'error': 'Token is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate device type
+        valid_types = ['web', 'ios', 'android']
+        if device_type not in valid_types:
+            return Response(
+                {'error': f'Device type must be one of: {", ".join(valid_types)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Register token using service
+        push_service = PushNotificationService()
+        device_token = push_service.register_device_token(
+            user=request.user,
+            token=token,
+            device_type=device_type,
+            device_name=device_name
+        )
+        
+        return Response({
+            'id': device_token.id,
+            'token': device_token.token,
+            'device_type': device_token.device_type,
+            'device_name': device_token.device_name,
+            'created_at': device_token.created_at,
+            'last_used': device_token.last_used,
+        }, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, pk=None):
+        """Unregister a device token"""
+        from core.models import DeviceToken
+        from core.push_notifications import PushNotificationService
+        
+        try:
+            device_token = DeviceToken.objects.get(
+                id=pk,
+                user=request.user,
+                is_active=True
+            )
+        except DeviceToken.DoesNotExist:
+            return Response(
+                {'error': 'Device token not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Unregister token using service
+        push_service = PushNotificationService()
+        push_service.unregister_device_token(device_token.token)
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @action(detail=False, methods=['post'])
+    def test_notification(self, request):
+        """Send a test push notification to all user's devices"""
+        from core.push_notifications import PushNotificationService
+        
+        push_service = PushNotificationService()
+        success = push_service.send_notification(
+            user=request.user,
+            title='Test Notification',
+            body='This is a test notification from Kibray',
+            data={
+                'type': 'test',
+                'timestamp': datetime.now().isoformat(),
+            }
+        )
+        
+        if success:
+            return Response({'message': 'Test notification sent successfully'})
+        else:
+            return Response(
+                {'error': 'Failed to send test notification'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
