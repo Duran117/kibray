@@ -295,17 +295,90 @@ SPECTACULAR_SETTINGS = {
 # ASGI Application
 ASGI_APPLICATION = "kibray_backend.asgi.application"
 
-# Channel Layers Configuration (Redis backend)
+# ============================================================================
+# Channel Layers Configuration (Redis backend with Connection Pooling)
+# Phase 6 - Improvement #20: Optimized Redis connection pool configuration
+# ============================================================================
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379/0")],
-            "capacity": 1500,  # Maximum number of messages to queue
-            "expiry": 10,  # Message expiry in seconds
+            
+            # Message queue settings
+            "capacity": 1500,  # Maximum number of messages to queue per channel
+            "expiry": 10,  # Message expiry in seconds (cleanup old messages)
+            
+            # Connection pool settings (Improvement #20)
+            "symmetric_encryption_keys": [SECRET_KEY],  # Optional: Enable message encryption
+            
+            # Connection pool configuration
+            "connection_kwargs": {
+                # Connection pool parameters
+                "max_connections": 50,  # Maximum connections in the pool (default: None = unlimited)
+                "retry_on_timeout": True,  # Retry commands on timeout
+                "socket_keepalive": True,  # Enable TCP keepalive
+                "socket_keepalive_options": {
+                    1: 1,  # TCP_KEEPIDLE: seconds before sending keepalive probes
+                    2: 1,  # TCP_KEEPINTVL: interval between keepalive probes
+                    3: 3,  # TCP_KEEPCNT: number of keepalive probes
+                },
+                "health_check_interval": 30,  # Check connection health every 30 seconds
+                "socket_connect_timeout": 5,  # Connection timeout in seconds
+                "socket_timeout": 5,  # Socket read/write timeout
+            },
+            
+            # Channel-specific settings
+            "group_expiry": 86400,  # Group membership expires after 24 hours
+            "channel_capacity": {
+                # Custom capacity for specific channel patterns
+                "chat.*": 2000,  # Chat channels can queue more messages
+                "notifications.*": 500,  # Notification channels have lower capacity
+            },
         },
     },
 }
 
 # WebSocket settings
 WEBSOCKET_ACCEPT_ALL = os.getenv("WEBSOCKET_ACCEPT_ALL", "False") == "True"  # For development only
+
+# Redis cache backend (for general caching, separate from Channel Layer)
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL", "redis://localhost:6379/1"),  # Use database 1 for cache
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            
+            # Connection pool settings
+            "CONNECTION_POOL_KWARGS": {
+                "max_connections": 50,
+                "retry_on_timeout": True,
+                "socket_keepalive": True,
+                "socket_keepalive_options": {
+                    1: 1,
+                    2: 1,
+                    3: 3,
+                },
+                "socket_connect_timeout": 5,
+                "socket_timeout": 5,
+            },
+            
+            # Serializer for cache values
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+            
+            # Compression (optional, saves memory)
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            "COMPRESS_MIN_LENGTH": 100,  # Only compress values > 100 bytes
+            
+            # Parser
+            "PARSER_CLASS": "redis.connection.HiredisParser",  # Faster C parser
+            
+            # Ignore exceptions (fail silently, useful for non-critical caching)
+            "IGNORE_EXCEPTIONS": True,
+        },
+        "KEY_PREFIX": "kibray",
+        "TIMEOUT": 300,  # Default cache timeout (5 minutes)
+    }
+}
+
