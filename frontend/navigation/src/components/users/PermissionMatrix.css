@@ -1,0 +1,92 @@
+.permission-matrix {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.permission-matrix h3 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.matrix-table-wrapper {
+  overflow-x: auto;
+}
+
+.permission-matrix table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.permission-matrix th,
+.permission-matrix td {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.permission-matrix th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.permission-matrix td {
+  background: var(--bg-primary);
+}
+
+.role-cell {
+  text-align: left !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.role-cell strong {
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: var(--primary-alpha);
+  color: var(--primary-color);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.permission-checks {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.permission-checks input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.permission-matrix tbody tr:hover {
+  background: var(--hover-bg);
+}
+
+@media (max-width: 768px) {
+  .permission-matrix {
+    padding: 1rem;
+  }
+  
+  .matrix-table-wrapper {
+    margin: 0 -1rem;
+  }
+}

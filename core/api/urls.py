@@ -1,8 +1,23 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
 
 from .dashboard_extra import ClientDashboardView, ProjectDashboardView
+
+# Import Phase 5 viewsets from viewset_classes (new architecture)
+from .viewset_classes import (
+    ProjectViewSet as ProjectViewSetNew,
+    TaskViewSet as TaskViewSetNew,
+    UserViewSet as UserViewSetNew,
+    ChangeOrderViewSet as ChangeOrderViewSetNew,
+    AnalyticsViewSet as AnalyticsViewSetNew,
+)
+
 from .views import (
     AdminDashboardView,
     AuditLogViewSet,
@@ -44,6 +59,7 @@ from .views import (
     MaterialsUsageAnalyticsView,
     NotificationViewSet,
     PMPerformanceDashboardView,
+    ProjectFileViewSet,  # ⭐ Phase 4 File Manager
     ProjectHealthDashboardView,
     ProjectManagerAssignmentViewSet,
     PayrollDashboardView,
@@ -86,7 +102,7 @@ router.register(r"chat/messages", ChatMessageViewSet, basename="chat-message")
 router.register(r"daily-logs-sanitized", DailyLogSanitizedViewSet, basename="daily-log-sanitized")
 
 # Tasks & Reports
-router.register(r"tasks", TaskViewSet, basename="task")
+router.register(r"tasks", TaskViewSetNew, basename="task")
 router.register(r"damage-reports", DamageReportViewSet, basename="damage-report")
 router.register(r"task-dependencies", TaskDependencyViewSet, basename="task-dependency")
 
@@ -97,8 +113,15 @@ router.register(r"color-samples", ColorSampleViewSet, basename="color-sample")
 router.register(r"color-approvals", ColorApprovalViewSet, basename="color-approval")
 
 # Projects
-router.register(r"projects", ProjectViewSet, basename="project")
+router.register(r"projects", ProjectViewSetNew, basename="project")
 router.register(r"project-manager-assignments", ProjectManagerAssignmentViewSet, basename="project-manager-assignment")
+
+# Phase 4: File Manager
+router.register(r"files", ProjectFileViewSet, basename="file")
+
+# Phase 5: Users and Change Orders
+router.register(r"users", UserViewSetNew, basename="user")
+router.register(r"changeorders", ChangeOrderViewSetNew, basename="changeorder")
 
 # Schedule
 router.register(r"schedule/categories", ScheduleCategoryViewSet, basename="schedule-category")
@@ -142,6 +165,9 @@ router.register(r"2fa", TwoFactorViewSet, basename="twofactor")
 # Module 21: Business Intelligence Analytics
 router.register(r"bi", BIAnalyticsViewSet, basename="bi-analytics")
 
+# Phase 5: Navigation Analytics
+router.register(r"nav-analytics", AnalyticsViewSetNew, basename="nav-analytics")
+
 # Module 25: Executive Focus Workflow (Productivity)
 # from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet, focus_stats
 from .bulk_views import BulkTaskUpdateAPIView
@@ -152,6 +178,10 @@ urlpatterns = [
     # JWT Auth
     path("auth/login/", TwoFactorTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+        # API Documentation (Phase 5)
+        path("schema/", SpectacularAPIView.as_view(), name="api-schema"),
+        path("docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
+        path("redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
     # Global Search
     path("search/", global_search, name="global_search"),
     # ChangeOrder Photos

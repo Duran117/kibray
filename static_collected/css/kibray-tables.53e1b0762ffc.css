@@ -1,0 +1,291 @@
+/* ========================================
+   KIBRAY - PROFESSIONAL TABLE STYLES
+   Diseño limpio y organizado para todas las tablas del sistema
+   ======================================== */
+
+/* === CONTENEDOR PRINCIPAL === */
+.kibray-container {
+    padding: 24px;
+    background: #f8fafc;
+    min-height: calc(100vh - 60px);
+}
+
+/* === HEADER === */
+.kibray-header {
+    background: white;
+    padding: 24px 32px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.kibray-header h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* === FILTROS === */
+.kibray-filters {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* === WRAPPER DE TABLA === */
+.kibray-table-wrapper {
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* === TABLA PRINCIPAL === */
+.kibray-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+/* === THEAD === */
+.kibray-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.kibray-table thead th {
+    padding: 16px;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    border-bottom: 2px solid #5a67d8;
+}
+
+.kibray-table thead th:last-child {
+    text-align: right;
+}
+
+/* === TBODY === */
+.kibray-table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.2s ease;
+}
+
+/* Zebra Striping */
+.kibray-table tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+.kibray-table tbody tr:nth-child(odd) {
+    background: #ffffff;
+}
+
+/* Hover Effect */
+.kibray-table tbody tr:hover {
+    background: #eff6ff !important;
+    cursor: pointer;
+}
+
+.kibray-table tbody td {
+    padding: 16px;
+    color: #334155;
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.kibray-table tbody td:last-child {
+    text-align: right;
+}
+
+/* === ESTILOS DE CELDAS === */
+
+/* ID / Number Badge */
+.kibray-id {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: #1e40af;
+    background: #dbeafe;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+    font-size: 13px;
+}
+
+/* Amount / Money */
+.kibray-amount {
+    font-weight: 700;
+    color: #059669;
+    font-size: 15px;
+}
+
+/* Title / Name */
+.kibray-title {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+
+/* Description / Subtitle */
+.kibray-description {
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* Date */
+.kibray-date {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* === STATUS BADGES === */
+.kibray-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Status Colors - Green */
+.kibray-status.active,
+.kibray-status.paid,
+.kibray-status.completed,
+.kibray-status.approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Status Colors - Yellow */
+.kibray-status.pending,
+.kibray-status.in-progress {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Status Colors - Blue */
+.kibray-status.sent,
+.kibray-status.review {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Status Colors - Purple */
+.kibray-status.billed,
+.kibray-status.on-hold {
+    background: #e9d5ff;
+    color: #6b21a8;
+}
+
+/* Status Colors - Red */
+.kibray-status.rejected,
+.kibray-status.cancelled,
+.kibray-status.overdue {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* === BOTONES === */
+.kibray-table .btn-sm {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* === EMPTY STATE === */
+.kibray-empty {
+    padding: 60px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.kibray-empty i {
+    font-size: 3rem;
+    opacity: 0.3;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.kibray-empty h4 {
+    margin-top: 16px;
+    color: #64748b;
+    font-size: 18px;
+}
+
+.kibray-empty p {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .kibray-container {
+        padding: 16px;
+    }
+    
+    .kibray-header {
+        padding: 16px 20px;
+    }
+    
+    .kibray-header h2 {
+        font-size: 20px;
+    }
+    
+    .kibray-table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .kibray-table {
+        min-width: 900px;
+    }
+    
+    .kibray-table thead th,
+    .kibray-table tbody td {
+        padding: 12px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .kibray-container {
+        padding: 12px;
+    }
+    
+    .kibray-header {
+        padding: 12px 16px;
+    }
+}
+
+/* === UTILIDADES === */
+.kibray-text-center {
+    text-align: center !important;
+}
+
+.kibray-text-right {
+    text-align: right !important;
+}
+
+.kibray-text-left {
+    text-align: left !important;
+}
+
+.kibray-font-mono {
+    font-family: 'Courier New', monospace;
+}
+
+.kibray-font-bold {
+    font-weight: 700;
+}

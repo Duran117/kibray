@@ -49,6 +49,7 @@ from core.models import (
     PlannedActivity,
     PlanPin,
     Project,
+    ProjectFile,  # ⭐ Phase 4 File Manager
     ProjectManagerAssignment,
     ProjectInventory,
     ColorApproval,
@@ -93,6 +94,7 @@ from .serializers import (
     PlannedActivitySerializer,
     PlanPinSerializer,
     ProjectBudgetSummarySerializer,
+    ProjectFileSerializer,  # ⭐ Phase 4 File Manager
     ProjectInventorySerializer,
     ProjectListSerializer,
     ProjectSerializer,
@@ -5362,3 +5364,66 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
         employees = service.get_top_performing_employees(limit=limit)
         
         return Response({"employees": employees})
+
+
+# ============================================================================
+# PHASE 4: FILE MANAGER API
+# ============================================================================
+
+class ProjectFileViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing project files.
+    
+    Phase 4 Feature: File Manager
+    
+    Endpoints:
+    - GET /api/v1/files/ - List all files (with filters)
+    - POST /api/v1/files/ - Upload new file
+    - GET /api/v1/files/{id}/ - Get file details
+    - DELETE /api/v1/files/{id}/ - Delete file
+    
+    Query Parameters:
+    - project: Filter by project ID
+    - category: Filter by category ID
+    - ordering: Sort by field (default: -uploaded_at)
+    """
+    
+    queryset = ProjectFile.objects.select_related('project', 'category', 'uploaded_by').all()
+    serializer_class = ProjectFileSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_fields = ['project', 'category', 'file_type', 'is_public']
+    search_fields = ['name', 'description', 'tags']
+    ordering_fields = ['uploaded_at', 'name', 'file_size']
+    ordering = ['-uploaded_at']
+    
+    def perform_create(self, serializer):
+        """Auto-set uploaded_by to current user"""
+        serializer.save(uploaded_by=self.request.user)
+    
+    def destroy(self, request, *args, **kwargs):
+        """Delete file and remove from storage"""
+        instance = self.get_object()
+        
+        # Check permissions - only uploader, project PM, or admin can delete
+        user = request.user
+        can_delete = (
+            instance.uploaded_by == user or
+            user.is_staff or
+            (hasattr(user, 'pm_projects') and instance.project in user.pm_projects.all())
+        )
+        
+        if not can_delete:
+            return Response(
+                {"detail": "You do not have permission to delete this file."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Delete the physical file
+        if instance.file:
+            instance.file.delete(save=False)
+        
+        # Delete the database record
+        instance.delete()
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)

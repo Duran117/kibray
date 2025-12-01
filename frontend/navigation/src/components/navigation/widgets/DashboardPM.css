@@ -1,0 +1,222 @@
+/* Dashboard PM - Project Manager Dashboard Styles */
+
+.dashboard-pm {
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.dashboard-pm-header {
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-pm-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.dashboard-pm-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.dashboard-pm-content {
+  padding: 20px;
+}
+
+/* Quick stats bar */
+.dashboard-quick-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.quick-stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.quick-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.quick-stat-icon.blue {
+  background: var(--alert-info-bg);
+  color: var(--color-blue);
+}
+
+.quick-stat-icon.green {
+  background: var(--alert-success-bg);
+  color: var(--color-green);
+}
+
+.quick-stat-icon.orange {
+  background: var(--alert-warning-bg);
+  color: var(--color-orange);
+}
+
+.quick-stat-icon.red {
+  background: var(--alert-error-bg);
+  color: var(--color-red);
+}
+
+.quick-stat-content {
+  flex: 1;
+}
+
+.quick-stat-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.quick-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.quick-stat-change {
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.quick-stat-change.positive {
+  color: var(--color-green);
+}
+
+.quick-stat-change.negative {
+  color: var(--color-red);
+}
+
+/* Filter bar */
+.dashboard-filter-bar {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.filter-select:hover {
+  border-color: var(--color-blue);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Action buttons */
+.dashboard-action-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.dashboard-action-btn.primary {
+  background: var(--color-blue);
+  color: white;
+}
+
+.dashboard-action-btn.primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-action-btn.secondary {
+  background: white;
+  color: #1a1a1a;
+  border: 1px solid #e5e5e5;
+}
+
+.dashboard-action-btn.secondary:hover {
+  background: #f9fafb;
+  border-color: var(--color-blue);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-pm-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .dashboard-quick-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

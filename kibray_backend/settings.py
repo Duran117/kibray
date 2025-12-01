@@ -36,8 +36,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
+    "drf_spectacular",
+    "django_filters",
     "storages",
     "core",
     "signatures",
@@ -120,6 +123,7 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "core", "static"),
+    os.path.join(BASE_DIR, "static"),  # Navigation and Gantt builds
     os.path.join(BASE_DIR, "staticfiles"),  # For Vite built assets
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, "static_collected")
@@ -177,28 +181,73 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 50,
+    "PAGE_SIZE": 20,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%S.%fZ",
+    "DATE_FORMAT": "%Y-%m-%d",
+    "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=24),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": False,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
-# 🌐 CORS para app móvil
+# 🌐 CORS para app móvil y frontend
 CORS_ALLOWED_ORIGINS = [
     "capacitor://localhost",
     "ionic://localhost",
     "http://localhost",
     "http://localhost:8100",
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
 
 # 📧 Email para digest y notificaciones (configurar en producción)
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
@@ -219,3 +268,20 @@ BI_HIGH_MARGIN_THRESHOLD = float(os.getenv("BI_HIGH_MARGIN_THRESHOLD", "30.0")) 
 BI_CACHE_TTL = int(os.getenv("BI_CACHE_TTL", "300"))  # Cache timeout in seconds (default: 5 minutes)
 BI_CASH_FLOW_DAYS = int(os.getenv("BI_CASH_FLOW_DAYS", "30"))  # Default projection horizon
 BI_TOP_PERFORMERS_LIMIT = int(os.getenv("BI_TOP_PERFORMERS_LIMIT", "5"))  # Number of top employees to show
+
+# ============================================================================
+# DRF Spectacular - OpenAPI 3 Documentation
+# ============================================================================
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Kibray Construction Management API",
+    "DESCRIPTION": "Comprehensive REST API for construction project management including projects, tasks, change orders, files, users, analytics and real-time features",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SCHEMA_PATH_PREFIX": "/api/v1/",
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SORT_OPERATIONS": True,
+    "SERVERS": [
+        {"url": "http://localhost:8000", "description": "Development server"},
+    ],
+}

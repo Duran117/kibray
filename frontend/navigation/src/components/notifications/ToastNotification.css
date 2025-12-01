@@ -1,0 +1,84 @@
+.toast-notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 2000;
+  animation: slideInRight 300ms ease;
+  max-width: 400px;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-notification.toast-success {
+  border-left: 4px solid var(--success);
+}
+
+.toast-notification.toast-success svg {
+  color: var(--success);
+}
+
+.toast-notification.toast-error {
+  border-left: 4px solid var(--danger);
+}
+
+.toast-notification.toast-error svg {
+  color: var(--danger);
+}
+
+.toast-notification.toast-info {
+  border-left: 4px solid var(--info);
+}
+
+.toast-notification.toast-info svg {
+  color: var(--info);
+}
+
+.toast-notification span {
+  flex: 1;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+}
+
+.toast-notification button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-notification button:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .toast-notification {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+}

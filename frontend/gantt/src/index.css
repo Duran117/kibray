@@ -1,0 +1,64 @@
+.gantt-chart {
+  padding: 20px;
+}
+
+.gantt-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gantt-task {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.gantt-task:hover {
+  background-color: #f0f0f0;
+}
+
+.task-editor-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-editor {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 400px;
+}
+
+.task-editor form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-editor input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.task-editor-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.task-editor button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

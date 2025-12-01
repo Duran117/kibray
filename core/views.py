@@ -4179,6 +4179,14 @@ def root_redirect(request):
     return redirect("dashboard")
 
 
+def navigation_app_view(request):
+    """
+    Serves the React navigation SPA for Phase 4 features.
+    This view handles client-side routing for paths like /files, /users, /calendar, etc.
+    """
+    return render(request, "navigation/index.html")
+
+
 # --- PROJECT EV ---
 @login_required
 def project_ev_view(request, project_id):

@@ -1,0 +1,108 @@
+.timeline-view {
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  min-height: 100vh;
+}
+
+.timeline-view h2 {
+  margin: 0 0 2rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.timeline-container {
+  position: relative;
+  padding-left: 2rem;
+  border-left: 2px solid var(--primary-color);
+  margin-left: 1rem;
+}
+
+.timeline-item {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -2.5rem;
+  top: 0;
+  width: 1rem;
+  height: 1rem;
+  background: var(--primary-color);
+  border-radius: 50%;
+  border: 3px solid var(--bg-secondary);
+}
+
+.timeline-marker.milestone {
+  background: var(--success);
+  width: 1.25rem;
+  height: 1.25rem;
+  left: -2.625rem;
+}
+
+.timeline-marker.task {
+  background: var(--primary-color);
+}
+
+.timeline-content {
+  background: var(--bg-primary);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+
+.timeline-content:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.timeline-content h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  color: var(--text-primary);
+}
+
+.timeline-date {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.timeline-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.timeline-badge.milestone {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.timeline-badge.task {
+  background: var(--primary-alpha);
+  color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+  .timeline-container {
+    padding-left: 1.5rem;
+  }
+  
+  .timeline-marker {
+    left: -2rem;
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+  
+  .timeline-marker.milestone {
+    width: 1rem;
+    height: 1rem;
+    left: -2.125rem;
+  }
+}

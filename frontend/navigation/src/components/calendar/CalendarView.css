@@ -1,0 +1,138 @@
+.calendar-view {
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  min-height: 100vh;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.calendar-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.calendar-header button {
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-header button:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-toggle button {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 600;
+  transition: all var(--transition);
+}
+
+.view-toggle button.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border);
+  padding: 1px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.day-header {
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendar-day {
+  min-height: 100px;
+  padding: 0.75rem;
+  background: var(--bg-primary);
+  transition: all var(--transition);
+}
+
+.calendar-day:hover {
+  background: var(--hover-bg);
+}
+
+.calendar-day.empty {
+  background: var(--bg-secondary);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.day-number {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+}
+
+.day-events {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .calendar-grid {
+    font-size: 0.75rem;
+  }
+  
+  .day-header {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .calendar-day {
+    min-height: 60px;
+    padding: 0.5rem;
+  }
+  
+  .day-number {
+    font-size: 0.8125rem;
+  }
+}

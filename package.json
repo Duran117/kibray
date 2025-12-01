@@ -1,0 +1,28 @@
+{
+  "name": "kibray-monorepo",
+  "version": "3.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend/navigation",
+    "frontend/gantt"
+  ],
+  "scripts": {
+    "test": "jest",
+    "install:all": "npm install && cd frontend/navigation && npm install && cd ../gantt && npm install && cd ../..",
+    "build:navigation": "cd frontend/navigation && npm run build",
+    "build:gantt": "cd frontend/gantt && npm run build",
+    "build:all": "npm run build:navigation && npm run build:gantt",
+    "dev:navigation": "cd frontend/navigation && npm run dev",
+    "dev:gantt": "cd frontend/gantt && npm run dev",
+    "clean:navigation": "rm -rf static/js/kibray-navigation.js",
+    "clean:gantt": "rm -rf static/gantt/*",
+    "clean:all": "npm run clean:navigation && npm run clean:gantt",
+    "django:collectstatic": "python manage.py collectstatic --noinput",
+    "django:runserver": "python manage.py runserver",
+    "full:build": "npm run clean:all && npm run build:all && npm run django:collectstatic"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

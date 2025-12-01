@@ -1,0 +1,48 @@
+.notification-bell {
+  position: relative;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-bell:hover {
+  color: var(--primary-color);
+  background: var(--hover-bg);
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: var(--danger);
+  color: white;
+  border-radius: 9px;
+  font-size: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border: 2px solid var(--bg-primary);
+}
+
+@media (max-width: 768px) {
+  .notification-bell {
+    padding: 0.4rem;
+  }
+  
+  .badge {
+    min-width: 16px;
+    height: 16px;
+    font-size: 0.5625rem;
+  }
+}

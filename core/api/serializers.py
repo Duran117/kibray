@@ -21,6 +21,7 @@ from core.models import (
     PermissionMatrix,
     PlanPin,
     Project,
+    ProjectFile,  # ⭐ Added for Phase 4 File Manager
     ProjectManagerAssignment,
     ScheduleCategory,
     ScheduleItem,
@@ -2066,3 +2067,48 @@ class TwoFactorTokenObtainPairSerializer(TokenObtainPairSerializer):  # type: ig
             # If any unexpected error, deny for safety
             raise serializers.ValidationError({"otp": "2FA validation failed"})
         return data
+
+
+# ============================================================================
+# PHASE 4: FILE MANAGER SERIALIZER
+# ============================================================================
+
+class ProjectFileSerializer(serializers.ModelSerializer):
+    """Serializer for ProjectFile model - Phase 4 File Manager feature"""
+    
+    uploaded_by_name = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    file_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ProjectFile
+        fields = [
+            'id', 
+            'project', 
+            'category', 
+            'category_name',
+            'file', 
+            'file_url',
+            'name', 
+            'description',
+            'file_type', 
+            'file_size', 
+            'uploaded_by',
+            'uploaded_by_name',
+            'uploaded_at', 
+            'updated_at',
+            'tags',
+            'is_public',
+            'version',
+        ]
+        read_only_fields = ['id', 'uploaded_at', 'updated_at', 'file_size', 'file_type']
+    
+    def get_file_url(self, obj):
+        """Return full URL for file download"""
+        if obj.file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
+        return None
+

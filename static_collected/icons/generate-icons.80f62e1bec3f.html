@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate PWA Icons - Kibray</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e3a8a;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            background: #e0e7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .instructions ol {
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 5px 0;
+        }
+        .preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .icon-item {
+            text-align: center;
+        }
+        .icon-item canvas {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .icon-item p {
+            margin: 8px 0 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .download-btn {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 8px;
+        }
+        .download-btn:hover {
+            background: #1e40af;
+        }
+        .download-all {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 20px 0;
+            display: inline-block;
+        }
+        .download-all:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Kibray PWA Icon Generator</h1>
+        
+        <div class="instructions">
+            <strong>Instrucciones:</strong>
+            <ol>
+                <li>Los íconos se generarán automáticamente al cargar esta página</li>
+                <li>Haz clic en "Download" debajo de cada ícono para descargarlo individualmente</li>
+                <li>O usa el botón "Download All Icons (ZIP)" para descargar todos juntos</li>
+                <li>Guarda los archivos PNG en: <code>/core/static/icons/</code></li>
+                <li>Los nombres de archivo ya están configurados correctamente</li>
+            </ol>
+        </div>
+
+        <button class="download-all" onclick="downloadAllIcons()">
+            📦 Download All Icons (ZIP)
+        </button>
+
+        <div class="preview" id="preview"></div>
+    </div>
+
+    <script>
+        // Icon sizes needed for PWA
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        
+        // SVG icon source
+        const svgSource = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+                <rect width="512" height="512" fill="#1e3a8a" rx="80"/>
+                <g fill="#ffffff">
+                    <rect x="100" y="120" width="60" height="272" rx="10"/>
+                    <path d="M 160 200 L 380 120 L 400 130 L 400 180 L 220 240 Z" />
+                    <path d="M 220 272 L 400 332 L 400 382 L 380 392 L 160 312 Z" />
+                </g>
+                <g>
+                    <rect x="340" y="300" width="40" height="120" fill="#fbbf24" rx="5" transform="rotate(-45 360 360)"/>
+                    <ellipse cx="392" cy="408" rx="20" ry="30" fill="#f87171" transform="rotate(-45 392 408)"/>
+                    <rect x="360" y="340" width="40" height="20" fill="#94a3b8" rx="3" transform="rotate(-45 380 350)"/>
+                </g>
+            </svg>
+        `;
+        
+        const preview = document.getElementById('preview');
+        const canvases = {};
+        
+        // Generate icons for all sizes
+        sizes.forEach(size => {
+            const item = document.createElement('div');
+            item.className = 'icon-item';
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            canvas.style.width = '100px';
+            canvas.style.height = '100px';
+            canvases[size] = canvas;
+            
+            const label = document.createElement('p');
+            label.textContent = `${size}x${size}`;
+            
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'download-btn';
+            downloadBtn.textContent = 'Download';
+            downloadBtn.onclick = () => downloadIcon(size);
+            
+            item.appendChild(canvas);
+            item.appendChild(label);
+            item.appendChild(downloadBtn);
+            preview.appendChild(item);
+            
+            // Draw SVG to canvas
+            drawSVGToCanvas(svgSource, canvas, size);
+        });
+        
+        function drawSVGToCanvas(svgString, canvas, size) {
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+        }
+        
+        function downloadIcon(size) {
+            const canvas = canvases[size];
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `icon-${size}x${size}.png`;
+                link.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+        
+        async function downloadAllIcons() {
+            // Note: This requires JSZip library for actual ZIP creation
+            // For now, we'll download individually with a delay
+            for (let i = 0; i < sizes.length; i++) {
+                setTimeout(() => {
+                    downloadIcon(sizes[i]);
+                }, i * 500); // Stagger downloads
+            }
+            
+            alert('Descargando todos los íconos... Espera unos segundos.');
+        }
+    </script>
+</body>
+</html>
