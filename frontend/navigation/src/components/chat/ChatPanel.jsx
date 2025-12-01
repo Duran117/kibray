@@ -3,8 +3,10 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
 import ConnectionStatus from '../connection/ConnectionStatus';
+import OfflineQueueIndicator from '../offline/OfflineQueueIndicator';
 import api from '../../utils/api';
 import { useChat } from '../../hooks/useWebSocket';
+import { useOfflineQueue } from '../../hooks/useOfflineQueue';
 import { MessageSquare } from 'lucide-react';
 import './ChatPanel.css';
 
@@ -31,6 +33,21 @@ const ChatPanel = ({ channelId = 'general' }) => {
     sendTyping,
     markAsRead
   } = useChat(channelId);
+
+  // Offline message queue
+  const {
+    queueSize,
+    isSending,
+    lastError,
+    sendOrQueue,
+    retryFailed,
+    clearQueue,
+  } = useOfflineQueue({
+    isConnected,
+    sendMessage: sendChatMessage,
+    type: 'chat',
+    channelId,
+  });
 
   // Combine historical and live messages
   const allMessages = [...historicalMessages, ...liveMessages];
@@ -115,33 +132,29 @@ const ChatPanel = ({ channelId = 'general' }) => {
   const handleSendMessage = async (messageText) => {
     if (!messageText.trim()) return;
 
-    // Send via WebSocket if connected
+    // Use offline queue - will send immediately if connected, queue if not
+    const result = sendOrQueue({
+      type: 'chat_message',
+      message: messageText
+    });
+
+    // Clear input and stop typing indicator
+    setInputValue('');
     if (isConnected) {
-      sendChatMessage(messageText);
-      setInputValue('');
       sendTyping(false);
-    } else {
-      // Fallback to HTTP if WebSocket not available
-      try {
-        const newMessage = await api.post('/chat/messages/', {
-          text: messageText,
-          channel: channelId
-        });
-        setHistoricalMessages(prev => [...prev, newMessage]);
-        setInputValue('');
-      } catch (error) {
-        console.error('Failed to send message:', error);
-        // Add message optimistically
-        const newMsg = {
-          id: Date.now(),
-          sender: 'You',
-          text: messageText,
-          timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          isOwn: true
-        };
-        setHistoricalMessages(prev => [...prev, newMsg]);
-        setInputValue('');
-      }
+    }
+
+    // Show optimistic UI if queued
+    if (result.queued) {
+      const tempMsg = {
+        id: `temp-${result.queueId}`,
+        sender: 'You',
+        text: messageText,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        isOwn: true,
+        isPending: true // Mark as pending
+      };
+      setHistoricalMessages(prev => [...prev, tempMsg]);
     }
   };
 
@@ -189,6 +202,15 @@ const ChatPanel = ({ channelId = 'general' }) => {
         </div>
       ) : (
         <>
+          {/* Offline queue indicator */}
+          <OfflineQueueIndicator
+            queueSize={queueSize}
+            isSending={isSending}
+            lastError={lastError}
+            onRetry={retryFailed}
+            onClear={clearQueue}
+          />
+          
           <div className="message-list-container" ref={messageListRef}>
             {/* Load more trigger at the top */}
             {hasMore && (

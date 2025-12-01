@@ -1,0 +1,252 @@
+/* 
+ * Offline Queue Indicator Styles
+ * Phase 6 - Improvement #11: Offline Message Queue
+ */
+
+.offline-queue-indicator {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.offline-queue-indicator.has-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* Header */
+.queue-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.queue-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-sending {
+  color: #3b82f6;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.icon-error {
+  color: #ef4444;
+}
+
+.icon-pending {
+  color: #f59e0b;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.queue-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.queue-status {
+  font-weight: 500;
+  color: #92400e;
+}
+
+.queue-status.error {
+  color: #991b1b;
+}
+
+.queue-count-badge {
+  background: #f59e0b;
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+/* Error Message */
+.queue-error {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+  color: #991b1b;
+  font-size: 0.8125rem;
+}
+
+.queue-error svg {
+  flex-shrink: 0;
+}
+
+/* Actions */
+.queue-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.queue-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retry-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.retry-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.clear-btn {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.clear-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Progress Bar */
+.queue-progress {
+  margin-top: 0.75rem;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+  background-size: 200% 100%;
+  animation: progressAnimation 1.5s ease-in-out infinite;
+}
+
+/* Compact Badge */
+.offline-queue-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  color: #92400e;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: default;
+}
+
+.offline-queue-badge svg {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.queue-count {
+  min-width: 1rem;
+  text-align: center;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes progressAnimation {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .offline-queue-indicator {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.3);
+  }
+
+  .offline-queue-indicator.has-error {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .queue-status {
+    color: #fbbf24;
+  }
+
+  .queue-status.error {
+    color: #fca5a5;
+  }
+
+  .queue-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+  }
+
+  .offline-queue-badge {
+    background: rgba(251, 191, 36, 0.15);
+    border-color: rgba(251, 191, 36, 0.3);
+    color: #fbbf24;
+  }
+
+  .clear-btn {
+    background: #374151;
+    color: #d1d5db;
+  }
+
+  .clear-btn:hover {
+    background: #4b5563;
+    color: #f3f4f6;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .offline-queue-indicator {
+    padding: 0.625rem;
+    font-size: 0.8125rem;
+  }
+
+  .queue-actions {
+    flex-direction: column;
+  }
+
+  .queue-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
