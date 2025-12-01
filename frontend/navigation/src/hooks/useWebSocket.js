@@ -162,28 +162,44 @@ export function useChat(channelId) {
 /**
  * Notifications WebSocket hook
  */
-export function useNotifications() {
+/**
+ * Hook for real-time notifications
+ * Automatically shows toast notifications for new messages
+ */
+export function useNotifications(showToastFn = null) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const handleMessage = useCallback((data) => {
     switch (data.type) {
       case 'notification':
-        setNotifications(prev => [data, ...prev]);
+      case 'send_notification':
+        const notification = data.notification || data;
+        setNotifications(prev => [notification, ...prev]);
         setUnreadCount(prev => prev + 1);
         
-        // Show toast notification
-        if (window.showToast) {
-          window.showToast(data.title, data.message, data.category);
+        // Show toast notification - Phase 6 Integration
+        if (showToastFn) {
+          showToastFn({
+            type: notification.category || 'info',
+            title: notification.title,
+            message: notification.message,
+            autoClose: true,
+            duration: 5000
+          });
+        } else if (window.showToast) {
+          // Fallback to global function
+          window.showToast(notification.title, notification.message, notification.category);
         }
         break;
 
       case 'notification_update':
-        setUnreadCount(data.unread_count || 0);
+      case 'unread_count':
+        setUnreadCount(data.unread_count || data.count || 0);
         if (data.status === 'read') {
           setNotifications(prev => 
             prev.map(n => 
-              n.notification_id === data.notification_id 
+              n.notification_id === data.notification_id || n.id === data.notification_id
                 ? { ...n, read: true } 
                 : n
             )
@@ -199,7 +215,7 @@ export function useNotifications() {
       default:
         console.log('Unknown notification type:', data.type);
     }
-  }, []);
+  }, [showToastFn]);
 
   const { isConnected, sendMessage } = useWebSocket('/ws/notifications/', {
     onMessage: handleMessage
@@ -207,23 +223,25 @@ export function useNotifications() {
 
   const markAsRead = useCallback((notificationId) => {
     sendMessage({
-      action: 'mark_read',
+      type: 'mark_read',
       notification_id: notificationId
     });
   }, [sendMessage]);
 
   const markAllAsRead = useCallback(() => {
     sendMessage({
-      action: 'mark_all_read'
+      type: 'mark_all_read'
     });
   }, [sendMessage]);
 
   const dismissNotification = useCallback((notificationId) => {
     sendMessage({
-      action: 'dismiss',
+      type: 'dismiss',
       notification_id: notificationId
     });
-    setNotifications(prev => prev.filter(n => n.notification_id !== notificationId));
+    setNotifications(prev => prev.filter(n => 
+      (n.notification_id !== notificationId) && (n.id !== notificationId)
+    ));
   }, [sendMessage]);
 
   return {
