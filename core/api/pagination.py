@@ -6,7 +6,11 @@ iOS-optimized pagination with consistent response structure
 
 from collections import OrderedDict
 
-from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
+from rest_framework.pagination import (
+    CursorPagination,
+    LimitOffsetPagination,
+    PageNumberPagination,
+)
 from rest_framework.response import Response
 
 
@@ -80,3 +84,80 @@ class MobileFriendlyPagination(LimitOffsetPagination):
                 ]
             )
         )
+
+
+class ChatMessageCursorPagination(CursorPagination):
+    """
+    Cursor-based pagination optimized for chat message infinite scroll
+    
+    Advantages over offset pagination for chat:
+    - O(1) performance regardless of scroll position
+    - Stable pagination even when new messages arrive
+    - No duplicate messages when real-time inserts occur
+    - No skipped messages due to concurrent writes
+    
+    Usage:
+        - Scrolling up (loading older messages): Use 'cursor' param from 'previous' link
+        - Initial load: No cursor, returns newest 50 messages
+        - Ordering: Newest first (-created_at)
+    """
+
+    page_size = 50
+    ordering = "-created_at"  # Newest messages first
+    cursor_query_param = "cursor"
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        """
+        Enhanced response structure for infinite scroll UX
+        
+        Returns:
+            {
+                "next": "cursor_token_for_newer_messages",
+                "previous": "cursor_token_for_older_messages",
+                "has_more": bool,  # True if more older messages exist
+                "has_previous": bool,  # True if newer messages exist
+                "results": [...messages...]
+            }
+        """
+        return Response(
+            OrderedDict(
+                [
+                    ("next", self.get_next_link()),
+                    ("previous", self.get_previous_link()),
+                    ("has_more", self.get_previous_link() is not None),  # Older messages
+                    ("has_previous", self.get_next_link() is not None),  # Newer messages
+                    ("results", data),
+                ]
+            )
+        )
+
+
+class NotificationCursorPagination(CursorPagination):
+    """
+    Cursor-based pagination for notification feed
+    
+    Similar to ChatMessageCursorPagination but with smaller page size
+    for faster initial load in notification dropdown
+    """
+
+    page_size = 30
+    ordering = "-created_at"
+    cursor_query_param = "cursor"
+    page_size_query_param = "page_size"
+    max_page_size = 50
+
+    def get_paginated_response(self, data):
+        return Response(
+            OrderedDict(
+                [
+                    ("next", self.get_next_link()),
+                    ("previous", self.get_previous_link()),
+                    ("has_more", self.get_previous_link() is not None),
+                    ("has_previous", self.get_next_link() is not None),
+                    ("results", data),
+                ]
+            )
+        )
+

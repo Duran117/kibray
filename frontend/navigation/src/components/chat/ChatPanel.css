@@ -52,6 +52,68 @@
   }
 }
 
+.message-list-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.load-more-trigger {
+  padding: 0.75rem;
+  display: flex;
+  justify-content: center;
+  min-height: 50px;
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.loading-more .spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+
+.connection-status {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.connection-status span {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+}
+
+.connection-status .connected {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.connection-status .disconnected {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.online-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-left: 0.5rem;
+}
+
 @media (max-width: 768px) {
   .chat-panel {
     height: 500px;

@@ -10,8 +10,14 @@ import './ChatPanel.css';
 const ChatPanel = ({ channelId = 'general' }) => {
   const [historicalMessages, setHistoricalMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [previousCursor, setPreviousCursor] = useState(null);
   const [inputValue, setInputValue] = useState('');
   const typingTimeoutRef = useRef(null);
+  const messageListRef = useRef(null);
+  const loadMoreTriggerRef = useRef(null);
+  const isInitialLoad = useRef(true);
   
   // WebSocket connection for real-time chat
   const {
@@ -31,11 +37,36 @@ const ChatPanel = ({ channelId = 'general' }) => {
     fetchMessages();
   }, [channelId]);
 
+  // Intersection Observer for infinite scroll (load older messages)
+  useEffect(() => {
+    if (!loadMoreTriggerRef.current || loading || loadingMore || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMoreMessages();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(loadMoreTriggerRef.current);
+
+    return () => {
+      if (loadMoreTriggerRef.current) {
+        observer.unobserve(loadMoreTriggerRef.current);
+      }
+    };
+  }, [hasMore, loadingMore, loading, previousCursor]);
+
   const fetchMessages = async () => {
     setLoading(true);
+    isInitialLoad.current = true;
     try {
-      const data = await api.get(`/chat/messages/?channel=${channelId}`);
-      setHistoricalMessages(data.results || data);
+      const response = await api.get(`/chat-messages/paginated/?channel=${channelId}`);
+      setHistoricalMessages(response.results || []);
+      setHasMore(response.has_more || false);
+      setPreviousCursor(response.previous || null);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
       // Use mock data if API fails
@@ -44,8 +75,38 @@ const ChatPanel = ({ channelId = 'general' }) => {
         { id: 2, sender: 'You', text: 'Sounds good, I\'ll be there', timestamp: '10:32 AM', isOwn: true },
         { id: 3, sender: 'Jane Smith', text: 'Can we discuss the budget changes?', timestamp: '10:35 AM', isOwn: false }
       ]);
+      setHasMore(false);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (!previousCursor || loadingMore) return;
+
+    setLoadingMore(true);
+    try {
+      // Extract cursor parameter from previous link
+      const cursorMatch = previousCursor.match(/cursor=([^&]+)/);
+      const cursor = cursorMatch ? cursorMatch[1] : null;
+      
+      if (!cursor) {
+        setHasMore(false);
+        return;
+      }
+
+      const response = await api.get(`/chat-messages/paginated/?channel=${channelId}&cursor=${cursor}`);
+      
+      // Prepend older messages (maintain chronological order)
+      setHistoricalMessages(prev => [...(response.results || []), ...prev]);
+      setHasMore(response.has_more || false);
+      setPreviousCursor(response.previous || null);
+    } catch (error) {
+      console.error('Failed to load more messages:', error);
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -138,7 +199,20 @@ const ChatPanel = ({ channelId = 'general' }) => {
         </div>
       ) : (
         <>
-          <MessageList messages={allMessages} />
+          <div className="message-list-container" ref={messageListRef}>
+            {/* Load more trigger at the top */}
+            {hasMore && (
+              <div ref={loadMoreTriggerRef} className="load-more-trigger">
+                {loadingMore && (
+                  <div className="loading-more">
+                    <div className="spinner-small"></div>
+                    <span>Loading older messages...</span>
+                  </div>
+                )}
+              </div>
+            )}
+            <MessageList messages={allMessages} />
+          </div>
           {typingUsers.length > 0 && (
             <TypingIndicator users={typingUsers} />
           )}

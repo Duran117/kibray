@@ -198,6 +198,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     mentions = serializers.SerializerMethodField(read_only=True)
     content = serializers.CharField(write_only=True, required=False, allow_blank=True)
     message_display = serializers.SerializerMethodField()
+    read_by_count = serializers.SerializerMethodField()
 
     class Meta:
         model = ChatMessage
@@ -216,6 +217,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
             "attachment",
             "link_url",
             "mentions",
+            "read_by_count",
             "is_deleted",
             "deleted_by",
             "deleted_at",
@@ -236,6 +238,16 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         if user and not validated_data.get("created_by"):
             validated_data["created_by"] = user
         return super().create(validated_data)
+
+    def get_message_display(self, obj):
+        """Return sanitized message text"""
+        if obj.is_deleted:
+            return "[Message deleted]"
+        return obj.message
+
+    def get_read_by_count(self, obj):
+        """Return number of users who have read this message"""
+        return obj.read_by.count()
 
 
 class DailyLogSanitizedSerializer(serializers.ModelSerializer):
@@ -1195,6 +1207,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     mentions = ChatMentionSerializer(many=True, read_only=True)
     content = serializers.CharField(write_only=True, required=False, allow_blank=True)
     message_display = serializers.SerializerMethodField()
+    read_by_count = serializers.SerializerMethodField()
 
     class Meta:
         from core.models import ChatMessage
@@ -1233,6 +1246,10 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         if obj.is_deleted:
             return "[Message deleted]"
         return obj.message
+
+    def get_read_by_count(self, obj):
+        """Return number of users who have read this message"""
+        return obj.read_by.count()
 
 
 class BudgetLineSerializer(serializers.ModelSerializer):

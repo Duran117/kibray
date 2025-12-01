@@ -3916,6 +3916,63 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=["get"], url_path="paginated")
+    def paginated_messages(self, request):
+        """
+        Cursor-based paginated chat messages for infinite scroll
+        
+        Query Params:
+            - channel (required): Channel ID to fetch messages from
+            - cursor (optional): Cursor token from previous/next links
+            - page_size (optional): Number of messages per page (default 50, max 100)
+        
+        Response:
+            {
+                "next": "cursor_for_newer_messages",
+                "previous": "cursor_for_older_messages",
+                "has_more": true,  # More older messages available
+                "has_previous": false,  # No newer messages available
+                "results": [
+                    {
+                        "id": 123,
+                        "user": {...},
+                        "message": "Hello world",
+                        "created_at": "2024-01-15T10:30:00Z",
+                        "read_by_count": 5,
+                        ...
+                    }
+                ]
+            }
+        
+        Usage:
+            - Initial load: GET /api/v1/chat-messages/paginated/?channel=10
+            - Load older: GET /api/v1/chat-messages/paginated/?channel=10&cursor=abc123
+        """
+        from core.api.pagination import ChatMessageCursorPagination
+
+        # Validate required channel parameter
+        channel_id = request.query_params.get("channel")
+        if not channel_id:
+            return Response(
+                {"error": "channel parameter is required"},
+                status=400
+            )
+
+        # Filter queryset by channel
+        qs = self.get_queryset().filter(channel_id=channel_id)
+
+        # Apply cursor pagination
+        paginator = ChatMessageCursorPagination()
+        page = paginator.paginate_queryset(qs, request, view=self)
+        
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        # Fallback if pagination fails
+        serializer = self.get_serializer(qs[:50], many=True)
+        return Response({"results": serializer.data})
+
 
 class DailyLogSanitizedViewSet(viewsets.ReadOnlyModelViewSet):
     """Read-only sanitized DailyLog reports for client-facing consumption"""
