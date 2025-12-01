@@ -23,18 +23,41 @@ from channels.auth import AuthMiddlewareStack  # type: ignore
 from channels.routing import ProtocolTypeRouter, URLRouter  # type: ignore
 from channels.security.websocket import AllowedHostsOriginValidator  # type: ignore
 
-# Import WebSocket routing (will be created)
+# Import WebSocket routing and compression middleware
 try:
     from core.routing import websocket_urlpatterns
+    from core.websocket_middleware import WebSocketCompressionMiddleware
 except ImportError:
     websocket_urlpatterns = []
+    WebSocketCompressionMiddleware = None
 
 # ASGI application with WebSocket support
+# Middleware stack (outer to inner):
+# 1. WebSocketCompressionMiddleware - Enable permessage-deflate compression
+# 2. AllowedHostsOriginValidator - Validate WebSocket origin
+# 3. AuthMiddlewareStack - Django authentication
+# 4. URLRouter - Route to appropriate consumer
+if WebSocketCompressionMiddleware:
+    websocket_app = WebSocketCompressionMiddleware(
+        AllowedHostsOriginValidator(
+            AuthMiddlewareStack(
+                URLRouter(websocket_urlpatterns)
+            )
+        )
+    )
+else:
+    # Fallback without compression
+    websocket_app = AllowedHostsOriginValidator(
+        AuthMiddlewareStack(
+            URLRouter(websocket_urlpatterns)
+        )
+    )
+
 application = ProtocolTypeRouter(
     {
         # Django's ASGI application to handle traditional HTTP requests
         "http": django_asgi_app,
-        # WebSocket chat handler with authentication and allowed hosts
-        "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))),
+        # WebSocket handler with compression, authentication, and routing
+        "websocket": websocket_app,
     }
 )

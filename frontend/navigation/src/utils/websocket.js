@@ -6,17 +6,25 @@
  * - Event-based message handling
  * - Connection state management
  * - Error handling and logging
+ * - Message compression (permessage-deflate)
  */
+
+import WebSocketConfig, { 
+  getCompressionInfo, 
+  logCompressionStats, 
+  getMessageSize,
+  formatBytes 
+} from './websocketConfig';
 
 class WebSocketClient {
   constructor(url, protocols = []) {
     this.url = url;
-    this.protocols = protocols;
+    this.protocols = protocols.length > 0 ? protocols : WebSocketConfig.protocols;
     this.ws = null;
     this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 10;
-    this.reconnectDelay = 1000; // Start with 1 second
-    this.maxReconnectDelay = 30000; // Max 30 seconds
+    this.maxReconnectAttempts = WebSocketConfig.connection.reconnectAttempts;
+    this.reconnectDelay = WebSocketConfig.connection.reconnectDelay;
+    this.maxReconnectDelay = WebSocketConfig.connection.maxReconnectDelay;
     this.listeners = {
       message: [],
       open: [],
@@ -24,6 +32,14 @@ class WebSocketClient {
       error: []
     };
     this.isManualClose = false;
+    
+    // Compression statistics
+    this.compressionStats = {
+      messagesSent: 0,
+      totalBytes: 0,
+      messagesReceived: 0,
+      receivedBytes: 0,
+    };
   }
 
   /**
@@ -74,8 +90,19 @@ class WebSocketClient {
   send(data) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       const message = typeof data === 'string' ? data : JSON.stringify(data);
+      
+      // Track compression statistics
+      const messageSize = getMessageSize(message);
+      this.compressionStats.messagesSent++;
+      this.compressionStats.totalBytes += messageSize;
+      
+      // Log large message being sent
+      if (WebSocketConfig.debug && messageSize > WebSocketConfig.compression.threshold) {
+        console.log(`[WebSocket] Sending large message (${formatBytes(messageSize)}) - compression will be applied`);
+      }
+      
       this.ws.send(message);
-      console.log('[WebSocket] Sent:', message);
+      console.log('[WebSocket] Sent:', message.substring(0, 100) + (message.length > 100 ? '...' : ''));
     } else {
       console.warn('[WebSocket] Cannot send - not connected');
     }
@@ -97,7 +124,15 @@ class WebSocketClient {
   handleOpen(event) {
     console.log('[WebSocket] Connected');
     this.reconnectAttempts = 0;
-    this.reconnectDelay = 1000;
+    this.reconnectDelay = WebSocketConfig.connection.reconnectDelay;
+    
+    // Log compression status
+    if (WebSocketConfig.compression.enabled) {
+      const compressionInfo = getCompressionInfo(this.ws);
+      console.log('[WebSocket] Compression:', compressionInfo.active ? '✅ Enabled' : '❌ Disabled');
+      console.log('[WebSocket] Extensions:', compressionInfo.extensions || 'None');
+    }
+    
     this.listeners.open.forEach(callback => callback(event));
   }
 
@@ -106,6 +141,11 @@ class WebSocketClient {
    */
   handleMessage(event) {
     try {
+      // Track received message size
+      const messageSize = getMessageSize(event.data);
+      this.compressionStats.messagesReceived++;
+      this.compressionStats.receivedBytes += messageSize;
+      
       const data = JSON.parse(event.data);
       console.log('[WebSocket] Received:', data);
       this.listeners.message.forEach(callback => callback(data));
@@ -202,6 +242,45 @@ class WebSocketClient {
    */
   isConnected() {
     return this.ws && this.ws.readyState === WebSocket.OPEN;
+  }
+
+  /**
+   * Get compression statistics
+   * 
+   * @returns {object} Statistics including compression info and message counts
+   */
+  getCompressionStats() {
+    const compressionInfo = this.ws ? getCompressionInfo(this.ws) : { active: false };
+    
+    return {
+      ...this.compressionStats,
+      compression: compressionInfo,
+      averageMessageSize: this.compressionStats.messagesSent > 0
+        ? Math.round(this.compressionStats.totalBytes / this.compressionStats.messagesSent)
+        : 0,
+      averageReceivedSize: this.compressionStats.messagesReceived > 0
+        ? Math.round(this.compressionStats.receivedBytes / this.compressionStats.messagesReceived)
+        : 0,
+    };
+  }
+
+  /**
+   * Log compression statistics to console
+   */
+  logCompressionStats() {
+    logCompressionStats(this.ws, this.compressionStats);
+  }
+
+  /**
+   * Reset compression statistics
+   */
+  resetCompressionStats() {
+    this.compressionStats = {
+      messagesSent: 0,
+      totalBytes: 0,
+      messagesReceived: 0,
+      receivedBytes: 0,
+    };
   }
 }
 
