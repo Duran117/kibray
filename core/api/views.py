@@ -5733,3 +5733,82 @@ class WebSocketMetricsHistoryView(APIView):
             'data_points': len(history),
             'data': history,
         })
+
+
+# ============================================================================
+# MESSAGE SEARCH
+# ============================================================================
+
+class ChatMessageSearchView(APIView):
+    """
+    Full-text search for chat messages
+    
+    GET /api/chat/search/?q=query&channel=123&user=1&limit=20&offset=0
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Search chat messages with full-text search
+        
+        Query Parameters:
+        - q: Search query (required)
+        - channel: Filter by channel ID (optional)
+        - user: Filter by user ID (optional)
+        - limit: Results per page (default 20, max 100)
+        - offset: Pagination offset (default 0)
+        """
+        from django.contrib.postgres.search import SearchQuery, SearchRank
+        from core.models import ChatMessage
+        from core.api.serializers import ChatMessageSerializer
+        
+        # Get search query
+        search_query = request.GET.get('q', '').strip()
+        if not search_query:
+            return Response(
+                {'error': 'Search query is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Base queryset (exclude deleted messages)
+        queryset = ChatMessage.objects.filter(
+            is_deleted=False
+        ).select_related('user', 'channel')
+        
+        # Check user has access to channels
+        # Users can only search in channels they're members of
+        accessible_channels = request.user.chat_channels.all()
+        queryset = queryset.filter(channel__in=accessible_channels)
+        
+        # Apply filters
+        channel_id = request.GET.get('channel')
+        if channel_id:
+            queryset = queryset.filter(channel_id=channel_id)
+        
+        user_id = request.GET.get('user')
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        
+        # Full-text search
+        search = SearchQuery(search_query, config='english')
+        queryset = queryset.filter(search_vector=search).annotate(
+            rank=SearchRank('search_vector', search)
+        ).order_by('-rank', '-created_at')
+        
+        # Pagination
+        limit = min(int(request.GET.get('limit', 20)), 100)
+        offset = int(request.GET.get('offset', 0))
+        
+        total_count = queryset.count()
+        messages = queryset[offset:offset + limit]
+        
+        # Serialize results
+        serializer = ChatMessageSerializer(messages, many=True)
+        
+        return Response({
+            'count': total_count,
+            'limit': limit,
+            'offset': offset,
+            'next': offset + limit < total_count,
+            'results': serializer.data,
+        })

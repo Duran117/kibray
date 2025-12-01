@@ -251,6 +251,8 @@ urlpatterns = [
     # WebSocket Metrics (Phase 6 - Improvement #17)
     path("websocket/metrics/", lambda req: __import__('core.api.views', fromlist=['WebSocketMetricsView']).WebSocketMetricsView.as_view()(req), name="websocket-metrics"),
     path("websocket/metrics/history/", lambda req: __import__('core.api.views', fromlist=['WebSocketMetricsHistoryView']).WebSocketMetricsHistoryView.as_view()(req), name="websocket-metrics-history"),
+    # Message Search (Phase 6 - Improvement #19)
+    path("chat/search/", lambda req: __import__('core.api.views', fromlist=['ChatMessageSearchView']).ChatMessageSearchView.as_view()(req), name="chat-message-search"),
 ]
 
 # Add device token routes to router

@@ -3947,12 +3947,39 @@ class ChatMessage(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="deleted_chat_messages"
     )
     deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Full-text search field (PostgreSQL)
+    from django.contrib.postgres.search import SearchVectorField
+    search_vector = SearchVectorField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=['channel', 'created_at']),
+            models.Index(fields=['user', 'created_at']),
+        ]
 
     def __str__(self):
         return f"ChatMsg ch={self.channel_id} by {getattr(self.user,'username','?')}"
+    
+    def save(self, *args, **kwargs):
+        """Update search vector on save"""
+        from django.contrib.postgres.search import SearchVector
+        
+        # Update search vector before saving
+        if self.message:
+            ChatMessage.objects.filter(pk=self.pk).update(
+                search_vector=SearchVector('message', config='english')
+            ) if self.pk else None
+        
+        super().save(*args, **kwargs)
+        
+        # Update search vector after initial save (for new records)
+        if self.message and not getattr(self, '_search_vector_updated', False):
+            ChatMessage.objects.filter(pk=self.pk).update(
+                search_vector=SearchVector('message', config='english')
+            )
+            self._search_vector_updated = True
 
 
 class ChatMention(models.Model):
