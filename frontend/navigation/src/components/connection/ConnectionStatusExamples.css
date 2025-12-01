@@ -1,0 +1,231 @@
+/* 
+ * ConnectionStatus Examples Styles
+ */
+
+.connection-status-examples {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.connection-status-examples h2 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #1f2937;
+}
+
+.connection-status-examples h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #374151;
+}
+
+.example-section {
+  margin-bottom: 3rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.status-interactive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.button-group button {
+  padding: 0.5rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.button-group button:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.button-group button.active {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  color: white;
+}
+
+/* Mock Components */
+.mock-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.navbar-logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mock-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.chat-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Custom Styling Examples */
+.custom-large {
+  font-size: 1rem;
+  padding: 0.625rem 1.25rem;
+}
+
+.custom-bordered {
+  border: 2px solid currentColor;
+}
+
+/* Code Examples */
+.code-examples {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
+.code-examples h3,
+.code-examples h4 {
+  color: #f9fafb;
+}
+
+.code-block {
+  margin-bottom: 1.5rem;
+}
+
+.code-block h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #60a5fa;
+}
+
+.code-block pre {
+  background: #111827;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #d1d5db;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .connection-status-examples {
+    color: #f9fafb;
+  }
+
+  .connection-status-examples h2,
+  .connection-status-examples h3 {
+    color: #f9fafb;
+  }
+
+  .example-section {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .status-item,
+  .mock-navbar,
+  .mock-chat-header {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .navbar-logo,
+  .chat-title {
+    color: #f9fafb;
+  }
+
+  .button-group button {
+    background: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .button-group button:hover {
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+
+  .button-group button.active {
+    border-color: #60a5fa;
+    background: #60a5fa;
+    color: #111827;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .connection-status-examples {
+    padding: 1rem;
+  }
+
+  .connection-status-examples h2 {
+    font-size: 1.5rem;
+  }
+
+  .example-section {
+    padding: 1rem;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+}

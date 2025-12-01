@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
+import ConnectionStatus from '../connection/ConnectionStatus';
 import api from '../../utils/api';
 import { useChat } from '../../hooks/useWebSocket';
-import { MessageSquare, Wifi, WifiOff } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import './ChatPanel.css';
 
 const ChatPanel = ({ channelId = 'general' }) => {
@@ -22,6 +23,7 @@ const ChatPanel = ({ channelId = 'general' }) => {
   // WebSocket connection for real-time chat
   const {
     isConnected,
+    connectionStatus,
     messages: liveMessages,
     typingUsers,
     onlineUsers,
@@ -172,19 +174,7 @@ const ChatPanel = ({ channelId = 'general' }) => {
       <div className="chat-header">
         <MessageSquare size={20} />
         <h3>Team Chat</h3>
-        <div className="connection-status">
-          {isConnected ? (
-            <span className="connected">
-              <Wifi size={16} />
-              <span>Live</span>
-            </span>
-          ) : (
-            <span className="disconnected">
-              <WifiOff size={16} />
-              <span>Offline</span>
-            </span>
-          )}
-        </div>
+        <ConnectionStatus status={connectionStatus} />
         {onlineUsers.length > 0 && (
           <div className="online-count">
             {onlineUsers.length} online

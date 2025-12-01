@@ -11,9 +11,11 @@ import WebSocketClient from '../utils/websocket';
  */
 export function useWebSocket(url, options = {}) {
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [lastMessage, setLastMessage] = useState(null);
   const [error, setError] = useState(null);
   const wsRef = useRef(null);
+  const reconnectAttemptsRef = useRef(0);
 
   useEffect(() => {
     if (!url) return;
@@ -21,9 +23,14 @@ export function useWebSocket(url, options = {}) {
     const ws = new WebSocketClient(url);
     wsRef.current = ws;
 
+    // Set initial connecting state
+    setConnectionStatus('connecting');
+
     ws.on('open', () => {
       setIsConnected(true);
+      setConnectionStatus('connected');
       setError(null);
+      reconnectAttemptsRef.current = 0;
       if (options.onOpen) options.onOpen();
     });
 
@@ -32,20 +39,36 @@ export function useWebSocket(url, options = {}) {
       if (options.onMessage) options.onMessage(data);
     });
 
-    ws.on('close', () => {
+    ws.on('close', (event) => {
       setIsConnected(false);
+      
+      // Check if it's a normal closure or network issue
+      if (event.wasClean) {
+        setConnectionStatus('disconnected');
+      } else {
+        // Will attempt reconnect
+        reconnectAttemptsRef.current += 1;
+        setConnectionStatus('reconnecting');
+      }
+      
       if (options.onClose) options.onClose();
     });
 
     ws.on('error', (err) => {
       setError(err);
+      setConnectionStatus('disconnected');
       if (options.onError) options.onError(err);
+    });
+
+    ws.on('reconnecting', () => {
+      setConnectionStatus('reconnecting');
     });
 
     ws.connect();
 
     return () => {
       ws.close();
+      setConnectionStatus('disconnected');
     };
   }, [url]);
 
@@ -55,7 +78,14 @@ export function useWebSocket(url, options = {}) {
     }
   }, []);
 
-  return { isConnected, lastMessage, error, sendMessage };
+  return { 
+    isConnected, 
+    connectionStatus, 
+    lastMessage, 
+    error, 
+    sendMessage,
+    reconnectAttempts: reconnectAttemptsRef.current
+  };
 }
 
 /**
@@ -122,7 +152,7 @@ export function useChat(channelId) {
     }
   }, []);
 
-  const { isConnected, sendMessage } = useWebSocket(
+  const { isConnected, connectionStatus, sendMessage } = useWebSocket(
     channelId ? `/ws/chat/${channelId}/` : null,
     { onMessage: handleMessage }
   );
@@ -150,6 +180,7 @@ export function useChat(channelId) {
 
   return {
     isConnected,
+    connectionStatus,
     messages,
     typingUsers,
     onlineUsers,
@@ -217,7 +248,7 @@ export function useNotifications(showToastFn = null) {
     }
   }, [showToastFn]);
 
-  const { isConnected, sendMessage } = useWebSocket('/ws/notifications/', {
+  const { isConnected, connectionStatus, sendMessage } = useWebSocket('/ws/notifications/', {
     onMessage: handleMessage
   });
 
@@ -246,6 +277,7 @@ export function useNotifications(showToastFn = null) {
 
   return {
     isConnected,
+    connectionStatus,
     notifications,
     unreadCount,
     markAsRead,
@@ -311,7 +343,7 @@ export function useTasks(projectId) {
     }
   }, []);
 
-  const { isConnected, sendMessage } = useWebSocket(
+  const { isConnected, connectionStatus, sendMessage } = useWebSocket(
     projectId ? `/ws/tasks/${projectId}/` : null,
     { onMessage: handleMessage }
   );
@@ -325,6 +357,7 @@ export function useTasks(projectId) {
 
   return {
     isConnected,
+    connectionStatus,
     tasks,
     taskUpdates,
     subscribeToTask
@@ -378,7 +411,7 @@ export function useStatus() {
     }
   }, []);
 
-  const { isConnected, sendMessage } = useWebSocket('/ws/status/', {
+  const { isConnected, connectionStatus, sendMessage } = useWebSocket('/ws/status/', {
     onMessage: handleMessage,
     onOpen: () => {
       // Start sending heartbeats every 30 seconds
@@ -413,6 +446,7 @@ export function useStatus() {
 
   return {
     isConnected,
+    connectionStatus,
     onlineUsers,
     userStatuses,
     getUserStatus,
