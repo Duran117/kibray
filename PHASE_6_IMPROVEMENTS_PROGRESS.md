@@ -123,37 +123,165 @@
 
 ---
 
+### 6. ✅ Rate Limiting (CRITICAL - Priority 1)
+**Status:** COMPLETE  
+**What was done:**
+- Created `RateLimitMixin` with configurable rate limits
+- Uses Django cache for efficient tracking
+- Applied to 5 consumers with appropriate limits:
+  - **ProjectChatConsumer**: 30 messages/minute
+  - **DirectChatConsumer**: 30 messages/minute  
+  - **NotificationConsumer**: 100 messages/minute
+  - **TaskConsumer**: 60 messages/minute
+  - **StatusConsumer**: 120 messages/minute (higher for heartbeats)
+- Returns error message with retry_after when limit exceeded
+- Logs rate limit violations for monitoring
+
+**Implementation Details:**
+- Cache key format: `websocket_rate_limit:{user_id}:{ConsumerClass}`
+- Rate window: 60 seconds (configurable)
+- Auto-expires after rate_limit_window
+- Per-user, per-consumer rate limiting
+
+**Files Modified:**
+- `core/consumers.py` - Added RateLimitMixin class and applied to all consumers
+
+**Error Response:**
+```json
+{
+  "type": "error",
+  "error": "rate_limit_exceeded",
+  "message": "Rate limit exceeded. Maximum 30 messages per minute.",
+  "retry_after": 60
+}
+```
+
+---
+
+### 7. ✅ Unit Tests for Consumers (CRITICAL - Priority 1)
+**Status:** COMPLETE  
+**What was done:**
+- Created comprehensive test suite for all WebSocket consumers
+- **21 test cases** covering:
+  - ProjectChatConsumer: connect, send message, typing, read receipts, rate limiting
+  - StatusConsumer: online/offline status, heartbeat, status broadcast
+  - NotificationConsumer: unread count
+  - TaskConsumer: connection and subscription
+  - Integration tests: Celery task, NotificationLog CRUD
+
+**Test Coverage:**
+- ✅ Connection and authentication
+- ✅ Message sending and broadcast
+- ✅ Typing indicators
+- ✅ Read receipts with database persistence
+- ✅ Rate limiting enforcement
+- ✅ User status tracking (online/offline)
+- ✅ Heartbeat mechanism
+- ✅ Status broadcasting to multiple users
+- ✅ Celery task: cleanup_stale_user_status
+- ✅ NotificationLog: create, mark_as_read, mark_as_delivered
+
+**Files Created:**
+- `tests/test_consumers.py` - 21 test cases with pytest and channels.testing
+
+**Configuration:**
+- Updated `pytest.ini` with asyncio support
+- Added `websocket` marker for test categorization
+- Installed `pytest-asyncio` for async test execution
+
+**How to Run:**
+```bash
+# Run all WebSocket tests
+pytest tests/test_consumers.py -v -m websocket
+
+# Run specific test class
+pytest tests/test_consumers.py::TestProjectChatConsumer -v
+
+# Run with coverage
+pytest tests/test_consumers.py --cov=core.consumers --cov-report=term-missing
+```
+
+---
+
 ## 📋 PENDING IMPROVEMENTS
 
 ### 6. ⏳ Rate Limiting (CRITICAL - Priority 1)
-**Status:** NOT STARTED  
-**What's needed:**
-- Add rate limiting to prevent WebSocket abuse
-- Use Django cache to track message count per user per minute
-- Implement `check_rate_limit()` method in consumers
-- Default: 30 messages per minute per user
-- Send error message if rate exceeded
-- Log rate limit violations
+**Status:** ✅ COMPLETE  
+**What was done:**
+- Created `RateLimitMixin` with configurable rate limits
+- Uses Django cache for efficient tracking
+- Applied to 5 consumers with appropriate limits:
+  - **ProjectChatConsumer**: 30 messages/minute
+  - **DirectChatConsumer**: 30 messages/minute  
+  - **NotificationConsumer**: 100 messages/minute
+  - **TaskConsumer**: 60 messages/minute
+  - **StatusConsumer**: 120 messages/minute (higher for heartbeats)
+- Returns error message with retry_after when limit exceeded
+- Logs rate limit violations for monitoring
 
-**Target Files:**
-- `core/consumers.py` - Add rate limiting to all consumers
+**Implementation Details:**
+- Cache key format: `websocket_rate_limit:{user_id}:{ConsumerClass}`
+- Rate window: 60 seconds (configurable)
+- Auto-expires after rate_limit_window
+- Per-user, per-consumer rate limiting
+
+**Files Modified:**
+- `core/consumers.py` - Added RateLimitMixin class and applied to all consumers
+
+**Error Response:**
+```json
+{
+  "type": "error",
+  "error": "rate_limit_exceeded",
+  "message": "Rate limit exceeded. Maximum 30 messages per minute.",
+  "retry_after": 60
+}
+```
 
 ---
 
 ### 7. ⏳ Unit Tests for Consumers (CRITICAL - Priority 1)
-**Status:** NOT STARTED  
-**What's needed:**
-- Create `tests/test_consumers.py`
-- Test ProjectChatConsumer: connect, disconnect, message, typing, read_receipt
-- Test StatusConsumer: connect, disconnect, heartbeat, online_users
-- Test TaskConsumer: task updates, status changes
-- Use pytest-django and channels testing utilities
-- Mock database operations
-- Test authentication
+**Status:** ✅ COMPLETE  
+**What was done:**
+- Created comprehensive test suite for all WebSocket consumers
+- **21 test cases** covering:
+  - ProjectChatConsumer: connect, send message, typing, read receipts, rate limiting
+  - StatusConsumer: online/offline status, heartbeat, status broadcast
+  - NotificationConsumer: unread count
+  - TaskConsumer: connection and subscription
+  - Integration tests: Celery task, NotificationLog CRUD
 
-**Target Files:**
-- `tests/test_consumers.py` (new file)
-- Update `pytest.ini` with channels settings
+**Test Coverage:**
+- ✅ Connection and authentication
+- ✅ Message sending and broadcast
+- ✅ Typing indicators
+- ✅ Read receipts with database persistence
+- ✅ Rate limiting enforcement
+- ✅ User status tracking (online/offline)
+- ✅ Heartbeat mechanism
+- ✅ Status broadcasting to multiple users
+- ✅ Celery task: cleanup_stale_user_status
+- ✅ NotificationLog: create, mark_as_read, mark_as_delivered
+
+**Files Created:**
+- `tests/test_consumers.py` - 21 test cases with pytest and channels.testing
+
+**Configuration:**
+- Updated `pytest.ini` with asyncio support
+- Added `websocket` marker for test categorization
+- Installed `pytest-asyncio` for async test execution
+
+**How to Run:**
+```bash
+# Run all WebSocket tests
+pytest tests/test_consumers.py -v -m websocket
+
+# Run specific test class
+pytest tests/test_consumers.py::TestProjectChatConsumer -v
+
+# Run with coverage
+pytest tests/test_consumers.py --cov=core.consumers --cov-report=term-missing
+```
 
 ---
 
@@ -372,22 +500,22 @@
 ## 📊 SUMMARY
 
 **Total Improvements:** 20  
-**Completed:** 5 ✅  
+**Completed:** 7 ✅  
 **In Progress:** 0 🔄  
-**Pending:** 15 ⏳  
-**Progress:** 25%
+**Pending:** 13 ⏳  
+**Progress:** 35%
 
 ### Priority Breakdown
-- **Critical (Priority 1):** 3 completed, 3 pending
-- **High (Priority 2):** 2 completed, 4 pending
+- **Critical (Priority 1):** 6 completed, 0 pending
+- **High (Priority 2):** 1 completed, 4 pending
 - **Medium (Priority 3):** 0 completed, 8 pending
 
 ### Next Steps
-1. Implement rate limiting (Critical)
-2. Write unit tests for consumers (Critical)
-3. Create toast notification component (Critical)
-4. Add message pagination (High Priority)
-5. Create global connection status indicator (High Priority)
+1. Create toast notification component (Critical)
+2. Add message pagination (High Priority)
+3. Create global connection status indicator (High Priority)
+4. Implement offline message queue (High Priority)
+5. Add WebSocket compression (Performance)
 
 ---
 

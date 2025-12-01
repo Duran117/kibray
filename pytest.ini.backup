@@ -8,23 +8,17 @@ addopts =
     -k "not e2e"
     --cov=.
     --cov-report=term-missing
-    --asyncio-mode=auto
 ; Exclude e2e tests that require Playwright from collection
 norecursedirs = tests/e2e e2e .git __pycache__ *.egg-info dist build
 
 # Warnings management
 filterwarnings =
     ignore::pytest.PytestReturnNotNoneWarning
-    ignore::DeprecationWarning
-
-# Async support for channels
-asyncio_mode = auto
 
 markers =
     unit: Unit tests (fast, isolated)
     integration: Integration tests (slower, DB access)
     api: API endpoint tests (REST framework)
-    websocket: WebSocket consumer tests (Phase 6)
     slow: Slow running tests
     module_11: Tests for Module 11 (Tasks)
     module_12: Tests for Module 12 (Daily Plans)
