@@ -148,6 +148,60 @@
     </div>
 </div>
 
+<!-- Strategic Focus + Upcoming Events -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Strategic Focus Today -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="bi bi-bullseye text-kibray-600 text-xl"></i>
+                <h3 class="text-lg font-semibold text-gray-900">{% trans "Strategic Focus Today" %}</h3>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{% url 'strategic_planner' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium transition">
+                    <i class="bi bi-compass"></i>{% trans "Planner" %}
+                </a>
+                <a href="{% url 'focus_wizard' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-medium text-slate-800 transition">
+                    <i class="bi bi-bullseye"></i>{% trans "Focus Wizard" %}
+                </a>
+            </div>
+        </div>
+        <div class="p-6" id="strategicFocusWidget">
+            <div class="text-sm text-slate-500">{% trans "Loading..." %}</div>
+        </div>
+    </div>
+
+    <!-- Upcoming Events -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="bi bi-calendar-event text-kibray-600 text-xl"></i>
+                <h3 class="text-lg font-semibold text-gray-900">{% trans "Upcoming Events" %}</h3>
+            </div>
+        </div>
+        <div class="p-0 max-h-[480px] overflow-y-auto" id="upcomingEventsWidget">
+            <div class="p-6 text-sm text-slate-500">{% trans "Loading..." %}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Widget -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <i class="bi bi-calendar3 text-kibray-600 text-xl"></i>
+            <h3 class="text-lg font-semibold text-gray-900">{% trans "Calendar" %}</h3>
+        </div>
+        <a href="{% url 'master_schedule_center' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50 text-sm font-medium transition">
+            <i class="bi bi-calendar-range"></i>
+            {% trans "Master Schedule Center" %}
+        </a>
+    </div>
+    <div class="p-6" id="calendarWidget">
+        <div class="text-sm text-slate-500">{% trans "Loading calendar..." %}</div>
+    </div>
+    </div>
+
 <!-- Financial Metrics -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
     <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6">
@@ -397,4 +451,261 @@
             </div>
         </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// === Strategic Focus Today (Frog) ===
+async function loadStrategicFocus() {
+    const widget = document.getElementById('strategicFocusWidget');
+    if (!widget) return;
+
+    try {
+        const response = await fetch('/api/v1/planner/ritual/today/');
+        const data = await response.json();
+
+        if (!data || !data.has_ritual) {
+            widget.innerHTML = `
+                <div class="text-center py-6">
+                    <i class="bi bi-emoji-sunglasses text-4xl text-slate-400"></i>
+                    <h5 class="mt-2 font-semibold text-slate-800">{% trans "No plan for today yet" %}</h5>
+                    <p class="text-slate-500 text-sm">{% trans "Kickstart your day with the Strategic Planner or Focus Wizard" %}</p>
+                    <div class="flex flex-col sm:flex-row gap-2 justify-center mt-3">
+                        <a href="{% url 'strategic_planner' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition">
+                            <i class="bi bi-compass"></i>{% trans "Strategic Planner" %}
+                        </a>
+                        <a href="{% url 'focus_wizard' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm font-medium transition">
+                            <i class="bi bi-bullseye"></i>{% trans "Focus Wizard" %}
+                        </a>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        if (!data.has_frog) {
+            widget.innerHTML = `
+                <div class="text-center py-6">
+                    <i class="bi bi-check-circle text-4xl text-green-500"></i>
+                    <h5 class="mt-2 font-semibold text-slate-800">{% trans "Ritual completed!" %}</h5>
+                    <p class="text-slate-500 text-sm">{% trans "But no Frog was selected. Consider reviewing your high-impact actions." %}</p>
+                    <a href="{% url 'strategic_planner' %}" class="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium transition">
+                        <i class="bi bi-pencil-fill"></i>{% trans "Review Ritual" %}
+                    </a>
+                </div>`;
+            return;
+        }
+
+        const frog = data.frog;
+        const ritual = data.ritual;
+
+        const statusBadges = {
+            'DRAFT': '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-200 text-slate-700">Draft</span>',
+            'SCHEDULED': '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-700">Scheduled</span>',
+            'DONE': '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700">✓ Done</span>'
+        };
+
+        // Micro-steps
+        let microStepsHtml = '';
+        if (frog.micro_steps && frog.micro_steps.length > 0) {
+            microStepsHtml = '<div class="mt-3"><h6 class="text-sm font-semibold text-slate-700 mb-2">{% trans "Battle Plan:" %}</h6>';
+            frog.micro_steps.forEach((step, idx) => {
+                const checked = step.done ? 'checked' : '';
+                const textClass = step.done ? 'line-through text-slate-400' : '';
+                microStepsHtml += `
+                    <label class="flex items-center gap-2 mb-2 text-sm">
+                        <input type="checkbox" class="rounded border-slate-300" ${checked} onchange="toggleMicroStep(${frog.id}, ${idx})" />
+                        <span class="${textClass}">${step.text}</span>
+                    </label>`;
+            });
+            microStepsHtml += '</div>';
+        }
+
+        // Time block
+        let timeBlockHtml = '';
+        if (frog.scheduled_start && frog.scheduled_end) {
+            const start = new Date(frog.scheduled_start).toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'});
+            const end = new Date(frog.scheduled_end).toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'});
+            timeBlockHtml = `
+                <div class="mt-3 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 text-sm">
+                    <i class="bi bi-clock-fill mr-1"></i>
+                    <strong>{% trans "Time Block:" %}</strong> ${start} - ${end} (${frog.duration_minutes} min)
+                </div>`;
+        }
+
+        widget.innerHTML = `
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h4 class="text-lg font-semibold text-slate-900 mb-1">🐸 ${frog.title}</h4>
+                    ${statusBadges[frog.status] || ''}
+                    <div class="text-xs text-slate-500 mt-1">
+                        {% trans "Energy Level:" %} ${ritual.energy_level}/10 · {% trans "High Impact Actions:" %} ${ritual.high_impact_actions}
+                    </div>
+                </div>
+                <button class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${frog.is_completed ? 'bg-green-600 text-white' : 'border border-green-600 text-green-700 hover:bg-green-50'} text-sm font-medium transition" onclick="toggleFrogStatus(${frog.id})">
+                    <i class="bi bi-check2-circle"></i>
+                    ${frog.is_completed ? '{% trans "Completed" %}' : '{% trans "Mark Done" %}'}
+                </button>
+            </div>
+            ${microStepsHtml}
+            ${timeBlockHtml}
+            <div class="mt-3 h-2 w-full bg-slate-100 rounded">
+                <div class="h-2 bg-green-500 rounded" style="width: ${frog.micro_steps_progress}%;"></div>
+            </div>
+            <div class="text-right text-xs text-slate-500 mt-1">${frog.micro_steps_progress}% {% trans "Complete" %}</div>
+        `;
+    } catch (e) {
+        console.error('StrategicFocus error', e);
+        widget.innerHTML = `<div class=\"px-3 py-2 rounded-lg bg-yellow-50 text-yellow-800 text-sm\">{% trans "Could not load strategic focus. Please refresh." %}</div>`;
+    }
+}
+
+async function toggleFrogStatus(actionId) {
+    try {
+        const response = await fetch(`/api/v1/planner/action/${actionId}/toggle/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        });
+        if (response.ok) loadStrategicFocus();
+    } catch (e) { console.error('toggleFrogStatus', e); }
+}
+
+async function toggleMicroStep(actionId, stepIndex) {
+    try {
+        const response = await fetch(`/api/v1/planner/action/${actionId}/step/${stepIndex}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        });
+        if (response.ok) loadStrategicFocus();
+    } catch (e) { console.error('toggleMicroStep', e); }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// === Upcoming Events ===
+async function loadUpcomingEvents() {
+    const container = document.getElementById('upcomingEventsWidget');
+    if (!container) return;
+
+    const toDate = (item) => {
+        const keys = ['scheduled_at','scheduled_for','due_at','due_on','start','date','datetime'];
+        for (const k of keys) { if (item[k]) { const d = new Date(item[k]); if (!isNaN(d)) return d; } }
+        return null;
+    };
+    const normalize = (list, kind) => (list || []).map((it) => ({
+        kind,
+        title: it.title || it.name || it.summary || '{% trans "Untitled" %}',
+        date: toDate(it),
+        raw: it
+    })).filter(x => !!x.date);
+
+    try {
+        const [focusRes, plansRes] = await Promise.all([
+            fetch('/api/v1/focus/tasks/upcoming/'),
+            fetch('/api/v1/daily-plans/upcoming/')
+        ]);
+
+        const focusJson = focusRes.ok ? await focusRes.json() : [];
+        const plansJson = plansRes.ok ? await plansRes.json() : [];
+
+        const combined = [
+            ...normalize(focusJson, 'FOCUS'),
+            ...normalize(plansJson, 'PLAN')
+        ].sort((a,b) => a.date - b.date).slice(0,10);
+
+        if (combined.length === 0) {
+            container.innerHTML = `<div class=\"text-center text-slate-500 text-sm py-3\">{% trans "No upcoming items" %}</div>`;
+            return;
+        }
+
+        container.innerHTML = combined.map(ev => {
+            const d = ev.date;
+            const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            const timeStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+            const badge = ev.kind === 'FOCUS'
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-900 text-white mr-2">{% trans "Focus" %}</span>'
+                : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 mr-2">{% trans "Plan" %}</span>';
+            return `
+                <div class=\"flex items-start gap-3 py-2 border-b border-slate-100\">
+                    <div class=\"text-xs text-slate-500 w-24 shrink-0\"><i class=\"bi bi-calendar-event mr-1\"></i>${dateStr} · ${timeStr}</div>
+                    <div class=\"flex-1 text-sm\">${badge}<strong class=\"text-slate-800\">${ev.title}</strong></div>
+                </div>`;
+        }).join('');
+    } catch (e) {
+        console.error('Upcoming events failed', e);
+        container.innerHTML = `<div class=\"px-3 py-2 rounded-lg bg-yellow-50 text-yellow-800 text-sm\">{% trans "Could not load upcoming events right now." %}</div>`;
+    }
+}
+
+// === Calendar Widget ===
+async function loadCalendarWidget() {
+    const container = document.getElementById('calendarWidget');
+    if (!container) return;
+    try {
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        const res = await fetch('/api/v1/schedule/master/');
+        let events = [];
+        if (res.ok) {
+            const data = await res.json();
+            events = data.events || data || [];
+        }
+
+        const monthNames = ['{% trans "January" %}', '{% trans "February" %}', '{% trans "March" %}', '{% trans "April" %}', '{% trans "May" %}', '{% trans "June" %}', '{% trans "July" %}', '{% trans "August" %}', '{% trans "September" %}', '{% trans "October" %}', '{% trans "November" %}', '{% trans "December" %}'];
+        const dayNames = ['{% trans "Sun" %}', '{% trans "Mon" %}', '{% trans "Tue" %}', '{% trans "Wed" %}', '{% trans "Thu" %}', '{% trans "Fri" %}', '{% trans "Sat" %}'];
+        const firstDay = startDate.getDay();
+        const lastDate = endDate.getDate();
+
+        let html = `
+            <div class=\"flex items-center justify-between mb-3\">
+                <h5 class=\"text-sm font-semibold text-slate-800\">${monthNames[now.getMonth()]} ${now.getFullYear()}</h5>
+                <a href=\"{% url 'master_schedule_center' %}\" class=\"inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs font-medium transition\"><i class=\"bi bi-calendar3\"></i> {% trans "View Full" %}</a>
+            </div>
+            <div class=\"grid grid-cols-7 gap-1 text-center text-xs text-slate-500 mb-1\">${dayNames.map(d => `<div class=\"py-1\">${d}</div>`).join('')}</div>
+            <div class=\"grid grid-cols-7 gap-1\">`;
+        for (let i = 0; i < firstDay; i++) { html += '<div class=\"py-3\"></div>'; }
+        for (let day = 1; day <= lastDate; day++) {
+            const date = new Date(now.getFullYear(), now.getMonth(), day);
+            const dateStr = date.toISOString().split('T')[0];
+            const isToday = day === now.getDate();
+            const dayEvents = events.filter(e => {
+                const eventDate = new Date(e.start_datetime || e.start || e.date);
+                return eventDate && !isNaN(eventDate) && eventDate.toISOString().split('T')[0] === dateStr;
+            });
+            const hasEvents = dayEvents.length > 0;
+            html += `
+                <div class=\"p-1 border border-slate-100 rounded ${isToday ? 'bg-indigo-50 border-indigo-300' : ''}\">
+                    <div class=\"min-h-[52px] rounded ${isToday ? 'text-indigo-700 font-semibold' : ''} ${hasEvents ? 'bg-slate-50' : ''} p-1\">
+                        <div class=\"text-xs\">${day}</div>
+                        ${hasEvents ? `<span class=\"inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-600 text-white mt-1\">${dayEvents.length}</span>` : ''}
+                    </div>
+                </div>`;
+        }
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (e) {
+        console.error('Calendar widget failed', e);
+        container.innerHTML = `<div class=\"px-3 py-2 rounded-lg bg-yellow-50 text-yellow-800 text-sm\">{% trans "Could not load calendar right now." %}</div>`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadStrategicFocus();
+    loadUpcomingEvents();
+    loadCalendarWidget();
+});
+</script>
 {% endblock %}
