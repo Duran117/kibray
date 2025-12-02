@@ -296,6 +296,17 @@ python manage.py createsuperuser
 
 # Run development server
 python manage.py runserver
+ 
+# 🚦 Initial Setup: Roles & Permissions
+After your first deployment (or any change to roles/permissions), you must configure system groups and permissions:
+
+```bash
+python manage.py setup_roles
+```
+
+This command is idempotent and can be run multiple times. It will create/update all required groups and assign correct permissions for General Manager, Project Manager, Superintendent, Employee, Client, and Designer roles.
+
+**Important:** Always run this after deploying to Railway or any production environment, and after any migration that changes permissions or roles.
 ```
 
 Visit `http://localhost:8000` to access the application.
@@ -875,6 +886,15 @@ railway up
 - Add environment variables in Railway dashboard
 - Set build command: `pip install -r requirements.txt && python manage.py collectstatic --no-input`
 - Set start command: `gunicorn kibray_backend.wsgi:application --bind 0.0.0.0:$PORT`
+
+**Post-Deployment:**
+After migrations and static file collection, run:
+
+```bash
+python manage.py setup_roles
+```
+
+This ensures all user groups and permissions are correctly configured for the system.
 
 #### **Render**
 1. Create new Web Service
