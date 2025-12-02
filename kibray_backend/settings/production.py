@@ -97,15 +97,7 @@ CHANNEL_LAYERS = {
             "connection_kwargs": {
                 "max_connections": 50,
                 "retry_on_timeout": True,
-                "socket_keepalive": True,
-                "socket_keepalive_options": {
-                    1: 1,
-                    2: 1,
-                    3: 3,
-                },
-                "health_check_interval": 30,
-                "socket_connect_timeout": 5,
-                "socket_timeout": 5,
+                # Removed socket_keepalive options that may cause "Invalid argument" errors in Railway
             },
             "group_expiry": 86400,
             "channel_capacity": {
@@ -126,14 +118,7 @@ CACHES = {
             "CONNECTION_POOL_KWARGS": {
                 "max_connections": 50,
                 "retry_on_timeout": True,
-                "socket_keepalive": True,
-                "socket_keepalive_options": {
-                    1: 1,
-                    2: 1,
-                    3: 3,
-                },
-                "socket_connect_timeout": 5,
-                "socket_timeout": 5,
+                # Removed socket_keepalive options that may cause "Invalid argument" errors
             },
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
