@@ -12,7 +12,7 @@
         overflow: hidden;
     }
     
-    #gantt-root {
+    #gantt-app-root {
         width: 100%;
         height: 100%;
     }
@@ -22,7 +22,7 @@
 {% block content %}
 <div class="container-fluid py-4">
     <div class="gantt-react-container">
-        <div id="gantt-root" data-project-id="{{ project.id }}"></div>
+        <div id="gantt-app-root" data-project-id="{{ project.id }}"></div>
     </div>
 </div>
 {% endblock %}
@@ -33,9 +33,8 @@
     <script type="module" src="http://localhost:5173/@vite/client"></script>
     <script type="module" src="http://localhost:5173/src/main.tsx"></script>
 {% else %}
-    <!-- Production: Load built assets from staticfiles (hashed via Vite) -->
-    {% load static %}
-    <script type="module" src="{% static 'gantt/main.CtGf2iUm.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'gantt/main.Br17f8wA.css' %}">
+    <!-- Production: Load built Gantt bundle -->
+    <script type="module" crossorigin src="{% static 'gantt/gantt-app.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'gantt/assets/index-ec751674.css' %}">
 {% endif %}
 {% endblock %}
