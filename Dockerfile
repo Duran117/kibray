@@ -30,4 +30,4 @@ RUN python manage.py collectstatic --noinput || true
 ENV PORT=8000
 
 # Run migrations, create superuser, and start gunicorn
-CMD ["bash", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py create_initial_superuser --noinput && gunicorn kibray_backend.wsgi:application --workers=3 --threads=2 --timeout=120 --bind 0.0.0.0:${PORT:-8000}"]
+CMD ["bash", "-c", "echo '🔄 Running migrations...' && python manage.py migrate --noinput && echo '✅ Migrations complete' && echo '📦 Collecting static files...' && python manage.py collectstatic --noinput && echo '✅ Static files collected' && echo '👤 Creating initial superuser...' && python manage.py create_initial_superuser --noinput && echo '✅ Superuser setup complete' && echo '🚀 Starting Gunicorn...' && gunicorn kibray_backend.wsgi:application --workers=3 --threads=2 --timeout=120 --bind 0.0.0.0:${PORT:-8000}"]
