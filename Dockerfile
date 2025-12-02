@@ -29,5 +29,5 @@ RUN python manage.py collectstatic --noinput || true
 # Expose gunicorn port (Railway provides $PORT)
 ENV PORT=8000
 
-# Run migrations and start gunicorn
-CMD ["bash", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn kibray_backend.wsgi:application --workers=3 --threads=2 --timeout=120 --bind 0.0.0.0:${PORT:-8000}"]
+# Run migrations, create superuser, and start gunicorn
+CMD ["bash", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py create_initial_superuser --noinput && gunicorn kibray_backend.wsgi:application --workers=3 --threads=2 --timeout=120 --bind 0.0.0.0:${PORT:-8000}"]
