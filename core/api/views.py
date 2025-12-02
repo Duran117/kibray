@@ -3825,6 +3825,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
     filterset_fields = ["channel", "user", "is_deleted"]
     search_fields = ["message"]
     ordering_fields = ["created_at"]
+    ordering = ["-created_at"]  # Default ordering for cursor pagination
 
     def _check_pm_trainee_write_permission(self, message=None, channel=None):
         """Helper: deny PM Trainee write access on general_client channel"""
@@ -3961,8 +3962,8 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
                 status=400
             )
 
-        # Filter queryset by channel
-        qs = self.get_queryset().filter(channel_id=channel_id)
+        # Filter queryset by channel and ensure ordering
+        qs = self.get_queryset().filter(channel_id=channel_id).order_by('-created_at')
 
         # Apply cursor pagination
         paginator = ChatMessageCursorPagination()
