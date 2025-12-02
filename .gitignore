@@ -20,6 +20,10 @@ staticfiles/
 *.log
 logs/
 
+# Redis
+dump.rdb
+*.rdb
+
 # Backups directory and explicit DB backups
 backups/
 db_backup_*.sqlite3
