@@ -1035,6 +1035,18 @@ async function loadUpcomingEvents() {
       fetch('/api/v1/daily-plans/upcoming/')
     ]);
 
+    // Log any API failures for debugging
+    if (focusRes.status === 'rejected') {
+      console.error('Focus API fetch failed:', focusRes.reason);
+    } else if (!focusRes.value.ok) {
+      console.error('Focus API returned error status:', focusRes.value.status);
+    }
+    if (plansRes.status === 'rejected') {
+      console.error('Plans API fetch failed:', plansRes.reason);
+    } else if (!plansRes.value.ok) {
+      console.error('Plans API returned error status:', plansRes.value.status);
+    }
+
     const focusJson = focusRes.status === 'fulfilled' && focusRes.value.ok
       ? await focusRes.value.json()
       : [];
@@ -1075,7 +1087,6 @@ async function loadUpcomingEvents() {
 
   } catch (err) {
     console.error('Upcoming events failed:', err);
-    console.error('Focus API response:', focusRes?.status, 'Plans API response:', plansRes?.status);
     container.innerHTML = `
       <div class="alert alert-warning mb-0">
         <i class="bi bi-exclamation-triangle me-2"></i>
