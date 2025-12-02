@@ -1226,6 +1226,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
             "message",
             "content",
             "message_display",
+            "read_by_count",
             "image",
             "attachment",
             "link_url",
