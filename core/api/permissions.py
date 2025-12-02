@@ -117,3 +117,25 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return request.user.profile.role == "owner"
         except Profile.DoesNotExist:
             return False
+
+
+class IsAdminOrPM(permissions.BasePermission):
+    """
+    Only Admin (owner, admin, superuser) or Project Manager can access
+    Used for sensitive data like Payroll
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Check if user is staff (Django admin)
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+        
+        # Check profile role
+        try:
+            profile = request.user.profile
+            return profile.role in ["admin", "superuser", "project_manager", "owner"]
+        except Profile.DoesNotExist:
+            return False

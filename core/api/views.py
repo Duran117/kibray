@@ -21,6 +21,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from core.api.permissions import IsAdminOrPM
+
 from core.models import (
     AuditLog,
     BudgetLine,
@@ -1223,7 +1225,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
 
 class PayrollPeriodViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollPeriodSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrPM]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["status", "week_start", "week_end"]
     ordering_fields = ["week_start", "week_end", "created_at"]
@@ -1334,7 +1336,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
 
 class PayrollRecordViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollRecordSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrPM]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["period", "employee", "week_start", "week_end", "reviewed"]
     ordering_fields = ["week_start", "employee__last_name"]
@@ -1370,7 +1372,7 @@ class PayrollRecordViewSet(viewsets.ModelViewSet):
 
 class PayrollPaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollPaymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrPM]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["payroll_record", "payment_date", "payment_method"]
     ordering_fields = ["payment_date", "amount"]
