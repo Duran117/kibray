@@ -4,6 +4,24 @@
 
 {% block title %}{% trans "Admin Dashboard" %} - Kibray{% endblock %}
 
+{% block extra_css %}
+<style>
+  .hover-lift { transition: transform .2s ease, box-shadow .2s ease; }
+  .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important; }
+
+  /* Upcoming Events widget styles */
+  #upcomingEventsWidget .event-item {
+    border-left: 3px solid var(--bs-secondary);
+    padding-left: .75rem;
+    transition: background-color .2s ease, border-color .2s ease;
+  }
+  #upcomingEventsWidget .event-item:hover {
+    background-color: rgba(0,0,0,.02);
+    border-color: var(--bs-primary);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-3 py-md-4">
   <!-- Header -->
@@ -252,6 +270,82 @@
     </div>
   </div>
 
+  <!-- === NAVEGACIÓN PRINCIPAL (Atajos a módulos) === -->
+  <div class="card shadow-sm mb-3 mb-md-4">
+    <div class="card-body p-3">
+      <h6 class="text-muted mb-3">
+        <i class="bi bi-grid-3x3-gap-fill me-2"></i>
+        {% trans "Navigation" %}
+      </h6>
+      <div class="row g-2 g-md-3">
+        <!-- Focus Wizard -->
+        <div class="col-6 col-md-3">
+          <a href="{% url 'focus_wizard' %}" class="btn btn-outline-dark w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+            <i class="bi bi-bullseye fs-3 d-none d-md-block"></i>
+            <i class="bi bi-bullseye fs-5 d-md-none"></i>
+            <span class="small text-nowrap">{% trans "Focus Wizard" %}</span>
+          </a>
+        </div>
+        <!-- Strategic Planner -->
+        <div class="col-6 col-md-3">
+          <a href="{% url 'strategic_planner' %}" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+            <i class="bi bi-compass fs-3 d-none d-md-block"></i>
+            <i class="bi bi-compass fs-5 d-md-none"></i>
+            <span class="small text-nowrap">{% trans "Strategic Planner" %}</span>
+          </a>
+        </div>
+        <!-- Master Schedule -->
+        <div class="col-6 col-md-3">
+          <a href="{% url 'master_schedule_center' %}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+            <i class="bi bi-calendar3 fs-3 d-none d-md-block"></i>
+            <i class="bi bi-calendar3 fs-5 d-md-none"></i>
+            <span class="small text-nowrap">{% trans "Master Schedule" %}</span>
+          </a>
+        </div>
+        <!-- BI Dashboard -->
+        <div class="col-6 col-md-3">
+          <a href="{% url 'dashboard_bi' %}" class="btn btn-outline-info w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+            <i class="bi bi-bar-chart-fill fs-3 d-none d-md-block"></i>
+            <i class="bi bi-bar-chart-fill fs-5 d-md-none"></i>
+            <span class="small text-nowrap">{% trans "BI Dashboard" %}</span>
+          </a>
+        </div>
+        <!-- Daily Plans (fallback to planner if route not available) -->
+        <div class="col-6 col-md-3">
+          <a href="{% url 'strategic_planner' %}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+            <i class="bi bi-calendar-check fs-3 d-none d-md-block"></i>
+            <i class="bi bi-calendar-check fs-5 d-md-none"></i>
+            <span class="small text-nowrap">{% trans "Daily Plans" %}</span>
+          </a>
+        </div>
+        <!-- Morning View -->
+        <div class="col-6 col-md-3">
+          <a href="{% url 'dashboard_employee' %}" class="btn btn-outline-secondary w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+            <i class="bi bi-sunrise fs-3 d-none d-md-block"></i>
+            <i class="bi bi-sunrise fs-5 d-md-none"></i>
+            <span class="small text-nowrap">{% trans "Morning View" %}</span>
+          </a>
+        </div>
+        <!-- SOP Library (point to Files navigation) -->
+        <div class="col-6 col-md-3">
+          <a href="{% url 'navigation_files' %}" class="btn btn-outline-dark w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+            <i class="bi bi-book fs-3 d-none d-md-block"></i>
+            <i class="bi bi-book fs-5 d-md-none"></i>
+            <span class="small text-nowrap">{% trans "SOP Library" %}</span>
+          </a>
+        </div>
+        <!-- Financial -->
+        <div class="col-6 col-md-3">
+          <a href="{% url 'financial_dashboard' %}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+            <i class="bi bi-cash-coin fs-3 d-none d-md-block"></i>
+            <i class="bi bi-cash-coin fs-5 d-md-none"></i>
+            <span class="small text-nowrap">{% trans "Financial" %}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- === PROYECTOS CON ALERTAS === -->
   {% if projects_with_alerts %}
   <div class="card mb-3 mb-md-4 shadow-sm">
@@ -494,6 +588,24 @@
     </div>
   </div>
 
+  <!-- === UPCOMING EVENTS === -->
+  <div class="card shadow-sm mb-3 mb-md-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 h6 h-md-5">
+        <i class="bi bi-calendar-event text-primary me-2"></i>
+        {% trans "Upcoming Events" %}
+      </h5>
+      <span class="small text-muted d-none d-md-inline">{% trans "Next 5" %}</span>
+    </div>
+    <div class="card-body p-2 p-md-3" id="upcomingEventsWidget">
+      <div class="text-center py-3">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- === GRÁFICOS === -->
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
@@ -712,15 +824,20 @@ async function loadStrategicFocus() {
     if (!data.has_ritual) {
       widget.innerHTML = `
         <div class="text-center py-4">
-          <i class="bi bi-compass display-1 text-muted mb-3"></i>
-          <h5>{% trans "No ritual completed today" %}</h5>
-          <p class="text-muted">{% trans "Start your Strategic Ritual to plan your day" %}</p>
-          <a href="{% url 'strategic_planner' %}" class="btn btn-warning">
-            <i class="bi bi-play-fill me-2"></i>
-            {% trans "Start Daily Ritual" %}
-          </a>
-        </div>
-      `;
+          <i class="bi bi-emoji-sunglasses display-1 text-muted mb-3"></i>
+          <h5 class="mb-2">{% trans "No plan for today yet" %}</h5>
+          <p class="text-muted">{% trans "Kickstart your day with the Strategic Planner or Focus Wizard" %}</p>
+          <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-2">
+            <a href="{% url 'strategic_planner' %}" class="btn btn-warning">
+              <i class="bi bi-compass me-2"></i>
+              {% trans "Strategic Planner" %}
+            </a>
+            <a href="{% url 'focus_wizard' %}" class="btn btn-outline-dark">
+              <i class="bi bi-bullseye me-2"></i>
+              {% trans "Focus Wizard" %}
+            </a>
+          </div>
+        </div>`;
       return;
     }
     
@@ -874,7 +991,83 @@ function getCookie(name) {
 }
 
 // Load on page load
-document.addEventListener('DOMContentLoaded', loadStrategicFocus);
+document.addEventListener('DOMContentLoaded', () => {
+  loadStrategicFocus();
+  loadUpcomingEvents();
+});
+
+// Upcoming Events loader
+async function loadUpcomingEvents() {
+  const container = document.getElementById('upcomingEventsWidget');
+  if (!container) return;
+
+  const toDate = (item) => {
+    const keys = ['scheduled_at','scheduled_for','due_at','due_on','start','date','datetime'];
+    for (const k of keys) {
+      if (item[k]) {
+        const d = new Date(item[k]);
+        if (!isNaN(d)) return d;
+      }
+    }
+    return null;
+  };
+
+  const normalize = (list, kind) => (list || []).map((it) => ({
+    kind,
+    title: it.title || it.name || it.summary || '{% trans "Untitled" %}',
+    date: toDate(it),
+    raw: it
+  })).filter(x => !!x.date);
+
+  try {
+    const [focusRes, plansRes] = await Promise.all([
+      fetch('/api/v1/focus/tasks/upcoming/'),
+      fetch('/api/v1/daily-plans/upcoming/')
+    ]);
+
+    const focusJson = focusRes.ok ? await focusRes.json() : [];
+    const plansJson = plansRes.ok ? await plansRes.json() : [];
+
+    const combined = [
+      ...normalize(focusJson, 'FOCUS'),
+      ...normalize(plansJson, 'PLAN')
+    ].sort((a,b) => a.date - b.date).slice(0,5);
+
+    if (combined.length === 0) {
+      container.innerHTML = `
+        <div class="text-center text-muted py-3">
+          <i class="bi bi-inboxes me-2"></i> {% trans "No upcoming items" %}
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = combined.map(ev => {
+      const d = ev.date;
+      const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const timeStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      const badge = ev.kind === 'FOCUS' 
+        ? '<span class="badge bg-dark me-2">{% trans "Focus" %}</span>'
+        : '<span class="badge bg-success me-2">{% trans "Plan" %}</span>';
+      return `
+        <div class="event-item d-flex align-items-start gap-2 py-2 px-1">
+          <div class="text-nowrap small text-muted" style="min-width: 72px;">
+            <i class="bi bi-calendar-event me-1"></i>${dateStr}<span class="d-none d-sm-inline"> · ${timeStr}</span>
+          </div>
+          <div class="flex-grow-1">
+            ${badge}<strong>${ev.title}</strong>
+          </div>
+        </div>`;
+    }).join('');
+
+  } catch (err) {
+    console.error('Upcoming events failed', err);
+    container.innerHTML = `
+      <div class="alert alert-warning mb-0">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {% trans "Could not load upcoming events right now." %}
+      </div>`;
+  }
+}
 </script>
 {% endblock %}
 TEST - Wed Nov 19 16:01:13 MST 2025
