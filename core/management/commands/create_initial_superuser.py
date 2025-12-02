@@ -28,6 +28,12 @@ class Command(BaseCommand):
             default=None,
             help='Password for the superuser (if not provided, will use env var DJANGO_SUPERUSER_PASSWORD)'
         )
+        parser.add_argument(
+            '--noinput',
+            '--no-input',
+            action='store_true',
+            help='Do not prompt for any input'
+        )
 
     def handle(self, *args, **options):
         User = get_user_model()
