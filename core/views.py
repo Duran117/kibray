@@ -31,7 +31,38 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _, gettext
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core import signing
-from xhtml2pdf import pisa
+import re
+try:
+    from xhtml2pdf import pisa  # Optional HTML->PDF engine (requires system cairo libs)
+except Exception:  # Build may omit system deps (Railway minimal image)
+    pisa = None
+
+# Fallback lightweight PDF generator (text only) using ReportLab
+def _generate_basic_pdf_from_html(html: str) -> bytes:
+    """Very small fallback: strip tags and render lines into a single-page PDF.
+    Avoids hard dependency on xhtml2pdf when system cairo is missing.
+    """
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import LETTER
+    except Exception:
+        return b"PDF generation unavailable"
+    text = re.sub(r"<[^>]+>", "", html)
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=LETTER)
+    y = 770
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if y < 50:
+            c.showPage()
+            y = 770
+        c.drawString(40, y, line[:110])
+        y -= 14
+    c.showPage()
+    c.save()
+    return buf.getvalue()
 
 from core import models
 from core.forms import InventoryMovementForm, MaterialsRequestForm
@@ -720,11 +751,14 @@ def project_pdf_view(request, project_id):
 
     template = get_template("core/project_pdf.html")
     html = template.render(context)
-    result = BytesIO()
-    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
-    if not pdf.err:
-        return HttpResponse(result.getvalue(), content_type="application/pdf")
-    return HttpResponse("Error rendering PDF", status=500)
+    # Prefer xhtml2pdf if available; otherwise fallback to basic PDF
+    if pisa:
+        result = BytesIO()
+        pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+        if not pdf.err:
+            return HttpResponse(result.getvalue(), content_type="application/pdf")
+    fallback_bytes = _generate_basic_pdf_from_html(html)
+    return HttpResponse(fallback_bytes, content_type="application/pdf")
 
 
 # --- CRUD SCHEDULE, EXPENSE, INCOME, TIMEENTRY ---
@@ -2515,9 +2549,16 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
             try:
                 pdf_template = get_template("core/changeorder_pdf.html")
                 html = pdf_template.render({"changeorder": changeorder})
-                pdf_io = BytesIO()
-                pisa.CreatePDF(html, dest=pdf_io)
-                pdf_bytes = pdf_io.getvalue()
+                pdf_bytes: bytes
+                if pisa:
+                    pdf_io = BytesIO()
+                    try:
+                        pisa.CreatePDF(html, dest=pdf_io)
+                        pdf_bytes = pdf_io.getvalue()
+                    except Exception:
+                        pdf_bytes = b""
+                else:
+                    pdf_bytes = _generate_basic_pdf_from_html(html)
                 if pdf_bytes:
                     from django.core.files.base import ContentFile as _CF
                     changeorder.signed_pdf = _CF(pdf_bytes, name=f"co_{changeorder.id}_signed.pdf")
@@ -3255,11 +3296,13 @@ def invoice_pdf(request, pk):
         "logo_url": request.build_absolute_uri("/static/kibray-logo.png"),
     }
     html = template.render(context)
-    result = BytesIO()
-    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
-    if not pdf.err:
-        return HttpResponse(result.getvalue(), content_type="application/pdf")
-    return HttpResponse("Error rendering PDF", status=500)
+    if pisa:
+        result = BytesIO()
+        pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+        if not pdf.err:
+            return HttpResponse(result.getvalue(), content_type="application/pdf")
+    fallback_bytes = _generate_basic_pdf_from_html(html)
+    return HttpResponse(fallback_bytes, content_type="application/pdf")
 
 
 @login_required
