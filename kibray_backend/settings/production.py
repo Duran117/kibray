@@ -28,8 +28,8 @@ DATABASES = {
     )
 }
 
-# Static files - WhiteNoise with compression
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Static files - WhiteNoise with compression (no manifest for flexibility)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Media files - AWS S3 (required in production)
 USE_S3 = os.getenv("USE_S3", "True") == "True"
