@@ -1120,22 +1120,24 @@ async function loadCalendarWidget() {
   if (!container) return;
 
   try {
-    // Fetch schedule events from the API
+    // Fetch schedule events from the Master Schedule API
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     
-    const res = await fetch(`/api/v1/schedule/?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
+    const res = await fetch('/api/v1/schedule/master/');
     let events = [];
     
     if (res.ok) {
-      events = await res.json();
+      const data = await res.json();
+      // Master schedule returns { events: [...] }
+      events = data.events || data || [];
     }
 
     // Build a simple month calendar view
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                        'July', 'August', 'September', 'October', 'November', 'December'];
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['{% trans "January" %}', '{% trans "February" %}', '{% trans "March" %}', '{% trans "April" %}', '{% trans "May" %}', '{% trans "June" %}',
+                        '{% trans "July" %}', '{% trans "August" %}', '{% trans "September" %}', '{% trans "October" %}', '{% trans "November" %}', '{% trans "December" %}'];
+    const dayNames = ['{% trans "Sun" %}', '{% trans "Mon" %}', '{% trans "Tue" %}', '{% trans "Wed" %}', '{% trans "Thu" %}', '{% trans "Fri" %}', '{% trans "Sat" %}'];
     
     const firstDay = startDate.getDay();
     const lastDate = endDate.getDate();
@@ -1167,8 +1169,8 @@ async function loadCalendarWidget() {
       
       // Count events on this day
       const dayEvents = events.filter(e => {
-        const eventDate = new Date(e.start_datetime || e.date);
-        return eventDate.toISOString().split('T')[0] === dateStr;
+        const eventDate = new Date(e.start_datetime || e.start || e.date);
+        return eventDate && eventDate.toISOString().split('T')[0] === dateStr;
       });
       
       const hasEvents = dayEvents.length > 0;
