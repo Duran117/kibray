@@ -159,37 +159,30 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
-        },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": BASE_DIR / "logs" / "django.log",
-            "maxBytes": 10485760,  # 10MB
-            "backupCount": 10,
-            "formatter": "verbose",
-        },
+        }
     },
     "root": {
-        "handlers": ["console", "file"],
+        "handlers": ["console"],
         "level": "WARNING",
     },
     "loggers": {
         "django": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "WARNING",
             "propagate": False,
         },
         "django.request": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "ERROR",
             "propagate": False,
         },
         "django.security": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "WARNING",
             "propagate": False,
         },
         "core": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "INFO",
             "propagate": False,
         },
