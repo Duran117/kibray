@@ -19,6 +19,9 @@
     background-color: rgba(0,0,0,.02);
     border-color: var(--bs-primary);
   }
+  #upcomingEventsWidget .event-date-col {
+    min-width: 72px;
+  }
 </style>
 {% endblock %}
 
@@ -270,7 +273,7 @@
     </div>
   </div>
 
-  <!-- === NAVEGACIÓN PRINCIPAL (Atajos a módulos) === -->
+  <!-- === MAIN NAVIGATION (Module shortcuts) === -->
   <div class="card shadow-sm mb-3 mb-md-4">
     <div class="card-body p-3">
       <h6 class="text-muted mb-3">
@@ -310,7 +313,7 @@
             <span class="small text-nowrap">{% trans "BI Dashboard" %}</span>
           </a>
         </div>
-        <!-- Daily Plans (fallback to planner if route not available) -->
+        <!-- Daily Plans -->
         <div class="col-6 col-md-3">
           <a href="{% url 'strategic_planner' %}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
             <i class="bi bi-calendar-check fs-3 d-none d-md-block"></i>
@@ -824,7 +827,7 @@ async function loadStrategicFocus() {
     if (!data.has_ritual) {
       widget.innerHTML = `
         <div class="text-center py-4">
-          <i class="bi bi-emoji-sunglasses display-1 text-muted mb-3"></i>
+          <i class="bi bi-compass display-1 text-muted mb-3"></i>
           <h5 class="mb-2">{% trans "No plan for today yet" %}</h5>
           <p class="text-muted">{% trans "Kickstart your day with the Strategic Planner or Focus Wizard" %}</p>
           <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-2">
@@ -996,11 +999,18 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUpcomingEvents();
 });
 
+// Translation constants for Upcoming Events
+const UNTITLED_TEXT = "{% trans 'Untitled' %}";
+const FOCUS_BADGE_TEXT = "{% trans 'Focus' %}";
+const PLAN_BADGE_TEXT = "{% trans 'Plan' %}";
+
 // Upcoming Events loader
 async function loadUpcomingEvents() {
   const container = document.getElementById('upcomingEventsWidget');
   if (!container) return;
 
+  // Parse date from various field names. Note: API should return UTC timestamps
+  // and browser will display in user's local timezone automatically via Date constructor.
   const toDate = (item) => {
     const keys = ['scheduled_at','scheduled_for','due_at','due_on','start','date','datetime'];
     for (const k of keys) {
@@ -1014,19 +1024,23 @@ async function loadUpcomingEvents() {
 
   const normalize = (list, kind) => (list || []).map((it) => ({
     kind,
-    title: it.title || it.name || it.summary || '{% trans "Untitled" %}',
+    title: it.title || it.name || it.summary || UNTITLED_TEXT,
     date: toDate(it),
     raw: it
   })).filter(x => !!x.date);
 
   try {
-    const [focusRes, plansRes] = await Promise.all([
+    const [focusRes, plansRes] = await Promise.allSettled([
       fetch('/api/v1/focus/tasks/upcoming/'),
       fetch('/api/v1/daily-plans/upcoming/')
     ]);
 
-    const focusJson = focusRes.ok ? await focusRes.json() : [];
-    const plansJson = plansRes.ok ? await plansRes.json() : [];
+    const focusJson = focusRes.status === 'fulfilled' && focusRes.value.ok
+      ? await focusRes.value.json()
+      : [];
+    const plansJson = plansRes.status === 'fulfilled' && plansRes.value.ok
+      ? await plansRes.value.json()
+      : [];
 
     const combined = [
       ...normalize(focusJson, 'FOCUS'),
@@ -1046,11 +1060,11 @@ async function loadUpcomingEvents() {
       const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
       const timeStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
       const badge = ev.kind === 'FOCUS' 
-        ? '<span class="badge bg-dark me-2">{% trans "Focus" %}</span>'
-        : '<span class="badge bg-success me-2">{% trans "Plan" %}</span>';
+        ? `<span class="badge bg-dark me-2">${FOCUS_BADGE_TEXT}</span>`
+        : `<span class="badge bg-success me-2">${PLAN_BADGE_TEXT}</span>`;
       return `
         <div class="event-item d-flex align-items-start gap-2 py-2 px-1">
-          <div class="text-nowrap small text-muted" style="min-width: 72px;">
+          <div class="text-nowrap small text-muted event-date-col">
             <i class="bi bi-calendar-event me-1"></i>${dateStr}<span class="d-none d-sm-inline"> · ${timeStr}</span>
           </div>
           <div class="flex-grow-1">
@@ -1060,7 +1074,8 @@ async function loadUpcomingEvents() {
     }).join('');
 
   } catch (err) {
-    console.error('Upcoming events failed', err);
+    console.error('Upcoming events failed:', err);
+    console.error('Focus API response:', focusRes?.status, 'Plans API response:', plansRes?.status);
     container.innerHTML = `
       <div class="alert alert-warning mb-0">
         <i class="bi bi-exclamation-triangle me-2"></i>
@@ -1070,4 +1085,3 @@ async function loadUpcomingEvents() {
 }
 </script>
 {% endblock %}
-TEST - Wed Nov 19 16:01:13 MST 2025
