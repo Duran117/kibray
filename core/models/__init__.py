@@ -7213,3 +7213,9 @@ class NotificationLog(models.Model):
             self.delivered_via_websocket = True
             self.delivered_at = timezone.now()
             self.save(update_fields=['delivered_via_websocket', 'delivered_at'])
+
+
+# PWA Push Notifications
+from .push_notifications import PushSubscription
+
+__all__ = ['PushSubscription']

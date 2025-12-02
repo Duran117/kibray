@@ -1,25 +1,98 @@
 services:
+  # Main Web Service
   - type: web
     name: kibray-backend
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn kibray_backend.wsgi:application
+    region: oregon
+    plan: starter
+    buildCommand: |
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --noinput &&
+      python manage.py migrate --noinput
+    startCommand: gunicorn kibray_backend.wsgi:application --config gunicorn.conf.py
+    healthCheckPath: /api/v1/health/
     envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: kibray_backend.settings
+      - key: DJANGO_ENV
+        value: production
       - key: PYTHON_VERSION
-        value: 3.12
+        value: 3.11
       - key: SECRET_KEY
         generateValue: true
+        sync: false
       - key: ALLOWED_HOSTS
-        value: kibray-backend.onrender.com
+        value: kibray-backend.onrender.com,kibray.com
       - key: DATABASE_URL
         fromDatabase:
           name: kibray-db
           property: connectionString
-    staticPublishPath: staticfiles
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: kibray-redis
+          property: connectionString
+      - key: WEB_CONCURRENCY
+        value: 4
+    staticPublishPath: static_collected
+  
+  # Celery Worker
+  - type: worker
+    name: kibray-celery-worker
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A kibray_backend worker --loglevel=info
+    envVars:
+      - key: DJANGO_ENV
+        value: production
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kibray-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: kibray-redis
+          property: connectionString
+  
+  # Celery Beat (Scheduler)
+  - type: worker
+    name: kibray-celery-beat
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A kibray_backend beat --loglevel=info
+    envVars:
+      - key: DJANGO_ENV
+        value: production
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kibray-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: kibray-redis
+          property: connectionString
 
 databases:
   - name: kibray-db
     databaseName: kibray
     user: kibray_user
+    region: oregon
+    plan: starter
+    ipAllowList: []
+
+services:
+  # Redis Cache & Message Broker
+  - type: redis
+    name: kibray-redis
+    region: oregon
+    plan: starter
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru

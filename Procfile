@@ -1,1 +1,3 @@
-web: gunicorn kibray_backend.wsgi --bind 0.0.0.0:$PORT
+web: gunicorn kibray_backend.wsgi:application --config gunicorn.conf.py
+worker: celery -A kibray_backend worker --loglevel=info
+beat: celery -A kibray_backend beat --loglevel=info

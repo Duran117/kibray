@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Kibray</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .offline-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .retry-button {
+            background: #fff;
+            color: #667eea;
+            border: none;
+            padding: 16px 48px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .retry-button:active {
+            transform: translateY(0);
+        }
+        
+        .features {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .features h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .features ul {
+            list-style: none;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .features li {
+            margin-bottom: 8px;
+        }
+        
+        .features li::before {
+            content: "✓ ";
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>
+            No internet connection detected. Please check your network settings
+            and try again.
+        </p>
+        <button class="retry-button" onclick="location.reload()">
+            🔄 Retry Connection
+        </button>
+        
+        <div class="features">
+            <h2>While Offline You Can:</h2>
+            <ul>
+                <li>View previously cached pages</li>
+                <li>Access downloaded files</li>
+                <li>Review project data</li>
+                <li>Changes will sync when online</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-retry when connection is restored
+        window.addEventListener('online', () => {
+            location.reload();
+        });
+        
+        // Check connection status
+        function checkConnection() {
+            if (navigator.onLine) {
+                location.reload();
+            }
+        }
+        
+        // Check every 5 seconds
+        setInterval(checkConnection, 5000);
+    </script>
+</body>
+</html>

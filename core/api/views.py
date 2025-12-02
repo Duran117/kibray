@@ -53,6 +53,7 @@ from core.models import (
     ProjectFile,  # ⭐ Phase 4 File Manager
     ProjectManagerAssignment,
     ProjectInventory,
+    PushSubscription,  # ⭐ PWA Push Notifications
     ColorApproval,
     ScheduleCategory,
     ScheduleItem,
@@ -100,6 +101,7 @@ from .serializers import (
     ProjectListSerializer,
     ProjectSerializer,
     ProjectManagerAssignmentSerializer,
+    PushSubscriptionSerializer,  # ⭐ PWA Push Notifications
     ColorApprovalSerializer,
     ScheduleCategorySerializer,
     ScheduleItemSerializer,
@@ -5813,3 +5815,60 @@ class ChatMessageSearchView(APIView):
             'next': offset + limit < total_count,
             'results': serializer.data,
         })
+
+
+# ====================================================================
+# PWA PUSH NOTIFICATIONS
+# ====================================================================
+class PushSubscriptionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing PWA push notification subscriptions
+    """
+    serializer_class = PushSubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'delete']
+    
+    def get_queryset(self):
+        # Users can only see their own subscriptions
+        return PushSubscription.objects.filter(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        """Subscribe to push notifications"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+        return Response(
+            {
+                'message': 'Successfully subscribed to push notifications',
+                'subscription': serializer.data,
+            },
+            status=status.HTTP_201_CREATED
+        )
+    
+    @action(detail=False, methods=['post'], url_path='unsubscribe')
+    def unsubscribe(self, request):
+        """Unsubscribe from push notifications by endpoint"""
+        endpoint = request.data.get('endpoint')
+        
+        if not endpoint:
+            return Response(
+                {'error': 'Endpoint is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        deleted_count, _ = PushSubscription.objects.filter(
+            user=request.user,
+            endpoint=endpoint
+        ).delete()
+        
+        if deleted_count > 0:
+            return Response(
+                {'message': 'Successfully unsubscribed'},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {'error': 'Subscription not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )

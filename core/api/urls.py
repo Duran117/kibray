@@ -9,6 +9,14 @@ from drf_spectacular.views import (
 
 from .dashboard_extra import ClientDashboardView, ProjectDashboardView
 
+# Health check endpoints
+from core.views_health import (
+    health_check,
+    health_check_detailed,
+    readiness_check,
+    liveness_check,
+)
+
 # Import Phase 5 viewsets from viewset_classes (new architecture)
 from .viewset_classes import (
     ProjectViewSet as ProjectViewSetNew,
@@ -62,6 +70,7 @@ from .views import (
     ProjectFileViewSet,  # ⭐ Phase 4 File Manager
     ProjectHealthDashboardView,
     ProjectManagerAssignmentViewSet,
+    PushSubscriptionViewSet,  # ⭐ PWA Push Notifications
     PayrollDashboardView,
     PayrollPaymentViewSet,
     PayrollPeriodViewSet,
@@ -162,6 +171,9 @@ router.register(r"payroll/payments", PayrollPaymentViewSet, basename="payroll-pa
 # Security: 2FA
 router.register(r"2fa", TwoFactorViewSet, basename="twofactor")
 
+# PWA: Push Notifications
+router.register(r"push", PushSubscriptionViewSet, basename="push-subscription")
+
 # Module 21: Business Intelligence Analytics
 router.register(r"bi", BIAnalyticsViewSet, basename="bi-analytics")
 
@@ -175,6 +187,11 @@ from .bulk_views import BulkTaskUpdateAPIView
 # router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
 
 urlpatterns = [
+    # Health Check Endpoints (Phase 7 - Step 45)
+    path("health/", health_check, name="health-check"),
+    path("health/detailed/", health_check_detailed, name="health-check-detailed"),
+    path("readiness/", readiness_check, name="readiness-check"),
+    path("liveness/", liveness_check, name="liveness-check"),
     # JWT Auth
     path("auth/login/", TwoFactorTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

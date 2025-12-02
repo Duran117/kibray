@@ -33,5 +33,41 @@ Thumbs.db
 
 # Compiled translations (keep .po, ignore .mo)
 *.mo
-# Node/npm (si usas)
+
+# Node/npm
 node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+.npm/
+
+# Production
+static_collected/
+settings_old.py.backup
+*.log.*
+*.backup
+
+# Sentry
+.sentryclirc
+
+# Firebase
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
+
+# IDEs
+.idea/
+*.swp
+*.swo
+*~
+
+# Lighthouse reports
+*lighthouse-report.html
+PWA_LIGHTHOUSE_REPORT.html

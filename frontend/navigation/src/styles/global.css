@@ -1,4 +1,5 @@
 @import './theme.css';
+@import './mobile-optimizations.css';
 
 .app-container {
   display: flex;

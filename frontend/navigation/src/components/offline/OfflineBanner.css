@@ -1,0 +1,93 @@
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: white;
+  padding: 12px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s ease-out;
+}
+
+.offline-banner-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.offline-icon {
+  font-size: 24px;
+  animation: pulse 2s infinite;
+}
+
+.offline-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.offline-text strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.offline-subtext {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.offline-pulse {
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  opacity: 0.8;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .offline-banner {
+    padding: 10px 16px;
+  }
+
+  .offline-text strong {
+    font-size: 14px;
+  }
+
+  .offline-subtext {
+    font-size: 12px;
+  }
+
+  .offline-icon {
+    font-size: 20px;
+  }
+}

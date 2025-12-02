@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const { InjectManifest } = require('workbox-webpack-plugin');
 
 module.exports = {
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
@@ -17,7 +18,16 @@ module.exports = {
     }),
     new webpack.ProvidePlugin({
       process: 'process/browser'
-    })
+    }),
+    // Workbox service worker plugin for PWA
+    ...(process.env.NODE_ENV === 'production' ? [
+      new InjectManifest({
+        swSrc: './src/service-worker.js',
+        swDest: '../../static/js/service-worker.js',
+        exclude: [/\.pdf$/, /\.map$/, /^manifest.*\.js$/],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+      })
+    ] : [])
   ],
   module: {
     rules: [

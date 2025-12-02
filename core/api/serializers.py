@@ -24,6 +24,7 @@ from core.models import (
     Project,
     ProjectFile,  # ⭐ Added for Phase 4 File Manager
     ProjectManagerAssignment,
+    PushSubscription,  # ⭐ PWA Push Notifications
     ScheduleCategory,
     ScheduleItem,
     ColorApproval,
@@ -2129,4 +2130,28 @@ class ProjectFileSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.file.url)
             return obj.file.url
         return None
+
+
+# ---------------------
+# PWA Push Subscription Serializer
+# ---------------------
+class PushSubscriptionSerializer(serializers.ModelSerializer):
+    """Serializer for PWA push notification subscriptions"""
+    
+    class Meta:
+        model = PushSubscription
+        fields = ['id', 'endpoint', 'p256dh', 'auth', 'created_at']
+        read_only_fields = ['id', 'created_at']
+    
+    def create(self, validated_data):
+        # Automatically assign current user
+        validated_data['user'] = self.context['request'].user
+        
+        # Remove existing subscription with same endpoint (update scenario)
+        PushSubscription.objects.filter(
+            user=validated_data['user'],
+            endpoint=validated_data['endpoint']
+        ).delete()
+        
+        return super().create(validated_data)
 

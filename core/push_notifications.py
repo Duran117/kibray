@@ -2,7 +2,7 @@
 Push Notification Service for Kibray
 
 Integrates with Firebase Cloud Messaging (FCM) for push notifications:
-- Web push notifications
+- Web push notifications (PWA)
 - Mobile push (iOS/Android)
 - Notification batching
 - User preferences
@@ -19,6 +19,15 @@ from channels.db import database_sync_to_async
 logger = logging.getLogger('push_notifications')
 
 User = get_user_model()
+
+# Firebase Admin SDK
+try:
+    import firebase_admin
+    from firebase_admin import credentials, messaging
+    FIREBASE_AVAILABLE = True
+except ImportError:
+    FIREBASE_AVAILABLE = False
+    logger.warning("firebase-admin not installed. Push notifications disabled.")
 
 
 class PushNotificationService:
@@ -438,6 +447,81 @@ async def send_message_notification(user_id: int, sender: str, channel_name: str
         user_id=user_id,
         title=f"{sender} in {channel_name}",
         body=message[:200],
+        data={
+            'type': 'message',
+            'channel': channel_name,
+        },
+        category='message',
+        priority='normal'
+    )
+
+
+# ====================================================================
+# PWA PUSH NOTIFICATION HELPERS (Firebase Cloud Messaging)
+# ====================================================================
+
+def send_pwa_push(user, title: str, body: str, data: Optional[dict] = None, url: Optional[str] = None) -> dict:
+    """
+    Send PWA push notification to user's subscribed devices
+    Uses Firebase Cloud Messaging for delivery
+    
+    Args:
+        user: Django User instance
+        title: Notification title
+        body: Notification body text
+        data: Optional custom data payload
+        url: Optional URL to open when clicked
+    
+    Returns:
+        dict with success/failure counts
+    """
+    if not FIREBASE_AVAILABLE:
+        logger.error("Firebase Admin SDK not available")
+        return {'success_count': 0, 'failure_count': 0, 'errors': ['Firebase not configured']}
+    
+    from core.models import PushSubscription
+    
+    subscriptions = PushSubscription.objects.filter(user=user)
+    
+    if not subscriptions.exists():
+        return {'success_count': 0, 'failure_count': 0, 'errors': []}
+    
+    results = {'success_count': 0, 'failure_count': 0, 'errors': []}
+    
+    # Send to each subscription
+    for subscription in subscriptions:
+        try:
+            message = messaging.Message(
+                notification=messaging.Notification(title=title, body=body),
+                data=data or {},
+                token=subscription.endpoint,
+                webpush=messaging.WebpushConfig(
+                    headers={'Urgency': 'high'},
+                    notification=messaging.WebpushNotification(
+                        title=title,
+                        body=body,
+                        icon='/static/icons/icon-192x192.png',
+                        badge='/static/icons/badge-72x72.png',
+                    ),
+                    fcm_options=messaging.WebpushFCMOptions(link=url) if url else None,
+                ),
+            )
+            
+            response = messaging.send(message)
+            results['success_count'] += 1
+            logger.info(f"PWA push sent to {user.username}: {response}")
+            
+        except Exception as e:
+            results['failure_count'] += 1
+            results['errors'].append(str(e))
+            logger.error(f"Failed push to subscription {subscription.id}: {e}")
+            
+            # Remove invalid subscriptions
+            if 'not-registered' in str(e).lower():
+                subscription.delete()
+    
+    return results
+
         data={
             'type': 'chat_message',
             'channel': channel_name,
