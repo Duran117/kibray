@@ -9,6 +9,9 @@ from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from typing import TYPE_CHECKING, Optional
 
+if TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
