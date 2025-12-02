@@ -66,7 +66,12 @@ CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 # Security Settings
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
+# SSL Redirect
+# Previously hard-coded to True which caused 301 redirects on platform health probes (e.g. Railway),
+# preventing a direct 200 response for /api/v1/health/ and keeping the service in an unhealthy state.
+# Now configurable via env var SECURE_SSL_REDIRECT (default False to allow initial health verification).
+# Once deployment is stable, set SECURE_SSL_REDIRECT=True again to enforce HTTPS.
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False") == "True"
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
