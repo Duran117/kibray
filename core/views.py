@@ -494,8 +494,8 @@ def dashboard_admin(request):
 
     # Use clean Design System template by default
     # Legacy template available via ?legacy=true
-    use_legacy = request.GET.get("legacy", "false").lower() == "true"
-    template = "core/dashboard_admin.html" if use_legacy else "core/dashboard_admin_clean.html"
+    # Forzar legacy como default absoluto
+    template = "core/dashboard_admin.html"
 
     return render(request, template, context)
 
