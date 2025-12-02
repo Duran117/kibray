@@ -138,7 +138,8 @@ CACHES = {
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             "COMPRESS_MIN_LENGTH": 100,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
+            # PARSER_CLASS removed - HiredisParser attribute doesn't exist in redis.connection
+            # Using default PythonParser instead (hiredis package provides performance if installed)
             "IGNORE_EXCEPTIONS": False,  # Fail loud in production
         },
         "KEY_PREFIX": "kibray_prod",
