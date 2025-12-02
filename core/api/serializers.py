@@ -1627,7 +1627,7 @@ class InventoryLocationSerializer(serializers.ModelSerializer):
 class ProjectInventorySerializer(serializers.ModelSerializer):
     item_name = serializers.CharField(source="item.name", read_only=True)
     location_name = serializers.CharField(source="location.__str__", read_only=True)
-    is_below = serializers.BooleanField(source="is_below", read_only=True)
+    is_below = serializers.BooleanField(read_only=True)  # Removed redundant source='is_below'
 
     class Meta:
         from core.models import ProjectInventory
