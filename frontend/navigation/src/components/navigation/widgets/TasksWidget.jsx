@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckSquare, Circle, CheckCircle2, Clock, AlertCircle, GripVertical } from 'lucide-react';
 import * as api from '../../../utils/api';
 import './TasksWidget.css';
+import { formatDate } from '../../../utils/formatDate';
 
 const TasksWidget = ({ projectId, openPanel }) => {
+  const { t } = useTranslation();
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -36,7 +39,7 @@ const TasksWidget = ({ projectId, openPanel }) => {
     } catch (err) {
       console.error('Error fetching tasks:', err);
       setTasks([]);
-      setError('Failed to load tasks');
+      setError(t('errors.loading_tasks', { defaultValue: 'Failed to load tasks' }));
     } finally {
       setLoading(false);
     }
@@ -66,7 +69,10 @@ const TasksWidget = ({ projectId, openPanel }) => {
   };
 
   const getPriorityClass = (priority) => `priority-${(priority || 'medium').toLowerCase()}`;
-  const getPriorityLabel = (priority) => (priority || 'medium').toUpperCase();
+  const getPriorityLabel = (priority) => {
+    const key = (priority || 'medium').toLowerCase();
+    return t(`tasks.priority.${key}`, { defaultValue: (priority || 'medium').toUpperCase() });
+  };
 
   return (
     <div className="tasks-widget">
@@ -77,26 +83,26 @@ const TasksWidget = ({ projectId, openPanel }) => {
       <div className="widget-header">
         <h3 className="widget-title">
           <CheckSquare size={20} />
-          My Tasks
+          {t('tasks.my_tasks', { defaultValue: 'My Tasks' })}
         </h3>
         <div className="task-filters">
           <button
             className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => setFilter('all')}
           >
-            All
+            {t('tasks.filters.all', { defaultValue: 'All' })}
           </button>
           <button
             className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
             onClick={() => setFilter('active')}
           >
-            Active
+            {t('tasks.filters.active', { defaultValue: 'Active' })}
           </button>
           <button
             className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
             onClick={() => setFilter('completed')}
           >
-            Done
+            {t('tasks.filters.completed', { defaultValue: 'Done' })}
           </button>
         </div>
       </div>
@@ -105,13 +111,13 @@ const TasksWidget = ({ projectId, openPanel }) => {
         {loading ? (
           <div className="tasks-loading">
             <div className="spinner"></div>
-            <p>Loading tasks...</p>
+            <p>{t('tasks.loading', { defaultValue: 'Loading tasks...' })}</p>
           </div>
         ) : error ? (
           <div className="tasks-error">
             <AlertCircle size={24} />
             <p>{error}</p>
-            <button onClick={fetchTasks} className="retry-btn">Retry</button>
+            <button onClick={fetchTasks} className="retry-btn">{t('common.retry')}</button>
           </div>
         ) : tasks.length > 0 ? (
           tasks.map((task) => (
@@ -131,7 +137,7 @@ const TasksWidget = ({ projectId, openPanel }) => {
                     {getPriorityLabel(task.priority)}
                   </span>
                   {task.due_date && (
-                    <span className="task-due">{new Date(task.due_date).toLocaleDateString()}</span>
+                    <span className="task-due">{formatDate(task.due_date, 'P')}</span>
                   )}
                   {task.assigned_to && (
                     <span className="task-assignee">{task.assigned_to.first_name} {task.assigned_to.last_name}</span>
@@ -143,7 +149,7 @@ const TasksWidget = ({ projectId, openPanel }) => {
         ) : (
           <div className="no-tasks">
             <CheckSquare size={32} />
-            <p>No tasks found</p>
+            <p>{t('tasks.no_tasks_found', { defaultValue: 'No tasks found' })}</p>
           </div>
         )}
       </div>

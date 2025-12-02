@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, X, Filter, User, Calendar, Hash } from 'lucide-react';
 import './ChatMessageSearch.css';
 
@@ -13,6 +14,7 @@ import './ChatMessageSearch.css';
  * - Search result highlighting
  */
 const ChatMessageSearch = ({ onResultClick }) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -83,7 +85,7 @@ const ChatMessageSearch = ({ onResultClick }) => {
       );
 
       if (!response.ok) {
-        throw new Error('Search failed');
+  throw new Error('Search failed');
       }
 
       const data = await response.json();
@@ -98,7 +100,7 @@ const ChatMessageSearch = ({ onResultClick }) => {
 
     } catch (err) {
       console.error('Search error:', err);
-      setError(err.message);
+  setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -137,11 +139,11 @@ const ChatMessageSearch = ({ onResultClick }) => {
 
     if (diffHours < 1) {
       const diffMins = Math.floor(diffMs / (1000 * 60));
-      return `${diffMins}m ago`;
+      return t('time.minutes_ago', { count: diffMins, defaultValue: '{{count}}m ago' });
     } else if (diffHours < 24) {
-      return `${diffHours}h ago`;
+      return t('time.hours_ago', { count: diffHours, defaultValue: '{{count}}h ago' });
     } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
+      return t('time.days_ago', { count: diffDays, defaultValue: '{{count}}d ago' });
     } else {
       return date.toLocaleDateString();
     }
@@ -151,13 +153,13 @@ const ChatMessageSearch = ({ onResultClick }) => {
     <div className="chat-message-search">
       {/* Search Header */}
       <div className="search-header">
-        <h2>Search Messages</h2>
+        <h2>{t('chat.search.title', { defaultValue: 'Search Messages' })}</h2>
         <button
           className="filter-toggle"
           onClick={() => setShowFilters(!showFilters)}
         >
           <Filter size={20} />
-          Filters
+          {t('chat.search.filters', { defaultValue: 'Filters' })}
         </button>
       </div>
 
@@ -167,7 +169,7 @@ const ChatMessageSearch = ({ onResultClick }) => {
         <input
           type="text"
           className="search-input"
-          placeholder="Search messages..."
+          placeholder={t('chat.search.placeholder', { defaultValue: 'Search messages...' })}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -184,11 +186,11 @@ const ChatMessageSearch = ({ onResultClick }) => {
           <div className="filter-group">
             <label>
               <Hash size={16} />
-              Channel
+              {t('chat.search.channel', { defaultValue: 'Channel' })}
             </label>
             <input
               type="text"
-              placeholder="Channel ID"
+              placeholder={t('chat.search.channel_id_placeholder', { defaultValue: 'Channel ID' })}
               value={filters.channel}
               onChange={(e) =>
                 setFilters({ ...filters, channel: e.target.value })
@@ -199,11 +201,11 @@ const ChatMessageSearch = ({ onResultClick }) => {
           <div className="filter-group">
             <label>
               <User size={16} />
-              User
+              {t('chat.search.user', { defaultValue: 'User' })}
             </label>
             <input
               type="text"
-              placeholder="User ID"
+              placeholder={t('chat.search.user_id_placeholder', { defaultValue: 'User ID' })}
               value={filters.user}
               onChange={(e) =>
                 setFilters({ ...filters, user: e.target.value })
@@ -216,8 +218,7 @@ const ChatMessageSearch = ({ onResultClick }) => {
       {/* Search Stats */}
       {query && results.length > 0 && (
         <div className="search-stats">
-          Found {pagination.count} result{pagination.count !== 1 ? 's' : ''} for "
-          <strong>{query}</strong>"
+          {t('chat.search.found_results', { count: pagination.count, query, defaultValue: 'Found {{count}} result{{count, plural, one {} other {s}}} for "{{query}}"' })}
         </div>
       )}
 
@@ -225,15 +226,15 @@ const ChatMessageSearch = ({ onResultClick }) => {
       {loading && results.length === 0 && (
         <div className="search-loading">
           <div className="loading-spinner"></div>
-          <p>Searching...</p>
+          <p>{t('common.loading')}</p>
         </div>
       )}
 
       {/* Error State */}
       {error && (
         <div className="search-error">
-          <p>Error: {error}</p>
-          <button onClick={() => performSearch()}>Retry</button>
+          <p>{t('errors.search_failed', { defaultValue: 'Search failed' })}</p>
+          <button onClick={() => performSearch()}>{t('common.retry')}</button>
         </div>
       )}
 
@@ -241,8 +242,8 @@ const ChatMessageSearch = ({ onResultClick }) => {
       {!loading && query && results.length === 0 && !error && (
         <div className="no-results">
           <Search size={48} />
-          <p>No messages found for "{query}"</p>
-          <p className="hint">Try different keywords or adjust filters</p>
+          <p>{t('chat.search.no_results', { query, defaultValue: 'No messages found for "{{query}}"' })}</p>
+          <p className="hint">{t('chat.search.try_different_keywords', { defaultValue: 'Try different keywords or adjust filters' })}</p>
         </div>
       )}
 
@@ -268,13 +269,13 @@ const ChatMessageSearch = ({ onResultClick }) => {
                       {message.user?.username?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
-                  <span className="username">{message.user?.username || 'Unknown'}</span>
+                  <span className="username">{message.user?.username || t('common.unknown', { defaultValue: 'Unknown' })}</span>
                 </div>
 
                 <div className="message-meta">
                   <span className="channel-name">
                     <Hash size={14} />
-                    {message.channel?.name || `Channel ${message.channel_id}`}
+                    {message.channel?.name || t('chat.search.channel_with_id', { id: message.channel_id, defaultValue: 'Channel {{id}}' })}
                   </span>
                   <span className="timestamp">
                     <Calendar size={14} />
@@ -289,7 +290,7 @@ const ChatMessageSearch = ({ onResultClick }) => {
 
               {message.attachment && (
                 <div className="result-attachment">
-                  📎 Has attachment
+                  📎 {t('chat.search.has_attachment', { defaultValue: 'Has attachment' })}
                 </div>
               )}
             </div>
@@ -303,7 +304,7 @@ const ChatMessageSearch = ({ onResultClick }) => {
                 onClick={handleLoadMore}
                 disabled={loading}
               >
-                {loading ? 'Loading...' : 'Load More'}
+                {loading ? t('common.loading') : t('common.load_more', { defaultValue: 'Load More' })}
               </button>
             </div>
           )}
@@ -314,8 +315,8 @@ const ChatMessageSearch = ({ onResultClick }) => {
       {!query && results.length === 0 && (
         <div className="empty-state">
           <Search size={64} />
-          <p>Enter a search query to find messages</p>
-          <p className="hint">You can search across all your channels</p>
+          <p>{t('chat.search.enter_query', { defaultValue: 'Enter a search query to find messages' })}</p>
+          <p className="hint">{t('chat.search.search_across_channels', { defaultValue: 'You can search across all your channels' })}</p>
         </div>
       )}
     </div>

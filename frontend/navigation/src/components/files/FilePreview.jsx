@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText, Image, File, Download, Trash2 } from 'lucide-react';
 import './FilePreview.css';
 
 const FilePreview = ({ file, viewMode, onDelete, onDownload, formatSize, formatDate }) => {
+  const { t } = useTranslation();
   const getFileIcon = (type) => {
     if (type?.startsWith('image/')) return <Image size={24} />;
     if (type === 'application/pdf') return <FileText size={24} />;
@@ -30,7 +32,7 @@ const FilePreview = ({ file, viewMode, onDelete, onDownload, formatSize, formatD
             <span className="bullet">•</span>
             <span>{file.category}</span>
             <span className="bullet">•</span>
-            <span>by {file.uploaded_by?.username || file.uploaded_by}</span>
+            <span>{t('files.by_user', { user: (file.uploaded_by?.username || file.uploaded_by || t('common.unknown', { defaultValue: 'Unknown' })), defaultValue: 'by {{user}}' })}</span>
             <span className="bullet">•</span>
             <span>{formatDate(file.uploaded_at)}</span>
           </div>
@@ -40,14 +42,14 @@ const FilePreview = ({ file, viewMode, onDelete, onDownload, formatSize, formatD
           <button 
             className="file-action-btn download"
             onClick={onDownload}
-            title="Download"
+            title={t('files.download')}
           >
             <Download size={18} />
           </button>
           <button 
             className="file-action-btn delete"
             onClick={onDelete}
-            title="Delete"
+            title={t('common.delete')}
           >
             <Trash2 size={18} />
           </button>
@@ -69,7 +71,7 @@ const FilePreview = ({ file, viewMode, onDelete, onDownload, formatSize, formatD
           <span>{formatDate(file.uploaded_at)}</span>
         </div>
         <div className="file-grid-footer">
-          <span>{file.uploaded_by?.username || 'Unknown'}</span>
+          <span>{file.uploaded_by?.username || t('common.unknown', { defaultValue: 'Unknown' })}</span>
         </div>
       </div>
       
@@ -77,14 +79,14 @@ const FilePreview = ({ file, viewMode, onDelete, onDownload, formatSize, formatD
         <button 
           className="file-action-btn download"
           onClick={onDownload}
-          title="Download"
+          title={t('files.download')}
         >
           <Download size={16} />
         </button>
         <button 
           className="file-action-btn delete"
           onClick={onDelete}
-          title="Delete"
+          title={t('common.delete')}
         >
           <Trash2 size={16} />
         </button>

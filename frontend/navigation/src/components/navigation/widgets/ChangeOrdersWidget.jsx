@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText, Clock, CheckCircle, XCircle, GripVertical, DollarSign, ThumbsUp, ThumbsDown } from 'lucide-react';
 import * as api from '../../../utils/api';
+import formatCurrency from '../../../utils/formatCurrency';
 import './ChangeOrdersWidget.css';
 
 const ChangeOrdersWidget = ({ projectId }) => {
+  const { t } = useTranslation();
   const [changeOrders, setChangeOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,9 +27,9 @@ const ChangeOrdersWidget = ({ projectId }) => {
       const data = await api.get(`/changeorders/?${params.toString()}`);
       setChangeOrders(data.results || data);
     } catch (err) {
-      console.error('Error fetching change orders:', err);
-      setChangeOrders([]);
-      setError('Failed to load change orders');
+  console.error('Error fetching change orders:', err);
+  setChangeOrders([]);
+  setError(t('errors.server_error'));
     } finally {
       setLoading(false);
     }
@@ -34,7 +37,7 @@ const ChangeOrdersWidget = ({ projectId }) => {
 
   const handleApprove = async (coId) => {
     try {
-      await api.post(`/changeorders/${coId}/approve/`, { notes: 'Approved' });
+  await api.post(`/changeorders/${coId}/approve/`, { notes: t('common.approved_note', { defaultValue: 'Approved' }) });
       fetchChangeOrders();
     } catch (err) {
       console.error('Error approving change order:', err);
@@ -43,7 +46,7 @@ const ChangeOrdersWidget = ({ projectId }) => {
 
   const handleReject = async (coId) => {
     try {
-      await api.post(`/changeorders/${coId}/reject/`, { notes: 'Rejected' });
+  await api.post(`/changeorders/${coId}/reject/`, { notes: t('common.rejected_note', { defaultValue: 'Rejected' }) });
       fetchChangeOrders();
     } catch (err) {
       console.error('Error rejecting change order:', err);
@@ -61,12 +64,7 @@ const ChangeOrdersWidget = ({ projectId }) => {
     }
   };
 
-  const formatCurrency = (amount) => 
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount);
+  const fmtCurrency = (amount) => formatCurrency(amount, { currency: 'USD' });
 
   return (
     <div className="changeorders-widget">
@@ -77,21 +75,21 @@ const ChangeOrdersWidget = ({ projectId }) => {
       <div className="widget-header">
         <h3 className="widget-title">
           <FileText size={20} />
-          Change Orders
+          {t('reports.change_orders', { defaultValue: 'Change Orders' })}
         </h3>
       </div>
 
       <div className="changeorders-list">
         {loading ? (
-          <div className="changeorders-loading">
+            <div className="changeorders-loading">
             <div className="spinner"></div>
-            <p>Loading change orders...</p>
+            <p>{t('common.loading')}</p>
           </div>
         ) : error ? (
           <div className="changeorders-error">
             <XCircle size={24} />
             <p>{error}</p>
-            <button onClick={fetchChangeOrders} className="retry-btn">Retry</button>
+            <button onClick={fetchChangeOrders} className="retry-btn">{t('common.retry')}</button>
           </div>
         ) : changeOrders.length > 0 ? (
           changeOrders.map((co) => (
@@ -110,17 +108,17 @@ const ChangeOrdersWidget = ({ projectId }) => {
               <div className="changeorder-footer">
                 <div className="changeorder-amount">
                   <DollarSign size={14} />
-                  <span>{formatCurrency(co.amount || 0)}</span>
+                  <span>{fmtCurrency(co.amount || 0)}</span>
                 </div>
                 <div className="changeorder-date">{new Date(co.submitted_date || co.created_at).toLocaleDateString()}</div>
               </div>
               {(co.status || '').toLowerCase() === 'pending' && (
                 <div className="changeorder-actions">
-                  <button onClick={() => handleApprove(co.id)} className="btn-approve" title="Approve">
-                    <ThumbsUp size={14} /> Approve
+                  <button onClick={() => handleApprove(co.id)} className="btn-approve" title={t('common.approve')}>
+                    <ThumbsUp size={14} /> {t('common.approve')}
                   </button>
-                  <button onClick={() => handleReject(co.id)} className="btn-reject" title="Reject">
-                    <ThumbsDown size={14} /> Reject
+                  <button onClick={() => handleReject(co.id)} className="btn-reject" title={t('common.reject')}>
+                    <ThumbsDown size={14} /> {t('common.reject')}
                   </button>
                 </div>
               )}
@@ -129,7 +127,7 @@ const ChangeOrdersWidget = ({ projectId }) => {
         ) : (
           <div className="no-changeorders">
             <FileText size={24} />
-            <p>No change orders</p>
+            <p>{t('reports.no_change_orders', { defaultValue: 'No change orders' })}</p>
           </div>
         )}
       </div>

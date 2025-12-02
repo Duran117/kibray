@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Activity, Users, MessageSquare, AlertCircle, Clock, TrendingUp, Zap } from 'lucide-react';
 import './WebSocketMetricsDashboard.css';
 
@@ -16,6 +17,7 @@ import './WebSocketMetricsDashboard.css';
  * - Auto-refresh every 5 seconds
  */
 const WebSocketMetricsDashboard = () => {
+  const { t } = useTranslation();
   const [metrics, setMetrics] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ const WebSocketMetricsDashboard = () => {
     return (
       <div className="metrics-dashboard loading">
         <div className="loading-spinner"></div>
-        <p>Loading metrics...</p>
+        <p>{t('metrics.loading', { defaultValue: 'Loading metrics...' })}</p>
       </div>
     );
   }
@@ -111,8 +113,8 @@ const WebSocketMetricsDashboard = () => {
     return (
       <div className="metrics-dashboard error">
         <AlertCircle size={48} />
-        <p>Failed to load metrics: {error}</p>
-        <button onClick={fetchMetrics}>Retry</button>
+        <p>{t('errors.loading_metrics', { defaultValue: 'Failed to load metrics' })}: {error}</p>
+        <button onClick={fetchMetrics}>{t('common.retry')}</button>
       </div>
     );
   }
@@ -133,15 +135,15 @@ const WebSocketMetricsDashboard = () => {
         <div className="header-left">
           <Activity size={32} />
           <div>
-            <h1>WebSocket Metrics</h1>
-            <p className="subtitle">Real-time monitoring dashboard</p>
+            <h1>{t('metrics.title', { defaultValue: 'WebSocket Metrics' })}</h1>
+            <p className="subtitle">{t('metrics.subtitle', { defaultValue: 'Real-time monitoring dashboard' })}</p>
           </div>
         </div>
         
         <div className="header-right">
           <div className="uptime-badge">
             <Clock size={16} />
-            <span>Uptime: {formatUptime(uptime_seconds || 0)}</span>
+            <span>{t('metrics.uptime', { time: formatUptime(uptime_seconds || 0), defaultValue: 'Uptime: {{time}}' })}</span>
           </div>
           
           <button
@@ -149,11 +151,11 @@ const WebSocketMetricsDashboard = () => {
             onClick={toggleAutoRefresh}
           >
             <Zap size={16} />
-            {autoRefresh ? 'Auto-Refresh ON' : 'Auto-Refresh OFF'}
+            {autoRefresh ? t('metrics.auto_refresh_on', { defaultValue: 'Auto-Refresh ON' }) : t('metrics.auto_refresh_off', { defaultValue: 'Auto-Refresh OFF' })}
           </button>
           
           <button className="refresh-btn" onClick={fetchMetrics}>
-            Refresh Now
+            {t('metrics.refresh_now', { defaultValue: 'Refresh Now' })}
           </button>
         </div>
       </div>

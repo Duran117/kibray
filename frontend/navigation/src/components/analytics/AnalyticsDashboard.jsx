@@ -4,8 +4,10 @@ import KPICard from './KPICard';
 import * as api from '../../utils/api';
 import { TrendingUp, DollarSign, Users, Clock, BarChart3, Download, AlertCircle } from 'lucide-react';
 import './AnalyticsDashboard.css';
+import { useTranslation } from 'react-i18next';
 
 const AnalyticsDashboard = () => {
+  const { t } = useTranslation();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [timeRange, setTimeRange] = useState('30d');
   const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ const AnalyticsDashboard = () => {
       setAnalyticsData(data);
     } catch (err) {
       console.error('Error fetching analytics:', err);
-      setError('Failed to load dashboard data. Please try again.');
+      setError(t('analytics.error_loading', 'Failed to load dashboard data. Please try again.'));
       setAnalyticsData(null);
     } finally {
       setLoading(false);
@@ -38,7 +40,7 @@ const AnalyticsDashboard = () => {
     return (
       <div className="analytics-loading">
         <div className="spinner"></div>
-        <p>Loading analytics...</p>
+        <p>{t('analytics.loading', 'Loading analytics...')}</p>
       </div>
     );
   }
@@ -47,10 +49,10 @@ const AnalyticsDashboard = () => {
     return (
       <div className="analytics-error">
         <AlertCircle size={48} />
-        <h3>Error Loading Dashboard</h3>
+        <h3>{t('analytics.error_title', 'Error Loading Dashboard')}</h3>
         <p>{error}</p>
         <button onClick={fetchAnalytics} className="retry-btn">
-          Retry
+          {t('common.retry', 'Retry')}
         </button>
       </div>
     );
@@ -60,8 +62,8 @@ const AnalyticsDashboard = () => {
     return (
       <div className="analytics-error">
         <BarChart3 size={48} />
-        <h3>No Data Available</h3>
-        <p>Analytics data is not available at this time.</p>
+        <h3>{t('analytics.no_data_title', 'No Data Available')}</h3>
+        <p>{t('analytics.no_data_message', 'Analytics data is not available at this time.')}</p>
       </div>
     );
   }
@@ -71,7 +73,7 @@ const AnalyticsDashboard = () => {
       <div className="analytics-header">
         <div className="analytics-title-section">
           <BarChart3 size={28} />
-          <h1 className="analytics-title">Analytics Dashboard</h1>
+          <h1 className="analytics-title">{t('analytics.title', 'Analytics Dashboard')}</h1>
         </div>
         <div className="analytics-controls">
           <select 
@@ -79,42 +81,42 @@ const AnalyticsDashboard = () => {
             value={timeRange} 
             onChange={e => setTimeRange(e.target.value)}
           >
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="90d">Last 90 Days</option>
-            <option value="1y">Last Year</option>
+            <option value="7d">{t('analytics.time_ranges.7d', 'Last 7 Days')}</option>
+            <option value="30d">{t('analytics.time_ranges.30d', 'Last 30 Days')}</option>
+            <option value="90d">{t('analytics.time_ranges.90d', 'Last 90 Days')}</option>
+            <option value="1y">{t('analytics.time_ranges.1y', 'Last Year')}</option>
           </select>
           <button className="export-btn" onClick={handleExport}>
             <Download size={18} />
-            Export Report
+            {t('analytics.export_report', 'Export Report')}
           </button>
         </div>
       </div>
 
       <div className="kpi-grid">
         <KPICard
-          title="Total Revenue"
+          title={t('analytics.kpis.total_revenue', 'Total Revenue')}
           value={`$${((analyticsData.kpis.total_revenue || analyticsData.kpis.totalRevenue || 0) / 1000000).toFixed(2)}M`}
           icon={<DollarSign size={24} />}
           trend={{ value: 12, direction: 'up' }}
           color="green"
         />
         <KPICard
-          title="Active Projects"
+          title={t('analytics.kpis.active_projects', 'Active Projects')}
           value={analyticsData.kpis.active_projects || analyticsData.kpis.activeProjects || 0}
           icon={<BarChart3 size={24} />}
           trend={{ value: 8, direction: 'up' }}
           color="blue"
         />
         <KPICard
-          title="Team Members"
+          title={t('analytics.kpis.team_members', 'Team Members')}
           value={analyticsData.kpis.team_members || analyticsData.kpis.teamMembers || 0}
           icon={<Users size={24} />}
           trend={{ value: 5, direction: 'up' }}
           color="purple"
         />
         <KPICard
-          title="Avg Completion"
+          title={t('analytics.kpis.avg_completion', 'Avg Completion')}
           value={`${analyticsData.kpis.avg_completion || analyticsData.kpis.avgCompletion || 0}%`}
           icon={<Clock size={24} />}
           trend={{ value: 3, direction: 'down' }}
@@ -126,7 +128,7 @@ const AnalyticsDashboard = () => {
         <div className="charts-grid">
           {analyticsData.budgetChart && (
             <ChartWidget
-              title="Budget vs Actual"
+              title={t('analytics.charts.budget_vs_actual', 'Budget vs Actual')}
               type="line"
               data={analyticsData.budgetChart}
               height={300}
@@ -134,7 +136,7 @@ const AnalyticsDashboard = () => {
           )}
           {analyticsData.projectProgress && (
             <ChartWidget
-              title="Project Status"
+              title={t('analytics.charts.project_status', 'Project Status')}
               type="doughnut"
               data={analyticsData.projectProgress}
               height={300}
@@ -142,7 +144,7 @@ const AnalyticsDashboard = () => {
           )}
           {analyticsData.taskDistribution && (
             <ChartWidget
-              title="Task Distribution"
+              title={t('analytics.charts.task_distribution', 'Task Distribution')}
               type="bar"
               data={analyticsData.taskDistribution}
               height={300}
@@ -150,7 +152,7 @@ const AnalyticsDashboard = () => {
           )}
           {analyticsData.monthlyTrends && (
             <ChartWidget
-              title="Monthly Trends"
+              title={t('analytics.charts.monthly_trends', 'Monthly Trends')}
               type="line"
               data={analyticsData.monthlyTrends}
               height={300}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ColorApproval {
   id: number;
@@ -17,6 +18,7 @@ interface ColorApproval {
 }
 
 export default function ColorApprovals() {
+  const { t } = useTranslation();
   const [approvals, setApprovals] = useState<ColorApproval[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export default function ColorApprovals() {
       const data = await res.json();
       setApprovals(data.results || data);
     } catch (e: any) {
-      setError(e.message || 'Error loading approvals');
+      setError(e.message || t('color_approvals.errors.loading', 'Error loading approvals'));
     } finally {
       setLoading(false);
     }
@@ -81,7 +83,7 @@ export default function ColorApprovals() {
       setFormData({ project: '', color_name: '', color_code: '', brand: '', location: '', notes: '' });
       fetchApprovals();
     } catch (e: any) {
-      setError(e.message || 'Error creating approval request');
+      setError(e.message || t('color_approvals.errors.create', 'Error creating approval request'));
     } finally {
       setLoading(false);
     }
@@ -102,7 +104,7 @@ export default function ColorApprovals() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       fetchApprovals();
     } catch (e: any) {
-      setError(e.message || 'Error approving');
+      setError(e.message || t('color_approvals.errors.approve', 'Error approving'));
     } finally {
       setLoading(false);
     }
@@ -124,7 +126,7 @@ export default function ColorApprovals() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       fetchApprovals();
     } catch (e: any) {
-      setError(e.message || 'Error rejecting');
+      setError(e.message || t('color_approvals.errors.reject', 'Error rejecting'));
     } finally {
       setLoading(false);
     }
@@ -141,10 +143,10 @@ export default function ColorApprovals() {
 
   return (
     <div className="color-approvals" style={{ padding: 20 }}>
-      <h2>Color Approvals</h2>
+      <h2>{t('color_approvals.title', 'Color Approvals')}</h2>
       <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
         <input
-          placeholder="Project ID"
+          placeholder={t('color_approvals.filters.project_id', 'Project ID')}
           value={filter.project}
           onChange={(e) => setFilter({ ...filter, project: e.target.value })}
           style={{ padding: '6px 8px' }}
@@ -154,22 +156,22 @@ export default function ColorApprovals() {
           onChange={(e) => setFilter({ ...filter, status: e.target.value })}
           style={{ padding: '6px 8px' }}
         >
-          <option value="">All statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="APPROVED">Approved</option>
-          <option value="REJECTED">Rejected</option>
+          <option value="">{t('color_approvals.filters.all_statuses', 'All statuses')}</option>
+          <option value="PENDING">{t('common.pending', 'Pending')}</option>
+          <option value="APPROVED">{t('common.approved_note', 'Approved')}</option>
+          <option value="REJECTED">{t('common.rejected_note', 'Rejected')}</option>
         </select>
         <input
-          placeholder="Brand"
+          placeholder={t('color_approvals.filters.brand', 'Brand')}
           value={filter.brand}
           onChange={(e) => setFilter({ ...filter, brand: e.target.value })}
           style={{ padding: '6px 8px' }}
         />
         <button onClick={fetchApprovals} disabled={loading}>
-          Refresh
+          {t('common.refresh', 'Refresh')}
         </button>
         <button onClick={() => setShowRequestForm(!showRequestForm)} style={{ marginLeft: 'auto' }}>
-          + Request Approval
+          {t('color_approvals.actions.request_approval', '+ Request Approval')}
         </button>
       </div>
 
@@ -177,46 +179,46 @@ export default function ColorApprovals() {
 
       {showRequestForm && (
         <form onSubmit={handleRequestSubmit} style={{ background: '#f9f9f9', padding: 12, borderRadius: 8, marginBottom: 16 }}>
-          <h3>New Approval Request</h3>
+          <h3>{t('color_approvals.form.new_request_title', 'New Approval Request')}</h3>
           <div style={{ display: 'grid', gap: 8 }}>
             <input
-              placeholder="Project ID"
+              placeholder={t('color_approvals.form.fields.project_id', 'Project ID')}
               value={formData.project}
               onChange={(e) => setFormData({ ...formData, project: e.target.value })}
               required
             />
             <input
-              placeholder="Color Name"
+              placeholder={t('color_approvals.form.fields.color_name', 'Color Name')}
               value={formData.color_name}
               onChange={(e) => setFormData({ ...formData, color_name: e.target.value })}
               required
             />
             <input
-              placeholder="Color Code"
+              placeholder={t('color_approvals.form.fields.color_code', 'Color Code')}
               value={formData.color_code}
               onChange={(e) => setFormData({ ...formData, color_code: e.target.value })}
             />
             <input
-              placeholder="Brand"
+              placeholder={t('color_approvals.form.fields.brand', 'Brand')}
               value={formData.brand}
               onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
             />
             <input
-              placeholder="Location"
+              placeholder={t('color_approvals.form.fields.location', 'Location')}
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
             />
             <textarea
-              placeholder="Notes"
+              placeholder={t('color_approvals.form.fields.notes', 'Notes')}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             />
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="submit" disabled={loading}>
-                Submit
+                {t('color_approvals.form.submit', 'Submit')}
               </button>
               <button type="button" onClick={() => setShowRequestForm(false)}>
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
             </div>
           </div>
@@ -233,9 +235,9 @@ export default function ColorApprovals() {
                 </strong>{' '}
                 - {approval.brand}
                 <div style={{ fontSize: 12, color: '#666' }}>
-                  Location: {approval.location} | Status: <strong>{approval.status}</strong>
+                  {t('color_approvals.labels.location', 'Location')}: {approval.location} | {t('color_approvals.labels.status', 'Status')}: <strong>{approval.status}</strong>
                 </div>
-                <div style={{ fontSize: 12, color: '#666' }}>Created: {new Date(approval.created_at).toLocaleString()}</div>
+                <div style={{ fontSize: 12, color: '#666' }}>{t('color_approvals.labels.created', 'Created')}: {new Date(approval.created_at).toLocaleString()}</div>
                 {approval.notes && <div style={{ fontSize: 12, marginTop: 4 }}>{approval.notes}</div>}
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
@@ -248,16 +250,16 @@ export default function ColorApprovals() {
                       }}
                       style={{ fontSize: 12 }}
                     >
-                      Approve
+                      {t('common.approve', 'Approve')}
                     </button>
                     <button
                       onClick={() => {
-                        const reason = prompt('Rejection reason:');
+                        const reason = prompt(t('color_approvals.prompts.rejection_reason', 'Rejection reason:'));
                         if (reason) handleReject(approval.id, reason);
                       }}
                       style={{ fontSize: 12 }}
                     >
-                      Reject
+                      {t('common.reject', 'Reject')}
                     </button>
                   </>
                 )}

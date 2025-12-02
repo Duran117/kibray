@@ -28,7 +28,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone, translation
-from django.utils.translation import gettext_lazy as _, gettext
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core import signing
 from xhtml2pdf import pisa
@@ -1094,9 +1094,9 @@ def payroll_weekly_review(request):
         elif action == "approve_period":
             try:
                 period.approve(request.user, skip_validation=False)
-                messages.success(request, _("Nómina de la semana %(start)s - %(end)s aprobada.") % {"start": week_start, "end": week_end})
+                messages.success(request, f"Nómina de la semana {week_start} - {week_end} aprobada.")
             except Exception as e:
-                messages.error(request, _("No se pudo aprobar: %(error)s") % {"error": e})
+                messages.error(request, f"No se pudo aprobar: {e}")
             return redirect("payroll_weekly_review")
 
     context = {
@@ -1145,7 +1145,7 @@ def payroll_record_payment(request, record_id):
                 recorded_by=request.user,
             )
 
-            messages.success(request, _("Pago de $%(amount)s registrado para %(employee)s.") % {"amount": amount, "employee": record.employee})
+            messages.success(request, f"Pago de ${amount} registrado para {record.employee}.")
 
             # Redirigir de vuelta a la revisión semanal
             return redirect("payroll_weekly_review")
@@ -1401,7 +1401,7 @@ def color_sample_review(request, sample_id):
                     notify_color_approved(inst, request.user)
                 elif old_status != requested_status:
                     notify_color_review(inst, request.user)
-                messages.success(request, _("Estado actualizado a %(status)s") % {"status": inst.get_status_display()})
+                messages.success(request, f"Estado actualizado a {inst.get_status_display()}")
             return redirect("color_sample_detail", sample_id=sample.id)
     else:
         form = ColorSampleReviewForm(instance=sample)
@@ -1420,7 +1420,7 @@ def color_sample_review(request, sample_id):
 def color_sample_quick_action(request, sample_id):
     """Quick approve/reject color sample (staff only, AJAX)."""
     if not request.user.is_staff:
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     sample = get_object_or_404(ColorSample, id=sample_id)
 
@@ -1444,7 +1444,7 @@ def color_sample_quick_action(request, sample_id):
         elif action == "reject":
             reason = request.POST.get("reason", "").strip()
             if not reason:
-                return JsonResponse({"error": gettext("Razón de rechazo requerida")}, status=400)
+                return JsonResponse({"error": "Razón de rechazo requerida"}, status=400)
             sample.reject(request.user, reason)
             return JsonResponse(
                 {
@@ -1455,7 +1455,7 @@ def color_sample_quick_action(request, sample_id):
                 }
             )
 
-    return JsonResponse({"error": gettext("Acción inválida")}, status=400)
+    return JsonResponse({"error": "Acción inválida"}, status=400)
 
 
 @login_required
@@ -1844,7 +1844,7 @@ def agregar_tarea(request, project_id):
 
         notify_task_created(task, request.user)
 
-        messages.success(request, _("Tarea '%(title)s' creada exitosamente. El PM será notificado.") % {"title": title})
+        messages.success(request, f"Tarea '{title}' creada exitosamente. El PM será notificado.")
         return redirect("client_project_view", project_id=project_id)
 
 
@@ -1941,13 +1941,13 @@ def touchup_board(request, project_id):
 def touchup_quick_update(request, task_id):
     """AJAX endpoint for quick status/assignment updates on touch-up board."""
     if request.method != "POST":
-        return JsonResponse({"error": gettext("POST required")}, status=405)
+        return JsonResponse({"error": "POST required"}, status=405)
 
     task = get_object_or_404(Task, id=task_id, is_touchup=True)
 
     # Check permission
     if not (request.user.is_staff or task.project.client == request.user.username):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     action = request.POST.get("action")
 
@@ -1972,7 +1972,7 @@ def touchup_quick_update(request, task_id):
             task.save()
             return JsonResponse({"success": True, "assigned_to": "Sin asignar"})
 
-    return JsonResponse({"error": gettext("Acción inválida")}, status=400)
+    return JsonResponse({"error": "Acción inválida"}, status=400)
 
 
 @login_required
@@ -1997,7 +1997,7 @@ def damage_report_list(request, project_id):
             for photo_file in photos:
                 DamagePhoto.objects.create(report=report, image=photo_file, notes=request.POST.get("photo_notes", ""))
 
-            messages.success(request, _("Reporte creado con %(count)s foto(s)") % {"count": len(photos)})
+            messages.success(request, f"Reporte creado con {len(photos)} foto(s)")
             return redirect("damage_report_detail", report_id=report.id)
     else:
         form = DamageReportForm(project)
@@ -2116,12 +2116,12 @@ def damage_report_add_photos(request, report_id):
 
     # Check permission
     if not (request.user.is_staff or request.user == report.reported_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     if request.method == "POST":
         photos = request.FILES.getlist("photos")
         if not photos:
-            return JsonResponse({"error": gettext("No se enviaron fotos")}, status=400)
+            return JsonResponse({"error": "No se enviaron fotos"}, status=400)
 
         # Create DamagePhoto for each uploaded image
         created_count = 0
@@ -2134,7 +2134,7 @@ def damage_report_add_photos(request, report_id):
             {"success": True, "count": created_count, "message": f"{created_count} foto(s) agregada(s) correctamente"}
         )
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 @login_required
@@ -2145,7 +2145,7 @@ def damage_report_update_status(request, report_id):
     # Check permission (staff or superintendent)
     profile = getattr(request.user, "profile", None)
     if not (request.user.is_staff or (profile and profile.role == "superintendent")):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     if request.method == "POST":
         new_status = request.POST.get("status")
@@ -2163,7 +2163,7 @@ def damage_report_update_status(request, report_id):
             {"success": True, "status": report.get_status_display(), "severity": report.get_severity_display()}
         )
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 @login_required
@@ -2244,7 +2244,7 @@ def project_chat_room(request, project_id, channel_id):
             try:
                 u = DjangoUser.objects.get(username=username)
                 channel.participants.add(u)
-                messages.success(request, _("%(username)s invitado.") % {"username": username})
+                messages.success(request, f"{username} invitado.")
                 return redirect("project_chat_room", project_id=project.id, channel_id=channel.id)
             except DjangoUser.DoesNotExist:
                 messages.error(request, "Usuario no encontrado.")
@@ -2713,7 +2713,7 @@ def unassigned_timeentries_view(request):
                 messages.error(request, "Selecciona registros del mismo proyecto que el CO elegido.")
                 return redirect(request.get_full_path())
             updated = TimeEntry.objects.filter(id__in=selected_ids, change_order__isnull=True).update(change_order=co)
-            messages.success(request, _("%(count)s registros asignados al CO #%(co_id)s.") % {"count": updated, "co_id": co.id})
+            messages.success(request, f"{updated} registros asignados al CO #{co.id}.")
             return redirect(request.get_full_path())
         elif action == "create_and_assign" and selected_ids:
             # Crear un nuevo CO rápido
@@ -2742,7 +2742,7 @@ def unassigned_timeentries_view(request):
                 updated = TimeEntry.objects.filter(id__in=selected_ids, change_order__isnull=True).update(
                     change_order=co
                 )
-                messages.success(request, _("CO #%(co_id)s creado y %(count)s registros asignados.") % {"co_id": co.id, "count": updated})
+                messages.success(request, f"CO #{co.id} creado y {updated} registros asignados.")
             return redirect(request.get_full_path())
 
     # Paginación ligera
@@ -3357,7 +3357,7 @@ def record_invoice_payment(request, invoice_id):
             return redirect("invoice_payment_dashboard")
 
         except (ValueError, ValidationError) as e:
-            messages.error(request, _("Error: %(error)s") % {"error": e})
+            messages.error(request, f"Error: {e}")
             return redirect("invoice_detail", pk=invoice.id)
 
     # GET: show form
@@ -3378,9 +3378,9 @@ def invoice_mark_sent(request, invoice_id):
         invoice.sent_date = timezone.now()
         invoice.sent_by = request.user
         invoice.save()
-        messages.success(request, _("✅ Factura %(invoice_number)s marcada como ENVIADA.") % {"invoice_number": invoice.invoice_number})
+        messages.success(request, f"✅ Factura {invoice.invoice_number} marcada como ENVIADA.")
     else:
-        messages.warning(request, _("La factura ya tiene status: %(status)s") % {"status": invoice.get_status_display()})
+        messages.warning(request, f"La factura ya tiene status: {invoice.get_status_display()}")
 
     return redirect("invoice_detail", pk=invoice.id)
 
@@ -3395,9 +3395,9 @@ def invoice_mark_approved(request, invoice_id):
         invoice.status = "APPROVED"
         invoice.approved_date = timezone.now()
         invoice.save()
-        messages.success(request, _("✅ Factura %(invoice_number)s marcada como APROBADA.") % {"invoice_number": invoice.invoice_number})
+        messages.success(request, f"✅ Factura {invoice.invoice_number} marcada como APROBADA.")
     else:
-        messages.warning(request, _("La factura ya tiene status: %(status)s") % {"status": invoice.get_status_display()})
+        messages.warning(request, f"La factura ya tiene status: {invoice.get_status_display()}")
 
     return redirect("invoice_detail", pk=invoice.id)
 
@@ -3638,7 +3638,7 @@ def estimate_send_email(request, estimate_id):
             except Exception as e:
                 success_flag = False
                 error_msg = str(e)
-                messages.error(request, _("Error enviando correo: %(error)s") % {"error": e})
+                messages.error(request, f"Error enviando correo: {e}")
 
             # Log persistente
             from core.models import ProposalEmailLog
@@ -3722,7 +3722,7 @@ def daily_log_view(request, project_id):
                 )
                 dl.photos.add(photo)
 
-            messages.success(request, _("Daily Log creado para %(date)s") % {"date": dl.date})
+            messages.success(request, f"Daily Log creado para {dl.date}")
             return redirect("daily_log_detail", log_id=dl.id)
     else:
         form = DailyLogForm(project=project) if can_create else None
@@ -3845,9 +3845,9 @@ def project_activation_view(request, project_id):
                     return redirect("project_overview", project_id=project.id)
                     
             except ValueError as e:
-                messages.error(request, _("Error de validación: %(error)s") % {"error": str(e)})
+                messages.error(request, f"Error de validación: {str(e)}")
             except Exception as e:
-                messages.error(request, _("Error al activar proyecto: %(error)s") % {"error": str(e)})
+                messages.error(request, f"Error al activar proyecto: {str(e)}")
     else:
         form = ActivationWizardForm(estimate=estimate)
     
@@ -3907,7 +3907,7 @@ def daily_log_detail(request, log_id):
         for photo_file in photos:
             photo = DailyLogPhoto.objects.create(image=photo_file, caption=caption, uploaded_by=request.user)
             log.photos.add(photo)
-        messages.success(request, _("%(count)s foto(s) agregada(s)") % {"count": len(photos)})
+        messages.success(request, f"{len(photos)} foto(s) agregada(s)")
         return redirect("daily_log_detail", log_id=log.id)
 
     context = {
@@ -4747,7 +4747,7 @@ def dashboard_employee(request):
                     notes=form.cleaned_data.get("notes") or "",
                     cost_code=form.cleaned_data.get("cost_code"),
                 )
-                messages.success(request, _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime('%H:%M')})
+                messages.success(request, f"✓ Entrada registrada a las {now.strftime('%H:%M')}.")
                 return redirect("dashboard_employee")
 
         elif action == "clock_out":
@@ -4938,7 +4938,7 @@ def pm_select_project(request, action: str):
         }.get(action)
 
         if not target:
-            messages.error(request, _("Acción no soportada: %(action)s") % {"action": action})
+            messages.error(request, f"Acción no soportada: {action}")
             return render(request, "core/pm_select_project.html", {"action": action, "projects": projects})
 
         return redirect(reverse(target, args=[pid]))
@@ -5444,19 +5444,19 @@ def task_list_all(request):
 def task_start_tracking(request, task_id):
     """AJAX endpoint to start time tracking on a task."""
     if request.method != "POST":
-        return JsonResponse({"error": gettext("POST required")}, status=405)
+        return JsonResponse({"error": "POST required"}, status=405)
 
     task = get_object_or_404(Task, id=task_id)
 
     # Check permission
     if not (request.user.is_staff or task.assigned_to == request.user):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     # Check if task can start (dependencies)
     if not task.can_start():
         incomplete_deps = task.dependencies.filter(status__in=["pending", "in_progress"])
         dep_names = ", ".join([d.title for d in incomplete_deps])
-        return JsonResponse({"error": gettext("No se puede iniciar. Dependencias incompletas: %(deps)s") % {"deps": dep_names}}, status=400)
+        return JsonResponse({"error": f"No se puede iniciar. Dependencias incompletas: {dep_names}"}, status=400)
 
     # Start tracking
     if task.start_tracking():
@@ -5468,20 +5468,20 @@ def task_start_tracking(request, task_id):
             }
         )
     else:
-        return JsonResponse({"error": gettext("Ya hay un seguimiento activo")}, status=400)
+        return JsonResponse({"error": "Ya hay un seguimiento activo"}, status=400)
 
 
 @login_required
 def task_stop_tracking(request, task_id):
     """AJAX endpoint to stop time tracking on a task."""
     if request.method != "POST":
-        return JsonResponse({"error": gettext("POST required")}, status=405)
+        return JsonResponse({"error": "POST required"}, status=405)
 
     task = get_object_or_404(Task, id=task_id)
 
     # Check permission
     if not (request.user.is_staff or task.assigned_to == request.user):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     # Stop tracking
     elapsed = task.stop_tracking()
@@ -5495,7 +5495,7 @@ def task_stop_tracking(request, task_id):
             }
         )
     else:
-        return JsonResponse({"error": gettext("No hay seguimiento activo")}, status=400)
+        return JsonResponse({"error": "No hay seguimiento activo"}, status=400)
 
 
 # ===========================
@@ -5507,10 +5507,10 @@ def task_stop_tracking(request, task_id):
 def daily_plan_fetch_weather(request, plan_id):
     """AJAX endpoint to fetch weather for a daily plan (Q12.8)."""
     if request.method != "POST":
-        return JsonResponse({"error": gettext("POST required")}, status=405)
+        return JsonResponse({"error": "POST required"}, status=405)
 
     if not _is_staffish(request.user):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     plan = get_object_or_404(DailyPlan, id=plan_id)
 
@@ -5526,23 +5526,23 @@ def daily_plan_fetch_weather(request, plan_id):
             }
         )
     else:
-        return JsonResponse({"error": gettext("No se pudo obtener el clima. Verifique la ubicación del proyecto.")}, status=400)
+        return JsonResponse({"error": "No se pudo obtener el clima. Verifique la ubicación del proyecto."}, status=400)
 
 
 @login_required
 def daily_plan_convert_activities(request, plan_id):
     """Convert planned activities to tasks (Q12.2)."""
     if request.method != "POST":
-        return JsonResponse({"error": gettext("POST required")}, status=405)
+        return JsonResponse({"error": "POST required"}, status=405)
 
     if not _is_staffish(request.user):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     plan = get_object_or_404(DailyPlan, id=plan_id)
 
     # Can only convert if status is PUBLISHED
     if plan.status != "PUBLISHED":
-        return JsonResponse({"error": gettext("Solo se pueden convertir planes en estado PUBLISHED")}, status=400)
+        return JsonResponse({"error": "Solo se pueden convertir planes en estado PUBLISHED"}, status=400)
 
     # Convert activities to tasks
     created_tasks = plan.convert_activities_to_tasks()
@@ -5857,7 +5857,7 @@ def materials_receive_ticket_view(request, request_id):
                     item.item_status = "received_partial"
                 item.save(update_fields=["qty_received", "item_status"])
 
-        messages.success(request, _("Ticket procesado. %(count)s ítem(s) recibido(s).") % {"count": len(items_data)})
+        messages.success(request, f"Ticket procesado. {len(items_data)} ítem(s) recibido(s).")
         return redirect("materials_request_detail", request_id=mat_request.id)
 
     # GET: mostrar checklist
@@ -5977,7 +5977,7 @@ def materials_direct_purchase_view(request, project_id):
                 )
                 move.apply()
 
-        messages.success(request, _("Compra directa registrada. %(count)s ítem(s) agregado(s) al inventario.") % {"count": len(items_data)})
+        messages.success(request, f"Compra directa registrada. {len(items_data)} ítem(s) agregado(s) al inventario.")
         return redirect("inventory_view", project_id=project.id)
 
     # GET: mostrar formulario dinámico
@@ -6032,7 +6032,7 @@ def materials_mark_ordered_view(request, request_id):
 
     mat_request.items.filter(item_status="pending").update(item_status="ordered")
 
-    messages.success(request, _("Solicitud #%(id)s marcada como ordenada.") % {"id": mat_request.id})
+    messages.success(request, f"Solicitud #{mat_request.id} marcada como ordenada.")
     return redirect("materials_requests_list", project_id=mat_request.project_id)
 
 
@@ -6089,7 +6089,7 @@ def materials_request_approve(request, request_id):
     mat_request = get_object_or_404(MaterialRequest, pk=request_id)
 
     if mat_request.approve(request.user):
-        messages.success(request, _("Solicitud #%(id)s aprobada") % {"id": mat_request.id})
+        messages.success(request, f"Solicitud #{mat_request.id} aprobada")
     else:
         messages.warning(request, "La solicitud no está pendiente de aprobación")
 
@@ -6109,7 +6109,7 @@ def materials_request_reject(request, request_id):
         mat_request.notes = (mat_request.notes or "") + f"\n[Rechazada]: {reason}"
     mat_request.save()
 
-    messages.success(request, _("Solicitud #%(id)s rechazada") % {"id": mat_request.id})
+    messages.success(request, f"Solicitud #{mat_request.id} rechazada")
     return redirect("materials_requests_list_all")
 
 
@@ -6172,11 +6172,11 @@ def materials_create_expense(request, request_id):
     try:
         total_amount = Decimal(total_amount_str)
         expense = mat_request.create_direct_purchase_expense(total_amount, request.user)
-        messages.success(request, _("Gasto #%(id)s creado por $%(amount)s") % {"id": expense.id, "amount": total_amount})
+        messages.success(request, f"Gasto #{expense.id} creado por ${total_amount}")
     except (ValueError, InvalidOperation):
         messages.error(request, "Monto inválido")
     except Exception as e:
-        messages.error(request, _("Error al crear gasto: %(error)s") % {"error": str(e)})
+        messages.error(request, f"Error al crear gasto: {str(e)}")
 
     return redirect("materials_request_detail", request_id=request_id)
 
@@ -6241,11 +6241,11 @@ def inventory_adjust(request, item_id, location_id):
         )
         movement.apply()
 
-        messages.success(request, _("Inventario ajustado: %(quantity)s %(unit)s") % {"quantity": quantity, "unit": item.unit})
+        messages.success(request, f"Inventario ajustado: {quantity} {item.unit}")
     except (ValueError, InvalidOperation) as e:
-        messages.error(request, _("Cantidad inválida: %(error)s") % {"error": str(e)})
+        messages.error(request, f"Cantidad inválida: {str(e)}")
     except Exception as e:
-        messages.error(request, _("Error: %(error)s") % {"error": str(e)})
+        messages.error(request, f"Error: {str(e)}")
 
     return redirect("inventory_view", project_id=location.project_id)
 
@@ -6325,7 +6325,7 @@ def daily_planning_dashboard(request):
             # Check if plan already exists
             existing = DailyPlan.objects.filter(project=project, plan_date=plan_date).first()
             if existing:
-                messages.warning(request, _("Plan already exists for %(date)s") % {"date": plan_date})
+                messages.warning(request, f"Plan already exists for {plan_date}")
                 return redirect("daily_plan_edit", plan_id=existing.id)
 
             # Set completion deadline (5pm day before)
@@ -6342,7 +6342,7 @@ def daily_planning_dashboard(request):
                 status="DRAFT",
             )
 
-            messages.success(request, _("Daily plan created for %(date)s") % {"date": plan_date})
+            messages.success(request, f"Daily plan created for {plan_date}")
             return redirect("daily_plan_edit", plan_id=plan.id)
 
     # Get recent plans
@@ -6415,7 +6415,7 @@ def daily_plan_create(request, project_id):
         # Check if plan already exists
         existing = DailyPlan.objects.filter(project=project, plan_date=plan_date).first()
         if existing:
-            messages.warning(request, _("Plan already exists for %(date)s") % {"date": plan_date})
+            messages.warning(request, f"Plan already exists for {plan_date}")
             return redirect("daily_plan_edit", plan_id=existing.id)
 
         # Set completion deadline (5pm day before)
@@ -6457,7 +6457,7 @@ def daily_plan_create(request, project_id):
                 f"Daily plan created with {len(selected_items)} imported activities for {plan_date}"
             )
         else:
-            messages.success(request, _("Daily plan created for %(date)s") % {"date": plan_date})
+            messages.success(request, f"Daily plan created for {plan_date}")
 
         return redirect("daily_plan_edit", plan_id=plan.id)
 
@@ -6667,7 +6667,7 @@ def activity_complete(request, activity_id):
                 activity.schedule_item.progress = 100
                 activity.schedule_item.save()
 
-        messages.success(request, _("Activity '%(title)s' marked as complete!") % {"title": activity.title})
+        messages.success(request, f"Activity '{activity.title}' marked as complete!")
         return redirect("employee_morning_dashboard")
 
     # GET request - show completion form
@@ -7054,7 +7054,7 @@ def schedule_generator_view(request, project_id):
             if item_id:
                 item = get_object_or_404(ScheduleItem, id=item_id, project=project)
                 item.recalculate_progress(save=True)
-                messages.success(request, _("Progreso recalculado: %(percent)s%%") % {"percent": item.percent_complete})
+                messages.success(request, f"Progreso recalculado: {item.percent_complete}%")
                 return redirect("schedule_generator", project_id=project.id)
 
     # GET: render form and data
@@ -7130,7 +7130,7 @@ def _generate_schedule_from_estimate(request, project, estimate):
                 f"Generado: {len(created_cats)} categorías y {created_items} ítems desde el estimado {estimate.code}.",
             )
     except Exception as e:
-        messages.error(request, _("Error al generar cronograma: %(error)s") % {"error": str(e)})
+        messages.error(request, f"Error al generar cronograma: {str(e)}")
 
     return redirect("schedule_generator", project_id=project.id)
 
@@ -7521,7 +7521,7 @@ def file_delete(request, file_id):
 
     # Check permission
     if not (request.user.is_staff or request.user == file_obj.uploaded_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     # Delete file from storage
     if file_obj.file:
@@ -7564,7 +7564,7 @@ def file_edit_metadata(request, file_id):
 
     # Check permission
     if not (request.user.is_staff or request.user == file_obj.uploaded_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Sin permiso"}, status=403)
 
     if request.method == "POST":
         file_obj.name = request.POST.get("name", file_obj.name)
@@ -7576,11 +7576,11 @@ def file_edit_metadata(request, file_id):
         messages.success(request, f'Archivo "{file_obj.name}" actualizado')
 
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return JsonResponse({"success": True, "message": gettext("Archivo actualizado")})
+            return JsonResponse({"success": True, "message": "Archivo actualizado"})
 
         return redirect("project_files", project_id=file_obj.project.id)
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 # ========================================================================================
@@ -7668,7 +7668,7 @@ def touchup_create(request, plan_id):
     if not request.user.is_staff and (
         not profile or profile.role not in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
     ):
-        return JsonResponse({"error": gettext("No autorizado")}, status=403)
+        return JsonResponse({"error": "No autorizado"}, status=403)
 
     if request.method == "POST":
         form = TouchUpPinForm(request.POST, project=project)
@@ -7678,7 +7678,7 @@ def touchup_create(request, plan_id):
             touchup.save()
 
             messages.success(request, f'Touch-up "{touchup.task_name}" creado')
-            return JsonResponse({"success": True, "touchup_id": touchup.id, "message": gettext("Touch-up creado exitosamente")})
+            return JsonResponse({"success": True, "touchup_id": touchup.id, "message": "Touch-up creado exitosamente"})
         else:
             return JsonResponse({"error": "Formulario inválido", "errors": form.errors}, status=400)
 
@@ -7703,7 +7703,7 @@ def touchup_detail_ajax(request, touchup_id):
     )
 
     if not can_view:
-        return JsonResponse({"error": gettext("No autorizado")}, status=403)
+        return JsonResponse({"error": "No autorizado"}, status=403)
 
     # Check if user can approve (PM/Admin)
     can_approve = request.user.is_staff or (profile and profile.role in ["project_manager", "admin", "superuser"])
@@ -7748,18 +7748,18 @@ def touchup_update(request, touchup_id):
 
     # Permission check
     if not touchup.can_edit(request.user):
-        return JsonResponse({"error": gettext("No autorizado")}, status=403)
+        return JsonResponse({"error": "No autorizado"}, status=403)
 
     if request.method == "POST":
         form = TouchUpPinForm(request.POST, instance=touchup, project=touchup.plan.project)
         if form.is_valid():
             form.save()
             messages.success(request, "Touch-up actualizado")
-            return JsonResponse({"success": True, "message": gettext("Touch-up actualizado")})
+            return JsonResponse({"success": True, "message": "Touch-up actualizado"})
         else:
             return JsonResponse({"error": "Formulario inválido", "errors": form.errors}, status=400)
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 @login_required
@@ -7773,14 +7773,14 @@ def touchup_complete(request, touchup_id):
 
     # Permission check
     if not touchup.can_close(request.user):
-        return JsonResponse({"error": gettext("No autorizado para cerrar este touch-up")}, status=403)
+        return JsonResponse({"error": "No autorizado para cerrar este touch-up"}, status=403)
 
     if request.method == "POST":
         notes = request.POST.get("notes", "")
         photos = request.FILES.getlist("photos")
 
         if not photos:
-            return JsonResponse({"error": gettext("Debes subir al menos una foto")}, status=400)
+            return JsonResponse({"error": "Debes subir al menos una foto"}, status=400)
 
         # Save completion photos with annotations
         for idx, photo in enumerate(photos):
@@ -7802,9 +7802,9 @@ def touchup_complete(request, touchup_id):
         touchup.close_touchup(request.user)
 
         messages.success(request, f'Touch-up "{touchup.task_name}" completado')
-        return JsonResponse({"success": True, "message": gettext("Touch-up completado exitosamente")})
+        return JsonResponse({"success": True, "message": "Touch-up completado exitosamente"})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 @login_required
@@ -7816,7 +7816,7 @@ def touchup_delete(request, touchup_id):
 
     # Permission check
     if not touchup.can_edit(request.user):
-        return JsonResponse({"error": gettext("No autorizado")}, status=403)
+        return JsonResponse({"error": "No autorizado"}, status=403)
 
     if request.method == "POST":
         plan_id = touchup.plan.id
@@ -7826,7 +7826,7 @@ def touchup_delete(request, touchup_id):
         messages.success(request, f'Touch-up "{task_name}" eliminado')
         return JsonResponse({"success": True, "redirect": f"/plans/{plan_id}/touchups/"})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 @login_required
@@ -7840,7 +7840,7 @@ def touchup_approve(request, touchup_id):
 
     # Permission check - only PM/Admin can approve
     if not touchup.can_edit(request.user):
-        return JsonResponse({"error": gettext("No autorizado para aprobar")}, status=403)
+        return JsonResponse({"error": "No autorizado para aprobar"}, status=403)
 
     if request.method == "POST":
         touchup.approval_status = "approved"
@@ -7849,9 +7849,9 @@ def touchup_approve(request, touchup_id):
         touchup.save()
 
         messages.success(request, f'Touch-up "{touchup.task_name}" aprobado')
-        return JsonResponse({"success": True, "message": gettext("Touch-up aprobado exitosamente")})
+        return JsonResponse({"success": True, "message": "Touch-up aprobado exitosamente"})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 @login_required
@@ -7865,12 +7865,12 @@ def touchup_reject(request, touchup_id):
 
     # Permission check - only PM/Admin can reject
     if not touchup.can_edit(request.user):
-        return JsonResponse({"error": gettext("No autorizado para rechazar")}, status=403)
+        return JsonResponse({"error": "No autorizado para rechazar"}, status=403)
 
     if request.method == "POST":
         reason = request.POST.get("reason", "")
         if not reason:
-            return JsonResponse({"error": gettext("Debes proporcionar un motivo de rechazo")}, status=400)
+            return JsonResponse({"error": "Debes proporcionar un motivo de rechazo"}, status=400)
 
         touchup.approval_status = "rejected"
         touchup.rejection_reason = reason
@@ -7880,9 +7880,9 @@ def touchup_reject(request, touchup_id):
         touchup.save()
 
         messages.warning(request, f'Touch-up "{touchup.task_name}" rechazado')
-        return JsonResponse({"success": True, "message": gettext("Touch-up rechazado, el empleado debe corregirlo")})
+        return JsonResponse({"success": True, "message": "Touch-up rechazado, el empleado debe corregirlo"})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 # ========================================================================================
@@ -7962,7 +7962,7 @@ def pin_update(request, pin_id):
     )
 
     if not can_edit:
-        return JsonResponse({"error": gettext("No autorizado")}, status=403)
+        return JsonResponse({"error": "No autorizado"}, status=403)
 
     if request.method == "POST":
         pin.title = request.POST.get("title", pin.title)
@@ -7982,9 +7982,9 @@ def pin_update(request, pin_id):
         pin.save()
 
         messages.success(request, "Pin actualizado exitosamente")
-        return JsonResponse({"success": True, "message": gettext("Pin actualizado")})
+        return JsonResponse({"success": True, "message": "Pin actualizado"})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 @login_required
@@ -8003,13 +8003,13 @@ def pin_add_photo(request, pin_id):
     )
 
     if not can_edit:
-        return JsonResponse({"error": gettext("No autorizado")}, status=403)
+        return JsonResponse({"error": "No autorizado"}, status=403)
 
     if request.method == "POST":
         photos = request.FILES.getlist("photos")
 
         if not photos:
-            return JsonResponse({"error": gettext("No se enviaron fotos")}, status=400)
+            return JsonResponse({"error": "No se enviaron fotos"}, status=400)
 
         created_attachments = []
         for idx, photo in enumerate(photos):
@@ -8026,12 +8026,12 @@ def pin_add_photo(request, pin_id):
             attachment = PlanPinAttachment.objects.create(pin=pin, image=photo, annotations=annotations)
             created_attachments.append({"id": attachment.id, "url": attachment.image.url})
 
-        messages.success(request, _("%(count)s foto(s) agregada(s) al pin") % {"count": len(photos)})
+        messages.success(request, f"{len(photos)} foto(s) agregada(s) al pin")
         return JsonResponse(
             {"success": True, "message": "Fotos agregadas exitosamente", "attachments": created_attachments}
         )
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 @login_required
@@ -8048,7 +8048,7 @@ def pin_delete_photo(request, attachment_id):
     )
 
     if not can_edit:
-        return JsonResponse({"error": gettext("No autorizado")}, status=403)
+        return JsonResponse({"error": "No autorizado"}, status=403)
 
     if request.method == "POST":
         # Delete file from storage
@@ -8057,9 +8057,9 @@ def pin_delete_photo(request, attachment_id):
 
         attachment.delete()
 
-        return JsonResponse({"success": True, "message": gettext("Foto eliminada")})
+        return JsonResponse({"success": True, "message": "Foto eliminada"})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 # ========================================
@@ -8279,7 +8279,7 @@ def client_delete(request, user_id):
         if action == "deactivate":
             client.is_active = False
             client.save()
-            messages.success(request, _("Cliente %(name)s desactivado exitosamente.") % {"name": client.get_full_name()})
+            messages.success(request, f"Cliente {client.get_full_name()} desactivado exitosamente.")
         elif action == "delete":
             # SECURITY: Verificar dependencias críticas antes de CASCADE delete
             from core.models import ClientProjectAccess, ClientRequest
@@ -8302,7 +8302,7 @@ def client_delete(request, user_id):
 
             client_name = client.get_full_name()
             client.delete()
-            messages.success(request, _("Cliente %(name)s eliminado permanentemente.") % {"name": client_name})
+            messages.success(request, f"Cliente {client_name} eliminado permanentemente.")
             return redirect("client_list")
 
         return redirect("client_detail", user_id=client.id)
@@ -8353,9 +8353,9 @@ def client_reset_password(request, user_id):
                     [client.email],
                     fail_silently=True,
                 )
-                messages.success(request, _("Contraseña actualizada y email enviado a %(email)s") % {"email": client.email})
+                messages.success(request, f"Contraseña actualizada y email enviado a {client.email}")
             except Exception as e:
-                messages.warning(request, _("Contraseña actualizada pero hubo un error al enviar el email: %(error)s") % {"error": str(e)})
+                messages.warning(request, f"Contraseña actualizada pero hubo un error al enviar el email: {str(e)}")
 
             return redirect("client_detail", user_id=client.id)
     else:

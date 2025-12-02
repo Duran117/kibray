@@ -1,12 +1,14 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText, CheckSquare, Folder, Building2 } from 'lucide-react';
 import './SearchResults.css';
 
 const SearchResults = ({ results, query }) => {
+  const { t } = useTranslation();
   if (!query) {
     return (
       <div className="search-empty">
-        <p>Start typing to search...</p>
+        <p>{t('search.start_typing', { defaultValue: 'Start typing to search...' })}</p>
       </div>
     );
   }
@@ -14,7 +16,7 @@ const SearchResults = ({ results, query }) => {
   if (results.length === 0) {
     return (
       <div className="search-empty">
-        <p>No results found for "{query}"</p>
+        <p>{t('search.no_results_for', { query, defaultValue: `No results found for "${query}"` })}</p>
       </div>
     );
   }
@@ -41,9 +43,7 @@ const SearchResults = ({ results, query }) => {
     }
   };
 
-  const getTypeLabel = (type) => {
-    return type.charAt(0).toUpperCase() + type.slice(1) + 's';
-  };
+  const getTypeLabel = (type) => t(`search.type_labels.${type}`, { defaultValue: type.charAt(0).toUpperCase() + type.slice(1) + 's' });
 
   return (
     <div className="search-results">

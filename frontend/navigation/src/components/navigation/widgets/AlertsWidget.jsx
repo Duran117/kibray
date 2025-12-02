@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, AlertCircle, Info, CheckCircle, GripVertical } from 'lucide-react';
 import * as api from '../../../utils/api';
 import './AlertsWidget.css';
 
 const AlertsWidget = ({ projectId }) => {
+  const { t } = useTranslation();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,7 +28,7 @@ const AlertsWidget = ({ projectId }) => {
     } catch (err) {
       console.error('Error fetching alerts:', err);
       setAlerts([]);
-      setError('Failed to load alerts');
+      setError(t('errors.loading_alerts', { defaultValue: 'Failed to load alerts' }));
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ const AlertsWidget = ({ projectId }) => {
       </div>
       
       <div className="widget-header">
-        <h3 className="widget-title">Recent Alerts</h3>
+        <h3 className="widget-title">{t('alerts.recent_alerts', { defaultValue: 'Recent Alerts' })}</h3>
         {alerts.length > 0 && (
           <span className="alert-count">{alerts.length}</span>
         )}
@@ -71,13 +73,13 @@ const AlertsWidget = ({ projectId }) => {
         {loading ? (
           <div className="alerts-loading">
             <div className="spinner"></div>
-            <p>Loading alerts...</p>
+            <p>{t('alerts.loading', { defaultValue: 'Loading alerts...' })}</p>
           </div>
         ) : error ? (
           <div className="alerts-error">
             <AlertCircle size={24} />
             <p>{error}</p>
-            <button onClick={fetchAlerts} className="retry-btn">Retry</button>
+            <button onClick={fetchAlerts} className="retry-btn">{t('common.retry')}</button>
           </div>
         ) : alerts.length > 0 ? (
           alerts.map((alert) => (
@@ -100,7 +102,7 @@ const AlertsWidget = ({ projectId }) => {
         ) : (
           <div className="no-alerts">
             <Info size={24} />
-            <p>No alerts at this time</p>
+            <p>{t('alerts.none', { defaultValue: 'No alerts at this time' })}</p>
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import hashlib
 
+from django.utils.translation import gettext_lazy as _, gettext
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -43,7 +44,7 @@ class SignatureViewSet(viewsets.ModelViewSet):
         try:
             h = hashlib.new(alg)
         except ValueError:
-            return Response({"error": f"Unsupported algorithm: {alg}"}, status=400)
+            return Response({"error": gettext("Unsupported algorithm: %(alg)s") % {"alg": alg}}, status=400)
         if isinstance(content, str):
             content_bytes = content.encode("utf-8")
         else:

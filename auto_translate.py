@@ -1,91 +1,179 @@
-#!/usr/bin/env python3
-"""
-Auto-traductor inteligente para archivos .po
-Detecta si el texto ya está en español y lo preserva
-"""
+#!/usr/bin/env python3#!/usr/bin/env python3
 
-# Palabras clave en español para detectar si ya está traducido
+""""""
+
+Auto-translate empty Spanish strings in django.poAuto-traductor inteligente para archivos .po
+
+"""Detecta si el texto ya está en español y lo preserva
+
+import re"""
+
+
+
+filepath = '/Users/jesus/Documents/kibray/locale/es/LC_MESSAGES/django.po'# Palabras clave en español para detectar si ya está traducido
+
 SPANISH_KEYWORDS = {
-    "el",
-    "la",
-    "los",
-    "las",
-    "un",
-    "una",
-    "de",
-    "del",
-    "para",
-    "con",
-    "sin",
-    "que",
-    "si",
-    "no",
-    "más",
-    "muy",
-    "también",
-    "aquí",
-    "ahí",
-    "donde",
-    "cuando",
-    "cómo",
-    "ción",
-    "dad",
-    "ión",
-    "ñ",
-    "á",
-    "é",
-    "í",
-    "ó",
-    "ú",
-    "año",
-    "día",
-    "mes",
-    "usuario",
-    "proyecto",
-    "fecha",
-    "nombre",
-    "descripción",
-}
 
-# Diccionario robusto de traducciones
-TRANSLATIONS = {
-    # Django default messages
-    "This field is required.": "Este campo es obligatorio.",
+# Translation dictionary for common backend messages    "el",
+
+translations = {    "la",
+
+    # API errors    "los",
+
+    "entity_type and action required": "tipo de entidad y acción requeridos",    "las",
+
+    "entity_type and entity_id required": "tipo de entidad e ID de entidad requeridos",    "un",
+
+    "Admin access required": "Se requiere acceso de administrador",    "una",
+
+    "status required": "estado requerido",    "de",
+
+    "Invalid status. Valid: %(statuses)s": "Estado inválido. Válidos: %(statuses)s",    "del",
+
+    "Touch-up requires photo evidence before completion": "El retoque requiere evidencia fotográfica antes de completar",    "para",
+
+    "Touch-up requires a photo before completion": "El retoque requiere una foto antes de completar",    "con",
+
+    "dependency_id required": "dependency_id requerido",    "sin",
+
+    "Dependency task not found": "Tarea de dependencia no encontrada",    "que",
+
+    "Task not in Completada state": "La tarea no está en estado Completada",    "si",
+
+    "Dependencies incomplete": "Dependencias incompletas",    "no",
+
+    "Already tracking or touch-up": "Ya está en seguimiento o retoque",    "más",
+
+    "Not tracking": "No está en seguimiento",    "muy",
+
+    "image file required": "archivo de imagen requerido",    "también",
+
+    "assigned_to is required": "assigned_to es requerido",    "aquí",
+
+    "User not found": "Usuario no encontrado",    "ahí",
+
+    "Invalid cost value": "Valor de costo inválido",    "donde",
+
+    "Staff permission required": "Se requiere permiso de personal",    "cuando",
+
+    "Cannot approve resolved damage": "No se puede aprobar daño resuelto",    "cómo",
+
+    "Damage already resolved": "Daño ya resuelto",    "ción",
+
+    "Change Order already created": "Orden de cambio ya creada",    "dad",
+
+    "updates must be an object": "las actualizaciones deben ser un objeto",    "ión",
+
+    "Unsupported algorithm: %(alg)s": "Algoritmo no soportado: %(alg)s",    "ñ",
+
+    "Invalid or missing OTP for 2FA-enabled account": "OTP inválido o faltante para cuenta con 2FA habilitado",    "á",
+
+    "2FA validation failed": "Validación 2FA falló",    "é",
+
+    "Employee does not exist": "El empleado no existe",    "í",
+
+    "This feature is only available for Admin/PM users.": "Esta funcionalidad solo está disponible para usuarios Admin/PM.",    "ó",
+
+    "Ritual completed successfully!": "¡Ritual completado exitosamente!",    "ú",
+
+    "Invalid step index": "Índice de paso inválido",    "año",
+
+        "día",
+
+    # Validation errors    "mes",
+
+    "Amount must be greater than zero.": "El monto debe ser mayor que cero.",    "usuario",
+
+    "Date cannot be in the future.": "La fecha no puede estar en el futuro.",    "proyecto",
+
+    "Task cannot depend on itself": "La tarea no puede depender de sí misma",    "fecha",
+
+    "A change order with this reference code already exists for this project": "Ya existe una orden de cambio con este código de referencia para este proyecto",    "nombre",
+
+    "End date must be after start date": "La fecha de fin debe ser posterior a la fecha de inicio",    "descripción",
+
+    "Selected organization is not active": "La organización seleccionada no está activa",}
+
+    "Due date cannot be in the past": "La fecha de vencimiento no puede estar en el pasado",
+
+    # Diccionario robusto de traducciones
+
+    # Common termsTRANSLATIONS = {
+
+    ", ": ", ",    # Django default messages
+
+}    "This field is required.": "Este campo es obligatorio.",
+
     # Common UI
-    "Amount": "Monto",
-    "Title": "Título",
-    "Description": "Descripción",
+
+# Read file    "Amount": "Monto",
+
+with open(filepath, 'r', encoding='utf-8') as f:    "Title": "Título",
+
+    content = f.read()    "Description": "Descripción",
+
     "Date": "Fecha",
-    "Time": "Hora",
-    "Status": "Estado",
+
+# Split into entries    "Time": "Hora",
+
+entries = re.split(r'\n(?=#:|msgid)', content)    "Status": "Estado",
+
     "Priority": "Prioridad",
-    "Notes": "Notas",
-    "Save": "Guardar",
+
+translated_count = 0    "Notes": "Notas",
+
+new_entries = []    "Save": "Guardar",
+
     "Cancel": "Cancelar",
-    "Delete": "Eliminar",
-    "Edit": "Editar",
-    "Create": "Crear",
-    "Back": "Volver",
-    "Close": "Cerrar",
-    "Submit": "Enviar",
-    # Status
-    "Not started": "No iniciado",
-    "In Progress": "En progreso",
-    "Completed": "Completado",
-    "Blocked": "Bloqueado",
-    "Low": "Baja",
-    "Medium": "Media",
-    "High": "Alta",
-    "Urgent": "Urgente",
+
+for entry in entries:    "Delete": "Eliminar",
+
+    # Check if this entry has an empty msgstr    "Edit": "Editar",
+
+    if 'msgstr ""' in entry and 'msgid ""' not in entry:    "Create": "Crear",
+
+        # Extract msgid    "Back": "Volver",
+
+        msgid_match = re.search(r'msgid "([^"]*)"', entry)    "Close": "Cerrar",
+
+        if msgid_match:    "Submit": "Enviar",
+
+            msgid_text = msgid_match.group(1)    # Status
+
+                "Not started": "No iniciado",
+
+            # Check if we have a translation    "In Progress": "En progreso",
+
+            if msgid_text in translations:    "Completed": "Completado",
+
+                # Replace empty msgstr with translation    "Blocked": "Bloqueado",
+
+                entry = entry.replace('msgstr ""', f'msgstr "{translations[msgid_text]}"')    "Low": "Baja",
+
+                translated_count += 1    "Medium": "Media",
+
+        "High": "Alta",
+
+    new_entries.append(entry)    "Urgent": "Urgente",
+
     # Payment methods
-    "Transfer": "Transferencia",
-    "Check": "Cheque",
+
+# Join back    "Transfer": "Transferencia",
+
+new_content = '\n'.join(new_entries)    "Check": "Cheque",
+
     "Cash": "Efectivo",
-    "Other": "Otro",
-    "Payment method": "Método de pago",
-    "Invoice or receipt": "Factura o comprobante",
+
+# Write back    "Other": "Otro",
+
+with open(filepath, 'w', encoding='utf-8') as f:    "Payment method": "Método de pago",
+
+    f.write(new_content)    "Invoice or receipt": "Factura o comprobante",
+
     # Categories
-    "Food": "Comida",
+
+print(f"Auto-translated {translated_count} strings")    "Food": "Comida",
+
     "Insurance": "Seguro",
     "Storage": "Almacén / Storage",
     "Office": "Oficina",

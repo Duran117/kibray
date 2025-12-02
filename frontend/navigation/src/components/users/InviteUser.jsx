@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import './InviteUser.css';
 
 const InviteUser = ({ onInvite, onClose }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('pm');
   const [firstName, setFirstName] = useState('');
@@ -30,7 +32,7 @@ const InviteUser = ({ onInvite, onClose }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Invite New User</h2>
+          <h2>{t('users.invite_new_user', { defaultValue: 'Invite New User' })}</h2>
           <button onClick={onClose}>
             <X size={20} />
           </button>
@@ -38,7 +40,7 @@ const InviteUser = ({ onInvite, onClose }) => {
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>First Name</label>
+            <label>{t('users.first_name', { defaultValue: 'First Name' })}</label>
             <input 
               type="text"
               value={firstName}
@@ -48,7 +50,7 @@ const InviteUser = ({ onInvite, onClose }) => {
           </div>
           
           <div className="form-group">
-            <label>Last Name</label>
+            <label>{t('users.last_name', { defaultValue: 'Last Name' })}</label>
             <input 
               type="text"
               value={lastName}
@@ -58,7 +60,7 @@ const InviteUser = ({ onInvite, onClose }) => {
           </div>
           
           <div className="form-group">
-            <label>Email</label>
+            <label>{t('auth.email')}</label>
             <input 
               type="email"
               value={email}
@@ -68,17 +70,17 @@ const InviteUser = ({ onInvite, onClose }) => {
           </div>
           
           <div className="form-group">
-            <label>Role</label>
+            <label>{t('users.role', { defaultValue: 'Role' })}</label>
             <select value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="pm">Project Manager</option>
-              <option value="admin">Administrator</option>
-              <option value="superintendent">Superintendent</option>
-              <option value="employee">Employee</option>
-              <option value="client">Client</option>
+              <option value="pm">{t('users.roles.pm', { defaultValue: 'Project Manager' })}</option>
+              <option value="admin">{t('users.roles.admin', { defaultValue: 'Administrator' })}</option>
+              <option value="superintendent">{t('users.roles.superintendent', { defaultValue: 'Superintendent' })}</option>
+              <option value="employee">{t('users.roles.employee', { defaultValue: 'Employee' })}</option>
+              <option value="client">{t('users.roles.client', { defaultValue: 'Client' })}</option>
             </select>
           </div>
           
-          <button type="submit">Invite User</button>
+          <button type="submit">{t('users.invite')}</button>
         </form>
       </div>
     </div>

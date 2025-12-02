@@ -41,7 +41,7 @@
     "more": "More",
     "view": "View",
     "print": "Print",
-    "copy": "Copy",
+  "copy": "Copy",
     "paste": "Paste",
     "language": "Language",
     "theme": "Theme",
@@ -61,7 +61,14 @@
     "last_updated": "Last updated {{date}}",
     "items_zero": "No items",
     "items_one": "1 item",
-    "items_other": "{{count}} items"
+    "items_other": "{{count}} items",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved_note": "Approved",
+    "rejected_note": "Rejected",
+    "load_more": "Load More",
+    "refresh": "Refresh",
+    "unknown": "Unknown"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -93,12 +100,18 @@
     "email_exists": "Email already exists",
     "check_email": "Check your email for next steps",
     "user_created": "User created successfully",
-    "password_updated": "Password updated successfully"
+    "password_updated": "Password updated successfully",
+    "go_to_login": "Go to Login"
   },
   "files": {
     "title": "File Manager",
+    "subtitle": "Upload, organize, and manage project files",
     "upload": "Upload File",
     "upload_zone": "Drop files here or click to upload",
+    "drop_here": "Drop files here...",
+    "drag_and_drop_here": "Drag & drop files here",
+    "click_to_browse": "or click to browse",
+    "max_file_size": "Maximum file size: {{size}}",
     "download": "Download",
     "delete": "Delete",
     "preview": "Preview",
@@ -123,18 +136,38 @@
     "modified": "Modified",
     "owner": "Owner",
     "actions": "Actions",
+    "by_user": "by {{user}}",
     "supported_types": "Supported file types: {{types}}",
     "max_size": "Max size: {{size}}"
   },
   "users": {
     "title": "User Management",
+    "subtitle": "Invite users and manage permissions",
     "list": "Users",
     "add": "Add User",
     "edit": "Edit User",
     "delete": "Delete User",
     "invite": "Invite User",
+    "invite_new_user": "Invite New User",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "role": "Role",
     "permissions": "Permissions",
+    "permission_matrix": "Permission Matrix",
+    "permissions_sections": {
+      "projects": "Projects",
+      "tasks": "Tasks",
+      "change_orders": "Change Orders",
+      "files": "Files",
+      "users": "Users",
+      "analytics": "Analytics"
+    },
     "roles": "Roles",
+    "roles.pm": "Project Manager",
+    "roles.admin": "Administrator",
+    "roles.superintendent": "Superintendent",
+    "roles.employee": "Employee",
+    "roles.client": "Client",
     "admin": "Administrator",
     "manager": "Manager",
     "viewer": "Viewer",
@@ -149,8 +182,29 @@
     "invite_sent": "Invitation sent successfully",
     "remove_confirm": "Are you sure you want to remove this user?"
   },
+  "tasks": {
+    "my_tasks": "My Tasks",
+    "loading": "Loading tasks...",
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "completed": "Completed"
+    },
+    "no_tasks_found": "No tasks found",
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    }
+  },
+  "alerts": {
+    "recent_alerts": "Recent Alerts",
+    "loading": "Loading alerts...",
+    "none": "No alerts at this time"
+  },
   "calendar": {
     "title": "Calendar",
+    "subtitle": "View project schedule and timeline",
     "day": "Day",
     "week": "Week",
     "month": "Month",
@@ -167,6 +221,7 @@
   },
   "chat": {
     "title": "Chat",
+    "subtitle": "Communicate with your team",
     "send_message": "Send message",
     "typing": "typing...",
     "online": "online",
@@ -181,7 +236,30 @@
     "me": "Me",
     "system": "System",
     "yesterday": "Yesterday",
-    "today": "Today"
+    "today": "Today",
+    "team_chat": "Team Chat",
+    "online_count_zero": "0 online",
+    "online_count_one": "1 online",
+    "online_count_other": "{{count}} online",
+    "loading_messages": "Loading messages...",
+    "loading_older_messages": "Loading older messages...",
+    "search": {
+      "title": "Search Messages",
+      "filters": "Filters",
+      "placeholder": "Search messages...",
+      "channel": "Channel",
+      "user": "User",
+      "channel_id_placeholder": "Channel ID",
+      "user_id_placeholder": "User ID",
+      "found_results": "Found {{count}} result{{count, plural, one {} other {s}}} for \"{{query}}\"",
+      "searching": "Searching...",
+      "no_results": "No messages found for \"{{query}}\"",
+      "try_different_keywords": "Try different keywords or adjust filters",
+      "has_attachment": "Has attachment",
+      "enter_query": "Enter a search query to find messages",
+      "search_across_channels": "You can search across all your channels",
+      "channel_with_id": "Channel {{id}}"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -195,6 +273,7 @@
   },
   "reports": {
     "title": "Reports",
+    "subtitle": "Generate and export project reports",
     "generate": "Generate",
     "export": "Export",
     "filter": "Filter",
@@ -208,7 +287,14 @@
     "costs": "Costs",
     "labor": "Labor",
     "materials": "Materials",
-    "equipment": "Equipment"
+    "equipment": "Equipment",
+    "select_template": "Select Template",
+    "from": "From",
+    "to": "To",
+    "generate_report": "Generate Report",
+    "generating": "Generating...",
+    "change_orders": "Change Orders",
+    "no_change_orders": "No change orders"
   },
   "search": {
     "placeholder": "Search...",
@@ -217,7 +303,20 @@
     "filter": "Filter",
     "sort": "Sort",
     "relevance": "Relevance",
-    "date": "Date"
+    "date": "Date",
+    "start_typing": "Start typing to search...",
+    "no_results_for": "No results found for \"{{query}}\"",
+    "type_labels": {
+      "project": "Projects",
+      "task": "Tasks",
+      "file": "Files",
+      "other": "Other"
+    },
+    "global": {
+      "placeholder": "Search projects, tasks, change orders, files...",
+      "hint_open": "to search",
+      "hint_close": "to close"
+    }
   },
   "profile": {
     "title": "Profile",
@@ -252,7 +351,11 @@
     "network_error": "Network error",
     "try_again": "Please try again",
     "timeout": "Request timed out",
-    "conflict": "Conflict"
+    "conflict": "Conflict",
+    "loading_tasks": "Failed to load tasks",
+    "loading_alerts": "Failed to load alerts",
+    "loading_metrics": "Failed to load metrics",
+    "search_failed": "Search failed"
   },
   "success": {
     "saved": "Saved successfully",
@@ -272,6 +375,7 @@
   "dashboard": {
     "welcome_title": "Welcome to Kibray",
     "overview": "Project Overview",
+    "navigate_hint": "Navigate using the sidebar to access different features",
     "projects": "Projects",
     "active_projects": "Active Projects",
     "open_tasks": "Open Tasks",
@@ -295,5 +399,181 @@
     "queued_messages_zero": "No queued messages",
     "queued_messages_one": "1 queued message",
     "queued_messages_other": "{{count}} queued messages"
+  }
+  ,
+  "time": {
+    "minutes_ago_zero": "0m ago",
+    "minutes_ago_one": "1m ago",
+    "minutes_ago_other": "{{count}}m ago",
+    "hours_ago_zero": "0h ago",
+    "hours_ago_one": "1h ago",
+    "hours_ago_other": "{{count}}h ago",
+    "days_ago_zero": "0d ago",
+    "days_ago_one": "1d ago",
+    "days_ago_other": "{{count}}d ago"
+  },
+  "metrics": {
+    "title": "WebSocket Metrics",
+    "subtitle": "Real-time monitoring dashboard",
+    "uptime": "Uptime: {{time}}",
+    "auto_refresh_on": "Auto-Refresh ON",
+    "auto_refresh_off": "Auto-Refresh OFF",
+    "refresh_now": "Refresh Now",
+    "loading": "Loading metrics..."
+  },
+  "analytics": {
+    "title": "Analytics Dashboard",
+    "header_subtitle": "Comprehensive project metrics and performance insights",
+    "loading": "Loading analytics...",
+    "error_loading": "Failed to load dashboard data. Please try again.",
+    "error_title": "Error Loading Dashboard",
+    "error_loading_data": "Error Loading Data",
+    "no_data_title": "No Data Available",
+    "no_data_message": "Analytics data is not available at this time.",
+    "export_report": "Export Report",
+    "project_id_required": "Project ID (Required)",
+    "project_id_optional": "Project ID (Optional - Leave empty for all)",
+    "enter_project_id": "Enter project ID",
+    "project_id_prompt": "Enter a Project ID to view health metrics",
+    "na": "N/A",
+    "time_ranges": {
+      "7d": "Last 7 Days",
+      "30d": "Last 30 Days",
+      "90d": "Last 90 Days",
+      "1y": "Last Year"
+    },
+    "tabs": {
+      "project_health": "Project Health",
+      "touchups": "Touch-ups",
+      "color_approvals": "Color Approvals",
+      "pm_performance": "PM Performance"
+    },
+    "kpis": {
+      "total_revenue": "Total Revenue",
+      "active_projects": "Active Projects",
+      "team_members": "Team Members",
+      "avg_completion": "Avg Completion",
+      "completion": "Completion",
+      "budget_remaining": "Budget Remaining",
+      "timeline_status": "Timeline Status",
+      "overdue_tasks": "Overdue Tasks"
+    },
+    "charts": {
+      "budget_vs_actual": "Budget vs Actual",
+      "project_status": "Project Status",
+      "task_distribution": "Task Distribution",
+      "monthly_trends": "Monthly Trends",
+      "budget_overview": "Budget Overview"
+    },
+    "budget": {
+      "spent": "Spent",
+      "remaining": "Remaining"
+    },
+    "timeline": {
+      "on_track": "On Track",
+      "behind_schedule": "Behind Schedule"
+    },
+    "risk_alerts": {
+      "title": "Risk Alerts",
+      "budget_overrun": "Budget overrun detected",
+      "behind_schedule": "Project is behind schedule",
+      "overdue_tasks": "{{count}} overdue tasks"
+    },
+    "approvals": {
+      "total": "Total Approvals",
+      "avg_approval_time": "Avg Approval Time",
+      "oldest_pending": "Oldest Pending",
+      "status": "Approval Status",
+      "top_brands": "Top Brands"
+    },
+    "pms": {
+      "total": "Total PMs",
+      "avg_projects_per_pm": "Avg Projects per PM",
+      "avg_completion_rate": "Avg Completion Rate",
+      "completion_rates": "PM Completion Rates",
+      "completion_rate_percent": "Completion Rate %",
+      "table": {
+        "pm": "PM",
+        "projects": "Projects",
+        "tasks_assigned": "Tasks Assigned",
+        "tasks_completed": "Tasks Completed",
+        "completion_rate": "Completion Rate",
+        "overdue": "Overdue"
+      }
+    },
+    "touchups": {
+      "total": "Total Touch-ups",
+      "completion_rate": "Completion Rate",
+      "avg_resolution_time": "Avg Resolution Time",
+      "status_distribution": "Status Distribution",
+      "priority_distribution": "Priority Distribution",
+      "completion_trends_30d": "Completion Trends (Last 30 Days)",
+      "completions": "Completions"
+    }
+  },
+  
+  "color_approvals": {
+    "title": "Color Approvals",
+    "filters": {
+      "project_id": "Project ID",
+      "all_statuses": "All statuses",
+      "brand": "Brand"
+    },
+    "actions": {
+      "request_approval": "+ Request Approval"
+    },
+    "form": {
+      "new_request_title": "New Approval Request",
+      "submit": "Submit",
+      "fields": {
+        "project_id": "Project ID",
+        "color_name": "Color Name",
+        "color_code": "Color Code",
+        "brand": "Brand",
+        "location": "Location",
+        "notes": "Notes"
+      }
+    },
+    "labels": {
+      "location": "Location",
+      "status": "Status",
+      "created": "Created"
+    },
+    "prompts": {
+      "rejection_reason": "Rejection reason:"
+    },
+    "errors": {
+      "loading": "Error loading approvals",
+      "create": "Error creating approval request",
+      "approve": "Error approving",
+      "reject": "Error rejecting"
+    }
+  },
+
+  "pm_assignments": {
+    "title": "Project Manager Assignments",
+    "actions": {
+      "assign_pm": "+ Assign PM"
+    },
+    "form": {
+      "new_assignment": "New PM Assignment",
+      "assign": "Assign",
+      "fields": {
+        "project_id": "Project ID",
+        "pm_user_id": "PM User ID",
+        "role_placeholder": "Role (default: project_manager)"
+      }
+    },
+    "labels": {
+      "pm": "PM",
+      "user": "User",
+      "project": "Project",
+      "role": "Role",
+      "created": "Created"
+    },
+    "errors": {
+      "loading": "Error loading assignments",
+      "create": "Error creating assignment"
+    }
   }
 }

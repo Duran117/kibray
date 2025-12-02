@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ReportTemplates from './ReportTemplates';
 import { FileText, Download } from 'lucide-react';
 import api from '../../utils/api';
 import './ReportGenerator.css';
 
 const ReportGenerator = () => {
+  const { t } = useTranslation();
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [generating, setGenerating] = useState(false);
@@ -20,7 +22,7 @@ const ReportGenerator = () => {
 
   const handleGenerate = async () => {
     if (!selectedTemplate) {
-      alert('Please select a template');
+      alert(t('reports.select_template'));
       return;
     }
 
@@ -42,7 +44,7 @@ const ReportGenerator = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Report generation failed:', error);
-      alert('Report generation failed. Please try again.');
+      alert(t('errors.try_again'));
     } finally {
       setGenerating(false);
     }
@@ -52,7 +54,7 @@ const ReportGenerator = () => {
     <div className="report-generator">
       <div className="report-header">
         <FileText size={28} />
-        <h1>Report Generator</h1>
+        <h1>{t('reports.title')}</h1>
       </div>
 
       <ReportTemplates 
@@ -63,7 +65,7 @@ const ReportGenerator = () => {
 
       <div className="date-range">
         <label>
-          From
+          {t('reports.from')}
           <input 
             type="date"
             value={dateRange.start}
@@ -71,7 +73,7 @@ const ReportGenerator = () => {
           />
         </label>
         <label>
-          To
+          {t('reports.to')}
           <input 
             type="date"
             value={dateRange.end}
@@ -86,7 +88,7 @@ const ReportGenerator = () => {
         className="generate-btn"
       >
         <Download size={18} />
-        {generating ? 'Generating...' : 'Generate Report'}
+        {generating ? t('reports.generating') : t('reports.generate_report')}
       </button>
     </div>
   );

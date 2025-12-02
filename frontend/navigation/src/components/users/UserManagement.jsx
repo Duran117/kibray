@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import UserList from './UserList';
 import InviteUser from './InviteUser';
 import PermissionMatrix from './PermissionMatrix';
@@ -7,6 +8,7 @@ import { Users, UserPlus, Shield } from 'lucide-react';
 import './UserManagement.css';
 
 const UserManagement = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -36,7 +38,7 @@ const UserManagement = () => {
       fetchUsers();
     } catch (error) {
       console.error('Invite failed:', error);
-      alert('Invite failed. Please try again.');
+      alert(t('errors.try_again'));
     }
   };
 
@@ -46,19 +48,19 @@ const UserManagement = () => {
       fetchUsers();
     } catch (error) {
       console.error('Update failed:', error);
-      alert('Update failed. Please try again.');
+      alert(t('errors.try_again'));
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    if (!confirm(t('users.remove_confirm'))) return;
     
     try {
       await api.delete(`/users/${userId}/`);
       fetchUsers();
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Delete failed. Please try again.');
+      alert(t('errors.try_again'));
     }
   };
 
@@ -67,17 +69,17 @@ const UserManagement = () => {
       <div className="user-management-header">
         <div className="header-title">
           <Users size={28} />
-          <h1>User Management</h1>
+          <h1>{t('users.title')}</h1>
         </div>
         
         <div className="header-actions">
           <button onClick={() => setShowInviteModal(true)}>
             <UserPlus size={18} />
-            Invite User
+            {t('users.invite')}
           </button>
           <button onClick={() => setShowPermissions(!showPermissions)}>
             <Shield size={18} />
-            Permissions
+            {t('users.permissions')}
           </button>
         </div>
       </div>
@@ -85,7 +87,7 @@ const UserManagement = () => {
       {loading ? (
         <div className="loading-container">
           <div className="spinner"></div>
-          <p>Loading users...</p>
+          <p>{t('common.loading')}</p>
         </div>
       ) : (
         <>

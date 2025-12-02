@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
@@ -9,8 +10,10 @@ import { useChat } from '../../hooks/useWebSocket';
 import { useOfflineQueue } from '../../hooks/useOfflineQueue';
 import { MessageSquare } from 'lucide-react';
 import './ChatPanel.css';
+import { formatDate } from '../../utils/formatDate';
 
 const ChatPanel = ({ channelId = 'general' }) => {
+  const { t } = useTranslation();
   const [historicalMessages, setHistoricalMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -148,9 +151,9 @@ const ChatPanel = ({ channelId = 'general' }) => {
     if (result.queued) {
       const tempMsg = {
         id: `temp-${result.queueId}`,
-        sender: 'You',
+        sender: t('chat.me', { defaultValue: 'You' }),
         text: messageText,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date().toISOString(),
         isOwn: true,
         isPending: true // Mark as pending
       };
@@ -186,11 +189,11 @@ const ChatPanel = ({ channelId = 'general' }) => {
     <div className="chat-panel">
       <div className="chat-header">
         <MessageSquare size={20} />
-        <h3>Team Chat</h3>
+        <h3>{t('chat.team_chat', { defaultValue: 'Team Chat' })}</h3>
         <ConnectionStatus status={connectionStatus} />
         {onlineUsers.length > 0 && (
           <div className="online-count">
-            {onlineUsers.length} online
+            {t('chat.online_count', { count: onlineUsers.length, defaultValue: '{{count}} online' })}
           </div>
         )}
       </div>
@@ -198,7 +201,7 @@ const ChatPanel = ({ channelId = 'general' }) => {
       {loading ? (
         <div className="chat-loading">
           <div className="spinner"></div>
-          <p>Loading messages...</p>
+          <p>{t('chat.loading_messages', { defaultValue: 'Loading messages...' })}</p>
         </div>
       ) : (
         <>
@@ -218,7 +221,7 @@ const ChatPanel = ({ channelId = 'general' }) => {
                 {loadingMore && (
                   <div className="loading-more">
                     <div className="spinner-small"></div>
-                    <span>Loading older messages...</span>
+                    <span>{t('chat.loading_older_messages', { defaultValue: 'Loading older messages...' })}</span>
                   </div>
                 )}
               </div>

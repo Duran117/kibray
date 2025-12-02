@@ -1,11 +1,13 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText } from 'lucide-react';
 import './ReportTemplates.css';
 
 const ReportTemplates = ({ templates, onSelect, selected }) => {
+  const { t } = useTranslation();
   return (
     <div className="report-templates">
-      <h3>Select Template</h3>
+      <h3>{t('reports.select_template')}</h3>
       <div className="template-grid">
         {templates.map(template => (
           <div 

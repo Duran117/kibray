@@ -6,8 +6,10 @@ import api from '../../utils/api';
 import { useChat } from '../../hooks/useWebSocket';
 import { MessageSquare, Wifi, WifiOff } from 'lucide-react';
 import './ChatPanel.css';
+import { useTranslation } from 'react-i18next';
 
 const ChatPanel = ({ channelId = 'general' }) => {
+  const { t } = useTranslation();
   const [historicalMessages, setHistoricalMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState('');
@@ -41,7 +43,7 @@ const ChatPanel = ({ channelId = 'general' }) => {
       // Use mock data if API fails
       setHistoricalMessages([
         { id: 1, sender: 'John Doe', text: 'Hey team, project update meeting at 2pm', timestamp: '10:30 AM', isOwn: false },
-        { id: 2, sender: 'You', text: 'Sounds good, I\'ll be there', timestamp: '10:32 AM', isOwn: true },
+        { id: 2, sender: t('chat.me', 'Me'), text: "Sounds good, I'll be there", timestamp: new Date().toISOString(), isOwn: true },
         { id: 3, sender: 'Jane Smith', text: 'Can we discuss the budget changes?', timestamp: '10:35 AM', isOwn: false }
       ]);
     } finally {
@@ -71,9 +73,9 @@ const ChatPanel = ({ channelId = 'general' }) => {
         // Add message optimistically
         const newMsg = {
           id: Date.now(),
-          sender: 'You',
+          sender: t('chat.me', 'Me'),
           text: messageText,
-          timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date().toISOString(),
           isOwn: true
         };
         setHistoricalMessages(prev => [...prev, newMsg]);
@@ -110,23 +112,26 @@ const ChatPanel = ({ channelId = 'general' }) => {
     <div className="chat-panel">
       <div className="chat-header">
         <MessageSquare size={20} />
-        <h3>Team Chat</h3>
+        <h3>{t('chat.team_chat', 'Team Chat')}</h3>
         <div className="connection-status">
           {isConnected ? (
             <span className="connected">
               <Wifi size={16} />
-              <span>Live</span>
+              <span>{t('chat.online', 'online')}</span>
             </span>
           ) : (
             <span className="disconnected">
               <WifiOff size={16} />
-              <span>Offline</span>
+              <span>{t('chat.offline', 'offline')}</span>
             </span>
           )}
         </div>
         {onlineUsers.length > 0 && (
           <div className="online-count">
-            {onlineUsers.length} online
+            {t('chat.online_count', {
+              count: onlineUsers.length,
+              defaultValue: onlineUsers.length === 1 ? '1 online' : `${onlineUsers.length} online`
+            })}
           </div>
         )}
       </div>
@@ -134,7 +139,7 @@ const ChatPanel = ({ channelId = 'general' }) => {
       {loading ? (
         <div className="chat-loading">
           <div className="spinner"></div>
-          <p>Loading messages...</p>
+          <p>{t('chat.loading_messages', 'Loading messages...')}</p>
         </div>
       ) : (
         <>

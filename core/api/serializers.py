@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from core.models import (
@@ -440,7 +441,7 @@ class TaskSerializer(serializers.ModelSerializer):
             from core.models import Task as TaskModel
 
             if str(instance.id) in [str(d) for d in deps]:
-                raise serializers.ValidationError({"dependencies": "Task cannot depend on itself"})
+                raise serializers.ValidationError({"dependencies": _("Task cannot depend on itself")})
             dep_qs = TaskModel.objects.filter(id__in=deps)
             task.dependencies.set(dep_qs)
             task.full_clean()
@@ -879,7 +880,7 @@ class IncomeSerializer(serializers.ModelSerializer):
     def validate_amount(self, value):
         """Ensure amount is positive"""
         if value <= 0:
-            raise serializers.ValidationError("Amount must be greater than zero.")
+            raise serializers.ValidationError(_("Amount must be greater than zero."))
         return value
 
     def validate_date(self, value):
@@ -887,7 +888,7 @@ class IncomeSerializer(serializers.ModelSerializer):
         from datetime import date
 
         if value > date.today():
-            raise serializers.ValidationError("Date cannot be in the future.")
+            raise serializers.ValidationError(_("Date cannot be in the future."))
         return value
 
 
@@ -923,7 +924,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
     def validate_amount(self, value):
         """Ensure amount is positive"""
         if value <= 0:
-            raise serializers.ValidationError("Amount must be greater than zero.")
+            raise serializers.ValidationError(_("Amount must be greater than zero."))
         return value
 
     def validate_date(self, value):
@@ -931,7 +932,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
         from datetime import date
 
         if value > date.today():
-            raise serializers.ValidationError("Date cannot be in the future.")
+            raise serializers.ValidationError(_("Date cannot be in the future."))
         return value
 
 
@@ -1454,7 +1455,7 @@ class InstantiatePlannedTemplatesSerializer(serializers.Serializer):
             from core.models import Employee
 
             if not Employee.objects.filter(pk=value).exists():
-                raise serializers.ValidationError("Employee does not exist")
+                raise serializers.ValidationError(_("Employee does not exist"))
         return value
 
 
@@ -1675,7 +1676,7 @@ class InventoryMovementSerializer(serializers.ModelSerializer):
             movement.apply()
         except DjangoValidationError as e:
             # surface as DRF validation error
-            raise serializers.ValidationError({"detail": str(e)})
+            raise serializers.ValidationError({"detail": _("%(error)s") % {"error": str(e)}})
         return movement
 
 
@@ -2079,10 +2080,10 @@ class TwoFactorTokenObtainPairSerializer(TokenObtainPairSerializer):  # type: ig
             if prof and prof.enabled:
                 otp = self.initial_data.get("otp")
                 if not otp or not prof.verify_otp(otp):
-                    raise serializers.ValidationError({"otp": "Invalid or missing OTP for 2FA-enabled account"})
+                    raise serializers.ValidationError({"otp": _("Invalid or missing OTP for 2FA-enabled account")})
         except Exception:
             # If any unexpected error, deny for safety
-            raise serializers.ValidationError({"otp": "2FA validation failed"})
+            raise serializers.ValidationError({"otp": _("2FA validation failed")})
         return data
 
 

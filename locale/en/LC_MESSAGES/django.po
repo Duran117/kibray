@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 13:15-0700\n"
+"POT-Creation-Date: 2025-12-01 18:02-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,6 +41,141 @@ msgstr ""
 
 #: core/api/serializer_classes/task_serializers.py:108
 msgid ", "
+msgstr ""
+
+#: core/api/serializers.py:444 core/api/views.py:735
+msgid "Task cannot depend on itself"
+msgstr ""
+
+#: core/api/serializers.py:883 core/api/serializers.py:927
+#, fuzzy
+#| msgid "El monto debe ser positivo."
+msgid "Amount must be greater than zero."
+msgstr "Amount must be positive."
+
+#: core/api/serializers.py:891 core/api/serializers.py:935
+msgid "Date cannot be in the future."
+msgstr ""
+
+#: core/api/serializers.py:1458
+msgid "Employee does not exist"
+msgstr ""
+
+#: core/api/serializers.py:1679 core/api/views.py:744 core/api/views.py:1249
+#: core/api/views.py:1275 core/api/views.py:2023 core/views_planner.py:183
+#, python-format
+msgid "%(error)s"
+msgstr ""
+
+#: core/api/serializers.py:2083
+msgid "Invalid or missing OTP for 2FA-enabled account"
+msgstr ""
+
+#: core/api/serializers.py:2086
+msgid "2FA validation failed"
+msgstr ""
+
+#: core/api/views.py:272
+msgid "entity_type and action required"
+msgstr ""
+
+#: core/api/views.py:332
+msgid "entity_type and entity_id required"
+msgstr ""
+
+#: core/api/views.py:385
+msgid "Admin access required"
+msgstr ""
+
+#: core/api/views.py:682 core/api/views.py:724
+msgid "status required"
+msgstr ""
+
+#: core/api/views.py:687
+#, python-format
+msgid "Invalid status. Valid: %(statuses)s"
+msgstr ""
+
+#: core/api/views.py:693
+msgid "Touch-up requires photo evidence before completion"
+msgstr ""
+
+#: core/api/views.py:719
+msgid "Touch-up requires a photo before completion"
+msgstr ""
+
+#: core/api/views.py:733 core/api/views.py:752
+msgid "dependency_id required"
+msgstr ""
+
+#: core/api/views.py:738 core/api/views.py:755
+msgid "Dependency task not found"
+msgstr ""
+
+#: core/api/views.py:766
+#, fuzzy
+#| msgid "Tasks Completed"
+msgid "Task not in Completada state"
+msgstr "Tasks Completed"
+
+#: core/api/views.py:773
+msgid "Dependencies incomplete"
+msgstr ""
+
+#: core/api/views.py:776
+#, fuzzy
+#| msgid "Crear tarea touch-up"
+msgid "Already tracking or touch-up"
+msgstr "Create touch-up task"
+
+#: core/api/views.py:784
+#, fuzzy
+#| msgid "Needs training"
+msgid "Not tracking"
+msgstr "Needs training"
+
+#: core/api/views.py:862
+#, fuzzy
+#| msgid "This field is required."
+msgid "image file required"
+msgstr "This field is required."
+
+#: core/api/views.py:1014
+#, fuzzy
+#| msgid "This field is required."
+msgid "assigned_to is required"
+msgstr "This field is required."
+
+#: core/api/views.py:1022 core/api/views.py:3766 core/api/views.py:3786
+#, fuzzy
+#| msgid "No projects assigned"
+msgid "User not found"
+msgstr "No projects assigned"
+
+#: core/api/views.py:1068
+msgid "Invalid cost value"
+msgstr ""
+
+#: core/api/views.py:1086 core/api/views.py:1165
+msgid "Staff permission required"
+msgstr ""
+
+#: core/api/views.py:1091
+msgid "Cannot approve resolved damage"
+msgstr ""
+
+#: core/api/views.py:1112 core/api/views.py:1131
+msgid "Damage already resolved"
+msgstr ""
+
+#: core/api/views.py:1170
+#, fuzzy
+#| msgid "Change Order Relacionado"
+msgid "Change Order already created"
+msgstr "Related Change Order"
+
+#: core/api/views.py:1349
+msgid "updates must be an object"
 msgstr ""
 
 #: core/consumers.py:60
@@ -7269,26 +7404,384 @@ msgstr "Save & Add"
 msgid "Volver al proyecto"
 msgstr "Back to inventory"
 
-#: core/views.py:6511
+#: core/views.py:120
+msgid "Título es requerido"
+msgstr ""
+
+#: core/views.py:125
+#, fuzzy
+#| msgid "Solicitudes Recientes"
+msgid "Solicitud creada"
+msgstr "Requests (all)"
+
+#: core/views.py:149
+#, python-format
+msgid "Esta solicitud ya fue convertida al CO #%(co_id)s."
+msgstr ""
+
+#: core/views.py:162
+#, python-format
+msgid "Solicitud convertida al CO #%(co_id)s."
+msgstr ""
+
+#: core/views.py:333
+msgid "Acceso solo para Admin/Staff."
+msgstr ""
+
+#: core/views.py:1097
+#, python-format
+msgid "Nómina de la semana %(start)s - %(end)s aprobada."
+msgstr ""
+
+#: core/views.py:1099
+#, python-format
+msgid "No se pudo aprobar: %(error)s"
+msgstr ""
+
+#: core/views.py:1148
+#, python-format
+msgid "Pago de $%(amount)s registrado para %(employee)s."
+msgstr ""
+
+#: core/views.py:1404
+#, fuzzy, python-format
+#| msgid "Actualizado"
+msgid "Estado actualizado a %(status)s"
+msgstr "Updated"
+
+#: core/views.py:1423 core/views.py:1950 core/views.py:2119 core/views.py:2148
+#: core/views.py:5453 core/views.py:5484 core/views.py:5513 core/views.py:5539
+#: core/views.py:7524 core/views.py:7567
+#, fuzzy
+#| msgid "permisos"
+msgid "Sin permiso"
+msgstr "permissions"
+
+#: core/views.py:1447
+msgid "Razón de rechazo requerida"
+msgstr ""
+
+#: core/views.py:1458 core/views.py:1975
+#, fuzzy
+#| msgid "Acciones Rápidas"
+msgid "Acción inválida"
+msgstr "Quick Actions"
+
+#: core/views.py:1847
+#, python-format
+msgid "Tarea '%(title)s' creada exitosamente. El PM será notificado."
+msgstr ""
+
+#: core/views.py:1944 core/views.py:5447 core/views.py:5478 core/views.py:5510
+#: core/views.py:5536
+msgid "POST required"
+msgstr ""
+
+#: core/views.py:2000
+#, python-format
+msgid "Reporte creado con %(count)s foto(s)"
+msgstr ""
+
+#: core/views.py:2124 core/views.py:8012
+#, fuzzy
+#| msgid "No se encontraron resultados"
+msgid "No se enviaron fotos"
+msgstr "No results found"
+
+#: core/views.py:2137 core/views.py:2166 core/views.py:7583 core/views.py:7762
+#: core/views.py:7807 core/views.py:7829 core/views.py:7854 core/views.py:7885
+#: core/views.py:7987 core/views.py:8034 core/views.py:8062
+#, fuzzy
+#| msgid "Método de pago"
+msgid "Método no permitido"
+msgstr "Payment method"
+
+#: core/views.py:2247
+#, python-format
+msgid "%(username)s invitado."
+msgstr ""
+
+#: core/views.py:2716
+#, python-format
+msgid "%(count)s registros asignados al CO #%(co_id)s."
+msgstr ""
+
+#: core/views.py:2745
+#, python-format
+msgid "CO #%(co_id)s creado y %(count)s registros asignados."
+msgstr ""
+
+#: core/views.py:3360 core/views.py:6248
+#, python-format
+msgid "Error: %(error)s"
+msgstr ""
+
+#: core/views.py:3381
+#, python-format
+msgid "✅ Factura %(invoice_number)s marcada como ENVIADA."
+msgstr ""
+
+#: core/views.py:3383 core/views.py:3400
+#, python-format
+msgid "La factura ya tiene status: %(status)s"
+msgstr ""
+
+#: core/views.py:3398
+#, python-format
+msgid "✅ Factura %(invoice_number)s marcada como APROBADA."
+msgstr ""
+
+#: core/views.py:3641
+#, python-format
+msgid "Error enviando correo: %(error)s"
+msgstr ""
+
+#: core/views.py:3725
+#, python-format
+msgid "Daily Log creado para %(date)s"
+msgstr ""
+
+#: core/views.py:3848
+#, python-format
+msgid "Error de validación: %(error)s"
+msgstr ""
+
+#: core/views.py:3850
+#, python-format
+msgid "Error al activar proyecto: %(error)s"
+msgstr ""
+
+#: core/views.py:3910
+#, python-format
+msgid "%(count)s foto(s) agregada(s)"
+msgstr ""
+
+#: core/views.py:4750
+#, python-format
+msgid "✓ Entrada registrada a las %(time)s."
+msgstr ""
+
+#: core/views.py:4941
+#, python-format
+msgid "Acción no soportada: %(action)s"
+msgstr ""
+
+#: core/views.py:5459
+#, python-format
+msgid "No se puede iniciar. Dependencias incompletas: %(deps)s"
+msgstr ""
+
+#: core/views.py:5471
+#, fuzzy
+#| msgid "Sin seguimiento activo"
+msgid "Ya hay un seguimiento activo"
+msgstr "No active tracking"
+
+#: core/views.py:5498
+#, fuzzy
+#| msgid "Sin seguimiento activo"
+msgid "No hay seguimiento activo"
+msgstr "No active tracking"
+
+#: core/views.py:5529
+msgid "No se pudo obtener el clima. Verifique la ubicación del proyecto."
+msgstr ""
+
+#: core/views.py:5545
+msgid "Solo se pueden convertir planes en estado PUBLISHED"
+msgstr ""
+
+#: core/views.py:5860
+#, python-format
+msgid "Ticket procesado. %(count)s ítem(s) recibido(s)."
+msgstr ""
+
+#: core/views.py:5980
+#, python-format
+msgid "Compra directa registrada. %(count)s ítem(s) agregado(s) al inventario."
+msgstr ""
+
+#: core/views.py:6035
+#, python-format
+msgid "Solicitud #%(id)s marcada como ordenada."
+msgstr ""
+
+#: core/views.py:6092
+#, python-format
+msgid "Solicitud #%(id)s aprobada"
+msgstr ""
+
+#: core/views.py:6112
+#, python-format
+msgid "Solicitud #%(id)s rechazada"
+msgstr ""
+
+#: core/views.py:6175
+#, python-format
+msgid "Gasto #%(id)s creado por $%(amount)s"
+msgstr ""
+
+#: core/views.py:6179
+#, fuzzy, python-format
+#| msgid "Error al guardar anotaciones"
+msgid "Error al crear gasto: %(error)s"
+msgstr "Error saving annotations"
+
+#: core/views.py:6244
+#, python-format
+msgid "Inventario ajustado: %(quantity)s %(unit)s"
+msgstr ""
+
+#: core/views.py:6246
+#, python-format
+msgid "Cantidad inválida: %(error)s"
+msgstr ""
+
+#: core/views.py:6328 core/views.py:6418
+#, python-format
+msgid "Plan already exists for %(date)s"
+msgstr ""
+
+#: core/views.py:6345 core/views.py:6460
+#, python-format
+msgid "Daily plan created for %(date)s"
+msgstr ""
+
+#: core/views.py:6512
 #, fuzzy
 #| msgid "Actualizado"
 msgid "Plan actualizado"
 msgstr "Updated"
 
-#: core/views.py:6527
+#: core/views.py:6528
 msgid "Transición de estado exitosa"
 msgstr ""
 
-#: core/views.py:6529
+#: core/views.py:6530
 msgid "Transición inválida"
 msgstr ""
 
-#: core/views.py:6531
+#: core/views.py:6532
 msgid "Error aplicando transición de estado"
 msgstr ""
 
-#: core/views.py:6534
+#: core/views.py:6535
 msgid "Revisa errores en el formulario"
+msgstr ""
+
+#: core/views.py:6670
+#, fuzzy, python-format
+#| msgid "Activity completed!"
+msgid "Activity '%(title)s' marked as complete!"
+msgstr "Activity completed!"
+
+#: core/views.py:7057
+#, python-format
+msgid "Progreso recalculado: %(percent)s%%"
+msgstr ""
+
+#: core/views.py:7133
+#, python-format
+msgid "Error al generar cronograma: %(error)s"
+msgstr ""
+
+#: core/views.py:7579
+#, fuzzy
+#| msgid "Grupo actualizado."
+msgid "Archivo actualizado"
+msgstr "Group updated."
+
+#: core/views.py:7671 core/views.py:7706 core/views.py:7751 core/views.py:7819
+#: core/views.py:7965 core/views.py:8006 core/views.py:8051
+msgid "No autorizado"
+msgstr ""
+
+#: core/views.py:7681
+#, fuzzy
+#| msgid "Foto eliminada exitosamente"
+msgid "Touch-up creado exitosamente"
+msgstr "Photo deleted successfully"
+
+#: core/views.py:7758
+#, fuzzy
+#| msgid "Touch-up Relacionado"
+msgid "Touch-up actualizado"
+msgstr "Related Touch-up"
+
+#: core/views.py:7776
+msgid "No autorizado para cerrar este touch-up"
+msgstr ""
+
+#: core/views.py:7783
+msgid "Debes subir al menos una foto"
+msgstr ""
+
+#: core/views.py:7805
+#, fuzzy
+#| msgid "Foto eliminada exitosamente"
+msgid "Touch-up completado exitosamente"
+msgstr "Photo deleted successfully"
+
+#: core/views.py:7843
+msgid "No autorizado para aprobar"
+msgstr ""
+
+#: core/views.py:7852
+#, fuzzy
+#| msgid "Anotaciones guardadas exitosamente"
+msgid "Touch-up aprobado exitosamente"
+msgstr "Annotations saved successfully"
+
+#: core/views.py:7868
+msgid "No autorizado para rechazar"
+msgstr ""
+
+#: core/views.py:7873
+#, fuzzy
+#| msgid "Debes proporcionar una contraseña."
+msgid "Debes proporcionar un motivo de rechazo"
+msgstr "You must provide a password."
+
+#: core/views.py:7883
+msgid "Touch-up rechazado, el empleado debe corregirlo"
+msgstr ""
+
+#: core/views.py:7985
+#, fuzzy
+#| msgid "Actualizado"
+msgid "Pin actualizado"
+msgstr "Updated"
+
+#: core/views.py:8029
+#, python-format
+msgid "%(count)s foto(s) agregada(s) al pin"
+msgstr ""
+
+#: core/views.py:8060
+#, fuzzy
+#| msgid "Gasto eliminado"
+msgid "Foto eliminada"
+msgstr "Expense deleted"
+
+#: core/views.py:8282
+#, python-format
+msgid "Cliente %(name)s desactivado exitosamente."
+msgstr ""
+
+#: core/views.py:8305
+#, fuzzy, python-format
+#| msgid "Eliminar Permanentemente"
+msgid "Cliente %(name)s eliminado permanentemente."
+msgstr "Delete Permanently"
+
+#: core/views.py:8356
+#, python-format
+msgid "Contraseña actualizada y email enviado a %(email)s"
+msgstr ""
+
+#: core/views.py:8358
+#, python-format
+msgid "Contraseña actualizada pero hubo un error al enviar el email: %(error)s"
 msgstr ""
 
 #: core/views_admin.py:28
@@ -7365,6 +7858,18 @@ msgstr "Save purchase"
 msgid "Modelo no encontrado."
 msgstr "Model not found."
 
+#: core/views_admin.py:470
+#, fuzzy, python-format
+#| msgid "Usuario actualizado correctamente."
+msgid "Proyecto '%(name)s' actualizado correctamente."
+msgstr "User updated successfully."
+
+#: core/views_admin.py:473
+#, fuzzy, python-format
+#| msgid "Error al guardar anotaciones"
+msgid "Error al guardar el proyecto: %(error)s"
+msgstr "Error saving annotations"
+
 #: core/views_admin.py:615 core/views_admin.py:672 core/views_admin.py:771
 #: core/views_admin.py:838
 msgid "El proyecto es obligatorio."
@@ -7408,3 +7913,31 @@ msgstr "Invalid payment method."
 #: core/views_admin.py:910
 msgid "Ingreso eliminado"
 msgstr "Income deleted"
+
+#: core/views_notifications.py:51
+msgid "Todas las notificaciones marcadas como leídas."
+msgstr ""
+
+#: core/views_planner.py:35
+msgid "This feature is only available for Admin/PM users."
+msgstr ""
+
+#: core/views_planner.py:177
+#, fuzzy
+#| msgid "Item deleted successfully"
+msgid "Ritual completed successfully!"
+msgstr "Item deleted successfully"
+
+#: core/views_planner.py:188
+#, python-format
+msgid "Unexpected error: %(error)s"
+msgstr ""
+
+#: core/views_planner.py:359
+msgid "Invalid step index"
+msgstr ""
+
+#: signatures/api/views.py:47
+#, python-format
+msgid "Unsupported algorithm: %(alg)s"
+msgstr ""

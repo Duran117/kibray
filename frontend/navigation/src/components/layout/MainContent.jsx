@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import FileManager from '../files/FileManager';
 import UserManagement from '../users/UserManagement';
 import CalendarView from '../calendar/CalendarView';
@@ -10,6 +11,7 @@ import ReportGenerator from '../reports/ReportGenerator';
 import './MainContent.css';
 
 const MainContent = () => {
+  const { t } = useTranslation();
   const [currentView, setCurrentView] = useState('dashboard');
 
   // Listen for navigation changes from sidebar
@@ -46,28 +48,28 @@ const MainContent = () => {
       default:
         return (
           <div className="dashboard-placeholder">
-            <h1>Dashboard</h1>
-            <p>Navigate using the sidebar to access different features</p>
+            <h1>{t('navigation.dashboard')}</h1>
+            <p>{t('dashboard.navigate_hint', { defaultValue: 'Navigate using the sidebar to access different features' })}</p>
             <div className="feature-cards">
               <div className="feature-card" onClick={() => window.location.hash = '#files'}>
-                <h3>📁 File Manager</h3>
-                <p>Upload, organize, and manage project files</p>
+                <h3>📁 {t('navigation.files')}</h3>
+                <p>{t('files.subtitle', { defaultValue: 'Upload, organize, and manage project files' })}</p>
               </div>
               <div className="feature-card" onClick={() => window.location.hash = '#users'}>
-                <h3>👥 User Management</h3>
-                <p>Invite users and manage permissions</p>
+                <h3>👥 {t('navigation.users')}</h3>
+                <p>{t('users.subtitle', { defaultValue: 'Invite users and manage permissions' })}</p>
               </div>
               <div className="feature-card" onClick={() => window.location.hash = '#calendar'}>
-                <h3>📅 Calendar</h3>
-                <p>View project schedule and timeline</p>
+                <h3>📅 {t('navigation.calendar')}</h3>
+                <p>{t('calendar.subtitle', { defaultValue: 'View project schedule and timeline' })}</p>
               </div>
               <div className="feature-card" onClick={() => window.location.hash = '#chat'}>
-                <h3>💬 Team Chat</h3>
-                <p>Communicate with your team</p>
+                <h3>💬 {t('chat.team_chat', { defaultValue: 'Team Chat' })}</h3>
+                <p>{t('chat.subtitle', { defaultValue: 'Communicate with your team' })}</p>
               </div>
               <div className="feature-card" onClick={() => window.location.hash = '#reports'}>
-                <h3>📊 Reports</h3>
-                <p>Generate and export project reports</p>
+                <h3>📊 {t('navigation.reports')}</h3>
+                <p>{t('reports.subtitle', { defaultValue: 'Generate and export project reports' })}</p>
               </div>
             </div>
           </div>

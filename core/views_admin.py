@@ -467,10 +467,10 @@ def admin_project_edit(request, project_id):
             try:
                 project.full_clean()
                 project.save()
-                messages.success(request, _(f"Proyecto '{project.name}' actualizado correctamente."))
+                messages.success(request, _("Proyecto '%(name)s' actualizado correctamente.") % {'name': project.name})
                 return redirect("admin_model_list", model_name="projects")
             except Exception as e:
-                messages.error(request, _(f"Error al guardar el proyecto: {str(e)}"))
+                messages.error(request, _("Error al guardar el proyecto: %(error)s") % {'error': str(e)})
 
     context = {
         "project": project,

@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext_lazy as _, gettext
 
 from core.models import Notification
 
@@ -47,5 +48,5 @@ def notifications_mark_all_read(request):
     """Marcar todas las notificaciones como leídas."""
     if request.method == "POST":
         request.user.notifications.filter(is_read=False).update(is_read=True)
-        messages.success(request, "Todas las notificaciones marcadas como leídas.")
+        messages.success(request, _("Todas las notificaciones marcadas como leídas."))
     return redirect("notifications_list")

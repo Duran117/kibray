@@ -9,6 +9,7 @@ from django.db.models import DecimalField, F, Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _, gettext
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
@@ -268,7 +269,7 @@ class PermissionMatrixViewSet(viewsets.ModelViewSet):
         project_id = request.query_params.get("project_id")
 
         if not entity_type or not action:
-            return Response({"error": "entity_type and action required"}, status=400)
+            return Response({"error": gettext("entity_type and action required")}, status=400)
 
         perms = PermissionMatrix.objects.filter(user=request.user, entity_type=entity_type)
 
@@ -328,7 +329,7 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
         entity_id = request.query_params.get("entity_id")
 
         if not entity_type or not entity_id:
-            return Response({"error": "entity_type and entity_id required"}, status=400)
+            return Response({"error": gettext("entity_type and entity_id required")}, status=400)
 
         logs = AuditLog.objects.filter(entity_type=entity_type, entity_id=entity_id).order_by("-timestamp")
 
@@ -381,7 +382,7 @@ class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
     def suspicious_activity(self, request):
         """Detect suspicious login patterns (admin only)"""
         if not (request.user.is_staff or request.user.is_superuser):
-            return Response({"error": "Admin access required"}, status=403)
+            return Response({"error": gettext("Admin access required")}, status=403)
 
         from datetime import timedelta
 
@@ -678,18 +679,18 @@ class TaskViewSet(viewsets.ModelViewSet):
         new_status = request.data.get("status")
 
         if not new_status:
-            return Response({"error": "status required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": gettext("status required")}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate status
         valid_statuses = ["Pendiente", "En Progreso", "Completada", "Cancelada"]
         if new_status not in valid_statuses:
-            return Response({"error": f"Invalid status. Valid: {valid_statuses}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": gettext("Invalid status. Valid: %(statuses)s") % {"statuses": valid_statuses}}, status=status.HTTP_400_BAD_REQUEST)
 
         # Touch-up completion validation
         if task.is_touchup and new_status == "Completada":
             if not task.images.exists():
                 return Response(
-                    {"error": "Touch-up requires photo evidence before completion"}, status=status.HTTP_400_BAD_REQUEST
+                    {"error": gettext("Touch-up requires photo evidence before completion")}, status=status.HTTP_400_BAD_REQUEST
                 )
 
         old_status = task.status
@@ -715,12 +716,12 @@ class TaskViewSet(viewsets.ModelViewSet):
                 # Ensure at least one image exists
                 if not task.images.exists():
                     return Response(
-                        {"error": "Touch-up requires a photo before completion"}, status=status.HTTP_400_BAD_REQUEST
+                        {"error": gettext("Touch-up requires a photo before completion")}, status=status.HTTP_400_BAD_REQUEST
                     )
             task.status = new_status
             task.save()
             return Response({"status": "updated"})
-        return Response({"error": "status required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": gettext("status required")}, status=status.HTTP_400_BAD_REQUEST)
 
     # ---- Module 11 custom actions ----
     @action(detail=True, methods=["post"])
@@ -729,18 +730,18 @@ class TaskViewSet(viewsets.ModelViewSet):
         task = self.get_object()
         dep_id = request.data.get("dependency_id")
         if not dep_id:
-            return Response({"error": "dependency_id required"}, status=400)
+            return Response({"error": gettext("dependency_id required")}, status=400)
         if str(task.id) == str(dep_id):
-            return Response({"error": "Task cannot depend on itself"}, status=400)
+            return Response({"error": gettext("Task cannot depend on itself")}, status=400)
         dependency = Task.objects.filter(pk=dep_id).first()
         if not dependency:
-            return Response({"error": "Dependency task not found"}, status=404)
+            return Response({"error": gettext("Dependency task not found")}, status=404)
         task.dependencies.add(dependency)
         try:
             task.full_clean()  # re-validar ciclos
         except Exception as e:
             task.dependencies.remove(dependency)
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": gettext("%(error)s") % {"error": str(e)}}, status=400)
         return Response({"status": "ok", "dependencies": list(task.dependencies.values_list("id", flat=True))})
 
     @action(detail=True, methods=["post"])
@@ -748,10 +749,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         task = self.get_object()
         dep_id = request.data.get("dependency_id")
         if not dep_id:
-            return Response({"error": "dependency_id required"}, status=400)
+            return Response({"error": gettext("dependency_id required")}, status=400)
         dependency = Task.objects.filter(pk=dep_id).first()
         if not dependency:
-            return Response({"error": "Dependency task not found"}, status=404)
+            return Response({"error": gettext("Dependency task not found")}, status=404)
         task.dependencies.remove(dependency)
         return Response({"status": "ok", "dependencies": list(task.dependencies.values_list("id", flat=True))})
 
@@ -762,17 +763,17 @@ class TaskViewSet(viewsets.ModelViewSet):
         notes = request.data.get("notes", "")
         success = task.reopen(user=request.user, notes=notes)
         if not success:
-            return Response({"error": "Task not in Completada state"}, status=400)
+            return Response({"error": gettext("Task not in Completada state")}, status=400)
         return Response({"status": "ok", "new_status": task.status, "reopen_events_count": task.reopen_events_count})
 
     @action(detail=True, methods=["post"])
     def start_tracking(self, request, pk=None):
         task = self.get_object()
         if not task.can_start():
-            return Response({"error": "Dependencies incomplete"}, status=400)
+            return Response({"error": gettext("Dependencies incomplete")}, status=400)
         started = task.start_tracking()
         if not started:
-            return Response({"error": "Already tracking or touch-up"}, status=400)
+            return Response({"error": gettext("Already tracking or touch-up")}, status=400)
         return Response({"status": "ok", "started_at": task.started_at})
 
     @action(detail=True, methods=["post"])
@@ -780,7 +781,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         task = self.get_object()
         elapsed = task.stop_tracking()
         if elapsed is None:
-            return Response({"error": "Not tracking"}, status=400)
+            return Response({"error": gettext("Not tracking")}, status=400)
         return Response({"status": "ok", "elapsed_seconds": elapsed, "total_hours": task.total_hours})
 
     @action(detail=True, methods=["get"])
@@ -858,7 +859,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         task = self.get_object()
         img = request.FILES.get("image")
         if not img:
-            return Response({"error": "image file required"}, status=400)
+            return Response({"error": gettext("image file required")}, status=400)
         caption = request.data.get("caption", "")
         new_image = task.add_image(image_file=img, uploaded_by=request.user, caption=caption)
         return Response({"status": "ok", "image_id": new_image.id, "version": new_image.version})
@@ -1010,7 +1011,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         user_id = request.data.get("assigned_to")
 
         if not user_id:
-            return Response({"error": "assigned_to is required"}, status=400)
+            return Response({"error": gettext("assigned_to is required")}, status=400)
 
         from django.contrib.auth import get_user_model
 
@@ -1018,7 +1019,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         try:
             assigned_user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=404)
+            return Response({"error": gettext("User not found")}, status=404)
 
         report.assigned_to = assigned_user
         report.save(update_fields=["assigned_to"])
@@ -1064,7 +1065,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
                 report.estimated_cost = Decimal(str(cost))
             except (ValueError, TypeError, Exception):
                 # Catch Decimal.InvalidOperation and other parse errors
-                return Response({"error": "Invalid cost value"}, status=400)
+                return Response({"error": gettext("Invalid cost value")}, status=400)
 
         report.save()
 
@@ -1082,12 +1083,12 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         Marks status as 'in_progress' if assigned_to exists.
         """
         if not request.user.is_staff:
-            return Response({"error": "Staff permission required"}, status=403)
+            return Response({"error": gettext("Staff permission required")}, status=403)
 
         report = self.get_object()
 
         if report.status == "resolved":
-            return Response({"error": "Cannot approve resolved damage"}, status=400)
+            return Response({"error": gettext("Cannot approve resolved damage")}, status=400)
 
         # Auto-start if assigned
         if report.assigned_to:
@@ -1108,7 +1109,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         report = self.get_object()
 
         if report.status == "resolved":
-            return Response({"error": "Damage already resolved"}, status=400)
+            return Response({"error": gettext("Damage already resolved")}, status=400)
 
         from django.utils import timezone
 
@@ -1127,7 +1128,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         report = self.get_object()
 
         if report.status == "resolved":
-            return Response({"error": "Damage already resolved"}, status=400)
+            return Response({"error": gettext("Damage already resolved")}, status=400)
 
         from django.utils import timezone
 
@@ -1161,12 +1162,12 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         Body: {"co_title": "Repair Water Damage", "co_description": "..."}
         """
         if not request.user.is_staff:
-            return Response({"error": "Staff permission required"}, status=403)
+            return Response({"error": gettext("Staff permission required")}, status=403)
 
         report = self.get_object()
 
         if report.linked_co:
-            return Response({"error": "Change Order already created"}, status=400)
+            return Response({"error": gettext("Change Order already created")}, status=400)
 
         co_title = request.data.get("co_title") or f"Repair: {report.title}"
         co_description = request.data.get("co_description") or report.description
@@ -1245,7 +1246,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
             period.approve(approved_by=request.user, skip_validation=bool(skip))
             return Response({"status": "approved"})
         except Exception as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": gettext("%(error)s") % {"error": str(e)}}, status=400)
 
     @action(detail=True, methods=["post"])
     def generate_expenses(self, request, pk=None):
@@ -1271,7 +1272,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
             count = recompute_period(period, force=bool(force))
             return Response({"status": "recomputed", "records_updated": count})
         except Exception as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": gettext("%(error)s") % {"error": str(e)}}, status=400)
 
     @action(detail=True, methods=["get"])
     def export(self, request, pk=None):
@@ -1345,7 +1346,7 @@ class PayrollRecordViewSet(viewsets.ModelViewSet):
         reason = request.data.get("reason", "")
         updates = request.data.get("updates", {})
         if not isinstance(updates, dict):
-            return Response({"error": "updates must be an object"}, status=400)
+            return Response({"error": gettext("updates must be an object")}, status=400)
         record.manual_adjust(adjusted_by=request.user, reason=reason, **updates)
         return Response(self.get_serializer(record).data)
 
@@ -2019,7 +2020,7 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
         try:
             sample.reject(request.user, reason)
         except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": gettext("%(error)s") % {"error": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(ColorSampleSerializer(sample, context={"request": request}).data)
 
@@ -3762,7 +3763,7 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
             channel.participants.add(user)
             return Response({"success": True, "message": f"User {user.username} added to channel"})
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=404)
+            return Response({"error": gettext("User not found")}, status=404)
 
     @action(detail=True, methods=["post"])
     def remove_participant(self, request, pk=None):
@@ -3782,7 +3783,7 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
             channel.participants.remove(user)
             return Response({"success": True, "message": f"User {user.username} removed from channel"})
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=404)
+            return Response({"error": gettext("User not found")}, status=404)
 
 
 class ChatMessageViewSet(viewsets.ModelViewSet):

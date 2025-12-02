@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import SearchResults from './SearchResults';
 import { Search, X } from 'lucide-react';
 import api from '../../utils/api';
 import './GlobalSearch.css';
 
 const GlobalSearch = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -63,7 +65,7 @@ const GlobalSearch = () => {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search projects, tasks, change orders, files..."
+            placeholder={t('search.global.placeholder', { defaultValue: 'Search projects, tasks, change orders, files...' })}
           />
           <button onClick={() => setIsOpen(false)}>
             <X size={20} />
@@ -73,7 +75,7 @@ const GlobalSearch = () => {
         {loading ? (
           <div className="search-loading">
             <div className="spinner"></div>
-            <p>Searching...</p>
+            <p>{t('common.loading')}</p>
           </div>
         ) : (
           <SearchResults results={results} query={query} />
@@ -81,10 +83,10 @@ const GlobalSearch = () => {
         
         <div className="search-footer">
           <span className="search-hint">
-            <kbd>⌘</kbd> + <kbd>K</kbd> to search
+            <kbd>⌘</kbd> + <kbd>K</kbd> {t('search.global.hint_open', { defaultValue: 'to search' })}
           </span>
           <span className="search-hint">
-            <kbd>Esc</kbd> to close
+            <kbd>Esc</kbd> {t('search.global.hint_close', { defaultValue: 'to close' })}
           </span>
         </div>
       </div>

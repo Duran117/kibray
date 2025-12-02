@@ -41,7 +41,7 @@
     "more": "Más",
     "view": "Ver",
     "print": "Imprimir",
-    "copy": "Copiar",
+  "copy": "Copiar",
     "paste": "Pegar",
     "language": "Idioma",
     "theme": "Tema",
@@ -61,7 +61,14 @@
     "last_updated": "Última actualización {{date}}",
     "items_zero": "Sin elementos",
     "items_one": "1 elemento",
-    "items_other": "{{count}} elementos"
+    "items_other": "{{count}} elementos",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "approved_note": "Aprobado",
+    "rejected_note": "Rechazado",
+    "load_more": "Cargar más",
+    "refresh": "Actualizar",
+    "unknown": "Desconocido"
   },
   "navigation": {
     "dashboard": "Panel",
@@ -93,12 +100,18 @@
     "email_exists": "El correo ya existe",
     "check_email": "Revise su correo para continuar",
     "user_created": "Usuario creado exitosamente",
-    "password_updated": "Contraseña actualizada correctamente"
+    "password_updated": "Contraseña actualizada correctamente",
+    "go_to_login": "Ir al inicio de sesión"
   },
   "files": {
     "title": "Gestor de Archivos",
+    "subtitle": "Cargue, organice y gestione archivos del proyecto",
     "upload": "Subir Archivo",
     "upload_zone": "Suelte archivos aquí o haga clic para subir",
+    "drop_here": "Suelte los archivos aquí...",
+    "drag_and_drop_here": "Arrastre y suelte archivos aquí",
+    "click_to_browse": "o haga clic para explorar",
+    "max_file_size": "Tamaño máximo de archivo: {{size}}",
     "download": "Descargar",
     "delete": "Eliminar",
     "preview": "Vista previa",
@@ -123,18 +136,38 @@
     "modified": "Modificado",
     "owner": "Propietario",
     "actions": "Acciones",
+    "by_user": "por {{user}}",
     "supported_types": "Tipos soportados: {{types}}",
     "max_size": "Tamaño máximo: {{size}}"
   },
   "users": {
     "title": "Gestión de Usuarios",
+    "subtitle": "Invite usuarios y gestione permisos",
     "list": "Usuarios",
     "add": "Agregar Usuario",
     "edit": "Editar Usuario",
     "delete": "Eliminar Usuario",
     "invite": "Invitar Usuario",
+    "invite_new_user": "Invitar Nuevo Usuario",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "role": "Rol",
     "permissions": "Permisos",
+    "permission_matrix": "Matriz de Permisos",
+    "permissions_sections": {
+      "projects": "Proyectos",
+      "tasks": "Tareas",
+      "change_orders": "Órdenes de Cambio",
+      "files": "Archivos",
+      "users": "Usuarios",
+      "analytics": "Analítica"
+    },
     "roles": "Roles",
+    "roles.pm": "Gerente de Proyecto",
+    "roles.admin": "Administrador",
+    "roles.superintendent": "Superintendente",
+    "roles.employee": "Empleado",
+    "roles.client": "Cliente",
     "admin": "Administrador",
     "manager": "Gerente",
     "viewer": "Observador",
@@ -149,8 +182,29 @@
     "invite_sent": "Invitación enviada correctamente",
     "remove_confirm": "¿Confirma que desea eliminar este usuario?"
   },
+  "tasks": {
+    "my_tasks": "Mis Tareas",
+    "loading": "Cargando tareas...",
+    "filters": {
+      "all": "Todas",
+      "active": "Activas",
+      "completed": "Completadas"
+    },
+    "no_tasks_found": "No se encontraron tareas",
+    "priority": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta"
+    }
+  },
+  "alerts": {
+    "recent_alerts": "Alertas Recientes",
+    "loading": "Cargando alertas...",
+    "none": "No hay alertas por el momento"
+  },
   "calendar": {
     "title": "Calendario",
+    "subtitle": "Vea el cronograma y la línea de tiempo del proyecto",
     "day": "Día",
     "week": "Semana",
     "month": "Mes",
@@ -167,6 +221,7 @@
   },
   "chat": {
     "title": "Chat",
+    "subtitle": "Comunique con su equipo",
     "send_message": "Enviar mensaje",
     "typing": "escribiendo...",
     "online": "en línea",
@@ -181,7 +236,30 @@
     "me": "Yo",
     "system": "Sistema",
     "yesterday": "Ayer",
-    "today": "Hoy"
+    "today": "Hoy",
+    "team_chat": "Chat del Equipo",
+    "online_count_zero": "0 en línea",
+    "online_count_one": "1 en línea",
+    "online_count_other": "{{count}} en línea",
+    "loading_messages": "Cargando mensajes...",
+    "loading_older_messages": "Cargando mensajes anteriores...",
+    "search": {
+      "title": "Buscar Mensajes",
+      "filters": "Filtros",
+      "placeholder": "Buscar mensajes...",
+      "channel": "Canal",
+      "user": "Usuario",
+      "channel_id_placeholder": "ID de Canal",
+      "user_id_placeholder": "ID de Usuario",
+      "found_results": "Se encontraron {{count}} resultado{{count, plural, one {} other {s}}} para \"{{query}}\"",
+      "searching": "Buscando...",
+      "no_results": "No se encontraron mensajes para \"{{query}}\"",
+      "try_different_keywords": "Intente con otras palabras clave o ajuste los filtros",
+      "has_attachment": "Tiene adjunto",
+      "enter_query": "Ingrese una consulta para buscar mensajes",
+      "search_across_channels": "Puede buscar en todos sus canales",
+      "channel_with_id": "Canal {{id}}"
+    }
   },
   "notifications": {
     "title": "Notificaciones",
@@ -195,6 +273,7 @@
   },
   "reports": {
     "title": "Reportes",
+    "subtitle": "Genere y exporte reportes del proyecto",
     "generate": "Generar",
     "export": "Exportar",
     "filter": "Filtrar",
@@ -208,7 +287,14 @@
     "costs": "Costos",
     "labor": "Mano de obra",
     "materials": "Materiales",
-    "equipment": "Equipo"
+    "equipment": "Equipo",
+    "select_template": "Seleccione Plantilla",
+    "from": "Desde",
+    "to": "Hasta",
+    "generate_report": "Generar Reporte",
+    "generating": "Generando...",
+    "change_orders": "Ordenes de Cambio",
+    "no_change_orders": "Sin órdenes de cambio"
   },
   "search": {
     "placeholder": "Buscar...",
@@ -217,7 +303,20 @@
     "filter": "Filtrar",
     "sort": "Ordenar",
     "relevance": "Relevancia",
-    "date": "Fecha"
+    "date": "Fecha",
+    "start_typing": "Comience a escribir para buscar...",
+    "no_results_for": "No se encontraron resultados para \"{{query}}\"",
+    "type_labels": {
+      "project": "Proyectos",
+      "task": "Tareas",
+      "file": "Archivos",
+      "other": "Otros"
+    },
+    "global": {
+      "placeholder": "Busque proyectos, tareas, órdenes de cambio, archivos...",
+      "hint_open": "para buscar",
+      "hint_close": "para cerrar"
+    }
   },
   "profile": {
     "title": "Perfil",
@@ -252,7 +351,11 @@
     "network_error": "Error de red",
     "try_again": "Por favor inténtelo nuevamente",
     "timeout": "Tiempo de espera agotado",
-    "conflict": "Conflicto"
+    "conflict": "Conflicto",
+    "loading_tasks": "Error al cargar las tareas",
+    "loading_alerts": "Error al cargar las alertas",
+    "loading_metrics": "Error al cargar las métricas",
+    "search_failed": "La búsqueda falló"
   },
   "success": {
     "saved": "Guardado correctamente",
@@ -272,6 +375,7 @@
   "dashboard": {
     "welcome_title": "Bienvenido a Kibray",
     "overview": "Resumen del Proyecto",
+    "navigate_hint": "Navegue usando la barra lateral para acceder a diferentes funciones",
     "projects": "Proyectos",
     "active_projects": "Proyectos Activos",
     "open_tasks": "Tareas Abiertas",
@@ -295,5 +399,182 @@
     "queued_messages_zero": "No hay mensajes en cola",
     "queued_messages_one": "1 mensaje en cola",
     "queued_messages_other": "{{count}} mensajes en cola"
+  }
+  ,
+  "time": {
+    "minutes_ago_zero": "hace 0 min",
+    "minutes_ago_one": "hace 1 min",
+    "minutes_ago_other": "hace {{count}} min",
+    "hours_ago_zero": "hace 0 h",
+    "hours_ago_one": "hace 1 h",
+    "hours_ago_other": "hace {{count}} h",
+    "days_ago_zero": "hace 0 d",
+    "days_ago_one": "hace 1 d",
+    "days_ago_other": "hace {{count}} d"
+  },
+  "metrics": {
+    "title": "Métricas de WebSocket",
+    "subtitle": "Panel de monitoreo en tiempo real",
+    "uptime": "Tiempo activo: {{time}}",
+    "auto_refresh_on": "Autoactualización ACTIVADA",
+    "auto_refresh_off": "Autoactualización DESACTIVADA",
+    "refresh_now": "Actualizar ahora",
+    "loading": "Cargando métricas..."
+  },
+  "analytics": {
+    "title": "Panel de Analítica",
+    "header_subtitle": "Métricas e insights de desempeño del proyecto",
+    "loading": "Cargando analítica...",
+    "error_loading": "No se pudo cargar el panel. Inténtelo nuevamente.",
+    "error_title": "Error al cargar el panel",
+    "error_loading_data": "Error al cargar datos",
+    "no_data_title": "No hay datos disponibles",
+    "no_data_message": "Los datos de analítica no están disponibles en este momento.",
+    "export_report": "Exportar reporte",
+    "project_id_required": "ID de Proyecto (Obligatorio)",
+    "project_id_optional": "ID de Proyecto (Opcional - Dejar en blanco para todos)",
+    "enter_project_id": "Ingrese el ID del proyecto",
+    "project_id_prompt": "Ingrese un ID de proyecto para ver métricas de salud",
+    "na": "N/D",
+    "time_ranges": {
+      "7d": "Últimos 7 días",
+      "30d": "Últimos 30 días",
+      "90d": "Últimos 90 días",
+      "1y": "Último año"
+    },
+    "tabs": {
+      "project_health": "Salud del Proyecto",
+      "touchups": "Detalles (Touch-ups)",
+      "color_approvals": "Aprobaciones de Color",
+      "pm_performance": "Desempeño de PM"
+    },
+    "kpis": {
+      "total_revenue": "Ingresos Totales",
+      "active_projects": "Proyectos Activos",
+      "team_members": "Miembros del Equipo",
+      "avg_completion": "Prom. de Finalización",
+      "completion": "Finalización",
+      "budget_remaining": "Presupuesto Restante",
+      "timeline_status": "Estado del Cronograma",
+      "overdue_tasks": "Tareas Atrasadas"
+    },
+    "charts": {
+      "budget_vs_actual": "Presupuesto vs Real",
+      "project_status": "Estado del Proyecto",
+      "task_distribution": "Distribución de Tareas",
+      "monthly_trends": "Tendencias Mensuales",
+      "budget_overview": "Resumen de Presupuesto"
+    },
+    "budget": {
+      "spent": "Gastado",
+      "remaining": "Restante"
+    },
+    "timeline": {
+      "on_track": "En Ruta",
+      "behind_schedule": "Atrasado"
+    },
+    "risk_alerts": {
+      "title": "Alertas de Riesgo",
+      "budget_overrun": "Se detectó sobrecosto",
+      "behind_schedule": "El proyecto está atrasado",
+      "overdue_tasks": "{{count}} tareas atrasadas"
+    },
+    "approvals": {
+      "total": "Aprobaciones Totales",
+      "avg_approval_time": "Tiempo Prom. de Aprobación",
+      "oldest_pending": "Pendiente más antiguo",
+      "status": "Estado de Aprobación",
+      "top_brands": "Marcas Principales"
+    },
+    "pms": {
+      "total": "Total de PMs",
+      "avg_projects_per_pm": "Prom. de Proyectos por PM",
+      "avg_completion_rate": "Prom. Tasa de Finalización",
+      "completion_rates": "Tasas de Finalización por PM",
+      "completion_rate_percent": "Tasa de Finalización %",
+      "table": {
+        "pm": "PM",
+        "projects": "Proyectos",
+        "tasks_assigned": "Tareas Asignadas",
+        "tasks_completed": "Tareas Completadas",
+        "completion_rate": "Tasa de Finalización",
+        "overdue": "Atrasadas"
+      }
+    },
+    "touchups": {
+      "total": "Total de Touch-ups",
+      "completion_rate": "Tasa de Finalización",
+      "avg_resolution_time": "Tiempo Prom. de Resolución",
+      "status_distribution": "Distribución por Estado",
+      "priority_distribution": "Distribución por Prioridad",
+      "completion_trends_30d": "Tendencias de Finalización (Últimos 30 días)",
+      "completions": "Finalizaciones"
+    }
+  },
+
+  "color_approvals": {
+    "title": "Aprobaciones de Color",
+    "filters": {
+      "project_id": "ID de Proyecto",
+      "all_statuses": "Todos los estados",
+      "brand": "Marca"
+    },
+    "actions": {
+      "request_approval": "+ Solicitar Aprobación"
+    },
+    "form": {
+      "new_request_title": "Nueva Solicitud de Aprobación",
+      "submit": "Enviar",
+      "fields": {
+        "project_id": "ID de Proyecto",
+        "color_name": "Nombre del Color",
+        "color_code": "Código de Color",
+        "brand": "Marca",
+        "location": "Ubicación",
+        "notes": "Notas"
+      }
+    },
+    "labels": {
+      "location": "Ubicación",
+      "status": "Estado",
+      "created": "Creado"
+    },
+    "prompts": {
+      "rejection_reason": "Motivo del rechazo:"
+    },
+    "errors": {
+      "loading_relationships": "",
+      "loading": "Error al cargar aprobaciones",
+      "create": "Error al crear la solicitud",
+      "approve": "Error al aprobar",
+      "reject": "Error al rechazar"
+    }
+  },
+
+  "pm_assignments": {
+    "title": "Asignaciones de PM",
+    "actions": {
+      "assign_pm": "+ Asignar PM"
+    },
+    "form": {
+      "new_assignment": "Nueva Asignación de PM",
+      "assign": "Asignar",
+      "fields": {
+        "project_id": "ID de Proyecto",
+        "pm_user_id": "ID de Usuario PM",
+        "role_placeholder": "Rol (predeterminado: project_manager)"
+      }
+    },
+    "labels": {
+      "pm": "PM",
+      "user": "Usuario",
+      "project": "Proyecto",
+      "role": "Rol",
+      "created": "Creado"
+    },
+    "errors": {
+      "loading": "Error al cargar asignaciones",
+      "create": "Error al crear asignación"
+    }
   }
 }

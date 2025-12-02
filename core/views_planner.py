@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _, gettext
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
@@ -31,7 +32,7 @@ def strategic_ritual_wizard(request):
     # Check if user is admin/staff
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({
-            'error': 'This feature is only available for Admin/PM users.'
+            'error': gettext('This feature is only available for Admin/PM users.')
         }, status=403)
     
     # Check if ritual already exists for today
@@ -173,18 +174,18 @@ def complete_ritual(request):
         return JsonResponse({
             'success': True,
             'ritual_id': ritual.id,
-            'message': 'Ritual completed successfully!'
+            'message': gettext('Ritual completed successfully!')
         })
         
     except ValidationError as e:
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': gettext('%(error)s') % {'error': str(e)}
         }, status=400)
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'error': f'Unexpected error: {str(e)}'
+            'error': gettext('Unexpected error: %(error)s') % {'error': str(e)}
         }, status=500)
 
 
@@ -355,7 +356,7 @@ def update_micro_step(request, action_id, step_index):
     if step_index < 0 or step_index >= len(action.micro_steps):
         return JsonResponse({
             'success': False,
-            'error': 'Invalid step index'
+            'error': gettext('Invalid step index')
         }, status=400)
     
     # Toggle the 'done' status
