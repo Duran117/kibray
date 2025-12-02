@@ -19,6 +19,23 @@
     background-color: rgba(0,0,0,.02);
     border-color: var(--bs-primary);
   }
+  
+  /* Calendar widget styles */
+  .calendar-grid .col {
+    padding: 2px;
+  }
+  .calendar-day {
+    min-height: 50px;
+    cursor: default;
+    transition: all .2s ease;
+  }
+  .calendar-day:hover {
+    transform: scale(1.05);
+  }
+  .badge-sm {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
 </style>
 {% endblock %}
 
@@ -588,19 +605,46 @@
     </div>
   </div>
 
-  <!-- === UPCOMING EVENTS === -->
-  <div class="card shadow-sm mb-3 mb-md-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-      <h5 class="mb-0 h6 h-md-5">
-        <i class="bi bi-calendar-event text-primary me-2"></i>
-        {% trans "Upcoming Events" %}
-      </h5>
-      <span class="small text-muted d-none d-md-inline">{% trans "Next 5" %}</span>
+  <!-- === CALENDAR WIDGET === -->
+  <div class="row g-3 mb-3 mb-md-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-gradient bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="bi bi-calendar3 me-2"></i>
+            {% trans "Calendar Overview" %}
+          </h5>
+          <a href="{% url 'master_schedule_center' %}" class="btn btn-sm btn-light">
+            <i class="bi bi-arrows-fullscreen"></i>
+            <span class="d-none d-md-inline ms-1">{% trans "Full Calendar" %}</span>
+          </a>
+        </div>
+        <div class="card-body p-3" id="calendarWidget">
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading calendar...</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="card-body p-2 p-md-3" id="upcomingEventsWidget">
-      <div class="text-center py-3">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
+    
+    <div class="col-lg-4">
+      <!-- === UPCOMING EVENTS === -->
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 h6 h-md-5">
+            <i class="bi bi-calendar-event text-primary me-2"></i>
+            {% trans "Upcoming Events" %}
+          </h5>
+          <span class="small text-muted d-none d-md-inline">{% trans "Next 7 days" %}</span>
+        </div>
+        <div class="card-body p-2 p-md-3" id="upcomingEventsWidget" style="max-height: 500px; overflow-y: auto;">
+          <div class="text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -994,6 +1038,7 @@ function getCookie(name) {
 document.addEventListener('DOMContentLoaded', () => {
   loadStrategicFocus();
   loadUpcomingEvents();
+  loadCalendarWidget();
 });
 
 // Upcoming Events loader
@@ -1031,7 +1076,7 @@ async function loadUpcomingEvents() {
     const combined = [
       ...normalize(focusJson, 'FOCUS'),
       ...normalize(plansJson, 'PLAN')
-    ].sort((a,b) => a.date - b.date).slice(0,5);
+    ].sort((a,b) => a.date - b.date).slice(0,10);
 
     if (combined.length === 0) {
       container.innerHTML = `
@@ -1049,7 +1094,7 @@ async function loadUpcomingEvents() {
         ? '<span class="badge bg-dark me-2">{% trans "Focus" %}</span>'
         : '<span class="badge bg-success me-2">{% trans "Plan" %}</span>';
       return `
-        <div class="event-item d-flex align-items-start gap-2 py-2 px-1">
+        <div class="event-item d-flex align-items-start gap-2 py-2 px-1 border-bottom">
           <div class="text-nowrap small text-muted" style="min-width: 72px;">
             <i class="bi bi-calendar-event me-1"></i>${dateStr}<span class="d-none d-sm-inline"> · ${timeStr}</span>
           </div>
@@ -1065,6 +1110,93 @@ async function loadUpcomingEvents() {
       <div class="alert alert-warning mb-0">
         <i class="bi bi-exclamation-triangle me-2"></i>
         {% trans "Could not load upcoming events right now." %}
+      </div>`;
+  }
+}
+
+// === CALENDAR WIDGET ===
+async function loadCalendarWidget() {
+  const container = document.getElementById('calendarWidget');
+  if (!container) return;
+
+  try {
+    // Fetch schedule events from the API
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    const res = await fetch(`/api/v1/schedule/?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
+    let events = [];
+    
+    if (res.ok) {
+      events = await res.json();
+    }
+
+    // Build a simple month calendar view
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    const firstDay = startDate.getDay();
+    const lastDate = endDate.getDate();
+    
+    let calendarHTML = `
+      <div class="calendar-month-view">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">${monthNames[now.getMonth()]} ${now.getFullYear()}</h5>
+          <a href="{% url 'master_schedule_center' %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-calendar3"></i> {% trans "View Full" %}
+          </a>
+        </div>
+        <div class="calendar-grid">
+          <div class="calendar-header row g-1 mb-2">
+            ${dayNames.map(day => `<div class="col text-center small fw-bold text-muted">${day}</div>`).join('')}
+          </div>
+          <div class="calendar-days row g-1">`;
+    
+    // Blank cells before month starts
+    for (let i = 0; i < firstDay; i++) {
+      calendarHTML += `<div class="col text-center p-2"></div>`;
+    }
+    
+    // Calendar days
+    for (let day = 1; day <= lastDate; day++) {
+      const date = new Date(now.getFullYear(), now.getMonth(), day);
+      const dateStr = date.toISOString().split('T')[0];
+      const isToday = day === now.getDate();
+      
+      // Count events on this day
+      const dayEvents = events.filter(e => {
+        const eventDate = new Date(e.start_datetime || e.date);
+        return eventDate.toISOString().split('T')[0] === dateStr;
+      });
+      
+      const hasEvents = dayEvents.length > 0;
+      const bgClass = isToday ? 'bg-primary text-white' : hasEvents ? 'bg-info bg-opacity-10' : '';
+      const borderClass = isToday ? 'border border-primary' : '';
+      
+      calendarHTML += `
+        <div class="col text-center p-2 ${borderClass}">
+          <div class="calendar-day ${bgClass} rounded p-1" style="min-height: 50px;">
+            <div class="small fw-bold">${day}</div>
+            ${hasEvents ? `<div class="badge bg-primary badge-sm mt-1">${dayEvents.length}</div>` : ''}
+          </div>
+        </div>`;
+    }
+    
+    calendarHTML += `
+          </div>
+        </div>
+      </div>`;
+    
+    container.innerHTML = calendarHTML;
+    
+  } catch (err) {
+    console.error('Calendar widget failed', err);
+    container.innerHTML = `
+      <div class="alert alert-warning mb-0">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {% trans "Could not load calendar right now." %}
       </div>`;
   }
 }
