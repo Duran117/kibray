@@ -181,14 +181,14 @@
           <div class="mb-3">
             <div class="d-flex align-items-center mb-2">
               <i class="bi bi-calendar-check text-success me-2"></i>
-              <strong>Inicio:</strong>
+              <strong>{% trans "Inicio:" %}</strong>
               <span class="ms-2">
                 {% if project.start_date %}{{ project.start_date|date:"M d, Y" }}{% else %}<span class="text-muted">No definido</span>{% endif %}
               </span>
             </div>
             <div class="d-flex align-items-center mb-2">
               <i class="bi bi-calendar-x text-danger me-2"></i>
-              <strong>Fin estimado:</strong>
+              <strong>{% trans "Fin estimado:" %}</strong>
               <span class="ms-2">
                 {% if project.end_date %}{{ project.end_date|date:"M d, Y" }}{% else %}<span class="text-muted">No definido</span>{% endif %}
               </span>
@@ -196,7 +196,7 @@
             {% if project.start_date and project.end_date %}
             <div class="d-flex align-items-center">
               <i class="bi bi-clock-history text-primary me-2"></i>
-              <strong>Duración total:</strong>
+              <strong>{% trans "Duración total:" %}</strong>
               <span class="ms-2">{{ project.end_date|timeuntil:project.start_date }}</span>
             </div>
             {% endif %}
@@ -206,7 +206,7 @@
           <!-- Progress Indicator -->
           <div class="mb-2">
             <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="small"><strong>Progreso del Proyecto</strong></span>
+              <span class="small"><strong>{% trans "Progreso del Proyecto" %}</strong></span>
               <span class="small text-muted">{% if project.progress %}{{ project.progress }}%{% else %}0%{% endif %}</span>
             </div>
             <div class="progress" style="height: 25px;">
@@ -224,13 +224,13 @@
             <div class="col-6">
               <div class="small bg-light p-2 rounded text-center">
                 <i class="bi bi-calendar-event"></i><br>
-                <strong>{{ upcoming_schedules|length }}</strong> eventos próximos
+                <strong>{{ upcoming_schedules|length }}</strong> {% trans "eventos próximos" %}
               </div>
             </div>
             <div class="col-6">
               <div class="small bg-light p-2 rounded text-center">
                 <i class="bi bi-check2-square"></i><br>
-                <strong>{{ recent_tasks|length }}</strong> tareas recientes
+                <strong>{{ recent_tasks|length }}</strong> {% trans "tareas recientes" %}
               </div>
             </div>
           </div>
@@ -334,7 +334,7 @@
     <!-- Widget Touch-ups -->
     <div class="bg-white rounded-lg shadow-sm h-full">
       <div class="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
-        <span class="font-medium text-slate-900"><i class="bi bi-brush me-2"></i>Touch-ups</span>
+  <span class="font-medium text-slate-900"><i class="bi bi-brush me-2"></i>{% trans "Touch-ups" %}</span>
         <div class="flex items-center gap-2 text-sm">
           <a href="{% url 'touchup_plans_list' project.id %}" class="px-3 py-1.5 rounded border hover:bg-slate-100 transition"><i class="bi bi-list"></i> {% trans "Ver Panel" %}</a>
         </div>
@@ -345,21 +345,21 @@
               <div class="small bg-warning bg-opacity-10 p-2 rounded text-center border border-warning">
                 <i class="bi bi-clock-history text-warning"></i><br>
                 <strong>{{ touchups_pending }}</strong><br>
-                <small>Pendientes</small>
+                <small>{% trans "Pendientes" %}</small>
               </div>
             </div>
             <div class="col-4">
               <div class="small bg-primary bg-opacity-10 p-2 rounded text-center border border-primary">
                 <i class="bi bi-arrow-repeat text-primary"></i><br>
                 <strong>{{ touchups_in_progress }}</strong><br>
-                <small>En Proceso</small>
+                <small>{% trans "En Proceso" %}</small>
               </div>
             </div>
             <div class="col-4">
               <div class="small bg-success bg-opacity-10 p-2 rounded text-center border border-success">
                 <i class="bi bi-check-circle text-success"></i><br>
                 <strong>{{ touchups_completed }}</strong><br>
-                <small>Completados</small>
+                <small>{% trans "Completados" %}</small>
               </div>
             </div>
           </div>
@@ -394,7 +394,7 @@
     <!-- Widget CO Summary -->
     <div class="bg-white rounded-lg shadow-sm h-full">
       <div class="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
-        <span class="font-medium text-slate-900"><i class="bi bi-kanban me-2"></i>Change Orders</span>
+  <span class="font-medium text-slate-900"><i class="bi bi-kanban me-2"></i>{% trans "Change Orders" %}</span>
         <div class="flex items-center gap-2 text-sm">
           <a href="{% url 'changeorder_board' %}" class="px-3 py-1.5 rounded border hover:bg-slate-100 transition">
             <i class="bi bi-kanban"></i> {% trans "Ver Board" %}
@@ -513,8 +513,8 @@
       <div class="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
         <span class="font-medium text-slate-900"><i class="bi bi-calendar-week me-2"></i>{% trans "Schedule Próximo" %}</span>
         <div class="flex items-center gap-2 text-sm">
-          <a href="{% url 'schedule_gantt_react' project.id %}" class="px-3 py-1.5 rounded border text-white bg-purple-600 hover:bg-purple-700 transition"><i class="bi bi-diagram-3"></i> {% trans "Gantt Timeline" %}</a>
-          <a href="{% url 'project_schedule' project.id %}" class="px-3 py-1.5 rounded border hover:bg-slate-100 transition"><i class="bi bi-calendar3"></i> {% trans "Ver Todo" %}</a>
+          <a href="{% url 'schedule_gantt_react' project.id %}" aria-label="{% trans 'Ver Gantt Timeline' %}" class="px-3 py-1.5 rounded border text-white bg-purple-600 hover:bg-purple-700 transition"><i class="bi bi-diagram-3"></i> {% trans "Gantt Timeline" %}</a>
+          <a href="{% url 'project_schedule' project.id %}" aria-label="{% trans 'Ver Todo del Schedule' %}" class="px-3 py-1.5 rounded border hover:bg-slate-100 transition"><i class="bi bi-calendar3"></i> {% trans "Ver Todo" %}</a>
           {% if can_manage %}
           <a href="{% url 'project_schedule' project.id %}#crear" class="px-3 py-1.5 rounded border text-white bg-green-600 hover:bg-green-700 transition"><i class="bi bi-plus-circle"></i> {% trans "Crear" %}</a>
           {% endif %}
@@ -578,7 +578,7 @@
 
     <div class="bg-white rounded-lg shadow-sm h-full">
       <div class="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
-        <span class="font-medium text-slate-900"><i class="bi bi-journal-text me-2"></i>Daily Logs</span>
+  <span class="font-medium text-slate-900"><i class="bi bi-journal-text me-2"></i>{% trans "Daily Logs" %}</span>
         <div class="flex items-center gap-2 text-sm">
           <a href="{% url 'daily_log' project.id %}" class="px-3 py-1.5 rounded border hover:bg-slate-100 transition"><i class="bi bi-list"></i> {% trans "Ver Todo" %}</a>
           {% if can_manage %}
@@ -676,7 +676,7 @@
 
   <div class="mt-4 d-flex gap-2">
     <a class="btn btn-outline-secondary" href="{% url 'dashboard_pm' %}">
-      <i class="bi bi-arrow-left"></i> Volver al Dashboard
+      <i class="bi bi-arrow-left"></i> {% trans "Volver al Dashboard" %}
     </a>
   </div>
 </div>
