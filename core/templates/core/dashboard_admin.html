@@ -862,7 +862,7 @@ async function loadStrategicFocus() {
   if (!widget) return;
   
   try {
-    const response = await fetch('/api/planner/ritual/today/');
+    const response = await fetch('/api/v1/planner/ritual/today/');
     const data = await response.json();
     
     if (!data.has_ritual) {
@@ -987,7 +987,7 @@ async function loadStrategicFocus() {
 
 async function toggleFrogStatus(actionId) {
   try {
-    const response = await fetch(`/api/planner/action/${actionId}/toggle/`, {
+    const response = await fetch(`/api/v1/planner/action/${actionId}/toggle/`, {
       method: 'POST',
       headers: {
         'X-CSRFToken': getCookie('csrftoken')
@@ -1004,7 +1004,7 @@ async function toggleFrogStatus(actionId) {
 
 async function toggleMicroStep(actionId, stepIndex) {
   try {
-    const response = await fetch(`/api/planner/action/${actionId}/step/${stepIndex}/`, {
+    const response = await fetch(`/api/v1/planner/action/${actionId}/step/${stepIndex}/`, {
       method: 'POST',
       headers: {
         'X-CSRFToken': getCookie('csrftoken')

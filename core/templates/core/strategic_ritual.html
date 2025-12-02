@@ -840,7 +840,7 @@ function initStep1() {
 // Step 2: Habits (Load from server)
 async function initStep2() {
     try {
-        const response = await fetch('/api/planner/habits/active/');
+        const response = await fetch('/api/v1/planner/habits/active/');
         const habits = await response.json();
         
         const grid = document.getElementById('habitsGrid');
@@ -887,7 +887,7 @@ function getHabitIcon(frequency) {
 // Step 3: Vision Anchor (Load from server)
 async function initStep3() {
     try {
-        const response = await fetch('/api/planner/visions/random/');
+        const response = await fetch('/api/v1/planner/visions/random/');
         const vision = await response.json();
         
         const container = document.getElementById('visionContainer');
@@ -1200,7 +1200,7 @@ document.getElementById('nextBtn').addEventListener('click', async () => {
 
 async function submitRitual() {
     try {
-        const response = await fetch('/api/planner/ritual/complete/', {
+        const response = await fetch('/api/v1/planner/ritual/complete/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
