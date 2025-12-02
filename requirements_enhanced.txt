@@ -88,7 +88,7 @@ webhooks==1.0.2
 
 # Integrations
 quickbooks-online==0.8.1  # QuickBooks
-google-api-python-client==2.108.0  # Google Calendar
+google-api-python-client==2.187.0  # Google Calendar
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.0
 
