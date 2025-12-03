@@ -71,21 +71,40 @@
   </nav>
 
   <div class="row g-3">
-    {% if request.user.is_staff or request.user.profile.role == 'project_manager' %}
+    <!-- Controls disponibles según permisos -->
+    {% if can_edit_pins %}
     <div class="col-12">
-      <div class="d-flex justify-content-end mb-2">
-        <button type="button" class="btn btn-sm btn-primary me-2" id="topEditPinsBtn">
+      <div class="d-flex justify-content-end mb-2 gap-2">
+        <!-- Editar pines - todos los que pueden editar -->
+        <button type="button" class="btn btn-sm btn-primary" id="topEditPinsBtn">
           <i class="bi bi-pin-angle"></i> {% trans "Editar Pines" %}
         </button>
-        <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary me-2">
+        
+        <!-- Editar plano - solo PM/Admin/Owner -->
+        {% if can_delete %}
+        <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary">
           <i class="bi bi-pencil-square"></i> {% trans "Editar Plano (imagen/nivel)" %}
         </a>
         <a href="{% url 'floor_plan_delete' plan.id %}" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+          <i class="bi bi-trash"></i> {% trans "Eliminar Plano" %}
         </a>
+        {% endif %}
+
+        <!-- Info para Designer/Client -->
+        {% if not can_delete %}
+        <span class="badge bg-info align-self-center">
+          <i class="bi bi-info-circle"></i> 
+          {% if request.user.profile.role == 'designer' %}
+            {% trans "Puedes editar pines y agregar comentarios" %}
+          {% else %}
+            {% trans "Vista de colaborador" %}
+          {% endif %}
+        </span>
+        {% endif %}
       </div>
     </div>
     {% endif %}
+
     <div class="col-lg-8">
       <!-- Mode Toggle Controls -->
       <div class="mode-toggle-container">
@@ -240,12 +259,18 @@
     photosLabel: `{% trans "Fotos" %}`,
     noPhotosText: `{% trans "No hay fotos adjuntas" %}`,
     editPin: `{% trans "Editar Pin" %}`,
+    deletePin: `{% trans "Eliminar Pin" %}`,
+    confirmDeletePin: `{% trans "¿Estás seguro de eliminar este pin? Esta acción no se puede deshacer." %}`,
     selectPhotos: `{% trans "Seleccionar fotos" %}`,
     annotatePhotos: `{% trans "Anotar Fotos" %}`,
     uploadPhotos: `{% trans "Subir Fotos" %}`,
     errorUploadingPhotos: `{% trans "Error subiendo fotos" %}`,
     confirmDeletePhoto: `{% trans "¿Eliminar esta foto?" %}`
   };
+
+  // Permissions from backend
+  const CAN_EDIT = {{ can_edit_pins|yesno:"true,false" }};
+  const CAN_DELETE = {{ can_delete|yesno:"true,false" }};
 
   let scale = 1.0;
   let multipointMode = false;
@@ -587,10 +612,15 @@
       </div>
 
       ${canEdit ? `
-        <div class="border-top pt-3">
+        <div class="border-top pt-3 d-flex gap-2">
           <button class="btn btn-primary btn-sm" onclick="showEditForm(${pinId})">
             <i class="bi bi-pencil"></i> ${I18N.editPin}
           </button>
+          ${CAN_DELETE ? `
+            <button class="btn btn-danger btn-sm" onclick="deletePin(${pinId})">
+              <i class="bi bi-trash"></i> ${I18N.deletePin}
+            </button>
+          ` : ''}
         </div>
       ` : ''}
     `;
@@ -807,6 +837,37 @@
       if (data.success) {
         document.getElementById(`attachment-${attachmentId}`).remove();
       }
+    });
+  };
+
+  window.deletePin = function(pinId) {
+    if (!confirm(I18N.confirmDeletePin)) return;
+
+    fetch(`/api/v1/plan-pins/${pinId}/`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRFToken': getCsrfToken(),
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        // Close modal and reload page to update pins
+        const modal = bootstrap.Modal.getInstance(document.getElementById('pinInfoModal'));
+        if (modal) modal.hide();
+        
+        // Show success message
+        alert('{% trans "Pin eliminado exitosamente" %}');
+        
+        // Reload page to refresh pins
+        window.location.reload();
+      } else {
+        alert('{% trans "Error al eliminar el pin" %}');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('{% trans "Error al eliminar el pin" %}');
     });
   };
 
