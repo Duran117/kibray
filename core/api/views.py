@@ -3873,9 +3873,10 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
         # Non-staff: filter by ClientProjectAccess via channel->project
         from core.models import ClientProjectAccess
+        from django.db.models import Q
 
         project_ids = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
-        return qs.filter(channel__project_id__in=list(project_ids))
+        return qs.filter(Q(channel__project_id__in=list(project_ids)) | Q(user=user))
 
     @action(detail=True, methods=["post"])
     def soft_delete(self, request, pk=None):
@@ -3965,7 +3966,19 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
             )
 
         # Filter queryset by channel and ensure ordering
-        qs = self.get_queryset().filter(channel_id=channel_id).order_by('-created_at')
+        # Use base queryset (select_related already applied) and filter by channel
+        from core.models import ChatMessage
+        qs = ChatMessage.objects.select_related("channel__project", "user", "deleted_by").prefetch_related("mentions").filter(
+            channel_id=channel_id
+        ).order_by('-created_at')
+        
+        # Apply permission filtering: staff sees all, non-staff sees messages they authored or from accessible projects
+        if not request.user.is_staff:
+            from core.models import ClientProjectAccess
+            from django.db.models import Q
+            project_ids = ClientProjectAccess.objects.filter(user=request.user).values_list("project_id", flat=True)
+            # Allow if: (1) message author is current user OR (2) project is in user's accessible projects
+            qs = qs.filter(Q(user=request.user) | Q(channel__project_id__in=list(project_ids)))
 
         # Apply cursor pagination
         paginator = ChatMessageCursorPagination()

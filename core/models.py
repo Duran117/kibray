@@ -336,6 +336,13 @@ class Employee(models.Model):
     Added created_at for audit ordering (new column introduced Nov 2025).
     """
 
+    # Human-readable employee identifier
+    employee_key = models.CharField(
+        max_length=16,
+        unique=True,
+        blank=True,
+        help_text="Código único del empleado (EMP-001, EMP-002...). Se genera automáticamente."
+    )
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="employee_profile")
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -366,6 +373,14 @@ class Employee(models.Model):
     def __str__(self):
         base = f"{self.first_name} {self.last_name}".strip()
         return base if base else f"Employee {self.id}"
+    
+    def save(self, *args, **kwargs):
+        creating = self.pk is None
+        super().save(*args, **kwargs)
+        # Generar employee_key después de tener PK
+        if creating and not self.employee_key:
+            self.employee_key = f"EMP-{self.id:03d}"
+            super().save(update_fields=["employee_key"])
 
 
 # ---------------------
@@ -4614,6 +4629,40 @@ class InventoryItem(models.Model):
     def get_effective_threshold(self):
         """Q15.5: Retorna umbral efectivo (personalizado o default)"""
         return self.low_stock_threshold or self.default_threshold
+    
+    def save(self, *args, **kwargs):
+        creating = self.pk is None
+        super().save(*args, **kwargs)
+        
+        # Auto-generate SKU if not provided
+        if creating and not self.sku:
+            prefix_map = {
+                "MATERIAL": "MAT",
+                "PINTURA": "PAI",
+                "ESCALERA": "LAD",
+                "LIJADORA": "SAN",
+                "SPRAY": "SPR",
+                "HERRAMIENTA": "TOO",
+                "OTRO": "OTH",
+            }
+            prefix = prefix_map.get(self.category, "ITM")
+            
+            # Get the next sequence number for this category
+            last_item = InventoryItem.objects.filter(
+                sku__startswith=f"{prefix}-"
+            ).order_by("-sku").first()
+            
+            if last_item and last_item.sku:
+                try:
+                    last_seq = int(last_item.sku.split('-')[-1])
+                    next_seq = last_seq + 1
+                except (ValueError, IndexError):
+                    next_seq = 1
+            else:
+                next_seq = 1
+            
+            self.sku = f"{prefix}-{next_seq:03d}"
+            super().save(update_fields=["sku"])
 
     def update_average_cost(self, new_cost, quantity_purchased):
         """Q15.8: Actualizar costo promedio con nueva compra"""

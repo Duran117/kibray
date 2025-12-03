@@ -112,22 +112,31 @@ class ChatMessageCursorPagination(CursorPagination):
         """
         Enhanced response structure for infinite scroll UX
         
+        IMPORTANT: With ordering="-created_at" (descending), DRF's cursor semantics are:
+        - self.get_next_link() = cursor for OLDER messages (lower created_at values)
+        - self.get_previous_link() = cursor for NEWER messages (higher created_at values)
+        
+        Chat UI semantic mapping:
+        - "has_more" = can load OLDER messages (scroll up in chat) = next_link exists
+        - "has_previous" = can load NEWER messages (scroll down in chat) = previous_link exists
+        
         Returns:
             {
-                "next": "cursor_token_for_newer_messages",
-                "previous": "cursor_token_for_older_messages",
-                "has_more": bool,  # True if more older messages exist
-                "has_previous": bool,  # True if newer messages exist
+                "next": "cursor_token_for_newer_messages",  # For UI "load newer"
+                "previous": "cursor_token_for_older_messages",  # For UI "scroll up/load more"
+                "has_more": bool,  # True if more older messages exist (scroll up)
+                "has_previous": bool,  # True if newer messages exist (scroll down)
                 "results": [...messages...]
             }
         """
+        # Swap next/previous to match chat UI expectations
         return Response(
             OrderedDict(
                 [
-                    ("next", self.get_next_link()),
-                    ("previous", self.get_previous_link()),
-                    ("has_more", self.get_previous_link() is not None),  # Older messages
-                    ("has_previous", self.get_next_link() is not None),  # Newer messages
+                    ("next", self.get_previous_link()),  # Swapped: newer messages
+                    ("previous", self.get_next_link()),  # Swapped: older messages  
+                    ("has_more", self.get_next_link() is not None),  # Can scroll up (older)
+                    ("has_previous", self.get_previous_link() is not None),  # Can scroll down (newer)
                     ("results", data),
                 ]
             )

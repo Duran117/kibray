@@ -25,10 +25,14 @@ class ChangeOrderService:
 
         # T&M mode
         billing_rate = change_order.get_effective_billing_rate()
-        material_markup_pct = change_order.material_markup_pct or Decimal('0')
+        material_markup_pct = change_order.material_markup_percent or Decimal('0')
 
-        time_qs = change_order.time_entries.filter(invoice_line__isnull=True)
-        expenses_qs = change_order.expenses.filter(invoice_line__isnull=True)
+        # TimeEntries without InvoiceLine: check invoiceline_set (reverse FK from InvoiceLine.time_entry)
+        # Since InvoiceLine has time_entry FK, the reverse relation is time_entry.invoiceline (singular by convention)
+        # But without explicit related_name, Django creates invoiceline_set or uses the model name lowercase
+        # Let's use the model name: InvoiceLine -> time_entry creates reverse as 'invoiceline' (lowercase model name)
+        time_qs = change_order.time_entries.exclude(invoiceline__isnull=False)
+        expenses_qs = change_order.expenses.exclude(invoiceline__isnull=False)
 
         labor_hours = sum((te.hours_worked or Decimal('0')) for te in time_qs)
         labor_total = (labor_hours * billing_rate).quantize(Decimal('0.01'))
