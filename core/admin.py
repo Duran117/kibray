@@ -69,8 +69,8 @@ from .models import (
 # Empleado
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ("first_name", "last_name", "hourly_rate", "is_active")
-    search_fields = ("first_name", "last_name")
+    list_display = ("employee_key", "first_name", "last_name", "hourly_rate", "is_active")
+    search_fields = ("employee_key", "first_name", "last_name")
     list_filter = ("is_active",)
     ordering = ("-created_at",)
 
@@ -99,6 +99,7 @@ class ExpenseAdmin(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
+        "project_code",
         "name",
         "client",
         "billing_organization",
@@ -113,7 +114,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "total_expenses",
         "profit",
     )
-    search_fields = ("name", "client", "billing_organization__name")
+    search_fields = ("project_code", "name", "client", "billing_organization__name")
     list_filter = ("start_date", "end_date", "billing_organization")
     ordering = ("-start_date",)
     autocomplete_fields = ("billing_organization", "project_lead")
@@ -434,9 +435,9 @@ class NotificationAdmin(admin.ModelAdmin):
 
 @admin.register(InventoryItem)
 class InventoryItemAdmin(admin.ModelAdmin):
-    list_display = ("name", "category", "unit", "default_threshold", "active")
+    list_display = ("sku", "name", "category", "unit", "default_threshold", "active")
     list_filter = ("category", "active")
-    search_fields = ("name",)
+    search_fields = ("sku", "name")
 
 
 @admin.register(InventoryLocation)
