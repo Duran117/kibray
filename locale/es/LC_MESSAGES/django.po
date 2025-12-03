@@ -7810,167 +7810,167 @@ msgstr "Volver al Panel de Planificación"
 
 #: core/templates/core/strategic_ritual.html:5
 msgid "Strategic Ritual"
-msgstr ""
+msgstr "Ritual Estratégico"
 
 #: core/templates/core/strategic_ritual.html:498
 #, fuzzy
 #| msgid "Primera"
 msgid "Prime"
-msgstr "Primera"
+msgstr "Activación"
 
 #: core/templates/core/strategic_ritual.html:502
 #, fuzzy
 #| msgid "Attitude"
 msgid "Gratitude"
-msgstr "Attitude"
+msgstr "Gratitud"
 
 #: core/templates/core/strategic_ritual.html:506
 msgid "Habits"
-msgstr ""
+msgstr "Hábitos"
 
 #: core/templates/core/strategic_ritual.html:510
 msgid "Vision"
-msgstr ""
+msgstr "Visión"
 
 #: core/templates/core/strategic_ritual.html:518
 msgid "80/20 Sort"
-msgstr ""
+msgstr "Clasificación 80/20"
 
 #: core/templates/core/strategic_ritual.html:522
 msgid "The Frog"
-msgstr ""
+msgstr "La Rana"
 
 #: core/templates/core/strategic_ritual.html:550
 msgid "Tony Robbins' Triad: Physiology, Focus, Language"
-msgstr ""
+msgstr "La Tríada de Tony Robbins: Fisiología, Enfoque, Lenguaje"
 
 #: core/templates/core/strategic_ritual.html:554
 msgid "Priming Exercise"
-msgstr ""
+msgstr "Ejercicio de Activación"
 
 #: core/templates/core/strategic_ritual.html:556
 msgid "Stand up. Take 3 deep breaths."
-msgstr ""
+msgstr "Ponte de pie. Respira profundo 3 veces."
 
 #: core/templates/core/strategic_ritual.html:557
 msgid "Roll your shoulders back."
-msgstr ""
+msgstr "Echa los hombros hacia atrás."
 
 #: core/templates/core/strategic_ritual.html:558
 msgid "Smile."
-msgstr ""
+msgstr "Sonríe."
 
 #: core/templates/core/strategic_ritual.html:559
 msgid "Your physiology affects your psychology."
-msgstr ""
+msgstr "Tu fisiología afecta tu psicología."
 
 #: core/templates/core/strategic_ritual.html:564
 msgid "I've completed my priming"
-msgstr ""
+msgstr "He completado mi activación"
 
 #: core/templates/core/strategic_ritual.html:569
 #, fuzzy
 #| msgid "Current image"
 msgid "Current Energy Level:"
-msgstr "Current image"
+msgstr "Nivel de Energía Actual:"
 
 #: core/templates/core/strategic_ritual.html:579
 msgid "3 Things I'm Grateful For"
-msgstr ""
+msgstr "3 Cosas por las que Estoy Agradecido"
 
 #: core/templates/core/strategic_ritual.html:580
 msgid "Gratitude shifts your focus from scarcity to abundance."
-msgstr ""
+msgstr "La gratitud cambia tu enfoque de la escasez a la abundancia."
 
 #: core/templates/core/strategic_ritual.html:583
 msgid "1. I'm grateful for..."
-msgstr ""
+msgstr "1. Estoy agradecido por..."
 
 #: core/templates/core/strategic_ritual.html:584
 msgid "Example: My health, my family, this opportunity..."
-msgstr ""
+msgstr "Ejemplo: Mi salud, mi familia, esta oportunidad..."
 
 #: core/templates/core/strategic_ritual.html:588
 msgid "2. I'm grateful for..."
-msgstr ""
+msgstr "2. Estoy agradecido por..."
 
 #: core/templates/core/strategic_ritual.html:589
 msgid "Example: The roof over my head, my skills..."
-msgstr ""
+msgstr "Ejemplo: El techo sobre mi cabeza, mis habilidades..."
 
 #: core/templates/core/strategic_ritual.html:593
 msgid "3. I'm grateful for..."
-msgstr ""
+msgstr "3. Estoy agradecido por..."
 
 #: core/templates/core/strategic_ritual.html:594
 msgid "Example: The challenges that make me stronger..."
-msgstr ""
+msgstr "Ejemplo: Los desafíos que me hacen más fuerte..."
 
 #: core/templates/core/strategic_ritual.html:598
 msgid "Today's Intention/Focus:"
-msgstr ""
+msgstr "Intención/Enfoque de Hoy:"
 
 #: core/templates/core/strategic_ritual.html:599
 msgid "Example: Be present, create value, lead with clarity..."
-msgstr ""
+msgstr "Ejemplo: Estar presente, crear valor, liderar con claridad..."
 
 #: core/templates/core/strategic_ritual.html:606
 msgid "Daily Habits Check-In"
-msgstr ""
+msgstr "Revisión de Hábitos Diarios"
 
 #: core/templates/core/strategic_ritual.html:607
 msgid "Which habits are you committing to today?"
-msgstr ""
+msgstr "¿A qué hábitos te comprometes hoy?"
 
 #: core/templates/core/strategic_ritual.html:614
 #, fuzzy
 #| msgid "No photos yet"
 msgid "No habits yet?"
-msgstr "No hay planes para hoy todavía."
+msgstr "¿Aún no tienes hábitos?"
 
 #: core/templates/core/strategic_ritual.html:615
 #, fuzzy
 #| msgid "Create your first project to get started"
 msgid "Create your first habit"
-msgstr "Crea tu primer proyecto para comenzar"
+msgstr "Crea tu primer hábito"
 
 #: core/templates/core/strategic_ritual.html:622
 msgid "Vision Anchor"
-msgstr ""
+msgstr "Ancla de Visión"
 
 #: core/templates/core/strategic_ritual.html:623
 msgid "Remember WHY you're doing this. Connect with your deeper purpose."
-msgstr ""
+msgstr "Recuerda POR QUÉ haces esto. Conéctate con tu propósito profundo."
 
 #: core/templates/core/strategic_ritual.html:630
 #, fuzzy
 #| msgid "No invoices yet"
 msgid "No life visions yet?"
-msgstr "No invoices yet"
+msgstr "¿Aún no tienes visiones de vida?"
 
 #: core/templates/core/strategic_ritual.html:631
 msgid "Create your North Star goals"
-msgstr ""
+msgstr "Crea tus metas estrella del norte"
 
 #: core/templates/core/strategic_ritual.html:639
 msgid "Capture everything, then apply the 80/20 rule"
-msgstr ""
+msgstr "Captura todo, luego aplica la regla 80/20"
 
 #: core/templates/core/strategic_ritual.html:643
 msgid "Write down everything that's on your mind. Don't filter yet."
-msgstr ""
+msgstr "Escribe todo lo que tengas en mente. No filtres todavía."
 
 #: core/templates/core/strategic_ritual.html:646
 msgid "Everything you think you need to do today..."
-msgstr ""
+msgstr "Todo lo que crees que necesitas hacer hoy..."
 
 #: core/templates/core/strategic_ritual.html:652
 msgid "80/20 Sort: What Really Matters?"
-msgstr ""
+msgstr "Clasificación 80/20: ¿Qué Realmente Importa?"
 
 #: core/templates/core/strategic_ritual.html:653
 msgid "Drag items to the right column if they advance a Life Vision goal."
-msgstr ""
+msgstr "Arrastra elementos a la columna derecha si avanzan una meta de Visión de Vida."
 
 #: core/templates/core/strategic_ritual.html:656
 #, python-format
@@ -7978,85 +7978,87 @@ msgid ""
 "The 80/20 Rule: Only 20%% of actions create 80%% of results. Limit yourself "
 "to 5 high-impact items."
 msgstr ""
+"La Regla 80/20: Solo el 20%% de las acciones crean el 80%% de los resultados. "
+"Limítate a 5 elementos de alto impacto."
 
 #: core/templates/core/strategic_ritual.html:662
 msgid "Noise / Busy Work"
-msgstr ""
+msgstr "Ruido / Trabajo Ocupado"
 
 #: core/templates/core/strategic_ritual.html:671
 msgid "High Impact (Max 5)"
-msgstr ""
+msgstr "Alto Impacto (Máx 5)"
 
 #: core/templates/core/strategic_ritual.html:685
 msgid "Eat That Frog - Do the hardest thing first"
-msgstr ""
+msgstr "Come esa Rana - Haz lo más difícil primero"
 
 #: core/templates/core/strategic_ritual.html:688
 #, fuzzy
 #| msgid "Choose Project"
 msgid "Choose Your Frog"
-msgstr "Elegir Proyecto"
+msgstr "Elige Tu Rana"
 
 #: core/templates/core/strategic_ritual.html:689
 msgid "Which ONE high-impact action will you tackle FIRST today?"
-msgstr ""
+msgstr "¿Qué UNA acción de alto impacto atacarás PRIMERO hoy?"
 
 #: core/templates/core/strategic_ritual.html:699
 msgid "Battle Plan for Your Frog"
-msgstr ""
+msgstr "Plan de Batalla para Tu Rana"
 
 #: core/templates/core/strategic_ritual.html:700
 msgid "Break it down into micro-steps and time-block them."
-msgstr ""
+msgstr "Divídelo en micro-pasos y asígnales bloques de tiempo."
 
 #: core/templates/core/strategic_ritual.html:711
 msgid "Add Micro-Step"
-msgstr ""
+msgstr "Agregar Micro-Paso"
 
 #: core/templates/core/strategic_ritual.html:715
 msgid "Time Block for Frog:"
-msgstr ""
+msgstr "Bloque de Tiempo para la Rana:"
 
 #: core/templates/core/strategic_ritual.html:718
 #, fuzzy
 #| msgid "Start Date"
 msgid "Start Time:"
-msgstr "Fecha del Plan"
+msgstr "Hora de Inicio:"
 
 #: core/templates/core/strategic_ritual.html:722
 msgid "End Time:"
-msgstr ""
+msgstr "Hora de Fin:"
 
 #: core/templates/core/strategic_ritual.html:908
 msgid "No visions yet. Skip this step for now."
-msgstr ""
+msgstr "Aún no hay visiones. Omite este paso por ahora."
 
 #: core/templates/core/strategic_ritual.html:1010
 msgid "Maximum 5 high-impact items allowed! Focus on what truly matters."
-msgstr ""
+msgstr "¡Máximo 5 elementos de alto impacto permitidos! Concéntrate en lo que realmente importa."
 
 #: core/templates/core/strategic_ritual.html:1053
 msgid "No high-impact items to choose from. Go back and sort your tasks."
-msgstr ""
+msgstr "No hay elementos de alto impacto para elegir. Regresa y clasifica tus tareas."
 
 #: core/templates/core/strategic_ritual.html:1129
 msgid "Micro-step description..."
-msgstr ""
+msgstr "Descripción del micro-paso..."
 
 #: core/templates/core/strategic_ritual.html:1159
 #, fuzzy
 #| msgid "Complete"
 msgid "Complete Ritual"
-msgstr "Completar"
+msgstr "Completar Ritual"
 
 #: core/templates/core/strategic_ritual.html:1213
 msgid "Ritual completed! Your strategic day is planned."
-msgstr ""
+msgstr "¡Ritual completado! Tu día estratégico está planeado."
 
 #: core/templates/core/strategic_ritual.html:1216
 #: core/templates/core/strategic_ritual.html:1220
 msgid "Error completing ritual. Please try again."
-msgstr ""
+msgstr "Error al completar el ritual. Por favor, inténtalo de nuevo."
 
 #: core/templates/core/task_confirm_delete.html:5
 #: core/templates/core/task_confirm_delete.html:20
