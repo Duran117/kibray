@@ -1,0 +1,1018 @@
+{% extends "core/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if editing %}{% trans "Edit SOP" %}{% else %}{% trans "Create SOP" %}{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .wizard-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+  }
+  
+  .wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+  
+  .wizard-progress::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 0;
+  }
+  
+  .wizard-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .wizard-step.active .step-circle {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transform: scale(1.1);
+  }
+  
+  .wizard-step.completed .step-circle {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+  }
+  
+  .wizard-step.completed .step-circle::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  .step-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative;
+  }
+  
+  .step-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+  }
+  
+  .wizard-step.active .step-label {
+    color: #667eea;
+    font-weight: 600;
+  }
+  
+  .step-content {
+    display: none;
+    background: white;
+    border-radius: 1rem;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    min-height: 500px;
+  }
+  
+  .step-content.active {
+    display: block;
+    animation: fadeInUp 0.4s ease;
+  }
+  
+  @keyframes fadeInUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+  
+  .step-header {
+    margin-bottom: 2rem;
+  }
+  
+  .step-header h3 {
+    color: #2d3748;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .step-header .step-description {
+    color: #718096;
+    font-size: 1rem;
+  }
+  
+  .suggestion-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+  
+  .suggestion-pill {
+    padding: 0.4rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .suggestion-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  
+  .drag-drop-zone {
+    border: 3px dashed #cbd5e0;
+    border-radius: 1rem;
+    padding: 4rem 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .drag-drop-zone:hover {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  }
+  
+  .drag-drop-zone.dragover {
+    border-color: #38ef7d;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    transform: scale(1.02);
+  }
+  
+  .preview-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  
+  .preview-card h4 {
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+  
+  .dynamic-list-item {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+  }
+  
+  .dynamic-list-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateX(4px);
+  }
+  
+  .drag-handle {
+    cursor: move;
+    color: #a0aec0;
+    font-size: 1.2rem;
+    margin-right: 0.75rem;
+  }
+  
+  .drag-handle:hover {
+    color: #667eea;
+  }
+  
+  .list-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-right: 0.75rem;
+  }
+  
+  .btn-add-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+  }
+  
+  .btn-add-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+  }
+  
+  .btn-remove-item {
+    background: linear-gradient(135deg, #fc5c7d 0%, #6a82fb 100%);
+    border: none;
+    color: white;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+  
+  .btn-remove-item:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(252, 92, 125, 0.4);
+  }
+  
+  .info-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .info-banner i {
+    font-size: 1.5rem;
+  }
+  
+  .warning-banner {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+  
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e2e8f0;
+  }
+  
+  .btn-nav {
+    padding: 0.875rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  
+  .btn-next {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+  }
+  
+  .btn-next:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+  }
+  
+  .btn-submit {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border: none;
+    color: white;
+  }
+  
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+    color: white;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #a0aec0;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  
+  .file-preview {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f7fafc;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .file-preview i {
+    font-size: 1.5rem;
+    color: #667eea;
+    margin-right: 0.75rem;
+  }
+  
+  .time-input-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  .time-input-group input {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+  <!-- Wizard Progress -->
+  <div class="wizard-progress">
+    <div class="wizard-step active" data-step="1">
+      <div class="step-circle">1</div>
+      <div class="step-label">{% trans "Básico" %}</div>
+    </div>
+    <div class="wizard-step" data-step="2">
+      <div class="step-circle">2</div>
+      <div class="step-label">{% trans "Pasos" %}</div>
+    </div>
+    <div class="wizard-step" data-step="3">
+      <div class="step-circle">3</div>
+      <div class="step-label">{% trans "Materiales" %}</div>
+    </div>
+    <div class="wizard-step" data-step="4">
+      <div class="step-circle">4</div>
+      <div class="step-label">{% trans "Referencias" %}</div>
+    </div>
+    <div class="wizard-step" data-step="5">
+      <div class="step-circle">5</div>
+      <div class="step-label">{% trans "Preview" %}</div>
+    </div>
+  </div>
+  
+  <form method="post" enctype="multipart/form-data" id="sop-wizard-form">
+    {% csrf_token %}
+    
+    <!-- Step 1: Basic Info -->
+    <div class="step-content active" data-step="1">
+      <div class="step-header">
+        <h3>🎯 {% trans "Información Básica" %}</h3>
+        <p class="step-description">{% trans "Define el nombre y categoría del SOP" %}</p>
+      </div>
+      
+      <div class="mb-4">
+        <label class="form-label fw-bold">{% trans "Nombre del SOP" %} *</label>
+        <input type="text" name="name" class="form-control form-control-lg" 
+               placeholder="{% trans 'Ej: Instalación de Drywall - Sala Estándar' %}" required
+               value="{% if editing %}{{ sop.name }}{% endif %}">
+        <small class="form-text text-muted">{% trans "Nombre descriptivo y específico" %}</small>
+      </div>
+      
+      <div class="mb-4">
+        <label class="form-label fw-bold">{% trans "Categoría" %} *</label>
+        {{ form.category }}
+      </div>
+      
+      <div class="mb-4">
+        <label class="form-label fw-bold">{% trans "Descripción breve" %}</label>
+        <textarea name="description" class="form-control" rows="3" 
+                  placeholder="{% trans 'Describe en 1-2 líneas qué hace este SOP...' %}">{% if editing %}{{ sop.description }}{% endif %}</textarea>
+      </div>
+      
+      <div class="mb-4">
+        <label class="form-label fw-bold">{% trans "Tiempo estimado" %}</label>
+        <div class="time-input-group">
+          <div>
+            <input type="number" name="time_hours" class="form-control" min="0" step="0.5" value="0" style="width: 100px;">
+            <small class="text-muted">{% trans "horas" %}</small>
+          </div>
+          <div>
+            <input type="number" name="time_minutes" class="form-control" min="0" max="59" value="0" style="width: 100px;">
+            <small class="text-muted">{% trans "minutos" %}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Step 2: Checklist Steps -->
+    <div class="step-content" data-step="2">
+      <div class="step-header">
+        <h3>✅ {% trans "Lista de Pasos a Seguir" %}</h3>
+        <p class="step-description">{% trans "Define los pasos que los empleados deben completar" %}</p>
+      </div>
+      
+      <div class="info-banner">
+        <i class="bi bi-lightbulb-fill"></i>
+        <div>
+          <strong>{% trans "Consejo:" %}</strong>
+          {% trans "Agrega pasos en orden secuencial. Los empleados los verán como checklist." %}
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <div class="input-group input-group-lg">
+          <input type="text" id="step-input" class="form-control" 
+                 placeholder="{% trans 'Ej: Medir y marcar ubicación de sheets' %}">
+          <button type="button" class="btn btn-add-item" id="add-step">
+            <i class="bi bi-plus-lg"></i> {% trans "Agregar" %}
+          </button>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">📋 {% trans "Pasos agregados" %} (<span id="step-count" class="text-primary">0</span>)</h5>
+        <small class="text-muted">{% trans "Arrastra para reordenar" %} ⋮⋮</small>
+      </div>
+      
+      <div id="steps-list-container">
+        <ul id="steps-list" class="list-unstyled"></ul>
+        <div class="empty-state" id="steps-empty">
+          <i class="bi bi-inbox"></i>
+          <p>{% trans "No hay pasos agregados aún" %}</p>
+        </div>
+      </div>
+      
+      <input type="hidden" name="steps" id="id_steps">
+      
+      <div class="warning-banner" id="steps-warning" style="display: none;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>{% trans "Debes agregar al menos 1 paso" %}</span>
+      </div>
+    </div>
+    
+    <!-- Step 3: Materials & Tools -->
+    <div class="step-content" data-step="3">
+      <div class="step-header">
+        <h3>🧰 {% trans "Materiales y Herramientas" %}</h3>
+        <p class="step-description">{% trans "Lista lo que se necesita para completar el trabajo" %}</p>
+      </div>
+      
+      <h5 class="mb-3">{% trans "Materiales Necesarios" %}</h5>
+      <div class="info-banner mb-3">
+        <i class="bi bi-stars"></i>
+        <div>
+          <strong>{% trans "Sugerencias rápidas:" %}</strong>
+          <div class="suggestion-pills mt-2" id="material-suggestions">
+            <!-- Populated by JS based on category -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="input-group mb-4">
+        <input type="text" id="material-input" class="form-control" 
+               placeholder="{% trans 'Ej: Drywall sheets (4x8)' %}">
+        <button type="button" class="btn btn-add-item" id="add-material">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      
+      <ul id="materials-list" class="list-unstyled mb-4"></ul>
+      <div class="empty-state" id="materials-empty">
+        <i class="bi bi-box"></i>
+        <p>{% trans "No hay materiales agregados" %}</p>
+      </div>
+      <input type="hidden" name="materials_list" id="id_materials_list">
+      
+      <hr class="my-4">
+      
+      <h5 class="mb-3">{% trans "Herramientas Requeridas" %}</h5>
+      <div class="suggestion-pills mb-3" id="tool-suggestions">
+        <!-- Populated by JS based on category -->
+      </div>
+      
+      <div class="input-group mb-4">
+        <input type="text" id="tool-input" class="form-control" 
+               placeholder="{% trans 'Ej: Power drill' %}">
+        <button type="button" class="btn btn-add-item" id="add-tool">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      
+      <ul id="tools-list" class="list-unstyled"></ul>
+      <div class="empty-state" id="tools-empty">
+        <i class="bi bi-tools"></i>
+        <p>{% trans "No hay herramientas agregadas" %}</p>
+      </div>
+      <input type="hidden" name="tools_list" id="id_tools_list">
+    </div>
+    
+    <!-- Step 4: References -->
+    <div class="step-content" data-step="4">
+      <div class="step-header">
+        <h3>📸 {% trans "Referencias y Recursos" %}</h3>
+        <p class="step-description">{% trans "Agrega fotos, videos y consejos útiles" %}</p>
+      </div>
+      
+      <h5 class="mb-3">{% trans "Fotos y Archivos de Referencia" %}</h5>
+      <div class="drag-drop-zone mb-4" id="drop-zone">
+        <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #667eea;"></i>
+        <p class="mt-3 mb-2 fw-bold">{% trans "Arrastra archivos aquí" %}</p>
+        <p class="text-muted small">{% trans "o haz click para seleccionar" %}</p>
+        <p class="text-muted small">{% trans "Formatos: JPG, PNG, PDF, DOC" %}</p>
+        <input type="file" name="reference_files" id="file-input" multiple 
+               accept="image/*,.pdf,.doc,.docx" style="display: none;">
+      </div>
+      <div id="file-list"></div>
+      
+      <hr class="my-4">
+      
+      <h5 class="mb-3">🎥 {% trans "Video Tutorial" %}</h5>
+      <input type="url" name="video_url" class="form-control mb-4" 
+             placeholder="https://youtube.com/watch?v=..."
+             value="{% if editing %}{{ sop.video_url }}{% endif %}">
+      
+      <hr class="my-4">
+      
+      <h5 class="mb-3">💡 {% trans "Consejos y Tips" %}</h5>
+      <textarea name="tips" class="form-control mb-4" rows="4" 
+                placeholder="{% trans 'Ej:' %}&#10;- {% trans 'Siempre usar guantes de protección' %}&#10;- {% trans 'Verificar medidas dos veces antes de cortar' %}">{% if editing %}{{ sop.tips }}{% endif %}</textarea>
+      
+      <hr class="my-4">
+      
+      <h5 class="mb-3">⚠️ {% trans "Errores Comunes" %}</h5>
+      <textarea name="common_errors" class="form-control" rows="4" 
+                placeholder="{% trans 'Ej:' %}&#10;- {% trans 'No medir correctamente antes de cortar' %}&#10;- {% trans 'Aplicar demasiado compound en primera capa' %}">{% if editing %}{{ sop.common_errors }}{% endif %}</textarea>
+    </div>
+    
+    <!-- Step 5: Preview -->
+    <div class="step-content" data-step="5">
+      <div class="step-header">
+        <h3>👀 {% trans "Vista Previa" %}</h3>
+        <p class="step-description">{% trans "Así lo verán los empleados" %}</p>
+      </div>
+      
+      <div class="preview-card" id="sop-preview">
+        <!-- Dynamic preview will be generated here -->
+      </div>
+      
+      <div class="form-check mt-4">
+        <input class="form-check-input" type="checkbox" name="is_active" id="is_active" checked>
+        <label class="form-check-label fw-bold" for="is_active">
+          ✨ {% trans "Activar SOP inmediatamente" %}
+        </label>
+      </div>
+    </div>
+    
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+      <button type="button" class="btn btn-secondary btn-nav" id="prev-btn" style="display: none;">
+        <i class="bi bi-arrow-left"></i> {% trans "Anterior" %}
+      </button>
+      <div class="flex-grow-1"></div>
+      <a href="{% url 'sop_library' %}" class="btn btn-outline-secondary btn-nav me-2">
+        ❌ {% trans "Cancelar" %}
+      </a>
+      <button type="button" class="btn btn-next btn-nav" id="next-btn">
+        {% trans "Siguiente" %} <i class="bi bi-arrow-right"></i>
+      </button>
+      <button type="submit" class="btn btn-submit btn-nav" id="submit-btn" style="display: none;">
+        <i class="bi bi-check-circle"></i> {% trans "Guardar SOP" %}
+      </button>
+    </div>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+// Wizard State
+let currentStep = 1;
+const totalSteps = 5;
+
+// Data Storage
+const sopData = {
+  steps: [],
+  materials: [],
+  tools: []
+};
+
+// Suggestions by category
+const suggestions = {
+  'PREP': {
+    materials: ['Drywall sheets', 'Joint compound', 'Drywall screws', 'Mesh tape', 'Sandpaper'],
+    tools: ['Power drill', 'Utility knife', 'Tape measure', 'Level', 'Drywall saw', 'Taping knife']
+  },
+  'PAINT': {
+    materials: ['Paint', 'Primer', 'Paint brushes', 'Rollers', 'Painter tape', 'Drop cloths'],
+    tools: ['Paint tray', 'Extension pole', 'Ladder', 'Putty knife', 'Scraper']
+  },
+  'INSTALL': {
+    materials: ['Lumber', 'Nails', 'Screws', 'Wood glue', 'Brackets'],
+    tools: ['Hammer', 'Circular saw', 'Drill', 'Level', 'Square', 'Measuring tape']
+  },
+  'SAND': {
+    materials: ['Sandpaper (various grits)', 'Sanding sponges', 'Dust masks', 'Tack cloth'],
+    tools: ['Orbital sander', 'Sanding block', 'Shop vacuum', 'Safety goggles']
+  },
+  'STAIN': {
+    materials: ['Wood stain', 'Rags', 'Mineral spirits', 'Gloves', 'Protective finish'],
+    tools: ['Brushes', 'Foam applicators', 'Drop cloths', 'Mixing sticks']
+  },
+  'SEAL': {
+    materials: ['Sealant/Caulk', 'Primer', 'Backer rod', 'Cleaning solution'],
+    tools: ['Caulking gun', 'Smoothing tool', 'Scraper', 'Putty knife']
+  }
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+  setupWizardNavigation();
+  setupDynamicLists();
+  setupFileUpload();
+  setupCategorySuggestions();
+  updateStepIndicator();
+  
+  // Load existing data if editing
+  {% if editing %}
+  sopData.steps = {{ sop.steps|safe }};
+  sopData.materials = {{ sop.materials_list|safe }};
+  sopData.tools = {{ sop.tools_list|safe }};
+  renderAllLists();
+  {% endif %}
+});
+
+function setupWizardNavigation() {
+  const nextBtn = document.getElementById('next-btn');
+  const prevBtn = document.getElementById('prev-btn');
+  
+  nextBtn.addEventListener('click', () => {
+    if (validateCurrentStep()) {
+      currentStep++;
+      showStep(currentStep);
+    }
+  });
+  
+  prevBtn.addEventListener('click', () => {
+    currentStep--;
+    showStep(currentStep);
+  });
+  
+  document.getElementById('sop-wizard-form').addEventListener('submit', function(e) {
+    if (!validateAllSteps()) {
+      e.preventDefault();
+      alert('{% trans "Por favor completa todos los campos requeridos" %}');
+    }
+  });
+}
+
+function showStep(step) {
+  document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
+  
+  updateStepIndicator();
+  
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const submitBtn = document.getElementById('submit-btn');
+  
+  prevBtn.style.display = step === 1 ? 'none' : 'inline-block';
+  nextBtn.style.display = step === totalSteps ? 'none' : 'inline-block';
+  submitBtn.style.display = step === totalSteps ? 'inline-block' : 'none';
+  
+  if (step === totalSteps) {
+    generatePreview();
+  }
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateStepIndicator() {
+  document.querySelectorAll('.wizard-step').forEach((el, idx) => {
+    const stepNum = idx + 1;
+    el.classList.remove('active', 'completed');
+    
+    if (stepNum === currentStep) {
+      el.classList.add('active');
+    } else if (stepNum < currentStep) {
+      el.classList.add('completed');
+    }
+  });
+}
+
+function validateCurrentStep() {
+  switch(currentStep) {
+    case 1:
+      const name = document.querySelector('input[name="name"]').value.trim();
+      const category = document.querySelector('select[name="category"]').value;
+      if (!name || !category) {
+        alert('{% trans "Por favor completa el nombre y categoría" %}');
+        return false;
+      }
+      return true;
+      
+    case 2:
+      if (sopData.steps.length === 0) {
+        document.getElementById('steps-warning').style.display = 'flex';
+        return false;
+      }
+      document.getElementById('steps-warning').style.display = 'none';
+      return true;
+      
+    default:
+      return true;
+  }
+}
+
+function validateAllSteps() {
+  const name = document.querySelector('input[name="name"]').value.trim();
+  const category = document.querySelector('select[name="category"]').value;
+  return name && category && sopData.steps.length > 0;
+}
+
+function setupDynamicLists() {
+  setupList('step', 'steps', sopData.steps, true);
+  setupList('material', 'materials', sopData.materials, false);
+  setupList('tool', 'tools', sopData.tools, false);
+}
+
+function setupList(type, fieldName, dataArray, numbered) {
+  const input = document.getElementById(`${type}-input`);
+  const addBtn = document.getElementById(`add-${type}`);
+  const list = document.getElementById(`${fieldName}-list`);
+  const emptyState = document.getElementById(`${fieldName}-empty`);
+  const hiddenField = document.getElementById(`id_${fieldName}_list`) || document.getElementById(`id_${fieldName}`);
+  
+  function renderList() {
+    list.innerHTML = '';
+    
+    if (dataArray.length === 0) {
+      emptyState.style.display = 'block';
+      list.style.display = 'none';
+    } else {
+      emptyState.style.display = 'none';
+      list.style.display = 'block';
+      
+      dataArray.forEach((item, idx) => {
+        const li = document.createElement('li');
+        li.className = 'dynamic-list-item';
+        li.innerHTML = `
+          <span class="drag-handle">⋮⋮</span>
+          ${numbered ? `<span class="list-counter">${idx + 1}</span>` : ''}
+          <span class="flex-grow-1">${item}</span>
+          <button type="button" class="btn btn-remove-item btn-sm" onclick="removeItem('${type}', ${idx})">
+            <i class="bi bi-trash"></i>
+          </button>
+        `;
+        list.appendChild(li);
+      });
+    }
+    
+    if (hiddenField) {
+      hiddenField.value = JSON.stringify(dataArray);
+    }
+    
+    if (type === 'step') {
+      document.getElementById('step-count').textContent = dataArray.length;
+    }
+    
+    new Sortable(list, {
+      handle: '.drag-handle',
+      animation: 150,
+      onEnd: function() {
+        const items = Array.from(list.querySelectorAll('.flex-grow-1')).map(el => el.textContent.trim());
+        dataArray.length = 0;
+        dataArray.push(...items);
+        renderList();
+      }
+    });
+  }
+  
+  addBtn.addEventListener('click', () => {
+    const value = input.value.trim();
+    if (value) {
+      dataArray.push(value);
+      input.value = '';
+      renderList();
+    }
+  });
+  
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addBtn.click();
+    }
+  });
+  
+  renderList();
+}
+
+function renderAllLists() {
+  setupDynamicLists();
+}
+
+window.removeItem = function(type, idx) {
+  if (type === 'step') sopData.steps.splice(idx, 1);
+  else if (type === 'material') sopData.materials.splice(idx, 1);
+  else if (type === 'tool') sopData.tools.splice(idx, 1);
+  setupDynamicLists();
+};
+
+function setupFileUpload() {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileList = document.getElementById('file-list');
+  
+  dropZone.addEventListener('click', () => fileInput.click());
+  
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('dragover');
+  });
+  
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    displayFiles();
+  });
+  
+  fileInput.addEventListener('change', displayFiles);
+  
+  function displayFiles() {
+    fileList.innerHTML = '';
+    const files = Array.from(fileInput.files);
+    
+    if (files.length > 0) {
+      files.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'file-preview';
+        div.innerHTML = `
+          <i class="bi bi-file-earmark-${file.type.includes('image') ? 'image' : 'text'}"></i>
+          <span class="flex-grow-1">${file.name}</span>
+          <span class="badge bg-secondary">${(file.size / 1024).toFixed(1)} KB</span>
+        `;
+        fileList.appendChild(div);
+      });
+    }
+  }
+}
+
+function setupCategorySuggestions() {
+  const categorySelect = document.querySelector('select[name="category"]');
+  
+  if (categorySelect) {
+    categorySelect.addEventListener('change', function() {
+      updateSuggestions(this.value);
+    });
+    
+    // Initial load
+    if (categorySelect.value) {
+      updateSuggestions(categorySelect.value);
+    }
+  }
+}
+
+function updateSuggestions(category) {
+  const materialSuggestions = document.getElementById('material-suggestions');
+  const toolSuggestions = document.getElementById('tool-suggestions');
+  
+  if (suggestions[category]) {
+    materialSuggestions.innerHTML = suggestions[category].materials.map(item => 
+      `<button type="button" class="suggestion-pill" onclick="addFromSuggestion('material', '${item}')">
+        + ${item}
+      </button>`
+    ).join('');
+    
+    toolSuggestions.innerHTML = suggestions[category].tools.map(item => 
+      `<button type="button" class="suggestion-pill" onclick="addFromSuggestion('tool', '${item}')">
+        + ${item}
+      </button>`
+    ).join('');
+  } else {
+    materialSuggestions.innerHTML = '';
+    toolSuggestions.innerHTML = '';
+  }
+}
+
+window.addFromSuggestion = function(type, value) {
+  if (type === 'material' && !sopData.materials.includes(value)) {
+    sopData.materials.push(value);
+  } else if (type === 'tool' && !sopData.tools.includes(value)) {
+    sopData.tools.push(value);
+  }
+  setupDynamicLists();
+};
+
+function generatePreview() {
+  const preview = document.getElementById('sop-preview');
+  const name = document.querySelector('input[name="name"]').value;
+  const category = document.querySelector('select[name="category"]').selectedOptions[0].text;
+  const description = document.querySelector('textarea[name="description"]').value;
+  const hours = document.querySelector('input[name="time_hours"]').value || 0;
+  const minutes = document.querySelector('input[name="time_minutes"]').value || 0;
+  const tips = document.querySelector('textarea[name="tips"]').value;
+  const commonErrors = document.querySelector('textarea[name="common_errors"]').value;
+  
+  let html = `
+    <h4 class="mb-3">📋 ${name || '{% trans "Sin título" %}'}</h4>
+    <hr>
+    <p><strong>{% trans "Categoría" %}:</strong> ${category}</p>
+  `;
+  
+  if (hours > 0 || minutes > 0) {
+    html += `<p><strong>{% trans "Tiempo estimado" %}:</strong> ${hours}h ${minutes}min</p>`;
+  }
+  
+  if (description) {
+    html += `<p><strong>{% trans "Descripción" %}:</strong><br>${description}</p>`;
+  }
+  
+  if (sopData.steps.length > 0) {
+    html += `
+      <h5 class="mt-4">✅ {% trans "Pasos a seguir" %}:</h5>
+      <ul class="list-group mb-3">
+        ${sopData.steps.map((step, idx) => `
+          <li class="list-group-item">
+            <input type="checkbox" class="form-check-input me-2" disabled>
+            ${idx + 1}. ${step}
+          </li>
+        `).join('')}
+      </ul>
+    `;
+  }
+  
+  if (sopData.materials.length > 0) {
+    html += `
+      <h5>🧰 {% trans "Materiales" %}:</h5>
+      <ul class="mb-3">
+        ${sopData.materials.map(m => `<li>${m}</li>`).join('')}
+      </ul>
+    `;
+  }
+  
+  if (sopData.tools.length > 0) {
+    html += `
+      <h5>🔧 {% trans "Herramientas" %}:</h5>
+      <ul class="mb-3">
+        ${sopData.tools.map(t => `<li>${t}</li>`).join('')}
+      </ul>
+    `;
+  }
+  
+  if (tips) {
+    html += `
+      <h5>💡 {% trans "Consejos" %}:</h5>
+      <p style="white-space: pre-line;">${tips}</p>
+    `;
+  }
+  
+  if (commonErrors) {
+    html += `
+      <h5>⚠️ {% trans "Errores Comunes" %}:</h5>
+      <p style="white-space: pre-line;">${commonErrors}</p>
+    `;
+  }
+  
+  preview.innerHTML = html;
+}
+</script>
+{% endblock %}

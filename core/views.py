@@ -1630,6 +1630,11 @@ def floor_plan_detail(request, plan_id):
         profile and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
     )
 
+    # Check if user can delete pins/plan (only PM, Admin, Owner - NOT Designer)
+    can_delete = request.user.is_staff or (
+        profile and profile.role in ["project_manager", "admin", "superuser", "owner"]
+    )
+
     # Serialize pins data for JavaScript
     pins_data = []
     for pin in pins:
@@ -1662,6 +1667,7 @@ def floor_plan_detail(request, plan_id):
             "color_samples": color_samples,
             "project": plan.project,
             "can_edit_pins": can_edit_pins,
+            "can_delete": can_delete,
             "form": pin_form,
         },
     )
@@ -6817,6 +6823,92 @@ def sop_create_edit(request, template_id=None):
         "sop": instance,
     }
     return render(request, "core/sop_creator.html", context)
+
+
+@login_required
+def sop_create_wizard(request, template_id=None):
+    """
+    Wizard-style SOP creator with step-by-step guidance (NEW IMPROVED VERSION)
+    """
+    if not _is_staffish(request.user):
+        return HttpResponseForbidden("Access denied")
+
+    instance = None
+    if template_id:
+        instance = get_object_or_404(ActivityTemplate, pk=template_id)
+
+    if request.method == "POST":
+        # Process form data
+        name = request.POST.get("name")
+        category = request.POST.get("category")
+        description = request.POST.get("description", "")
+        tips = request.POST.get("tips", "")
+        common_errors = request.POST.get("common_errors", "")
+        video_url = request.POST.get("video_url", "")
+        is_active = request.POST.get("is_active") == "on"
+
+        # Parse JSON fields
+        import json
+
+        steps = json.loads(request.POST.get("steps", "[]"))
+        materials_list = json.loads(request.POST.get("materials_list", "[]"))
+        tools_list = json.loads(request.POST.get("tools_list", "[]"))
+
+        # Calculate time estimate
+        time_hours = float(request.POST.get("time_hours", 0))
+        time_minutes = float(request.POST.get("time_minutes", 0))
+        time_estimate = time_hours + (time_minutes / 60.0)
+
+        # Create or update SOP
+        if instance:
+            sop = instance
+            sop.name = name
+            sop.category = category
+            sop.description = description
+            sop.tips = tips
+            sop.common_errors = common_errors
+            sop.video_url = video_url
+            sop.is_active = is_active
+            sop.steps = steps
+            sop.materials_list = materials_list
+            sop.tools_list = tools_list
+            sop.time_estimate = time_estimate if time_estimate > 0 else None
+            sop.save()
+        else:
+            sop = ActivityTemplate.objects.create(
+                name=name,
+                category=category,
+                description=description,
+                tips=tips,
+                common_errors=common_errors,
+                video_url=video_url,
+                is_active=is_active,
+                steps=steps,
+                materials_list=materials_list,
+                tools_list=tools_list,
+                time_estimate=time_estimate if time_estimate > 0 else None,
+                created_by=request.user,
+            )
+
+        # Handle file uploads
+        uploaded_files = request.FILES.getlist("reference_files")
+        if uploaded_files:
+            from .models import SOPReferenceFile
+
+            for f in uploaded_files:
+                SOPReferenceFile.objects.create(sop=sop, file=f)
+
+        messages.success(request, _("✨ SOP creado exitosamente!"))
+        return redirect("sop_library")
+
+    # GET request - show wizard
+    form = ActivityTemplateForm(instance=instance)
+    context = {
+        "form": form,
+        "editing": bool(instance),
+        "sop": instance,
+    }
+    return render(request, "core/sop_creator_wizard.html", context)
 
 
 # ===========================

@@ -351,8 +351,10 @@ urlpatterns = [
     path("planning/activity/<int:activity_id>/complete/", views.activity_complete, name="activity_complete"),
     path("planning/employee/morning/", views.employee_morning_dashboard, name="employee_morning_dashboard"),
     path("planning/sop/library/", views.sop_library, name="sop_library"),
-    path("planning/sop/create/", views.sop_create_edit, name="sop_create"),
-    path("planning/sop/<int:template_id>/edit/", views.sop_create_edit, name="sop_edit"),
+    path("planning/sop/create/", views.sop_create_wizard, name="sop_create"),  # NEW: Wizard version
+    path("planning/sop/create/classic/", views.sop_create_edit, name="sop_create_classic"),  # OLD: Classic form
+    path("planning/sop/<int:template_id>/edit/", views.sop_create_wizard, name="sop_edit"),  # NEW: Wizard for editing
+    path("planning/sop/<int:template_id>/edit/classic/", views.sop_create_edit, name="sop_edit_classic"),  # OLD
     # Minutas / Project Timeline
     path("projects/<int:project_id>/minutes/", views.project_minutes_list, name="project_minutes_list"),
     path("projects/<int:project_id>/minutes/new/", views.project_minute_create, name="project_minute_create"),
