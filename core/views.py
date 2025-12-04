@@ -364,6 +364,56 @@ def dashboard_admin(request):
         messages.error(request, _("Acceso solo para Admin/Staff."))
         return redirect("dashboard")
 
+    today = timezone.localdate()
+    now = timezone.localtime()
+    
+    # Obtener empleado ligado al usuario (para Admin que también es empleado)
+    employee = Employee.objects.filter(user=request.user).first()
+    
+    # TimeEntry abierto (si está trabajando) - Solo si hay empleado vinculado
+    open_entry = None
+    if employee:
+        open_entry = (
+            TimeEntry.objects.filter(employee=employee, end_time__isnull=True).order_by("-date", "-start_time").first()
+        )
+    
+    # Manejo de Clock In/Out para Admins
+    if request.method == "POST" and employee:
+        action = request.POST.get("action")
+
+        if action == "clock_in":
+            if open_entry:
+                messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
+                return redirect("dashboard_admin")
+            form = ClockInForm(request.POST)
+            if form.is_valid():
+                te = TimeEntry.objects.create(
+                    employee=employee,
+                    project=form.cleaned_data["project"],
+                    change_order=form.cleaned_data.get("change_order"),
+                    date=today,
+                    start_time=now.time(),
+                    end_time=None,
+                    notes=form.cleaned_data.get("notes") or "",
+                    cost_code=form.cleaned_data.get("cost_code"),
+                )
+                messages.success(request, _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime('%H:%M')})
+                return redirect("dashboard_admin")
+
+        elif action == "clock_out":
+            if not open_entry:
+                messages.warning(request, "No tienes una entrada abierta.")
+                return redirect("dashboard_admin")
+            open_entry.end_time = now.time()
+            open_entry.save()
+            messages.success(
+                request, f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}"
+            )
+            return redirect("dashboard_admin")
+
+    # Form para clock in
+    form = ClockInForm() if employee else None
+
     # === MÉTRICAS FINANCIERAS (refactored to service) ===
     fa = FinancialAnalyticsService()
     kpis = fa.get_company_health_kpis()
@@ -460,6 +510,51 @@ def dashboard_admin(request):
     week_entries = TimeEntry.objects.filter(date__gte=week_start, date__lte=today)
     week_hours = week_entries.aggregate(total=Sum("hours_worked"))["total"] or Decimal("0")
 
+    # Morning Briefing (executive summary)
+    morning_briefing = []
+    try:
+        if unassigned_time_count > 0:
+            morning_briefing.append({
+                "text": _("%d time entries without Change Order require assignment") % unassigned_time_count,
+                "severity": "danger" if unassigned_time_count >= 5 else "warning",
+                "action_url": reverse("unassigned_timeentries"),
+                "action_label": _("Assign"),
+                "category": "problems"
+            })
+        if pending_client_requests > 0:
+            morning_briefing.append({
+                "text": _("%d client requests pending review") % pending_client_requests,
+                "severity": "info" if pending_client_requests < 5 else "warning",
+                "action_url": reverse("client_requests_list_all"),
+                "action_label": _("Review"),
+                "category": "approvals"
+            })
+        if pending_cos > 0:
+            morning_briefing.append({
+                "text": _("%d change orders awaiting approval") % pending_cos,
+                "severity": "warning" if pending_cos < 3 else "danger",
+                "action_url": reverse("changeorder_board"),
+                "action_label": _("Approve"),
+                "category": "approvals"
+            })
+        if pending_invoices > 0:
+            morning_briefing.append({
+                "text": _("%d invoices pending payment/processing") % pending_invoices,
+                "severity": "warning",
+                "action_url": reverse("invoice_payment_dashboard"),
+                "action_label": _("Payments"),
+                "category": "problems"
+            })
+    except Exception:
+        morning_briefing = []
+    
+    # Apply filter to morning briefing
+    active_filter = request.GET.get('filter', 'all')
+    if active_filter == 'problems':
+        morning_briefing = [item for item in morning_briefing if item.get('category') == 'problems']
+    elif active_filter == 'approvals':
+        morning_briefing = [item for item in morning_briefing if item.get('category') == 'approvals']
+
     context = {
         # Financiero
         "total_income": total_income,
@@ -490,6 +585,14 @@ def dashboard_admin(request):
         "today_labor_cost": today_labor_cost,
         "week_hours": week_hours,
         "today": today,
+        "now": now,
+        # Briefing
+        "morning_briefing": morning_briefing,
+        "active_filter": active_filter,
+        # Clock in/out para Admin
+        "employee": employee,
+        "open_entry": open_entry,
+        "form": form,
     }
 
     # Use clean Design System template by default
@@ -566,6 +669,61 @@ def dashboard_client(request):
             }
         )
 
+    # === MORNING BRIEFING (Categorized alerts for client) ===
+    morning_briefing = []
+    
+    # Category: Updates (nuevas fotos, comentarios)
+    latest_photos = []
+    for proj_data in project_data:
+        latest_photos.extend(proj_data["recent_photos"][:2])
+    
+    if latest_photos:
+        morning_briefing.append({
+            "text": f"Hay {len(latest_photos)} nuevas fotos de tu proyecto",
+            "severity": "info",
+            "action_url": "#",
+            "action_label": "Ver fotos",
+            "category": "updates",
+        })
+    
+    # Category: Payments (facturas pendientes)
+    overdue_invoices = []
+    for proj_data in project_data:
+        for inv in proj_data["invoices"]:
+            if proj_data["balance"] > 0:
+                overdue_invoices.append(inv)
+    
+    if overdue_invoices:
+        total_due = sum(inv.total_amount - inv.amount_paid for inv in overdue_invoices)
+        morning_briefing.append({
+            "text": f"Tienes ${total_due:,.2f} en facturas pendientes de pago",
+            "severity": "warning",
+            "action_url": reverse("client_invoices") if "client_invoices" in [pattern.name for pattern in __import__('django.urls', fromlist=['get_resolver']).get_resolver().url_patterns] else "#",
+            "action_label": "Pagar ahora",
+            "category": "payments",
+        })
+    
+    # Category: Schedule (próximas actividades)
+    upcoming_schedules = []
+    for proj_data in project_data:
+        if proj_data["next_schedule"]:
+            upcoming_schedules.append(proj_data["next_schedule"])
+    
+    if upcoming_schedules:
+        next_date = upcoming_schedules[0].start_datetime
+        morning_briefing.append({
+            "text": f"Próxima actividad programada para {next_date.strftime('%d/%m/%Y')}",
+            "severity": "info",
+            "action_url": "#",
+            "action_label": "Ver cronograma",
+            "category": "schedule",
+        })
+    
+    # Apply filter if requested
+    active_filter = request.GET.get('filter', 'all')
+    if active_filter != 'all':
+        morning_briefing = [item for item in morning_briefing if item.get('category') == active_filter]
+    
     # Mostrar nombre asignado al usuario (preferir display_name del perfil, luego nombre completo, luego username)
     display_name = None
     try:
@@ -581,6 +739,8 @@ def dashboard_client(request):
         "project_data": project_data,
         "today": timezone.localdate(),
         "display_name": display_name,
+        "morning_briefing": morning_briefing,
+        "active_filter": active_filter,
     }
 
     # Use clean template by default, legacy with ?legacy=true
@@ -2692,6 +2852,170 @@ def get_approved_colors(request, project_id):
     return JsonResponse({"colors": list(colors)})
 
     # (Legacy annotation and delete endpoints removed; use DRF versions under /api/v1/changeorder-photo/)
+
+
+def color_sample_client_signature_view(request, sample_id, token=None):
+    """Vista pública para capturar firma de cliente en muestras de color.
+    
+    Basada en: changeorder_customer_signature_view
+    Validación de token firmado (HMAC) con expiración de 7 días.
+    Captura la firma en base64, nombre del cliente, y genera PDF.
+    """
+    color_sample = get_object_or_404(ColorSample, id=sample_id)
+
+    # --- Token validation (solo si se proporciona en la URL) ---
+    if token is not None:
+        try:
+            payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 días
+            if payload.get("sample_id") != color_sample.id:
+                return HttpResponseForbidden("Token no coincide con esta muestra de color.")
+        except signing.SignatureExpired:
+            return HttpResponseForbidden("El enlace de firma ha expirado. Solicite uno nuevo.")
+        except signing.BadSignature:
+            return HttpResponseForbidden("Token inválido o manipulado.")
+
+    # Si ya está firmado mostrar pantalla correspondiente
+    if color_sample.approval_signature:
+        return render(
+            request,
+            "core/color_sample_signature_already_signed.html",
+            {"color_sample": color_sample}
+        )
+
+    if request.method == "POST":
+        import base64
+        import uuid
+        from django.core.files.base import ContentFile
+        from django.utils import timezone
+
+        signature_data = request.POST.get("signature_data")
+        signer_name = request.POST.get("signer_name", "").strip()
+        signer_email = request.POST.get("signer_email", "").strip()
+
+        if not signature_data:
+            return render(
+                request,
+                "core/color_sample_signature_form.html",
+                {"color_sample": color_sample, "error": "Por favor, dibuje su firma antes de continuar."},
+            )
+        if not signer_name:
+            return render(
+                request,
+                "core/color_sample_signature_form.html",
+                {"color_sample": color_sample, "error": "Por favor, ingrese su nombre completo."},
+            )
+
+        try:
+            # --- Procesar firma base64 ---
+            format_str, imgstr = signature_data.split(";base64,")
+            ext = format_str.split("/")[-1]
+            if ext not in ["png", "jpeg", "jpg"]:
+                ext = "png"
+
+            # Decodificar base64
+            decoded_image = base64.b64decode(imgstr)
+            
+            # Crear nombre único para archivo
+            file_name = f"color_sample_{color_sample.id}_signature_{uuid.uuid4().hex}.{ext}"
+            signature_file = ContentFile(decoded_image, name=file_name)
+
+            # Obtener IP del cliente
+            x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+            client_ip = x_forwarded_for.split(",")[0] if x_forwarded_for else request.META.get("REMOTE_ADDR", "")
+
+            # --- Guardar firma en ColorSample ---
+            color_sample.approval_signature = signature_file
+            color_sample.approval_ip = client_ip
+            color_sample.approval_date = timezone.now()
+            color_sample.status = "approved"  # Marcar como aprobada
+            color_sample.save(update_fields=["approval_signature", "approval_ip", "approval_date", "status"])
+
+            # --- Crear/actualizar registro de aprobación en ColorApproval ---
+            color_approval, created = ColorApproval.objects.get_or_create(
+                color_sample=color_sample,
+                defaults={
+                    "client_name": signer_name,
+                    "client_email": signer_email,
+                    "client_signature": signature_file,
+                    "signed_at": timezone.now(),
+                    "status": "approved",
+                    "ip_address": client_ip,
+                }
+            )
+            if not created:
+                color_approval.client_name = signer_name
+                color_approval.client_email = signer_email
+                color_approval.client_signature = signature_file
+                color_approval.signed_at = timezone.now()
+                color_approval.status = "approved"
+                color_approval.ip_address = client_ip
+                color_approval.save()
+
+            # --- Notificar al PM del proyecto ---
+            try:
+                project = color_sample.project
+                if project:
+                    pm_profile = Profile.objects.filter(project=project, role="project_manager").first()
+                    if pm_profile and pm_profile.user.email:
+                        subject = f"Muestra de color #{color_sample.id} firmada por cliente"
+                        message_body = (
+                            f"La muestra de color '{color_sample.name}' (Código: {color_sample.code}) "
+                            f"ha sido firmada por:\n\n"
+                            f"Nombre: {signer_name}\n"
+                            f"Email: {signer_email}\n"
+                            f"Fecha: {color_approval.signed_at.strftime('%d/%m/%Y %H:%M')}\n"
+                            f"IP: {client_ip}\n\n"
+                            f"Proyecto: {project.name}\n"
+                            f"Ubicación: {color_sample.room_location or 'N/A'}\n\n"
+                            f"Este correo es automático. No responder."
+                        )
+                        try:
+                            send_mail(
+                                subject,
+                                message_body,
+                                getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@kibray.com"),
+                                [pm_profile.user.email],
+                                fail_silently=True,
+                            )
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+
+            # --- Generar PDF (opcional, similar a Change Order) ---
+            try:
+                pdf_template = get_template("core/color_sample_approval_pdf.html")
+                html = pdf_template.render({"color_sample": color_sample, "color_approval": color_approval})
+                pdf_bytes: bytes
+                if pisa:
+                    pdf_io = BytesIO()
+                    try:
+                        pisa.CreatePDF(html, dest=pdf_io)
+                        pdf_bytes = pdf_io.getvalue()
+                    except Exception:
+                        pdf_bytes = b""
+                else:
+                    pdf_bytes = _generate_basic_pdf_from_html(html)
+                # Opcional: guardar PDF en ColorApproval si tiene campo para ello
+                # color_approval.signed_pdf = ContentFile(pdf_bytes, name=f"sample_{sample_id}_approval.pdf")
+                # color_approval.save(update_fields=["signed_pdf"])
+            except Exception:
+                # No bloquear flujo por fallo de PDF
+                pass
+
+            return render(
+                request,
+                "core/color_sample_signature_success.html",
+                {"color_sample": color_sample, "color_approval": color_approval}
+            )
+        except Exception as e:
+            return render(
+                request,
+                "core/color_sample_signature_form.html",
+                {"color_sample": color_sample, "error": f"Error al procesar la firma: {e}"},
+            )
+
+    return render(request, "core/color_sample_signature_form.html", {"color_sample": color_sample})
 
 
 @login_required
@@ -4813,6 +5137,54 @@ def dashboard_employee(request):
     # GET o POST inválido
     form = ClockInForm()
 
+    # === MORNING BRIEFING (Employee Daily Tasks) ===
+    morning_briefing = []
+    
+    # Category: tasks (Touch-ups pendientes)
+    if my_touchups:
+        count = len(my_touchups)
+        morning_briefing.append({
+            "text": f"Tienes {count} {'reparación' if count == 1 else 'reparaciones'} pendiente{'s' if count > 1 else ''}",
+            "severity": "warning" if count > 2 else "info",
+            "action_url": "#",
+            "action_label": "Ver reparaciones",
+            "category": "tasks",
+        })
+    
+    # Category: schedule (Actividades de hoy)
+    if my_activities:
+        count = len(my_activities)
+        morning_briefing.append({
+            "text": f"Tienes {count} actividad{'es' if count > 1 else ''} programada{'s' if count > 1 else ''} para hoy",
+            "severity": "info",
+            "action_url": "#",
+            "action_label": "Ver plan",
+            "category": "schedule",
+        })
+    
+    # Category: clock (Work hours)
+    if not open_entry:
+        morning_briefing.append({
+            "text": f"Marca tu entrada para registrar horas de trabajo",
+            "severity": "info",
+            "action_url": "#",
+            "action_label": "Marcar entrada",
+            "category": "clock",
+        })
+    else:
+        morning_briefing.append({
+            "text": f"Ya marcaste entrada. Tiempo registrado hoy: {week_hours} horas",
+            "severity": "success",
+            "action_url": "#",
+            "action_label": "Marcar salida",
+            "category": "clock",
+        })
+    
+    # Apply filter if requested
+    active_filter = request.GET.get('filter', 'all')
+    if active_filter != 'all':
+        morning_briefing = [item for item in morning_briefing if item.get('category') == active_filter]
+
     # Historial reciente (últimas 5 entradas)
     recent = TimeEntry.objects.filter(employee=employee).order_by("-date", "-start_time")[:5]
 
@@ -4832,6 +5204,8 @@ def dashboard_employee(request):
         "my_activities": my_activities,
         "my_schedule": my_schedule,
         "my_touchups": my_touchups,
+        "morning_briefing": morning_briefing,
+        "active_filter": active_filter,
         "badges": {"unread_notifications_count": 0},  # Placeholder
     }
 
@@ -4861,6 +5235,54 @@ def dashboard_pm(request):
             show_language_prompt = True
 
     today = timezone.localdate()
+    now = timezone.localtime()
+
+    # Obtener empleado ligado al usuario (para PM que también son empleados)
+    employee = Employee.objects.filter(user=request.user).first()
+    
+    # TimeEntry abierto (si está trabajando) - Solo si hay empleado vinculado
+    open_entry = None
+    if employee:
+        open_entry = (
+            TimeEntry.objects.filter(employee=employee, end_time__isnull=True).order_by("-date", "-start_time").first()
+        )
+    
+    # Manejo de Clock In/Out para PMs
+    if request.method == "POST" and employee:
+        action = request.POST.get("action")
+
+        if action == "clock_in":
+            if open_entry:
+                messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
+                return redirect("dashboard_pm")
+            form = ClockInForm(request.POST)
+            if form.is_valid():
+                te = TimeEntry.objects.create(
+                    employee=employee,
+                    project=form.cleaned_data["project"],
+                    change_order=form.cleaned_data.get("change_order"),
+                    date=today,
+                    start_time=now.time(),
+                    end_time=None,
+                    notes=form.cleaned_data.get("notes") or "",
+                    cost_code=form.cleaned_data.get("cost_code"),
+                )
+                messages.success(request, _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime('%H:%M')})
+                return redirect("dashboard_pm")
+
+        elif action == "clock_out":
+            if not open_entry:
+                messages.warning(request, "No tienes una entrada abierta.")
+                return redirect("dashboard_pm")
+            open_entry.end_time = now.time()
+            open_entry.save()
+            messages.success(
+                request, f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}"
+            )
+            return redirect("dashboard_pm")
+
+    # Form para clock in
+    form = ClockInForm() if employee else None
 
     # === ALERTAS OPERACIONALES ===
     # 1. Tiempo sin CO
@@ -4926,6 +5348,51 @@ def dashboard_pm(request):
             }
         )
 
+    # Morning Briefing (operational summary for PM)
+    morning_briefing = []
+    try:
+        if unassigned_time_count > 0:
+            morning_briefing.append({
+                "text": _("%d unassigned time entries need review") % unassigned_time_count,
+                "severity": "danger" if unassigned_time_count >= 5 else "warning",
+                "action_url": reverse("unassigned_timeentries"),
+                "action_label": _("Assign"),
+                "category": "problems"
+            })
+        if pending_materials > 0:
+            morning_briefing.append({
+                "text": _("%d material requests pending") % pending_materials,
+                "severity": "warning" if pending_materials >= 3 else "info",
+                "action_url": reverse("materials_requests_list_all"),
+                "action_label": _("Review"),
+                "category": "approvals"
+            })
+        if open_issues > 0:
+            morning_briefing.append({
+                "text": _("%d active issues across projects") % open_issues,
+                "severity": "warning" if open_issues < 5 else "danger",
+                "action_url": reverse("pm_select_project", args=["overview"]),
+                "action_label": _("View"),
+                "category": "problems"
+            })
+        if open_rfis > 0:
+            morning_briefing.append({
+                "text": _("%d open RFIs require responses") % open_rfis,
+                "severity": "info",
+                "action_url": reverse("changeorder_board"),
+                "action_label": _("RFIs"),
+                "category": "approvals"
+            })
+    except Exception:
+        morning_briefing = []
+    
+    # Filter handling
+    active_filter = request.GET.get('filter', 'all')
+    if active_filter == 'problems':
+        morning_briefing = [item for item in morning_briefing if item.get('category') == 'problems']
+    elif active_filter == 'approvals':
+        morning_briefing = [item for item in morning_briefing if item.get('category') == 'approvals']
+
     context = {
         # Alertas
         "unassigned_time_count": unassigned_time_count,
@@ -4940,7 +5407,15 @@ def dashboard_pm(request):
         "project_summary": project_summary,
         # Context
         "today": today,
+        "now": now,
         "show_language_prompt": show_language_prompt,
+        # Briefing
+        "morning_briefing": morning_briefing,
+        "active_filter": active_filter,
+        # Clock in/out para PM
+        "employee": employee,
+        "open_entry": open_entry,
+        "form": form,
         # Badges for notifications
         "badges": {"unread_notifications_count": 0},  # Placeholder
     }
@@ -7044,11 +7519,53 @@ def dashboard_designer(request):
     # Recent schedules
     schedules = Schedule.objects.filter(project__in=projects).select_related("project").order_by("-start_datetime")[:10]
 
+    # === MORNING BRIEFING (Design Tasks) ===
+    morning_briefing = []
+    
+    # Category: designs (New color samples)
+    if color_samples:
+        count = len(color_samples)
+        morning_briefing.append({
+            "text": f"Hay {count} nueva{'s' if count > 1 else ''} muestra{'s' if count > 1 else ''} de color",
+            "severity": "info",
+            "action_url": "#",
+            "action_label": "Ver muestras",
+            "category": "designs",
+        })
+    
+    # Category: documents (Plans uploaded)
+    if plans:
+        count = len(plans)
+        morning_briefing.append({
+            "text": f"{count} plano{'s' if count > 1 else ''} disponible{'s' if count > 1 else ''} para revisar",
+            "severity": "info",
+            "action_url": "#",
+            "action_label": "Ver planos",
+            "category": "documents",
+        })
+    
+    # Category: schedule (Upcoming meetings)
+    if schedules:
+        morning_briefing.append({
+            "text": f"Tienes {len(schedules)} reunión{'es' if len(schedules) > 1 else ''} programada{'s' if len(schedules) > 1 else ''}",
+            "severity": "info",
+            "action_url": "#",
+            "action_label": "Ver calendario",
+            "category": "schedule",
+        })
+    
+    # Apply filter if requested
+    active_filter = request.GET.get('filter', 'all')
+    if active_filter != 'all':
+        morning_briefing = [item for item in morning_briefing if item.get('category') == active_filter]
+
     context = {
         "projects": projects,
         "color_samples": color_samples,
         "plans": plans,
         "schedules": schedules,
+        "morning_briefing": morning_briefing,
+        "active_filter": active_filter,
     }
 
     # Use clean template by default, legacy with ?legacy=true
@@ -7100,6 +7617,47 @@ def dashboard_superintendent(request):
         .order_by("-created_at")[:10]
     )
 
+    # === MORNING BRIEFING (On-site Management) ===
+    morning_briefing = []
+    
+    # Category: issues (Damage reports)
+    if damages:
+        count = len(damages)
+        morning_briefing.append({
+            "text": f"Hay {count} {'reporte de daño' if count == 1 else 'reportes de daño'} en progreso",
+            "severity": "danger" if count > 3 else "warning",
+            "action_url": "#",
+            "action_label": "Ver reportes",
+            "category": "issues",
+        })
+    
+    # Category: tasks (Touch-ups to assign)
+    if unassigned_touchups:
+        count = len(unassigned_touchups)
+        morning_briefing.append({
+            "text": f"Hay {count} {'reparación' if count == 1 else 'reparaciones'} sin asignar",
+            "severity": "warning",
+            "action_url": "#",
+            "action_label": "Asignar",
+            "category": "tasks",
+        })
+    
+    # Category: progress (My touch-ups)
+    if touchups:
+        count = len(touchups)
+        morning_briefing.append({
+            "text": f"Tú tienes {count} {'reparación' if count == 1 else 'reparaciones'} asignada{'s' if count > 1 else ''}",
+            "severity": "info",
+            "action_url": "#",
+            "action_label": "Ver mis reparaciones",
+            "category": "progress",
+        })
+    
+    # Apply filter if requested
+    active_filter = request.GET.get('filter', 'all')
+    if active_filter != 'all':
+        morning_briefing = [item for item in morning_briefing if item.get('category') == active_filter]
+
     return render(
         request,
         "core/dashboard_superintendent.html",
@@ -7108,6 +7666,8 @@ def dashboard_superintendent(request):
             "damages": damages,
             "touchups": touchups,
             "unassigned_touchups": unassigned_touchups,
+            "morning_briefing": morning_briefing,
+            "active_filter": active_filter,
         },
     )
 

@@ -166,6 +166,9 @@ urlpatterns = [
     path("changeorders/unassigned-time/", views.unassigned_timeentries_view, name="unassigned_timeentries"),
     # Deprecated legacy photo annotation endpoints removed (use /api/v1/changeorder-photo/<id>/...)
     path("changeorder/photo-editor/", views.photo_editor_standalone_view, name="photo_editor_standalone"),
+    # Color Sample Signatures
+    path("colors/sample/<int:sample_id>/sign/", views.color_sample_client_signature_view, name="color_sample_client_signature"),
+    path("colors/sample/<int:sample_id>/sign/<str:token>/", views.color_sample_client_signature_view, name="color_sample_client_signature_token"),
     # Client Requests
     path("projects/<int:project_id>/client-requests/new/", views.client_request_create, name="client_request_create"),
     path("projects/<int:project_id>/client-requests/", views.client_requests_list, name="client_requests_list"),

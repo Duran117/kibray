@@ -377,7 +377,7 @@
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown" style="border-radius:14px;">
                   <li class="dropdown-header">{% trans "Paneles" %}</li>
                   <li><a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-grid me-1"></i> {% trans "Dashboard General" %}</a></li>
-                  {% if user.is_staff %}
+                  {% if user.is_staff or user.is_superuser %}
                     <li><a class="dropdown-item" href="{% url 'dashboard_pm' %}"><i class="bi bi-kanban me-1"></i> {% trans "PM / Líder" %}</a></li>
                     <li><a class="dropdown-item" href="{% url 'dashboard_admin' %}"><i class="bi bi-shield-lock me-1"></i> {% trans "Admin" %}</a></li>
                   {% endif %}
@@ -386,7 +386,7 @@
                   <li><a class="dropdown-item" href="{% url 'dashboard_designer' %}"><i class="bi bi-brush me-1"></i> {% trans "Diseñador / Owner" %}</a></li>
                   <li><hr class="dropdown-divider"></li>
                   <li class="dropdown-header">{% trans "Cuenta" %}</li>
-                  {% if user.is_staff %}
+                  {% if user.is_staff or user.is_superuser %}
                     <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-1"></i> {% trans "Admin Site" %}</a></li>
                   {% endif %}
                   <li>

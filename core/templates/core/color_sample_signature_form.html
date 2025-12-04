@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Firmar Muestra de Color{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h1 class="h3 mb-2">Firma de Aprobación</h1>
+                    <p class="text-muted">Muestra de Color #{{ color_sample.id }}</p>
+                    
+                    <!-- Color Sample Details -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if color_sample.photo %}
+                                    <img src="{{ color_sample.photo.url }}" 
+                                         alt="{{ color_sample.name }}" 
+                                         class="img-fluid rounded me-3"
+                                         style="width: 100px; height: 100px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                                         style="width: 100px; height: 100px; color: #999;">
+                                        <i class="fas fa-palette" style="font-size: 2rem;"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h5 class="mb-1">{{ color_sample.name }}</h5>
+                                    <p class="mb-0"><small class="text-muted">Código: {{ color_sample.code }}</small></p>
+                                    <p class="mb-0"><small class="text-muted">Marca: {{ color_sample.brand }}</small></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-light p-3 rounded">
+                                <p class="mb-1"><strong>Proyecto:</strong> {{ color_sample.project.name }}</p>
+                                <p class="mb-1"><strong>Ubicación:</strong> {{ color_sample.room_location|default:"No especificada" }}</p>
+                                <p class="mb-0"><strong>Acabado:</strong> {{ color_sample.finish }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message (if any) -->
+            {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <!-- Signature Form Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h4 class="mb-4">Información del Firmante</h4>
+
+                    <form method="post" id="signatureForm">
+                        {% csrf_token %}
+
+                        <!-- Nombre Completo -->
+                        <div class="mb-3">
+                            <label for="signer_name" class="form-label">
+                                <strong>Nombre Completo</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="signer_name"
+                                   name="signer_name"
+                                   placeholder="Juan Pérez"
+                                   required>
+                            <small class="form-text text-muted">El nombre de quien autoriza esta muestra</small>
+                        </div>
+
+                        <!-- Email (Opcional pero recomendado) -->
+                        <div class="mb-4">
+                            <label for="signer_email" class="form-label">
+                                <strong>Email</strong>
+                                <span class="text-muted">(Opcional)</span>
+                            </label>
+                            <input type="email" 
+                                   class="form-control form-control-lg" 
+                                   id="signer_email"
+                                   name="signer_email"
+                                   placeholder="juan@example.com">
+                            <small class="form-text text-muted">Para enviarle copia de la aprobación</small>
+                        </div>
+
+                        <!-- Signature Canvas -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <strong>Su Firma</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="border border-2 rounded" style="background: #fff;">
+                                <canvas id="signaturePad" 
+                                        class="d-block"
+                                        style="width: 100%; height: 250px; cursor: crosshair; background: white;">
+                                </canvas>
+                            </div>
+                            <small class="form-text text-muted mt-2 d-block">
+                                Dibuje su firma arriba. Use un mouse, trackpad o dispositivo táctil.
+                            </small>
+                        </div>
+
+                        <!-- Hidden field para guardar firma en base64 -->
+                        <input type="hidden" id="signature_data" name="signature_data">
+
+                        <!-- Botones de Acción -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" id="clearBtn">
+                                <i class="fas fa-redo me-2"></i>Limpiar Firma
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="fas fa-check-circle me-2"></i>Confirmar y Firmar
+                            </button>
+                        </div>
+
+                        <!-- Agreement Checkbox -->
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" id="agreement" required>
+                            <label class="form-check-label" for="agreement">
+                                Confirmo que la muestra de color mostrada es correcta y autorizo su uso 
+                                en este proyecto.
+                            </label>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info Footer -->
+            <div class="mt-4 p-3 bg-light rounded text-muted" style="font-size: 0.9rem;">
+                <i class="fas fa-shield-alt me-2"></i>
+                <strong>Seguridad:</strong> Esta firma es legalmente vinculante y registra su nombre, fecha, hora e IP.
+                Su aprobación se almacena de forma segura en nuestro sistema.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Signature Pad Library -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('signaturePad');
+    const signaturePad = new SignaturePad(canvas, {
+        penColor: '#333',
+        backgroundColor: 'rgba(255,255,255,1)',
+    });
+
+    // Ajustar tamaño del canvas
+    function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        ctx.clearRect(0, 0, rect.width, rect.height);
+    }
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Limpiar firma
+    document.getElementById('clearBtn').addEventListener('click', function() {
+        signaturePad.clear();
+    });
+
+    // Enviar firma
+    document.getElementById('signatureForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (signaturePad.isEmpty()) {
+            alert('Por favor, dibuje su firma antes de continuar.');
+            return;
+        }
+
+        // Obtener firma en base64
+        const signatureData = signaturePad.toDataURL();
+        document.getElementById('signature_data').value = signatureData;
+
+        // Enviar formulario
+        this.submit();
+    });
+
+    // Validación de nombre en tiempo real
+    document.getElementById('signer_name').addEventListener('change', function() {
+        const submitBtn = document.getElementById('submitBtn');
+        if (this.value.trim()) {
+            submitBtn.disabled = false;
+        }
+    });
+});
+</script>
+
+<style>
+    #signaturePad {
+        border: 2px dashed #ddd;
+        border-radius: 4px;
+        background: white;
+    }
+    
+    #signaturePad:hover {
+        border-color: #0d6efd;
+    }
+    
+    .btn-lg {
+        font-size: 1.1rem;
+        padding: 0.75rem 1.5rem;
+    }
+</style>
+{% endblock %}
