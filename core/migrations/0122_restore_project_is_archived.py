@@ -15,9 +15,9 @@ class Migration(migrations.Migration):
             field=models.BooleanField(null=True, default=False, help_text="Proyecto archivado (no activo)"),
             preserve_default=True,
         ),
-        # Backfill NULLs to False
+        # Backfill NULLs to False - PostgreSQL requires TRUE/FALSE, not 0/1
         migrations.RunSQL(
-            sql="UPDATE core_project SET is_archived = 0 WHERE is_archived IS NULL;",
+            sql="UPDATE core_project SET is_archived = FALSE WHERE is_archived IS NULL;",
             reverse_sql="",
         ),
         # Make field non-nullable now that data is populated
