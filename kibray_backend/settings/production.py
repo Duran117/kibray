@@ -63,8 +63,22 @@ CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS if origin.strip()]
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS if origin.strip()]
+# CSRF - Handle both http and https for Railway (health checks use http)
+_csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_origins if origin.strip()]
+
+# Add both http and https variants for Railway compatibility
+_csrf_with_variants = []
+for origin in CSRF_TRUSTED_ORIGINS:
+    _csrf_with_variants.append(origin)
+    # If origin is https://, also add http:// variant for Railway redirects
+    if origin.startswith("https://"):
+        _csrf_with_variants.append(origin.replace("https://", "http://"))
+    # If origin is http://, also add https:// variant
+    elif origin.startswith("http://"):
+        _csrf_with_variants.append(origin.replace("http://", "https://"))
+
+CSRF_TRUSTED_ORIGINS = list(set(_csrf_with_variants))  # Remove duplicates
 
 # Security Settings
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
