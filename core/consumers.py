@@ -569,6 +569,15 @@ class AdminDashboardConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """Connect to admin dashboard channel"""
+        # Security: Only admin/staff users can connect
+        user = self.scope.get("user")
+        if not user or not user.is_authenticated:
+            await self.close()
+            return
+        if not (user.is_staff or user.is_superuser):
+            await self.close()
+            return
+        
         self.room_group_name = "dashboard_admin"
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)

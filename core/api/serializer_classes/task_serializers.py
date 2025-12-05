@@ -18,8 +18,9 @@ class TaskListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = [
-            'id', 'title', 'description', 'status', 'priority', 
-            'due_date', 'created_at', 'project_name', 'assignee', 'is_overdue'
+            'id', 'title', 'description', 'status', 'priority',
+            'due_date', 'created_at', 'project', 'is_touchup',
+            'project_name', 'assignee', 'is_overdue'
         ]
     
     def get_project_name(self, obj):
@@ -85,12 +86,14 @@ class TaskCreateUpdateSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
+    dependencies_ids = serializers.ListField(child=serializers.IntegerField(), required=False)
+    progress_percent = serializers.IntegerField(required=False)
     
     class Meta:
         model = Task
         fields = [
             'project', 'title', 'description', 'status', 'priority',
-            'due_date', 'assigned_to'
+            'due_date', 'assigned_to', 'dependencies_ids', 'progress_percent'
         ]
     
     def validate_due_date(self, value):
@@ -108,6 +111,24 @@ class TaskCreateUpdateSerializer(serializers.ModelSerializer):
                 _(f"Priority must be one of: {', '.join(valid_priorities)}")
             )
         return value
+
+    def create(self, validated_data):
+        dep_ids = validated_data.pop('dependencies_ids', [])
+        task = super().create(validated_data)
+        if dep_ids:
+            from core.models import Task as TaskModel
+            deps = TaskModel.objects.filter(id__in=dep_ids)
+            task.dependencies.add(*deps)
+        return task
+
+    def update(self, instance, validated_data):
+        dep_ids = validated_data.pop('dependencies_ids', None)
+        task = super().update(instance, validated_data)
+        if dep_ids is not None:
+            from core.models import Task as TaskModel
+            deps = TaskModel.objects.filter(id__in=dep_ids)
+            task.dependencies.set(deps)
+        return task
 
 
 class TaskStatsSerializer(serializers.Serializer):
