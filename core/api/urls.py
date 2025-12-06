@@ -181,10 +181,10 @@ router.register(r"bi", BIAnalyticsViewSet, basename="bi-analytics")
 router.register(r"nav-analytics", AnalyticsViewSetNew, basename="nav-analytics")
 
 # Module 25: Executive Focus Workflow (Productivity)
-# from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet, focus_stats
+from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet
 from .bulk_views import BulkTaskUpdateAPIView
-# router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-session")
-# router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
+router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-session")
+router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
 
 urlpatterns = [
     # Health Check Endpoints (Phase 7 - Step 45)

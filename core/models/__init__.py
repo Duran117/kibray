@@ -7410,4 +7410,7 @@ class NotificationLog(models.Model):
 # PWA Push Notifications
 from .push_notifications import PushSubscription
 
-__all__ = ['PushSubscription']
+# Executive Focus Workflow (Module 25)
+from .focus_workflow import DailyFocusSession, FocusTask
+
+__all__ = ['PushSubscription', 'DailyFocusSession', 'FocusTask']

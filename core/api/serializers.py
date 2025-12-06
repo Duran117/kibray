@@ -11,10 +11,12 @@ from core.models import (
     ColorSample,
     CostCode,
     DailyLog,
+    DailyFocusSession,
     DamageReport,
     Employee,  # ⭐ Added for Employee serializer
     Expense,
     FloorPlan,
+    FocusTask,
     Income,
     InventoryItem,  # ⭐ Added for Inventory serializer
     LoginAttempt,
@@ -2151,4 +2153,131 @@ class PushSubscriptionSerializer(serializers.ModelSerializer):
         ).delete()
         
         return super().create(validated_data)
+
+
+# =============================================================================
+# EXECUTIVE FOCUS WORKFLOW SERIALIZERS (Module 25)
+# =============================================================================
+
+class FocusTaskSerializer(serializers.ModelSerializer):
+    """Serializer for FocusTask model"""
+    checklist_progress = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = FocusTask
+        fields = [
+            'id',
+            'session',
+            'title',
+            'description',
+            'is_high_impact',
+            'impact_reason',
+            'is_frog',
+            'checklist',
+            'checklist_progress',
+            'scheduled_start',
+            'scheduled_end',
+            'is_completed',
+            'completed_at',
+            'order',
+        ]
+        read_only_fields = ['id', 'completed_at', 'checklist_progress']
+    
+    def get_checklist_progress(self, obj):
+        """Calculate checklist completion progress"""
+        if not obj.checklist:
+            return {'total': 0, 'done': 0, 'percent': 0}
+        
+        total = len(obj.checklist)
+        done = sum(1 for item in obj.checklist if item.get('done', False))
+        percent = int((done / total) * 100) if total > 0 else 0
+        
+        return {'total': total, 'done': done, 'percent': percent}
+
+
+class DailyFocusSessionSerializer(serializers.ModelSerializer):
+    """Full serializer for DailyFocusSession with nested tasks"""
+    focus_tasks = FocusTaskSerializer(many=True, read_only=True)
+    total_tasks = serializers.ReadOnlyField()
+    completed_tasks = serializers.ReadOnlyField()
+    high_impact_tasks = serializers.ReadOnlyField()
+    frog_task_title = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = DailyFocusSession
+        fields = [
+            'id',
+            'user',
+            'date',
+            'energy_level',
+            'notes',
+            'focus_tasks',
+            'total_tasks',
+            'completed_tasks',
+            'high_impact_tasks',
+            'frog_task_title',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+    
+    def get_frog_task_title(self, obj):
+        """Return the frog task title if exists"""
+        frog = obj.frog_task
+        return frog.title if frog else None
+
+
+class FocusSessionCreateSerializer(serializers.Serializer):
+    """Serializer for creating a DailyFocusSession with tasks in one request"""
+    date = serializers.DateField()
+    energy_level = serializers.IntegerField(min_value=1, max_value=10, default=5)
+    notes = serializers.CharField(required=False, allow_blank=True, default='')
+    tasks = serializers.ListField(child=serializers.DictField())
+    
+    def validate_tasks(self, value):
+        """Validate tasks data structure"""
+        if not value:
+            raise serializers.ValidationError("At least one task is required")
+        
+        # Ensure at most one frog
+        frog_count = sum(1 for task in value if task.get('is_frog', False))
+        if frog_count > 1:
+            raise serializers.ValidationError("Only one task can be marked as Frog")
+        
+        return value
+    
+    def create(self, validated_data):
+        """Create session and associated tasks"""
+        user = self.context['request'].user
+        tasks_data = validated_data.pop('tasks', [])
+        
+        # Create or update session for this date
+        session, _ = DailyFocusSession.objects.update_or_create(
+            user=user,
+            date=validated_data['date'],
+            defaults={
+                'energy_level': validated_data.get('energy_level', 5),
+                'notes': validated_data.get('notes', ''),
+            }
+        )
+        
+        # Clear existing tasks and create new ones
+        session.focus_tasks.all().delete()
+        
+        for order, task_data in enumerate(tasks_data):
+            FocusTask.objects.create(
+                session=session,
+                title=task_data.get('title', ''),
+                description=task_data.get('description', ''),
+                is_high_impact=task_data.get('is_high_impact', False),
+                impact_reason=task_data.get('impact_reason', ''),
+                is_frog=task_data.get('is_frog', False),
+                checklist=task_data.get('checklist', []),
+                scheduled_start=task_data.get('scheduled_start'),
+                scheduled_end=task_data.get('scheduled_end'),
+                order=order,
+            )
+        
+        return session
+
 
