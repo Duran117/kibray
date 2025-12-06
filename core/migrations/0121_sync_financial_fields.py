@@ -29,10 +29,10 @@ class Migration(migrations.Migration):
         # ),
         migrations.RunSQL(
             sql="""
-            -- Add unique constraint if not exists (0120 only added the column without constraint)
+            -- Add unique constraint where employee_key is not null
+            -- In PostgreSQL, NULL values are not considered equal, so UNIQUE allows multiple NULLs
             ALTER TABLE core_employee 
-            ADD CONSTRAINT core_employee_employee_key_unique UNIQUE(employee_key) 
-            WHERE employee_key IS NOT NULL;
+            ADD CONSTRAINT core_employee_employee_key_unique UNIQUE(employee_key);
             """,
             reverse_sql="ALTER TABLE core_employee DROP CONSTRAINT IF EXISTS core_employee_employee_key_unique;",
         ),
