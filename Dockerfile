@@ -20,18 +20,13 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Copy project source
 COPY . .
 
+# Make start script executable
+RUN chmod +x start.sh
+
 # Collect static assets (non-blocking if it fails)
 RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
-# Start: Run migrations and start Gunicorn
-CMD python manage.py migrate --noinput && \
-    gunicorn kibray_backend.wsgi:application \
-    --bind 0.0.0.0:${PORT:-8000} \
-    --workers 3 \
-    --threads 2 \
-    --timeout 120 \
-    --access-logfile - \
-    --error-logfile - \
-    --log-level info
+# Start using script
+CMD ["./start.sh"]

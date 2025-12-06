@@ -18,7 +18,16 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # Allowed hosts from environment
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 if not ALLOWED_HOSTS or ALLOWED_HOSTS == [""]:
-    raise ValueError("ALLOWED_HOSTS environment variable must be set in production!")
+    # Fallback: Accept Railway domains and common cloud platforms
+    ALLOWED_HOSTS = [
+        "*.railway.app",
+        "railway.app",
+        "*.up.railway.app",
+        "kibray.up.railway.app",
+        "localhost",
+        "127.0.0.1",
+    ]
+    print("⚠️ WARNING: Using default ALLOWED_HOSTS. Set ALLOWED_HOSTS env variable in production!")
 
 # Database - PostgreSQL via DATABASE_URL
 DATABASES = {
