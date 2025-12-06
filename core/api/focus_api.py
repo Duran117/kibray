@@ -2,6 +2,7 @@
 API Views for Executive Focus Workflow (Module 25 - Productivity)
 Implements Pareto Principle + Eat That Frog methodology with calendar sync
 """
+import logging
 from datetime import datetime, timedelta
 
 from django.utils import timezone
@@ -16,6 +17,8 @@ from core.api.serializers import (
     FocusSessionCreateSerializer,
     FocusTaskSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class DailyFocusSessionViewSet(viewsets.ModelViewSet):
@@ -34,16 +37,32 @@ class DailyFocusSessionViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Create a new session with tasks"""
-        serializer = FocusSessionCreateSerializer(
-            data=request.data,
-            context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-        session = serializer.save()
+        logger.info(f"Creating focus session for user {request.user.id}")
+        logger.debug(f"Request data: {request.data}")
         
-        # Return full session data
-        response_serializer = DailyFocusSessionSerializer(session)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            serializer = FocusSessionCreateSerializer(
+                data=request.data,
+                context={'request': request}
+            )
+            
+            if not serializer.is_valid():
+                logger.error(f"Validation errors: {serializer.errors}")
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            session = serializer.save()
+            logger.info(f"Session {session.id} created successfully")
+            
+            # Return full session data
+            response_serializer = DailyFocusSessionSerializer(session)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.exception(f"Error creating focus session: {e}")
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=False, methods=['get'])
     def today(self, request):

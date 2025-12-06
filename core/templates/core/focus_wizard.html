@@ -1071,17 +1071,19 @@ async function saveFocusSession() {
     const sessionData = {
         date: new Date().toISOString().split('T')[0],
         energy_level: energyLevel,
-        notes: document.getElementById('sessionNotes').value,
+        notes: document.getElementById('sessionNotes').value || '',
         tasks: tasks.map(task => ({
-            title: task.title,
-            is_high_impact: task.isHighImpact,
-            impact_reason: task.impactReason,
-            is_frog: task.isFrog,
+            title: task.title || '',
+            is_high_impact: task.isHighImpact || false,
+            impact_reason: task.impactReason || 'Priority task',
+            is_frog: task.isFrog || false,
             checklist: task.isFrog ? checklist : [],
-            scheduled_start: task.isFrog ? document.getElementById('startTime').value : null,
-            scheduled_end: task.isFrog ? document.getElementById('endTime').value : null
+            scheduled_start: task.isFrog ? (document.getElementById('startTime').value || null) : null,
+            scheduled_end: task.isFrog ? (document.getElementById('endTime').value || null) : null
         }))
     };
+    
+    console.log('Sending session data:', JSON.stringify(sessionData, null, 2));
     
     try {
         const response = await fetch('/api/v1/focus/sessions/', {
@@ -1092,6 +1094,8 @@ async function saveFocusSession() {
             },
             body: JSON.stringify(sessionData)
         });
+        
+        console.log('Response status:', response.status);
         
         if (response.ok) {
             const data = await response.json();
@@ -1109,12 +1113,21 @@ async function saveFocusSession() {
                 step.classList.add('completed');
             });
         } else {
-            const error = await response.json();
-            alert('{% trans "Error saving session:" %} ' + JSON.stringify(error));
+            let errorMsg = 'Unknown error';
+            try {
+                const error = await response.json();
+                errorMsg = JSON.stringify(error);
+                console.error('API Error:', error);
+            } catch (e) {
+                const text = await response.text();
+                errorMsg = text.substring(0, 500);
+                console.error('API Error (text):', text);
+            }
+            alert('Error (' + response.status + '): ' + errorMsg);
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('{% trans "Error saving session. Please try again." %}');
+        console.error('Network Error:', error);
+        alert('Network error: ' + error.message);
     }
 }
 
