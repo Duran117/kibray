@@ -21,10 +21,20 @@ class Migration(migrations.Migration):
             name='material_markup_percent',
             field=models.DecimalField(decimal_places=2, default=Decimal('15.00'), help_text='Porcentaje de markup en materiales (por defecto 15%)', max_digits=5),
         ),
-        migrations.AddField(
-            model_name='employee',
-            name='employee_key',
-            field=models.CharField(blank=True, editable=False, help_text='Código único del empleado (EMP-001, EMP-002...). Se genera automáticamente.', max_length=20, unique=True),
+        # Skip employee_key as it was already added in 0120_fix_employee_key_column
+        # migrations.AddField(
+        #     model_name='employee',
+        #     name='employee_key',
+        #     field=models.CharField(blank=True, editable=False, help_text='Código único del empleado (EMP-001, EMP-002...). Se genera automáticamente.', max_length=20, unique=True),
+        # ),
+        migrations.RunSQL(
+            sql="""
+            -- Add unique constraint if not exists (0120 only added the column without constraint)
+            ALTER TABLE core_employee 
+            ADD CONSTRAINT core_employee_employee_key_unique UNIQUE(employee_key) 
+            WHERE employee_key IS NOT NULL;
+            """,
+            reverse_sql="ALTER TABLE core_employee DROP CONSTRAINT IF EXISTS core_employee_employee_key_unique;",
         ),
         migrations.AddField(
             model_name='project',
