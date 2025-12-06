@@ -9,11 +9,18 @@ from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-# SECRET_KEY must be set in environment variables
-if not os.getenv("DJANGO_SECRET_KEY"):
-    raise ValueError("DJANGO_SECRET_KEY environment variable must be set in production!")
+# Add startup logging
+print("=" * 60)
+print("🚀 STARTING KIBRAY IN PRODUCTION MODE")
+print("=" * 60)
 
+# SECRET_KEY must be set in environment variables
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    print("❌ ERROR: DJANGO_SECRET_KEY not set!")
+    raise ValueError("DJANGO_SECRET_KEY environment variable must be set in production!")
+else:
+    print(f"✅ SECRET_KEY loaded: {SECRET_KEY[:10]}...")
 
 # Allowed hosts from environment
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
@@ -27,15 +34,25 @@ if not ALLOWED_HOSTS or ALLOWED_HOSTS == [""]:
         "localhost",
         "127.0.0.1",
     ]
-    print("⚠️ WARNING: Using default ALLOWED_HOSTS. Set ALLOWED_HOSTS env variable in production!")
+    print("⚠️ WARNING: Using default ALLOWED_HOSTS")
+print(f"✅ ALLOWED_HOSTS: {ALLOWED_HOSTS}")
 
 # Database - PostgreSQL via DATABASE_URL
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    print("❌ ERROR: DATABASE_URL not set!")
+    raise ValueError("DATABASE_URL environment variable must be set in production!")
+else:
+    print(f"✅ DATABASE_URL configured")
+
 DATABASES = {
     "default": dj_database_url.config(
         conn_max_age=600,
         ssl_require=True,
     )
 }
+
+print(f"✅ Database configured: {DATABASES['default']['ENGINE']}")
 
 # Static files - WhiteNoise with compression (no manifest for flexibility)
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
