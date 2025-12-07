@@ -1586,6 +1586,42 @@ class DailyPlanSerializer(serializers.ModelSerializer):
 
 
 # ============================================================================
+# AI Suggestions Serializer (Dec 2025)
+# ============================================================================
+
+
+class AISuggestionSerializer(serializers.ModelSerializer):
+    """Serializer for AI Suggestions"""
+
+    daily_plan_date = serializers.DateField(source="daily_plan.plan_date", read_only=True)
+    project_name = serializers.CharField(source="daily_plan.project.name", read_only=True)
+    resolved_by_name = serializers.CharField(source="resolved_by.get_full_name", read_only=True, allow_null=True)
+
+    class Meta:
+        from core.models import AISuggestion
+
+        model = AISuggestion
+        fields = [
+            "id",
+            "daily_plan",
+            "daily_plan_date",
+            "project_name",
+            "suggestion_type",
+            "severity",
+            "title",
+            "description",
+            "suggested_action",
+            "auto_fixable",
+            "status",
+            "created_at",
+            "resolved_at",
+            "resolved_by",
+            "resolved_by_name",
+        ]
+        read_only_fields = ["created_at", "resolved_at", "daily_plan_date", "project_name", "resolved_by_name"]
+
+
+# ============================================================================
 # PHASE 2: Module 14 - Materials & Inventory
 # ============================================================================
 

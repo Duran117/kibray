@@ -7419,9 +7419,15 @@ from .strategic_planning import (
     PowerAction, HabitCompletion
 )
 
+# Daily Plan AI Enhancements (Dec 2025)
+from .daily_plan_ai import (
+    TimelineView, AIAnalysisLog, AISuggestion, VoiceCommand
+)
+
 __all__ = [
     'PushSubscription', 
     'DailyFocusSession', 'FocusTask',
     'LifeVision', 'ExecutiveHabit', 'DailyRitualSession', 
-    'PowerAction', 'HabitCompletion'
+    'PowerAction', 'HabitCompletion',
+    'TimelineView', 'AIAnalysisLog', 'AISuggestion', 'VoiceCommand'
 ]

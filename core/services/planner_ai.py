@@ -2,13 +2,20 @@
 AI Services for Strategic Planner
 Provides intelligent assistance for task prioritization and planning
 """
-import openai
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    openai = None
+
 import json
 from django.conf import settings
 from typing import List, Dict, Optional
 
 # Configure OpenAI
-openai.api_key = getattr(settings, 'OPENAI_API_KEY', None)
+if OPENAI_AVAILABLE and openai:
+    openai.api_key = getattr(settings, 'OPENAI_API_KEY', None)
 
 
 class PlannerAI:
@@ -30,7 +37,7 @@ class PlannerAI:
                 'summary': 'AI analysis summary'
             }
         """
-        if not openai.api_key:
+        if not OPENAI_AVAILABLE or not openai or not openai.api_key:
             return {
                 'high_impact': [],
                 'noise': [],
@@ -119,7 +126,7 @@ RULES:
                 'alternative': 'Second choice if applicable'
             }
         """
-        if not openai.api_key or not high_impact_items:
+        if not OPENAI_AVAILABLE or not openai or not openai.api_key or not high_impact_items:
             return {
                 'recommended_index': 0,
                 'reasoning': 'No AI available or no items to analyze',
@@ -202,7 +209,7 @@ Return JSON:
                 ...
             ]
         """
-        if not openai.api_key:
+        if not OPENAI_AVAILABLE or not openai or not openai.api_key:
             return [
                 {'text': 'Define the first action', 'done': False},
                 {'text': 'Complete the main work', 'done': False},
@@ -279,7 +286,7 @@ Return JSON array:
                 'reasoning': 'Why this time block'
             }
         """
-        if not openai.api_key:
+        if not OPENAI_AVAILABLE or not openai or not openai.api_key:
             # Default smart suggestion
             if energy_level >= 7:
                 return {

@@ -24,6 +24,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from core.api.permissions import IsAdminOrPM
 
 from core.models import (
+    AISuggestion,
     AuditLog,
     BudgetLine,
     ChangeOrderPhoto,
@@ -3057,6 +3058,297 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
             {"actual_hours_worked": float(total) if total is not None else 0.0, "task_count": len(task_ids)}
         )
 
+    # ===== AI ENHANCEMENT ENDPOINTS (Dec 2025) =====
+
+    @action(detail=True, methods=["post"])
+    def ai_analyze(self, request, pk=None):
+        """
+        Run comprehensive AI analysis on daily plan
+
+        Returns full analysis report with issues and suggestions
+        """
+        plan = self.get_object()
+        report = plan.run_ai_analysis()
+
+        return Response(
+            {
+                "success": True,
+                "report": report.to_dict(),
+                "pending_suggestions": plan.pending_suggestions.count(),
+                "critical_suggestions": plan.critical_suggestions.count(),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["get"])
+    def ai_checklist(self, request, pk=None):
+        """
+        Get AI checklist for display in UI
+
+        Returns formatted checklist with passed, warnings, and critical sections
+        """
+        from core.services.daily_plan_ai import daily_plan_ai
+
+        plan = self.get_object()
+        checklist = daily_plan_ai.generate_checklist(plan)
+
+        return Response(checklist, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def ai_voice_input(self, request, pk=None):
+        """
+        Process voice input for activity creation
+
+        Expects:
+            - audio file (multipart/form-data)
+            OR
+            - transcription text (if client did speech-to-text)
+
+        Returns:
+            - transcription
+            - parsed command
+            - suggested activities
+        """
+        from core.models import VoiceCommand
+        from core.services.nlp_service import nlp_service
+
+        plan = self.get_object()
+
+        # Get transcription (from client or from audio file)
+        transcription = request.data.get("transcription")
+        audio_file = request.FILES.get("audio")
+
+        if not transcription and not audio_file:
+            return Response({"error": "Either transcription or audio file required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # If audio file provided, transcribe it
+        if audio_file and not transcription:
+            # TODO: Implement speech-to-text with Whisper or cloud service
+            # For now, return error
+            return Response(
+                {"error": "Audio transcription not yet implemented. Please provide text transcription."},
+                status=status.HTTP_501_NOT_IMPLEMENTED,
+            )
+
+        # Parse command
+        parsed = nlp_service.parse_command(transcription, context={"daily_plan": plan, "project": plan.project})
+
+        # Store voice command
+        voice_cmd = VoiceCommand.objects.create(
+            user=request.user,
+            audio_file=audio_file,
+            transcription=transcription,
+            parsed_command=parsed.to_dict(),
+            daily_plan=plan,
+            success=parsed.is_valid,
+        )
+
+        return Response(
+            {
+                "transcription": transcription,
+                "parsed_command": parsed.to_dict(),
+                "voice_command_id": voice_cmd.id,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"])
+    def ai_text_input(self, request, pk=None):
+        """
+        Process text input for activity creation
+
+        Body:
+            { "text": "Add activity: paint exterior, assign to Juan, 8 hours" }
+
+        Returns:
+            - parsed command
+            - confirmation prompt
+        """
+        from core.services.nlp_service import nlp_service
+
+        plan = self.get_object()
+        text = request.data.get("text")
+
+        if not text:
+            return Response({"error": "Text input required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Parse command
+        parsed = nlp_service.parse_command(text, context={"daily_plan": plan, "project": plan.project})
+
+        return Response(
+            {
+                "parsed_command": parsed.to_dict(),
+                "requires_confirmation": True,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"])
+    def ai_auto_create(self, request, pk=None):
+        """
+        Auto-create activities from AI suggestions
+
+        Body:
+            {
+                "command": { /* parsed command object */ },
+                "confirm": true
+            }
+
+        Returns:
+            - created activities
+        """
+        from core.services.nlp_service import ParsedCommand, nlp_service
+
+        plan = self.get_object()
+        command_data = request.data.get("command")
+        confirmed = request.data.get("confirm", False)
+
+        if not command_data:
+            return Response({"error": "Command data required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not confirmed:
+            return Response({"error": "User confirmation required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Reconstruct parsed command
+        parsed = ParsedCommand(
+            command_type=command_data.get("command_type"),
+            raw_text=command_data.get("raw_text"),
+            confidence=command_data.get("confidence", 0.0),
+            entities=command_data.get("entities", {}),
+            validation_errors=command_data.get("validation_errors", []),
+            suggested_action=command_data.get("suggested_action", ""),
+        )
+
+        # Execute command
+        success, message, activity = nlp_service.execute_command(parsed, plan, request.user)
+
+        if success:
+            return Response(
+                {
+                    "success": True,
+                    "message": message,
+                    "activity": PlannedActivitySerializer(activity).data if activity else None,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response({"success": False, "message": message}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["get"])
+    def timeline(self, request):
+        """
+        Get timeline data for date range
+
+        Query params:
+            - start_date: YYYY-MM-DD
+            - end_date: YYYY-MM-DD
+            - project: project ID (optional)
+
+        Returns:
+            List of daily plans with full context for timeline view
+        """
+        from datetime import datetime
+
+        start_date_str = request.query_params.get("start_date")
+        end_date_str = request.query_params.get("end_date")
+        project_id = request.query_params.get("project")
+
+        if not start_date_str or not end_date_str:
+            return Response({"error": "start_date and end_date required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Query plans
+        queryset = DailyPlan.objects.filter(plan_date__range=[start_date, end_date])
+
+        if project_id:
+            queryset = queryset.filter(project_id=project_id)
+
+        queryset = queryset.select_related("project", "created_by").prefetch_related(
+            "activities__assigned_employees", "activities__schedule_item", "ai_suggestions"
+        )
+
+        # Serialize with extra context
+        plans_data = []
+        for plan in queryset:
+            plan_dict = DailyPlanSerializer(plan).data
+
+            # Add AI context
+            plan_dict["ai_score"] = plan.ai_score
+            plan_dict["pending_suggestions_count"] = plan.pending_suggestions.count()
+            plan_dict["critical_suggestions_count"] = plan.critical_suggestions.count()
+
+            # Add material summary
+            materials_ok = 0
+            materials_warning = 0
+            materials_critical = 0
+
+            for activity in plan.activities.all():
+                if activity.materials_checked:
+                    if activity.material_shortage:
+                        materials_critical += 1
+                    else:
+                        materials_ok += 1
+
+            plan_dict["material_summary"] = {
+                "ok": materials_ok,
+                "warning": materials_warning,
+                "critical": materials_critical,
+            }
+
+            plans_data.append(plan_dict)
+
+        return Response(
+            {
+                "start_date": start_date_str,
+                "end_date": end_date_str,
+                "plans": plans_data,
+                "total": len(plans_data),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"])
+    def inline_update(self, request, pk=None):
+        """
+        Update a single field inline (for timeline editing)
+
+        Body:
+            { "field": "notes", "value": "Updated notes..." }
+
+        Supported fields: status, notes, etc.
+        """
+        plan = self.get_object()
+        field = request.data.get("field")
+        value = request.data.get("value")
+
+        if not field:
+            return Response({"error": "Field name required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Whitelist allowed fields
+        allowed_fields = ["status", "no_planning_reason", "admin_approved"]
+
+        if field not in allowed_fields:
+            return Response({"error": f"Field '{field}' not allowed for inline update"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update field
+        setattr(plan, field, value)
+        plan.save(update_fields=[field, "updated_at"])
+
+        return Response(
+            {
+                "success": True,
+                "field": field,
+                "value": value,
+                "updated_at": plan.updated_at.isoformat(),
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class PlannedActivityViewSet(viewsets.ModelViewSet):
     """CRUD for PlannedActivity with material checks"""
@@ -3112,6 +3404,52 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
                 pass
         return Response({"detail": "Insufficient data for variance"}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=["post"])
+    def move(self, request, pk=None):
+        """
+        Move activity to different day or reorder within same day
+
+        Body:
+            {
+                "new_daily_plan": 123,  // Optional: move to different day
+                "new_order": 2          // New position
+            }
+        """
+        activity = self.get_object()
+        new_plan_id = request.data.get("new_daily_plan")
+        new_order = request.data.get("new_order")
+
+        # Move to different day
+        if new_plan_id and new_plan_id != activity.daily_plan_id:
+            try:
+                new_plan = DailyPlan.objects.get(id=new_plan_id)
+
+                # Check permission (same project or user has access)
+                if new_plan.project != activity.daily_plan.project:
+                    return Response(
+                        {"error": "Cannot move activity to different project"}, status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                activity.daily_plan = new_plan
+                activity.order = new_plan.activities.count()  # Add to end
+                activity.save()
+
+            except DailyPlan.DoesNotExist:
+                return Response({"error": "Target daily plan not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Reorder within same day
+        if new_order is not None:
+            activity.order = new_order
+            activity.save()
+
+        return Response(
+            {
+                "success": True,
+                "activity": PlannedActivitySerializer(activity).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for WeatherSnapshot (Module 30)"""
@@ -3139,6 +3477,99 @@ class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(WeatherSnapshotSerializer(snapshot).data)
         else:
             return Response({"message": "No weather data available"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# ============================================================================
+# AI Suggestions API (Dec 2025)
+# ============================================================================
+
+
+class AISuggestionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for AI Suggestions
+
+    Allows users to view, accept, or dismiss AI suggestions
+    """
+
+    from core.api.serializers import AISuggestionSerializer
+
+    queryset = (
+        AISuggestion.objects.all()
+        .select_related("daily_plan__project", "resolved_by")
+        .order_by("-created_at")
+    )
+    serializer_class = AISuggestionSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["daily_plan", "status", "severity", "suggestion_type"]
+    ordering_fields = ["created_at", "severity"]
+    ordering = ["-created_at"]
+
+    @action(detail=True, methods=["post"])
+    def accept(self, request, pk=None):
+        """Accept an AI suggestion"""
+        suggestion = self.get_object()
+        suggestion.accept(request.user)
+        return Response(
+            {
+                "success": True,
+                "message": "Suggestion accepted",
+                "suggestion": self.get_serializer(suggestion).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"])
+    def dismiss(self, request, pk=None):
+        """Dismiss an AI suggestion"""
+        suggestion = self.get_object()
+        suggestion.dismiss(request.user)
+        return Response(
+            {
+                "success": True,
+                "message": "Suggestion dismissed",
+                "suggestion": self.get_serializer(suggestion).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        """
+        Get summary of AI suggestions
+
+        Query params:
+            - daily_plan: Daily plan ID
+            - status: pending/accepted/dismissed
+
+        Returns counts by severity and type
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+
+        summary = {
+            "total": queryset.count(),
+            "by_severity": {
+                "critical": queryset.filter(severity="critical").count(),
+                "warning": queryset.filter(severity="warning").count(),
+                "info": queryset.filter(severity="info").count(),
+            },
+            "by_status": {
+                "pending": queryset.filter(status="pending").count(),
+                "accepted": queryset.filter(status="accepted").count(),
+                "dismissed": queryset.filter(status="dismissed").count(),
+                "auto_fixed": queryset.filter(status="auto_fixed").count(),
+            },
+            "by_type": {},
+        }
+
+        # Count by type
+        for choice in AISuggestion.SUGGESTION_TYPES:
+            type_key = choice[0]
+            count = queryset.filter(suggestion_type=type_key).count()
+            if count > 0:
+                summary["by_type"][type_key] = count
+
+        return Response(summary, status=status.HTTP_200_OK)
 
 
 # ============================================================================

@@ -29,6 +29,7 @@ from .viewset_classes import (
 
 from .views import (
     AdminDashboardView,
+    AISuggestionViewSet,  # AI Enhancement (Dec 2025)
     AuditLogViewSet,
     BIAnalyticsViewSet,
     BudgetLineViewSet,
@@ -150,6 +151,7 @@ router.register(r"task-templates", TaskTemplateViewSet, basename="task-template"
 router.register(r"weather-snapshots", WeatherSnapshotViewSet, basename="weather-snapshot")
 router.register(r"daily-plans", DailyPlanViewSet, basename="daily-plan")
 router.register(r"planned-activities", PlannedActivityViewSet, basename="planned-activity")
+router.register(r"ai-suggestions", AISuggestionViewSet, basename="ai-suggestion")  # AI Enhancement (Dec 2025)
 router.register(r"time-entries", TimeEntryViewSet, basename="time-entry")
 
 # Module 14: Materials & Inventory
