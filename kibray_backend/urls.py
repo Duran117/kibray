@@ -10,6 +10,7 @@ from django.views.i18n import set_language as dj_set_language
 from rest_framework.routers import DefaultRouter
 
 from core import views
+from core import views_sop
 from core import views_financial as fin_views
 from core import views_notifications as notif_views
 from core.api.views import tasks_gantt_alias
@@ -354,7 +355,7 @@ urlpatterns = [
     path("planning/activity/<int:activity_id>/complete/", views.activity_complete, name="activity_complete"),
     path("planning/employee/morning/", views.employee_morning_dashboard, name="employee_morning_dashboard"),
     path("planning/sop/library/", views.sop_library, name="sop_library"),
-    path("planning/sop/express/", views.sop_express_creator, name="sop_express"),  # NEW: Express AI version
+    path("planning/sop/express/", views_sop.sop_express_creator, name="sop_express"),  # NEW: Express AI version
     path("planning/sop/create/", views.sop_create_wizard, name="sop_create"),  # Wizard version
     path("planning/sop/create/classic/", views.sop_create_edit, name="sop_create_classic"),  # OLD: Classic form
     path("planning/sop/<int:template_id>/edit/", views.sop_create_wizard, name="sop_edit"),  # NEW: Wizard for editing
