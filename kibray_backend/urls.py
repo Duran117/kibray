@@ -11,6 +11,7 @@ from rest_framework.routers import DefaultRouter
 
 from core import views
 from core import views_sop
+from core import views_wizards
 from core import views_financial as fin_views
 from core import views_notifications as notif_views
 from core.api.views import tasks_gantt_alias
@@ -56,6 +57,9 @@ urlpatterns = [
     path("demo/js-i18n/", views.js_i18n_demo, name="js_i18n_demo"),
     # Project list & CRUD
     path("projects/", views.project_list, name="project_list"),
+    path("projects/launchpad/", views_wizards.project_launchpad_wizard, name="project_launchpad"), # NEW: Wizard
+    path("projects/launchpad/ai-suggest/", views_wizards.project_launchpad_ai_suggest, name="project_launchpad_ai"),
+    path("projects/launchpad/save/", views_wizards.project_launchpad_save, name="project_launchpad_save"),
     path("projects/create/", views.project_create, name="project_create"),
     path("projects/<int:project_id>/edit/", views.project_edit, name="project_edit"),
     path("projects/<int:project_id>/delete/", views.project_delete, name="project_delete"),

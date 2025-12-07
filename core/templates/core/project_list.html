@@ -205,9 +205,14 @@
             <i class="bi bi-folder2-open"></i> {% trans "Projects" %}
         </h2>
         {% if user.is_staff %}
-        <a class="btn btn-success" href="{% url 'project_create' %}">
-            <i class="bi bi-plus-circle"></i> {% trans "New Project" %}
-        </a>
+        <div>
+            <a class="btn btn-warning me-2" href="{% url 'project_launchpad' %}">
+                <i class="bi bi-rocket-takeoff-fill"></i> {% trans "Launchpad (AI)" %}
+            </a>
+            <a class="btn btn-outline-success" href="{% url 'project_create' %}">
+                <i class="bi bi-plus-circle"></i> {% trans "Manual" %}
+            </a>
+        </div>
         {% endif %}
     </div>
     

@@ -1,0 +1,402 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Project Launchpad" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wizard-step { display: none; }
+    .wizard-step.active { display: block; animation: fadeIn 0.5s; }
+    
+    .step-indicator {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin: 0 auto 10px;
+        transition: all 0.3s;
+    }
+    
+    .step-item.active .step-indicator {
+        background-color: #0d6efd;
+        color: white;
+        box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+    }
+    
+    .step-item.completed .step-indicator {
+        background-color: #198754;
+        color: white;
+    }
+    
+    .project-type-card {
+        cursor: pointer;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .project-type-card:hover {
+        transform: translateY(-5px);
+        border-color: #0d6efd;
+    }
+    .project-type-card.selected {
+        border-color: #0d6efd;
+        background-color: #f8f9fa;
+        box-shadow: 0 0 0 2px #0d6efd;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* AI Magic Animation */
+    .ai-pulse {
+        animation: pulse-glow 2s infinite;
+    }
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Wizard Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold"><i class="bi bi-rocket-takeoff text-primary"></i> {% trans "Project Launchpad" %}</h1>
+        <p class="lead text-muted">{% trans "Launch a new project in seconds with AI assistance." %}</p>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="row mb-5 position-relative">
+        <div class="position-absolute top-50 start-0 w-100 translate-middle-y" style="height: 2px; background: #e9ecef; z-index: -1;"></div>
+        
+        <div class="col step-item active" id="stepIndicator1">
+            <div class="step-indicator">1</div>
+            <div class="text-center small fw-bold">{% trans "Concept" %}</div>
+        </div>
+        <div class="col step-item" id="stepIndicator2">
+            <div class="step-indicator">2</div>
+            <div class="text-center small fw-bold">{% trans "Type" %}</div>
+        </div>
+        <div class="col step-item" id="stepIndicator3">
+            <div class="step-indicator"><i class="bi bi-stars"></i></div>
+            <div class="text-center small fw-bold">{% trans "AI Magic" %}</div>
+        </div>
+        <div class="col step-item" id="stepIndicator4">
+            <div class="step-indicator">4</div>
+            <div class="text-center small fw-bold">{% trans "Review" %}</div>
+        </div>
+    </div>
+
+    <!-- Wizard Form -->
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-5">
+            <form id="launchpadForm">
+                {% csrf_token %}
+                
+                <!-- STEP 1: CONCEPT -->
+                <div class="wizard-step active" id="step1">
+                    <h3 class="mb-4">{% trans "Let's start with the basics" %}</h3>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Project Name (Draft)" %}</label>
+                        <input type="text" class="form-control form-control-lg" id="projectName" placeholder="e.g. Smith Kitchen Remodel">
+                        <div class="form-text">{% trans "Don't worry, AI can suggest a better name later." %}</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{% trans "Client" %}</label>
+                            <select class="form-select" id="clientSelect">
+                                <option value="">{% trans "Select Client..." %}</option>
+                                {% for client in clients %}
+                                <option value="{{ client.id }}">{{ client.name }}</option>
+                                {% endfor %}
+                                <option value="new">+ {% trans "Create New Client" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{% trans "Start Date" %}</label>
+                            <input type="date" class="form-control" id="startDate" value="{% now 'Y-m-d' %}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Site Address" %}</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            <input type="text" class="form-control" id="address" placeholder="123 Main St...">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-primary btn-lg px-5" onclick="nextStep(2)">
+                            {% trans "Next" %} <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: TYPE -->
+                <div class="wizard-step" id="step2">
+                    <h3 class="mb-4">{% trans "What are we building?" %}</h3>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="card h-100 project-type-card text-center p-4" onclick="selectType(this, 'Residential')">
+                                <i class="bi bi-house-heart display-4 text-success mb-3"></i>
+                                <h5>{% trans "Residential" %}</h5>
+                                <p class="text-muted small">{% trans "Homes, apartments, condos." %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 project-type-card text-center p-4" onclick="selectType(this, 'Commercial')">
+                                <i class="bi bi-building display-4 text-info mb-3"></i>
+                                <h5>{% trans "Commercial" %}</h5>
+                                <p class="text-muted small">{% trans "Offices, retail, warehouses." %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 project-type-card text-center p-4" onclick="selectType(this, 'Remodel')">
+                                <i class="bi bi-tools display-4 text-warning mb-3"></i>
+                                <h5>{% trans "Remodel / Reno" %}</h5>
+                                <p class="text-muted small">{% trans "Kitchens, baths, additions." %}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="projectType" value="">
+                    
+                    <div class="d-flex justify-content-between mt-5">
+                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">{% trans "Back" %}</button>
+                        <button type="button" class="btn btn-primary btn-lg px-5" id="btnStep2Next" disabled onclick="nextStep(3)">
+                            {% trans "Next" %} <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: AI MAGIC -->
+                <div class="wizard-step" id="step3">
+                    <div class="text-center mb-4">
+                        <span class="badge bg-warning text-dark mb-2"><i class="bi bi-stars"></i> AI POWERED</span>
+                        <h3>{% trans "Describe the Vision" %}</h3>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">{% trans "Tell us about the project scope..." %}</label>
+                        <textarea class="form-control" id="projectDescription" rows="4" placeholder="e.g. Complete gut renovation of master bathroom. Installing new double vanity, walk-in shower with rain head, and heated tile floors. Modern aesthetic with gold fixtures."></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 col-md-6 mx-auto">
+                        <button type="button" class="btn btn-warning btn-lg ai-pulse text-dark fw-bold" onclick="runAIMagic()">
+                            <i class="bi bi-magic"></i> {% trans "Generate Plan & Details" %}
+                        </button>
+                    </div>
+                    
+                    <!-- AI Loading -->
+                    <div id="aiLoading" class="text-center mt-4 d-none">
+                        <div class="spinner-border text-warning" role="status"></div>
+                        <p class="mt-2 text-muted">{% trans "Analyzing scope... Drafting phases... Identifying risks..." %}</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-5">
+                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">{% trans "Back" %}</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="nextStep(4)">{% trans "Skip AI" %}</button>
+                    </div>
+                </div>
+
+                <!-- STEP 4: REVIEW & LAUNCH -->
+                <div class="wizard-step" id="step4">
+                    <h3 class="mb-4">{% trans "Ready for Takeoff?" %}</h3>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">{% trans "PROJECT NAME" %}</label>
+                                <input type="text" class="form-control fw-bold" id="finalName">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">{% trans "DESCRIPTION" %}</label>
+                                <textarea class="form-control" id="finalDescription" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="card bg-light border-0 mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="bi bi-list-check"></i> {% trans "Suggested Phases" %}</h6>
+                                    <ul class="list-group list-group-flush bg-transparent" id="suggestedPhases">
+                                        <li class="list-group-item bg-transparent text-muted">{% trans "No phases generated yet." %}</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card border-warning mb-3">
+                                <div class="card-header bg-warning text-dark fw-bold">
+                                    <i class="bi bi-exclamation-triangle"></i> {% trans "Potential Risks" %}
+                                </div>
+                                <ul class="list-group list-group-flush" id="suggestedRisks">
+                                    <li class="list-group-item text-muted small">{% trans "AI will suggest risks here." %}</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Est. Duration (Days)" %}</label>
+                                <input type="number" class="form-control" id="finalDuration" value="30">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-5">
+                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(3)">{% trans "Back" %}</button>
+                        <button type="button" class="btn btn-success btn-lg px-5" onclick="launchProject()">
+                            <i class="bi bi-rocket-takeoff-fill"></i> {% trans "Launch Project" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+    
+    function showStep(step) {
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+        document.getElementById('step' + step).classList.add('active');
+        
+        // Update indicators
+        document.querySelectorAll('.step-item').forEach((el, index) => {
+            if (index + 1 < step) {
+                el.classList.add('completed');
+                el.classList.remove('active');
+            } else if (index + 1 === step) {
+                el.classList.add('active');
+                el.classList.remove('completed');
+            } else {
+                el.classList.remove('active', 'completed');
+            }
+        });
+        
+        currentStep = step;
+    }
+    
+    function nextStep(step) {
+        // Validation logic here if needed
+        if (step === 4) {
+            // Populate final review fields if empty
+            if (!document.getElementById('finalName').value) {
+                document.getElementById('finalName').value = document.getElementById('projectName').value;
+            }
+            if (!document.getElementById('finalDescription').value) {
+                document.getElementById('finalDescription').value = document.getElementById('projectDescription').value;
+            }
+        }
+        showStep(step);
+    }
+    
+    function prevStep(step) {
+        showStep(step);
+    }
+    
+    function selectType(card, type) {
+        document.querySelectorAll('.project-type-card').forEach(el => el.classList.remove('selected'));
+        card.classList.add('selected');
+        document.getElementById('projectType').value = type;
+        document.getElementById('btnStep2Next').disabled = false;
+    }
+    
+    async function runAIMagic() {
+        const desc = document.getElementById('projectDescription').value;
+        if (!desc) {
+            alert("Please describe the project first!");
+            return;
+        }
+        
+        document.getElementById('aiLoading').classList.remove('d-none');
+        
+        try {
+            const response = await fetch('/projects/launchpad/ai-suggest/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    description: desc,
+                    project_type: document.getElementById('projectType').value
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                const data = result.data;
+                document.getElementById('finalName').value = data.suggested_name;
+                document.getElementById('finalDescription').value = data.refined_description;
+                document.getElementById('finalDuration').value = data.duration_days;
+                
+                // Render Phases
+                const phasesList = document.getElementById('suggestedPhases');
+                phasesList.innerHTML = '';
+                data.phases.forEach(phase => {
+                    phasesList.innerHTML += `<li class="list-group-item"><i class="bi bi-check-circle text-success me-2"></i>${phase}</li>`;
+                });
+                
+                // Render Risks
+                const risksList = document.getElementById('suggestedRisks');
+                risksList.innerHTML = '';
+                data.risks.forEach(risk => {
+                    risksList.innerHTML += `<li class="list-group-item small"><i class="bi bi-exclamation-circle text-warning me-2"></i>${risk}</li>`;
+                });
+                
+                nextStep(4);
+            } else {
+                alert('AI Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Failed to connect to AI.');
+        } finally {
+            document.getElementById('aiLoading').classList.add('d-none');
+        }
+    }
+    
+    async function launchProject() {
+        const payload = {
+            name: document.getElementById('finalName').value,
+            description: document.getElementById('finalDescription').value,
+            client_id: document.getElementById('clientSelect').value === 'new' ? null : document.getElementById('clientSelect').value,
+            start_date: document.getElementById('startDate').value,
+            address: document.getElementById('address').value,
+            duration_days: document.getElementById('finalDuration').value
+        };
+        
+        try {
+            const response = await fetch('/projects/launchpad/save/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                window.location.href = result.redirect_url;
+            } else {
+                alert('Error creating project: ' + result.error);
+            }
+        } catch (error) {
+            alert('System error.');
+        }
+    }
+</script>
+{% endblock %}
