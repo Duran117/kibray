@@ -6109,7 +6109,21 @@ def daily_plan_productivity(request, plan_id):
 
 @login_required
 def project_schedule_view(request, project_id: int):
+    """
+    Vista de cronograma del proyecto.
+    Redirige a clientes a la vista hermosa y simplificada.
+    PM/Admin ven la vista completa con todos los detalles.
+    """
     project = get_object_or_404(Project, pk=project_id)
+    profile = getattr(request.user, 'profile', None)
+    
+    # Si es cliente, redirigir a la vista hermosa
+    if profile and profile.role == 'client':
+        from django.urls import reverse
+        from django.shortcuts import redirect
+        return redirect(reverse('client_project_calendar', kwargs={'project_id': project_id}))
+    
+    # Para PM/Admin: Vista completa
     if ScheduleForm:
         form = ScheduleForm(request.POST or None)
         if request.method == "POST" and form.is_valid():
@@ -6119,8 +6133,20 @@ def project_schedule_view(request, project_id: int):
             return redirect("project_schedule", project_id=project.id)
     else:
         form = None
+    
     schedules = Schedule.objects.filter(project=project).order_by("start_datetime") if Schedule else []
-    return render(request, "core/project_schedule.html", {"project": project, "form": form, "schedules": schedules})
+    
+    # También incluir ScheduleItems modernos
+    schedule_items = project.schedule_items.select_related('category').order_by('planned_start')
+    categories = project.schedule_categories.filter(parent__isnull=True).order_by('order')
+    
+    return render(request, "core/project_schedule.html", {
+        "project": project,
+        "form": form,
+        "schedules": schedules,
+        "schedule_items": schedule_items,
+        "categories": categories,
+    })
 
 
 @login_required

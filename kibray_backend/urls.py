@@ -15,6 +15,8 @@ from core import views_wizards
 from core import views_financial as fin_views
 from core import views_notifications as notif_views
 from core import views_planner as planner_views
+from core import views_pm_calendar as pm_calendar_views
+from core import views_client_calendar as client_calendar_views
 from core.api.views import tasks_gantt_alias
 from reports.api.views import ProjectCostSummaryView
 from signatures.api.views import SignatureViewSet
@@ -45,6 +47,13 @@ urlpatterns = [
     path("dashboard/admin/", views.dashboard_admin, name="dashboard_admin"),
     path("dashboard/bi/", views.executive_bi_dashboard, name="dashboard_bi"),
     path("schedule/master/", views.master_schedule_center, name="master_schedule_center"),
+    
+    # PM Calendar - NEW
+    path("pm-calendar/", pm_calendar_views.pm_calendar_view, name="pm_calendar"),
+    path("pm-calendar/block/", pm_calendar_views.pm_block_day, name="pm_block_day"),
+    path("pm-calendar/unblock/<int:blocked_day_id>/", pm_calendar_views.pm_unblock_day, name="pm_unblock_day"),
+    path("pm-calendar/api/data/", pm_calendar_views.pm_calendar_api_data, name="pm_calendar_api_data"),
+    
     path("focus/", views.focus_wizard, name="focus_wizard"),
     path("planner/", planner_views.quick_planner_entry, name="quick_planner"),
     path("planner/full/", planner_views.strategic_ritual_wizard, name="strategic_planner"),
@@ -95,6 +104,18 @@ urlpatterns = [
     ),
     # React Gantt Chart
     path("projects/<int:project_id>/schedule/gantt/", views.schedule_gantt_react_view, name="schedule_gantt_react"),
+    
+    # Client Calendar - NEW
+    path("projects/<int:project_id>/calendar/client/", 
+         client_calendar_views.client_project_calendar_view, 
+         name="client_project_calendar"),
+    path("projects/<int:project_id>/calendar/client/api/", 
+         client_calendar_views.client_calendar_api_data, 
+         name="client_calendar_api_data"),
+    path("schedule/item/<int:item_id>/detail/", 
+         client_calendar_views.client_calendar_milestone_detail, 
+         name="client_calendar_milestone_detail"),
+    
     # Site photos
     path("projects/<int:project_id>/photos/", views.site_photo_list, name="site_photo_list"),
     path("projects/<int:project_id>/photos/new/", views.site_photo_create, name="site_photo_create"),

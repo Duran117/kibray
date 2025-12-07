@@ -1,0 +1,690 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<style>
+    /* Client Calendar Styles - Hermoso y Limpio */
+    .client-calendar-wrapper {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .calendar-header {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    
+    .calendar-header h1 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+    }
+    
+    .project-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #343a40;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Progress Bar */
+    .progress-section {
+        margin-top: 2rem;
+    }
+    
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #343a40;
+    }
+    
+    .progress-bar-custom {
+        height: 30px;
+        background: #e9ecef;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        transition: width 0.5s ease;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Calendar Container */
+    .calendar-main {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .calendar-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .view-toggle-buttons {
+        display: flex;
+        gap: 0.5rem;
+        background: #f8f9fa;
+        padding: 0.5rem;
+        border-radius: 12px;
+    }
+    
+    .view-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+    
+    .view-btn:hover {
+        background: #e9ecef;
+        color: #495057;
+    }
+    
+    .view-btn.active {
+        background: #667eea;
+        color: white;
+    }
+    
+    .legend {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+    }
+    
+    /* FullCalendar Customization */
+    .fc {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    .fc-toolbar-title {
+        color: #667eea !important;
+        font-weight: 700 !important;
+        font-size: 1.5rem !important;
+    }
+    
+    .fc-button {
+        background: #667eea !important;
+        border-color: #667eea !important;
+        text-transform: capitalize !important;
+    }
+    
+    .fc-button:hover {
+        background: #5568d3 !important;
+        border-color: #5568d3 !important;
+    }
+    
+    .fc-button-active {
+        background: #764ba2 !important;
+        border-color: #764ba2 !important;
+    }
+    
+    .fc-event {
+        border-radius: 5px;
+        padding: 2px 5px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    .fc-daygrid-event {
+        white-space: normal !important;
+    }
+    
+    /* Timeline View */
+    .timeline-view {
+        display: none;
+    }
+    
+    .timeline-view.active {
+        display: block;
+    }
+    
+    .phase-section {
+        margin-bottom: 2rem;
+    }
+    
+    .phase-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px 12px 0 0;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .phase-items {
+        background: #f8f9fa;
+        border-radius: 0 0 12px 12px;
+        padding: 1rem;
+    }
+    
+    .timeline-item {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border-left: 4px solid #667eea;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+    
+    .timeline-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .timeline-item.completed {
+        border-left-color: #28a745;
+        opacity: 0.8;
+    }
+    
+    .timeline-item.in-progress {
+        border-left-color: #ffc107;
+    }
+    
+    .timeline-item.blocked {
+        border-left-color: #dc3545;
+    }
+    
+    .item-info {
+        flex: 1;
+    }
+    
+    .item-title {
+        font-weight: 600;
+        color: #343a40;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .item-dates {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .item-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-in-progress {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-not-started {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .status-blocked {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    /* Modal Styles */
+    .milestone-modal .modal-content {
+        border-radius: 20px;
+        border: none;
+    }
+    
+    .milestone-modal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        border: none;
+    }
+    
+    .milestone-modal .modal-body {
+        padding: 2rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .calendar-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .calendar-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .view-toggle-buttons {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="client-calendar-wrapper">
+    <div class="container">
+        <!-- Header with Project Info -->
+        <div class="calendar-header">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1>
+                        <i class="bi bi-calendar-event"></i>
+                        {% trans "Cronograma del Proyecto" %}
+                    </h1>
+                    <p class="project-subtitle">{{ project.name }}</p>
+                </div>
+                <a href="{% url 'client_project_view' project.id %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i>
+                    {% trans "Volver al Proyecto" %}
+                </a>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value">{{ overall_progress }}%</div>
+                    <div class="stat-label">{% trans "Progreso Total" %}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value">{{ completed_items }}</div>
+                    <div class="stat-label">{% trans "Completadas" %}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🚧</div>
+                    <div class="stat-value">{{ in_progress_items }}</div>
+                    <div class="stat-label">{% trans "En Progreso" %}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-value">{{ total_items }}</div>
+                    <div class="stat-label">{% trans "Total de Actividades" %}</div>
+                </div>
+                
+                {% if days_remaining %}
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-value">{{ days_remaining }}</div>
+                    <div class="stat-label">{% trans "Días Restantes" %}</div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-section">
+                <div class="progress-label">
+                    <span>{% trans "Progreso General" %}</span>
+                    <span>{{ overall_progress }}%</span>
+                </div>
+                <div class="progress-bar-custom">
+                    <div class="progress-fill" style="width: {{ overall_progress }}%;">
+                        {{ overall_progress }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Calendar Main -->
+        <div class="calendar-main">
+            <!-- Controls -->
+            <div class="calendar-controls">
+                <div class="view-toggle-buttons">
+                    <button class="view-btn active" data-view="calendar">
+                        <i class="bi bi-calendar3"></i>
+                        {% trans "Vista Calendario" %}
+                    </button>
+                    <button class="view-btn" data-view="timeline">
+                        <i class="bi bi-list-task"></i>
+                        {% trans "Vista Timeline" %}
+                    </button>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #28a745;"></div>
+                        <span>{% trans "Completado" %}</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffc107;"></div>
+                        <span>{% trans "En Progreso" %}</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6c757d;"></div>
+                        <span>{% trans "Pendiente" %}</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #dc3545;"></div>
+                        <span>{% trans "Bloqueado" %}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Calendar View -->
+            <div id="calendar-view" class="calendar-view active">
+                <div id="fullcalendar"></div>
+            </div>
+            
+            <!-- Timeline View -->
+            <div id="timeline-view" class="timeline-view">
+                {% for category in categories %}
+                <div class="phase-section">
+                    <div class="phase-header">
+                        {{ category.name }}
+                    </div>
+                    <div class="phase-items">
+                        {% for item in schedule_items %}
+                            {% if item.category == category %}
+                            <div class="timeline-item {% if item.status == 'DONE' %}completed{% elif item.status == 'IN_PROGRESS' %}in-progress{% elif item.status == 'BLOCKED' %}blocked{% endif %}"
+                                 data-item-id="{{ item.id }}">
+                                <div class="item-info">
+                                    <div class="item-title">
+                                        {% if item.is_milestone %}🎯{% else %}📋{% endif %}
+                                        {{ item.title }}
+                                    </div>
+                                    <div class="item-dates">
+                                        <i class="bi bi-calendar-range"></i>
+                                        {{ item.planned_start|date:"M d, Y" }} - {{ item.planned_end|date:"M d, Y" }}
+                                    </div>
+                                </div>
+                                <div class="item-status status-{{ item.status|lower|cut:' '|cut:'_' }}">
+                                    {{ item.get_status_display }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Milestone Detail Modal -->
+<div class="modal fade milestone-modal" id="milestoneModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="milestoneModalTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="milestoneModalBody">
+                <!-- Content loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View Toggle
+    const viewButtons = document.querySelectorAll('.view-btn');
+    const calendarView = document.getElementById('calendar-view');
+    const timelineView = document.getElementById('timeline-view');
+    
+    viewButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            
+            // Update active state
+            viewButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Toggle views
+            if (view === 'calendar') {
+                calendarView.classList.add('active');
+                timelineView.classList.remove('active');
+            } else {
+                calendarView.classList.remove('active');
+                timelineView.classList.add('active');
+            }
+        });
+    });
+    
+    // Initialize FullCalendar
+    const calendarEl = document.getElementById('fullcalendar');
+    
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: '{{ LANGUAGE_CODE }}',
+        height: 'auto',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listMonth'
+        },
+        buttonText: {
+            today: '{% trans "Hoy" %}',
+            month: '{% trans "Mes" %}',
+            week: '{% trans "Semana" %}',
+            list: '{% trans "Lista" %}'
+        },
+        events: function(info, successCallback, failureCallback) {
+            // Load events from API
+            fetch('{% url "client_calendar_api_data" project.id %}')
+                .then(response => response.json())
+                .then(data => {
+                    successCallback(data.events);
+                })
+                .catch(error => {
+                    console.error('Error loading calendar events:', error);
+                    failureCallback(error);
+                });
+        },
+        eventClick: function(info) {
+            // Show milestone detail modal
+            const itemId = info.event.id;
+            loadMilestoneDetail(itemId);
+        },
+        eventMouseEnter: function(info) {
+            // Show tooltip on hover
+            const props = info.event.extendedProps;
+            info.el.title = `${props.description}\n${props.status} - ${props.progress}%`;
+        }
+    });
+    
+    calendar.render();
+    
+    // Load milestone detail via AJAX
+    function loadMilestoneDetail(itemId) {
+        fetch(`/schedule/item/${itemId}/detail/`)
+            .then(response => response.json())
+            .then(data => {
+                // Populate modal
+                document.getElementById('milestoneModalTitle').textContent = 
+                    `${data.is_milestone ? '🎯' : '📋'} ${data.title}`;
+                
+                let html = `
+                    <div class="mb-3">
+                        <h6>{% trans "Descripción" %}</h6>
+                        <p>${data.description || '{% trans "Sin descripción" %}'}</p>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Estado" %}</h6>
+                            <span class="badge bg-${getStatusColor(data.status)}">${data.status}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Progreso" %}</h6>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: ${data.progress}%">${data.progress}%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Inicio Planeado" %}</h6>
+                            <p>${formatDate(data.planned_start)}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Fin Planeado" %}</h6>
+                            <p>${formatDate(data.planned_end)}</p>
+                        </div>
+                    </div>
+                `;
+                
+                if (data.tasks && data.tasks.length > 0) {
+                    html += `
+                        <div class="mb-3">
+                            <h6>{% trans "Tareas Asociadas" %} (${data.tasks_count})</h6>
+                            <ul class="list-group">
+                                ${data.tasks.map(task => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${task.title}
+                                        <span class="badge bg-secondary">${task.status}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('milestoneModalBody').innerHTML = html;
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('milestoneModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error loading milestone detail:', error);
+                alert('{% trans "Error al cargar los detalles" %}');
+            });
+    }
+    
+    // Helper functions
+    function getStatusColor(status) {
+        const colors = {
+            'Completado': 'success',
+            'En Progreso': 'warning',
+            'No Iniciado': 'secondary',
+            'Bloqueado': 'danger'
+        };
+        return colors[status] || 'secondary';
+    }
+    
+    function formatDate(dateString) {
+        if (!dateString) return '{% trans "Sin fecha" %}';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('{{ LANGUAGE_CODE }}', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+    
+    // Timeline item click handler
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    timelineItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            loadMilestoneDetail(itemId);
+        });
+    });
+});
+</script>
+{% endblock %}

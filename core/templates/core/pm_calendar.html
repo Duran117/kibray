@@ -1,0 +1,582 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<style>
+    .pm-calendar-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .pm-header {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .pm-header h1 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .pm-header .subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+    
+    .workload-indicator {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .workload-bar {
+        flex: 1;
+        height: 30px;
+        background: #e9ecef;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .workload-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745 0%, #ffc107 50%, #dc3545 100%);
+        border-radius: 15px;
+        transition: width 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .sidebar {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        height: fit-content;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    .sidebar h4 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .project-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #667eea;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    
+    .project-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .project-card.pipeline {
+        border-left-color: #6c757d;
+        opacity: 0.8;
+    }
+    
+    .project-name {
+        font-weight: 600;
+        color: #343a40;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .progress-bar-wrapper {
+        height: 8px;
+        background: #dee2e6;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+    
+    .calendar-container {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .fc {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .fc-toolbar-title {
+        color: #667eea !important;
+        font-weight: 700;
+    }
+    
+    .fc-button {
+        background: #667eea !important;
+        border-color: #667eea !important;
+    }
+    
+    .fc-button:hover {
+        background: #764ba2 !important;
+        border-color: #764ba2 !important;
+    }
+    
+    .deadlines-section {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .deadline-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    
+    .deadline-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .deadline-icon {
+        font-size: 2rem;
+        min-width: 40px;
+        text-align: center;
+    }
+    
+    .deadline-info {
+        flex: 1;
+    }
+    
+    .deadline-title {
+        font-weight: 600;
+        color: #343a40;
+        margin-bottom: 0.25rem;
+    }
+    
+    .deadline-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .deadline-date {
+        min-width: 120px;
+        text-align: right;
+    }
+    
+    .days-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .block-day-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .block-day-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .stat-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+        .pm-calendar-container {
+            padding: 1rem 0;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pm-calendar-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="pm-header">
+            <h1>👤 {{ title }}</h1>
+            <p class="subtitle">Bienvenido, {{ user.get_full_name|default:user.username }}</p>
+            
+            <!-- Workload Indicator -->
+            <div class="workload-indicator">
+                <span style="font-weight: 600; color: #343a40;">Carga de Trabajo:</span>
+                <div class="workload-bar">
+                    <div class="workload-fill bg-{{ workload_color }}" style="width: {{ workload_score }}%;">
+                        {{ workload_score }}% - {{ workload_level }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ active_count }}</div>
+                    <div class="stat-label">Proyectos Activos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ urgent_task_count }}</div>
+                    <div class="stat-label">Tareas Urgentes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ upcoming_milestone_count }}</div>
+                    <div class="stat-label">Milestones Próximos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ blocked_days.count }}</div>
+                    <div class="stat-label">Días Bloqueados</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Sidebar: Projects -->
+            <div class="col-lg-3 mb-4">
+                <div class="sidebar">
+                    <h4>📁 Proyectos Activos</h4>
+                    
+                    {% if assigned_projects %}
+                        {% for project in assigned_projects %}
+                        <div class="project-card" onclick="window.location.href='{% url 'project_overview' project.id %}'">
+                            <div class="project-name">
+                                <span>{{ project.name }}</span>
+                                <span class="badge bg-{{ project.status_color }}">{{ project.progress_pct }}%</span>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6c757d;">
+                                {{ project.client|default:"Sin cliente" }}
+                            </div>
+                            <div class="progress-bar-wrapper">
+                                <div class="progress-bar-fill bg-{{ project.status_color }}" style="width: {{ project.progress_pct }}%;"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📂</div>
+                            <p>No hay proyectos activos asignados</p>
+                        </div>
+                    {% endif %}
+                    
+                    <hr class="my-4">
+                    
+                    <h4>🚀 Pipeline</h4>
+                    
+                    {% if pipeline_projects %}
+                        {% for project in pipeline_projects %}
+                        <div class="project-card pipeline" onclick="window.location.href='{% url 'project_overview' project.id %}'">
+                            <div class="project-name">
+                                <span>{{ project.name }}</span>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6c757d;">
+                                Inicia: {{ project.start_date|date:"M d, Y" }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🎯</div>
+                            <p>No hay proyectos en pipeline</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-4">
+                        <button class="block-day-btn" data-bs-toggle="modal" data-bs-target="#blockDayModal">
+                            ⛔ Bloquear Día
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content: Calendar -->
+            <div class="col-lg-6 mb-4">
+                <div class="calendar-container">
+                    <h4 style="color: #667eea; font-weight: 600; margin-bottom: 1.5rem;">📅 Mi Calendario</h4>
+                    <div id="pmCalendar"></div>
+                </div>
+            </div>
+            
+            <!-- Right Sidebar: Deadlines -->
+            <div class="col-lg-3 mb-4">
+                <div class="deadlines-section">
+                    <h4 style="color: #667eea; font-weight: 600; margin-bottom: 1rem;">📌 Próximas Deadlines</h4>
+                    
+                    {% if upcoming_deadlines %}
+                        {% for deadline in upcoming_deadlines %}
+                        <div class="deadline-item" onclick="window.location.href='{% url 'project_overview' deadline.project_id %}'">
+                            <div class="deadline-icon">{{ deadline.icon }}</div>
+                            <div class="deadline-info">
+                                <div class="deadline-title">{{ deadline.title }}</div>
+                                <div class="deadline-meta">{{ deadline.project }}</div>
+                            </div>
+                            <div class="deadline-date">
+                                <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 0.25rem;">
+                                    {{ deadline.date|date:"M d" }}
+                                </div>
+                                <span class="days-badge bg-{{ deadline.urgency }} text-white">
+                                    {% if deadline.days_until == 0 %}
+                                        Hoy
+                                    {% elif deadline.days_until == 1 %}
+                                        Mañana
+                                    {% else %}
+                                        {{ deadline.days_until }}d
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✅</div>
+                            <p>No hay deadlines próximos</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Block Day Modal -->
+<div class="modal fade" id="blockDayModal" tabindex="-1" aria-labelledby="blockDayModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="blockDayModalLabel">⛔ Bloquear Día</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="blockDayForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="blockDate" class="form-label">Fecha</label>
+                        <input type="date" class="form-control" id="blockDate" name="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="blockReason" class="form-label">Razón</label>
+                        <select class="form-select" id="blockReason" name="reason" required>
+                            <option value="vacation">Vacaciones</option>
+                            <option value="personal">Personal</option>
+                            <option value="sick">Enfermedad</option>
+                            <option value="training">Capacitación</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="blockNotes" class="form-label">Notas (opcional)</label>
+                        <textarea class="form-control" id="blockNotes" name="notes" rows="2"></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="isFullDay" name="is_full_day" checked>
+                        <label class="form-check-label" for="isFullDay">
+                            Día completo
+                        </label>
+                    </div>
+                    <div id="partialTimeFields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="startTime" class="form-label">Hora inicio</label>
+                                <input type="time" class="form-control" id="startTime" name="start_time">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="endTime" class="form-label">Hora fin</label>
+                                <input type="time" class="form-control" id="endTime" name="end_time">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveBlockedDay">Bloquear</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize FullCalendar
+    const calendarEl = document.getElementById('pmCalendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        events: '{% url "pm_calendar_api_data" %}',
+        eventClick: function(info) {
+            const props = info.event.extendedProps;
+            if (props.type === 'blocked') {
+                if (confirm('¿Desbloquear este día?')) {
+                    unblockDay(props.blocked_day_id);
+                }
+            } else if (props.project_id) {
+                window.location.href = `/projects/${props.project_id}/overview/`;
+            }
+        },
+        eventDidMount: function(info) {
+            // Add tooltips
+            info.el.title = info.event.title;
+        },
+        height: 'auto',
+        locale: 'es'
+    });
+    
+    calendar.render();
+    
+    // Toggle partial time fields
+    document.getElementById('isFullDay').addEventListener('change', function() {
+        document.getElementById('partialTimeFields').style.display = 
+            this.checked ? 'none' : 'block';
+    });
+    
+    // Block day submission
+    document.getElementById('saveBlockedDay').addEventListener('click', function() {
+        const form = document.getElementById('blockDayForm');
+        const formData = new FormData(form);
+        
+        fetch('{% url "pm_block_day" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('blockDayModal')).hide();
+                
+                // Refresh calendar
+                calendar.refetchEvents();
+                
+                // Show success message
+                alert(data.message);
+                
+                // Reload page to update stats
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al bloquear el día');
+        });
+    });
+    
+    // Unblock day function
+    window.unblockDay = function(blockedDayId) {
+        fetch(`/pm-calendar/unblock/${blockedDayId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                calendar.refetchEvents();
+                alert(data.message);
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al desbloquear el día');
+        });
+    };
+});
+</script>
+{% endblock %}
