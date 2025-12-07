@@ -3,9 +3,12 @@ Utilities for Chat System - @mentions parsing and entity linking
 """
 
 import re
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
+
+if TYPE_CHECKING:
+    from core.models import ChatMention
 
 User = get_user_model()
 

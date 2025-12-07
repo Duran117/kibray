@@ -10,12 +10,13 @@ from io import BytesIO
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
+from django.conf import settings
 from django.http import (
     Http404,
     HttpResponse,
@@ -74,6 +75,7 @@ from core.models import (
     ChangeOrderPhoto,
     ChatChannel,
     ChatMessage,
+    ColorApproval,
     ColorSample,
     Comment,
     CostCode,
@@ -94,6 +96,7 @@ from core.models import (
     PayrollPayment,
     PayrollPeriod,
     PayrollRecord,
+    Profile,
     Project,
     ProjectInventory,
     Risk,

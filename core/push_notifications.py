@@ -522,11 +522,3 @@ def send_pwa_push(user, title: str, body: str, data: Optional[dict] = None, url:
     
     return results
 
-        data={
-            'type': 'chat_message',
-            'channel': channel_name,
-            'sender': sender,
-        },
-        category='chat',
-        priority='normal'
-    )
