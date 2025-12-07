@@ -7413,4 +7413,15 @@ from .push_notifications import PushSubscription
 # Executive Focus Workflow (Module 25)
 from .focus_workflow import DailyFocusSession, FocusTask
 
-__all__ = ['PushSubscription', 'DailyFocusSession', 'FocusTask']
+# Strategic Planning (Module 25 Part B)
+from .strategic_planning import (
+    LifeVision, ExecutiveHabit, DailyRitualSession, 
+    PowerAction, HabitCompletion
+)
+
+__all__ = [
+    'PushSubscription', 
+    'DailyFocusSession', 'FocusTask',
+    'LifeVision', 'ExecutiveHabit', 'DailyRitualSession', 
+    'PowerAction', 'HabitCompletion'
+]

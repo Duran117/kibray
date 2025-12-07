@@ -16,7 +16,7 @@ import uuid
 
 from .models import (
     LifeVision, ExecutiveHabit, DailyRitualSession, 
-    PowerAction, HabitCompletion
+    PowerAction, HabitCompletion, DailyFocusSession, FocusTask
 )
 from django.contrib.auth import get_user_model
 
@@ -265,48 +265,90 @@ def today_ritual_summary(request):
     """
     API endpoint: Get summary of today's ritual for dashboard widget.
     Returns the Frog and its micro-steps progress.
+    Supports both DailyRitualSession (Strategic Planner) and DailyFocusSession (Focus Wizard).
     """
     today = timezone.now().date()
+    
+    # 1. Try Strategic Ritual (DailyRitualSession)
     ritual = DailyRitualSession.objects.filter(
         user=request.user,
         date=today
     ).first()
     
-    if not ritual:
-        return JsonResponse({
-            'has_ritual': False,
-            'message': 'No ritual completed today'
-        })
-    
-    frog = ritual.frog_action
-    
-    if not frog:
+    if ritual:
+        frog = ritual.frog_action
+        if not frog:
+            return JsonResponse({
+                'has_ritual': True,
+                'has_frog': False,
+                'message': 'Ritual completed but no Frog selected'
+            })
+        
         return JsonResponse({
             'has_ritual': True,
-            'has_frog': False,
-            'message': 'Ritual completed but no Frog selected'
+            'has_frog': True,
+            'source': 'strategic_planner',
+            'frog': {
+                'id': frog.id,
+                'title': frog.title,
+                'status': frog.status,
+                'is_completed': frog.status == 'DONE',
+                'micro_steps': frog.micro_steps,
+                'micro_steps_progress': frog.micro_steps_progress,
+                'scheduled_start': frog.scheduled_start.isoformat() if frog.scheduled_start else None,
+                'scheduled_end': frog.scheduled_end.isoformat() if frog.scheduled_end else None,
+                'duration_minutes': frog.duration_minutes
+            },
+            'ritual': {
+                'energy_level': ritual.energy_level,
+                'total_actions': ritual.total_power_actions,
+                'completed_actions': ritual.completed_power_actions,
+                'high_impact_actions': ritual.high_impact_actions
+            }
         })
-    
+
+    # 2. Try Focus Wizard (DailyFocusSession)
+    focus_session = DailyFocusSession.objects.filter(
+        user=request.user,
+        date=today
+    ).first()
+
+    if focus_session:
+        frog_task = focus_session.frog_task
+        if not frog_task:
+            return JsonResponse({
+                'has_ritual': True,
+                'has_frog': False,
+                'message': 'Focus session completed but no Frog selected'
+            })
+        
+        # Map FocusTask to same structure as PowerAction for frontend compatibility
+        return JsonResponse({
+            'has_ritual': True,
+            'has_frog': True,
+            'source': 'focus_wizard',
+            'frog': {
+                'id': frog_task.id,
+                'title': frog_task.title,
+                'status': 'DONE' if frog_task.is_completed else 'SCHEDULED',
+                'is_completed': frog_task.is_completed,
+                'micro_steps': frog_task.checklist if hasattr(frog_task, 'checklist') else [],
+                'micro_steps_progress': 100 if frog_task.is_completed else 0, # FocusTask might not have progress calc
+                'scheduled_start': frog_task.scheduled_start.isoformat() if frog_task.scheduled_start else None,
+                'scheduled_end': frog_task.scheduled_end.isoformat() if frog_task.scheduled_end else None,
+                'duration_minutes': 60 # Default or calc
+            },
+            'ritual': {
+                'energy_level': focus_session.energy_level,
+                'total_actions': focus_session.total_tasks,
+                'completed_actions': focus_session.completed_tasks,
+                'high_impact_actions': focus_session.high_impact_tasks
+            }
+        })
+
     return JsonResponse({
-        'has_ritual': True,
-        'has_frog': True,
-        'frog': {
-            'id': frog.id,
-            'title': frog.title,
-            'status': frog.status,
-            'is_completed': frog.status == 'DONE',
-            'micro_steps': frog.micro_steps,
-            'micro_steps_progress': frog.micro_steps_progress,
-            'scheduled_start': frog.scheduled_start.isoformat() if frog.scheduled_start else None,
-            'scheduled_end': frog.scheduled_end.isoformat() if frog.scheduled_end else None,
-            'duration_minutes': frog.duration_minutes
-        },
-        'ritual': {
-            'energy_level': ritual.energy_level,
-            'total_actions': ritual.total_power_actions,
-            'completed_actions': ritual.completed_power_actions,
-            'high_impact_actions': ritual.high_impact_actions
-        }
+        'has_ritual': False,
+        'message': 'No ritual completed today'
     })
 
 
@@ -314,30 +356,40 @@ def today_ritual_summary(request):
 @require_http_methods(["POST"])
 def toggle_power_action_status(request, action_id):
     """
-    API endpoint: Toggle PowerAction status (DRAFT -> SCHEDULED -> DONE).
+    API endpoint: Toggle PowerAction OR FocusTask status.
     Used in dashboard widget to mark Frog as complete.
     """
-    action = get_object_or_404(
-        PowerAction, 
-        id=action_id, 
-        session__user=request.user
-    )
-    
-    # Toggle status
-    if action.status == 'DRAFT':
-        action.status = 'SCHEDULED'
-    elif action.status == 'SCHEDULED':
-        action.status = 'DONE'
-    elif action.status == 'DONE':
-        action.status = 'SCHEDULED'
-    
-    action.save()
-    
-    return JsonResponse({
-        'success': True,
-        'new_status': action.status,
-        'is_completed': action.status == 'DONE'
-    })
+    # 1. Try PowerAction
+    try:
+        action = PowerAction.objects.get(id=action_id, session__user=request.user)
+        # Toggle status
+        if action.status == 'DRAFT':
+            action.status = 'SCHEDULED'
+        elif action.status == 'SCHEDULED':
+            action.status = 'DONE'
+        elif action.status == 'DONE':
+            action.status = 'SCHEDULED'
+        action.save()
+        return JsonResponse({
+            'success': True,
+            'new_status': action.status,
+            'is_completed': action.status == 'DONE'
+        })
+    except PowerAction.DoesNotExist:
+        pass
+
+    # 2. Try FocusTask
+    try:
+        task = FocusTask.objects.get(id=action_id, session__user=request.user)
+        task.is_completed = not task.is_completed
+        task.save()
+        return JsonResponse({
+            'success': True,
+            'new_status': 'DONE' if task.is_completed else 'SCHEDULED',
+            'is_completed': task.is_completed
+        })
+    except FocusTask.DoesNotExist:
+        return JsonResponse({'error': 'Action not found'}, status=404)
 
 
 @login_required
@@ -347,27 +399,43 @@ def update_micro_step(request, action_id, step_index):
     API endpoint: Toggle a specific micro-step completion.
     Used in dashboard widget to check off micro-steps.
     """
-    action = get_object_or_404(
-        PowerAction, 
-        id=action_id, 
-        session__user=request.user
-    )
-    
-    if step_index < 0 or step_index >= len(action.micro_steps):
+    # 1. Try PowerAction
+    try:
+        action = PowerAction.objects.get(id=action_id, session__user=request.user)
+        if step_index < 0 or step_index >= len(action.micro_steps):
+            return JsonResponse({'success': False, 'error': 'Invalid step index'}, status=400)
+        
+        action.micro_steps[step_index]['done'] = not action.micro_steps[step_index].get('done', False)
+        action.save()
         return JsonResponse({
-            'success': False,
-            'error': gettext('Invalid step index')
-        }, status=400)
-    
-    # Toggle the 'done' status
-    action.micro_steps[step_index]['done'] = not action.micro_steps[step_index].get('done', False)
-    action.save()
-    
-    return JsonResponse({
-        'success': True,
-        'step_done': action.micro_steps[step_index]['done'],
-        'progress': action.micro_steps_progress
-    })
+            'success': True,
+            'step_done': action.micro_steps[step_index]['done'],
+            'progress': action.micro_steps_progress
+        })
+    except PowerAction.DoesNotExist:
+        pass
+
+    # 2. Try FocusTask
+    try:
+        task = FocusTask.objects.get(id=action_id, session__user=request.user)
+        if not task.checklist or step_index < 0 or step_index >= len(task.checklist):
+            return JsonResponse({'success': False, 'error': 'Invalid step index'}, status=400)
+        
+        task.checklist[step_index]['done'] = not task.checklist[step_index].get('done', False)
+        task.save()
+        
+        # Calculate progress manually for FocusTask
+        total = len(task.checklist)
+        done = sum(1 for item in task.checklist if item.get('done'))
+        progress = int((done / total) * 100) if total > 0 else 0
+
+        return JsonResponse({
+            'success': True,
+            'step_done': task.checklist[step_index]['done'],
+            'progress': progress
+        })
+    except FocusTask.DoesNotExist:
+        return JsonResponse({'error': 'Action not found'}, status=404)
 
 
 @login_required
