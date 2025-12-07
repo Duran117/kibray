@@ -64,7 +64,7 @@
         </a>
 
         <!-- Strategic Planner -->
-        <a href="{% url 'strategic_planner' %}" class="group w-full flex flex-col items-center justify-center gap-2 py-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
+        <a href="{% url 'quick_planner' %}" class="group w-full flex flex-col items-center justify-center gap-2 py-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
             <i class="bi bi-compass text-2xl text-amber-600 group-hover:text-amber-700"></i>
             <span class="text-sm font-medium text-slate-800">{% trans "Strategic Planner" %}</span>
         </a>
@@ -158,7 +158,7 @@
                 <h3 class="text-lg font-semibold text-gray-900">{% trans "Strategic Focus Today" %}</h3>
             </div>
             <div class="flex items-center gap-2">
-                <a href="{% url 'strategic_planner' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium transition">
+                <a href="{% url 'quick_planner' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium transition">
                     <i class="bi bi-compass"></i>{% trans "Planner" %}
                 </a>
                 <a href="{% url 'focus_wizard' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-medium text-slate-800 transition">
@@ -470,7 +470,7 @@ async function loadStrategicFocus() {
                     <h5 class="mt-2 font-semibold text-slate-800">{% trans "No plan for today yet" %}</h5>
                     <p class="text-slate-500 text-sm">{% trans "Kickstart your day with the Strategic Planner or Focus Wizard" %}</p>
                     <div class="flex flex-col sm:flex-row gap-2 justify-center mt-3">
-                        <a href="{% url 'strategic_planner' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition">
+                        <a href="{% url 'quick_planner' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition">
                             <i class="bi bi-compass"></i>{% trans "Strategic Planner" %}
                         </a>
                         <a href="{% url 'focus_wizard' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm font-medium transition">
@@ -487,7 +487,7 @@ async function loadStrategicFocus() {
                     <i class="bi bi-check-circle text-4xl text-green-500"></i>
                     <h5 class="mt-2 font-semibold text-slate-800">{% trans "Ritual completed!" %}</h5>
                     <p class="text-slate-500 text-sm">{% trans "But no Frog was selected. Consider reviewing your high-impact actions." %}</p>
-                    <a href="{% url 'strategic_planner' %}" class="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium transition">
+                    <a href="{% url 'quick_planner' %}" class="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium transition">
                         <i class="bi bi-pencil-fill"></i>{% trans "Review Ritual" %}
                     </a>
                 </div>`;

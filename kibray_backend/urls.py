@@ -14,6 +14,7 @@ from core import views_sop
 from core import views_wizards
 from core import views_financial as fin_views
 from core import views_notifications as notif_views
+from core import views_planner as planner_views
 from core.api.views import tasks_gantt_alias
 from reports.api.views import ProjectCostSummaryView
 from signatures.api.views import SignatureViewSet
@@ -45,7 +46,8 @@ urlpatterns = [
     path("dashboard/bi/", views.executive_bi_dashboard, name="dashboard_bi"),
     path("schedule/master/", views.master_schedule_center, name="master_schedule_center"),
     path("focus/", views.focus_wizard, name="focus_wizard"),
-    path("planner/", lambda req: __import__('core.views_planner', fromlist=['strategic_ritual_wizard']).strategic_ritual_wizard(req), name="strategic_planner"),
+    path("planner/", planner_views.quick_planner_entry, name="quick_planner"),
+    path("planner/full/", planner_views.strategic_ritual_wizard, name="strategic_planner"),
     path("dashboard/employee/", views.dashboard_employee, name="dashboard_employee"),
     path("dashboard/pm/", views.dashboard_pm, name="dashboard_pm"),
     path("dashboard/pm/select/<str:action>/", views.pm_select_project, name="pm_select_project"),
@@ -414,6 +416,23 @@ urlpatterns = [
     path("admin-panel/", include("core.urls_admin")),
     # Explicit Gantt mapping BEFORE including API to ensure resolution
     path("api/v1/tasks/gantt/", tasks_gantt_alias, name="api-tasks-gantt"),
+    
+    # Strategic Planner API Endpoints
+    path("api/v1/planner/habits/active/", planner_views.get_active_habits, name="planner-active-habits"),
+    path("api/v1/planner/visions/random/", planner_views.get_random_vision, name="planner-random-vision"),
+    path("api/v1/planner/ritual/complete/", planner_views.complete_ritual, name="planner-complete-ritual"),
+    path("api/v1/planner/ritual/today/", planner_views.today_ritual_summary, name="planner-today-ritual"),
+    path("api/v1/planner/action/<int:action_id>/toggle/", planner_views.toggle_power_action_status, name="planner-toggle-action"),
+    path("api/v1/planner/action/<int:action_id>/step/<int:step_index>/", planner_views.update_micro_step, name="planner-update-step"),
+    path("api/v1/planner/stats/", planner_views.planner_stats, name="planner-stats"),
+    path("api/v1/planner/feed/<str:user_token>.ics", planner_views.planner_calendar_feed, name="planner-calendar-feed"),
+    
+    # AI-Assisted Planning Endpoints
+    path("api/v1/planner/ai/process-dump/", planner_views.ai_process_brain_dump, name="planner-ai-process-dump"),
+    path("api/v1/planner/ai/suggest-frog/", planner_views.ai_suggest_frog, name="planner-ai-suggest-frog"),
+    path("api/v1/planner/ai/generate-steps/", planner_views.ai_generate_micro_steps, name="planner-ai-generate-steps"),
+    path("api/v1/planner/ai/suggest-time/", planner_views.ai_suggest_time_blocks, name="planner-ai-suggest-time"),
+    
     # REST API v1 (mobile, integrations)
     path("api/v1/", include("core.api.urls")),
     path("api/v1/", include(signatures_router.urls)),

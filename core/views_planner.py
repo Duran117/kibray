@@ -13,14 +13,30 @@ from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from icalendar import Calendar, Event as ICalEvent
 import uuid
+import json
 
 from .models import (
     LifeVision, ExecutiveHabit, DailyRitualSession, 
     PowerAction, HabitCompletion, DailyFocusSession, FocusTask
 )
 from django.contrib.auth import get_user_model
+from .services.planner_ai import PlannerAI
 
 User = get_user_model()
+
+
+@login_required
+def quick_planner_entry(request):
+    """
+    Entry point for strategic planning - shows mode selector.
+    User chooses between Quick Mode (AI-assisted) or Full Ritual.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({
+            'error': gettext('This feature is only available for Admin/PM users.')
+        }, status=403)
+    
+    return render(request, 'core/quick_planner.html')
 
 
 @login_required
@@ -154,8 +170,7 @@ def complete_ritual(request):
                 scheduled_start=scheduled_start,
                 scheduled_end=scheduled_end,
                 status='SCHEDULED' if scheduled_start else 'DRAFT',
-                order=idx,
-                ical_uid=uuid.uuid4()
+                order=idx
             )
         
         # Create habit completions
@@ -508,3 +523,183 @@ def planner_stats(request):
         'visions': list(visions),
         'habits': habit_stats
     })
+
+
+# ============================================================================
+# AI-ASSISTED PLANNING ENDPOINTS
+# ============================================================================
+
+@login_required
+@require_http_methods(["POST"])
+def ai_process_brain_dump(request):
+    """
+    AI endpoint: Process brain dump text and categorize tasks.
+    
+    POST /api/v1/planner/ai/process-dump/
+    Body: {
+        "text": "Brain dump text...",
+        "energy_level": 7
+    }
+    
+    Returns: {
+        "high_impact": [...],
+        "noise": [...],
+        "summary": "..."
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        text = data.get('text', '')
+        
+        if not text or not text.strip():
+            return JsonResponse({
+                'error': 'Brain dump text is required'
+            }, status=400)
+        
+        # Get user context
+        visions = list(
+            LifeVision.objects.filter(user=request.user)
+            .values_list('title', flat=True)[:5]
+        )
+        
+        user_context = {
+            'visions': visions,
+            'energy_level': data.get('energy_level', 5)
+        }
+        
+        # Process with AI
+        result = PlannerAI.process_brain_dump(text, user_context)
+        
+        return JsonResponse(result)
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error processing brain dump: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def ai_suggest_frog(request):
+    """
+    AI endpoint: Suggest which task should be "The Frog".
+    
+    POST /api/v1/planner/ai/suggest-frog/
+    Body: {
+        "high_impact_items": [{text: "...", reason: "..."}],
+        "energy_level": 7
+    }
+    
+    Returns: {
+        "recommended_index": 0,
+        "reasoning": "...",
+        "alternative": "..."
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        items = data.get('high_impact_items', [])
+        
+        if not items:
+            return JsonResponse({
+                'error': 'No high-impact items provided'
+            }, status=400)
+        
+        user_context = {
+            'energy_level': data.get('energy_level', 5)
+        }
+        
+        # Get AI suggestion
+        result = PlannerAI.suggest_frog(items, user_context)
+        
+        return JsonResponse(result)
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error suggesting frog: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def ai_generate_micro_steps(request):
+    """
+    AI endpoint: Generate micro-steps for a task.
+    
+    POST /api/v1/planner/ai/generate-steps/
+    Body: {
+        "frog_title": "Task title",
+        "context": "Optional context"
+    }
+    
+    Returns: {
+        "micro_steps": [
+            {text: "Step 1", done: false},
+            ...
+        ]
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        frog_title = data.get('frog_title', '')
+        
+        if not frog_title or not frog_title.strip():
+            return JsonResponse({
+                'error': 'Frog title is required'
+            }, status=400)
+        
+        context = data.get('context', '')
+        
+        # Generate steps with AI
+        micro_steps = PlannerAI.generate_micro_steps(frog_title, context)
+        
+        return JsonResponse({
+            'micro_steps': micro_steps
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error generating micro-steps: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def ai_suggest_time_blocks(request):
+    """
+    AI endpoint: Suggest optimal time blocks.
+    
+    POST /api/v1/planner/ai/suggest-time/
+    Body: {
+        "frog_title": "Task title",
+        "energy_level": 7,
+        "micro_steps": [...]
+    }
+    
+    Returns: {
+        "suggested_start": "09:00",
+        "suggested_end": "11:00",
+        "reasoning": "..."
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        frog_title = data.get('frog_title', '')
+        energy_level = data.get('energy_level', 5)
+        micro_steps = data.get('micro_steps', [])
+        
+        if not frog_title:
+            return JsonResponse({
+                'error': 'Frog title is required'
+            }, status=400)
+        
+        # Get AI suggestion
+        result = PlannerAI.suggest_time_blocks(frog_title, energy_level, micro_steps)
+        
+        return JsonResponse(result)
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error suggesting time blocks: {str(e)}'
+        }, status=500)
+

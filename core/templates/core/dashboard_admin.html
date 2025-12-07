@@ -282,7 +282,7 @@
     <div class="card-body p-3">
       <div class="row g-2">
         <div class="col-6 col-md-3">
-          <a href="{% url 'strategic_planner' %}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center p-3 small">
+          <a href="{% url 'quick_planner' %}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center p-3 small">
             <i class="bi bi-compass-fill fs-4 mb-2"></i>
             <span>{% trans "Strategic Planner" %}</span>
           </a>
@@ -520,7 +520,7 @@
         </div>
         <!-- Strategic Planner -->
         <div class="col-6 col-md-3">
-          <a href="{% url 'strategic_planner' %}" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+          <a href="{% url 'quick_planner' %}" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
             <i class="bi bi-compass fs-3 d-none d-md-block"></i>
             <i class="bi bi-compass fs-5 d-md-none"></i>
             <span class="small text-nowrap">{% trans "Strategic Planner" %}</span>
@@ -544,7 +544,7 @@
         </div>
         <!-- Daily Plans (fallback to planner if route not available) -->
         <div class="col-6 col-md-3">
-          <a href="{% url 'strategic_planner' %}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+          <a href="{% url 'quick_planner' %}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
             <i class="bi bi-calendar-check fs-3 d-none d-md-block"></i>
             <i class="bi bi-calendar-check fs-5 d-md-none"></i>
             <span class="small text-nowrap">{% trans "Daily Plans" %}</span>
@@ -1031,7 +1031,7 @@ async function loadStrategicFocus() {
           <h5 class="mb-2">{% trans "No plan for today yet" %}</h5>
           <p class="text-muted">{% trans "Kickstart your day with the Strategic Planner or Focus Wizard" %}</p>
           <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-2">
-            <a href="{% url 'strategic_planner' %}" class="btn btn-warning">
+            <a href="{% url 'quick_planner' %}" class="btn btn-warning">
               <i class="bi bi-compass me-2"></i>
               {% trans "Strategic Planner" %}
             </a>
@@ -1050,7 +1050,7 @@ async function loadStrategicFocus() {
           <i class="bi bi-check-circle display-1 text-success mb-3"></i>
           <h5>{% trans "Ritual completed!" %}</h5>
           <p class="text-muted">{% trans "But no Frog was selected. Consider reviewing your high-impact actions." %}</p>
-          <a href="{% url 'strategic_planner' %}" class="btn btn-outline-warning">
+          <a href="{% url 'quick_planner' %}" class="btn btn-outline-warning">
             <i class="bi bi-pencil-fill me-2"></i>
             {% trans "Review Ritual" %}
           </a>
