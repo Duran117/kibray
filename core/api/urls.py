@@ -8,6 +8,7 @@ from drf_spectacular.views import (
 )
 
 from .dashboard_extra import ClientDashboardView, ProjectDashboardView
+from . import sop_api
 
 # Health check endpoints
 from core.views_health import (
@@ -213,6 +214,7 @@ urlpatterns = [
     ),
     # API routes
     path("tasks/bulk-update/", BulkTaskUpdateAPIView.as_view(), name="tasks-bulk-update"),
+    # Include router URLs
     path("", include(router.urls)),
     # Ensure gantt endpoint resolves under router and direct mapping
     path("tasks/gantt/", TaskGanttView.as_view(), name="tasks-gantt"),
@@ -222,68 +224,14 @@ urlpatterns = [
     path("dashboards/invoices/trends/", InvoiceTrendsView.as_view(), name="dashboard-invoice-trends"),
     path("dashboards/materials/", MaterialsDashboardView.as_view(), name="dashboard-materials"),
     path("dashboards/materials/usage/", MaterialsUsageAnalyticsView.as_view(), name="dashboard-materials-usage"),
-    path("dashboards/financial/", FinancialDashboardView.as_view(), name="dashboard-financial"),
-    path("dashboards/payroll/", PayrollDashboardView.as_view(), name="dashboard-payroll"),
-    path("dashboards/admin/", AdminDashboardView.as_view(), name="dashboard-admin"),
-    path("dashboards/projects/<int:project_id>/", ProjectDashboardView.as_view(), name="dashboard-project"),
-    path("dashboards/client/", ClientDashboardView.as_view(), name="dashboard-client"),
-    # Analytics Dashboards (NEW)
-    path(
-        "analytics/projects/<int:project_id>/health/",
-        ProjectHealthDashboardView.as_view(),
-        name="analytics-project-health",
-    ),
-    path("analytics/touchups/", TouchupAnalyticsDashboardView.as_view(), name="analytics-touchups"),
-    path("analytics/color-approvals/", ColorApprovalAnalyticsDashboardView.as_view(), name="analytics-color-approvals"),
-    path("analytics/pm-performance/", PMPerformanceDashboardView.as_view(), name="analytics-pm-performance"),
-    # Gap D: Inventory Valuation
-    path("inventory/valuation-report/", InventoryValuationReportView.as_view(), name="inventory-valuation-report"),
-    # Gap E: Advanced Financial Reporting
-    path("financial/aging-report/", InvoiceAgingReportAPIView.as_view(), name="financial-aging-report"),
-    path("financial/cash-flow-projection/", CashFlowProjectionAPIView.as_view(), name="financial-cash-flow"),
-    path("financial/budget-variance/", BudgetVarianceAnalysisAPIView.as_view(), name="financial-budget-variance"),
-    # Gap F: Client Portal
-    path("client/invoices/", ClientInvoiceListAPIView.as_view(), name="client-invoices"),
-    path("client/invoices/<int:invoice_id>/approve/", ClientInvoiceApprovalAPIView.as_view(), name="client-invoice-approve"),
-    # Master Schedule Center
-    path("schedule/master/", lambda req: __import__('core.api.schedule_api', fromlist=['get_master_schedule_data']).get_master_schedule_data(req), name="master-schedule-data"),
-    # Focus Workflow Stats & Calendar
-    # path("focus/stats/", focus_stats, name="focus-stats"),
-    # iCal Calendar Feeds
-    path("calendar/feed/<int:user_token>.ics", lambda req, user_token: __import__('core.api.calendar_feed', fromlist=['generate_focus_calendar_feed']).generate_focus_calendar_feed(req, user_token), name="focus-calendar-feed"),
-    path("calendar/master/<int:user_token>.ics", lambda req, user_token: __import__('core.api.calendar_feed', fromlist=['generate_master_calendar_feed']).generate_master_calendar_feed(req, user_token), name="master-calendar-feed"),
-    # Strategic Planner (Module 25 Part B)
-    path("planner/habits/active/", lambda req: __import__('core.views_planner', fromlist=['get_active_habits']).get_active_habits(req), name="planner-active-habits"),
-    path("planner/visions/random/", lambda req: __import__('core.views_planner', fromlist=['get_random_vision']).get_random_vision(req), name="planner-random-vision"),
-    path("planner/ritual/complete/", lambda req: __import__('core.views_planner', fromlist=['complete_ritual']).complete_ritual(req), name="planner-complete-ritual"),
-    path("planner/ritual/today/", lambda req: __import__('core.views_planner', fromlist=['today_ritual_summary']).today_ritual_summary(req), name="planner-today-ritual"),
-    path("planner/action/<int:action_id>/toggle/", lambda req, action_id: __import__('core.views_planner', fromlist=['toggle_power_action_status']).toggle_power_action_status(req, action_id), name="planner-toggle-action"),
-    path("planner/action/<int:action_id>/step/<int:step_index>/", lambda req, action_id, step_index: __import__('core.views_planner', fromlist=['update_micro_step']).update_micro_step(req, action_id, step_index), name="planner-update-step"),
-    path("planner/stats/", lambda req: __import__('core.views_planner', fromlist=['planner_stats']).planner_stats(req), name="planner-stats"),
-    path("planner/feed/<str:user_token>.ics", lambda req, user_token: __import__('core.views_planner', fromlist=['planner_calendar_feed']).planner_calendar_feed(req, user_token), name="planner-calendar-feed"),
-    # Bulk Task Operations
-    path("tasks/bulk-update/", BulkTaskUpdateAPIView.as_view(), name="tasks-bulk-update"),
-    # Push Notifications (Phase 6 - Improvement #16)
-    path("notifications/preferences/", lambda req: __import__('core.api.views', fromlist=['PushNotificationPreferencesView']).PushNotificationPreferencesView.as_view()(req), name="notification-preferences"),
-    # WebSocket Metrics (Phase 6 - Improvement #17)
-    path("websocket/metrics/", lambda req: __import__('core.api.views', fromlist=['WebSocketMetricsView']).WebSocketMetricsView.as_view()(req), name="websocket-metrics"),
-    path("websocket/metrics/history/", lambda req: __import__('core.api.views', fromlist=['WebSocketMetricsHistoryView']).WebSocketMetricsHistoryView.as_view()(req), name="websocket-metrics-history"),
-    # Message Search (Phase 6 - Improvement #19)
-    path("chat/search/", lambda req: __import__('core.api.views', fromlist=['ChatMessageSearchView']).ChatMessageSearchView.as_view()(req), name="chat-message-search"),
+    path("dashboards/financial/", FinancialDashboardView.as_view(), name="financial-dashboard"),
     
-    # =============================================================================
-    # SOP Express API (AI-powered SOP creation)
-    # =============================================================================
-    path("sop/generate/", lambda req: __import__('core.api.sop_api', fromlist=['generate_sop_with_ai']).generate_sop_with_ai(req), name="sop-generate"),
-    path("sop/templates/popular/", lambda req: __import__('core.api.sop_api', fromlist=['get_popular_templates']).get_popular_templates(req), name="sop-templates-popular"),
-    path("sop/templates/<int:template_id>/", lambda req, template_id: __import__('core.api.sop_api', fromlist=['get_template_detail']).get_template_detail(req, template_id), name="sop-template-detail"),
-    path("sop/save/", lambda req: __import__('core.api.sop_api', fromlist=['save_sop']).save_sop(req), name="sop-save"),
-    path("sop/categories/", lambda req: __import__('core.api.sop_api', fromlist=['get_categories']).get_categories(req), name="sop-categories"),
-    path("sop/suggestions/", lambda req: __import__('core.api.sop_api', fromlist=['get_suggestions']).get_suggestions(req), name="sop-suggestions"),
-]
+    # SOP Express API
+    path("sop/generate/", sop_api.generate_sop_with_ai, name="sop-generate-ai"),
+    path("sop/save/", sop_api.save_sop, name="sop-save"),
 
-# Add device token routes to router
-from .views import DeviceTokenViewSet
-router.register(r"notifications/devices", DeviceTokenViewSet, basename="device-token")
+    # Include router URLs
+    path("", include(router.urls)),
+]
 
 
