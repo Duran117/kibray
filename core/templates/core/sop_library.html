@@ -11,8 +11,11 @@
             <p class="text-muted">{% trans "Browse Standard Operating Procedures and Activity Templates" %}</p>
         </div>
         <div class="col-auto">
-            <a href="{% url 'sop_create' %}" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> {% trans "Create New SOP" %}
+            <a href="{% url 'sop_express' %}" class="btn btn-warning me-2">
+                <i class="bi bi-lightning-charge-fill"></i> {% trans "SOP Express (AI)" %}
+            </a>
+            <a href="{% url 'sop_create' %}" class="btn btn-outline-success">
+                <i class="bi bi-plus-circle"></i> {% trans "Manual SOP" %}
             </a>
         </div>
     </div>
