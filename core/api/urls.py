@@ -270,6 +270,16 @@ urlpatterns = [
     path("websocket/metrics/history/", lambda req: __import__('core.api.views', fromlist=['WebSocketMetricsHistoryView']).WebSocketMetricsHistoryView.as_view()(req), name="websocket-metrics-history"),
     # Message Search (Phase 6 - Improvement #19)
     path("chat/search/", lambda req: __import__('core.api.views', fromlist=['ChatMessageSearchView']).ChatMessageSearchView.as_view()(req), name="chat-message-search"),
+    
+    # =============================================================================
+    # SOP Express API (AI-powered SOP creation)
+    # =============================================================================
+    path("sop/generate/", lambda req: __import__('core.api.sop_api', fromlist=['generate_sop_with_ai']).generate_sop_with_ai(req), name="sop-generate"),
+    path("sop/templates/popular/", lambda req: __import__('core.api.sop_api', fromlist=['get_popular_templates']).get_popular_templates(req), name="sop-templates-popular"),
+    path("sop/templates/<int:template_id>/", lambda req, template_id: __import__('core.api.sop_api', fromlist=['get_template_detail']).get_template_detail(req, template_id), name="sop-template-detail"),
+    path("sop/save/", lambda req: __import__('core.api.sop_api', fromlist=['save_sop']).save_sop(req), name="sop-save"),
+    path("sop/categories/", lambda req: __import__('core.api.sop_api', fromlist=['get_categories']).get_categories(req), name="sop-categories"),
+    path("sop/suggestions/", lambda req: __import__('core.api.sop_api', fromlist=['get_suggestions']).get_suggestions(req), name="sop-suggestions"),
 ]
 
 # Add device token routes to router

@@ -174,3 +174,9 @@ TOUCHUP_PIN_ENABLED = False
 if os.getenv("PYTEST_CURRENT_TEST") or os.getenv("RUN_TESTS") == "1":
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
+
+# =============================================================================
+# OPENAI API Configuration (for AI-powered features)
+# =============================================================================
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")  # Cost-effective default

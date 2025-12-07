@@ -1,0 +1,472 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "SOP Express Creator" %} - Kibray{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="bi bi-lightning-charge-fill text-warning me-2"></i>{% trans "SOP Express" %}
+            </h1>
+            <p class="text-muted small mb-0">{% trans "Create Standard Operating Procedures in 3 simple steps." %}</p>
+        </div>
+        <a href="{% url 'sop_library' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Library" %}
+        </a>
+    </div>
+
+    <!-- Progress Stepper -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-0">
+            <div class="d-flex justify-content-between text-center">
+                <div class="step-item flex-fill p-3 border-bottom border-primary border-3 bg-light" id="step-indicator-1">
+                    <span class="badge bg-primary rounded-circle me-2">1</span>
+                    <span class="fw-bold">{% trans "The Basics" %}</span>
+                </div>
+                <div class="step-item flex-fill p-3 border-bottom border-light" id="step-indicator-2">
+                    <span class="badge bg-secondary rounded-circle me-2">2</span>
+                    <span class="fw-bold text-muted">{% trans "Content & Visuals" %}</span>
+                </div>
+                <div class="step-item flex-fill p-3 border-bottom border-light" id="step-indicator-3">
+                    <span class="badge bg-secondary rounded-circle me-2">3</span>
+                    <span class="fw-bold text-muted">{% trans "Review & Save" %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form Area -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form id="sopExpressForm">
+                {% csrf_token %}
+                
+                <!-- STEP 1: BASICS -->
+                <div id="step-1" class="step-content">
+                    <div class="card shadow border-0">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-5">
+                                <div class="display-1 text-primary mb-3"><i class="bi bi-lightbulb"></i></div>
+                                <h3>{% trans "What are we building today?" %}</h3>
+                                <p class="text-muted">{% trans "Give your SOP a clear name so your team knows exactly what to do." %}</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">{% trans "SOP Title" %}</label>
+                                <input type="text" class="form-control form-control-lg" id="sopTitle" placeholder="e.g., Interior Wall Painting Prep" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">{% trans "Goal / Objective" %}</label>
+                                <textarea class="form-control" id="sopGoal" rows="3" placeholder="e.g., Ensure all surfaces are clean, dry, and ready for primer..."></textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small text-muted text-uppercase">{% trans "Quick Templates" %}</label>
+                                <div class="d-flex flex-wrap gap-2" id="templateChips">
+                                    <!-- Populated by JS -->
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="fillTemplate('Safety Check')">🦺 Safety Check</button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="fillTemplate('Daily Cleanup')">🧹 Daily Cleanup</button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="fillTemplate('Client Walkthrough')">🤝 Client Walkthrough</button>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-5">
+                                <button type="button" class="btn btn-primary btn-lg px-5" onclick="nextStep(2)">
+                                    {% trans "Next: Add Content" %} <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: CONTENT & VISUALS -->
+                <div id="step-2" class="step-content d-none">
+                    <div class="row">
+                        <!-- Left: Steps -->
+                        <div class="col-md-6">
+                            <div class="card shadow border-0 h-100">
+                                <div class="card-header bg-white border-0 pt-4 px-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-list-check text-primary me-2"></i>{% trans "Steps" %}</h5>
+                                        <button type="button" class="btn btn-sm btn-warning text-dark" onclick="generateWithAI()">
+                                            <i class="bi bi-stars"></i> {% trans "AI Magic Fill" %}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body px-4">
+                                    <div id="stepsContainer">
+                                        <!-- Steps will be added here -->
+                                        <div class="step-entry mb-3 input-group">
+                                            <span class="input-group-text bg-light">1</span>
+                                            <input type="text" class="form-control" placeholder="Describe step 1..." name="steps[]">
+                                            <button class="btn btn-outline-danger" type="button" onclick="removeStep(this)"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary w-100 border-dashed mt-2" onclick="addStepField()">
+                                        <i class="bi bi-plus-circle"></i> {% trans "Add Step" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Visuals (Annotator) -->
+                        <div class="col-md-6">
+                            <div class="card shadow border-0 h-100">
+                                <div class="card-header bg-white border-0 pt-4 px-4">
+                                    <h5 class="mb-0"><i class="bi bi-image text-primary me-2"></i>{% trans "Visual Aid" %}</h5>
+                                </div>
+                                <div class="card-body px-4">
+                                    <div class="mb-3">
+                                        <input type="file" class="form-control" id="imageUpload" accept="image/*" onchange="loadImageToCanvas(this)">
+                                    </div>
+                                    
+                                    <!-- Annotator Toolbar -->
+                                    <div id="annotatorToolbar" class="btn-group mb-2 w-100 d-none">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setTool('brush')" title="Draw"><i class="bi bi-pencil"></i></button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setTool('arrow')" title="Arrow"><i class="bi bi-arrow-up-right"></i></button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setTool('rect')" title="Box"><i class="bi bi-square"></i></button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setTool('text')" title="Text"><i class="bi bi-fonts"></i></button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearCanvas()" title="Clear"><i class="bi bi-trash"></i></button>
+                                    </div>
+
+                                    <div class="canvas-container bg-light border rounded d-flex align-items-center justify-content-center" style="min-height: 300px; overflow: hidden;">
+                                        <canvas id="annotationCanvas" width="400" height="300"></canvas>
+                                        <div id="placeholderText" class="text-muted text-center p-4">
+                                            <i class="bi bi-cloud-upload display-4"></i>
+                                            <p class="mt-2">{% trans "Upload an image to annotate" %}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                            <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                        </button>
+                        <button type="button" class="btn btn-primary btn-lg px-5" onclick="nextStep(3)">
+                            {% trans "Next: Review" %} <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: REVIEW -->
+                <div id="step-3" class="step-content d-none">
+                    <div class="card shadow border-0">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-4">
+                                <h2 class="text-success"><i class="bi bi-check-circle-fill"></i> {% trans "Ready to Launch!" %}</h2>
+                                <p class="text-muted">{% trans "Review your new SOP before saving." %}</p>
+                            </div>
+
+                            <div class="border rounded p-4 bg-light mb-4">
+                                <h4 id="reviewTitle" class="fw-bold text-dark mb-3"></h4>
+                                <p id="reviewGoal" class="fst-italic text-muted mb-4"></p>
+                                
+                                <h6 class="fw-bold text-uppercase text-primary small">{% trans "Procedure Steps" %}</h6>
+                                <ul id="reviewSteps" class="list-group list-group-flush mb-4 bg-transparent">
+                                    <!-- Populated by JS -->
+                                </ul>
+
+                                <div id="reviewImageContainer" class="text-center d-none">
+                                    <h6 class="fw-bold text-uppercase text-primary small mb-2">{% trans "Visual Reference" %}</h6>
+                                    <img id="reviewImage" src="" class="img-fluid rounded border shadow-sm" style="max-height: 300px;">
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                    <i class="bi bi-arrow-left"></i> {% trans "Back to Edit" %}
+                                </button>
+                                <button type="button" class="btn btn-success btn-lg px-5" onclick="saveSOP()">
+                                    <i class="bi bi-save"></i> {% trans "Save & Publish SOP" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center" style="background: rgba(255,255,255,0.8); z-index: 9999;">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h5 class="mt-3 text-primary">{% trans "AI is working its magic..." %}</h5>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="{% static 'core/js/photo-annotator.js' %}"></script>
+<script>
+    // --- State Management ---
+    let currentStep = 1;
+    let annotator = null;
+
+    // --- Navigation ---
+    function nextStep(step) {
+        // Validation
+        if (step === 2) {
+            const title = document.getElementById('sopTitle').value;
+            if (!title) {
+                alert('Please enter a title for your SOP.');
+                return;
+            }
+        }
+        if (step === 3) {
+            updateReview();
+        }
+
+        showStep(step);
+    }
+
+    function prevStep(step) {
+        showStep(step);
+    }
+
+    function showStep(step) {
+        // Hide all steps
+        document.querySelectorAll('.step-content').forEach(el => el.classList.add('d-none'));
+        // Show target step
+        document.getElementById(`step-${step}`).classList.remove('d-none');
+        
+        // Update indicators
+        document.querySelectorAll('.step-item').forEach((el, index) => {
+            const stepNum = index + 1;
+            el.classList.remove('border-primary', 'bg-light');
+            el.classList.add('border-light');
+            el.querySelector('.badge').classList.remove('bg-primary');
+            el.querySelector('.badge').classList.add('bg-secondary');
+            
+            if (stepNum === step) {
+                el.classList.remove('border-light');
+                el.classList.add('border-primary', 'bg-light');
+                el.querySelector('.badge').classList.remove('bg-secondary');
+                el.querySelector('.badge').classList.add('bg-primary');
+            }
+        });
+
+        currentStep = step;
+    }
+
+    // --- Step 1: Basics ---
+    function fillTemplate(type) {
+        const titleInput = document.getElementById('sopTitle');
+        const goalInput = document.getElementById('sopGoal');
+        
+        if (type === 'Safety Check') {
+            titleInput.value = "Daily Site Safety Inspection";
+            goalInput.value = "Ensure the job site is safe for workers and clients before starting work.";
+        } else if (type === 'Daily Cleanup') {
+            titleInput.value = "End of Day Cleanup Protocol";
+            goalInput.value = "Leave the client's property spotless and organize tools for the next day.";
+        } else if (type === 'Client Walkthrough') {
+            titleInput.value = "Final Client Walkthrough";
+            goalInput.value = "Review the completed project with the client to ensure 100% satisfaction.";
+        }
+    }
+
+    // --- Step 2: Content ---
+    function addStepField(value = "") {
+        const container = document.getElementById('stepsContainer');
+        const count = container.children.length + 1;
+        const div = document.createElement('div');
+        div.className = 'step-entry mb-3 input-group';
+        div.innerHTML = `
+            <span class="input-group-text bg-light">${count}</span>
+            <input type="text" class="form-control" placeholder="Describe step..." name="steps[]" value="${value}">
+            <button class="btn btn-outline-danger" type="button" onclick="removeStep(this)"><i class="bi bi-trash"></i></button>
+        `;
+        container.appendChild(div);
+    }
+
+    function removeStep(btn) {
+        btn.closest('.step-entry').remove();
+        // Renumber
+        document.querySelectorAll('#stepsContainer .step-entry').forEach((el, idx) => {
+            el.querySelector('.input-group-text').innerText = idx + 1;
+        });
+    }
+
+    // --- AI Integration ---
+    async function generateWithAI() {
+        const title = document.getElementById('sopTitle').value;
+        const goal = document.getElementById('sopGoal').value;
+
+        if (!title) {
+            alert("Please go back and add a title first!");
+            return;
+        }
+
+        document.getElementById('loadingOverlay').classList.remove('d-none');
+        document.getElementById('loadingOverlay').classList.add('d-flex');
+
+        try {
+            const response = await fetch('/api/sop/generate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    task_description: `${title} - ${goal}`,
+                    category: 'OTHER', // Could be dynamic
+                    language: '{{ request.LANGUAGE_CODE|default:"en" }}'
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success && data.sop && data.sop.steps) {
+                const container = document.getElementById('stepsContainer');
+                container.innerHTML = ''; // Clear existing
+                data.sop.steps.forEach(step => addStepField(step));
+                
+                // Also update title/goal if empty
+                if (!document.getElementById('sopGoal').value && data.sop.description) {
+                    document.getElementById('sopGoal').value = data.sop.description;
+                }
+            } else {
+                alert('AI could not generate steps. Please try again.');
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Something went wrong with the AI generation.');
+        } finally {
+            document.getElementById('loadingOverlay').classList.add('d-none');
+            document.getElementById('loadingOverlay').classList.remove('d-flex');
+        }
+    }
+
+    // --- Image Annotation ---
+    function loadImageToCanvas(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('placeholderText').classList.add('d-none');
+                document.getElementById('annotatorToolbar').classList.remove('d-none');
+                
+                // Initialize annotator if not already
+                if (!annotator) {
+                    // We need to pass the canvas ID, not the element
+                    annotator = new PhotoAnnotator('annotationCanvas', e.target.result);
+                    annotator.init().then(() => {
+                        // Force resize to fit container if needed
+                        // annotator.canvas.setWidth(400);
+                        // annotator.canvas.setHeight(300);
+                    });
+                } else {
+                    // If already exists, we might need to reset/reload image
+                    // For simplicity in this MVP, we'll just reload the page or re-init
+                    // Ideally PhotoAnnotator has a setImage method.
+                    // Let's try to re-init
+                    annotator.canvas.clear();
+                    fabric.Image.fromURL(e.target.result, function(img) {
+                        annotator.canvas.setBackgroundImage(img, annotator.canvas.renderAll.bind(annotator.canvas), {
+                            scaleX: annotator.canvas.width / img.width,
+                            scaleY: annotator.canvas.height / img.height
+                        });
+                    });
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function setTool(tool) {
+        if (annotator) {
+            annotator.setTool(tool);
+        }
+    }
+
+    function clearCanvas() {
+        if (annotator && annotator.canvas) {
+            annotator.canvas.clear();
+            // Re-add background image if needed, or just clear annotations
+        }
+    }
+
+    // --- Step 3: Review ---
+    function updateReview() {
+        document.getElementById('reviewTitle').innerText = document.getElementById('sopTitle').value;
+        document.getElementById('reviewGoal').innerText = document.getElementById('sopGoal').value;
+
+        const stepsList = document.getElementById('reviewSteps');
+        stepsList.innerHTML = '';
+        document.querySelectorAll('input[name="steps[]"]').forEach(input => {
+            if (input.value.trim()) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item bg-transparent border-0 ps-0';
+                li.innerHTML = `<i class="bi bi-check2-square text-primary me-2"></i> ${input.value}`;
+                stepsList.appendChild(li);
+            }
+        });
+
+        // Handle Image
+        if (annotator && annotator.canvas) {
+            const dataURL = annotator.canvas.toDataURL({ format: 'png' });
+            const img = document.getElementById('reviewImage');
+            img.src = dataURL;
+            document.getElementById('reviewImageContainer').classList.remove('d-none');
+        } else {
+            document.getElementById('reviewImageContainer').classList.add('d-none');
+        }
+    }
+
+    // --- Save ---
+    async function saveSOP() {
+        const title = document.getElementById('sopTitle').value;
+        const goal = document.getElementById('sopGoal').value;
+        const steps = Array.from(document.querySelectorAll('input[name="steps[]"]'))
+            .map(input => input.value)
+            .filter(val => val.trim() !== "");
+        
+        let imageData = null;
+        if (annotator && annotator.canvas) {
+            imageData = annotator.canvas.toDataURL({ format: 'png' });
+        }
+
+        const payload = {
+            title: title,
+            goal: goal,
+            steps: steps,
+            image_data: imageData
+        };
+
+        try {
+            const response = await fetch('/api/sop/save/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                alert('SOP Saved Successfully!');
+                window.location.href = "{% url 'sop_library' %}";
+            } else {
+                alert('Error saving SOP: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to save SOP.');
+        }
+    }
+</script>
+{% endblock %}
