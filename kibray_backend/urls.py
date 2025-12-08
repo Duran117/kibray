@@ -432,9 +432,10 @@ urlpatterns = [
     path("clients/<int:user_id>/delete/", views.client_delete, name="client_delete"),
     path("clients/<int:user_id>/reset-password/", views.client_reset_password, name="client_reset_password"),
     path("clients/<int:user_id>/assign-project/", views.client_assign_project, name="client_assign_project"),
-    # ===== ADMINISTRACIÓN AVANZADA =====
-    # Dashboard principal admin
-    path("admin-panel/", include("core.urls_admin")),
+    # ===== REMOVED: Custom Admin Panel (Phase 2 Cleanup) =====
+    # Previously: path("admin-panel/", include("core.urls_admin"))
+    # Reason: Redundant with Django's built-in admin at /admin/
+    # All admin functionality available at /admin/ with better UX
     # Explicit Gantt mapping BEFORE including API to ensure resolution
     path("api/v1/tasks/gantt/", tasks_gantt_alias, name="api-tasks-gantt"),
     
