@@ -45,6 +45,7 @@ from .models import (
     PlannedActivity,
     PlanPin,
     PlanPinAttachment,
+    PMBlockedDay,
     Profile,
     Project,
     ProjectInventory,
@@ -1132,3 +1133,33 @@ class NotificationLogAdmin(admin.ModelAdmin):
                 count += 1
         self.message_user(request, f"{count} notification(s) marked as delivered.")
     mark_as_delivered.short_description = "Mark selected as delivered"
+
+
+@admin.register(PMBlockedDay)
+class PMBlockedDayAdmin(admin.ModelAdmin):
+    """Admin for PM blocked days (vacations, personal days, etc.)"""
+    list_display = ("pm", "date", "reason", "is_full_day", "created_at")
+    list_filter = ("reason", "is_full_day", "date")
+    search_fields = ("pm__username", "pm__first_name", "pm__last_name", "notes")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-date",)
+    date_hierarchy = "date"
+    
+    fieldsets = (
+        ("PM & Date", {
+            "fields": ("pm", "date")
+        }),
+        ("Details", {
+            "fields": ("reason", "notes", "is_full_day", "start_time", "end_time")
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        """Optimize query with select_related"""
+        qs = super().get_queryset(request)
+        return qs.select_related("pm")
+

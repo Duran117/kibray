@@ -7582,6 +7582,67 @@ class AISuggestion(models.Model):
         self.save()
 
 
+class PMBlockedDay(models.Model):
+    """
+    Días bloqueados para Project Managers.
+    Permite marcar vacaciones, días personales, u otros días no disponibles.
+    Usado en PM Calendar para visualización de disponibilidad y carga de trabajo.
+    """
+
+    pm = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="blocked_days",
+        help_text=_("Project Manager que bloquea el día"),
+    )
+    date = models.DateField(help_text=_("Fecha bloqueada"))
+    reason = models.CharField(
+        max_length=200,
+        choices=[
+            ("vacation", _("Vacaciones")),
+            ("personal", _("Personal")),
+            ("sick", _("Enfermedad")),
+            ("training", _("Capacitación")),
+            ("other", _("Otro")),
+        ],
+        default="vacation",
+    )
+    notes = models.TextField(blank=True, help_text=_("Notas adicionales"))
+    is_full_day = models.BooleanField(default=True, help_text=_("Día completo o parcial"))
+    start_time = models.TimeField(null=True, blank=True, help_text=_("Hora de inicio si es parcial"))
+    end_time = models.TimeField(null=True, blank=True, help_text=_("Hora de fin si es parcial"))
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "pm_blocked_days"
+        ordering = ["-date"]
+        unique_together = ("pm", "date")
+        verbose_name = _("PM Blocked Day")
+        verbose_name_plural = _("PM Blocked Days")
+        indexes = [
+            models.Index(fields=["pm", "date"]),
+            models.Index(fields=["date"]),
+        ]
+
+    def __str__(self):
+        pm_name = self.pm.get_full_name() or self.pm.username
+        return f"{pm_name} - {self.date} ({self.get_reason_display()})"
+
+    def clean(self):
+        """Validación: si no es full day, debe tener start_time y end_time"""
+        if not self.is_full_day:
+            if not self.start_time or not self.end_time:
+                raise ValidationError(
+                    _("Para días parciales, debe especificar hora de inicio y fin")
+                )
+            if self.start_time >= self.end_time:
+                raise ValidationError(
+                    _("La hora de inicio debe ser anterior a la hora de fin")
+                )
+
+
 class VoiceCommand(models.Model):
     """
     Voice commands for debugging and ML training
