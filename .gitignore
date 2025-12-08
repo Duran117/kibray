@@ -75,3 +75,5 @@ coverage.xml
 # Lighthouse reports
 *lighthouse-report.html
 PWA_LIGHTHOUSE_REPORT.html
+dump.rdb
+test_*.py
