@@ -278,8 +278,20 @@
     <div class="container-fluid">
         <!-- Header -->
         <div class="pm-header">
-            <h1>👤 {{ title }}</h1>
-            <p class="subtitle">Bienvenido, {{ user.get_full_name|default:user.username }}</p>
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1>👤 {{ title }}</h1>
+                    <p class="subtitle">Bienvenido, {{ user.get_full_name|default:user.username }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'calendar_wizard_new' %}" class="btn btn-primary shadow-sm">
+                        <i class="bi bi-plus-lg me-2"></i>{% trans "New Event" %}
+                    </a>
+                    <button class="btn btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#blockDayModal">
+                        <i class="bi bi-slash-circle me-2"></i>{% trans "Block Day" %}
+                    </button>
+                </div>
+            </div>
             
             <!-- Workload Indicator -->
             <div class="workload-indicator">

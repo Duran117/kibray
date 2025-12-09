@@ -13,6 +13,7 @@ from core import views
 from core import views_sop
 from core import views_wizards
 from core import views_user_wizard
+from core import views_calendar_wizard
 from core import views_financial as fin_views
 from core import views_notifications as notif_views
 from core import views_planner as planner_views
@@ -65,6 +66,8 @@ urlpatterns = [
     
     # PM Calendar - NEW
     path("pm-calendar/", pm_calendar_views.pm_calendar_view, name="pm_calendar"),
+    path("pm-calendar/new/", views_calendar_wizard.calendar_wizard_view, name="calendar_wizard_new"),
+    path("pm-calendar/save/", views_calendar_wizard.calendar_wizard_save, name="calendar_wizard_save"),
     path("pm-calendar/block/", pm_calendar_views.pm_block_day, name="pm_block_day"),
     path("pm-calendar/unblock/<int:blocked_day_id>/", pm_calendar_views.pm_unblock_day, name="pm_unblock_day"),
     path("pm-calendar/api/data/", pm_calendar_views.pm_calendar_api_data, name="pm_calendar_api_data"),

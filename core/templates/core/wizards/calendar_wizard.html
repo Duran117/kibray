@@ -1,0 +1,322 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Calendar Event Wizard" %} - Kibray{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h2 class="h3">{% trans "Create Calendar Event" %}</h2>
+                <p class="text-muted">{% trans "Follow the steps to add a new event to the calendar." %}</p>
+                
+                <!-- Progress -->
+                <div class="d-flex justify-content-center align-items-center mt-4 position-relative">
+                    <div class="progress position-absolute w-50" style="height: 2px; z-index: 0;">
+                        <div class="progress-bar" id="wizardProgress" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="step-indicator active" data-step="1">
+                        <div class="step-circle bg-primary text-white">1</div>
+                        <small class="step-label">{% trans "Type" %}</small>
+                    </div>
+                    <div class="step-indicator" data-step="2">
+                        <div class="step-circle bg-light text-muted">2</div>
+                        <small class="step-label">{% trans "Details" %}</small>
+                    </div>
+                    <div class="step-indicator" data-step="3">
+                        <div class="step-circle bg-light text-muted">3</div>
+                        <small class="step-label">{% trans "Review" %}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4 p-md-5">
+                    <form id="calendarWizardForm">
+                        {% csrf_token %}
+                        
+                        <!-- Step 1: Type -->
+                        <div class="wizard-step" id="step1">
+                            <h5 class="mb-4">{% trans "Select Event Type" %}</h5>
+                            <div class="row g-3">
+                                {% for type_code, type_name in event_types %}
+                                <div class="col-md-6">
+                                    <div class="form-check card-radio">
+                                        <input class="form-check-input" type="radio" name="type" id="type_{{ type_code }}" value="{{ type_code }}" required>
+                                        <label class="form-check-label card p-3 h-100" for="type_{{ type_code }}">
+                                            <span class="fw-bold d-block mb-1">{{ type_name }}</span>
+                                            <small class="text-muted">
+                                                {% if type_code == 'task' %}{% trans "Project task or activity" %}
+                                                {% elif type_code == 'blocked' %}{% trans "Time off or unavailable" %}
+                                                {% else %}{% trans "General event" %}{% endif %}
+                                            </small>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Details -->
+                        <div class="wizard-step d-none" id="step2">
+                            <h5 class="mb-4">{% trans "Event Details" %}</h5>
+                            
+                            <!-- Project Selection (Hidden for Blocked) -->
+                            <div id="projectField" class="mb-3">
+                                <label class="form-label">{% trans "Project" %} <span class="text-danger">*</span></label>
+                                <select class="form-select" name="project_id">
+                                    <option value="">{% trans "Select Project..." %}</option>
+                                    {% for p in projects %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Title / Reason" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="title" required>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Start Date" %} <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" name="start_date" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "End Date" %} <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" name="end_date" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Review -->
+                        <div class="wizard-step d-none" id="step3">
+                            <h5 class="mb-4">{% trans "Review Event" %}</h5>
+                            <div class="bg-light p-4 rounded">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">{% trans "Type" %}</dt>
+                                    <dd class="col-sm-8" id="reviewType">-</dd>
+                                    
+                                    <dt class="col-sm-4">{% trans "Title" %}</dt>
+                                    <dd class="col-sm-8" id="reviewTitle">-</dd>
+                                    
+                                    <dt class="col-sm-4">{% trans "Date Range" %}</dt>
+                                    <dd class="col-sm-8" id="reviewDate">-</dd>
+                                    
+                                    <dt class="col-sm-4" id="reviewProjectLabel">{% trans "Project" %}</dt>
+                                    <dd class="col-sm-8" id="reviewProject">-</dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="d-flex justify-content-between mt-5">
+                            <button type="button" class="btn btn-outline-secondary" id="prevBtn" disabled>
+                                <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+                            </button>
+                            <button type="button" class="btn btn-primary" id="nextBtn">
+                                {% trans "Next Step" %}<i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                            <button type="button" class="btn btn-success d-none" id="submitBtn">
+                                <i class="bi bi-check-lg me-2"></i>{% trans "Create Event" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin: 0 auto 5px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+.step-indicator {
+    width: 80px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+.step-indicator.active .step-circle {
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+    box-shadow: 0 0 0 5px rgba(var(--bs-primary-rgb), 0.2);
+}
+.card-radio .form-check-input {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+.card-radio label {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.card-radio .form-check-input:checked + label {
+    border-color: var(--bs-primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 3;
+    const form = document.getElementById('calendarWizardForm');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressBar = document.getElementById('wizardProgress');
+
+    // Dynamic Fields
+    const projectField = document.getElementById('projectField');
+    const reviewProjectLabel = document.getElementById('reviewProjectLabel');
+    const reviewProject = document.getElementById('reviewProject');
+
+    function updateUI() {
+        // Show/Hide Steps
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
+        document.getElementById(`step${currentStep}`).classList.remove('d-none');
+        
+        // Update Progress
+        const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Update Indicators
+        document.querySelectorAll('.step-indicator').forEach(el => {
+            const step = parseInt(el.dataset.step);
+            const circle = el.querySelector('.step-circle');
+            if (step <= currentStep) {
+                circle.classList.remove('bg-light', 'text-muted');
+                circle.classList.add('bg-primary', 'text-white');
+            } else {
+                circle.classList.add('bg-light', 'text-muted');
+                circle.classList.remove('bg-primary', 'text-white');
+            }
+        });
+
+        // Buttons
+        prevBtn.disabled = currentStep === 1;
+        if (currentStep === totalSteps) {
+            nextBtn.classList.add('d-none');
+            submitBtn.classList.remove('d-none');
+            updateReview();
+        } else {
+            nextBtn.classList.remove('d-none');
+            submitBtn.classList.add('d-none');
+        }
+        
+        // Step 2 Logic
+        if (currentStep === 2) {
+            const type = document.querySelector('input[name="type"]:checked').value;
+            if (type === 'blocked') {
+                projectField.classList.add('d-none');
+                projectField.querySelector('select').required = false;
+            } else {
+                projectField.classList.remove('d-none');
+                projectField.querySelector('select').required = true;
+            }
+        }
+    }
+
+    function updateReview() {
+        const data = new FormData(form);
+        const type = data.get('type');
+        
+        document.getElementById('reviewType').textContent = document.querySelector(`label[for="type_${type}"] span`).textContent;
+        document.getElementById('reviewTitle').textContent = data.get('title');
+        document.getElementById('reviewDate').textContent = `${data.get('start_date')} to ${data.get('end_date')}`;
+        
+        if (type === 'blocked') {
+            reviewProjectLabel.classList.add('d-none');
+            reviewProject.classList.add('d-none');
+        } else {
+            reviewProjectLabel.classList.remove('d-none');
+            reviewProject.classList.remove('d-none');
+            const select = form.querySelector('select[name="project_id"]');
+            document.getElementById('reviewProject').textContent = select.options[select.selectedIndex].text;
+        }
+    }
+
+    function validateStep(step) {
+        const stepEl = document.getElementById(`step${step}`);
+        const inputs = stepEl.querySelectorAll('input[required], select[required]');
+        let valid = true;
+        
+        inputs.forEach(input => {
+            if (!input.value) {
+                input.classList.add('is-invalid');
+                valid = false;
+            } else {
+                input.classList.remove('is-invalid');
+            }
+        });
+        
+        return valid;
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (validateStep(currentStep)) {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateUI();
+            }
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            updateUI();
+        }
+    });
+
+    submitBtn.addEventListener('click', async () => {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{% trans "Saving..." %}';
+            
+            const res = await fetch('{% url "calendar_wizard_save" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                window.location.href = "{% url 'pm_calendar' %}";
+            } else {
+                alert('Error: ' + result.error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i>{% trans "Create Event" %}';
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Network error');
+            submitBtn.disabled = false;
+        }
+    });
+
+    updateUI();
+});
+</script>
+{% endblock %}
