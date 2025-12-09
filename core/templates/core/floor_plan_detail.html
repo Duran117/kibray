@@ -922,6 +922,72 @@
       }
     });
   }
+
+  // --- Pan & Zoom Implementation ---
+  const planWrapper = document.getElementById('planWrapper');
+  let scale = 1;
+  let panning = false;
+  let pointX = 0;
+  let pointY = 0;
+  let startX = 0;
+  let startY = 0;
+
+  if (planWrapper) {
+      planWrapper.style.transformOrigin = '0 0';
+      planWrapper.style.transform = 'scale(1) translate(0px, 0px)';
+
+      // Zoom with wheel
+      planWrapper.addEventListener('wheel', function(e) {
+          if (e.ctrlKey || e.metaKey) {
+              e.preventDefault();
+              const xs = (e.clientX - pointX) / scale;
+              const ys = (e.clientY - pointY) / scale;
+              const delta = -Math.sign(e.deltaY);
+              
+              if (delta > 0) {
+                  scale *= 1.1;
+              } else {
+                  scale /= 1.1;
+              }
+              
+              // Limit scale
+              scale = Math.min(Math.max(0.5, scale), 5);
+
+              pointX = e.clientX - xs * scale;
+              pointY = e.clientY - ys * scale;
+
+              planWrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+          }
+      });
+
+      // Pan with drag (only in view mode or if middle mouse button)
+      planWrapper.addEventListener('mousedown', function(e) {
+          if (e.button === 1 || (e.button === 0 && planWrapper.classList.contains('view-mode'))) {
+              e.preventDefault();
+              startX = e.clientX - pointX;
+              startY = e.clientY - pointY;
+              panning = true;
+              planWrapper.style.cursor = 'grabbing';
+          }
+      });
+
+      document.addEventListener('mousemove', function(e) {
+          if (!panning) return;
+          e.preventDefault();
+          pointX = e.clientX - startX;
+          pointY = e.clientY - startY;
+          planWrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+      });
+
+      document.addEventListener('mouseup', function() {
+          panning = false;
+          if (planWrapper.classList.contains('view-mode')) {
+              planWrapper.style.cursor = 'default';
+          } else {
+              planWrapper.style.cursor = 'crosshair';
+          }
+      });
+  }
 })();
 </script>
 

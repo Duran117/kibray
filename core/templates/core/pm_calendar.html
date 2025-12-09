@@ -490,7 +490,27 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,listWeek'
         },
+        selectable: true,
+        editable: true,
         events: '{% url "pm_calendar_api_data" %}',
+        select: function(info) {
+            // Open block day modal or add event modal
+            if (confirm('{% trans "Do you want to block this day?" %}')) {
+                document.getElementById('blockStart').value = info.startStr;
+                document.getElementById('blockEnd').value = info.endStr;
+                const modal = new bootstrap.Modal(document.getElementById('blockDayModal'));
+                modal.show();
+            }
+        },
+        eventDrop: function(info) {
+            // Handle drag and drop (optional: implement API endpoint for this)
+            if (!confirm('{% trans "Move this event?" %}')) {
+                info.revert();
+            } else {
+                // TODO: Call API to update event date
+                console.log('Event moved to ' + info.event.start.toISOString());
+            }
+        },
         eventClick: function(info) {
             const props = info.event.extendedProps;
             if (props.type === 'blocked') {

@@ -7058,6 +7058,71 @@ def daily_plan_edit(request, plan_id):
 
     # Instantiate forms
     if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "add_activity":
+            try:
+                from core.models import PlannedActivity, ActivityTemplate, ScheduleItem, Employee
+                
+                # Extract data
+                template_id = request.POST.get("activity_template")
+                schedule_id = request.POST.get("schedule_item")
+                title = request.POST.get("title")
+                description = request.POST.get("description", "")
+                hours = request.POST.get("estimated_hours")
+                employee_ids = request.POST.getlist("assigned_employees")
+                
+                # Resolve relations
+                template = ActivityTemplate.objects.get(pk=template_id) if template_id else None
+                schedule = ScheduleItem.objects.get(pk=schedule_id) if schedule_id else None
+                
+                # Default title from template if not provided
+                if not title and template:
+                    title = template.name
+                elif not title:
+                    title = "New Activity"
+                
+                # Create activity
+                activity = PlannedActivity.objects.create(
+                    daily_plan=plan,
+                    title=title,
+                    description=description,
+                    activity_template=template,
+                    schedule_item=schedule,
+                    estimated_hours=hours if hours else None,
+                    order=plan.activities.count() + 1
+                )
+                
+                # Assign employees
+                if employee_ids:
+                    activity.assigned_employees.set(employee_ids)
+                
+                messages.success(request, _("Activity added successfully"))
+                return redirect("daily_plan_edit", plan_id=plan.id)
+                
+            except Exception as e:
+                messages.error(request, f"Error adding activity: {str(e)}")
+                
+        elif action == "submit":
+            if plan.activities.exists():
+                plan.status = "PUBLISHED"
+                plan.save(update_fields=["status"])
+                messages.success(request, _("Plan submitted successfully"))
+            else:
+                messages.error(request, _("Cannot submit empty plan"))
+            return redirect("daily_plan_edit", plan_id=plan.id)
+            
+        elif action == "check_materials":
+            # Mock material check for now or call method on activities
+            count = 0
+            for activity in plan.activities.all():
+                if hasattr(activity, 'check_materials'):
+                    activity.check_materials()
+                    count += 1
+            messages.success(request, _(f"Checked materials for {count} activities"))
+            return redirect("daily_plan_edit", plan_id=plan.id)
+
+        # Fallback to standard form processing if no specific action
         form = DailyPlanForm(request.POST, instance=plan)
         formset = make_planned_activity_formset(plan, data=request.POST, files=request.FILES)
         if form.is_valid() and formset.is_valid():
