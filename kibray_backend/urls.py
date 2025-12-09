@@ -12,6 +12,7 @@ from rest_framework.routers import DefaultRouter
 from core import views
 from core import views_sop
 from core import views_wizards
+from core import views_user_wizard
 from core import views_financial as fin_views
 from core import views_notifications as notif_views
 from core import views_planner as planner_views
@@ -50,6 +51,12 @@ urlpatterns = [
     
     # Admin
     path("admin/", admin.site.urls),
+    # User Management Wizard
+    path("users/manage/", views_user_wizard.user_list_view, name="user_wizard_list"),
+    path("users/manage/new/", views_user_wizard.user_wizard_view, name="user_wizard_create"),
+    path("users/manage/<int:user_id>/edit/", views_user_wizard.user_wizard_view, name="user_wizard_edit"),
+    path("users/manage/api/action/", views_user_wizard.user_api_action, name="user_api_action"),
+    
     # Dashboard(s)
     path("dashboard/", views.dashboard_view, name="dashboard"),
     path("dashboard/admin/", views.dashboard_admin, name="dashboard_admin"),

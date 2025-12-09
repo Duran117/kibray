@@ -1,0 +1,67 @@
+{% load i18n %}
+{% for user in users %}
+<tr>
+    <td class="ps-4">
+        <div class="d-flex align-items-center">
+            <div class="avatar avatar-sm bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                {{ user.first_name|first|default:user.username|first|upper }}
+            </div>
+            <div>
+                <h6 class="mb-0 text-dark">{{ user.get_full_name|default:user.username }}</h6>
+                <small class="text-muted">{{ user.email }}</small>
+            </div>
+        </div>
+    </td>
+    <td>
+        <span class="badge bg-light text-dark border">
+            {{ user.profile.get_role_display|default:"Employee" }}
+        </span>
+    </td>
+    <td>
+        {% if user.is_active %}
+        <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+        {% else %}
+        <span class="badge bg-danger-subtle text-danger">{% trans "Inactive" %}</span>
+        {% endif %}
+    </td>
+    <td class="text-muted small">
+        {{ user.date_joined|date:"M d, Y" }}
+    </td>
+    <td class="text-end pe-4">
+        <div class="dropdown">
+            <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                <li>
+                    <a class="dropdown-item" href="{% url 'user_wizard_edit' user.id %}">
+                        <i class="bi bi-pencil me-2 text-primary"></i>{% trans "Edit" %}
+                    </a>
+                </li>
+                <li>
+                    <button class="dropdown-item action-btn" data-action="toggle_status" data-user-id="{{ user.id }}">
+                        {% if user.is_active %}
+                        <i class="bi bi-person-x me-2 text-warning"></i>{% trans "Deactivate" %}
+                        {% else %}
+                        <i class="bi bi-person-check me-2 text-success"></i>{% trans "Activate" %}
+                        {% endif %}
+                    </button>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button class="dropdown-item text-danger action-btn" data-action="delete" data-user-id="{{ user.id }}">
+                        <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5" class="text-center py-5 text-muted">
+        <i class="bi bi-people fs-1 d-block mb-3"></i>
+        {% trans "No users found matching your criteria." %}
+    </td>
+</tr>
+{% endfor %}

@@ -1,0 +1,359 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% if is_edit %}{% trans "Edit User" %}{% else %}{% trans "New User" %}{% endif %} - Kibray{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Wizard Header -->
+            <div class="text-center mb-5">
+                <h2 class="h3">{% if is_edit %}{% trans "Edit User" %}{% else %}{% trans "Create New User" %}{% endif %}</h2>
+                <p class="text-muted">{% trans "Complete the steps below to manage the user account." %}</p>
+                
+                <!-- Progress Steps -->
+                <div class="d-flex justify-content-center align-items-center mt-4 position-relative">
+                    <div class="progress position-absolute w-50" style="height: 2px; z-index: 0;">
+                        <div class="progress-bar" id="wizardProgress" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="step-indicator active" data-step="1">
+                        <div class="step-circle bg-primary text-white">1</div>
+                        <small class="step-label">{% trans "Basic Info" %}</small>
+                    </div>
+                    <div class="step-indicator" data-step="2">
+                        <div class="step-circle bg-light text-muted">2</div>
+                        <small class="step-label">{% trans "Security" %}</small>
+                    </div>
+                    <div class="step-indicator" data-step="3">
+                        <div class="step-circle bg-light text-muted">3</div>
+                        <small class="step-label">{% trans "Role" %}</small>
+                    </div>
+                    <div class="step-indicator" data-step="4">
+                        <div class="step-circle bg-light text-muted">4</div>
+                        <small class="step-label">{% trans "Review" %}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wizard Card -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4 p-md-5">
+                    <form id="userWizardForm">
+                        {% csrf_token %}
+                        
+                        <!-- Step 1: Basic Info -->
+                        <div class="wizard-step" id="step1">
+                            <h5 class="mb-4">{% trans "Basic Information" %}</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "First Name" %}</label>
+                                    <input type="text" class="form-control" name="first_name" value="{{ target_user.first_name }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Last Name" %}</label>
+                                    <input type="text" class="form-control" name="last_name" value="{{ target_user.last_name }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Username" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="username" value="{{ target_user.username }}" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Email Address" %} <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" name="email" value="{{ target_user.email }}" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Security -->
+                        <div class="wizard-step d-none" id="step2">
+                            <h5 class="mb-4">{% trans "Security Settings" %}</h5>
+                            {% if is_edit %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                {% trans "Leave blank to keep the current password." %}
+                            </div>
+                            {% endif %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Password" %} {% if not is_edit %}<span class="text-danger">*</span>{% endif %}</label>
+                                    <input type="password" class="form-control" name="password">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Confirm Password" %} {% if not is_edit %}<span class="text-danger">*</span>{% endif %}</label>
+                                    <input type="password" class="form-control" name="confirm_password">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="is_active" id="isActive" 
+                                               {% if not is_edit or target_user.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="isActive">{% trans "User Account Active" %}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Role -->
+                        <div class="wizard-step d-none" id="step3">
+                            <h5 class="mb-4">{% trans "Role & Permissions" %}</h5>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">{% trans "System Role" %}</label>
+                                    <div class="row g-3">
+                                        {% for code, name in roles %}
+                                        <div class="col-md-6">
+                                            <div class="form-check card-radio">
+                                                <input class="form-check-input" type="radio" name="role" id="role_{{ code }}" value="{{ code }}"
+                                                       {% if target_user.profile.role == code %}checked{% elif not is_edit and code == 'employee' %}checked{% endif %}>
+                                                <label class="form-check-label card p-3 h-100" for="role_{{ code }}">
+                                                    <span class="fw-bold d-block mb-1">{{ name }}</span>
+                                                    <small class="text-muted">
+                                                        {% if code == 'admin' %}{% trans "Full system access" %}
+                                                        {% elif code == 'pm' %}{% trans "Project management access" %}
+                                                        {% else %}{% trans "Standard access" %}{% endif %}
+                                                    </small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Review -->
+                        <div class="wizard-step d-none" id="step4">
+                            <h5 class="mb-4">{% trans "Review Details" %}</h5>
+                            <div class="bg-light p-4 rounded">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">{% trans "Full Name" %}</dt>
+                                    <dd class="col-sm-8" id="reviewName">-</dd>
+                                    
+                                    <dt class="col-sm-4">{% trans "Username" %}</dt>
+                                    <dd class="col-sm-8" id="reviewUsername">-</dd>
+                                    
+                                    <dt class="col-sm-4">{% trans "Email" %}</dt>
+                                    <dd class="col-sm-8" id="reviewEmail">-</dd>
+                                    
+                                    <dt class="col-sm-4">{% trans "Role" %}</dt>
+                                    <dd class="col-sm-8" id="reviewRole">-</dd>
+                                    
+                                    <dt class="col-sm-4">{% trans "Status" %}</dt>
+                                    <dd class="col-sm-8" id="reviewStatus">-</dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="d-flex justify-content-between mt-5">
+                            <button type="button" class="btn btn-outline-secondary" id="prevBtn" disabled>
+                                <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+                            </button>
+                            <button type="button" class="btn btn-primary" id="nextBtn">
+                                {% trans "Next Step" %}<i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                            <button type="button" class="btn btn-success d-none" id="submitBtn">
+                                <i class="bi bi-check-lg me-2"></i>{% trans "Create User" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin: 0 auto 5px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+.step-indicator {
+    width: 80px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+.step-indicator.active .step-circle {
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+    box-shadow: 0 0 0 5px rgba(var(--bs-primary-rgb), 0.2);
+}
+.card-radio .form-check-input {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+.card-radio label {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.card-radio .form-check-input:checked + label {
+    border-color: var(--bs-primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 4;
+    const form = document.getElementById('userWizardForm');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressBar = document.getElementById('wizardProgress');
+
+    function updateUI() {
+        // Show/Hide Steps
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
+        document.getElementById(`step${currentStep}`).classList.remove('d-none');
+        
+        // Update Progress
+        const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Update Indicators
+        document.querySelectorAll('.step-indicator').forEach(el => {
+            const step = parseInt(el.dataset.step);
+            const circle = el.querySelector('.step-circle');
+            if (step <= currentStep) {
+                circle.classList.remove('bg-light', 'text-muted');
+                circle.classList.add('bg-primary', 'text-white');
+            } else {
+                circle.classList.add('bg-light', 'text-muted');
+                circle.classList.remove('bg-primary', 'text-white');
+            }
+        });
+
+        // Buttons
+        prevBtn.disabled = currentStep === 1;
+        if (currentStep === totalSteps) {
+            nextBtn.classList.add('d-none');
+            submitBtn.classList.remove('d-none');
+            updateReview();
+        } else {
+            nextBtn.classList.remove('d-none');
+            submitBtn.classList.add('d-none');
+        }
+    }
+
+    function updateReview() {
+        const data = new FormData(form);
+        document.getElementById('reviewName').textContent = `${data.get('first_name')} ${data.get('last_name')}`;
+        document.getElementById('reviewUsername').textContent = data.get('username');
+        document.getElementById('reviewEmail').textContent = data.get('email');
+        
+        const roleInput = document.querySelector('input[name="role"]:checked');
+        const roleLabel = roleInput ? roleInput.nextElementSibling.querySelector('span').textContent : '-';
+        document.getElementById('reviewRole').textContent = roleLabel;
+        
+        document.getElementById('reviewStatus').textContent = document.getElementById('isActive').checked ? '{% trans "Active" %}' : '{% trans "Inactive" %}';
+    }
+
+    async function validateStep(step) {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        data.action = 'validate_step';
+        data.step = step;
+        
+        // Clear errors
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        
+        try {
+            const res = await fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            
+            if (!result.success) {
+                Object.entries(result.errors).forEach(([field, msg]) => {
+                    const input = form.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.classList.add('is-invalid');
+                        input.nextElementSibling.textContent = msg;
+                    }
+                });
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.error(e);
+            return false;
+        }
+    }
+
+    nextBtn.addEventListener('click', async () => {
+        if (await validateStep(currentStep)) {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateUI();
+            }
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            updateUI();
+        }
+    });
+
+    submitBtn.addEventListener('click', async () => {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        data.action = 'save';
+        data.is_active = document.getElementById('isActive').checked;
+        
+        try {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{% trans "Saving..." %}';
+            
+            const res = await fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                window.location.href = "{% url 'user_wizard_list' %}";
+            } else {
+                alert('Error: ' + result.error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i>{% trans "Create User" %}';
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Network error');
+            submitBtn.disabled = false;
+        }
+    });
+
+    updateUI();
+});
+</script>
+{% endblock %}
