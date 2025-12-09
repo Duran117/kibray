@@ -1387,6 +1387,8 @@ class Comment(models.Model):
 # Modelo de Perfil de Usuario
 # ---------------------
 ROLE_CHOICES = [
+    ("admin", "Admin"),
+    ("owner", "Owner"),
     ("employee", "Employee"),
     ("project_manager", "Project Manager"),
     ("client", "Client"),
