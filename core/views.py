@@ -3608,7 +3608,7 @@ def invoice_create_view(request):
 @login_required
 def invoice_list(request):
     invoices = Invoice.objects.select_related("project").prefetch_related("lines").order_by("-date_issued", "-id")
-    projects = Project.objects.filter(is_active=True).order_by("name")
+    projects = Project.objects.filter(is_archived=False).order_by("name")
     return render(request, "core/invoice_list.html", {"invoices": invoices, "projects": projects})
 
 
@@ -3808,8 +3808,9 @@ def project_profit_dashboard(request, project_id):
     budgeted_revenue = estimate_revenue + cos_revenue
 
     # 2. ACTUAL COSTS (Labor + Materials/Expenses)
-    # Labor cost from TimeEntries
-    labor_cost = TimeEntry.objects.filter(project=project).aggregate(total=Sum("labor_cost"))["total"] or Decimal("0")
+    # Labor cost from TimeEntries (calculated in Python since labor_cost is a property)
+    time_entries = TimeEntry.objects.filter(project=project)
+    labor_cost = sum(entry.labor_cost for entry in time_entries)
 
     # Material/Expense costs
     material_cost = Expense.objects.filter(project=project).aggregate(total=Sum("amount"))["total"] or Decimal("0")
@@ -7523,14 +7524,15 @@ def dashboard_designer(request):
     from django.db import models as db_models
 
     profile = getattr(request.user, "profile", None)
-    if not profile or profile.role != "designer":
+    is_designer = profile and profile.role == "designer"
+    if not is_designer and not request.user.is_superuser:
         return HttpResponseForbidden("Acceso restringido a diseñadores")
 
-    # Projects the designer is involved with (via ColorSample, DesignDocument, or chat)
+    # Projects the designer is involved with (via ColorSample, FloorPlan, or chat)
     projects = (
         Project.objects.filter(
             db_models.Q(color_samples__isnull=False)
-            | db_models.Q(design_documents__isnull=False)
+            | db_models.Q(floor_plans__isnull=False)
             | db_models.Q(chat_channels__participants=request.user)
         )
         .distinct()
@@ -7543,7 +7545,7 @@ def dashboard_designer(request):
     )
 
     # Floor plans
-    plans = FloorPlan.objects.filter(project__in=projects).select_related("project").order_by("-uploaded_at")[:10]
+    plans = FloorPlan.objects.filter(project__in=projects).select_related("project").order_by("-created_at")[:10]
 
     # Recent schedules
     schedules = Schedule.objects.filter(project__in=projects).select_related("project").order_by("-start_datetime")[:10]
@@ -8190,10 +8192,12 @@ def project_files_view(request, project_id):
 
 
 @login_required
-@require_POST
 def file_category_create(request, project_id):
     """Create a new file category"""
     from core.forms import FileCategoryForm
+
+    if request.method != "POST":
+        return redirect("project_files", project_id=project_id)
 
     project = get_object_or_404(Project, id=project_id)
     form = FileCategoryForm(request.POST)

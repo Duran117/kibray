@@ -18,6 +18,15 @@ def mul(value, arg):
 
 
 @register.filter
+def div(value, arg):
+    """Divide el valor por el argumento"""
+    try:
+        return float(value) / float(arg)
+    except (ValueError, TypeError, ZeroDivisionError):
+        return 0
+
+
+@register.filter
 def filter_by_status(queryset, status):
     """Filtra un queryset por status"""
     try:

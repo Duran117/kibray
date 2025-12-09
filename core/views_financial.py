@@ -88,16 +88,16 @@ def financial_dashboard(request):
     active_projects = (
         Project.objects.filter(end_date__isnull=True)
         .annotate(
-            revenue=Coalesce(Sum("invoice__total_amount", filter=Q(invoice__status="paid")), Decimal("0.00")),
-            expenses=Coalesce(Sum("expense__amount"), Decimal("0.00")),
-            profit=F("revenue") - F("expenses"),
+            calc_revenue=Coalesce(Sum("invoices__total_amount", filter=Q(invoices__status="paid")), Decimal("0.00")),
+            calc_expenses=Coalesce(Sum("expenses__amount"), Decimal("0.00")),
+            calc_profit=F("calc_revenue") - F("calc_expenses"),
         )
-        .order_by("-profit")[:10]
+        .order_by("-calc_profit")[:10]
     )
 
     profit_per_project = {
         "labels": [p.name for p in active_projects],
-        "data": [float(p.profit()) for p in active_projects],  # type: ignore
+        "data": [float(p.calc_profit) for p in active_projects],  # type: ignore
     }
 
     # Expenses breakdown (this year by category)

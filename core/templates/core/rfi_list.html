@@ -1,0 +1,86 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "RFIs" %} - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{% trans "RFIs" %}: {{ project.name }}</h1>
+        <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "RFI Log" %}</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>{% trans "Subject" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Date Sent" %}</th>
+                                <th>{% trans "Due Date" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rfi in rfis %}
+                            <tr>
+                                <td>{{ rfi.number }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ rfi.subject }}</div>
+                                    <small class="text-muted">{{ rfi.question|truncatechars:50 }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if rfi.status == 'closed' %}success{% elif rfi.status == 'open' %}warning{% else %}secondary{% endif %}">
+                                        {{ rfi.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ rfi.date_sent|date:"M d, Y" }}</td>
+                                <td>{{ rfi.due_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'rfi_answer' rfi.id %}" class="btn btn-sm btn-outline-primary">
+                                        {% trans "View" %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    {% trans "No RFIs created yet." %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Create RFI" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            <i class="bi bi-send"></i> {% trans "Create RFI" %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

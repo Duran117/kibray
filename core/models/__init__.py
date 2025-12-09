@@ -6401,7 +6401,9 @@ class SubcontractorAssignment(models.Model):
 
     @property
     def balance_due(self):
-        return self.contract_amount - self.amount_paid
+        contract = self.contract_amount or 0
+        paid = self.amount_paid or 0
+        return contract - paid
 
 
 # ---------------------

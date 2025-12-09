@@ -24,12 +24,20 @@ from signatures.api.views import SignatureViewSet
 signatures_router = DefaultRouter()
 signatures_router.register(r"signatures", SignatureViewSet, basename="signature")
 
+# Custom Logout View to handle GET requests
+class CustomLogoutView(LogoutView):
+    http_method_names = ["get", "post"]
+    next_page = "login"
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
 urlpatterns = [
     # Home
     path("", views.root_redirect, name="home"),
     # Auth
     path("login/", auth_views.LoginView.as_view(template_name="core/login.html"), name="login"),
-    path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
+    path("logout/", CustomLogoutView.as_view(), name="logout"),
     
     # Phase 4 React Navigation App (SPA routes)
     path("files/", views.navigation_app_view, name="navigation_files"),

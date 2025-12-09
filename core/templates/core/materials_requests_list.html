@@ -1,0 +1,89 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Material Requests" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">{% trans "Material Requests" %}</h1>
+            {% if project %}
+            <p class="text-muted mb-0">{{ project.name }}</p>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            {% if project %}
+            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
+            </a>
+            {# TODO: Implement material_request_create view #}
+            {# <a href="{% url 'material_request_create' project.id %}" class="btn btn-primary"> #}
+            {#    <i class="bi bi-plus-lg"></i> {% trans "New Request" %} #}
+            {# </a> #}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex gap-2">
+                <a href="?status=" class="btn btn-sm {% if not status_filter %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                    {% trans "All" %}
+                </a>
+                <a href="?status=draft" class="btn btn-sm {% if status_filter == 'draft' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                    {% trans "Drafts" %}
+                </a>
+                <a href="?status=submitted" class="btn btn-sm {% if status_filter == 'submitted' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                    {% trans "Submitted" %}
+                </a>
+                <a href="?status=approved" class="btn btn-sm {% if status_filter == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    {% trans "Approved" %}
+                </a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "ID" %}</th>
+                        {% if not project %}<th>{% trans "Project" %}</th>{% endif %}
+                        <th>{% trans "Date Needed" %}</th>
+                        <th>{% trans "Requested By" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Items" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td>#{{ req.id }}</td>
+                        {% if not project %}<td>{{ req.project.name }}</td>{% endif %}
+                        <td>{{ req.date_needed|date:"M d, Y" }}</td>
+                        <td>{{ req.requested_by.get_full_name|default:req.requested_by.username }}</td>
+                        <td>
+                            <span class="badge bg-{% if req.status == 'approved' %}success{% elif req.status == 'submitted' %}warning{% else %}secondary{% endif %}">
+                                {{ req.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ req.items.count }}</td>
+                        <td>
+                            <a href="{% url 'material_request_detail' req.id %}" class="btn btn-sm btn-outline-primary">
+                                {% trans "View" %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if project %}6{% else %}7{% endif %}" class="text-center py-4 text-muted">
+                            {% trans "No material requests found." %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

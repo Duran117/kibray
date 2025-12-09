@@ -29,6 +29,9 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "django_filters",
     "storages",
+    "django.contrib.humanize",
+    "crispy_forms",
+    "crispy_bootstrap5",
     "core",
     "signatures",
     "reports",
@@ -169,6 +172,10 @@ BI_TOP_PERFORMERS_LIMIT = int(os.getenv("BI_TOP_PERFORMERS_LIMIT", "5"))
 
 # Feature Flags
 TOUCHUP_PIN_ENABLED = False
+
+# Crispy Forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Celery - Test Configuration
 if os.getenv("PYTEST_CURRENT_TEST") or os.getenv("RUN_TESTS") == "1":
