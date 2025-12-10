@@ -9539,6 +9539,12 @@ def daily_plan_timeline(request, plan_id):
     
     activities = plan.activities.all().order_by('start_time', 'order')
     activities_data = PlannedActivitySerializer(activities, many=True).data
+    
+    # Fetch employees for assignment dropdown
+    from core.models import Employee
+    employees = Employee.objects.filter(is_active=True).values('id', 'first_name', 'last_name')
+    employees_json = json.dumps(list(employees), default=str)
+    
     activities_json = json.dumps(activities_data, default=str)
     
     return render(
@@ -9547,5 +9553,6 @@ def daily_plan_timeline(request, plan_id):
         {
             "plan": plan,
             "activities_json": activities_json,
+            "employees_json": employees_json,
         },
     )
