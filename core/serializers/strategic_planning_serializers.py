@@ -36,7 +36,7 @@ class StrategicMaterialRequirementSerializer(serializers.ModelSerializer):
     class Meta:
         model = StrategicMaterialRequirement
         fields = [
-            'id', 'name', 'quantity', 'unit', 'notes',
+            'id', 'strategic_item', 'name', 'quantity', 'unit', 'notes',
             'linked_catalog_item', 'linked_inventory_item',
             'is_on_hand'
         ]

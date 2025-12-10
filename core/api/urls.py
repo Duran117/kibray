@@ -104,7 +104,9 @@ from .views import (
 from core.views.strategic_planning_views import (
     StrategicPlanningSessionViewSet,
     StrategicItemViewSet,
-    StrategicTaskViewSet
+    StrategicTaskViewSet,
+    StrategicSubtaskViewSet,
+    StrategicMaterialViewSet
 )
 
 router = DefaultRouter()
@@ -200,6 +202,8 @@ router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
 router.register(r"strategic/sessions", StrategicPlanningSessionViewSet, basename="strategic-session")
 router.register(r"strategic/items", StrategicItemViewSet, basename="strategic-item")
 router.register(r"strategic/tasks", StrategicTaskViewSet, basename="strategic-task")
+router.register(r"strategic/subtasks", StrategicSubtaskViewSet, basename="strategic-subtask")
+router.register(r"strategic/materials", StrategicMaterialViewSet, basename="strategic-material")
 
 urlpatterns = [
     # Health Check Endpoints (Phase 7 - Step 45)

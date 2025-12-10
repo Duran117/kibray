@@ -82,6 +82,25 @@
                             </div>
                         </div>
                         
+                        <!-- Location & Assignments -->
+                        <div class="mb-2 flex flex-wrap gap-1">
+                            {% if item.location_area %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                    <i class="bi bi-geo-alt mr-1"></i> {{ item.location_area }}
+                                </span>
+                            {% endif %}
+                            
+                            {% if item.assigned_to.exists %}
+                                <div class="flex -space-x-1 overflow-hidden">
+                                    {% for emp in item.assigned_to.all %}
+                                        <div class="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-kibray-100 flex items-center justify-center text-[10px] font-bold text-kibray-700" title="{{ emp.first_name }} {{ emp.last_name }}">
+                                            {{ emp.first_name|first }}{{ emp.last_name|first }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
                         <!-- Tasks Preview -->
                         <div class="space-y-1 mt-2">
                             {% if item.tasks.exists %}
@@ -93,9 +112,28 @@
                                 </div>
                                 {% endfor %}
                             {% endif %}
-                            <button onclick="openAddTaskModal('{{ item.id }}', '{{ item.title|escapejs }}')" class="text-xs text-kibray-600 hover:text-kibray-800 font-medium mt-1 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i class="bi bi-plus-circle mr-1"></i> {% trans "Add Task" %}
-                            </button>
+
+                            <!-- Materials Preview -->
+                            {% if item.material_requirements.exists %}
+                                <div class="pt-1 border-t border-gray-100 mt-1">
+                                {% for mat in item.material_requirements.all %}
+                                <div class="flex items-center text-xs text-gray-600">
+                                    <i class="bi bi-box-seam mr-2 text-[10px] text-amber-600"></i>
+                                    <span class="truncate flex-1">{{ mat.name }}</span>
+                                    <span class="text-gray-400 text-[10px]">{{ mat.quantity }} {{ mat.unit }}</span>
+                                </div>
+                                {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <div class="flex gap-3 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="openAddTaskModal('{{ item.id }}', '{{ item.title|escapejs }}')" class="text-xs text-kibray-600 hover:text-kibray-800 font-medium flex items-center">
+                                    <i class="bi bi-plus-circle mr-1"></i> {% trans "Task" %}
+                                </button>
+                                <button onclick="openAddMaterialModal('{{ item.id }}', '{{ item.title|escapejs }}')" class="text-xs text-amber-600 hover:text-amber-800 font-medium flex items-center">
+                                    <i class="bi bi-box-seam mr-1"></i> {% trans "Material" %}
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="mt-3 flex justify-between items-center text-xs text-gray-500">
@@ -135,6 +173,19 @@
                     <div class="mb-3">
                         <label class="block text-sm font-medium text-gray-700">{% trans "Estimated Hours" %}</label>
                         <input type="number" name="estimated_hours" step="0.5" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" value="1.0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Location / Area" %}</label>
+                        <input type="text" name="location_area" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" placeholder="e.g. Kitchen, Exterior">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Assign To" %}</label>
+                        <select name="assigned_to" multiple class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md h-24">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">{% trans "Hold Ctrl/Cmd to select multiple" %}</p>
                     </div>
                     <div class="mb-3">
                         <label class="block text-sm font-medium text-gray-700">{% trans "Priority" %}</label>
@@ -177,6 +228,15 @@
                         <label class="block text-sm font-medium text-gray-700">{% trans "Estimated Hours" %}</label>
                         <input type="number" name="estimated_hours" step="0.25" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" value="0.5">
                     </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Assign To (Override)" %}</label>
+                        <select name="assigned_to" multiple class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md h-24">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">{% trans "Optional: Override item assignment" %}</p>
+                    </div>
                 </form>
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
@@ -184,6 +244,48 @@
                     {% trans "Add Task" %}
                 </button>
                 <button type="button" onclick="closeAddTaskModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Material Modal -->
+<div id="addMaterialModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAddMaterialModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{% trans "Add Material to" %} <span id="materialModalItemName"></span></h3>
+                <form id="addMaterialForm">
+                    <input type="hidden" id="materialItemId" name="strategic_item">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Material Name" %}</label>
+                        <input type="text" name="name" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required placeholder="e.g. Cement, 2x4 Lumber">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">{% trans "Quantity" %}</label>
+                            <input type="number" name="quantity" step="0.01" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">{% trans "Unit" %}</label>
+                            <input type="text" name="unit" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required placeholder="e.g. kg, pcs, m">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Notes" %}</label>
+                        <textarea name="notes" rows="2" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitAddMaterial()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Add Material" %}
+                </button>
+                <button type="button" onclick="closeAddMaterialModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                     {% trans "Cancel" %}
                 </button>
             </div>
@@ -244,7 +346,13 @@
     function submitAddItem() {
         const form = document.getElementById('addItemForm');
         const formData = new FormData(form);
+        
+        // Handle multi-select for assigned_to
+        const assignedToSelect = form.querySelector('select[name="assigned_to"]');
+        const assignedToValues = Array.from(assignedToSelect.selectedOptions).map(option => option.value);
+        
         const data = Object.fromEntries(formData.entries());
+        data.assigned_to = assignedToValues; // Override with array
         
         fetch('/api/v1/strategic/items/', {
             method: 'POST',
@@ -277,7 +385,13 @@
     function submitAddTask() {
         const form = document.getElementById('addTaskForm');
         const formData = new FormData(form);
+        
+        // Handle multi-select for assigned_to
+        const assignedToSelect = form.querySelector('select[name="assigned_to"]');
+        const assignedToValues = Array.from(assignedToSelect.selectedOptions).map(option => option.value);
+        
         const data = Object.fromEntries(formData.entries());
+        data.assigned_to = assignedToValues; // Override with array
         
         fetch('/api/v1/strategic/tasks/', {
             method: 'POST',
@@ -292,6 +406,42 @@
                 window.location.reload();
             } else {
                 alert('Error adding task');
+            }
+        });
+    }
+
+    function openAddMaterialModal(itemId, itemName) {
+        document.getElementById('materialItemId').value = itemId;
+        document.getElementById('materialModalItemName').textContent = itemName;
+        document.getElementById('addMaterialModal').classList.remove('hidden');
+    }
+
+    function closeAddMaterialModal() {
+        document.getElementById('addMaterialModal').classList.add('hidden');
+        document.getElementById('addMaterialForm').reset();
+    }
+
+    function submitAddMaterial() {
+        const form = document.getElementById('addMaterialForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Ensure strategic_item is an integer
+        data.strategic_item = parseInt(data.strategic_item);
+        
+        fetch('/api/v1/strategic/materials/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                response.json().then(data => alert('Error: ' + JSON.stringify(data)));
             }
         });
     }

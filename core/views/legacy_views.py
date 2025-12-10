@@ -5541,7 +5541,44 @@ def project_overview(request, project_id: int):
         "client": getattr(project, "client", None),
     }
 
-    colors = Color.objects.filter(project=project).order_by("name") if Color else []
+    colors = []
+    if Color:
+        colors = list(Color.objects.filter(project=project).order_by("name"))
+    
+    # Fallback: If no Color model records found, parse from Project text fields
+    if not colors:
+        class SimpleColor:
+            def __init__(self, name, code=None, brand=None):
+                self.name = name
+                self.code = code
+                self.brand = brand
+        
+        # 1. Paint Colors
+        if getattr(project, 'paint_colors', None):
+            # Split by comma or newline
+            import re
+            items = re.split(r'[,\n]+', project.paint_colors)
+            for item in items:
+                clean_item = item.strip()
+                if clean_item:
+                    colors.append(SimpleColor(name=clean_item, brand="Paint"))
+
+        # 2. Paint Codes
+        if getattr(project, 'paint_codes', None):
+            items = re.split(r'[,\n]+', project.paint_codes)
+            for item in items:
+                clean_item = item.strip()
+                if clean_item:
+                    colors.append(SimpleColor(name=clean_item, brand="Code"))
+
+        # 3. Stains/Finishes
+        if getattr(project, 'stains_or_finishes', None):
+            items = re.split(r'[,\n]+', project.stains_or_finishes)
+            for item in items:
+                clean_item = item.strip()
+                if clean_item:
+                    colors.append(SimpleColor(name=clean_item, brand="Finish"))
+
     upcoming_schedules = Schedule.objects.filter(project=project).order_by("start_datetime")[:10] if Schedule else []
     recent_tasks = Task.objects.filter(project=project).order_by("-id")[:10] if Task else []
     recent_issues = Issue.objects.filter(project=project).order_by("-created_at")[:10] if Issue else []

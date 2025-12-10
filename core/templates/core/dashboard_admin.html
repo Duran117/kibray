@@ -546,16 +546,14 @@
             <span class="small text-nowrap">{% trans "BI Dashboard" %}</span>
           </a>
         </div>
-        <!-- Daily Plans (fallback to planner if route not available) -->
-        <!--
+        <!-- Daily Plans -->
         <div class="col-6 col-md-3">
-          <a href="{% url 'strategic_planning_dashboard' %}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
+          <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">
             <i class="bi bi-calendar-check fs-3 d-none d-md-block"></i>
             <i class="bi bi-calendar-check fs-5 d-md-none"></i>
             <span class="small text-nowrap">{% trans "Daily Plans" %}</span>
           </a>
         </div>
-        -->
         <!-- Morning View -->
         <div class="col-6 col-md-3">
           <a href="{% url 'dashboard_employee' %}" class="btn btn-outline-secondary w-100 d-flex flex-column align-items-center gap-1 py-3 hover-lift">

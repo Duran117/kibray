@@ -6,13 +6,17 @@ from django.utils.translation import gettext_lazy as _
 from core.models import (
     StrategicPlanningSession,
     StrategicItem,
-    StrategicTask
+    StrategicTask,
+    StrategicSubtask,
+    StrategicMaterialRequirement
 )
 from core.serializers.strategic_planning_serializers import (
     StrategicPlanningSessionSerializer,
     StrategicPlanningSessionDetailSerializer,
     StrategicItemSerializer,
-    StrategicTaskSerializer
+    StrategicTaskSerializer,
+    StrategicSubtaskSerializer,
+    StrategicMaterialRequirementSerializer
 )
 from core.services.strategic_planning_service import StrategicPlanningService
 
@@ -53,6 +57,9 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
             
         except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"ERROR creating session: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
@@ -152,3 +159,21 @@ class StrategicTaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     queryset = StrategicTask.objects.all()
     serializer_class = StrategicTaskSerializer
+
+
+class StrategicSubtaskViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing Strategic Subtasks.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = StrategicSubtask.objects.all()
+    serializer_class = StrategicSubtaskSerializer
+
+
+class StrategicMaterialViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing Strategic Material Requirements.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = StrategicMaterialRequirement.objects.all()
+    serializer_class = StrategicMaterialRequirementSerializer

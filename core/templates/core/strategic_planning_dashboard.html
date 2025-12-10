@@ -230,9 +230,8 @@
                 return response.json();
             })
             .then(session => {
-                // Close modal and reload page to see new session
-                document.getElementById('createSessionModal').classList.add('hidden');
-                window.location.reload();
+                // Redirect to the new session detail page
+                window.location.href = `/planner/strategic/${session.id}/`;
             })
             .catch(error => {
                 console.error('Error:', error);

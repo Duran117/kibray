@@ -134,6 +134,16 @@
       <i class="bi bi-people text-3xl mb-2 d-block"></i>
       <span class="text-sm font-medium">{% trans "Client Requests" %}</span>
     </a>
+    <!-- Daily Plans -->
+    <a href="{% url 'daily_planning_dashboard' %}" class="bg-white rounded-lg shadow-sm border-l-4 border-teal-500 p-4 text-center hover:shadow-lg hover:-translate-y-1 transition">
+      <i class="bi bi-calendar-check text-3xl mb-2 d-block"></i>
+      <span class="text-sm font-medium">{% trans "Daily Plans" %}</span>
+    </a>
+    <!-- Strategic Planner -->
+    <a href="{% url 'strategic_planning_dashboard' %}" class="bg-white rounded-lg shadow-sm border-l-4 border-purple-500 p-4 text-center hover:shadow-lg hover:-translate-y-1 transition">
+      <i class="bi bi-compass text-3xl mb-2 d-block"></i>
+      <span class="text-sm font-medium">{% trans "Strategic Planner" %}</span>
+    </a>
     <!-- Budget -->
     <a href="{% url 'budget_lines' project.id %}" class="bg-white rounded-lg shadow-sm border-l-4 border-yellow-500 p-4 text-center hover:shadow-lg hover:-translate-y-1 transition">
       <i class="bi bi-wallet2 text-3xl mb-2 d-block"></i>

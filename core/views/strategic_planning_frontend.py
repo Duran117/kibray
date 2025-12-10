@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from core.models import StrategicPlanningSession
+from core.models import StrategicPlanningSession, Employee
 
 class StrategicPlanningDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "core/strategic_planning_dashboard.html"
@@ -39,4 +39,6 @@ class StrategicPlanningDetailView(LoginRequiredMixin, TemplateView):
         )
         
         context['session'] = session
+        # Pass active employees for assignment dropdowns
+        context['employees'] = Employee.objects.filter(is_active=True).order_by('first_name')
         return context
