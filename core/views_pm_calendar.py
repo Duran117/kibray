@@ -335,9 +335,15 @@ def pm_calendar_api_data(request):
     end_str = request.GET.get('end')
     
     if start_str and end_str:
-        from datetime import datetime
-        start_date = datetime.fromisoformat(start_str.replace('Z', '')).date()
-        end_date = datetime.fromisoformat(end_str.replace('Z', '')).date()
+        try:
+            from datetime import datetime
+            # Handle potential ISO format variations
+            start_date = datetime.fromisoformat(start_str.replace('Z', '')).date()
+            end_date = datetime.fromisoformat(end_str.replace('Z', '')).date()
+        except (ValueError, TypeError):
+            # Fallback if date parsing fails
+            start_date = today - timedelta(days=30)
+            end_date = today + timedelta(days=90)
     else:
         start_date = today - timedelta(days=30)
         end_date = today + timedelta(days=90)
@@ -421,7 +427,7 @@ def pm_calendar_api_data(request):
                 'type': 'invoice',
                 'project': invoice.project.name,
                 'project_id': invoice.project.id,
-                'amount': float(invoice.total),
+                'amount': float(invoice.total_amount),
                 'days_until': days_until,
             }
         })
