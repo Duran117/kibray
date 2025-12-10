@@ -112,10 +112,13 @@ def get_master_schedule_data(request):
     ).select_related('project')
     
     for co in change_orders:
+        # Handle date_created being DateTimeField
+        start_date = co.date_created.date() if hasattr(co.date_created, 'date') else co.date_created
+        
         events_data.append({
             'title': f"🔧 CO #{co.id}",
-            'start': co.date_created.isoformat(),
-            'end': co.date_created.isoformat(),
+            'start': start_date.isoformat(),
+            'end': start_date.isoformat(),
             'type': 'change_order',
             'color': '#f59e0b',  # Orange
             'url': f"/changeorder/{co.id}/",

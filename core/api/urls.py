@@ -9,6 +9,7 @@ from drf_spectacular.views import (
 
 from .dashboard_extra import ClientDashboardView, ProjectDashboardView
 from . import sop_api
+from . import schedule_api
 
 # Health check endpoints
 from core.views_health import (
@@ -247,6 +248,9 @@ urlpatterns = [
     # SOP Express API
     path("sop/generate/", sop_api.generate_sop_with_ai, name="sop-generate-ai"),
     path("sop/save/", sop_api.save_sop, name="sop-save"),
+
+    # Master Schedule API
+    path("schedule/master/", schedule_api.get_master_schedule_data, name="api-schedule-master"),
 
     # Include router URLs
     path("", include(router.urls)),
