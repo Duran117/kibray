@@ -5675,6 +5675,18 @@ class PlannedActivity(models.Model):
     description = models.TextField(blank=True)
     order = models.IntegerField(default=0, help_text="Order in the daily plan")
 
+    # Hierarchy & Timeline (Dec 2025)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="sub_activities",
+        help_text="Parent activity for nesting (Item -> Task -> Subtask)",
+    )
+    start_time = models.TimeField(null=True, blank=True, help_text="Scheduled start time")
+    end_time = models.TimeField(null=True, blank=True, help_text="Scheduled end time")
+
     # Assignment
     assigned_employees = models.ManyToManyField(
         Employee, related_name="assigned_activities", help_text="Employees assigned to this activity"

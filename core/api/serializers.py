@@ -1490,9 +1490,12 @@ class PlannedActivitySerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "daily_plan",
+            "parent",
             "title",
             "description",
             "order",
+            "start_time",
+            "end_time",
             "assigned_employee_ids",
             "assigned_employee_names",
             "is_group_activity",

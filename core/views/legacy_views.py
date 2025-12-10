@@ -9526,3 +9526,26 @@ def proposal_public_view(request, token):
     }
     
     return render(request, "core/proposal_public.html", context)
+
+@login_required
+def daily_plan_timeline(request, plan_id):
+    """Timeline view for a daily plan (Module 12.8)."""
+    if not _is_staffish(request.user):
+        return HttpResponseForbidden("Access denied")
+    
+    from core.api.serializers import PlannedActivitySerializer
+    
+    plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
+    
+    activities = plan.activities.all().order_by('start_time', 'order')
+    activities_data = PlannedActivitySerializer(activities, many=True).data
+    activities_json = json.dumps(activities_data, default=str)
+    
+    return render(
+        request,
+        "core/daily_plan_timeline.html",
+        {
+            "plan": plan,
+            "activities_json": activities_json,
+        },
+    )

@@ -392,8 +392,11 @@ urlpatterns = [
     path("inventory/adjust/<int:item_id>/<int:location_id>/", views.inventory_adjust, name="inventory_adjust"),
     # Daily Planning System
     path("planning/", views.daily_planning_dashboard, name="daily_planning_dashboard"),
+    path("planning/list/", views.daily_plan_list, name="daily_plan_list"),
     path("planning/project/<int:project_id>/create/", views.daily_plan_create, name="daily_plan_create"),
+    path("planning/<int:plan_id>/", views.daily_plan_detail, name="daily_plan_detail"),
     path("planning/<int:plan_id>/edit/", views.daily_plan_edit, name="daily_plan_edit"),
+    path("planning/<int:plan_id>/timeline/", views.daily_plan_timeline, name="daily_plan_timeline"),
     path(
         "planning/activity/<int:activity_id>/delete/",
         views.daily_plan_delete_activity,

@@ -7,6 +7,7 @@
     <h2 class="mb-0">{% trans "Daily Plan" %}: {{ plan.plan_date }}</h2>
     <div>
       <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> {% trans "Edit" %}</a>
+      <a href="{% url 'daily_plan_timeline' plan.id %}" class="btn btn-sm btn-outline-info ms-1"><i class="bi bi-calendar-range"></i> {% trans "Timeline" %}</a>
       <a href="{% url 'daily_plan_list' %}" class="btn btn-sm btn-outline-secondary ms-1"><i class="bi bi-list"></i></a>
     </div>
   </div>
