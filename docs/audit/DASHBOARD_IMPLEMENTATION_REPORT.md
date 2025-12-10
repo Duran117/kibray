@@ -1,7 +1,7 @@
 # Dashboard Coverage Report vs Backend (Informe)
 
 **Date / Fecha:** 2025-12-10  
-**Objective / Objetivo:** Identificar qué tan completo está el reflejo de las funciones de backend en los dashboards (sin escribir código).
+**Objective / Objetivo:** Identificar que tan completo está el reflejo de las funciones de backend en los dashboards (sin escribir código).
 
 ## Scope and Method (Alcance y método)
 - Revisión de vistas y templates de dashboards: `core/views_financial.py`, `core/views/bi_views.py` y `core/templates/core/dashboard_*.html` (por ejemplo, `dashboard_bi.html`, `financial_dashboard.html`, `dashboard_pm.html`, `dashboard_client.html`).
