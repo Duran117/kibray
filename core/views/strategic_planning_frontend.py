@@ -41,4 +41,25 @@ class StrategicPlanningDetailView(LoginRequiredMixin, TemplateView):
         context['session'] = session
         # Pass active employees for assignment dropdowns
         context['employees'] = Employee.objects.filter(is_active=True).order_by('first_name')
+        
+        # Prepare data for Gantt View
+        import json
+        gantt_items = []
+        day_map = {} # Map date string to day ID
+        
+        for day in session.days.all():
+            day_map[day.target_date.isoformat()] = day.id
+            for item in day.items.all():
+                gantt_items.append({
+                    'id': item.id,
+                    'title': item.title,
+                    'start_date': day.target_date.isoformat(),
+                    'duration': item.duration_days,
+                    'day_id': day.id,
+                    'priority': item.priority,
+                    'assigned_to': [e.id for e in item.assigned_to.all()]
+                })
+        context['gantt_items_json'] = json.dumps(gantt_items)
+        context['day_map_json'] = json.dumps(day_map)
+        
         return context

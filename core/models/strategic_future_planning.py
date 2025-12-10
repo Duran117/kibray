@@ -348,6 +348,13 @@ class StrategicItem(models.Model):
         help_text=_('Total estimated hours for this item (sum of all tasks)')
     )
     
+    # Duration for Gantt View
+    duration_days = models.PositiveIntegerField(
+        default=1,
+        verbose_name=_('Duration (Days)'),
+        help_text=_('How many days will this item take? Used for Gantt view.')
+    )
+
     # Assignments
     assigned_to = models.ManyToManyField(
         'Employee',
