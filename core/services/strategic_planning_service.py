@@ -395,6 +395,18 @@ class StrategicPlanningService:
                     schedule_item=day.linked_schedule_item
                 )
                 
+                # Create Sub-activities for Tasks (New Dec 2025)
+                for i, task in enumerate(tasks):
+                    PlannedActivity.objects.create(
+                        daily_plan=daily_plan,
+                        parent=activity,
+                        title=task.description,
+                        description=f"Task derived from strategic item: {item.title}",
+                        order=i,
+                        estimated_hours=task.estimated_hours if task.estimated_hours else 0,
+                        is_group_activity=False # Tasks are usually individual
+                    )
+                
                 # Assign employees
                 if item.assigned_to.exists():
                     activity.assigned_employees.set(item.assigned_to.all())

@@ -9537,15 +9537,37 @@ def daily_plan_timeline(request, plan_id):
     
     plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
     
-    activities = plan.activities.all().order_by('start_time', 'order')
-    activities_data = PlannedActivitySerializer(activities, many=True).data
+    # Fetch surrounding plans (e.g., +/- 7 days) for context
+    start_date = plan.plan_date - timedelta(days=3)
+    end_date = plan.plan_date + timedelta(days=3)
+    
+    related_plans = DailyPlan.objects.filter(
+        project=plan.project,
+        plan_date__range=[start_date, end_date]
+    ).prefetch_related('activities')
+    
+    all_activities = []
+    for p in related_plans:
+        p_activities = p.activities.all().order_by('start_time', 'order')
+        # We need to inject the plan_date into the activity data for the frontend
+        serialized = PlannedActivitySerializer(p_activities, many=True).data
+        for item in serialized:
+            item['plan_date'] = p.plan_date.isoformat()
+        all_activities.extend(serialized)
     
     # Fetch employees for assignment dropdown
     from core.models import Employee
     employees = Employee.objects.filter(is_active=True).values('id', 'first_name', 'last_name')
     employees_json = json.dumps(list(employees), default=str)
     
-    activities_json = json.dumps(activities_data, default=str)
+    activities_json = json.dumps(all_activities, default=str)
+    
+    # Pass date range info
+    timeline_config = {
+        'start_date': start_date.isoformat(),
+        'end_date': end_date.isoformat(),
+        'focus_date': plan.plan_date.isoformat()
+    }
     
     return render(
         request,
@@ -9554,5 +9576,6 @@ def daily_plan_timeline(request, plan_id):
             "plan": plan,
             "activities_json": activities_json,
             "employees_json": employees_json,
+            "timeline_config": json.dumps(timeline_config)
         },
     )
