@@ -147,6 +147,10 @@
         height: 40px;
         border-bottom: 1px solid #f5f5f5;
         z-index: 0;
+        cursor: pointer; /* Indicate clickable */
+    }
+    .timeline-row-bg:hover {
+        background-color: #f0f9ff !important; /* Highlight on hover */
     }
     .timeline-row-bg:nth-child(even) {
         background-color: #fcfcfc;
@@ -245,6 +249,29 @@
             const bgDiv = document.createElement('div');
             bgDiv.className = 'timeline-row-bg';
             bgDiv.style.top = `${index * rowHeight}px`;
+            bgDiv.dataset.rowIndex = index;
+            bgDiv.dataset.activityId = activity.id;
+            bgDiv.title = "{% trans 'Click to schedule' %} " + activity.title;
+            
+            // Click empty row to schedule
+            bgDiv.onclick = function(e) {
+                // Only if clicking the background, not an activity
+                if (e.target === bgDiv) {
+                    const rect = bgDiv.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    
+                    // Calculate time from click
+                    // Snap to 30 mins
+                    const rawHours = (clickX / pixelsPerHour) + startHour;
+                    const snappedHours = Math.floor(rawHours * 2) / 2;
+                    
+                    const startTime = formatTime(snappedHours);
+                    const endTime = formatTime(snappedHours + 1); // Default 1 hour
+                    
+                    openEditModal(activity.id, activity.title, activity.description, activity.status, startTime, endTime);
+                }
+            };
+            
             container.appendChild(bgDiv);
 
             // 3. Render Activity Bar (if it has time)
