@@ -12,10 +12,10 @@
 ## Key Findings (Resumen ejecutivo)
 1. **Cobertura parcial (~60-70%)**: Los dashboards visibles (Admin, PM, Financiero, BI, Cliente) muestran KPIs básicos, alertas y accesos rápidos, pero no exponen la mayoría de las analíticas detalladas ni varios flujos avanzados disponibles en backend.
 2. **APIs analíticas no conectadas a UI**: Los endpoints validados en `tests/test_analytics_dashboards.py` están completos y probados, pero ningún dashboard los consume; no hay llamadas a `analytics-*` en los templates.
-3. **Finanzas avanzadas sin UI dedicada**: La lógica de valuación T&M y cálculos financieros (`ChangeOrderService.get_billable_amount`, proyecciones de caja, márgenes) existe. Los dashboards muestran KPIs y riesgos de inventario pero no incluyen vistas de valuación FIFO/LIFO, COGS ni flujo de aprobación de pagos/impuestos de nómina.
+3. **Finanzas avanzadas sin UI dedicada**: La lógica de valuación T&M y cálculos financieros (`ChangeOrderService.get_billable_amount`, proyecciones de caja, márgenes) existe. Los dashboards muestran KPIs y riesgos de inventario. No incluyen vistas de valuación FIFO/LIFO, COGS ni flujo de aprobación de pagos/impuestos de nómina.
 4. **Inventario y materiales en modo mínimo**: El BI sólo lista ítems críticos y el dashboard PM muestra “materiales pendientes”, pero no hay tableros con aging, valorización o rotación de inventario pese a que los modelos/servicios lo soportan.
 5. **Nómina y desempeño**: El backend soporta payroll avanzado y métricas de desempeño (p.ej. `EmployeePerformanceMetric`), con templates dedicadas, pero no hay enlaces ni widgets en los dashboards principales (Admin/PM/Empleado) que expongan bonos, impuestos o cierres de periodo.
-6. **Touch-ups / Color approvals / Salud de proyecto**: Las métricas existen via API (completitud, aging, productividad PM), pero los dashboards siguen mostrando contadores básicos; no hay cards/gráficas que consuman esos endpoints.
+6. **Touch-ups / Color approvals / Salud de proyecto**: Las métricas existen vía API (completitud, aging, productividad PM), pero los dashboards siguen mostrando contadores básicos; no hay cards/gráficas que consuman esos endpoints.
 
 ## Coverage by Area (Detalle)
 | Área backend | Evidencia de implementación | Dashboard surface (Superficie) | Vacíos detectados |
