@@ -6898,6 +6898,7 @@ def daily_plan_detail(request, plan_id):
 def daily_planning_dashboard(request):
     """
     Main dashboard for daily planning - shows all plans and overdue alerts
+    Modern Wizard-style interface
     """
     if not _is_staffish(request.user):
         return HttpResponseForbidden("Access denied")
@@ -6906,7 +6907,7 @@ def daily_planning_dashboard(request):
 
     # Handle create plan form submission
     if request.method == "POST" and request.POST.get("create_plan"):
-        project_id = request.POST.get("project_id")
+        project_id = request.POST.get("project")
         plan_date_str = request.POST.get("plan_date")
 
         if project_id and plan_date_str:
@@ -6917,7 +6918,7 @@ def daily_planning_dashboard(request):
             existing = DailyPlan.objects.filter(project=project, plan_date=plan_date).first()
             if existing:
                 messages.warning(request, _("Plan already exists for %(date)s") % {"date": plan_date})
-                return redirect("daily_plan_edit", plan_id=existing.id)
+                return redirect("daily_plan_detail", plan_id=existing.id)
 
             # Set completion deadline (5pm day before)
             completion_deadline = timezone.make_aware(
@@ -6934,10 +6935,10 @@ def daily_planning_dashboard(request):
             )
 
             messages.success(request, _("Daily plan created for %(date)s") % {"date": plan_date})
-            return redirect("daily_plan_edit", plan_id=plan.id)
+            return redirect("daily_plan_detail", plan_id=plan.id)
 
     # Get recent plans
-    recent_plans = DailyPlan.objects.select_related("project", "created_by").order_by("-plan_date")[:20]
+    recent_plans = DailyPlan.objects.select_related("project", "created_by").prefetch_related("activities").order_by("-plan_date")[:20]
 
     # Check for overdue plans (draft plans past 5pm deadline)
     overdue_plans = DailyPlan.objects.filter(status="DRAFT", completion_deadline__lt=timezone.now()).select_related(
@@ -6945,7 +6946,7 @@ def daily_planning_dashboard(request):
     )
 
     # Get today's plans
-    todays_plans = DailyPlan.objects.filter(plan_date=today).select_related("project")
+    todays_plans = DailyPlan.objects.filter(plan_date=today).select_related("project").prefetch_related("activities", "created_by")
 
     # Get active projects for creating new plans
     active_projects = Project.objects.filter(Q(end_date__gte=today) | Q(end_date__isnull=True)).order_by("name")
@@ -6954,11 +6955,11 @@ def daily_planning_dashboard(request):
         "recent_plans": recent_plans,
         "overdue_plans": overdue_plans,
         "todays_plans": todays_plans,
-        "active_projects": active_projects,
+        "projects": active_projects,
         "today": today,
     }
 
-    return render(request, "core/daily_planning_dashboard.html", context)
+    return render(request, "core/daily_planning_dashboard_modern.html", context)
 
 
 @login_required
