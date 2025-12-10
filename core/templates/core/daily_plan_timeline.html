@@ -6,7 +6,14 @@
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">{% trans "Timeline" %}: {{ plan.plan_date }}</h2>
+        <div class="d-flex align-items-center gap-3">
+            <h2 class="mb-0">{% trans "Timeline" %}</h2>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm" onclick="navigateDate(-14)" title="Previous 2 Weeks"><i class="bi bi-chevron-left"></i></button>
+                <input type="date" id="focus-date-picker" class="form-control form-control-sm" style="width: 130px;" onchange="goToDate(this.value)">
+                <button class="btn btn-outline-secondary btn-sm" onclick="navigateDate(14)" title="Next 2 Weeks"><i class="bi bi-chevron-right"></i></button>
+            </div>
+        </div>
         <div class="d-flex gap-2">
             <div class="btn-group">
                 <button class="btn btn-sm btn-outline-secondary" onclick="changeZoom(0.5)" title="Zoom Out"><i class="bi bi-zoom-out"></i></button>
@@ -185,6 +192,19 @@
         if (currentZoom < 10) currentZoom = 10; // Allow zooming out more
         if (currentZoom > 400) currentZoom = 400;
         renderTimeline();
+    }
+
+    function navigateDate(days) {
+        const currentFocus = new Date(timelineConfig.focus_date);
+        currentFocus.setDate(currentFocus.getDate() + days);
+        const newDateStr = currentFocus.toISOString().split('T')[0];
+        goToDate(newDateStr);
+    }
+
+    function goToDate(dateStr) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('focus_date', dateStr);
+        window.location.href = url.toString();
     }
 
     function renderTimeline() {
@@ -426,6 +446,11 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         editModal = new bootstrap.Modal(document.getElementById('editActivityModal'));
+        
+        // Set date picker value
+        if (timelineConfig.focus_date) {
+            document.getElementById('focus-date-picker').value = timelineConfig.focus_date;
+        }
         
         const empSelect = document.getElementById('edit-employees');
         employeesRaw.forEach(emp => {

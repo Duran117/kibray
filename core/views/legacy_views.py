@@ -9537,9 +9537,19 @@ def daily_plan_timeline(request, plan_id):
     
     plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
     
-    # Fetch surrounding plans (e.g., +/- 7 days) for context
-    start_date = plan.plan_date - timedelta(days=3)
-    end_date = plan.plan_date + timedelta(days=3)
+    # Fetch surrounding plans (e.g., +/- 15 days) for context
+    # Allow overriding the center date via query param to navigate
+    focus_date_str = request.GET.get('focus_date')
+    if focus_date_str:
+        try:
+            focus_date = datetime.strptime(focus_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            focus_date = plan.plan_date
+    else:
+        focus_date = plan.plan_date
+
+    start_date = focus_date - timedelta(days=15)
+    end_date = focus_date + timedelta(days=15)
     
     related_plans = DailyPlan.objects.filter(
         project=plan.project,
@@ -9566,7 +9576,7 @@ def daily_plan_timeline(request, plan_id):
     timeline_config = {
         'start_date': start_date.isoformat(),
         'end_date': end_date.isoformat(),
-        'focus_date': plan.plan_date.isoformat()
+        'focus_date': focus_date.isoformat()
     }
     
     return render(
