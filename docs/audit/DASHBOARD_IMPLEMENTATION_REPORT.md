@@ -29,7 +29,7 @@
 | **Cliente / Portal** | `dashboard_client.html` muestra fotos, facturas, solicitudes y progreso | Cliente sí ve progreso e invoices, pero sin flujos de aprobación/firmas digitales ni pagos en línea. | Añadir acciones para aprobar/firmar y pagar facturas directamente desde el dashboard. |
 
 ## Specific Recommendations (Recomendaciones)
-- Conectar los endpoints de analítica (`analytics-*`) a los dashboards mediante llamadas fetch/AJAX o vistas que inyecten los datos ya probados.
+- Conectar los endpoints analíticos (`analytics-*`) a los dashboards mediante llamadas fetch/AJAX o vistas que inyecten los datos ya probados.
 - Añadir cards en Financial/BI para: valuación de inventario (FIFO/LIFO/AVG), COGS, aging de AR/AP y backlog de change orders con breakdown T&M.
 - Incorporar widgets de nómina (periodo activo, impuestos calculados, bonos pendientes) y accesos rápidos a cierres.
 - Exponer métricas de desempeño y touch-ups (rates, aging, prioridades) en dashboards Admin/PM con los datos existentes.
