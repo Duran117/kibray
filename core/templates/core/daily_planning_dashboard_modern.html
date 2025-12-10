@@ -418,16 +418,22 @@
     }
 
     function submitWizard() {
-        // Create form and submit
+        // Create form and submit to dashboard POST endpoint
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{% url "daily_plan_create" %}';
+        form.action = '{% url "daily_planning_dashboard" %}';
         
         const csrfToken = document.createElement('input');
         csrfToken.type = 'hidden';
         csrfToken.name = 'csrfmiddlewaretoken';
         csrfToken.value = '{{ csrf_token }}';
         form.appendChild(csrfToken);
+        
+        const createPlanFlag = document.createElement('input');
+        createPlanFlag.type = 'hidden';
+        createPlanFlag.name = 'create_plan';
+        createPlanFlag.value = '1';
+        form.appendChild(createPlanFlag);
         
         const projectInput = document.createElement('input');
         projectInput.type = 'hidden';
