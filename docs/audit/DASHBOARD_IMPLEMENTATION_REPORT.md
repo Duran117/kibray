@@ -18,11 +18,11 @@
 6. **Touch-ups / Color approvals / Salud de proyecto**: Las métricas existen via API (completitud, aging, productividad PM), pero los dashboards siguen mostrando contadores básicos; no hay cards/gráficas que consuman esos endpoints.
 
 ## Coverage by Area (Detalle)
-| Área backend | Evidencia de implementación | Superficie actual en dashboards | Vacíos detectados |
+| Área backend | Evidencia de implementación | Dashboard surface (Superficie) | Vacíos detectados |
 | --- | --- | --- | --- |
 | **Finanzas & BI** | `core/views_financial.py`, `core/views/bi_views.py`, `core/services/financial_service.py` | `financial_dashboard.html` y `dashboard_bi.html` muestran KPIs, proyección de flujo, márgenes y riesgos de inventario. | Sin widgets de valuación FIFO/LIFO/AVG ni COGS; no se muestran cuentas por cobrar detalladas ni workflows de pago/impuestos. |
 | **Analíticas (salud de proyecto, touch-ups, approvals, PM performance)** | Endpoints probados en `tests/test_analytics_dashboards.py` | Ningún dashboard HTML llama a `analytics-*`; no hay gráficas/cards usando esos datos. | La funcionalidad analítica está operativa en backend pero no visible en UI. |
-| **Inventario / Materiales** | Modelos y servicios completos; riesgos listados en BI | BI muestra “Inventory Critical List”; PM muestra “Materiales Pendientes”. | Falta dashboard de valorización/aging, rotación y umbrales configurables; no se exponen métodos FIFO/LIFO/AVG. |
+| **Inventario / Materiales** | Modelos y servicios completos; riesgos listados en BI | BI muestra “Inventory Critical List”; PM muestra “Materiales Pendientes”. | Falta dashboard de valoración/aging, rotación y umbrales configurables; no se exponen métodos FIFO/LIFO/AVG. |
 | **Nómina avanzada** | Modelos y vistas (`PayrollRecord`, cálculos en backend) | No hay widgets ni accesos directos en dashboards principales; sólo templates aisladas (`payroll_summary.html`, etc.). | Sin visibilidad de impuestos, bonos, cierres de periodo ni históricos de pagos en dashboards. |
 | **Change Orders T&M** | `ChangeOrderService.get_billable_amount` (desglose T&M) | Dashboards sólo linkean a tableros CO; no muestran breakdown ni alertas de facturación. | Falta card que exponga horas/materiales no facturados y markup aplicado. |
 | **Desempeño de empleados** | `EmployeePerformanceMetric` y templates dedicadas | Sin referencias en `dashboard_admin.html` / `dashboard_pm.html` / `dashboard_employee.html`. | No hay vista rápida de KPIs de desempeño, bonos o certificaciones desde dashboards. |
@@ -30,7 +30,7 @@
 
 ## Specific Recommendations (Recomendaciones)
 - Conectar los endpoints analíticos (`analytics-*`) a los dashboards mediante llamadas fetch/AJAX o vistas que inyecten los datos ya probados.
-- Añadir cards en Financial/BI para: valuación de inventario (FIFO/LIFO/AVG), COGS, aging de AR/AP y backlog de change orders con breakdown T&M.
+- Añadir cards en Financial/BI para: valoración de inventario (FIFO/LIFO/AVG), COGS, aging de AR/AP y backlog de change orders con breakdown T&M.
 - Incorporar widgets de nómina (periodo activo, impuestos calculados, bonos pendientes) y accesos rápidos a cierres.
 - Exponer métricas de desempeño y touch-ups (rates, aging, prioridades) en dashboards Admin/PM con los datos existentes.
 - Extender el dashboard cliente con botones de aprobación/firmado y opciones de pago si el flujo de backend ya lo permite.
