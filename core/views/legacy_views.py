@@ -109,7 +109,7 @@ from core.models import (
 from core.services.earned_value import compute_project_ev
 from core.services.financial_service import FinancialAnalyticsService  # BI Module 21
 
-from .forms import (
+from core.forms import (
     ActivityTemplateForm,
     ActivationWizardForm,
     BudgetLineForm,
@@ -7377,7 +7377,7 @@ def sop_create_edit(request, template_id=None):
             # Handle file uploads for reference files
             uploaded_files = request.FILES.getlist("reference_files")
             if uploaded_files:
-                from .models import SOPReferenceFile
+                from core.models import SOPReferenceFile
 
                 for f in uploaded_files:
                     SOPReferenceFile.objects.create(sop=sop, file=f)
@@ -7463,7 +7463,7 @@ def sop_create_wizard(request, template_id=None):
         # Handle file uploads
         uploaded_files = request.FILES.getlist("reference_files")
         if uploaded_files:
-            from .models import SOPReferenceFile
+            from core.models import SOPReferenceFile
 
             for f in uploaded_files:
                 SOPReferenceFile.objects.create(sop=sop, file=f)

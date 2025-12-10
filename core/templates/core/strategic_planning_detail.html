@@ -1,0 +1,340 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ session.project.name }} - {% trans "Strategic Plan" %}{% endblock %}
+
+{% block content %}
+<div class="h-[calc(100vh-8rem)] flex flex-col">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200 px-4 py-4 sm:px-6 mb-4 rounded-lg">
+        <div class="flex justify-between items-center">
+            <div>
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-900 mr-3">{{ session.project.name }}</h1>
+                    {% if session.status == 'DRAFT' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">{% trans "Draft" %}</span>
+                    {% elif session.status == 'IN_REVIEW' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">{% trans "In Review" %}</span>
+                    {% elif session.status == 'APPROVED' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{% trans "Approved" %}</span>
+                    {% endif %}
+                    
+                    {% if session.exported_to_daily_plan %}
+                        <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{% trans "Exported" %}</span>
+                    {% endif %}
+                </div>
+                <p class="text-sm text-gray-500 mt-1">
+                    {{ session.date_range_start|date:"M d" }} - {{ session.date_range_end|date:"M d, Y" }}
+                    <span class="mx-2">•</span>
+                    {{ session.days.count }} {% trans "Days" %}
+                </p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{% url 'strategic_planning_dashboard' %}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                    <i class="bi bi-arrow-left mr-2"></i> {% trans "Back" %}
+                </a>
+                
+                {% if session.status == 'DRAFT' %}
+                <button onclick="updateStatus('IN_REVIEW')" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-kibray-600 hover:bg-kibray-700 focus:outline-none">
+                    <i class="bi bi-check2-circle mr-2"></i> {% trans "Submit for Review" %}
+                </button>
+                {% endif %}
+
+                {% if session.status == 'IN_REVIEW' %}
+                <button onclick="updateStatus('APPROVED')" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none">
+                    <i class="bi bi-check-circle mr-2"></i> {% trans "Approve Plan" %}
+                </button>
+                {% endif %}
+                
+                {% if session.status == 'APPROVED' and not session.exported_to_daily_plan %}
+                <button onclick="exportToDailyPlan()" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none">
+                    <i class="bi bi-box-arrow-up-right mr-2"></i> {% trans "Export to Daily Plan" %}
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Board Area (Horizontal Scroll) -->
+    <div class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 rounded-lg p-4">
+        <div class="flex space-x-4 h-full" style="min-width: min-content;">
+            {% for day in session.days.all %}
+            <!-- Day Column -->
+            <div class="w-80 flex-shrink-0 flex flex-col bg-gray-50 rounded-lg border border-gray-200 shadow-sm h-full">
+                <!-- Day Header -->
+                <div class="p-3 border-b border-gray-200 bg-white rounded-t-lg sticky top-0 z-10">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-900">{{ day.target_date|date:"l" }}</h3>
+                        <span class="text-xs font-medium text-gray-500">{{ day.estimated_total_hours }}h</span>
+                    </div>
+                    <div class="text-sm text-gray-500">{{ day.target_date|date:"M d" }}</div>
+                </div>
+
+                <!-- Items List (Vertical Scroll) -->
+                <div class="flex-1 overflow-y-auto p-2 space-y-3 custom-scrollbar item-container" data-day-id="{{ day.id }}">
+                    {% for item in day.items.all %}
+                    <div class="bg-white p-3 rounded border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer group" data-item-id="{{ item.id }}">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-sm font-medium text-gray-900">{{ item.title }}</span>
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="text-gray-400 hover:text-kibray-600"><i class="bi bi-pencil"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tasks Preview -->
+                        <div class="space-y-1 mt-2">
+                            {% if item.tasks.exists %}
+                                {% for task in item.tasks.all %}
+                                <div class="flex items-center text-xs text-gray-600 group/task">
+                                    <i class="bi bi-circle mr-2 text-[10px]"></i>
+                                    <span class="truncate flex-1">{{ task.description }}</span>
+                                    <span class="text-gray-400 text-[10px]">{{ task.estimated_hours }}h</span>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                            <button onclick="openAddTaskModal('{{ item.id }}', '{{ item.title|escapejs }}')" class="text-xs text-kibray-600 hover:text-kibray-800 font-medium mt-1 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="bi bi-plus-circle mr-1"></i> {% trans "Add Task" %}
+                            </button>
+                        </div>
+                        
+                        <div class="mt-3 flex justify-between items-center text-xs text-gray-500">
+                            <span>{{ item.estimated_hours }}h</span>
+                            {% if item.priority == 'CRITICAL' %}
+                                <span class="text-red-600 font-bold">!!!</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Add Item Button -->
+                    <button onclick="openAddItemModal('{{ day.id }}', '{{ day.target_date|date:'Y-m-d' }}')" class="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-kibray-500 hover:text-kibray-600 transition-colors text-sm font-medium">
+                        <i class="bi bi-plus"></i> {% trans "Add Item" %}
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Item Modal -->
+<div id="addItemModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAddItemModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{% trans "Add Item to" %} <span id="modalDateDisplay"></span></h3>
+                <form id="addItemForm">
+                    <input type="hidden" id="dayId" name="strategic_day">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Item Name" %}</label>
+                        <input type="text" name="title" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Estimated Hours" %}</label>
+                        <input type="number" name="estimated_hours" step="0.5" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" value="1.0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Priority" %}</label>
+                        <select name="priority" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md">
+                            <option value="MEDIUM">{% trans "Medium" %}</option>
+                            <option value="HIGH">{% trans "High" %}</option>
+                            <option value="CRITICAL">{% trans "Critical" %}</option>
+                            <option value="LOW">{% trans "Low" %}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitAddItem()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Add Item" %}
+                </button>
+                <button type="button" onclick="closeAddItemModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div id="addTaskModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAddTaskModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{% trans "Add Task to" %} <span id="taskModalItemName"></span></h3>
+                <form id="addTaskForm">
+                    <input type="hidden" id="taskItemId" name="strategic_item">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Task Name" %}</label>
+                        <input type="text" name="description" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Estimated Hours" %}</label>
+                        <input type="number" name="estimated_hours" step="0.25" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" value="0.5">
+                    </div>
+                </form>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitAddTask()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Add Task" %}
+                </button>
+                <button type="button" onclick="closeAddTaskModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    const SESSION_ID = "{{ session.id }}";
+    
+    function updateStatus(status) {
+        if(!confirm('{% trans "Are you sure you want to change the status?" %}')) return;
+        
+        fetch(`/api/v1/strategic/sessions/${SESSION_ID}/update_status/`, { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+            },
+            body: JSON.stringify({ status: status })
+        }).then(() => window.location.reload());
+    }
+
+    function exportToDailyPlan() {
+        if(!confirm('{% trans "This will create Daily Plans for all days in this session. Continue?" %}')) return;
+        
+        fetch(`/api/v1/strategic/sessions/${SESSION_ID}/export/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+            }
+        })
+        .then(response => {
+            if(response.ok) {
+                alert('{% trans "Export successful!" %}');
+                window.location.reload();
+            } else {
+                alert('{% trans "Export failed." %}');
+            }
+        });
+    }
+
+    function openAddItemModal(dayId, dateStr) {
+        document.getElementById('dayId').value = dayId;
+        document.getElementById('modalDateDisplay').textContent = dateStr;
+        document.getElementById('addItemModal').classList.remove('hidden');
+    }
+
+    function closeAddItemModal() {
+        document.getElementById('addItemModal').classList.add('hidden');
+        document.getElementById('addItemForm').reset();
+    }
+
+    function submitAddItem() {
+        const form = document.getElementById('addItemForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        fetch('/api/v1/strategic/items/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error adding item');
+            }
+        });
+    }
+
+    function openAddTaskModal(itemId, itemName) {
+        document.getElementById('taskItemId').value = itemId;
+        document.getElementById('taskModalItemName').textContent = itemName;
+        document.getElementById('addTaskModal').classList.remove('hidden');
+    }
+
+    function closeAddTaskModal() {
+        document.getElementById('addTaskModal').classList.add('hidden');
+        document.getElementById('addTaskForm').reset();
+    }
+
+    function submitAddTask() {
+        const form = document.getElementById('addTaskForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        fetch('/api/v1/strategic/tasks/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error adding task');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const containers = document.querySelectorAll('.item-container');
+        containers.forEach(container => {
+            new Sortable(container, {
+                group: 'shared', // set both lists to same group
+                animation: 150,
+                draggable: '.group', // Target the item card class
+                onEnd: function (evt) {
+                    const itemEl = evt.item;
+                    const newDayId = evt.to.getAttribute('data-day-id');
+                    const itemId = itemEl.getAttribute('data-item-id');
+                    const newIndex = evt.newIndex;
+                    
+                    // Only update if changed
+                    if (evt.to !== evt.from || evt.newIndex !== evt.oldIndex) {
+                        updateItemLocation(itemId, newDayId, newIndex);
+                    }
+                }
+            });
+        });
+    });
+
+    function updateItemLocation(itemId, dayId, order) {
+        fetch(`/api/v1/strategic/items/${itemId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+            },
+            body: JSON.stringify({
+                strategic_day: dayId,
+                order: order
+            })
+        }).then(response => {
+            if(!response.ok) {
+                console.error('Failed to move item');
+                // Optional: Revert UI or show toast
+            }
+        });
+    }
+</script>
+{% endblock %}

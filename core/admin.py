@@ -1163,3 +1163,113 @@ class PMBlockedDayAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.select_related("pm")
 
+
+# ==============================================================================
+# STRATEGIC FUTURE PLANNING (Phase A1)
+# ==============================================================================
+from django.utils import timezone
+from .models import (
+    StrategicPlanningSession, StrategicDay, StrategicItem, 
+    StrategicTask, StrategicSubtask, StrategicMaterialRequirement,
+    StrategicDependency
+)
+
+class StrategicDayInline(admin.TabularInline):
+    model = StrategicDay
+    extra = 0
+    fields = ('target_date', 'items_count', 'estimated_total_hours', 'linked_schedule_item')
+    readonly_fields = ('items_count',)
+    show_change_link = True
+
+@admin.register(StrategicPlanningSession)
+class StrategicPlanningSessionAdmin(admin.ModelAdmin):
+    list_display = ('project', 'date_range_start', 'date_range_end', 'status', 'user', 'total_days', 'is_approved')
+    list_filter = ('status', 'project', 'user')
+    search_fields = ('project__name', 'notes')
+    date_hierarchy = 'date_range_start'
+    inlines = [StrategicDayInline]
+    actions = ['mark_as_approved', 'mark_as_in_review']
+    
+    fieldsets = (
+        ('Session Info', {
+            'fields': ('project', 'user', 'status')
+        }),
+        ('Date Range', {
+            'fields': ('date_range_start', 'date_range_end')
+        }),
+        ('Approval', {
+            'fields': ('approved_by', 'approved_at'),
+            'classes': ('collapse',)
+        }),
+        ('Export', {
+            'fields': ('exported_to_daily_plan', 'exported_at'),
+            'classes': ('collapse',)
+        }),
+        ('Notes', {
+            'fields': ('notes',)
+        }),
+    )
+
+    def mark_as_approved(self, request, queryset):
+        queryset.update(status='APPROVED', approved_by=request.user, approved_at=timezone.now())
+    mark_as_approved.short_description = "Mark selected sessions as Approved"
+
+    def mark_as_in_review(self, request, queryset):
+        queryset.update(status='IN_REVIEW')
+    mark_as_in_review.short_description = "Mark selected sessions as In Review"
+
+
+class StrategicItemInline(admin.StackedInline):
+    model = StrategicItem
+    extra = 0
+    fields = ('title', 'priority', 'estimated_hours', 'assigned_to', 'tasks_count')
+    readonly_fields = ('tasks_count',)
+    show_change_link = True
+
+@admin.register(StrategicDay)
+class StrategicDayAdmin(admin.ModelAdmin):
+    list_display = ('target_date', 'session', 'day_name', 'items_count', 'estimated_total_hours')
+    list_filter = ('session__project', 'target_date')
+    search_fields = ('session__project__name', 'notes')
+    date_hierarchy = 'target_date'
+    inlines = [StrategicItemInline]
+
+
+class StrategicTaskInline(admin.TabularInline):
+    model = StrategicTask
+    extra = 0
+    fields = ('description', 'order', 'estimated_hours', 'assigned_to')
+    show_change_link = True
+
+class StrategicMaterialRequirementInline(admin.TabularInline):
+    model = StrategicMaterialRequirement
+    extra = 0
+    fields = ('name', 'quantity', 'unit', 'is_on_hand')
+
+@admin.register(StrategicItem)
+class StrategicItemAdmin(admin.ModelAdmin):
+    list_display = ('title', 'strategic_day', 'priority', 'estimated_hours', 'tasks_count')
+    list_filter = ('priority', 'strategic_day__session__project')
+    search_fields = ('title', 'description', 'location_area')
+    inlines = [StrategicTaskInline, StrategicMaterialRequirementInline]
+
+
+class StrategicSubtaskInline(admin.TabularInline):
+    model = StrategicSubtask
+    extra = 0
+    fields = ('description', 'order', 'exported_to_daily_plan')
+
+@admin.register(StrategicTask)
+class StrategicTaskAdmin(admin.ModelAdmin):
+    list_display = ('description', 'strategic_item', 'estimated_hours', 'subtasks_count')
+    list_filter = ('strategic_item__strategic_day__session__project',)
+    search_fields = ('description',)
+    inlines = [StrategicSubtaskInline]
+
+
+@admin.register(StrategicDependency)
+class StrategicDependencyAdmin(admin.ModelAdmin):
+    list_display = ('predecessor', 'successor', 'dependency_type', 'lag_days')
+    list_filter = ('dependency_type',)
+    search_fields = ('predecessor__title', 'successor__title')
+

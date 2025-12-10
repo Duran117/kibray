@@ -74,6 +74,8 @@ urlpatterns = [
     
     path("focus/", views.focus_wizard, name="focus_wizard"),
     path("planner/", planner_views.quick_planner_entry, name="quick_planner"),
+    path("planner/strategic/", views.StrategicPlanningDashboardView.as_view(), name="strategic_planning_dashboard"),
+    path("planner/strategic/<int:pk>/", views.StrategicPlanningDetailView.as_view(), name="strategic_planning_detail"),
     path("planner/full/", planner_views.strategic_ritual_wizard, name="strategic_planner"),
     path("dashboard/employee/", views.dashboard_employee, name="dashboard_employee"),
     path("dashboard/pm/", views.dashboard_pm, name="dashboard_pm"),

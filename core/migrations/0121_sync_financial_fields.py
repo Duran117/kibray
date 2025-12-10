@@ -21,20 +21,19 @@ class Migration(migrations.Migration):
             name='material_markup_percent',
             field=models.DecimalField(decimal_places=2, default=Decimal('15.00'), help_text='Porcentaje de markup en materiales (por defecto 15%)', max_digits=5),
         ),
-        # Skip employee_key as it was already added in 0120_fix_employee_key_column
-        # migrations.AddField(
-        #     model_name='employee',
-        #     name='employee_key',
-        #     field=models.CharField(blank=True, editable=False, help_text='Código único del empleado (EMP-001, EMP-002...). Se genera automáticamente.', max_length=20, unique=True),
-        # ),
-        migrations.RunSQL(
-            sql="""
-            -- Add unique constraint where employee_key is not null
-            -- In PostgreSQL, NULL values are not considered equal, so UNIQUE allows multiple NULLs
-            ALTER TABLE core_employee 
-            ADD CONSTRAINT core_employee_employee_key_unique UNIQUE(employee_key);
-            """,
-            reverse_sql="ALTER TABLE core_employee DROP CONSTRAINT IF EXISTS core_employee_employee_key_unique;",
+        # FIXED: Add employee_key field properly since 0120 used raw SQL which doesn't update migration state
+        # Use AddField with state_operations to ensure Django tracks it
+        migrations.AddField(
+            model_name='employee',
+            name='employee_key',
+            field=models.CharField(
+                blank=True,
+                editable=False,
+                help_text='Código único del empleado (EMP-001, EMP-002...). Se genera automáticamente.',
+                max_length=20,
+                unique=True,
+                null=True,
+            ),
         ),
         migrations.AddField(
             model_name='project',

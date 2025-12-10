@@ -7487,6 +7487,12 @@ from .strategic_planning import (
     PowerAction, HabitCompletion
 )
 
+# Strategic Future Planning (Phase A1 - Dec 2025)
+from .strategic_future_planning import (
+    StrategicPlanningSession, StrategicDay, StrategicItem, StrategicTask,
+    StrategicSubtask, StrategicMaterialRequirement, StrategicDependency
+)
+
 # Daily Plan AI Enhancements (Dec 2025)
 from .daily_plan_ai import (
     TimelineView, AIAnalysisLog, AISuggestion, VoiceCommand
@@ -7497,5 +7503,7 @@ __all__ = [
     'DailyFocusSession', 'FocusTask',
     'LifeVision', 'ExecutiveHabit', 'DailyRitualSession', 
     'PowerAction', 'HabitCompletion',
+    'StrategicPlanningSession', 'StrategicDay', 'StrategicItem', 'StrategicTask',
+    'StrategicSubtask', 'StrategicMaterialRequirement', 'StrategicDependency',
     'TimelineView', 'AIAnalysisLog', 'AISuggestion', 'VoiceCommand'
 ]

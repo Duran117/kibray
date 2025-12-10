@@ -1,0 +1,244 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Strategic Planner" %}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{% trans "Strategic Planner" %}</h1>
+            <p class="text-sm text-gray-500 mt-1">{% trans "Plan future work sessions and export to Daily Plan" %}</p>
+        </div>
+        <button onclick="document.getElementById('createSessionModal').classList.remove('hidden')" 
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-kibray-600 hover:bg-kibray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kibray-500">
+            <i class="bi bi-plus-lg mr-2"></i>
+            {% trans "New Planning Session" %}
+        </button>
+    </div>
+
+    <!-- Sessions List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">{% trans "Planning Sessions" %}</h3>
+        </div>
+        
+        {% if sessions %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% trans "Project" %}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% trans "Date Range" %}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% trans "Status" %}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% trans "Created By" %}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% trans "Actions" %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for session in sessions %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ session.project.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {{ session.date_range_start|date:"M d, Y" }} - {{ session.date_range_end|date:"M d, Y" }}
+                                </div>
+                                <div class="text-xs text-gray-500">{{ session.days.count }} days</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if session.status == 'DRAFT' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        {% trans "Draft" %}
+                                    </span>
+                                {% elif session.status == 'IN_REVIEW' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        {% trans "In Review" %}
+                                    </span>
+                                {% elif session.status == 'APPROVED' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        {% trans "Approved" %}
+                                    </span>
+                                {% elif session.status == 'REQUIRES_CHANGES' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        {% trans "Changes Required" %}
+                                    </span>
+                                {% endif %}
+                                
+                                {% if session.exported_to_daily_plan %}
+                                    <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {% trans "Exported" %}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-kibray-100 flex items-center justify-center text-kibray-700 font-bold text-xs">
+                                        {{ session.created_by.first_name|first }}{{ session.created_by.last_name|first }}
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm text-gray-900">{{ session.created_by.get_full_name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{% url 'strategic_planning_detail' session.pk %}" class="text-kibray-600 hover:text-kibray-900">
+                                    {% trans "Edit" %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <i class="bi bi-calendar-week text-4xl text-gray-300 mb-4 block"></i>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">{% trans "No Planning Sessions" %}</h3>
+                <p class="mt-1 text-sm text-gray-500">{% trans "Get started by creating a new strategic planning session." %}</p>
+                <div class="mt-6">
+                    <button onclick="document.getElementById('createSessionModal').classList.remove('hidden')" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-kibray-600 hover:bg-kibray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kibray-500">
+                        <i class="bi bi-plus-lg mr-2"></i>
+                        {% trans "Create First Session" %}
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Create Session Modal (Tailwind) -->
+<div id="createSessionModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('createSessionModal').classList.add('hidden')"></div>
+
+        <!-- Modal panel -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-kibray-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <i class="bi bi-calendar-plus text-kibray-600 text-lg"></i>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            {% trans "New Planning Session" %}
+                        </h3>
+                        <div class="mt-4 space-y-4">
+                            <form id="createSessionForm">
+                                {% csrf_token %}
+                                <div>
+                                    <label for="project" class="block text-sm font-medium text-gray-700">{% trans "Project" %}</label>
+                                    <select id="project" name="project" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md">
+                                        <option value="">{% trans "Select Project..." %}</option>
+                                        <!-- Projects will be loaded via JS -->
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="start_date" class="block text-sm font-medium text-gray-700">{% trans "Start Date" %}</label>
+                                        <input type="date" name="start_date" id="start_date" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                    <div>
+                                        <label for="end_date" class="block text-sm font-medium text-gray-700">{% trans "End Date" %}</label>
+                                        <input type="date" name="end_date" id="end_date" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="notes" class="block text-sm font-medium text-gray-700">{% trans "Notes" %}</label>
+                                    <textarea id="notes" name="notes" rows="3" class="shadow-sm focus:ring-kibray-500 focus:border-kibray-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" id="saveSessionBtn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kibray-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Create Session" %}
+                </button>
+                <button type="button" onclick="document.getElementById('createSessionModal').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kibray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load projects for the dropdown
+        fetch('/api/v1/projects/') // Assuming this endpoint exists
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('project');
+                // Adjust based on actual API response structure (e.g., data.results or just data)
+                const projects = data.results || data; 
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = project.name;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error loading projects:', error));
+
+        // Handle Create Session
+        document.getElementById('saveSessionBtn').addEventListener('click', function() {
+            const form = document.getElementById('createSessionForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Basic validation
+            if (!data.project || !data.start_date || !data.end_date) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            fetch('/api/v1/strategic/sessions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+                },
+                body: JSON.stringify({
+                    project: data.project,
+                    date_range_start: data.start_date,
+                    date_range_end: data.end_date,
+                    notes: data.notes
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to create session');
+                return response.json();
+            })
+            .then(session => {
+                // Close modal and reload page to see new session
+                document.getElementById('createSessionModal').classList.add('hidden');
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error creating session: ' + error.message);
+            });
+        });
+    });
+</script>
+{% endblock %}

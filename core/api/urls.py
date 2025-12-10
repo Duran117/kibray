@@ -100,6 +100,13 @@ from .views import (
     update_changeorder_photo_image,
 )
 
+# Strategic Future Planning (Phase A3 - Dec 2025)
+from core.views.strategic_planning_views import (
+    StrategicPlanningSessionViewSet,
+    StrategicItemViewSet,
+    StrategicTaskViewSet
+)
+
 router = DefaultRouter()
 # Notifications & Chat
 router.register(r"notifications", NotificationViewSet, basename="notification")
@@ -188,6 +195,11 @@ from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet
 from .bulk_views import BulkTaskUpdateAPIView
 router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-session")
 router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
+
+# Strategic Future Planning (Phase A3 - Dec 2025)
+router.register(r"strategic/sessions", StrategicPlanningSessionViewSet, basename="strategic-session")
+router.register(r"strategic/items", StrategicItemViewSet, basename="strategic-item")
+router.register(r"strategic/tasks", StrategicTaskViewSet, basename="strategic-task")
 
 urlpatterns = [
     # Health Check Endpoints (Phase 7 - Step 45)

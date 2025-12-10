@@ -1,0 +1,2 @@
+from .legacy_views import *
+from .strategic_planning_frontend import StrategicPlanningDashboardView, StrategicPlanningDetailView
