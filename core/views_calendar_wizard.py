@@ -85,8 +85,9 @@ def save_task_event(data, user):
          # For this wizard (MVP), we'll try to assign to the first available employee or fail gracefully.
          assigned_employee = Employee.objects.filter(user=user).first()
          
-    if not assigned_employee:
-        return JsonResponse({'success': False, 'error': 'Current user has no Employee profile to assign task.'})
+    # Allow unassigned tasks if no employee profile found (e.g. Admin creating task)
+    # if not assigned_employee:
+    #    return JsonResponse({'success': False, 'error': 'Current user has no Employee profile to assign task.'})
 
     # Create Task
     task = Task.objects.create(
@@ -95,7 +96,8 @@ def save_task_event(data, user):
         # start_date is not a field in Task model, using due_date as end_date
         # If start_date is needed, we might need to add it or use created_at/schedule
         due_date=end_date,
-        assigned_to=assigned_employee
+        assigned_to=assigned_employee,
+        created_by=user
     )
     
     return JsonResponse({'success': True, 'event_id': task.id, 'type': 'task'})
