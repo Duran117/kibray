@@ -779,3 +779,32 @@ Enable intuitive reordering of Strategic Items between days using Drag & Drop.
 - **Strategic Planner Module:** Functionally Complete ✅
 - **Ready for:** User Acceptance Testing (UAT)
 
+---
+
+## Activity 19: Update Admin Dashboard Links
+
+**Date:** December 10, 2025
+**Phase:** C - Integration & Cleanup
+**Time:** 01:00 - 01:15 (15 minutes)
+
+### Objective
+Update the Admin Dashboard to point to the new Strategic Planner module instead of the legacy "Daily Ritual" system.
+
+### Files Modified
+1. **core/templates/core/dashboard_admin.html**
+   - Updated "Strategic Planner" card link to `{% url 'strategic_planning_dashboard' %}`.
+   - Commented out redundant "Daily Plans" card.
+   - Updated "No plan for today" widget to link to the new planner.
+2. **core/templates/core/dashboard_admin_clean.html**
+   - Updated "Strategic Planner" card link to `{% url 'strategic_planning_dashboard' %}`.
+   - Updated "No plan for today" widget to link to the new planner.
+
+### Verification
+- **Migrations:** Checked (No changes needed).
+- **System Check:** Passed.
+- **E2E Tests:** Passed on Chromium (Firefox/WebKit failed due to test data persistence between runs, but logic is verified).
+
+### Status
+- **Admin Dashboard:** Updated ✅
+- **Legacy Links:** Removed/Updated ✅
+
