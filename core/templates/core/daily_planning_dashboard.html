@@ -428,6 +428,9 @@
                                     <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-primary">
                                         <i class="bi bi-pencil"></i> {% trans "Edit" %}
                                     </a>
+                                    <a href="{% url 'daily_plan_timeline' plan.id %}" class="btn btn-sm btn-info text-white" title="{% trans 'Timeline' %}">
+                                        <i class="bi bi-calendar-range"></i>
+                                    </a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -483,6 +486,9 @@
                             <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-outline-primary">
                                 <i class="bi bi-eye"></i> {% trans "View" %}
                             </a>
+                            <a href="{% url 'daily_plan_timeline' plan.id %}" class="btn btn-outline-info">
+                                <i class="bi bi-calendar-range"></i>
+                            </a>
                         </div>
                     </div>
                     {% endfor %}
@@ -520,6 +526,9 @@
                                 <td>
                                     <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary">
                                         {% trans "View/Edit" %}
+                                    </a>
+                                    <a href="{% url 'daily_plan_timeline' plan.id %}" class="btn btn-sm btn-outline-info" title="{% trans 'Timeline' %}">
+                                        <i class="bi bi-calendar-range"></i>
                                     </a>
                                 </td>
                             </tr>
