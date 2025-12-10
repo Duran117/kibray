@@ -2,7 +2,7 @@
 
 {% block extra_css %}
 <style>
-    /* ===== MOBILE-FIRST MATERIALS REQUEST ===== */
+    /* ===== MOBILE-FIRST MATERIALS WIZARD ===== */
     .materials-container {
         padding: 12px;
         background: #f8f9fa;
@@ -35,6 +35,72 @@
         opacity: 0.9;
     }
     
+    /* ===== WIZARD PROGRESS ===== */
+    .wizard-progress {
+        background: white;
+        padding: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .step-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-indicator:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        width: 100%;
+        height: 2px;
+        background: #e5e7eb;
+        z-index: -1;
+    }
+    
+    .step-indicator.active:not(:last-child)::after {
+        background: #f59e0b;
+    }
+    
+    .step-circle {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        transition: all 0.3s ease;
+    }
+    
+    .step-indicator.active .step-circle {
+        background: #f59e0b;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .step-label {
+        font-size: 10px;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .step-indicator.active .step-label {
+        color: #f59e0b;
+    }
+    
     /* ===== FORM CARD ===== */
     .materials-form {
         background: white;
@@ -43,24 +109,19 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
-    /* ===== SECTION HEADERS ===== */
-    .section-divider {
-        border-top: 2px solid #e5e7eb;
-        margin: 24px 0 16px 0;
-        position: relative;
+    /* ===== WIZARD STEPS ===== */
+    .wizard-step {
+        display: none;
+        animation: fadeIn 0.3s ease;
     }
     
-    .section-title {
-        position: absolute;
-        top: -12px;
-        left: 0;
-        background: white;
-        padding: 0 12px 0 0;
-        font-size: 14px;
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    .wizard-step.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
     /* ===== FORM INPUTS (LARGE FOR MOBILE) ===== */
@@ -79,6 +140,8 @@
         border: 2px solid #e5e7eb;
         border-radius: 8px;
         transition: border-color 0.2s;
+        width: 100%;
+        padding: 8px 12px;
     }
     
     .materials-form textarea {
@@ -91,18 +154,19 @@
     .materials-form textarea:focus {
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
     }
     
     /* ===== PHOTO UPLOAD (PROMINENT) ===== */
     .photo-upload {
         background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
         color: white;
-        padding: 20px;
+        padding: 30px 20px;
         border-radius: 12px;
         text-align: center;
         cursor: pointer;
         transition: transform 0.2s;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
     
     .photo-upload:active {
@@ -111,152 +175,113 @@
     
     .photo-upload i {
         font-size: 48px;
+        display: block;
         margin-bottom: 8px;
     }
     
     .photo-upload p {
+        font-size: 18px;
+        font-weight: 700;
         margin: 0;
-        font-size: 16px;
-        font-weight: 500;
-    }
-    
-    .photo-upload small {
-        opacity: 0.9;
     }
     
     .photo-preview {
+        margin-top: 16px;
         position: relative;
-        margin-top: 12px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
     .photo-preview img {
         width: 100%;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        height: auto;
+        display: block;
     }
     
-    .photo-preview .remove-photo {
+    .remove-photo {
         position: absolute;
         top: 8px;
         right: 8px;
-        background: #ef4444;
+        background: rgba(0,0,0,0.5);
         color: white;
         border: none;
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        font-size: 18px;
-        line-height: 1;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
     }
     
-    /* ===== QUANTITY INPUT (LARGE NUMBERS) ===== */
+    /* ===== QUANTITY CONTROLS ===== */
     .quantity-group {
         display: flex;
         align-items: center;
         gap: 8px;
     }
     
-    .quantity-group input {
-        flex: 1;
-        font-size: 24px;
-        font-weight: 700;
-        text-align: center;
-        color: #1f2937;
-    }
-    
-    .quantity-group select {
-        flex: 0 0 120px;
-    }
-    
     .quantity-btn {
-        background: #3b82f6;
-        color: white;
-        border: none;
         width: 48px;
         height: 48px;
         border-radius: 8px;
-        font-size: 24px;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-    
-    /* ===== SUBMIT BUTTON (PROMINENT) ===== */
-    .submit-section {
-        position: sticky;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        padding: 16px;
-        border-top: 2px solid #e5e7eb;
-        margin: 0 -20px -20px -20px;
-        border-radius: 0 0 12px 12px;
-    }
-    
-    .submit-btn {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        border: none;
-        height: 56px;
-        font-size: 18px;
-        font-weight: 600;
-        border-radius: 12px;
-        width: 100%;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        transition: transform 0.2s;
-    }
-    
-    .submit-btn:active {
-        transform: scale(0.98);
-    }
-    
-    .cancel-btn {
-        background: transparent;
-        color: #6b7280;
         border: 2px solid #e5e7eb;
-        height: 48px;
-        font-size: 16px;
-        border-radius: 8px;
-        width: 100%;
-        margin-top: 8px;
-    }
-    
-    /* ===== COLLAPSIBLE SECTIONS (ADVANCED) ===== */
-    .advanced-section {
-        background: #f9fafb;
-        border-radius: 8px;
-        padding: 16px;
-        margin-top: 16px;
-    }
-    
-    .collapse-trigger {
-        background: none;
-        border: none;
-        width: 100%;
-        text-align: left;
-        padding: 12px 0;
-        font-weight: 600;
-        color: #1f2937;
+        background: white;
+        font-size: 24px;
+        color: #374151;
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: center;
         cursor: pointer;
     }
     
-    .collapse-trigger i {
-        transition: transform 0.2s;
+    .quantity-btn:active {
+        background: #f3f4f6;
     }
     
-    .collapse-trigger[aria-expanded="true"] i {
-        transform: rotate(180deg);
+    /* ===== NAVIGATION BUTTONS ===== */
+    .wizard-nav {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
     }
     
-    /* ===== FORM TEXT (SMALLER) ===== */
-    .form-text {
-        font-size: 12px;
+    .nav-btn {
+        flex: 1;
+        height: 48px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-next {
+        background: #f59e0b;
+        color: white;
+    }
+    
+    .btn-next:hover {
+        background: #d97706;
+    }
+    
+    .btn-prev {
+        background: white;
+        border: 2px solid #e5e7eb;
         color: #6b7280;
-        margin-top: 4px;
+    }
+    
+    .btn-submit {
+        background: #10b981;
+        color: white;
     }
     
     /* ===== ALERT MESSAGES ===== */
@@ -278,6 +303,26 @@
         </div>
     </div>
     
+    <!-- Wizard Progress -->
+    <div class="wizard-progress">
+        <div class="step-indicator active" data-step="1">
+            <div class="step-circle">1</div>
+            <div class="step-label">Selección</div>
+        </div>
+        <div class="step-indicator" data-step="2">
+            <div class="step-circle">2</div>
+            <div class="step-label">Detalles</div>
+        </div>
+        <div class="step-indicator" data-step="3">
+            <div class="step-circle">3</div>
+            <div class="step-label">Evidencia</div>
+        </div>
+        <div class="step-indicator" data-step="4">
+            <div class="step-circle">4</div>
+            <div class="step-label">Revisar</div>
+        </div>
+    </div>
+    
     <!-- Form -->
     <form method="post" enctype="multipart/form-data" class="materials-form" id="materialsForm">
         {% csrf_token %}
@@ -287,161 +332,173 @@
         <div class="alert alert-{{ m.tags }}">{{ m }}</div>
         {% endfor %}
         
-        <!-- Quick Catalog Select -->
-        <div class="mb-3">
-            <label class="form-label">
-                <i class="bi bi-bookmark-star"></i> {{ form.catalog_item.label }}
-            </label>
-            {{ form.catalog_item }}
-            <div class="form-text">Selecciona un material guardado o llena los campos abajo</div>
-        </div>
-        
-        <!-- Photo Upload (Prominent) -->
-        <div class="photo-upload" onclick="document.getElementById('id_reference_image').click()">
-            <i class="bi bi-camera"></i>
-            <p>Tomar Foto del Material</p>
-            <small>Opcional - Ayuda a identificar el producto</small>
-        </div>
-        {{ form.reference_image }}
-        <div class="photo-preview" id="photoPreview" style="display: none;">
-            <img id="photoImg" src="" alt="Preview">
-            <button type="button" class="remove-photo" onclick="removePhoto()">
-                <i class="bi bi-x"></i>
-            </button>
-        </div>
-        
-        <!-- Quantity (Large) -->
-        <div class="section-divider">
-            <span class="section-title">📦 Cantidad</span>
-        </div>
-        
-        <div class="mb-3">
-            <label class="form-label">¿Cuánto necesitas?</label>
-            <div class="quantity-group">
-                <button type="button" class="quantity-btn" onclick="adjustQuantity(-1)">−</button>
-                {{ form.quantity }}
-                <button type="button" class="quantity-btn" onclick="adjustQuantity(1)">+</button>
-                {{ form.unit }}
-            </div>
-        </div>
-        
-        <!-- When Needed -->
-        <div class="mb-3">
-            <label class="form-label">
-                <i class="bi bi-clock"></i> {{ form.needed_when.label }}
-            </label>
-            {{ form.needed_when }}
-        </div>
-        
-        <div class="mb-3" id="needed-date-wrap" style="display:none">
-            <label class="form-label">Fecha específica</label>
-            {{ form.needed_date }}
-        </div>
-        
-        <!-- Material Details (Collapsible) -->
-        <div class="advanced-section">
-            <button type="button" class="collapse-trigger" data-bs-toggle="collapse" data-bs-target="#detailsSection" aria-expanded="false">
-                <span><i class="bi bi-info-circle"></i> Detalles del Material</span>
-                <i class="bi bi-chevron-down"></i>
-            </button>
+        <!-- STEP 1: SELECTION -->
+        <div class="wizard-step active" id="step1">
+            <h5 class="mb-3 text-muted">¿Qué necesitas?</h5>
             
-            <div class="collapse" id="detailsSection">
-                <!-- Quick Shortcuts -->
-                <div class="mb-3">
-                    <label class="form-label">Accesos Rápidos</label>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            {{ form.approved_color }}
-                        </div>
-                        <div class="col-6">
-                            {{ form.product_preset }}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Category & Brand -->
-                <div class="row g-2 mb-3">
+            <!-- Quick Catalog Select -->
+            <div class="mb-4">
+                <label class="form-label">
+                    <i class="bi bi-bookmark-star"></i> {{ form.catalog_item.label }}
+                </label>
+                {{ form.catalog_item }}
+                <div class="form-text">Selecciona un material guardado o llena los campos manualmente</div>
+            </div>
+            
+            <!-- Quick Shortcuts -->
+            <div class="mb-3">
+                <label class="form-label">Accesos Rápidos</label>
+                <div class="row g-2">
                     <div class="col-6">
-                        <label class="form-label">{{ form.category.label }}</label>
-                        {{ form.category }}
+                        {{ form.approved_color }}
                     </div>
                     <div class="col-6">
-                        <label class="form-label">{{ form.brand.label }}</label>
-                        {{ form.brand }}
+                        {{ form.product_preset }}
                     </div>
                 </div>
-                
-                <div class="mb-3" id="brand-other-wrap" style="display:none">
-                    <label class="form-label">{{ form.brand_other.label }}</label>
-                    {{ form.brand_other }}
+            </div>
+            
+            <!-- Category & Brand -->
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label">{{ form.category.label }}</label>
+                    {{ form.category }}
                 </div>
-                
-                <!-- Product Name -->
-                <div class="mb-3">
-                    <label class="form-label">{{ form.product_name.label }}</label>
-                    {{ form.product_name }}
+                <div class="col-6">
+                    <label class="form-label">{{ form.brand.label }}</label>
+                    {{ form.brand }}
                 </div>
-                
-                <!-- Color Details -->
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label">{{ form.color_name.label }}</label>
-                        {{ form.color_name }}
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">{{ form.color_code.label }}</label>
-                        {{ form.color_code }}
-                    </div>
-                </div>
-                
-                <!-- Finish & Gloss -->
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label">{{ form.finish.label }}</label>
-                        {{ form.finish }}
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">{{ form.gloss.label }}</label>
-                        {{ form.gloss }}
-                    </div>
-                </div>
-                
-                <!-- Formula -->
-                <div class="mb-3">
-                    <label class="form-label">{{ form.formula.label }}</label>
-                    {{ form.formula }}
-                </div>
+            </div>
+            
+            <div class="mb-3" id="brand-other-wrap" style="display:none">
+                <label class="form-label">{{ form.brand_other.label }}</label>
+                {{ form.brand_other }}
+            </div>
+            
+            <!-- Product Name -->
+            <div class="mb-3">
+                <label class="form-label">{{ form.product_name.label }}</label>
+                {{ form.product_name }}
+            </div>
+            
+            <div class="wizard-nav">
+                <a class="nav-btn btn-prev" href="{% url 'dashboard_pm' %}">Cancelar</a>
+                <button type="button" class="nav-btn btn-next" onclick="nextStep(2)">Siguiente <i class="bi bi-arrow-right"></i></button>
             </div>
         </div>
         
-        <!-- Comments -->
-        <div class="section-divider">
-            <span class="section-title">💬 Comentarios</span>
+        <!-- STEP 2: DETAILS -->
+        <div class="wizard-step" id="step2">
+            <h5 class="mb-3 text-muted">Especificaciones</h5>
+            
+            <!-- Quantity (Large) -->
+            <div class="mb-4">
+                <label class="form-label">¿Cuánto necesitas?</label>
+                <div class="quantity-group">
+                    <button type="button" class="quantity-btn" onclick="adjustQuantity(-1)">−</button>
+                    {{ form.quantity }}
+                    <button type="button" class="quantity-btn" onclick="adjustQuantity(1)">+</button>
+                    {{ form.unit }}
+                </div>
+            </div>
+            
+            <!-- Color Details -->
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label">{{ form.color_name.label }}</label>
+                    {{ form.color_name }}
+                </div>
+                <div class="col-6">
+                    <label class="form-label">{{ form.color_code.label }}</label>
+                    {{ form.color_code }}
+                </div>
+            </div>
+            
+            <!-- Finish & Gloss -->
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label">{{ form.finish.label }}</label>
+                    {{ form.finish }}
+                </div>
+                <div class="col-6">
+                    <label class="form-label">{{ form.gloss.label }}</label>
+                    {{ form.gloss }}
+                </div>
+            </div>
+            
+            <!-- When Needed -->
+            <div class="mb-3">
+                <label class="form-label">
+                    <i class="bi bi-clock"></i> {{ form.needed_when.label }}
+                </label>
+                {{ form.needed_when }}
+            </div>
+            
+            <div class="mb-3" id="needed-date-wrap" style="display:none">
+                <label class="form-label">Fecha específica</label>
+                {{ form.needed_date }}
+            </div>
+            
+            <div class="wizard-nav">
+                <button type="button" class="nav-btn btn-prev" onclick="prevStep(1)"><i class="bi bi-arrow-left"></i> Atrás</button>
+                <button type="button" class="nav-btn btn-next" onclick="nextStep(3)">Siguiente <i class="bi bi-arrow-right"></i></button>
+            </div>
         </div>
         
-        <div class="mb-3">
-            <label class="form-label">{{ form.comments.label }}</label>
-            {{ form.comments }}
-            <div class="form-text">Instrucciones adicionales o notas</div>
+        <!-- STEP 3: EVIDENCE -->
+        <div class="wizard-step" id="step3">
+            <h5 class="mb-3 text-muted">Foto de Referencia</h5>
+            
+            <!-- Photo Upload (Prominent) -->
+            <div class="photo-upload" onclick="document.getElementById('id_reference_image').click()">
+                <i class="bi bi-camera"></i>
+                <p>Tomar Foto</p>
+                <small>Opcional - Ayuda a identificar el producto</small>
+            </div>
+            {{ form.reference_image }}
+            <div class="photo-preview" id="photoPreview" style="display: none;">
+                <img id="photoImg" src="" alt="Preview">
+                <button type="button" class="remove-photo" onclick="removePhoto()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            
+            <div class="wizard-nav">
+                <button type="button" class="nav-btn btn-prev" onclick="prevStep(2)"><i class="bi bi-arrow-left"></i> Atrás</button>
+                <button type="button" class="nav-btn btn-next" onclick="nextStep(4)">Siguiente <i class="bi bi-arrow-right"></i></button>
+            </div>
         </div>
         
-        <!-- Save to Catalog -->
-        <div class="form-check mb-3">
-            {{ form.save_to_catalog }}
-            <label class="form-check-label" for="id_save_to_catalog">
-                {{ form.save_to_catalog.label }}
-            </label>
-            <div class="form-text">Guardar para futuras solicitudes</div>
-        </div>
-        
-        <!-- Submit Section (Sticky) -->
-        <div class="submit-section">
-            <button type="submit" class="submit-btn">
-                <i class="bi bi-send-fill"></i> Enviar Solicitud
-            </button>
-            <a class="btn cancel-btn" href="{% url 'dashboard_pm' %}">
-                <i class="bi bi-x-circle"></i> Cancelar
-            </a>
+        <!-- STEP 4: REVIEW -->
+        <div class="wizard-step" id="step4">
+            <h5 class="mb-3 text-muted">Revisión Final</h5>
+            
+            <!-- Comments -->
+            <div class="mb-3">
+                <label class="form-label">{{ form.comments.label }}</label>
+                {{ form.comments }}
+                <div class="form-text">Instrucciones adicionales o notas</div>
+            </div>
+            
+            <!-- Save to Catalog -->
+            <div class="form-check mb-4 p-3 bg-light rounded">
+                {{ form.save_to_catalog }}
+                <label class="form-check-label fw-bold" for="id_save_to_catalog">
+                    {{ form.save_to_catalog.label }}
+                </label>
+                <div class="form-text">Guardar para futuras solicitudes rápidas</div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Revisa que la cantidad y el producto sean correctos antes de enviar.
+            </div>
+            
+            <div class="wizard-nav">
+                <button type="button" class="nav-btn btn-prev" onclick="prevStep(3)"><i class="bi bi-arrow-left"></i> Atrás</button>
+                <button type="submit" class="nav-btn btn-submit">
+                    <i class="bi bi-send-fill"></i> Enviar Solicitud
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -451,6 +508,53 @@
     // Datos entregados por la vista
     const PRESETS = JSON.parse('{{ presets_json|default:"[]"|escapejs }}');
     const CATALOG = JSON.parse('{{ catalog_json|default:"[]"|escapejs }}');
+    let currentStep = 1;
+
+    // ===== WIZARD NAVIGATION =====
+    function showStep(step) {
+        // Hide all steps
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+        // Show target step
+        document.getElementById(`step${step}`).classList.add('active');
+        
+        // Update indicators
+        document.querySelectorAll('.step-indicator').forEach(el => {
+            const s = parseInt(el.dataset.step);
+            if (s <= step) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+        
+        currentStep = step;
+        window.scrollTo(0, 0);
+    }
+    
+    function nextStep(step) {
+        // Validation for Step 1
+        if (currentStep === 1) {
+            const prodName = document.getElementById('id_product_name');
+            if (prodName && !prodName.value.trim()) {
+                alert('Por favor ingresa el nombre del producto o selecciona uno del catálogo.');
+                prodName.focus();
+                return;
+            }
+        }
+        
+        // Validation for Step 2
+        if (currentStep === 2) {
+            const qty = document.getElementById('id_quantity');
+            if (qty && parseFloat(qty.value) <= 0) {
+                alert('Por favor ingresa una cantidad válida.');
+                qty.focus();
+                return;
+            }
+        }
+        
+        showStep(step);
+    }
+    
+    function prevStep(step) {
+        showStep(step);
+    }
 
     // Utilidad para asignar valores
     function setVal(id, val) {
@@ -532,12 +636,6 @@
         if (prod && !prod.value) setVal("id_product_name", p.product_name);
         setVal("id_unit", p.unit);
         toggleBrandOther();
-        
-        // Expand details section
-        const detailsSection = document.getElementById('detailsSection');
-        if (detailsSection && !detailsSection.classList.contains('show')) {
-            const bsCollapse = new bootstrap.Collapse(detailsSection, { toggle: true });
-        }
     }
     
     if (presetSelect) presetSelect.addEventListener("change", applyPreset);
@@ -562,12 +660,6 @@
         setVal("id_brand", "other");
         toggleBrandOther();
         setVal("id_brand_other", item.brand_text);
-        
-        // Expand details section
-        const detailsSection = document.getElementById('detailsSection');
-        if (detailsSection && !detailsSection.classList.contains('show')) {
-            const bsCollapse = new bootstrap.Collapse(detailsSection, { toggle: true });
-        }
     }
     
     if (catSelect) catSelect.addEventListener("change", applyCatalog);
@@ -586,20 +678,6 @@
     if (whenSelect) {
         whenSelect.addEventListener("change", toggleDate);
         toggleDate();
-    }
-    
-    // ===== FORM VALIDATION =====
-    const form = document.getElementById('materialsForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const quantity = document.getElementById('id_quantity');
-            if (quantity && parseFloat(quantity.value) <= 0) {
-                e.preventDefault();
-                alert('Por favor ingresa una cantidad válida');
-                quantity.focus();
-                return false;
-            }
-        });
     }
 </script>
 {% endblock %}

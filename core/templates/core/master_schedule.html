@@ -416,11 +416,16 @@
   // Fetch Schedule Data
   async function fetchScheduleData() {
     try {
+      const headers = {
+        'X-CSRFToken': getCookie('csrftoken')
+      };
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/v1/schedule/master/', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`,
-          'X-CSRFToken': getCookie('csrftoken')
-        }
+        headers: headers
       });
       
       if (!response.ok) {
