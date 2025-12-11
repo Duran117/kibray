@@ -1,0 +1,479 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Materials Request" %} - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Modern Header -->
+    <div class="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-6 sm:px-6 lg:px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">{% trans "Materials Request" %}</h1>
+                    <p class="text-amber-100 mt-1">
+                        <i class="bi bi-folder-fill mr-2"></i>
+                        {{ project.name }}
+                    </p>
+                </div>
+                <a href="{% url 'materials_requests_list' project.id %}" class="bg-white text-amber-600 px-4 py-2 rounded-lg font-semibold hover:bg-amber-50 transition-all">
+                    <i class="bi bi-list-ul mr-2"></i>{% trans "View Requests" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wizard Container -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Wizard Progress Steps -->
+            <div class="bg-gradient-to-b from-gray-50 to-white px-6 py-5 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 flex items-center">
+                        <div id="step-1-indicator" class="flex items-center step-active">
+                            <div class="w-10 h-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg transition-all">1</div>
+                            <div class="ml-3 hidden sm:block">
+                                <p class="text-sm font-semibold text-gray-900">{% trans "Category" %}</p>
+                                <p class="text-xs text-gray-500">{% trans "Select material type" %}</p>
+                            </div>
+                        </div>
+                        <div class="flex-1 h-0.5 bg-gray-200 mx-4" id="line-1"></div>
+                    </div>
+                    
+                    <div class="flex-1 flex items-center">
+                        <div id="step-2-indicator" class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-lg transition-all">2</div>
+                            <div class="ml-3 hidden sm:block">
+                                <p class="text-sm font-semibold text-gray-400">{% trans "Details" %}</p>
+                                <p class="text-xs text-gray-400">{% trans "Product information" %}</p>
+                            </div>
+                        </div>
+                        <div class="flex-1 h-0.5 bg-gray-200 mx-4" id="line-2"></div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div id="step-3-indicator" class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-lg transition-all">3</div>
+                            <div class="ml-3 hidden sm:block">
+                                <p class="text-sm font-semibold text-gray-400">{% trans "Delivery" %}</p>
+                                <p class="text-xs text-gray-400">{% trans "Quantity & date" %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wizard Form -->
+            <form method="post" enctype="multipart/form-data" id="materials-wizard-form">
+                {% csrf_token %}
+                
+                <!-- Step 1: Category Selection -->
+                <div id="wizard-step-1" class="wizard-step p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{% trans "What type of material do you need?" %}</h3>
+                    
+                    <!-- Quick Catalog Search -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="bi bi-search mr-1"></i>{% trans "Quick Search from Catalog" %}
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="catalog-search" 
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                                   placeholder="{% trans 'Type to search products...' %}">
+                            <i class="bi bi-search absolute right-4 top-4 text-gray-400"></i>
+                        </div>
+                        <select id="catalog-select" name="catalog_item" class="hidden">
+                            <option value="">-- {% trans "Manual Entry" %} --</option>
+                        </select>
+                        <div id="catalog-results" class="mt-2 space-y-2 max-h-60 overflow-y-auto"></div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Category" %}</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="paint">
+                                <i class="bi bi-palette-fill text-3xl text-amber-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Paint" %}</p>
+                            </button>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="primer">
+                                <i class="bi bi-droplet-fill text-3xl text-blue-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Primer" %}</p>
+                            </button>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="tape">
+                                <i class="bi bi-rulers text-3xl text-yellow-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Tape" %}</p>
+                            </button>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="plastic">
+                                <i class="bi bi-box-seam text-3xl text-green-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Plastic" %}</p>
+                            </button>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="sandpaper">
+                                <i class="bi bi-file-earmark-text text-3xl text-gray-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Sandpaper" %}</p>
+                            </button>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="other">
+                                <i class="bi bi-three-dots text-3xl text-gray-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Other" %}</p>
+                            </button>
+                        </div>
+                        {{ form.category }}
+                    </div>
+
+                    <!-- Approved Colors (if available) -->
+                    {% if form.approved_color %}
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="bi bi-check-circle-fill text-green-500 mr-1"></i>{% trans "Or select from approved colors" %}
+                        </label>
+                        {{ form.approved_color }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Preset Products -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="bi bi-lightning-fill text-amber-500 mr-1"></i>{% trans "Quick Presets" %}
+                        </label>
+                        {{ form.product_preset }}
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="button" onclick="nextStep(2)" class="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors">
+                            {% trans "Next" %} <i class="bi bi-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Product Details -->
+                <div id="wizard-step-2" class="wizard-step hidden p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{% trans "Product Details" %}</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Brand" %}</label>
+                            {{ form.brand }}
+                        </div>
+                        
+                        <div id="brand-other-container" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Brand Name" %}</label>
+                            {{ form.brand_other }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Product Name" %}</label>
+                            {{ form.product_name }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Color Name" %}</label>
+                            {{ form.color_name }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Color Code" %}</label>
+                            {{ form.color_code }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Finish" %}</label>
+                            {{ form.finish }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Gloss Level" %}</label>
+                            {{ form.gloss }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Formula" %}</label>
+                            {{ form.formula }}
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Reference Image" %}</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-amber-500 transition-all">
+                            <i class="bi bi-cloud-upload text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-sm text-gray-600 mb-2">{% trans "Upload a reference image (optional)" %}</p>
+                            {{ form.reference_image }}
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevStep(1)" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                            <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
+                        </button>
+                        <button type="button" onclick="nextStep(3)" class="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors">
+                            {% trans "Next" %} <i class="bi bi-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Delivery & Quantity -->
+                <div id="wizard-step-3" class="wizard-step hidden p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{% trans "Delivery Details" %}</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Quantity" %}</label>
+                            {{ form.quantity }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Unit" %}</label>
+                            {{ form.unit }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "When Needed" %}</label>
+                            {{ form.needed_when }}
+                        </div>
+                        
+                        <div id="needed-date-container" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Specific Date" %}</label>
+                            {{ form.needed_date }}
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Additional Comments" %}</label>
+                        {{ form.comments }}
+                    </div>
+
+                    <div class="mt-6 flex items-center">
+                        <input type="checkbox" id="save-to-catalog" name="save_to_catalog" class="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500">
+                        <label for="save-to-catalog" class="ml-3 text-sm font-medium text-gray-700">
+                            <i class="bi bi-bookmark-plus text-amber-600 mr-1"></i>
+                            {% trans "Save this product to project catalog for future requests" %}
+                        </label>
+                    </div>
+
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevStep(2)" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                            <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
+                        </button>
+                        <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                            <i class="bi bi-check-circle mr-2"></i>{% trans "Submit Request" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+    const catalogData = {{ catalog_json|safe }};
+    const presetsData = {{ presets_json|safe }};
+
+    // Wizard Navigation
+    function nextStep(step) {
+        // Hide current step
+        document.getElementById(`wizard-step-${currentStep}`).classList.add('hidden');
+        
+        // Show next step
+        document.getElementById(`wizard-step-${step}`).classList.remove('hidden');
+        
+        // Update indicators
+        updateStepIndicators(step);
+        
+        currentStep = step;
+        window.scrollTo(0, 0);
+    }
+
+    function prevStep(step) {
+        nextStep(step);
+    }
+
+    function updateStepIndicators(activeStep) {
+        for (let i = 1; i <= 3; i++) {
+            const indicator = document.getElementById(`step-${i}-indicator`);
+            const circle = indicator.querySelector('div');
+            const labels = indicator.querySelectorAll('p');
+            const line = document.getElementById(`line-${i}`);
+            
+            if (i <= activeStep) {
+                circle.classList.remove('bg-gray-200', 'text-gray-400');
+                circle.classList.add('bg-amber-600', 'text-white');
+                labels.forEach(label => {
+                    label.classList.remove('text-gray-400');
+                    label.classList.add('text-gray-900');
+                });
+                if (line && i < activeStep) {
+                    line.classList.remove('bg-gray-200');
+                    line.classList.add('bg-amber-600');
+                }
+            } else {
+                circle.classList.remove('bg-amber-600', 'text-white');
+                circle.classList.add('bg-gray-200', 'text-gray-400');
+                labels.forEach(label => {
+                    label.classList.remove('text-gray-900');
+                    label.classList.add('text-gray-400');
+                });
+                if (line) {
+                    line.classList.remove('bg-amber-600');
+                    line.classList.add('bg-gray-200');
+                }
+            }
+        }
+    }
+
+    // Category Selection
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active from all
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.classList.remove('border-amber-500', 'bg-amber-50', 'ring-2', 'ring-amber-500');
+            });
+            
+            // Add active to clicked
+            this.classList.add('border-amber-500', 'bg-amber-50', 'ring-2', 'ring-amber-500');
+            
+            // Set value
+            const categoryInput = document.querySelector('[name="category"]');
+            if (categoryInput) {
+                categoryInput.value = this.dataset.category;
+            }
+        });
+    });
+
+    // Catalog Search
+    const catalogSearch = document.getElementById('catalog-search');
+    const catalogResults = document.getElementById('catalog-results');
+    const catalogSelect = document.getElementById('catalog-select');
+
+    catalogSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        catalogResults.innerHTML = '';
+        
+        if (searchTerm.length < 2) return;
+        
+        const matches = catalogData.filter(item => 
+            (item.product_name && item.product_name.toLowerCase().includes(searchTerm)) ||
+            (item.brand_text && item.brand_text.toLowerCase().includes(searchTerm)) ||
+            (item.color_name && item.color_name.toLowerCase().includes(searchTerm)) ||
+            (item.color_code && item.color_code.toLowerCase().includes(searchTerm))
+        ).slice(0, 5);
+        
+        matches.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'p-3 border border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 cursor-pointer transition-all';
+            div.innerHTML = `
+                <p class="font-semibold text-sm text-gray-900">${item.brand_text} - ${item.product_name}</p>
+                <p class="text-xs text-gray-600">${item.color_name || ''} ${item.color_code || ''}</p>
+                <p class="text-xs text-gray-500">${item.finish || ''} ${item.gloss || ''}</p>
+            `;
+            div.addEventListener('click', () => fillFromCatalog(item));
+            catalogResults.appendChild(div);
+        });
+    });
+
+    function fillFromCatalog(item) {
+        catalogSelect.value = item.id;
+        
+        // Fill form fields
+        const fields = {
+            'category': item.category,
+            'product_name': item.product_name,
+            'color_name': item.color_name,
+            'color_code': item.color_code,
+            'finish': item.finish,
+            'gloss': item.gloss,
+            'formula': item.formula,
+            'unit': item.default_unit
+        };
+        
+        Object.entries(fields).forEach(([key, value]) => {
+            const input = document.querySelector(`[name="${key}"]`);
+            if (input && value) input.value = value;
+        });
+        
+        // Select category button
+        if (item.category) {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (btn.dataset.category === item.category) {
+                    btn.click();
+                }
+            });
+        }
+        
+        catalogResults.innerHTML = '';
+        catalogSearch.value = `${item.brand_text} - ${item.product_name}`;
+        
+        // Auto-advance to step 2
+        setTimeout(() => nextStep(2), 500);
+    }
+
+    // Brand "other" toggle
+    const brandSelect = document.querySelector('[name="brand"]');
+    const brandOtherContainer = document.getElementById('brand-other-container');
+    
+    if (brandSelect) {
+        brandSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                brandOtherContainer.classList.remove('hidden');
+            } else {
+                brandOtherContainer.classList.add('hidden');
+            }
+        });
+    }
+
+    // Needed date toggle
+    const neededWhenSelect = document.querySelector('[name="needed_when"]');
+    const neededDateContainer = document.getElementById('needed-date-container');
+    
+    if (neededWhenSelect) {
+        neededWhenSelect.addEventListener('change', function() {
+            if (this.value === 'specific_date') {
+                neededDateContainer.classList.remove('hidden');
+            } else {
+                neededDateContainer.classList.add('hidden');
+            }
+        });
+    }
+
+    // Preset products handling
+    const presetSelect = document.querySelector('[name="product_preset"]');
+    if (presetSelect) {
+        presetSelect.addEventListener('change', function() {
+            const idx = this.value;
+            if (idx && presetsData[idx]) {
+                const preset = presetsData[idx];
+                
+                // Fill fields
+                if (preset.category) {
+                    document.querySelectorAll('.category-btn').forEach(btn => {
+                        if (btn.dataset.category === preset.category) {
+                            btn.click();
+                        }
+                    });
+                }
+                
+                const fields = {
+                    'product_name': preset.product_name,
+                    'unit': preset.unit
+                };
+                
+                Object.entries(fields).forEach(([key, value]) => {
+                    const input = document.querySelector(`[name="${key}"]`);
+                    if (input && value) input.value = value;
+                });
+            }
+        });
+    }
+
+    // Style form inputs
+    document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="file"], select, textarea').forEach(input => {
+        if (!input.classList.contains('hidden')) {
+            input.classList.add('w-full', 'px-4', 'py-2', 'border', 'border-gray-300', 'rounded-lg', 'focus:border-amber-500', 'focus:ring-2', 'focus:ring-amber-200', 'transition-all');
+        }
+    });
+
+    document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.classList.add('resize-none');
+        textarea.rows = 4;
+    });
+</script>
+{% endblock %}

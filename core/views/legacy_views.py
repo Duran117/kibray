@@ -5855,9 +5855,12 @@ def materials_request_view(request, project_id):
         for m in catalog_qs
     ]
 
+    # Use modern template by default, legacy with ?legacy=true
+    template = "core/materials_request.html" if request.GET.get("legacy") else "core/materials_request_modern.html"
+    
     return render(
         request,
-        "core/materials_request.html",
+        template,
         {
             "project": project,
             "form": form,
@@ -6598,9 +6601,12 @@ def materials_requests_list_view(request, project_id=None):
 
     qs = qs.select_related("project", "requested_by").prefetch_related("items").order_by("-created_at")
 
+    # Use modern template by default, legacy with ?legacy=true
+    template = "core/materials_requests_list.html" if request.GET.get("legacy") else "core/materials_requests_list_modern.html"
+
     return render(
         request,
-        "core/materials_requests_list.html",
+        template,
         {
             "project": project,
             "requests": qs,

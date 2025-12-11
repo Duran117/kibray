@@ -1,0 +1,156 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Material Requests" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Modern Header -->
+    <div class="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-6 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">{% trans "Material Requests" %}</h1>
+                    {% if project %}
+                    <p class="text-amber-100 mt-1">
+                        <i class="bi bi-folder-fill mr-2"></i>
+                        {{ project.name }}
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="flex gap-2">
+                    {% if project %}
+                    <a href="{% url 'project_overview' project.id %}" class="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg font-semibold hover:bg-opacity-30 transition-all">
+                        <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
+                    </a>
+                    <a href="{% url 'materials_request' project.id %}" class="bg-white text-amber-600 px-4 py-2 rounded-lg font-semibold hover:bg-amber-50 transition-all">
+                        <i class="bi bi-plus-lg mr-2"></i>{% trans "New Request" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div class="bg-white rounded-t-xl shadow-lg border-b border-gray-200 px-6 py-4">
+            <div class="flex flex-wrap gap-2">
+                <a href="?status=" class="px-4 py-2 rounded-lg font-medium transition-all {% if not status_filter %}bg-amber-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    <i class="bi bi-list mr-2"></i>{% trans "All" %}
+                </a>
+                <a href="?status=pending" class="px-4 py-2 rounded-lg font-medium transition-all {% if status_filter == 'pending' %}bg-gray-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    <i class="bi bi-clock mr-2"></i>{% trans "Pending" %}
+                </a>
+                <a href="?status=submitted" class="px-4 py-2 rounded-lg font-medium transition-all {% if status_filter == 'submitted' %}bg-yellow-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    <i class="bi bi-send mr-2"></i>{% trans "Submitted" %}
+                </a>
+                <a href="?status=approved" class="px-4 py-2 rounded-lg font-medium transition-all {% if status_filter == 'approved' %}bg-green-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    <i class="bi bi-check-circle mr-2"></i>{% trans "Approved" %}
+                </a>
+                <a href="?status=ordered" class="px-4 py-2 rounded-lg font-medium transition-all {% if status_filter == 'ordered' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    <i class="bi bi-truck mr-2"></i>{% trans "Ordered" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests List -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-b-xl shadow-lg overflow-hidden">
+            {% if requests %}
+            <div class="divide-y divide-gray-200">
+                {% for req in requests %}
+                <div class="p-6 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="text-lg font-bold text-gray-900">#{{ req.id }}</h3>
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full 
+                                    {% if req.status == 'approved' %}bg-green-100 text-green-700
+                                    {% elif req.status == 'submitted' %}bg-yellow-100 text-yellow-700
+                                    {% elif req.status == 'ordered' %}bg-blue-100 text-blue-700
+                                    {% elif req.status == 'rejected' %}bg-red-100 text-red-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ req.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+                                {% if not project %}
+                                <div class="flex items-center text-sm">
+                                    <i class="bi bi-folder-fill text-amber-600 mr-2"></i>
+                                    <span class="text-gray-600">{{ req.project.name }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="flex items-center text-sm">
+                                    <i class="bi bi-person-fill text-blue-600 mr-2"></i>
+                                    <span class="text-gray-600">{{ req.requested_by.get_full_name|default:req.requested_by.username }}</span>
+                                </div>
+                                
+                                <div class="flex items-center text-sm">
+                                    <i class="bi bi-calendar-event text-green-600 mr-2"></i>
+                                    <span class="text-gray-600">
+                                        {% if req.needed_when == 'asap' %}
+                                            <span class="font-semibold text-red-600">{% trans "ASAP" %}</span>
+                                        {% elif req.needed_when == 'this_week' %}
+                                            {% trans "This Week" %}
+                                        {% elif req.needed_when == 'next_week' %}
+                                            {% trans "Next Week" %}
+                                        {% elif req.needed_date %}
+                                            {{ req.needed_date|date:"M d, Y" }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex items-center text-sm">
+                                    <i class="bi bi-box-seam text-purple-600 mr-2"></i>
+                                    <span class="text-gray-600">{{ req.items.count }} {% trans "items" %}</span>
+                                </div>
+                            </div>
+
+                            {% if req.notes %}
+                            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm text-gray-700">{{ req.notes|truncatewords:20 }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="ml-4 flex flex-col gap-2">
+                            <a href="{% url 'materials_request_detail' req.id %}" 
+                               class="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors text-center">
+                                <i class="bi bi-eye mr-1"></i>{% trans "View" %}
+                            </a>
+                            
+                            {% if req.status == 'pending' and request.user.is_staff %}
+                            <form method="post" action="{% url 'materials_mark_ordered' req.id %}" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                    <i class="bi bi-truck mr-1"></i>{% trans "Mark Ordered" %}
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="bi bi-inbox text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">{% trans "No requests found" %}</h3>
+                <p class="text-gray-500 mb-6">{% trans "No material requests match your current filter" %}</p>
+                {% if project %}
+                <a href="{% url 'materials_request' project.id %}" class="inline-flex items-center px-6 py-3 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-colors">
+                    <i class="bi bi-plus-lg mr-2"></i>{% trans "Create First Request" %}
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
