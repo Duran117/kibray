@@ -5,10 +5,18 @@ Run this in Railway to debug media file issues
 """
 import os
 import sys
-import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings.production")
-django.setup()
+# Try production settings first, fall back to development
+try:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings.production")
+    import django
+    django.setup()
+except (ValueError, ImportError) as e:
+    print(f"⚠️  Production settings failed: {e}")
+    print("📝 Falling back to development settings...")
+    os.environ["DJANGO_SETTINGS_MODULE"] = "kibray_backend.settings.development"
+    import django
+    django.setup()
 
 from django.conf import settings
 from core.models import FloorPlan
