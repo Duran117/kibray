@@ -5,32 +5,32 @@
 {% block title %}{% trans "Daily Plan" %} - {{ plan.plan_date }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-50 overflow-x-hidden max-w-full">
     <!-- Modern Header -->
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-6">
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2 sm:px-4 py-6">
         <div class="max-w-7xl mx-auto">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h1 class="text-3xl font-bold">{% trans "Daily Plan" %}</h1>
-                    <p class="text-blue-100 mt-1">{{ plan.plan_date|date:"l, F d, Y" }}</p>
-                    <p class="text-blue-200 text-sm">{{ plan.project.name }}</p>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+                <div class="flex-shrink min-w-0">
+                    <h1 class="text-2xl sm:text-3xl font-bold">{% trans "Daily Plan" %}</h1>
+                    <p class="text-blue-100 mt-1 text-sm sm:text-base">{{ plan.plan_date|date:"l, F d, Y" }}</p>
+                    <p class="text-blue-200 text-xs sm:text-sm truncate">{{ plan.project.name }}</p>
                 </div>
-                <div class="flex gap-2">
-                    <a href="{% url 'daily_plan_edit' plan.id %}" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all">
-                        <i class="bi bi-pencil mr-2"></i>{% trans "Edit" %}
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'daily_plan_edit' plan.id %}" class="bg-white text-blue-600 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all whitespace-nowrap">
+                        <i class="bi bi-pencil mr-1 sm:mr-2"></i>{% trans "Edit" %}
                     </a>
-                    <a href="{% url 'daily_plan_timeline' plan.id %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-400 transition-all">
-                        <i class="bi bi-calendar-range mr-2"></i>{% trans "Timeline" %}
+                    <a href="{% url 'daily_plan_timeline' plan.id %}" class="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-400 transition-all whitespace-nowrap">
+                        <i class="bi bi-calendar-range mr-1 sm:mr-2"></i>{% trans "Timeline" %}
                     </a>
-                    <a href="{% url 'daily_plan_list' %}" class="bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all">
-                        <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
+                    <a href="{% url 'daily_plan_list' %}" class="bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-all whitespace-nowrap">
+                        <i class="bi bi-arrow-left mr-1 sm:mr-2"></i>{% trans "Back" %}
                     </a>
                 </div>
             </div>
             
             <!-- Status Badge -->
-            <div class="flex items-center gap-3">
-                <span class="px-4 py-1 rounded-full text-sm font-semibold
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span class="px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap
                     {% if plan.status == 'COMPLETED' %}bg-green-100 text-green-700
                     {% elif plan.status == 'IN_PROGRESS' %}bg-yellow-100 text-yellow-700
                     {% elif plan.status == 'PUBLISHED' %}bg-blue-100 text-blue-700
@@ -38,7 +38,7 @@
                     {{ plan.get_status_display }}
                 </span>
                 {% if productivity_score %}
-                <span class="px-4 py-1 bg-white/20 rounded-full text-sm font-semibold">
+                <span class="px-3 sm:px-4 py-1 bg-white/20 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap">
                     <i class="bi bi-speedometer2 mr-1"></i>{{ productivity_score }}% {% trans "Productivity" %}
                 </span>
                 {% endif %}
@@ -47,21 +47,21 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 py-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <!-- Activities Column -->
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <h2 class="text-xl font-bold text-gray-900">
+                    <div class="px-4 sm:px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-900">
                             <i class="bi bi-list-check text-blue-600 mr-2"></i>
                             {% trans "Activities" %} ({{ activities.count }})
                         </h2>
                         {% if can_convert %}
                         <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}" onsubmit="return confirm('{% trans 'Convert all planned activities to tasks?' %}');" class="inline">
                             {% csrf_token %}
-                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors">
-                                <i class="bi bi-arrow-repeat mr-2"></i>{% trans "Convert to Tasks" %}
+                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-amber-500 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-amber-600 transition-colors whitespace-nowrap">
+                                <i class="bi bi-arrow-repeat mr-1 sm:mr-2"></i>{% trans "Convert to Tasks" %}
                             </button>
                         </form>
                         {% endif %}
@@ -70,22 +70,22 @@
                     <!-- Activities List -->
                     <div class="divide-y divide-gray-200">
                         {% for a in activities %}
-                        <div class="p-4 hover:bg-gray-50 transition-colors
+                        <div class="p-3 sm:p-4 hover:bg-gray-50 transition-colors
                             {% if a.materials_needed %}bg-orange-50 border-l-4 border-orange-400{% endif %}"
                             data-activity-id="{{ a.id }}">
                             
                             <!-- Activity Title & Status -->
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex-1">
-                                    <h3 class="text-lg font-bold 
+                            <div class="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0 mb-3">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-base sm:text-lg font-bold break-words
                                         {% if a.materials_needed %}text-orange-900{% else %}text-gray-900{% endif %}">
                                         {{ a.title }}
                                     </h3>
                                     {% if a.description %}
-                                    <p class="text-sm text-gray-600 mt-1">{{ a.description }}</p>
+                                    <p class="text-xs sm:text-sm text-gray-600 mt-1 break-words">{{ a.description }}</p>
                                     {% endif %}
                                 </div>
-                                <span class="ml-4 px-3 py-1 rounded-full text-xs font-semibold
+                                <span class="ml-0 sm:ml-4 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0
                                     {% if a.status == 'COMPLETED' %}bg-green-100 text-green-700
                                     {% elif a.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-700
                                     {% elif a.status == 'BLOCKED' %}bg-red-100 text-red-700
@@ -229,22 +229,22 @@
                             {% trans "Summary" %}
                         </h3>
                     </div>
-                    <div class="p-6 space-y-3 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">{% trans "Project" %}:</span>
-                            <span class="font-semibold text-gray-900">{{ plan.project.name }}</span>
+                    <div class="p-4 sm:p-6 space-y-3 text-xs sm:text-sm">
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-gray-600 flex-shrink-0">{% trans "Project" %}:</span>
+                            <span class="font-semibold text-gray-900 text-right truncate">{{ plan.project.name }}</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">{% trans "Deadline" %}:</span>
-                            <span class="font-semibold text-gray-900">{{ plan.completion_deadline|date:"M d, H:i" }}</span>
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-gray-600 flex-shrink-0">{% trans "Deadline" %}:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ plan.completion_deadline|date:"M d, H:i" }}</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">{% trans "Estimated" %}:</span>
-                            <span class="font-semibold text-gray-900">{{ plan.estimated_hours_total|default:'0' }}h</span>
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-gray-600 flex-shrink-0">{% trans "Estimated" %}:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ plan.estimated_hours_total|default:'0' }}h</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">{% trans "Actual" %}:</span>
-                            <span class="font-semibold text-gray-900">{{ plan.actual_hours_worked|default:'0' }}h</span>
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-gray-600 flex-shrink-0">{% trans "Actual" %}:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ plan.actual_hours_worked|default:'0' }}h</span>
                         </div>
                         {% if weather %}
                         <div class="pt-3 border-t border-gray-200">
@@ -487,4 +487,23 @@ function submitAddSubtask() {
         });
 }
 </script>
+
+<style>
+    /* Prevent horizontal overflow */
+    body {
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+    
+    /* Ensure all containers respect viewport width */
+    .max-w-7xl {
+        max-width: 100%;
+    }
+    
+    @media (min-width: 1280px) {
+        .max-w-7xl {
+            max-width: 80rem;
+        }
+    }
+</style>
 {% endblock %}
