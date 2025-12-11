@@ -570,18 +570,37 @@
   function openPinModal(pinId) {
     const modal = new bootstrap.Modal(document.getElementById('pinInfoModal'));
     const modalBody = document.getElementById('pinInfoModalBody');
-    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">Cargando información del pin...</p></div>';
     modal.show();
 
+    console.log('Loading pin info for ID:', pinId);
+    
     fetch(`/pins/${pinId}/info/`, {
       headers: { 'Accept': 'application/json' }
     })
-    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(r => {
+      console.log('Response status:', r.status);
+      if (!r.ok) {
+        return r.text().then(text => {
+          console.error('Error response:', text);
+          throw new Error(`Server returned ${r.status}: ${text}`);
+        });
+      }
+      return r.json();
+    })
     .then(data => {
+      console.log('Pin data received:', data);
       renderPinModal(data, pinId);
     })
-    .catch(() => {
-      modalBody.innerHTML = `<div class="alert alert-danger">${I18N.errorLoadingPin}</div>`;
+    .catch(error => {
+      console.error('Error loading pin:', error);
+      modalBody.innerHTML = `
+        <div class="alert alert-danger">
+          <h5>Error al cargar la información del pin</h5>
+          <p>${error.message || 'Error desconocido'}</p>
+          <small class="text-muted">Pin ID: ${pinId}</small>
+        </div>
+      `;
     });
   }
 

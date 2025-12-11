@@ -8736,59 +8736,76 @@ def touchup_reject(request, touchup_id):
 @login_required
 def pin_info_ajax(request, pin_id):
     """Get info pin details via AJAX"""
+    import logging
     from core.models import PlanPin
 
-    pin = get_object_or_404(PlanPin, id=pin_id)
-    profile = getattr(request.user, "profile", None)
+    logger = logging.getLogger(__name__)
+    
+    try:
+        pin = get_object_or_404(PlanPin, id=pin_id)
+        profile = getattr(request.user, "profile", None)
 
-    # Anyone can view info pins
-    can_edit = request.user.is_staff or (
-        profile and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
-    )
+        # Anyone can view info pins
+        can_edit = request.user.is_staff or (
+            profile and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+        )
 
-    data = {
-        "id": pin.id,
-        "title": pin.title,
-        "description": pin.description,
-        "pin_type": pin.pin_type,
-        "pin_type_display": pin.get_pin_type_display(),
-        "pin_color": pin.pin_color,
-        "can_edit": can_edit,
-        "color_sample": None,
-        "linked_task": None,
-        "attachments": [],
-    }
-
-    # Add color sample if exists
-    if pin.color_sample:
-        data["color_sample"] = {
-            "id": pin.color_sample.id,
-            "name": pin.color_sample.name,
-            "manufacturer": pin.color_sample.manufacturer,
-            "color_code": pin.color_sample.color_code,
-            "hex_color": pin.color_sample.hex_color,
+        data = {
+            "id": pin.id,
+            "title": pin.title or "",
+            "description": pin.description or "",
+            "pin_type": pin.pin_type,
+            "pin_type_display": pin.get_pin_type_display(),
+            "pin_color": pin.pin_color,
+            "can_edit": can_edit,
+            "color_sample": None,
+            "linked_task": None,
+            "attachments": [],
         }
 
-    # Add linked task if exists
-    if pin.linked_task:
-        data["linked_task"] = {
-            "id": pin.linked_task.id,
-            "title": pin.linked_task.title,
-            "status": pin.linked_task.status,
-        }
+        # Add color sample if exists
+        try:
+            if pin.color_sample:
+                data["color_sample"] = {
+                    "id": pin.color_sample.id,
+                    "name": pin.color_sample.name or "",
+                    "manufacturer": pin.color_sample.manufacturer or "",
+                    "color_code": pin.color_sample.color_code or "",
+                    "hex_color": pin.color_sample.hex_color or "",
+                }
+        except Exception as e:
+            logger.error(f"Error loading color sample for pin {pin_id}: {e}")
 
-    # Add attachments (photos)
-    data["attachments"] = [
-        {
-            "id": att.id,
-            "image_url": att.image.url,
-            "has_annotations": bool(att.annotations),
-            "created_at": att.created_at.isoformat(),
-        }
-        for att in pin.attachments.all()
-    ]
+        # Add linked task if exists
+        try:
+            if pin.linked_task:
+                data["linked_task"] = {
+                    "id": pin.linked_task.id,
+                    "title": pin.linked_task.title or "",
+                    "status": pin.linked_task.status or "",
+                }
+        except Exception as e:
+            logger.error(f"Error loading linked task for pin {pin_id}: {e}")
 
-    return JsonResponse(data)
+        # Add attachments (photos)
+        try:
+            data["attachments"] = [
+                {
+                    "id": att.id,
+                    "image_url": att.image.url if att.image else "",
+                    "has_annotations": bool(att.annotations),
+                    "created_at": att.created_at.isoformat() if att.created_at else "",
+                }
+                for att in pin.attachments.all()
+            ]
+        except Exception as e:
+            logger.error(f"Error loading attachments for pin {pin_id}: {e}")
+
+        return JsonResponse(data)
+    
+    except Exception as e:
+        logger.error(f"Error in pin_info_ajax for pin {pin_id}: {str(e)}", exc_info=True)
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 @login_required
