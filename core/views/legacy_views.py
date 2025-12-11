@@ -8773,7 +8773,7 @@ def pin_info_ajax(request, pin_id):
     if pin.linked_task:
         data["linked_task"] = {
             "id": pin.linked_task.id,
-            "name": pin.linked_task.name,
+            "title": pin.linked_task.title,
             "status": pin.linked_task.status,
         }
 
