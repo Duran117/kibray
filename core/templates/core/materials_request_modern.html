@@ -68,6 +68,31 @@
             <form method="post" enctype="multipart/form-data" id="materials-wizard-form">
                 {% csrf_token %}
                 
+                <!-- Hidden fields for activity tracking -->
+                {% if activity_id %}
+                <input type="hidden" name="activity_id" value="{{ activity_id }}">
+                <input type="hidden" name="activity_name" value="{{ activity_name }}">
+                {% endif %}
+                
+                {% if activity_name %}
+                <!-- Activity Context Banner -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-info-circle-fill text-blue-400 text-xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-blue-800">
+                                {% trans "Materials request for activity:" %} <strong>{{ activity_name }}</strong>
+                            </p>
+                            <p class="text-xs text-blue-600 mt-1">
+                                {% trans "This request will be linked to the daily plan activity" %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
                 <!-- Step 1: Category Selection -->
                 <div id="wizard-step-1" class="wizard-step p-6">
                     <h3 class="text-xl font-bold text-gray-900 mb-4">{% trans "What type of material do you need?" %}</h3>

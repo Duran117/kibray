@@ -5699,12 +5699,22 @@ def materials_request_view(request, project_id):
             request.POST, request.FILES, colors=colors, presets=PRESET_PRODUCTS, catalog=catalog_qs
         )
         if form.is_valid():
+            # Get activity information from query parameters or POST
+            activity_id = request.GET.get('activity_id') or request.POST.get('activity_id')
+            activity_name = request.GET.get('activity_name', '') or request.POST.get('activity_name', '')
+            
+            # Build notes with activity reference
+            notes = form.cleaned_data.get("comments", "")
+            if activity_id and activity_name:
+                activity_note = f"[Solicitado para actividad: {activity_name} (ID: {activity_id})]"
+                notes = f"{activity_note}\n{notes}" if notes else activity_note
+            
             mr = MaterialRequest.objects.create(
                 project=project,
                 requested_by=request.user,
                 needed_when=form.cleaned_data["needed_when"],
                 needed_date=form.cleaned_data.get("needed_date") or None,
-                notes=form.cleaned_data.get("comments", ""),
+                notes=notes,
                 status="pending",
             )
 
@@ -5855,6 +5865,10 @@ def materials_request_view(request, project_id):
         for m in catalog_qs
     ]
 
+    # Get activity information from query parameters
+    activity_id = request.GET.get('activity_id')
+    activity_name = request.GET.get('activity_name', '')
+
     # Use modern template by default, legacy with ?legacy=true
     template = "core/materials_request.html" if request.GET.get("legacy") else "core/materials_request_modern.html"
     
@@ -5866,6 +5880,8 @@ def materials_request_view(request, project_id):
             "form": form,
             "presets_json": json.dumps(PRESET_PRODUCTS),
             "catalog_json": json.dumps(catalog_payload),
+            "activity_id": activity_id,
+            "activity_name": activity_name,
         },
     )
 
