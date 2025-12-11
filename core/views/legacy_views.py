@@ -8766,12 +8766,21 @@ def pin_info_ajax(request, pin_id):
         # Add color sample if exists
         try:
             if pin.color_sample:
+                cs = pin.color_sample
                 data["color_sample"] = {
-                    "id": pin.color_sample.id,
-                    "name": pin.color_sample.name or "",
-                    "manufacturer": pin.color_sample.manufacturer or "",
-                    "color_code": pin.color_sample.color_code or "",
-                    "hex_color": pin.color_sample.hex_color or "",
+                    "id": cs.id,
+                    "name": cs.name or "",
+                    "code": cs.code or "",
+                    "brand": cs.brand or "",
+                    "finish": cs.finish or "",
+                    "gloss": cs.gloss or "",
+                    "status": cs.status or "",
+                    "status_display": cs.get_status_display(),
+                    "notes": cs.notes or "",
+                    "room_location": cs.room_location or "",
+                    "sample_number": cs.sample_number or "",
+                    "sample_image": cs.sample_image.url if cs.sample_image else None,
+                    "reference_photo": cs.reference_photo.url if cs.reference_photo else None,
                 }
         except Exception as e:
             logger.error(f"Error loading color sample for pin {pin_id}: {e}")
