@@ -664,26 +664,26 @@
             ${pin.color_sample.sample_image || pin.color_sample.reference_photo ? `
               <div class="row g-2 mb-3">
                 ${pin.color_sample.sample_image ? `
-                  <div class="col-6">
+                  <div class="col-${pin.color_sample.reference_photo ? '6' : '12'}">
                     <div class="text-center">
                       <img src="${pin.color_sample.sample_image}" 
-                           class="img-fluid rounded shadow-sm" 
-                           style="max-height: 150px; object-fit: cover; cursor: pointer;"
+                           class="img-fluid rounded shadow-sm w-100" 
+                           style="max-height: 200px; height: auto; object-fit: contain; cursor: pointer; background: #f8f9fa;"
                            onclick="window.open('${pin.color_sample.sample_image}', '_blank')"
                            alt="Color Sample">
-                      <small class="text-muted d-block mt-1">Muestra</small>
+                      <small class="text-muted d-block mt-1"><i class="bi bi-image me-1"></i>Muestra</small>
                     </div>
                   </div>
                 ` : ''}
                 ${pin.color_sample.reference_photo ? `
-                  <div class="col-6">
+                  <div class="col-${pin.color_sample.sample_image ? '6' : '12'}">
                     <div class="text-center">
                       <img src="${pin.color_sample.reference_photo}" 
-                           class="img-fluid rounded shadow-sm" 
-                           style="max-height: 150px; object-fit: cover; cursor: pointer;"
+                           class="img-fluid rounded shadow-sm w-100" 
+                           style="max-height: 200px; height: auto; object-fit: contain; cursor: pointer; background: #f8f9fa;"
                            onclick="window.open('${pin.color_sample.reference_photo}', '_blank')"
                            alt="Reference Photo">
-                      <small class="text-muted d-block mt-1">Referencia</small>
+                      <small class="text-muted d-block mt-1"><i class="bi bi-camera me-1"></i>Referencia</small>
                     </div>
                   </div>
                 ` : ''}
@@ -791,25 +791,26 @@
           ${pin.attachments.length > 0 ? `
             <div class="row g-2">
               ${pin.attachments.map((att, idx) => `
-                <div class="col-4 col-md-3" id="attachment-${att.id}">
-                  <div class="position-relative" style="cursor: pointer;" onclick="openPhotoLightbox(${pinId}, ${idx})">
+                <div class="col-6 col-sm-4 col-md-3" id="attachment-${att.id}">
+                  <div class="position-relative" style="cursor: pointer; touch-action: manipulation;" onclick="openPhotoLightbox(${pinId}, ${idx})">
                     <div class="ratio ratio-1x1">
                       <img src="${att.image_url}" 
                            class="img-fluid rounded shadow-sm" 
-                           style="object-fit: cover; transition: transform 0.2s;"
+                           style="object-fit: cover; transition: transform 0.2s; width: 100%;"
                            onmouseover="this.style.transform='scale(1.05)'"
                            onmouseout="this.style.transform='scale(1)'"
+                           loading="lazy"
                            alt="Photo ${idx + 1}">
                     </div>
                     ${canEdit ? `
                       <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
                               onclick="event.stopPropagation(); deleteAttachment(${att.id})"
-                              style="opacity: 0.9; font-size: 0.7rem; padding: 0.2rem 0.4rem;">
+                              style="opacity: 0.9; font-size: 0.65rem; padding: 0.25rem 0.4rem; line-height: 1;">
                         <i class="bi bi-trash"></i>
                       </button>
                     ` : ''}
                     ${att.has_annotations ? `
-                      <span class="position-absolute bottom-0 start-0 m-1 badge bg-warning">
+                      <span class="position-absolute bottom-0 start-0 m-1 badge bg-warning" style="font-size: 0.65rem;">
                         <i class="bi bi-pencil-square"></i>
                       </span>
                     ` : ''}
@@ -828,13 +829,13 @@
 
       <!-- Action Buttons -->
       ${canEdit ? `
-        <div class="d-flex gap-2 justify-content-end">
+        <div class="d-grid d-sm-flex gap-2 justify-content-sm-end">
           <button class="btn btn-outline-primary" onclick="showEditForm(${pinId})">
-            <i class="bi bi-pencil me-1"></i>${I18N.editPin || 'Editar'}
+            <i class="bi bi-pencil me-1"></i><span class="d-none d-sm-inline">${I18N.editPin || 'Editar'}</span><span class="d-sm-none">Editar</span>
           </button>
           ${CAN_DELETE ? `
             <button class="btn btn-outline-danger" onclick="deletePin(${pinId})">
-              <i class="bi bi-trash me-1"></i>${I18N.deletePin || 'Eliminar'}
+              <i class="bi bi-trash me-1"></i><span class="d-none d-sm-inline">${I18N.deletePin || 'Eliminar'}</span><span class="d-sm-none">Eliminar</span>
             </button>
           ` : ''}
         </div>
@@ -855,16 +856,16 @@
       
       const lightboxHtml = `
         <div class="modal fade" id="photoLightbox" tabindex="-1">
-          <div class="modal-dialog modal-xl modal-dialog-centered">
+          <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content bg-dark">
               <div class="modal-header border-0">
                 <h5 class="modal-title text-white">
-                  <i class="bi bi-image me-2"></i>Foto ${photoIndex + 1} de ${pin.attachments.length}
+                  <i class="bi bi-image me-2 d-none d-sm-inline"></i>Foto ${photoIndex + 1} de ${pin.attachments.length}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
               </div>
               <div class="modal-body p-0">
-                <div id="photoCarousel" class="carousel slide" data-bs-ride="false">
+                <div id="photoCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true">
                   <div class="carousel-inner">
                     ${pin.attachments.map((att, idx) => `
                       <div class="carousel-item ${idx === photoIndex ? 'active' : ''}">
@@ -873,11 +874,13 @@
                     `).join('')}
                   </div>
                   ${pin.attachments.length > 1 ? `
-                    <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
-                      <span class="carousel-control-prev-icon"></span>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev" style="width: 10%;">
+                      <span class="carousel-control-prev-icon" style="width: 2rem; height: 2rem;"></span>
+                      <span class="visually-hidden">Previous</span>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
-                      <span class="carousel-control-next-icon"></span>
+                    <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next" style="width: 10%;">
+                      <span class="carousel-control-next-icon" style="width: 2rem; height: 2rem;"></span>
+                      <span class="visually-hidden">Next</span>
                     </button>
                   ` : ''}
                 </div>
@@ -1359,7 +1362,7 @@ if (typeof PhotoAnnotator === 'undefined') {
 
 <!-- Pin Info Modal -->
 <div class="modal fade" id="pinInfoModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Información del Pin</h5>
