@@ -1,0 +1,228 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Material Request" %} #{{ mat_request.id }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Modern Header -->
+    <div class="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-6 sm:px-6 lg:px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <h1 class="text-3xl font-bold">{% trans "Material Request" %} #{{ mat_request.id }}</h1>
+                        <span class="px-3 py-1 text-sm font-semibold rounded-full 
+                            {% if mat_request.status == 'approved' %}bg-green-100 text-green-700
+                            {% elif mat_request.status == 'submitted' %}bg-yellow-100 text-yellow-700
+                            {% elif mat_request.status == 'ordered' %}bg-blue-100 text-blue-700
+                            {% elif mat_request.status == 'rejected' %}bg-red-100 text-red-700
+                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ mat_request.get_status_display }}
+                        </span>
+                    </div>
+                    <p class="text-amber-100">
+                        <i class="bi bi-folder-fill mr-2"></i>
+                        {{ mat_request.project.name }}
+                    </p>
+                </div>
+                <a href="{% url 'materials_requests_list' mat_request.project.id %}" class="bg-white text-amber-600 px-4 py-2 rounded-lg font-semibold hover:bg-amber-50 transition-all">
+                    <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Info -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">{% trans "Request Information" %}</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">{% trans "Requested By" %}</label>
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold mr-3">
+                                {{ mat_request.requested_by.first_name|first|default:mat_request.requested_by.username|first }}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ mat_request.requested_by.get_full_name|default:mat_request.requested_by.username }}</p>
+                                <p class="text-sm text-gray-500">{{ mat_request.created_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">{% trans "When Needed" %}</label>
+                        <p class="text-lg font-semibold text-gray-900">
+                            {% if mat_request.needed_when == 'asap' %}
+                                <span class="text-red-600"><i class="bi bi-exclamation-circle mr-2"></i>{% trans "ASAP" %}</span>
+                            {% elif mat_request.needed_when == 'this_week' %}
+                                <i class="bi bi-calendar-week mr-2"></i>{% trans "This Week" %}
+                            {% elif mat_request.needed_when == 'next_week' %}
+                                <i class="bi bi-calendar-event mr-2"></i>{% trans "Next Week" %}
+                            {% elif mat_request.needed_date %}
+                                <i class="bi bi-calendar-check mr-2"></i>{{ mat_request.needed_date|date:"M d, Y" }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                {% if mat_request.notes %}
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">{% trans "Notes" %}</label>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-gray-700">{{ mat_request.notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            {% if can_manage %}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex flex-wrap gap-3">
+                    {% if mat_request.status == 'pending' %}
+                    <form method="post" action="{% url 'materials_request_submit' mat_request.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            <i class="bi bi-send mr-2"></i>{% trans "Submit for Approval" %}
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if mat_request.status == 'submitted' %}
+                    <form method="post" action="{% url 'materials_request_approve' mat_request.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+                            <i class="bi bi-check-circle mr-2"></i>{% trans "Approve" %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'materials_request_reject' mat_request.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">
+                            <i class="bi bi-x-circle mr-2"></i>{% trans "Reject" %}
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if mat_request.status in 'approved,submitted' %}
+                    <form method="post" action="{% url 'materials_mark_ordered' mat_request.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            <i class="bi bi-truck mr-2"></i>{% trans "Mark as Ordered" %}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Items List -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900">
+                    <i class="bi bi-box-seam text-amber-600 mr-2"></i>
+                    {% trans "Requested Items" %} ({{ items.count }})
+                </h2>
+            </div>
+
+            {% if items %}
+            <div class="divide-y divide-gray-200">
+                {% for item in items %}
+                <div class="p-6 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-start gap-4">
+                        <!-- Item Image/Icon -->
+                        {% if item.reference_image %}
+                        <img src="{{ item.reference_image.url }}" alt="{{ item.product_name }}" class="w-20 h-20 object-cover rounded-lg border-2 border-gray-200">
+                        {% else %}
+                        <div class="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center">
+                            <i class="bi bi-box-seam text-3xl text-amber-600"></i>
+                        </div>
+                        {% endif %}
+
+                        <!-- Item Details -->
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">{{ item.product_name }}</h3>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+                                {% if item.category %}
+                                <div>
+                                    <span class="text-xs font-medium text-gray-500">{% trans "Category" %}</span>
+                                    <p class="text-sm font-semibold text-gray-900 capitalize">{{ item.category }}</p>
+                                </div>
+                                {% endif %}
+
+                                {% if item.brand %}
+                                <div>
+                                    <span class="text-xs font-medium text-gray-500">{% trans "Brand" %}</span>
+                                    <p class="text-sm font-semibold text-gray-900">{{ item.get_brand_display }}</p>
+                                </div>
+                                {% endif %}
+
+                                <div>
+                                    <span class="text-xs font-medium text-gray-500">{% trans "Quantity" %}</span>
+                                    <p class="text-sm font-semibold text-gray-900">{{ item.quantity }} {{ item.unit }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Color Details -->
+                            {% if item.color_name or item.color_code %}
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                {% if item.color_name %}
+                                <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                                    <i class="bi bi-palette mr-1"></i>{{ item.color_name }}
+                                </span>
+                                {% endif %}
+                                {% if item.color_code %}
+                                <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                                    <i class="bi bi-hash mr-1"></i>{{ item.color_code }}
+                                </span>
+                                {% endif %}
+                                {% if item.finish %}
+                                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                    {{ item.finish }}
+                                </span>
+                                {% endif %}
+                                {% if item.gloss %}
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                    {{ item.gloss }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Formula -->
+                            {% if item.formula %}
+                            <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                                <span class="text-xs font-medium text-gray-500 block mb-1">{% trans "Formula" %}</span>
+                                <p class="text-sm text-gray-700 font-mono">{{ item.formula }}</p>
+                            </div>
+                            {% endif %}
+
+                            <!-- Comments -->
+                            {% if item.comments %}
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <span class="text-xs font-medium text-blue-700 block mb-1">
+                                    <i class="bi bi-chat-left-text mr-1"></i>{% trans "Comments" %}
+                                </span>
+                                <p class="text-sm text-gray-700">{{ item.comments }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="bi bi-inbox text-gray-300 text-6xl mb-4"></i>
+                <p class="text-gray-500">{% trans "No items in this request" %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -90,31 +90,72 @@
                 <!-- Items List (Vertical Scroll) -->
                 <div class="flex-1 overflow-y-auto p-2 space-y-2 sm:space-y-3 custom-scrollbar item-container" data-day-id="{{ day.id }}">
                     {% for item in day.items.all %}
-                    <div class="bg-white p-2 sm:p-3 rounded border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer group" data-item-id="{{ item.id }}">
+                    <div class="p-2 sm:p-3 rounded border shadow-sm hover:shadow-md transition-all cursor-pointer group 
+                        {% if item.material_requirements.exists %}
+                            bg-orange-50 border-orange-300
+                        {% else %}
+                            bg-white border-gray-200
+                        {% endif %}"
+                        data-item-id="{{ item.id }}">
+                        
+                        <!-- Title with Edit -->
                         <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs sm:text-sm font-medium text-gray-900">{{ item.title }}</span>
+                            <span class="text-xs sm:text-sm font-medium 
+                                {% if item.material_requirements.exists %}
+                                    text-orange-900
+                                {% else %}
+                                    text-gray-900
+                                {% endif %}">
+                                {{ item.title }}
+                            </span>
                             <div class="opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button class="text-gray-400 hover:text-kibray-600"><i class="bi bi-pencil"></i></button>
                             </div>
                         </div>
                         
                         <!-- Location & Assignments -->
-                        <div class="mb-2 flex flex-wrap gap-1">
+                        <div class="mb-2 flex flex-wrap gap-1 items-center">
                             {% if item.location_area %}
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
                                     <i class="bi bi-geo-alt mr-1"></i> {{ item.location_area }}
                                 </span>
                             {% endif %}
                             
+                            <!-- Assignees - Clickeable para reasignar -->
                             {% if item.assigned_to.exists %}
-                                <div class="flex -space-x-1 overflow-hidden">
+                                <button onclick="openReassignModal('{{ item.id }}', '{{ item.title|escapejs }}')" 
+                                    class="flex -space-x-1 overflow-hidden hover:scale-110 transition-transform"
+                                    title="{% trans 'Click to reassign' %}">
                                     {% for emp in item.assigned_to.all %}
-                                        <div class="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-kibray-100 flex items-center justify-center text-[10px] font-bold text-kibray-700" title="{{ emp.first_name }} {{ emp.last_name }}">
+                                        <div class="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-kibray-100 flex items-center justify-center text-[10px] font-bold text-kibray-700">
                                             {{ emp.first_name|first }}{{ emp.last_name|first }}
                                         </div>
                                     {% endfor %}
-                                </div>
+                                </button>
+                            {% else %}
+                                <button onclick="openReassignModal('{{ item.id }}', '{{ item.title|escapejs }}')" 
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 hover:bg-kibray-100 hover:text-kibray-700 transition-colors"
+                                    title="{% trans 'Click to assign' %}">
+                                    <i class="bi bi-person-plus mr-1"></i> {% trans "Assign" %}
+                                </button>
                             {% endif %}
+                            
+                            <!-- Material Request Button - Always visible inside card -->
+                            <button onclick="openMaterialRequestForItem('{{ item.id }}', '{{ item.title|escapejs }}')" 
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium transition-colors
+                                    {% if item.material_requirements.exists %}
+                                        bg-orange-200 text-orange-800 hover:bg-orange-300
+                                    {% else %}
+                                        bg-amber-100 text-amber-700 hover:bg-amber-200
+                                    {% endif %}"
+                                title="{% if item.material_requirements.exists %}{% trans 'View/Add materials' %}{% else %}{% trans 'Request materials' %}{% endif %}">
+                                <i class="bi bi-box-seam mr-1"></i>
+                                {% if item.material_requirements.exists %}
+                                    {{ item.material_requirements.count }}
+                                {% else %}
+                                    {% trans "Materials" %}
+                                {% endif %}
+                            </button>
                         </div>
                         
                         <!-- Tasks Preview -->
@@ -305,6 +346,50 @@
         </div>
     </div>
 </div>
+
+<!-- Reassign Modal -->
+<div id="reassignModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeReassignModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="bi bi-people text-kibray-600 mr-2"></i>
+                    {% trans "Assign/Reassign" %}: <span id="reassignModalItemName" class="font-bold"></span>
+                </h3>
+                <form id="reassignForm">
+                    <input type="hidden" id="reassignItemId">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Select Team Members" %}
+                        </label>
+                        <select id="reassignEmployees" name="assigned_to" multiple 
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md h-48">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-2 text-xs text-gray-500">
+                            <i class="bi bi-info-circle mr-1"></i>
+                            {% trans "Hold Ctrl/Cmd to select multiple people" %}
+                        </p>
+                    </div>
+                </form>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitReassign()" 
+                    class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    <i class="bi bi-check-circle mr-2"></i>{% trans "Update Assignment" %}
+                </button>
+                <button type="button" onclick="closeReassignModal()" 
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -432,6 +517,59 @@
     function closeAddMaterialModal() {
         document.getElementById('addMaterialModal').classList.add('hidden');
         document.getElementById('addMaterialForm').reset();
+    }
+
+    // Reassign Modal Functions
+    function openReassignModal(itemId, itemName) {
+        document.getElementById('reassignItemId').value = itemId;
+        document.getElementById('reassignModalItemName').textContent = itemName;
+        
+        // Pre-select current assignments
+        const itemCard = document.querySelector(`[data-item-id="${itemId}"]`);
+        const currentAssignments = Array.from(itemCard.querySelectorAll('.bg-kibray-100'))
+            .map(badge => badge.getAttribute('title'))
+            .filter(title => title);
+        
+        // Clear and set selections
+        const select = document.getElementById('reassignEmployees');
+        Array.from(select.options).forEach(option => {
+            option.selected = currentAssignments.some(name => option.textContent.includes(name));
+        });
+        
+        document.getElementById('reassignModal').classList.remove('hidden');
+    }
+
+    function closeReassignModal() {
+        document.getElementById('reassignModal').classList.add('hidden');
+        document.getElementById('reassignForm').reset();
+    }
+
+    function submitReassign() {
+        const itemId = document.getElementById('reassignItemId').value;
+        const select = document.getElementById('reassignEmployees');
+        const assignedToValues = Array.from(select.selectedOptions).map(option => option.value);
+        
+        fetch(`/api/v1/strategic/items/${itemId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+            },
+            body: JSON.stringify({ assigned_to: assignedToValues })
+        })
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('{% trans "Error updating assignment" %}');
+            }
+        });
+    }
+
+    // Material Request for Item
+    function openMaterialRequestForItem(itemId, itemName) {
+        // Redirect to material request wizard with item context
+        window.location.href = `/projects/{{ session.project.id }}/materials/request/new/?strategic_item=${itemId}&item_name=${encodeURIComponent(itemName)}`;
     }
 
     function submitAddMaterial() {
