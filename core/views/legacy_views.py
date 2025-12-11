@@ -6887,8 +6887,8 @@ def daily_plan_detail(request, plan_id):
     )
     productivity = plan.calculate_productivity_score()
     
-    # Get all employees for assignment modal
-    employees = Employee.objects.filter(project=plan.project).order_by('first_name', 'last_name')
+    # Get all active employees for assignment modal
+    employees = Employee.objects.filter(is_active=True).order_by('first_name', 'last_name')
     
     return render(
         request,
