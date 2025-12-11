@@ -7,6 +7,7 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 from django.views.i18n import set_language as dj_set_language
+from django.views.static import serve as static_serve
 from rest_framework.routers import DefaultRouter
 
 from core import views
@@ -497,10 +498,14 @@ urlpatterns = [
     path("proposals/<str:token>/", views.proposal_public_view, name="proposal_public"),
 ]
 
-# Media files - serve when not using S3 (both dev and production)
-USE_S3 = getattr(settings, 'USE_S3', False)
-if not USE_S3:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Media files - serve in production using django.views.static.serve
+# This works in production even with DEBUG=False
+if not getattr(settings, 'USE_S3', False):
+    urlpatterns += [
+        path('media/<path:path>', static_serve, {
+            'document_root': settings.MEDIA_ROOT,
+        }),
+    ]
 
 # Static files - only in development (WhiteNoise handles production)
 if settings.DEBUG:
