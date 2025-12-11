@@ -4,10 +4,40 @@
 
 {% block title %}{{ session.project.name }} - {% trans "Strategic Plan" %}{% endblock %}
 
+{% block extra_head %}
+<style>
+    /* Prevent horizontal overflow */
+    body {
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+    
+    /* Custom scrollbar for better UX */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="h-[calc(100vh-8rem)] flex flex-col">
+<div class="min-h-screen flex flex-col max-w-full overflow-x-hidden">
     <!-- Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200 px-3 py-3 sm:px-6 sm:py-4 mb-2 sm:mb-4 rounded-lg">
+    <div class="bg-white shadow-sm border-b border-gray-200 px-3 py-3 sm:px-6 sm:py-4 mb-2 sm:mb-4 rounded-lg mx-2 sm:mx-4">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <div class="flex-1 min-w-0">
                 <div class="flex items-center flex-wrap gap-2">
@@ -61,7 +91,7 @@
     </div>
 
     <!-- View Toggle -->
-    <div class="bg-white shadow-sm border-b border-gray-200 px-3 py-2 sm:px-6 mb-2 sm:mb-4 rounded-lg flex justify-between items-center">
+    <div class="bg-white shadow-sm border-b border-gray-200 px-3 py-2 sm:px-6 mb-2 sm:mb-4 rounded-lg flex justify-between items-center mx-2 sm:mx-4">
         <div class="flex space-x-2">
             <button onclick="switchView('board')" id="btn-board" class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-md bg-kibray-100 text-kibray-700">
                 <i class="bi bi-kanban mr-1"></i> <span class="hidden sm:inline">{% trans "Board View" %}</span><span class="sm:hidden">{% trans "Board" %}</span>
@@ -73,11 +103,11 @@
     </div>
 
     <!-- Board Area (Horizontal Scroll) -->
-    <div id="view-board" class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 rounded-lg p-2 sm:p-4">
-        <div class="flex gap-2 sm:gap-4 h-full" style="min-width: min-content;">
+    <div id="view-board" class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 rounded-lg p-2 sm:p-4 mx-2 sm:mx-4 mb-4">
+        <div class="flex gap-2 sm:gap-4 h-full" style="min-width: max-content;">
             {% for day in session.days.all %}
             <!-- Day Column -->
-            <div class="w-72 sm:w-80 flex-shrink-0 flex flex-col bg-gray-50 rounded-lg border border-gray-200 shadow-sm h-full">
+            <div class="w-64 sm:w-72 md:w-80 flex-shrink-0 flex flex-col bg-gray-50 rounded-lg border border-gray-200 shadow-sm h-full">
                 <!-- Day Header -->
                 <div class="p-2 sm:p-3 border-b border-gray-200 bg-white rounded-t-lg sticky top-0 z-10">
                     <div class="flex justify-between items-center mb-1">
@@ -189,7 +219,7 @@
     </div>
 
     <!-- Gantt View Area -->
-    <div id="view-gantt" class="hidden flex-1 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
+    <div id="view-gantt" class="hidden flex-1 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col mx-2 sm:mx-4 mb-4">
         <div class="p-4 border-b border-gray-200 flex justify-between items-center">
             <h3 class="text-lg font-medium text-gray-900">{% trans "Timeline" %}</h3>
             <div class="flex space-x-2">
