@@ -74,10 +74,10 @@ if USE_S3:
     print("✅ Using AWS S3 for media storage")
 else:
     MEDIA_URL = "/media/"
-    # Use Railway volume if RAILWAY_VOLUME_MOUNT_PATH is set, otherwise use local
-    RAILWAY_VOLUME = os.getenv("RAILWAY_VOLUME_MOUNT_PATH")
-    if RAILWAY_VOLUME:
-        MEDIA_ROOT = os.path.join(RAILWAY_VOLUME, "media")
+    # Use Railway volume - check if we're on Railway and volume exists
+    # Railway automatically mounts volumes at /data by default
+    if os.path.exists("/data"):
+        MEDIA_ROOT = "/data/media"
         print(f"✅ Using Railway Volume for media: {MEDIA_ROOT}")
     else:
         MEDIA_ROOT = BASE_DIR / "media"
