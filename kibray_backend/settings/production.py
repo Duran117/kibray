@@ -80,11 +80,16 @@ else:
         MEDIA_ROOT = "/data/media"
         # Create media directory if it doesn't exist
         os.makedirs(MEDIA_ROOT, exist_ok=True)
+        # Also create floor_plans subdirectory
+        os.makedirs(os.path.join(MEDIA_ROOT, "floor_plans"), exist_ok=True)
         print(f"✅ Using Railway Volume for media: {MEDIA_ROOT}")
+        print(f"✅ Created subdirectories: floor_plans/")
     else:
         MEDIA_ROOT = BASE_DIR / "media"
         os.makedirs(MEDIA_ROOT, exist_ok=True)
+        os.makedirs(os.path.join(MEDIA_ROOT, "floor_plans"), exist_ok=True)
         print("⚠️ Using local filesystem for media (not persistent!)")
+        print(f"⚠️ MEDIA_ROOT: {MEDIA_ROOT}")
 
 # Email - SMTP configuration required
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
