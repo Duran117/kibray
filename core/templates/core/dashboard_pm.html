@@ -79,6 +79,8 @@
     <a class="shadow-hover" href="{% url 'notifications_list' %}"><i class="bi bi-bell"></i> Notificaciones {% if badges.unread_notifications_count > 0 %}<span class="badge bg-danger ms-1">{{ badges.unread_notifications_count }}</span>{% endif %}</a>
     <a class="shadow-hover" href="{% url 'pm_select_project' 'plans' %}"><i class="bi bi-map"></i> Planos</a>
     <a class="shadow-hover" href="{% url 'pm_select_project' 'colors' %}"><i class="bi bi-palette"></i> Colores</a>
+    <a class="shadow-hover" href="{% url 'expense_create' %}"><i class="bi bi-cash-stack"></i> {% trans "Nuevo Gasto" %}</a>
+    <a class="shadow-hover" href="{% url 'expense_list' %}"><i class="bi bi-receipt"></i> {% trans "Ver Gastos" %}</a>
   </div>
 
   <div class="row g-3">
