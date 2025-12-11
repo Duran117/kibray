@@ -606,84 +606,163 @@
 
   function renderPinModal(pin, pinId) {
     const canEdit = pin.can_edit;
+    
     let html = `
-      <div class="mb-3">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <h5 class="mb-1">${escapeHtml(pin.title || 'Pin sin título')}</h5>
-            <span class="badge bg-primary">${escapeHtml(pin.pin_type_display || pin.pin_type)}</span>
+      <!-- Header Card -->
+      <div class="card border-0 shadow-sm mb-3" style="background: linear-gradient(135deg, ${pin.pin_color}22 0%, ${pin.pin_color}11 100%);">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <h4 class="mb-2 fw-bold">${escapeHtml(pin.title || 'Pin sin título')}</h4>
+              <div class="d-flex gap-2 align-items-center flex-wrap">
+                <span class="badge rounded-pill" style="background: ${pin.pin_color}; color: white; padding: 0.5rem 1rem;">
+                  <i class="bi bi-pin-angle-fill me-1"></i>${escapeHtml(pin.pin_type_display || pin.pin_type)}
+                </span>
+                ${pin.color_sample ? `
+                  <span class="badge bg-light text-dark border">
+                    <i class="bi bi-palette me-1"></i>Color asignado
+                  </span>
+                ` : ''}
+                ${pin.linked_task ? `
+                  <span class="badge bg-info">
+                    <i class="bi bi-link-45deg me-1"></i>Con tarea
+                  </span>
+                ` : ''}
+              </div>
+            </div>
+            <div style="width: 50px; height: 50px; border-radius: 50%; background: ${pin.pin_color}; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
           </div>
-          <div style="width: 30px; height: 30px; border-radius: 50%; background: ${pin.pin_color}; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
         </div>
       </div>
 
+      <!-- Description -->
       ${pin.description ? `
-        <div class="mb-3">
-          <h6 class="text-muted mb-1">${I18N.descLabel}</h6>
-          <p>${escapeHtml(pin.description)}</p>
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-body">
+            <h6 class="text-muted mb-2">
+              <i class="bi bi-text-paragraph me-2"></i>${I18N.descLabel || 'Descripción'}
+            </h6>
+            <p class="mb-0 text-dark">${escapeHtml(pin.description)}</p>
+          </div>
         </div>
       ` : ''}
 
+      <!-- Color Sample Card -->
       ${pin.color_sample ? `
-        <div class="mb-3">
-          <h6 class="text-muted mb-1">${I18N.approvedColorLabel}</h6>
-          <div class="d-flex align-items-center gap-2">
-            ${pin.color_sample.hex_color ? `<div style="width: 24px; height: 24px; border-radius: 4px; background: ${pin.color_sample.hex_color}; border: 1px solid #dee2e6;"></div>` : ''}
-            <div>
-              <strong>${escapeHtml(pin.color_sample.name)}</strong>
-              ${pin.color_sample.manufacturer ? `<div class="small text-muted">${escapeHtml(pin.color_sample.manufacturer)} - ${escapeHtml(pin.color_sample.color_code || '')}</div>` : ''}
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-body">
+            <h6 class="text-muted mb-3">
+              <i class="bi bi-palette-fill me-2"></i>${I18N.approvedColorLabel || 'Muestra de Color Aprobada'}
+            </h6>
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <div style="width: 80px; height: 80px; border-radius: 12px; background: ${pin.color_sample.hex_color || '#ccc'}; border: 2px solid #dee2e6; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+              </div>
+              <div class="col">
+                <h5 class="mb-1 fw-bold">${escapeHtml(pin.color_sample.name)}</h5>
+                ${pin.color_sample.manufacturer ? `
+                  <p class="mb-1 text-muted">
+                    <i class="bi bi-building me-1"></i><strong>Marca:</strong> ${escapeHtml(pin.color_sample.manufacturer)}
+                  </p>
+                ` : ''}
+                ${pin.color_sample.color_code ? `
+                  <p class="mb-1 text-muted">
+                    <i class="bi bi-upc me-1"></i><strong>Código:</strong> ${escapeHtml(pin.color_sample.color_code)}
+                  </p>
+                ` : ''}
+                ${pin.color_sample.hex_color ? `
+                  <p class="mb-0">
+                    <span class="badge bg-dark font-monospace">${pin.color_sample.hex_color}</span>
+                  </p>
+                ` : ''}
+              </div>
             </div>
           </div>
         </div>
       ` : ''}
 
+      <!-- Linked Task Card -->
       ${pin.linked_task ? `
-        <div class="mb-3">
-          <h6 class="text-muted mb-1">${'{% trans "Linked Task" %}'}</h6>
-          <div>
-            <strong>${escapeHtml(pin.linked_task.title)}</strong>
-            <span class="badge bg-info ms-2">${escapeHtml(pin.linked_task.status)}</span>
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-body">
+            <h6 class="text-muted mb-2">
+              <i class="bi bi-clipboard-check me-2"></i>Tarea Vinculada
+            </h6>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-1 fw-semibold">${escapeHtml(pin.linked_task.title)}</h6>
+                <span class="badge bg-info">${escapeHtml(pin.linked_task.status)}</span>
+              </div>
+              <a href="/tasks/${pin.linked_task.id}/" class="btn btn-sm btn-outline-primary" target="_blank">
+                <i class="bi bi-box-arrow-up-right"></i>
+              </a>
+            </div>
           </div>
         </div>
       ` : ''}
 
-      <div class="mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="text-muted mb-0">${I18N.photosLabel} (${pin.attachments.length})</h6>
-          ${canEdit ? `
-            <button class="btn btn-sm btn-primary" onclick="showAddPhotoForm(${pinId})">
-              <i class="bi bi-plus-circle"></i> ${'{% trans "Agregar Foto" %}'}
-            </button>
-          ` : ''}
-        </div>
-        ${pin.attachments.length > 0 ? `
-          <div class="row g-2">
-            ${pin.attachments.map(att => `
-              <div class="col-6 col-md-4" id="attachment-${att.id}">
-                <div class="position-relative">
-                  <img src="${att.image_url}" class="img-fluid rounded" alt="Attachment">
-                  ${canEdit ? `
-                    <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
-                            onclick="deleteAttachment(${att.id})"
-                            style="opacity: 0.9;">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  ` : ''}
-                </div>
-              </div>
-            `).join('')}
+      <!-- Photos Gallery Card -->
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-muted mb-0">
+              <i class="bi bi-images me-2"></i>${I18N.photosLabel || 'Fotos'} 
+              <span class="badge bg-secondary rounded-pill">${pin.attachments.length}</span>
+            </h6>
+            ${canEdit ? `
+              <button class="btn btn-sm btn-primary" onclick="showAddPhotoForm(${pinId})">
+                <i class="bi bi-plus-circle me-1"></i>Agregar
+              </button>
+            ` : ''}
           </div>
-        ` : `<p class="text-muted">${I18N.noPhotosText}</p>`}
+          
+          ${pin.attachments.length > 0 ? `
+            <div class="row g-2">
+              ${pin.attachments.map((att, idx) => `
+                <div class="col-4 col-md-3" id="attachment-${att.id}">
+                  <div class="position-relative" style="cursor: pointer;" onclick="openPhotoLightbox(${pinId}, ${idx})">
+                    <div class="ratio ratio-1x1">
+                      <img src="${att.image_url}" 
+                           class="img-fluid rounded shadow-sm" 
+                           style="object-fit: cover; transition: transform 0.2s;"
+                           onmouseover="this.style.transform='scale(1.05)'"
+                           onmouseout="this.style.transform='scale(1)'"
+                           alt="Photo ${idx + 1}">
+                    </div>
+                    ${canEdit ? `
+                      <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
+                              onclick="event.stopPropagation(); deleteAttachment(${att.id})"
+                              style="opacity: 0.9; font-size: 0.7rem; padding: 0.2rem 0.4rem;">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    ` : ''}
+                    ${att.has_annotations ? `
+                      <span class="position-absolute bottom-0 start-0 m-1 badge bg-warning">
+                        <i class="bi bi-pencil-square"></i>
+                      </span>
+                    ` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="text-center py-4">
+              <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+              <p class="text-muted mb-0 mt-2">${I18N.noPhotosText || 'No hay fotos adjuntas'}</p>
+            </div>
+          `}
+        </div>
       </div>
 
+      <!-- Action Buttons -->
       ${canEdit ? `
-        <div class="border-top pt-3 d-flex gap-2">
-          <button class="btn btn-primary btn-sm" onclick="showEditForm(${pinId})">
-            <i class="bi bi-pencil"></i> ${I18N.editPin}
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-outline-primary" onclick="showEditForm(${pinId})">
+            <i class="bi bi-pencil me-1"></i>${I18N.editPin || 'Editar'}
           </button>
           ${CAN_DELETE ? `
-            <button class="btn btn-danger btn-sm" onclick="deletePin(${pinId})">
-              <i class="bi bi-trash"></i> ${I18N.deletePin}
+            <button class="btn btn-outline-danger" onclick="deletePin(${pinId})">
+              <i class="bi bi-trash me-1"></i>${I18N.deletePin || 'Eliminar'}
             </button>
           ` : ''}
         </div>
@@ -692,6 +771,65 @@
 
     document.getElementById('pinInfoModalBody').innerHTML = html;
   }
+
+  // Photo Lightbox function
+  window.openPhotoLightbox = function(pinId, photoIndex) {
+    fetch(`/pins/${pinId}/info/`, {
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(pin => {
+      if (!pin.attachments || pin.attachments.length === 0) return;
+      
+      const lightboxHtml = `
+        <div class="modal fade" id="photoLightbox" tabindex="-1">
+          <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content bg-dark">
+              <div class="modal-header border-0">
+                <h5 class="modal-title text-white">
+                  <i class="bi bi-image me-2"></i>Foto ${photoIndex + 1} de ${pin.attachments.length}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body p-0">
+                <div id="photoCarousel" class="carousel slide" data-bs-ride="false">
+                  <div class="carousel-inner">
+                    ${pin.attachments.map((att, idx) => `
+                      <div class="carousel-item ${idx === photoIndex ? 'active' : ''}">
+                        <img src="${att.image_url}" class="d-block w-100" style="max-height: 80vh; object-fit: contain;" alt="Photo ${idx + 1}">
+                      </div>
+                    `).join('')}
+                  </div>
+                  ${pin.attachments.length > 1 ? `
+                    <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
+                      <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
+                      <span class="carousel-control-next-icon"></span>
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Remove existing lightbox if any
+      const existingLightbox = document.getElementById('photoLightbox');
+      if (existingLightbox) existingLightbox.remove();
+      
+      // Add and show new lightbox
+      document.body.insertAdjacentHTML('beforeend', lightboxHtml);
+      const lightbox = new bootstrap.Modal(document.getElementById('photoLightbox'));
+      lightbox.show();
+      
+      // Clean up on close
+      document.getElementById('photoLightbox').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+      });
+    });
+  };
 
   window.showEditForm = function(pinId) {
     // TODO: Mostrar formulario de edición inline
