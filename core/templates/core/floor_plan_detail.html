@@ -137,7 +137,19 @@
           </div>
           <div class="plan-wrapper view-mode" id="planWrapper">
             <svg id="planSvg" style="position:absolute; top:0; left:0; pointer-events:none; width:100%; height:100%;"></svg>
-            <img id="planImage" src="{{ plan.image.url }}" alt="plan" style="transform-origin: top left;">
+            {% if plan.image %}
+            <img id="planImage" src="{{ plan.image.url }}" alt="plan" style="transform-origin: top left;" onerror="console.error('Image load error:', this.src); this.style.display='none'; document.getElementById('imageError').style.display='block';">
+            <div id="imageError" style="display:none; padding:20px; background:#f8d7da; color:#721c24; border-radius:5px;">
+              <strong>⚠️ Error cargando imagen del plano</strong><br>
+              URL: {{ plan.image.url }}<br>
+              <small>La imagen no se pudo cargar. Verifica que el archivo exista y sea accesible.</small>
+            </div>
+            {% else %}
+            <div style="padding:20px; background:#fff3cd; color:#856404; border-radius:5px;">
+              <strong>⚠️ Este plano no tiene imagen asociada</strong><br>
+              <small>Por favor, edita el plano y sube una imagen.</small>
+            </div>
+            {% endif %}
             {% for pin in pins %}
               <div class="plan-pin" data-pin-id="{{ pin.id }}" data-color="{{ pin.pin_color }}" data-popover-url="{% url 'pin_detail_ajax' pin.id %}" style="left: {{ pin.x|floatformat:4|mul:100 }}%; top: {{ pin.y|floatformat:4|mul:100 }}%;" title="{{ pin.title }}" tabindex="0">
                 <div class="dot" style="background-color: {{ pin.pin_color }};"></div>
@@ -251,6 +263,19 @@
   console.log('[Floor Plan] Image src:', img ? img.src : 'null');
   console.log('[Floor Plan] Image complete:', img ? img.complete : 'null');
   console.log('[Floor Plan] Image naturalWidth:', img ? img.naturalWidth : 'null');
+  console.log('[Floor Plan] Image naturalHeight:', img ? img.naturalHeight : 'null');
+  
+  // Check if image exists and has valid dimensions
+  if (img) {
+    if (img.complete) {
+      if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+        console.error('[Floor Plan] Image has invalid dimensions - file may not exist or be corrupted');
+        console.error('[Floor Plan] Image URL:', img.src);
+      } else {
+        console.log('[Floor Plan] Image loaded successfully:', img.naturalWidth, 'x', img.naturalHeight);
+      }
+    }
+  }
 
   // i18n strings injected from template (Spanish msgid -> English translation via locale)
   const I18N = {

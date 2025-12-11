@@ -57,8 +57,8 @@ print(f"✅ Database configured: {DATABASES['default']['ENGINE']}")
 # Static files - WhiteNoise with compression (no manifest for flexibility)
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-# Media files - AWS S3 (required in production)
-USE_S3 = os.getenv("USE_S3", "True") == "True"
+# Media files - AWS S3 or local storage with Railway volume
+USE_S3 = os.getenv("USE_S3", "False") == "True"  # Default to False for Railway
 
 if USE_S3:
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -78,9 +78,12 @@ else:
     # Railway automatically mounts volumes at /data by default
     if os.path.exists("/data"):
         MEDIA_ROOT = "/data/media"
+        # Create media directory if it doesn't exist
+        os.makedirs(MEDIA_ROOT, exist_ok=True)
         print(f"✅ Using Railway Volume for media: {MEDIA_ROOT}")
     else:
         MEDIA_ROOT = BASE_DIR / "media"
+        os.makedirs(MEDIA_ROOT, exist_ok=True)
         print("⚠️ Using local filesystem for media (not persistent!)")
 
 # Email - SMTP configuration required
