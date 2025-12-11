@@ -6881,16 +6881,22 @@ def daily_plan_detail(request, plan_id):
     plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
     activities = (
         plan.activities.select_related("activity_template", "schedule_item")
-        .prefetch_related("assigned_employees")
+        .prefetch_related("assigned_employees", "sub_activities__assigned_employees")
+        .filter(parent__isnull=True)  # Only top-level activities
         .order_by("order")
     )
     productivity = plan.calculate_productivity_score()
+    
+    # Get all employees for assignment modal
+    employees = Employee.objects.filter(project=plan.project).order_by('first_name', 'last_name')
+    
     return render(
         request,
         "core/daily_plan_detail.html",
         {
             "plan": plan,
             "activities": activities,
+            "employees": employees,
             "productivity_score": productivity,
             "weather": plan.weather_data,
             "can_convert": plan.status == "PUBLISHED",

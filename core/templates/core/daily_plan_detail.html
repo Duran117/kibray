@@ -1,102 +1,490 @@
-{% extends "core/base.html" %}
+{% extends "core/base_modern.html" %}
 {% load i18n %}
-{% block title %}{% trans "Daily Plan Detail" %}{% endblock %}
+{% load static %}
+
+{% block title %}{% trans "Daily Plan" %} - {{ plan.plan_date }}{% endblock %}
+
 {% block content %}
-<div class="container-fluid mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">{% trans "Daily Plan" %}: {{ plan.plan_date }}</h2>
-    <div>
-      <a href="{% url 'daily_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> {% trans "Edit" %}</a>
-      <a href="{% url 'daily_plan_timeline' plan.id %}" class="btn btn-sm btn-outline-info ms-1"><i class="bi bi-calendar-range"></i> {% trans "Timeline" %}</a>
-      <a href="{% url 'daily_plan_list' %}" class="btn btn-sm btn-outline-secondary ms-1"><i class="bi bi-list"></i></a>
-    </div>
-  </div>
-  <div class="row g-3">
-    <div class="col-md-8">
-      <div class="card mb-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>{% trans "Activities" %} ({{ activities.count }})</span>
-          {% if can_convert %}
-          <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}" onsubmit="return confirm('{% trans 'Convert all planned activities to tasks?' %}');">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-outline-warning"><i class="bi bi-arrow-repeat"></i> {% trans "Convert to Tasks" %}</button>
-          </form>
-          {% endif %}
-        </div>
-        <div class="card-body p-0">
-          <div class="list-group list-group-flush">
-            {% for a in activities %}
-            <div class="list-group-item">
-              <div class="d-flex justify-content-between">
+<div class="min-h-screen bg-gray-50">
+    <!-- Modern Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-4">
                 <div>
-                  <strong>{{ a.title }}</strong>
-                  {% if a.activity_template %}<span class="badge bg-info ms-1">SOP</span>{% endif %}
-                  {% if a.schedule_item %}<span class="badge bg-success ms-1"><i class="bi bi-calendar"></i> {{ a.schedule_item.title }}</span>{% endif %}
-                  {% if a.estimated_hours %}<span class="badge bg-warning text-dark ms-1"><i class="bi bi-clock"></i> {{ a.estimated_hours }}h</span>{% endif %}
-                  {% if a.actual_hours %}<span class="badge bg-primary ms-1">{{ a.actual_hours }}h {% trans "actual" %}</span>{% endif %}
-                  <div class="small text-muted">{{ a.description|default:"" }}</div>
-                  <div class="mt-1">
-                    {% for emp in a.assigned_employees.all %}<span class="badge bg-secondary">{{ emp.first_name }}</span>{% empty %}<span class="text-muted small">{% trans "Unassigned" %}</span>{% endfor %}
-                  </div>
-                  {% if a.materials_needed %}
-                  <div class="small mt-1">
-                    <strong>{% trans "Materials" %}:</strong> {{ a.materials_needed|length }} · {% if a.materials_checked %}{% if a.material_shortage %}<span class="text-danger">{% trans "Shortage" %}</span>{% else %}<span class="text-success">OK</span>{% endif %}{% else %}<span class="text-muted">{% trans "Not checked" %}</span>{% endif %}
-                  </div>
-                  {% endif %}
+                    <h1 class="text-3xl font-bold">{% trans "Daily Plan" %}</h1>
+                    <p class="text-blue-100 mt-1">{{ plan.plan_date|date:"l, F d, Y" }}</p>
+                    <p class="text-blue-200 text-sm">{{ plan.project.name }}</p>
                 </div>
-                <div class="text-end" style="min-width:110px;">
-                  <span class="badge bg-{% if a.status == 'COMPLETED' %}success{% elif a.status == 'IN_PROGRESS' %}primary{% elif a.status == 'BLOCKED' %}danger{% else %}secondary{% endif %}">{{ a.get_status_display }}</span>
-                  {% if a.progress_percentage %}<div class="small text-muted">{{ a.progress_percentage }}%</div>{% endif %}
-                  {% with variance=a.get_time_variance %}{% if variance %}<div class="small {% if variance.is_efficient %}text-success{% else %}text-danger{% endif %}">
-                    {{ variance.variance_hours }}h / {{ variance.variance_percentage }}%
-                  </div>{% endif %}{% endwith %}
+                <div class="flex gap-2">
+                    <a href="{% url 'daily_plan_edit' plan.id %}" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all">
+                        <i class="bi bi-pencil mr-2"></i>{% trans "Edit" %}
+                    </a>
+                    <a href="{% url 'daily_plan_timeline' plan.id %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-400 transition-all">
+                        <i class="bi bi-calendar-range mr-2"></i>{% trans "Timeline" %}
+                    </a>
+                    <a href="{% url 'daily_plan_list' %}" class="bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all">
+                        <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
+                    </a>
                 </div>
-              </div>
             </div>
-            {% empty %}
-            <div class="list-group-item text-center text-muted py-4">{% trans "No activities planned" %}</div>
-            {% endfor %}
-          </div>
+            
+            <!-- Status Badge -->
+            <div class="flex items-center gap-3">
+                <span class="px-4 py-1 rounded-full text-sm font-semibold
+                    {% if plan.status == 'COMPLETED' %}bg-green-100 text-green-700
+                    {% elif plan.status == 'IN_PROGRESS' %}bg-yellow-100 text-yellow-700
+                    {% elif plan.status == 'PUBLISHED' %}bg-blue-100 text-blue-700
+                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                    {{ plan.get_status_display }}
+                </span>
+                {% if productivity_score %}
+                <span class="px-4 py-1 bg-white/20 rounded-full text-sm font-semibold">
+                    <i class="bi bi-speedometer2 mr-1"></i>{{ productivity_score }}% {% trans "Productivity" %}
+                </span>
+                {% endif %}
+            </div>
         </div>
-      </div>
     </div>
-    <div class="col-md-4">
-      <div class="card mb-3">
-        <div class="card-header">{% trans "Summary" %}</div>
-        <div class="card-body small">
-          <p><strong>{% trans "Project" %}:</strong> {{ plan.project.name }}</p>
-          <p><strong>{% trans "Status" %}:</strong> {{ plan.get_status_display }}</p>
-          <p><strong>{% trans "Deadline" %}:</strong> {{ plan.completion_deadline|date:"M d, H:i" }}</p>
-          <p><strong>{% trans "Estimated" %}:</strong> {{ plan.estimated_hours_total|default:'0' }}h</p>
-          <p><strong>{% trans "Actual" %}:</strong> {{ plan.actual_hours_worked|default:'0' }}h</p>
-          <p><strong>{% trans "Productivity" %}:</strong> {% if productivity_score %}{{ productivity_score }}%{% else %}—{% endif %}</p>
-          {% if weather %}
-          <p><strong>{% trans "Weather" %}:</strong> {{ weather.condition }} · {{ weather.temp }}° · {{ weather.humidity }}%</p>
-          {% endif %}
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Activities Column -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-900">
+                            <i class="bi bi-list-check text-blue-600 mr-2"></i>
+                            {% trans "Activities" %} ({{ activities.count }})
+                        </h2>
+                        {% if can_convert %}
+                        <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}" onsubmit="return confirm('{% trans 'Convert all planned activities to tasks?' %}');" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors">
+                                <i class="bi bi-arrow-repeat mr-2"></i>{% trans "Convert to Tasks" %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+
+                    <!-- Activities List -->
+                    <div class="divide-y divide-gray-200">
+                        {% for a in activities %}
+                        <div class="p-4 hover:bg-gray-50 transition-colors
+                            {% if a.materials_needed %}bg-orange-50 border-l-4 border-orange-400{% endif %}"
+                            data-activity-id="{{ a.id }}">
+                            
+                            <!-- Activity Title & Status -->
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold 
+                                        {% if a.materials_needed %}text-orange-900{% else %}text-gray-900{% endif %}">
+                                        {{ a.title }}
+                                    </h3>
+                                    {% if a.description %}
+                                    <p class="text-sm text-gray-600 mt-1">{{ a.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <span class="ml-4 px-3 py-1 rounded-full text-xs font-semibold
+                                    {% if a.status == 'COMPLETED' %}bg-green-100 text-green-700
+                                    {% elif a.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-700
+                                    {% elif a.status == 'BLOCKED' %}bg-red-100 text-red-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ a.get_status_display }}
+                                </span>
+                            </div>
+
+                            <!-- Badges & Action Buttons Row -->
+                            <div class="flex flex-wrap gap-2 items-center mb-3">
+                                <!-- SOP Badge -->
+                                {% if a.activity_template %}
+                                <span class="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                                    <i class="bi bi-file-text mr-1"></i>SOP
+                                </span>
+                                {% endif %}
+
+                                <!-- Schedule Badge -->
+                                {% if a.schedule_item %}
+                                <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                                    <i class="bi bi-calendar mr-1"></i>{{ a.schedule_item.title }}
+                                </span>
+                                {% endif %}
+
+                                <!-- Hours Badge -->
+                                {% if a.estimated_hours %}
+                                <span class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                                    <i class="bi bi-clock mr-1"></i>{{ a.estimated_hours }}h
+                                </span>
+                                {% endif %}
+
+                                {% if a.actual_hours %}
+                                <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                    {{ a.actual_hours }}h {% trans "actual" %}
+                                </span>
+                                {% endif %}
+
+                                <!-- Assignees - Clickeable -->
+                                {% if a.assigned_employees.exists %}
+                                <button onclick="openReassignModal('{{ a.id }}', '{{ a.title|escapejs }}')" 
+                                    class="flex -space-x-1 overflow-hidden hover:scale-110 transition-transform"
+                                    title="{% trans 'Click to reassign' %}">
+                                    {% for emp in a.assigned_employees.all %}
+                                        <div class="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700"
+                                            title="{{ emp.first_name }} {{ emp.last_name }}">
+                                            {{ emp.first_name|first }}{{ emp.last_name|first }}
+                                        </div>
+                                    {% endfor %}
+                                </button>
+                                {% else %}
+                                <button onclick="openReassignModal('{{ a.id }}', '{{ a.title|escapejs }}')" 
+                                    class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium hover:bg-blue-100 hover:text-blue-700 transition-colors">
+                                    <i class="bi bi-person-plus mr-1"></i>{% trans "Assign" %}
+                                </button>
+                                {% endif %}
+
+                                <!-- Material Button - INSIDE ACTIVITY -->
+                                <button onclick="openMaterialRequestForActivity('{{ a.id }}', '{{ a.title|escapejs }}', '{{ plan.project.id }}')" 
+                                    class="inline-flex items-center px-2 py-1 rounded text-xs font-medium transition-colors
+                                        {% if a.materials_needed %}
+                                            bg-orange-200 text-orange-800 hover:bg-orange-300
+                                        {% else %}
+                                            bg-amber-100 text-amber-700 hover:bg-amber-200
+                                        {% endif %}"
+                                    title="{% if a.materials_needed %}{% trans 'View/Add materials' %}{% else %}{% trans 'Request materials' %}{% endif %}">
+                                    <i class="bi bi-box-seam mr-1"></i>
+                                    {% if a.materials_needed %}
+                                        {{ a.materials_needed|length }}
+                                    {% else %}
+                                        {% trans "Materials" %}
+                                    {% endif %}
+                                </button>
+
+                                <!-- Add Subtask Button -->
+                                <button onclick="openAddSubtaskModal('{{ a.id }}', '{{ a.title|escapejs }}')" 
+                                    class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200 transition-colors">
+                                    <i class="bi bi-plus-circle mr-1"></i>{% trans "Subtask" %}
+                                </button>
+                            </div>
+
+                            <!-- Material Status -->
+                            {% if a.materials_checked %}
+                            <div class="text-xs {% if a.material_shortage %}text-red-600{% else %}text-green-600{% endif %} font-medium">
+                                <i class="bi bi-{% if a.material_shortage %}exclamation-triangle{% else %}check-circle{% endif %} mr-1"></i>
+                                {% if a.material_shortage %}{% trans "Material Shortage" %}{% else %}{% trans "Materials OK" %}{% endif %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Variance Display -->
+                            {% with variance=a.get_time_variance %}
+                            {% if variance %}
+                            <div class="mt-2 text-sm {% if variance.is_efficient %}text-green-600{% else %}text-red-600{% endif %} font-medium">
+                                <i class="bi bi-{% if variance.is_efficient %}arrow-down-circle{% else %}arrow-up-circle{% endif %} mr-1"></i>
+                                {{ variance.variance_hours }}h / {{ variance.variance_percentage }}%
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+
+                            <!-- Sub-activities -->
+                            {% if a.sub_activities.exists %}
+                            <div class="mt-3 pl-4 border-l-2 border-gray-300 space-y-2">
+                                {% for sub in a.sub_activities.all %}
+                                <div class="bg-white p-2 rounded border border-gray-200">
+                                    <div class="text-sm font-medium text-gray-700">{{ sub.title }}</div>
+                                    <div class="flex gap-2 items-center mt-1">
+                                        {% if sub.assigned_employees.exists %}
+                                        <div class="flex -space-x-1">
+                                            {% for emp in sub.assigned_employees.all %}
+                                            <div class="h-4 w-4 rounded-full bg-gray-200 text-[10px] flex items-center justify-center font-bold">
+                                                {{ emp.first_name|first }}
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        {% if sub.estimated_hours %}
+                                        <span class="text-xs text-gray-500">{{ sub.estimated_hours }}h</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-12">
+                            <i class="bi bi-inbox text-gray-300 text-6xl mb-4"></i>
+                            <p class="text-gray-500">{% trans "No activities planned" %}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Summary Card -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-900">
+                            <i class="bi bi-clipboard-data text-blue-600 mr-2"></i>
+                            {% trans "Summary" %}
+                        </h3>
+                    </div>
+                    <div class="p-6 space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">{% trans "Project" %}:</span>
+                            <span class="font-semibold text-gray-900">{{ plan.project.name }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">{% trans "Deadline" %}:</span>
+                            <span class="font-semibold text-gray-900">{{ plan.completion_deadline|date:"M d, H:i" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">{% trans "Estimated" %}:</span>
+                            <span class="font-semibold text-gray-900">{{ plan.estimated_hours_total|default:'0' }}h</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">{% trans "Actual" %}:</span>
+                            <span class="font-semibold text-gray-900">{{ plan.actual_hours_worked|default:'0' }}h</span>
+                        </div>
+                        {% if weather %}
+                        <div class="pt-3 border-t border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <i class="bi bi-cloud-sun text-blue-500 text-xl"></i>
+                                <div>
+                                    <div class="font-semibold">{{ weather.condition }}</div>
+                                    <div class="text-xs text-gray-500">{{ weather.temp }}° · {{ weather.humidity }}%</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-900">
+                            <i class="bi bi-lightning-charge text-amber-600 mr-2"></i>
+                            {% trans "Actions" %}
+                        </h3>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        {% if can_start %}
+                        <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}">
+                            {% csrf_token %}
+                            <button class="w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+                                <i class="bi bi-play-circle mr-2"></i>{% trans "Start Work" %}
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% if can_complete %}
+                        <form method="post" action="{% url 'daily_plan_edit' plan.id %}">
+                            {% csrf_token %}
+                            <button name="transition" value="COMPLETED" class="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                <i class="bi bi-flag mr-2"></i>{% trans "Complete" %}
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form method="post" action="{% url 'daily_plan_fetch_weather' plan.id %}">
+                            {% csrf_token %}
+                            <button class="w-full inline-flex items-center justify-center px-4 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-colors">
+                                <i class="bi bi-cloud mr-2"></i>{% trans "Refresh Weather" %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="card">
-        <div class="card-header">{% trans "Actions" %}</div>
-        <div class="card-body">
-          {% if can_start %}
-          <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}" class="mb-2">
-            {% csrf_token %}
-            <button class="btn btn-outline-primary w-100"><i class="bi bi-play-circle"></i> {% trans "Start Work" %}</button>
-          </form>
-          {% endif %}
-          {% if can_complete %}
-          <form method="post" action="{% url 'daily_plan_edit' plan.id %}">
-            {% csrf_token %}
-            <button name="transition" value="COMPLETED" class="btn btn-outline-success w-100"><i class="bi bi-flag"></i> {% trans "Complete" %}</button>
-          </form>
-          {% endif %}
-          <form method="post" action="{% url 'daily_plan_fetch_weather' plan.id %}" class="mt-2">
-            {% csrf_token %}
-            <button class="btn btn-outline-info w-100"><i class="bi bi-cloud"></i> {% trans "Refresh Weather" %}</button>
-          </form>
-        </div>
-      </div>
     </div>
-  </div>
 </div>
+
+<!-- Reassign Modal -->
+<div id="reassignModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeReassignModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="bi bi-people text-blue-600 mr-2"></i>
+                    {% trans "Assign/Reassign" %}: <span id="reassignModalActivityName" class="font-bold"></span>
+                </h3>
+                <form id="reassignForm">
+                    <input type="hidden" id="reassignActivityId">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Select Team Members" %}
+                        </label>
+                        <select id="reassignEmployees" name="assigned_employees" multiple 
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-48">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-2 text-xs text-gray-500">
+                            <i class="bi bi-info-circle mr-1"></i>
+                            {% trans "Hold Ctrl/Cmd to select multiple people" %}
+                        </p>
+                    </div>
+                </form>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitReassign()" 
+                    class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    <i class="bi bi-check-circle mr-2"></i>{% trans "Update Assignment" %}
+                </button>
+                <button type="button" onclick="closeReassignModal()" 
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Subtask Modal -->
+<div id="addSubtaskModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAddSubtaskModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="bi bi-plus-circle text-green-600 mr-2"></i>
+                    {% trans "Add Subtask to" %}: <span id="subtaskModalActivityName" class="font-bold"></span>
+                </h3>
+                <form id="addSubtaskForm">
+                    <input type="hidden" id="subtaskParentId">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Subtask Name" %}
+                        </label>
+                        <input type="text" id="subtaskTitle" name="title" 
+                            class="mt-1 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md" 
+                            required placeholder="e.g., Prime surface, Apply first coat">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Estimated Hours" %}
+                        </label>
+                        <input type="number" name="estimated_hours" step="0.25" value="0.5"
+                            class="mt-1 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Assign To" %}
+                        </label>
+                        <select id="subtaskEmployees" name="assigned_employees" multiple 
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-32">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">{% trans "Optional: Override parent assignment" %}</p>
+                    </div>
+                </form>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitAddSubtask()" 
+                    class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    <i class="bi bi-check-circle mr-2"></i>{% trans "Add Subtask" %}
+                </button>
+                <button type="button" onclick="closeAddSubtaskModal()" 
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Reassignment Functions
+function openReassignModal(activityId, activityName) {
+    document.getElementById('reassignActivityId').value = activityId;
+    document.getElementById('reassignModalActivityName').textContent = activityName;
+    document.getElementById('reassignModal').classList.remove('hidden');
+}
+
+function closeReassignModal() {
+    document.getElementById('reassignModal').classList.add('hidden');
+    document.getElementById('reassignForm').reset();
+}
+
+function submitReassign() {
+    const activityId = document.getElementById('reassignActivityId').value;
+    const select = document.getElementById('reassignEmployees');
+    const employeeIds = Array.from(select.selectedOptions).map(option => option.value);
+    
+    fetch(`/api/v1/planned-activities/${activityId}/`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+        },
+        body: JSON.stringify({ assigned_employees: employeeIds })
+    })
+    .then(response => {
+        if(response.ok) {
+            window.location.reload();
+        } else {
+            alert('{% trans "Error updating assignment" %}');
+        }
+    });
+}
+
+// Material Request Function
+function openMaterialRequestForActivity(activityId, activityName, projectId) {
+    window.location.href = `/projects/${projectId}/materials/request/new/?activity_id=${activityId}&activity_name=${encodeURIComponent(activityName)}`;
+}
+
+// Add Subtask Functions
+function openAddSubtaskModal(parentId, parentName) {
+    document.getElementById('subtaskParentId').value = parentId;
+    document.getElementById('subtaskModalActivityName').textContent = parentName;
+    document.getElementById('addSubtaskModal').classList.remove('hidden');
+}
+
+function closeAddSubtaskModal() {
+    document.getElementById('addSubtaskModal').classList.add('hidden');
+    document.getElementById('addSubtaskForm').reset();
+}
+
+function submitAddSubtask() {
+    const form = document.getElementById('addSubtaskForm');
+    const parentId = document.getElementById('subtaskParentId').value;
+    const title = document.getElementById('subtaskTitle').value;
+    const estimatedHours = form.estimated_hours.value;
+    const select = document.getElementById('subtaskEmployees');
+    const employeeIds = Array.from(select.selectedOptions).map(option => option.value);
+    
+    // Get parent activity's daily_plan
+    fetch(`/api/v1/planned-activities/${parentId}/`)
+        .then(response => response.json())
+        .then(parentData => {
+            return fetch('/api/v1/planned-activities/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrf-token]').content
+                },
+                body: JSON.stringify({
+                    daily_plan: parentData.daily_plan,
+                    parent: parentId,
+                    title: title,
+                    estimated_hours: estimatedHours,
+                    assigned_employees: employeeIds,
+                    order: 0
+                })
+            });
+        })
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('{% trans "Error adding subtask" %}');
+            }
+        });
+}
+</script>
 {% endblock %}
