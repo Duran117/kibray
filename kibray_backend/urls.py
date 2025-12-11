@@ -497,7 +497,12 @@ urlpatterns = [
     path("proposals/<str:token>/", views.proposal_public_view, name="proposal_public"),
 ]
 
-# Media/Static en desarrollo
-if settings.DEBUG:
+# Media files - serve in both dev and production when not using S3
+# In production, nginx or a CDN should serve these, but Railway needs this
+if not settings.USE_S3 if hasattr(settings, 'USE_S3') else True:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Static files - only in development (WhiteNoise handles production)
+if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+

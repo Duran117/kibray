@@ -71,9 +71,17 @@ if USE_S3:
     AWS_QUERYSTRING_AUTH = False
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+    print("✅ Using AWS S3 for media storage")
 else:
     MEDIA_URL = "/media/"
-    MEDIA_ROOT = BASE_DIR / "media"
+    # Use Railway volume if RAILWAY_VOLUME_MOUNT_PATH is set, otherwise use local
+    RAILWAY_VOLUME = os.getenv("RAILWAY_VOLUME_MOUNT_PATH")
+    if RAILWAY_VOLUME:
+        MEDIA_ROOT = os.path.join(RAILWAY_VOLUME, "media")
+        print(f"✅ Using Railway Volume for media: {MEDIA_ROOT}")
+    else:
+        MEDIA_ROOT = BASE_DIR / "media"
+        print("⚠️ Using local filesystem for media (not persistent!)")
 
 # Email - SMTP configuration required
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
