@@ -115,6 +115,16 @@
                         </button>
                     </form>
                     {% endif %}
+                    
+                    {% if mat_request.status in 'pending,submitted,approved,ordered' %}
+                    <form method="post" action="{% url 'materials_request_reject' mat_request.id %}" class="inline" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta orden? Esta acción no se puede deshacer.');">
+                        {% csrf_token %}
+                        <input type="hidden" name="reason" value="Cancelado por el usuario">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors">
+                            <i class="bi bi-x-octagon mr-2"></i>{% trans "Cancel Order" %}
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
