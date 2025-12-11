@@ -228,6 +228,8 @@
 </div>
 <script>
 (function(){
+  console.log('[Floor Plan] Initializing...');
+  
   const img = document.getElementById('planImage');
   const wrapper = document.getElementById('planWrapper');
   const svg = document.getElementById('planSvg');
@@ -243,6 +245,12 @@
   const zoomIn = document.getElementById('zoomIn');
   const zoomOut = document.getElementById('zoomOut');
   const zoomReset = document.getElementById('zoomReset');
+  
+  // Debug image load
+  console.log('[Floor Plan] Image element:', img);
+  console.log('[Floor Plan] Image src:', img ? img.src : 'null');
+  console.log('[Floor Plan] Image complete:', img ? img.complete : 'null');
+  console.log('[Floor Plan] Image naturalWidth:', img ? img.naturalWidth : 'null');
 
   // i18n strings injected from template (Spanish msgid -> English translation via locale)
   const I18N = {
@@ -483,7 +491,20 @@
   }
 
   window.addEventListener('resize', ()=>{ updateSvgSize(); renderLines(); });
-  updateSvgSize();
+  
+  // Initialize SVG size after image loads
+  if (img.complete) {
+    updateSvgSize();
+  } else {
+    img.addEventListener('load', function() {
+      console.log('[Floor Plan] Image loaded, initializing...');
+      updateSvgSize();
+    });
+    img.addEventListener('error', function() {
+      console.error('[Floor Plan] Error loading image:', img.src);
+      alert('Error: No se pudo cargar la imagen del plano. Por favor, recarga la página.');
+    });
+  }
 
   // Auto-switch to edit mode if URL has ?mode=edit or #edit
   (function() {
