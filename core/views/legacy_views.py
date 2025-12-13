@@ -7445,6 +7445,51 @@ def daily_plan_edit(request, plan_id):
                 messages.error(request, _("Cannot submit empty plan"))
             return redirect("daily_plan_edit", plan_id=plan.id)
             
+        elif action == "copy_yesterday_team":
+            # ✅ Copy team assignments from yesterday's plan
+            from datetime import timedelta
+            yesterday_date = plan.plan_date - timedelta(days=1)
+            
+            try:
+                yesterday_plan = DailyPlan.objects.filter(
+                    project=plan.project,
+                    plan_date=yesterday_date
+                ).first()
+                
+                if not yesterday_plan:
+                    messages.warning(request, _(f"No plan found for {yesterday_date.strftime('%Y-%m-%d')}"))
+                    return redirect("daily_plan_edit", plan_id=plan.id)
+                
+                # Get yesterday's activities with employees
+                yesterday_activities = yesterday_plan.activities.prefetch_related('assigned_employees').all()
+                
+                if not yesterday_activities:
+                    messages.warning(request, _("Yesterday's plan has no activities"))
+                    return redirect("daily_plan_edit", plan_id=plan.id)
+                
+                # Collect all unique employees from yesterday
+                all_employees = set()
+                for activity in yesterday_activities:
+                    all_employees.update(activity.assigned_employees.all())
+                
+                if not all_employees:
+                    messages.warning(request, _("Yesterday's plan has no employees assigned"))
+                    return redirect("daily_plan_edit", plan_id=plan.id)
+                
+                # Apply to all today's activities
+                count = 0
+                for activity in plan.activities.all():
+                    activity.assigned_employees.set(all_employees)
+                    count += 1
+                
+                employee_names = ", ".join([f"{e.first_name}" for e in all_employees])
+                messages.success(request, _(f"✅ Copied {len(all_employees)} employees ({employee_names}) to {count} activities"))
+                return redirect("daily_plan_edit", plan_id=plan.id)
+                
+            except Exception as e:
+                messages.error(request, f"❌ Error copying team: {str(e)}")
+                return redirect("daily_plan_edit", plan_id=plan.id)
+        
         elif action == "check_materials":
             # Mock material check for now or call method on activities
             count = 0

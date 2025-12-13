@@ -46,6 +46,15 @@
                 </button>
             </form>
         </div>
+        <div class="col-auto">
+            <form method="post" style="display:inline;" onsubmit="return confirm('{% trans 'Copy all employees from yesterday to today activities?' %}');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="copy_yesterday_team">
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-arrow-repeat"></i> {% trans "Copy Yesterday's Team" %}
+                </button>
+            </form>
+        </div>
     </div>
     <div class="row">
         <!-- Left column: Activities list -->
