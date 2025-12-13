@@ -3,20 +3,71 @@
 
 {% block title %}{% trans "Edit Daily Plan" %} - {{ plan.project.name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Mobile responsive fixes */
+    @media (max-width: 767.98px) {
+        body {
+            overflow-x: hidden;
+        }
+        
+        .container-fluid {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        
+        .card {
+            overflow: hidden;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+        }
+        
+        .list-group-item {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        /* Ensure buttons don't overflow */
+        .btn {
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        
+        /* Modal full width on small screens */
+        .modal-dialog {
+            margin: 0.5rem;
+            max-width: calc(100% - 1rem);
+        }
+    }
+    
+    /* Tablet responsiveness */
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .container-fluid {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
+<div class="container-fluid mt-4 px-2 px-md-4">
+    <div class="row mb-3 mb-md-4">
         <div class="col">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
+                <ol class="breadcrumb mb-2">
                     <li class="breadcrumb-item"><a href="{% url 'daily_planning_dashboard' %}">{% trans "Daily Planning" %}</a></li>
-                    <li class="breadcrumb-item active">{{ plan.project.name }} - {{ plan.plan_date }}</li>
+                    <li class="breadcrumb-item active d-none d-md-inline">{{ plan.project.name }} - {{ plan.plan_date }}</li>
+                    <li class="breadcrumb-item active d-md-none">{{ plan.project.name }}</li>
                 </ol>
             </nav>
-            <h2>{% trans "Edit Daily Plan" %}</h2>
-            <p class="text-muted">
-                <strong>{% trans "Project:" %}</strong> {{ plan.project.name }} | 
-                <strong>{% trans "Date:" %}</strong> {{ plan.plan_date }} | 
+            <h2 class="h4 h-md-2">{% trans "Edit Daily Plan" %}</h2>
+            <p class="text-muted small mb-2">
+                <strong>{% trans "Project:" %}</strong> <span class="d-inline d-md-none">{{ plan.project.name|truncatechars:20 }}</span><span class="d-none d-md-inline">{{ plan.project.name }}</span><br class="d-md-none">
+                <strong>{% trans "Date:" %}</strong> {{ plan.plan_date|date:"M d" }}<br class="d-md-none"> 
                 <strong>{% trans "Status:" %}</strong> 
                 {% if plan.status == 'DRAFT' %}
                 <span class="badge bg-secondary">{% trans "Draft" %}</span>
@@ -28,7 +79,7 @@
             </p>
             
             {% if plan.is_overdue %}
-            <div class="alert alert-danger">
+            <div class="alert alert-danger py-2 small">
                 <i class="bi bi-exclamation-triangle-fill"></i> 
                 {% trans "This plan is overdue! Deadline was:" %} {{ plan.completion_deadline }}
             </div>
@@ -36,69 +87,69 @@
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-auto">
-            <form method="post" style="display:inline;">
+    <div class="row mb-3 g-2">
+        <div class="col-12 col-sm-6 col-md-auto">
+            <form method="post" style="display:inline;" class="w-100">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="check_materials">
-                <button type="submit" class="btn btn-outline-primary">
-                    <i class="bi bi-search"></i> {% trans "Check materials for all activities" %}
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="bi bi-search"></i> <span class="d-none d-sm-inline">{% trans "Check materials" %}</span><span class="d-sm-none">{% trans "Materials" %}</span>
                 </button>
             </form>
         </div>
-        <div class="col-auto">
-            <form method="post" style="display:inline;" onsubmit="return confirm('{% trans 'Copy all employees from yesterday to today activities?' %}');">
+        <div class="col-12 col-sm-6 col-md-auto">
+            <form method="post" style="display:inline;" class="w-100" onsubmit="return confirm('{% trans 'Copy all employees from yesterday to today activities?' %}');">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="copy_yesterday_team">
-                <button type="submit" class="btn btn-outline-success">
-                    <i class="bi bi-arrow-repeat"></i> {% trans "Copy Yesterday's Team" %}
+                <button type="submit" class="btn btn-outline-success btn-sm w-100">
+                    <i class="bi bi-arrow-repeat"></i> <span class="d-none d-sm-inline">{% trans "Copy Yesterday's Team" %}</span><span class="d-sm-none">{% trans "Copy Team" %}</span>
                 </button>
             </form>
         </div>
     </div>
     <div class="row">
-        <!-- Left column: Activities list -->
-        <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <!-- Activities list - Full width on mobile, 8 cols on desktop -->
+        <div class="col-12 col-lg-8 mb-3 mb-lg-0">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0">{% trans "Activities" %} ({{ activities.count }})</h5>
                     {% if plan.status == 'DRAFT' %}
                     <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addActivityModal">
-                        <i class="bi bi-plus-circle"></i> {% trans "Add Activity" %}
+                        <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">{% trans "Add Activity" %}</span><span class="d-sm-none">{% trans "Add" %}</span>
                     </button>
                     {% endif %}
                 </div>
-                <div class="card-body">
+                <div class="card-body p-2 p-md-3">
                     {% if activities %}
                     <div class="list-group">
                         {% for activity in activities %}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">
-                                        <span class="badge bg-secondary me-2">{{ activity.order }}</span>
-                                        {{ activity.title }}
+                        <div class="list-group-item p-2 p-md-3">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap flex-md-nowrap gap-2">
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <h6 class="mb-1 small">
+                                        <span class="badge bg-secondary me-1">{{ activity.order }}</span>
+                                        <span class="text-truncate d-inline-block" style="max-width: calc(100% - 40px);">{{ activity.title }}</span>
                                     </h6>
                                     
                                     {% if activity.description %}
-                                    <p class="mb-2 text-muted small">{{ activity.description }}</p>
+                                    <p class="mb-2 text-muted small" style="font-size: 0.85rem;">{{ activity.description|truncatewords:20 }}</p>
                                     {% endif %}
                                     
-                                    <div class="mb-2">
+                                    <div class="mb-2 d-flex flex-wrap gap-1">
                                         {% if activity.activity_template %}
-                                        <span class="badge bg-info">
-                                            <i class="bi bi-book"></i> SOP: {{ activity.activity_template.name }}
+                                        <span class="badge bg-info small">
+                                            <i class="bi bi-book"></i> <span class="d-none d-sm-inline">SOP:</span> {{ activity.activity_template.name|truncatechars:15 }}
                                         </span>
                                         {% endif %}
                                         
                                         {% if activity.schedule_item %}
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-calendar-check"></i> Schedule: {{ activity.schedule_item.title }}
+                                        <span class="badge bg-success small">
+                                            <i class="bi bi-calendar-check"></i> <span class="d-none d-sm-inline">Schedule:</span> {{ activity.schedule_item.title|truncatechars:15 }}
                                         </span>
                                         {% endif %}
                                         
                                         {% if activity.estimated_hours %}
-                                        <span class="badge bg-warning text-dark">
+                                        <span class="badge bg-warning text-dark small">
                                             <i class="bi bi-clock"></i> {{ activity.estimated_hours }}h
                                         </span>
                                         {% endif %}
@@ -106,25 +157,27 @@
                                     
                                     <div class="mb-2">
                                         <strong class="small">{% trans "Assigned:" %}</strong>
-                                        {% for emp in activity.assigned_employees.all %}
-                                        <span class="badge bg-secondary">{{ emp.first_name }} {{ emp.last_name }}</span>
-                                        {% empty %}
-                                        <span class="text-muted small">{% trans "No one assigned yet" %}</span>
-                                        {% endfor %}
+                                        <div class="d-flex flex-wrap gap-1 mt-1">
+                                            {% for emp in activity.assigned_employees.all %}
+                                            <span class="badge bg-secondary small">{{ emp.first_name }} {{ emp.last_name|truncatechars:10 }}</span>
+                                            {% empty %}
+                                            <span class="text-muted small">{% trans "No one assigned yet" %}</span>
+                                            {% endfor %}
+                                        </div>
                                     </div>
                                     
                                     {% if activity.materials_needed %}
-                                    <div class="small">
+                                    <div class="small" style="font-size: 0.85rem;">
                                         <strong>{% trans "Materials:" %}</strong>
                                         <span class="text-muted">{{ activity.materials_needed|length }} items{% if activity.materials_checked %} · {% if activity.material_shortage %}<span class='text-danger'>{% trans "Shortage" %}</span>{% else %}<span class='text-success'>{% trans "OK" %}</span>{% endif %}{% endif %}</span>
                                         {% if activity.material_shortage %}
-                                        <span class="badge bg-danger">{% trans "Shortage!" %}</span>
+                                        <span class="badge bg-danger small">{% trans "Shortage!" %}</span>
                                         {% endif %}
                                     </div>
                                     {% endif %}
                                     
                                     <div class="mt-2">
-                                        <span class="badge 
+                                        <span class="badge small
                                             {% if activity.status == 'COMPLETED' %}bg-success
                                             {% elif activity.status == 'IN_PROGRESS' %}bg-primary
                                             {% elif activity.status == 'BLOCKED' %}bg-danger
@@ -134,13 +187,13 @@
                                         </span>
                                         
                                         {% if activity.progress_percentage > 0 %}
-                                        <span class="small text-muted">{{ activity.progress_percentage }}% {% trans "complete" %}</span>
+                                        <span class="small text-muted">{{ activity.progress_percentage }}%</span>
                                         {% endif %}
                                     </div>
                                 </div>
                                 
                                 {% if plan.status == 'DRAFT' %}
-                                <div class="ms-3">
+                                <div class="ms-2">
                                     <form method="post" action="{% url 'daily_plan_delete_activity' activity.id %}" onsubmit="return confirm('{% trans 'Delete this activity?' %}');">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -154,37 +207,37 @@
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-clipboard-x" style="font-size: 3rem; color: #ccc;"></i>
-                        <p class="text-muted mt-3">{% trans "No activities added yet. Click 'Add Activity' to start." %}</p>
+                    <div class="text-center py-4 py-md-5">
+                        <i class="bi bi-clipboard-x" style="font-size: 2rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3 small">{% trans "No activities added yet. Click 'Add Activity' to start." %}</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Right column: Actions -->
-        <div class="col-md-4">
+        <!-- Actions sidebar - Full width on mobile, 4 cols on desktop -->
+        <div class="col-12 col-lg-4">
             <div class="card mb-3">
                 <div class="card-header">
-                    <h6 class="mb-0">{% trans "Actions" %}</h6>
+                    <h6 class="mb-0 small">{% trans "Actions" %}</h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-2 p-md-3">
                     {% if plan.status == 'DRAFT' %}
                     <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="submit">
-                        <button type="submit" class="btn btn-success w-100 mb-2" {% if not activities %}disabled{% endif %}>
+                        <button type="submit" class="btn btn-success w-100 mb-2 btn-sm" {% if not activities %}disabled{% endif %}>
                             <i class="bi bi-check-circle"></i> {% trans "Submit Plan" %}
                         </button>
                     </form>
                     
                     {% if not activities %}
-                    <p class="small text-muted">{% trans "Add at least one activity before submitting" %}</p>
+                    <p class="small text-muted mb-2" style="font-size: 0.85rem;">{% trans "Add at least one activity before submitting" %}</p>
                     {% endif %}
                     {% endif %}
                     
-                    <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary w-100">
+                    <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary w-100 btn-sm">
                         <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
                     </a>
                 </div>
@@ -192,21 +245,21 @@
             
             <div class="card mb-3">
                 <div class="card-header">
-                    <h6 class="mb-0">{% trans "Quick Links" %}</h6>
+                    <h6 class="mb-0 small">{% trans "Quick Links" %}</h6>
                 </div>
-                <div class="card-body">
-                    <a href="{% url 'sop_library' %}" class="btn btn-outline-info w-100 mb-2" target="_blank">
+                <div class="card-body p-2 p-md-3">
+                    <a href="{% url 'sop_library' %}" class="btn btn-outline-info w-100 mb-2 btn-sm" target="_blank">
                         <i class="bi bi-book"></i> {% trans "Browse SOPs" %}
                     </a>
-                    <a href="{% url 'project_overview' plan.project.id %}" class="btn btn-outline-primary w-100">
+                    <a href="{% url 'project_overview' plan.project.id %}" class="btn btn-outline-primary w-100 btn-sm">
                         <i class="bi bi-folder"></i> {% trans "View Project" %}
                     </a>
                 </div>
             </div>
             
-            <div class="card">
+            <div class="card d-none d-lg-block">
                 <div class="card-header">
-                    <h6 class="mb-0">{% trans "Plan Info" %}</h6>
+                    <h6 class="mb-0 small">{% trans "Plan Info" %}</h6>
                 </div>
                 <div class="card-body small">
                     <p><strong>{% trans "Created by:" %}</strong> {{ plan.created_by.username }}</p>
@@ -224,72 +277,72 @@
 
 <!-- Add Activity Modal -->
 <div class="modal fade" id="addActivityModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_activity">
                 
-                <div class="modal-header">
-                    <h5 class="modal-title">{% trans "Add Activity" %}</h5>
+                <div class="modal-header py-2">
+                    <h5 class="modal-title h6">{% trans "Add Activity" %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 
-                <div class="modal-body">
+                <div class="modal-body p-3">
                     <div class="mb-3">
-                        <label class="form-label">{% trans "Activity Template (SOP)" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
-                        <select name="activity_template" id="templateSelect" class="form-select">
+                        <label class="form-label small">{% trans "Activity Template (SOP)" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
+                        <select name="activity_template" id="templateSelect" class="form-select form-select-sm">
                             <option value="">-- {% trans "Select SOP template" %} --</option>
                             {% for template in available_templates %}
                             <option value="{{ template.id }}" 
                                     data-name="{{ template.name }}"
                                     data-description="{{ template.description }}"
                                     data-hours="{{ template.time_estimate|default:'' }}">
-                                {{ template.get_category_display }} - {{ template.name }}
+                                {{ template.get_category_display }} - {{ template.name|truncatechars:40 }}
                             </option>
                             {% endfor %}
                         </select>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">{% trans "Link to Schedule Item" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
-                        <select name="schedule_item" class="form-select">
+                        <label class="form-label small">{% trans "Link to Schedule Item" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
+                        <select name="schedule_item" class="form-select form-select-sm">
                             <option value="">-- {% trans "Not linked to schedule" %} --</option>
                             {% for item in schedule_items %}
-                            <option value="{{ item.id }}">{{ item.title }} ({{ item.start_datetime|date:"M d" }})</option>
+                            <option value="{{ item.id }}">{{ item.title|truncatechars:40 }} ({{ item.start_datetime|date:"M d" }})</option>
                             {% endfor %}
                         </select>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">{% trans "Activity Title" %} *</label>
-                        <input type="text" name="title" id="activityTitle" class="form-control" required>
+                        <label class="form-label small">{% trans "Activity Title" %} *</label>
+                        <input type="text" name="title" id="activityTitle" class="form-control form-control-sm" required>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">{% trans "Description" %}</label>
-                        <textarea name="description" id="activityDescription" class="form-control" rows="3"></textarea>
+                        <label class="form-label small">{% trans "Description" %}</label>
+                        <textarea name="description" id="activityDescription" class="form-control form-control-sm" rows="3"></textarea>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">{% trans "Estimated Hours" %}</label>
-                        <input type="number" name="estimated_hours" id="estimatedHours" class="form-control" step="0.5" min="0">
+                        <label class="form-label small">{% trans "Estimated Hours" %}</label>
+                        <input type="number" name="estimated_hours" id="estimatedHours" class="form-control form-control-sm" step="0.5" min="0">
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">{% trans "Assign Employees" %}</label>
-                        <select name="assigned_employees" class="form-select" multiple size="5">
+                        <label class="form-label small">{% trans "Assign Employees" %}</label>
+                        <select name="assigned_employees" class="form-select form-select-sm" multiple size="4">
                             {% for emp in employees %}
                             <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                             {% endfor %}
                         </select>
-                        <small class="text-muted">{% trans "Hold Ctrl/Cmd to select multiple employees" %}</small>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">{% trans "Hold Ctrl/Cmd to select multiple employees" %}</small>
                     </div>
                 </div>
                 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-primary">
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
                         <i class="bi bi-plus-circle"></i> {% trans "Add Activity" %}
                     </button>
                 </div>
