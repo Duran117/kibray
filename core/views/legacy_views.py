@@ -5137,7 +5137,7 @@ def dashboard_employee(request):
 
     # Touch-ups asignados
     my_touchups = (
-        Task.objects.filter(assigned_to=request.user, is_touchup=True, status__in=["Pendiente", "En Progreso"])
+        Task.objects.filter(assigned_to=employee, is_touchup=True, status__in=["Pendiente", "En Progreso"])
         .select_related("project")
         .order_by("-created_at")[:10]
     )
@@ -5146,14 +5146,14 @@ def dashboard_employee(request):
     from core.models import DailyPlan
 
     today_plans = (
-        DailyPlan.objects.filter(date=today, assigned_employees=employee)
+        DailyPlan.objects.filter(plan_date=today, project__in=employee.projects.all() if hasattr(employee, 'projects') else [])
         .select_related("project")
-        .prefetch_related("planned_activities")
+        .prefetch_related("activities__assigned_employees")
     )
 
     my_activities = []
     for plan in today_plans:
-        for activity in plan.planned_activities.filter(is_completed=False):
+        for activity in plan.activities.filter(assigned_employees=employee, is_completed=False):
             my_activities.append(
                 {
                     "activity": activity,
@@ -6078,7 +6078,8 @@ def task_delete_view(request, task_id: int):
 @login_required
 def task_list_all(request):
     """Lista de tareas asignadas al usuario actual (para empleado)."""
-    tasks = Task.objects.filter(assigned_to=request.user).select_related("project").order_by("-id") if Task else []
+    employee = Employee.objects.filter(user=request.user).first()
+    tasks = Task.objects.filter(assigned_to=employee).select_related("project").order_by("-id") if employee and Task else []
     return render(request, "core/task_list_all.html", {"tasks": tasks})
 
 
@@ -6094,9 +6095,10 @@ def task_start_tracking(request, task_id):
         return JsonResponse({"error": gettext("POST required")}, status=405)
 
     task = get_object_or_404(Task, id=task_id)
+    employee = Employee.objects.filter(user=request.user).first()
 
     # Check permission
-    if not (request.user.is_staff or task.assigned_to == request.user):
+    if not (request.user.is_staff or (employee and task.assigned_to == employee)):
         return JsonResponse({"error": gettext("Sin permiso")}, status=403)
 
     # Check if task can start (dependencies)
@@ -6125,9 +6127,10 @@ def task_stop_tracking(request, task_id):
         return JsonResponse({"error": gettext("POST required")}, status=405)
 
     task = get_object_or_404(Task, id=task_id)
+    employee = Employee.objects.filter(user=request.user).first()
 
     # Check permission
-    if not (request.user.is_staff or task.assigned_to == request.user):
+    if not (request.user.is_staff or (employee and task.assigned_to == employee)):
         return JsonResponse({"error": gettext("Sin permiso")}, status=403)
 
     # Stop tracking
@@ -7979,6 +7982,8 @@ def dashboard_superintendent(request):
     if not profile or profile.role != "superintendent":
         return HttpResponseForbidden("Acceso restringido a superintendentes")
 
+    employee = Employee.objects.filter(user=request.user).first()
+
     # Projects assigned to this superintendent (via damage reports or tasks)
     project_ids = set()
 
@@ -7987,10 +7992,11 @@ def dashboard_superintendent(request):
     project_ids.update(damage_projects)
 
     # Via assigned touch-ups
-    touchup_projects = (
-        Task.objects.filter(assigned_to=request.user, is_touchup=True).values_list("project_id", flat=True).distinct()
-    )
-    project_ids.update(touchup_projects)
+    if employee:
+        touchup_projects = (
+            Task.objects.filter(assigned_to=employee, is_touchup=True).values_list("project_id", flat=True).distinct()
+        )
+        project_ids.update(touchup_projects)
 
     projects = Project.objects.filter(id__in=project_ids).order_by("-created_at")[:10]
 
@@ -8003,10 +8009,10 @@ def dashboard_superintendent(request):
 
     # Assigned touch-ups
     touchups = (
-        Task.objects.filter(assigned_to=request.user, is_touchup=True, status__in=["Pendiente", "En Progreso"])
+        Task.objects.filter(assigned_to=employee, is_touchup=True, status__in=["Pendiente", "En Progreso"])
         .select_related("project")
         .order_by("-created_at")[:15]
-    )
+    ) if employee else Task.objects.none()
 
     # Unassigned touch-ups (for assignment)
     unassigned_touchups = (
