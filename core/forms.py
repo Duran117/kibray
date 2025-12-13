@@ -618,6 +618,19 @@ class ClockInForm(forms.Form):
     )
     cost_code = forms.ModelChoiceField(queryset=CostCode.objects.filter(active=True), required=False, label="Cost Code")
     notes = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Notas")
+    
+    def __init__(self, *args, **kwargs):
+        # ✅ Permitir filtrar proyectos disponibles
+        available_projects = kwargs.pop('available_projects', None)
+        super().__init__(*args, **kwargs)
+        
+        if available_projects is not None:
+            self.fields['project'].queryset = available_projects
+            
+            # Mostrar mensaje si no hay proyectos
+            if not available_projects.exists():
+                self.fields['project'].empty_label = "No tienes proyectos asignados hoy"
+                self.fields['project'].widget.attrs['disabled'] = True
 
 
 class MaterialsRequestForm(forms.Form):

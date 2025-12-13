@@ -5177,9 +5177,26 @@ def dashboard_employee(request):
                 return redirect("dashboard_employee")
             form = ClockInForm(request.POST)
             if form.is_valid():
+                project = form.cleaned_data["project"]
+                
+                # ✅ VALIDACIÓN: ¿Está asignado a este proyecto HOY?
+                is_assigned_today = PlannedActivity.objects.filter(
+                    daily_plan__plan_date=today,
+                    daily_plan__project=project,
+                    assigned_employees=employee
+                ).exists()
+                
+                if not is_assigned_today:
+                    messages.error(
+                        request,
+                        f"❌ No estás asignado a '{project.name}' hoy. "
+                        f"Contacta a tu PM si hay un error."
+                    )
+                    return redirect("dashboard_employee")
+                
                 te = TimeEntry.objects.create(
                     employee=employee,
-                    project=form.cleaned_data["project"],
+                    project=project,
                     change_order=form.cleaned_data.get("change_order"),
                     date=today,
                     start_time=now.time(),
@@ -5201,8 +5218,14 @@ def dashboard_employee(request):
             )
             return redirect("dashboard_employee")
 
-    # GET o POST inválido
-    form = ClockInForm()
+    # ✅ Obtener proyectos donde está asignado HOY (antes de crear form)
+    my_projects_today = Project.objects.filter(
+        daily_plans__plan_date=today,
+        daily_plans__activities__assigned_employees=employee
+    ).distinct()
+
+    # GET o POST inválido - crear form con proyectos filtrados
+    form = ClockInForm(available_projects=my_projects_today)
 
     # === MORNING BRIEFING (Employee Daily Tasks) ===
     morning_briefing = []
@@ -5259,6 +5282,9 @@ def dashboard_employee(request):
 
     # Historial reciente (últimas 5 entradas)
     recent = TimeEntry.objects.filter(employee=employee).order_by("-date", "-start_time")[:5]
+    
+    # Mensaje si no tiene asignaciones hoy
+    has_assignments_today = my_projects_today.exists()
 
     context = {
         "employee": employee,
@@ -5274,6 +5300,8 @@ def dashboard_employee(request):
         "morning_briefing": morning_briefing,
         "active_filter": active_filter,
         "badges": {"unread_notifications_count": 0},  # Placeholder
+        "my_projects_today": my_projects_today,  # ✅ NUEVO
+        "has_assignments_today": has_assignments_today,  # ✅ NUEVO
     }
 
     # Use clean template by default, legacy with ?legacy=true
