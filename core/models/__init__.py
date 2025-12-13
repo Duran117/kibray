@@ -3870,6 +3870,9 @@ class PlanPin(models.Model):
 
     def migrate_to_plan(self, new_plan, new_x, new_y):
         """Q20.2: Migrate pin to new plan version"""
+        # Preserve client comments during migration
+        comments_to_copy = list(self.client_comments) if self.client_comments else []
+        
         new_pin = PlanPin.objects.create(
             plan=new_plan,
             x=new_x,
@@ -3885,6 +3888,10 @@ class PlanPin(models.Model):
             created_by=self.created_by,
             status="active",
         )
+        
+        # Copy comments after creation to avoid mutable default issues
+        new_pin.client_comments = comments_to_copy
+        new_pin.save()
 
         # Mark old pin as migrated
         self.status = "migrated"
@@ -4766,7 +4773,7 @@ class ProjectInventory(models.Model):
         unique_together = ("item", "location")
 
     def threshold(self):
-        return self.threshold_override or self.item.default_threshold
+        return self.threshold_override or self.item.get_effective_threshold()
 
     @property
     def is_below(self):

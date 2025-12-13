@@ -154,6 +154,7 @@ urlpatterns = [
     path("projects/<int:project_id>/plans/", views.floor_plan_list, name="floor_plan_list"),
     path("projects/<int:project_id>/plans/new/", views.floor_plan_create, name="floor_plan_create"),
     path("plans/<int:plan_id>/", views.floor_plan_detail, name="floor_plan_detail"),
+    path("plans/<int:plan_id>/touchups/", views.floor_plan_touchup_view, name="floor_plan_touchup_view"),
     path("plans/<int:plan_id>/edit/", views.floor_plan_edit, name="floor_plan_edit"),
     path("plans/<int:plan_id>/delete/", views.floor_plan_delete, name="floor_plan_delete"),
     path("plans/<int:plan_id>/add-pin/", views.floor_plan_add_pin, name="floor_plan_add_pin"),
@@ -340,6 +341,7 @@ urlpatterns = [
         name="project_ev_legacy",
     ),
     # Inventario
+    path("projects/<int:project_id>/inventory/wizard/", views.inventory_wizard, name="inventory_wizard"),
     path("projects/<int:project_id>/inventory/", views.inventory_view, name="inventory_view"),
     path("projects/<int:project_id>/inventory/move/", views.inventory_move_view, name="inventory_move"),
     path("projects/<int:project_id>/inventory/history/", views.inventory_history_view, name="inventory_history"),

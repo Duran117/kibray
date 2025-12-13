@@ -1837,6 +1837,69 @@ def floor_plan_detail(request, plan_id):
 
 
 @login_required
+def floor_plan_touchup_view(request, plan_id):
+    """Display floor plan with ONLY touch-up pins (filtered view)"""
+    import json
+
+    from core.models import FloorPlan
+
+    plan = get_object_or_404(FloorPlan, id=plan_id)
+    
+    # Filter to show ONLY touchup pins
+    pins = plan.pins.filter(pin_type='touchup').select_related("color_sample", "linked_task").all()
+    
+    color_samples = plan.project.color_samples.filter(status__in=["approved", "review"]).order_by("-created_at")[:50]
+
+    # Check if user can edit pins (PM, Admin, Client, Designer, Owner)
+    profile = getattr(request.user, "profile", None)
+    can_edit_pins = request.user.is_staff or (
+        profile and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+    )
+
+    # Check if user can delete pins/plan (only PM, Admin, Owner - NOT Designer)
+    can_delete = request.user.is_staff or (
+        profile and profile.role in ["project_manager", "admin", "superuser", "owner"]
+    )
+
+    # Serialize pins data for JavaScript (only touchup pins)
+    pins_data = []
+    for pin in pins:
+        pins_data.append(
+            {
+                "id": pin.id,
+                "x": float(pin.x),
+                "y": float(pin.y),
+                "title": pin.title,
+                "description": pin.description or "",
+                "pin_type": pin.pin_type,
+                "pin_color": pin.pin_color,
+                "path_points": pin.path_points or [],
+            }
+        )
+    pins_json = json.dumps(pins_data)
+
+    # Provide PlanPinForm so the page can render the pin editor fields
+    from core.forms import PlanPinForm
+
+    pin_form = PlanPinForm()
+
+    return render(
+        request,
+        "core/floor_plan_touchup_view.html",
+        {
+            "plan": plan,
+            "pins": pins,
+            "pins_json": pins_json,
+            "color_samples": color_samples,
+            "project": plan.project,
+            "can_edit_pins": can_edit_pins,
+            "can_delete": can_delete,
+            "form": pin_form,
+        },
+    )
+
+
+@login_required
 def floor_plan_edit(request, plan_id):
     """Edit an existing floor plan (name, level, image)"""
     plan = get_object_or_404(FloorPlan, id=plan_id)
@@ -5166,6 +5229,11 @@ def dashboard_employee(request):
             "category": "schedule",
         })
     
+    # Horas de la semana (calcular ANTES de usarse)
+    week_start = today - timedelta(days=today.weekday())
+    week_entries = TimeEntry.objects.filter(employee=employee, date__gte=week_start, date__lte=today)
+    week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
+    
     # Category: clock (Work hours)
     if not open_entry:
         morning_briefing.append({
@@ -5191,11 +5259,6 @@ def dashboard_employee(request):
 
     # Historial reciente (últimas 5 entradas)
     recent = TimeEntry.objects.filter(employee=employee).order_by("-date", "-start_time")[:5]
-
-    # Horas de la semana
-    week_start = today - timedelta(days=today.weekday())
-    week_entries = TimeEntry.objects.filter(employee=employee, date__gte=week_start, date__lte=today)
-    week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
 
     context = {
         "employee": employee,
@@ -6861,6 +6924,179 @@ def inventory_adjust(request, item_id, location_id):
         messages.error(request, _("Error: %(error)s") % {"error": str(e)})
 
     return redirect("inventory_view", project_id=location.project_id)
+
+
+@login_required
+@staff_required
+@require_http_methods(["GET", "POST"])
+def inventory_wizard(request, project_id):
+    """
+    Modern wizard interface for inventory management
+    Handles: Add (RECEIVE), Move (TRANSFER), Adjust (ADJUST)
+    """
+    import json
+    from decimal import Decimal
+    from django.core.exceptions import ValidationError
+    from django.db.models import Q
+    from core.models import InventoryItem, InventoryLocation, InventoryMovement, ProjectInventory
+    
+    project = get_object_or_404(Project, pk=project_id)
+    
+    # Get all inventory items and locations
+    items = InventoryItem.objects.all().order_by('category', 'name')
+    locations = InventoryLocation.objects.filter(
+        Q(is_storage=True) | Q(project=project)
+    ).order_by('is_storage', 'name')
+    
+    # Get all stock data for JavaScript
+    stocks = ProjectInventory.objects.filter(
+        location__in=locations
+    ).select_related('item', 'location')
+    
+    stock_data = {}
+    for stock in stocks:
+        key = f"{stock.item.id}-{stock.location.id}"
+        stock_data[key] = {
+            'quantity': float(stock.quantity),
+            'unit': stock.item.unit,
+            'threshold': float(stock.threshold()) if stock.threshold() else None
+        }
+    
+    # Get low stock items
+    low_stock_items = []
+    for stock in stocks:
+        if stock.is_below:
+            low_stock_items.append(stock)
+    
+    # Handle POST request (form submission)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        try:
+            item_id = request.POST.get('item_id')
+            quantity = Decimal(request.POST.get('quantity', '0'))
+            reason = request.POST.get('reason', '')
+            
+            # Validate: for ADJUST, allow negative quantities; for others, require positive
+            if not item_id or not reason:
+                raise ValidationError(_("Please fill all required fields"))
+            
+            if action != 'adjust' and quantity <= 0:
+                raise ValidationError(_("Quantity must be positive"))
+            
+            if action == 'adjust' and quantity == 0:
+                raise ValidationError(_("Adjustment quantity cannot be zero"))
+            
+            item = get_object_or_404(InventoryItem, pk=item_id)
+            
+            if action == 'add':
+                # RECEIVE movement
+                to_location_id = request.POST.get('to_location_id')
+                unit_price = request.POST.get('unit_price')
+                
+                to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
+                
+                movement = InventoryMovement.objects.create(
+                    item=item,
+                    to_location=to_location,
+                    movement_type='RECEIVE',
+                    quantity=quantity,
+                    unit_cost=Decimal(unit_price) if unit_price else None,  # Changed from unit_price to unit_cost
+                    reason=reason,
+                    created_by=request.user
+                )
+                movement.apply()
+                
+                messages.success(
+                    request, 
+                    _("Successfully added %(quantity)s %(unit)s of %(item)s to %(location)s") % {
+                        'quantity': quantity,
+                        'unit': item.unit,
+                        'item': item.name,
+                        'location': to_location.name
+                    }
+                )
+                
+            elif action == 'move':
+                # TRANSFER movement
+                from_location_id = request.POST.get('from_location_id')
+                to_location_id = request.POST.get('to_location_id')
+                
+                if from_location_id == to_location_id:
+                    raise ValidationError(_("Source and destination locations must be different"))
+                
+                from_location = get_object_or_404(InventoryLocation, pk=from_location_id)
+                to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
+                
+                movement = InventoryMovement.objects.create(
+                    item=item,
+                    from_location=from_location,
+                    to_location=to_location,
+                    movement_type='TRANSFER',
+                    quantity=quantity,
+                    reason=reason,
+                    created_by=request.user
+                )
+                movement.apply()
+                
+                messages.success(
+                    request, 
+                    _("Successfully moved %(quantity)s %(unit)s of %(item)s from %(from)s to %(to)s") % {
+                        'quantity': quantity,
+                        'unit': item.unit,
+                        'item': item.name,
+                        'from': from_location.name,
+                        'to': to_location.name
+                    }
+                )
+                
+            elif action == 'adjust':
+                # ADJUST movement
+                to_location_id = request.POST.get('to_location_id')
+                to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
+                
+                movement = InventoryMovement.objects.create(
+                    item=item,
+                    to_location=to_location,
+                    movement_type='ADJUST',
+                    quantity=quantity,  # Can be negative
+                    reason=reason,
+                    created_by=request.user
+                )
+                movement.apply()
+                
+                action_text = _("increased") if quantity > 0 else _("decreased")
+                messages.success(
+                    request, 
+                    _("Successfully %(action)s stock of %(item)s by %(quantity)s %(unit)s at %(location)s") % {
+                        'action': action_text,
+                        'item': item.name,
+                        'quantity': abs(quantity),
+                        'unit': item.unit,
+                        'location': to_location.name
+                    }
+                )
+            
+            else:
+                raise ValidationError(_("Invalid action"))
+            
+            # Redirect back to wizard
+            return redirect('inventory_wizard', project_id=project.id)
+            
+        except ValidationError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, _("Error: %(error)s") % {"error": str(e)})
+    
+    # Render wizard template
+    return render(request, 'core/inventory_wizard.html', {
+        'project': project,
+        'items': items,
+        'locations': locations,
+        'stock_data_json': json.dumps(stock_data),
+        'low_stock_items': low_stock_items,
+        'low_stock_count': len(low_stock_items),
+    })
 
 
 # ===========================

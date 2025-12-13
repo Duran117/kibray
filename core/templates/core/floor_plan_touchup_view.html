@@ -1,0 +1,649 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load core_extras %}
+{% block content %}
+<style>
+.plan-wrapper { position: relative; display: inline-block; }
+.plan-wrapper img { max-width: 100%; height: auto; display: block; }
+.plan-pin { position: absolute; transform: translate(-50%, -100%); cursor: pointer; z-index: 10; }
+.plan-pin .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 6px rgba(0,0,0,0.4); }
+.pin-path-line { stroke-width: 3; fill: none; pointer-events: none; }
+.pin-path-marker { }
+.zoom-controls { position: absolute; top: 10px; right: 10px; z-index: 100; }
+
+/* Pulse animation for touchup pins */
+@keyframes touchup-pulse {
+  0% { transform: translate(-50%, -100%) scale(1); box-shadow: 0 0 6px rgba(0,0,0,0.4); }
+  50% { transform: translate(-50%, -100%) scale(1.15); box-shadow: 0 0 12px rgba(255, 193, 7, 0.8); }
+  100% { transform: translate(-50%, -100%) scale(1); box-shadow: 0 0 6px rgba(0,0,0,0.4); }
+}
+
+.plan-pin.touchup-pin {
+  animation: touchup-pulse 2s infinite;
+}
+
+/* Touchup-specific styling */
+.touchup-badge {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.touchup-alert {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffe5a0 100%);
+  border-left: 4px solid #ffc107;
+}
+
+.mode-toggle-container {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.mode-toggle-buttons .btn {
+  margin-right: 5px;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.mode-toggle-buttons .btn i {
+  margin-right: 5px;
+}
+.mode-toggle-buttons .btn.active {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+}
+.mode-badge {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 15px;
+  border-radius: 20px;
+}
+.plan-wrapper.edit-mode {
+  border: 3px solid #28a745;
+  box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+  cursor: crosshair;
+}
+.plan-wrapper.view-mode {
+  border: 3px solid #ffc107;
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+  cursor: default;
+}
+</style>
+
+<div class="container-fluid py-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">{% trans "Planos" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_detail' plan.id %}">{{ plan.name }}</a></li>
+      <li class="breadcrumb-item active">{% trans "Touch-ups" %}</li>
+    </ol>
+  </nav>
+
+  <!-- Touchup-specific alert -->
+  <div class="alert touchup-alert mb-3">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-brush-fill me-3" style="font-size: 2rem; color: #ff9800;"></i>
+      <div class="flex-grow-1">
+        <h5 class="mb-1">
+          <i class="bi bi-filter-circle-fill me-2"></i>
+          {% trans "Vista Filtrada: Touch-ups" %}
+        </h5>
+        <p class="mb-0">
+          {% trans "Mostrando únicamente pines de tipo Touch-up en este plano" %} (<strong>{{ pins|length }}</strong> {% trans "encontrados" %}).
+          <a href="{% url 'floor_plan_detail' plan.id %}" class="alert-link ms-2">
+            <i class="bi bi-eye"></i> {% trans "Ver todos los pines" %}
+          </a>
+        </p>
+      </div>
+      <span class="touchup-badge badge rounded-pill px-3 py-2">
+        <i class="bi bi-pin-angle-fill me-1"></i>{{ pins|length }} Touch-ups
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Controls disponibles según permisos -->
+    {% if can_edit_pins %}
+    <div class="col-12">
+      <div class="d-flex justify-content-end mb-2 gap-2">
+        <!-- Editar pines - todos los que pueden editar -->
+        <button type="button" class="btn btn-sm btn-warning" id="topEditPinsBtn">
+          <i class="bi bi-brush-fill"></i> {% trans "Agregar Touch-up" %}
+        </button>
+        
+        <!-- Ver todos los pines -->
+        <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-eye"></i> {% trans "Ver Todos los Pines" %}
+        </a>
+        
+        <!-- Editar plano - solo PM/Admin/Owner -->
+        {% if can_delete %}
+        <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-pencil-square"></i> {% trans "Editar Plano" %}
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="col-lg-8">
+      <!-- Mode Toggle Controls -->
+      <div class="mode-toggle-container">
+        <div class="mode-toggle-buttons">
+          <button type="button" class="btn btn-warning active" id="viewModeBtn">
+            <i class="bi bi-eye"></i> {% trans "Modo Visualización" %}
+          </button>
+          {% if can_edit_pins %}
+          <button type="button" class="btn btn-success" id="editModeBtn">
+            <i class="bi bi-pencil"></i> {% trans "Modo Edición" %}
+          </button>
+          <button type="button" class="btn btn-outline-warning" id="addPinBtn">
+            <i class="bi bi-brush-fill"></i> {% trans "Nuevo Touch-up" %}
+          </button>
+          {% endif %}
+        </div>
+        <div>
+          <span class="mode-badge badge bg-warning" id="modeBadge">
+            <i class="bi bi-eye"></i> {% trans "VISUALIZANDO" %}
+          </span>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-body position-relative" style="overflow:auto; max-height:80vh;">
+          <div class="zoom-controls btn-group">
+            <button class="btn btn-sm btn-outline-warning" id="zoomIn" title="Zoom in">+</button>
+            <button class="btn btn-sm btn-outline-warning" id="zoomOut" title="Zoom out">−</button>
+            <button class="btn btn-sm btn-outline-warning" id="zoomReset" title="Reset">1:1</button>
+          </div>
+          <div class="plan-wrapper view-mode" id="planWrapper">
+            <svg id="planSvg" style="position:absolute; top:0; left:0; pointer-events:none; width:100%; height:100%;"></svg>
+            {% if plan.image %}
+            <img id="planImage" src="{{ plan.image.url }}" alt="plan" style="transform-origin: top left;" onerror="console.error('Image load error:', this.src); this.style.display='none'; document.getElementById('imageError').style.display='block';">
+            <div id="imageError" style="display:none; padding:20px; background:#f8d7da; color:#721c24; border-radius:5px;">
+              <strong>⚠️ {% trans "Error cargando imagen del plano" %}</strong><br>
+              URL: {{ plan.image.url }}<br>
+              <small>{% trans "La imagen no se pudo cargar. Verifica que el archivo exista y sea accesible." %}</small>
+            </div>
+            {% else %}
+            <div style="padding:20px; background:#fff3cd; color:#856404; border-radius:5px;">
+              <strong>⚠️ {% trans "Este plano no tiene imagen asociada" %}</strong><br>
+              <small>{% trans "Por favor, edita el plano y sube una imagen." %}</small>
+            </div>
+            {% endif %}
+            {% for pin in pins %}
+              <div class="plan-pin touchup-pin" data-pin-id="{{ pin.id }}" data-color="{{ pin.pin_color }}" data-popover-url="{% url 'pin_detail_ajax' pin.id %}" style="left: {{ pin.x|floatformat:4|mul:100 }}%; top: {{ pin.y|floatformat:4|mul:100 }}%;" title="{{ pin.title }}" tabindex="0">
+                <div class="dot" style="background-color: {{ pin.pin_color }};"></div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-secondary mt-2" id="modeHelpText">
+        <i class="bi bi-info-circle"></i> <strong>{% trans "Modo Visualización" %}:</strong> {% trans "Haz clic en los pines touch-up para ver su información." %} 
+        {% if can_edit_pins %}
+          {% trans "Cambia a" %} <strong>{% trans "Modo Edición" %}</strong> {% trans "para agregar nuevos touch-ups." %}
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="col-lg-4">
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-white">
+          <i class="bi bi-brush-fill me-2"></i>{% trans "Touch-ups en este Plano" %}
+          <span class="badge bg-white text-warning float-end">{{ pins|length }}</span>
+        </div>
+        <div class="card-body p-0" style="max-height:500px; overflow-y:auto;">
+          <ul class="list-group list-group-flush">
+          {% for pin in pins %}
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center mb-1">
+                    <span class="badge rounded-circle me-2" style="width: 12px; height: 12px; background-color: {{ pin.pin_color }}; padding: 0;"></span>
+                    <strong>{{ pin.title|default:'(sin título)' }}</strong>
+                  </div>
+                  <div class="small text-muted">
+                    <i class="bi bi-calendar3 me-1"></i>{{ pin.created_at|date:'Y-m-d H:i' }}
+                  </div>
+                  {% if pin.is_multipoint %}
+                    <div class="small mt-1">
+                      <span class="badge bg-success">
+                        <i class="bi bi-bezier2 me-1"></i>Línea: {{ pin.path_points|length }} pts
+                      </span>
+                    </div>
+                  {% endif %}
+                  {% if pin.color_sample %}
+                    <div class="small mt-1">
+                      <span class="badge bg-secondary">
+                        <i class="bi bi-palette me-1"></i>{{ pin.color_sample.name|default:pin.color_sample.code }}
+                      </span>
+                    </div>
+                  {% endif %}
+                  {% if pin.linked_task %}
+                    <div class="small mt-1">
+                      <span class="badge bg-info">
+                        <i class="bi bi-clipboard-check me-1"></i>{{ pin.linked_task.title|truncatewords:5 }}
+                      </span>
+                    </div>
+                  {% endif %}
+                  {% if pin.description %}
+                    <div class="small mt-2 text-secondary">
+                      {{ pin.description|truncatewords:15 }}
+                    </div>
+                  {% endif %}
+                  <button class="btn btn-sm btn-outline-warning mt-2" onclick="openPinModal({{ pin.id }})">
+                    <i class="bi bi-info-circle me-1"></i>{% trans "Ver Detalles" %}
+                  </button>
+                </div>
+                <span class="badge bg-light text-muted" style="font-size: 0.7rem;">({{ pin.x|floatformat:2 }}, {{ pin.y|floatformat:2 }})</span>
+              </div>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-center py-4">
+              <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+              <p class="mb-0 mt-2 text-muted">{% trans "No hay touch-ups en este plano." %}</p>
+              {% if can_edit_pins %}
+                <button class="btn btn-sm btn-warning mt-2" onclick="window.startAddPin()">
+                  <i class="bi bi-plus-circle me-1"></i>{% trans "Agregar Primer Touch-up" %}
+                </button>
+              {% endif %}
+            </li>
+          {% endfor %}
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Add Pin Form Card -->
+      {% if can_edit_pins %}
+      <div class="card mt-3 border-warning">
+        <div class="card-header bg-warning text-white">
+          <i class="bi bi-plus-circle me-2"></i>{% trans "Agregar Touch-up" %}
+        </div>
+        <div class="card-body">
+          <form id="pinForm" method="post" action="{% url 'floor_plan_add_pin' plan.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="x" id="pinX">
+            <input type="hidden" name="y" id="pinY">
+            <input type="hidden" name="is_multipoint" id="isMultipoint" value="false">
+            <input type="hidden" name="path_points" id="pathPoints" value="[]">
+            <input type="hidden" name="pin_type" value="touchup">
+            
+            <div class="mb-2">
+              <label for="id_title" class="form-label">{% trans "Título" %}</label>
+              <input type="text" name="title" id="id_title" class="form-control form-control-sm" required>
+            </div>
+            
+            <div class="mb-2">
+              <label for="id_description" class="form-label">{% trans "Descripción" %}</label>
+              <textarea name="description" id="id_description" class="form-control form-control-sm" rows="2"></textarea>
+            </div>
+            
+            <div class="mb-2">
+              <label class="form-label">{% trans "Color aprobado (opcional)" %}</label>
+              <select name="color_sample" class="form-select form-select-sm">
+                <option value="">— {% trans "Selecciona" %} —</option>
+                {% for c in color_samples %}
+                  <option value="{{ c.id }}">{{ c.name|default:c.code }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="create_task" id="createTask">
+              <label class="form-check-label" for="createTask">
+                <strong>{% trans "Crear tarea touch-up" %}</strong>
+              </label>
+            </div>
+            
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="multipointCheck">
+              <label class="form-check-label" for="multipointCheck">
+                {% trans "Línea multipunto (A→B→C)" %}
+              </label>
+            </div>
+            
+            <div id="multipointControls" style="display:none;">
+              <div class="alert alert-info small">
+                {% trans "Haz clic en múltiples puntos. Presiona" %} <b>Esc</b> {% trans "para finalizar." %}
+              </div>
+              <div id="pointsList" class="small mb-2"></div>
+              <button type="button" class="btn btn-sm btn-warning" id="clearPoints">
+                {% trans "Limpiar puntos" %}
+              </button>
+            </div>
+            
+            <button class="btn btn-warning btn-sm w-100" id="saveBtn">
+              <i class="bi bi-check-circle me-1"></i>{% trans "Guardar Touch-up" %}
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  console.log('[Floor Plan Touch-up] Initializing...');
+  
+  const img = document.getElementById('planImage');
+  const wrapper = document.getElementById('planWrapper');
+  const svg = document.getElementById('planSvg');
+  const pinX = document.getElementById('pinX');
+  const pinY = document.getElementById('pinY');
+  const form = document.getElementById('pinForm');
+  const multipointCheck = document.getElementById('multipointCheck');
+  const multipointControls = document.getElementById('multipointControls');
+  const isMultipointInput = document.getElementById('isMultipoint');
+  const pathPointsInput = document.getElementById('pathPoints');
+  const pointsList = document.getElementById('pointsList');
+  const clearBtn = document.getElementById('clearPoints');
+  const zoomIn = document.getElementById('zoomIn');
+  const zoomOut = document.getElementById('zoomOut');
+  const zoomReset = document.getElementById('zoomReset');
+  
+  // i18n strings
+  const I18N = {
+    viewingBadge: `{% trans "VISUALIZANDO" %}`,
+    editingBadge: `{% trans "EDITANDO" %}`,
+    viewModeHelp: `{% trans "Modo Visualización: Haz clic en los pines touch-up para ver su información." %}`,
+    viewModeHelpCanEdit: `{% trans "Modo Visualización: Haz clic en los pines touch-up para ver su información. Cambia a Modo Edición para agregar nuevos touch-ups." %}`,
+    editModeHelp: `{% trans "Modo Edición: Haz clic sobre el plano para agregar un nuevo pin touch-up. Marca 'Línea multipunto' para conectar puntos." %}`,
+    newPinHelp: `{% trans "Nuevo Touch-up: Haz clic sobre el plano para posicionar el pin touch-up." %}`,
+    pointsCaptured: `{% trans "Puntos capturados. Presiona Guardar Touch-up." %}`
+  };
+
+  const CAN_EDIT = {{ can_edit_pins|yesno:"true,false" }};
+  const CAN_DELETE = {{ can_delete|yesno:"true,false" }};
+
+  let scale = 1.0;
+  let multipointMode = false;
+  let tempPoints = [];
+  let currentMode = 'view';
+  let addingMode = false;
+
+  // Mode Toggle Functions
+  function switchToViewMode() {
+    currentMode = 'view';
+    if (document.getElementById('viewModeBtn')) {
+      document.getElementById('viewModeBtn').classList.add('active');
+    }
+    if (document.getElementById('editModeBtn')) {
+      document.getElementById('editModeBtn').classList.remove('active');
+    }
+    document.getElementById('modeBadge').innerHTML = `<i class="bi bi-eye"></i> ${I18N.viewingBadge}`;
+    document.getElementById('modeBadge').className = 'mode-badge badge bg-warning';
+    wrapper.classList.remove('edit-mode');
+    wrapper.classList.add('view-mode');
+    wrapper.style.cursor = 'default';
+    const canEdit = {{ can_edit_pins|lower }};
+    if (canEdit) {
+      document.getElementById('modeHelpText').innerHTML = `<i class="bi bi-info-circle"></i> <strong>${I18N.viewModeHelpCanEdit.split(':')[0]}:</strong> ${I18N.viewModeHelpCanEdit.split(':').slice(1).join(':')}`;
+    } else {
+      document.getElementById('modeHelpText').innerHTML = `<i class="bi bi-info-circle"></i> <strong>${I18N.viewModeHelp.split(':')[0]}:</strong> ${I18N.viewModeHelp.split(':').slice(1).join(':')}`;
+    }
+  }
+
+  function switchToEditMode() {
+    currentMode = 'edit';
+    if (document.getElementById('viewModeBtn')) {
+      document.getElementById('viewModeBtn').classList.remove('active');
+    }
+    if (document.getElementById('editModeBtn')) {
+      document.getElementById('editModeBtn').classList.add('active');
+    }
+    document.getElementById('modeBadge').innerHTML = `<i class="bi bi-pencil"></i> ${I18N.editingBadge}`;
+    document.getElementById('modeBadge').className = 'mode-badge badge bg-success';
+    wrapper.classList.remove('view-mode');
+    wrapper.classList.add('edit-mode');
+    wrapper.style.cursor = 'crosshair';
+    document.getElementById('modeHelpText').innerHTML = `<i class="bi bi-pencil-square"></i> <strong>${I18N.editModeHelp.split(':')[0]}:</strong> ${I18N.editModeHelp.split(':').slice(1).join(':')}`;
+  }
+
+  window.switchToEditMode = switchToEditMode;
+  window.switchToViewMode = switchToViewMode;
+  
+  function showTempPinMarker(x, y) {
+    const existingMarker = document.getElementById('tempPinMarker');
+    if (existingMarker) existingMarker.remove();
+    
+    const marker = document.createElement('div');
+    marker.id = 'tempPinMarker';
+    marker.style.cssText = `
+      position: absolute;
+      left: ${x * 100}%;
+      top: ${y * 100}%;
+      transform: translate(-50%, -100%);
+      width: 20px;
+      height: 20px;
+      background: #ffc107;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      animation: touchup-pulse 1s infinite;
+      z-index: 1000;
+      pointer-events: none;
+    `;
+    wrapper.appendChild(marker);
+  }
+  
+  window.startAddPin = function(){
+    console.log('[Floor Plan Touch-up] startAddPin called');
+    switchToEditMode();
+    addingMode = true;
+    document.getElementById('modeHelpText').innerHTML = `<i class="bi bi-brush-fill text-warning"></i> <strong>${I18N.newPinHelp.split(':')[0]}:</strong> ${I18N.newPinHelp.split(':').slice(1).join(':')}`;
+    document.getElementById('planWrapper').scrollIntoView({behavior:'smooth', block:'center'});
+    
+    wrapper.style.outline = '3px solid #ffc107';
+    setTimeout(() => {
+      wrapper.style.outline = '';
+    }, 1500);
+  }
+
+  // Zoom controls
+  if (zoomIn) zoomIn.addEventListener('click', ()=>{ scale = Math.min(scale+0.2, 3); applyZoom(); });
+  if (zoomOut) zoomOut.addEventListener('click', ()=>{ scale = Math.max(scale-0.2, 0.5); applyZoom(); });
+  if (zoomReset) zoomReset.addEventListener('click', ()=>{ scale=1; applyZoom(); });
+  
+  function applyZoom(){ 
+    if (img) img.style.transform = `scale(${scale})`; 
+    updateSvgSize(); 
+    renderLines(); 
+  }
+  
+  function updateSvgSize(){
+    if (!img || !svg) return;
+    const rect = img.getBoundingClientRect();
+    svg.setAttribute('width', rect.width);
+    svg.setAttribute('height', rect.height);
+  }
+
+  if (multipointCheck) {
+    multipointCheck.addEventListener('change', function(){
+      multipointMode = this.checked;
+      if (multipointControls) multipointControls.style.display = multipointMode ? 'block' : 'none';
+      if (isMultipointInput) isMultipointInput.value = multipointMode ? 'true' : 'false';
+      if(!multipointMode){ tempPoints=[]; renderLines(); updatePointsList(); }
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', ()=>{ tempPoints=[]; renderLines(); updatePointsList(); });
+  }
+
+  if (wrapper) {
+    wrapper.addEventListener('click', function(evt){
+      console.log('[Floor Plan Touch-up] Click detected, mode:', currentMode, 'addingMode:', addingMode);
+      
+      if (evt.target && evt.target.closest && evt.target.closest('.plan-pin')) {
+        console.log('[Floor Plan Touch-up] Click on existing pin, ignoring');
+        return;
+      }
+      
+      if (currentMode !== 'edit') {
+        console.log('[Floor Plan Touch-up] Not in edit mode, ignoring click');
+        return;
+      }
+      
+      if (!img) return;
+      const rect = img.getBoundingClientRect();
+      const x = (evt.clientX - rect.left) / (rect.width);
+      const y = (evt.clientY - rect.top) / (rect.height);
+      
+      console.log('[Floor Plan Touch-up] Coordinates captured:', x.toFixed(4), y.toFixed(4));
+      
+      if(multipointMode){
+        tempPoints.push({x:x.toFixed(4), y:y.toFixed(4), label:String.fromCharCode(65+tempPoints.length)});
+        renderLines();
+        updatePointsList();
+      } else {
+        if (pinX) pinX.value = x.toFixed(4);
+        if (pinY) pinY.value = y.toFixed(4);
+        showTempPinMarker(x, y);
+        
+        // Scroll to form
+        if (form) {
+          form.scrollIntoView({behavior:'smooth', block:'center'});
+          const titleInput = document.getElementById('id_title');
+          if (titleInput) {
+            setTimeout(() => titleInput.focus(), 300);
+          }
+        }
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && multipointMode && tempPoints.length>0){
+      if (pinX) pinX.value = tempPoints[0].x;
+      if (pinY) pinY.value = tempPoints[0].y;
+      if (pathPointsInput) pathPointsInput.value = JSON.stringify(tempPoints);
+      alert(I18N.pointsCaptured);
+    }
+  });
+
+  function renderLines(){
+    if (!svg || !img) return;
+    svg.innerHTML = '';
+    if(tempPoints.length < 2) return;
+    const rect = img.getBoundingClientRect();
+    for(let i=0; i<tempPoints.length-1; i++){
+      const p1 = tempPoints[i];
+      const p2 = tempPoints[i+1];
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('class','pin-path-line');
+      line.setAttribute('stroke','#ffc107');
+      line.setAttribute('x1', p1.x * rect.width);
+      line.setAttribute('y1', p1.y * rect.height);
+      line.setAttribute('x2', p2.x * rect.width);
+      line.setAttribute('y2', p2.y * rect.height);
+      svg.appendChild(line);
+    }
+    tempPoints.forEach(pt=>{
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('cx', pt.x * rect.width);
+      circle.setAttribute('cy', pt.y * rect.height);
+      circle.setAttribute('r', 5);
+      circle.setAttribute('fill','#ffc107');
+      circle.setAttribute('class','pin-path-marker');
+      svg.appendChild(circle);
+      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x', pt.x * rect.width + 8);
+      text.setAttribute('y', pt.y * rect.height - 8);
+      text.setAttribute('fill','#ff9800');
+      text.setAttribute('font-weight','bold');
+      text.textContent = pt.label;
+      svg.appendChild(text);
+    });
+  }
+
+  function updatePointsList(){
+    if (!pointsList) return;
+    if(tempPoints.length===0){ pointsList.innerHTML=''; return; }
+    pointsList.innerHTML = 'Puntos: ' + tempPoints.map(p=> `<b>${p.label}</b> (${p.x},${p.y})`).join(', ');
+  }
+
+  window.addEventListener('resize', ()=>{ updateSvgSize(); renderLines(); });
+  
+  if (img) {
+    if (img.complete) {
+      updateSvgSize();
+    } else {
+      img.addEventListener('load', function() {
+        console.log('[Floor Plan Touch-up] Image loaded, initializing...');
+        updateSvgSize();
+      });
+      img.addEventListener('error', function() {
+        console.error('[Floor Plan Touch-up] Error loading image:', img.src);
+      });
+    }
+  }
+
+  // Popovers para pines
+  const pinEls = document.querySelectorAll('.plan-pin');
+  pinEls.forEach(el => {
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+      const pinId = this.getAttribute('data-pin-id');
+      if (pinId) {
+        openPinModal(pinId);
+      }
+    });
+  });
+
+  window.openPinModal = function(pinId) {
+    // Simple redirect to full floor plan detail with pin modal
+    window.location.href = `{% url 'floor_plan_detail' plan.id %}?pin=${pinId}`;
+  };
+  
+  // Attach event listeners
+  const addPinBtn = document.getElementById('addPinBtn');
+  if (addPinBtn) {
+    addPinBtn.addEventListener('click', function() {
+      if (typeof window.startAddPin === 'function') {
+        window.startAddPin();
+      }
+    });
+  }
+  
+  const viewModeBtn = document.getElementById('viewModeBtn');
+  if (viewModeBtn) {
+    viewModeBtn.addEventListener('click', function() {
+      if (typeof window.switchToViewMode === 'function') {
+        window.switchToViewMode();
+      }
+    });
+  }
+  
+  const editModeBtn = document.getElementById('editModeBtn');
+  if (editModeBtn) {
+    editModeBtn.addEventListener('click', function() {
+      if (typeof window.switchToEditMode === 'function') {
+        window.switchToEditMode();
+      }
+    });
+  }
+  
+  const topEditPinsBtn = document.getElementById('topEditPinsBtn');
+  if (topEditPinsBtn) {
+    topEditPinsBtn.addEventListener('click', function() {
+      if (typeof window.startAddPin === 'function') {
+        window.startAddPin();
+      }
+    });
+  }
+})();
+</script>
+
+{% endblock %}
