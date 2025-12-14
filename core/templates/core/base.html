@@ -3,7 +3,7 @@
 <html lang="{{ request.session.lang|default:request.LANGUAGE_CODE|default:'en' }}">
 <head>
     <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=1.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <meta name="csrf-token" content="{{ csrf_token }}">
     
     <!-- PWA Meta Tags -->
@@ -801,8 +801,8 @@
       }, 30000); // 30 seconds after first interaction
     </script>
     
-    <!-- React Navigation System (Phase 2) -->
-    {% if user.is_authenticated %}
+    <!-- React Navigation System (legacy bundle) -->
+    {% if user.is_authenticated and enable_react_nav|default:False %}
     <script id="user-data" type="application/json">
   {"id":{{ user.id|default:0 }},"username":"{{ user.username|default:'' }}","first_name":"{{ user.first_name|default:'' }}","last_name":"{{ user.last_name|default:'' }}","role":"{{ user.profile.role|default:'pm' }}"}
     </script>

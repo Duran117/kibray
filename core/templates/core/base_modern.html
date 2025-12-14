@@ -62,14 +62,14 @@
     {% include "core/components/header.html" %}
     
     {# Main Layout #}
-    <div class="flex min-h-[calc(100vh-64px)]">
-        {# Sidebar (optional) #}
-        {% if show_sidebar %}
+    <div class="flex min-h-[calc(100vh-64px)]" data-layout-root>
+        {# Sidebar (on by default, can be hidden via show_sidebar=False) #}
+        {% if show_sidebar|default:True %}
         {% include "core/components/sidebar.html" %}
         {% endif %}
         
         {# Main Content #}
-        <main class="flex-1 {% if show_sidebar %}ml-0 lg:ml-64{% endif %} transition-all duration-300">
+        <main class="flex-1 {% if show_sidebar|default:True %}ml-0 lg:ml-64{% endif %} transition-all duration-300" id="main-content" tabindex="-1">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 fade-in">
                 {# Page Header (optional breadcrumbs, title, actions) #}
                 {% block page_header %}{% endblock %}
@@ -79,6 +79,9 @@
             </div>
         </main>
     </div>
+    
+    {# Mobile overlay backdrop for sidebar #}
+    <div id="kb-sidebar-backdrop" class="fixed inset-0 bg-black/40 opacity-0 pointer-events-none transition-opacity duration-200 z-30"></div>
     
     {# Toast/Alert Container #}
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
@@ -92,5 +95,56 @@
     
     {# Page-specific JavaScript #}
     {% block extra_js %}{% endblock %}
+    
+    <script>
+    // Accessible sidebar toggle (mobile overlay)
+    (function(){
+        const sidebar = document.getElementById('kb-sidebar');
+        const backdrop = document.getElementById('kb-sidebar-backdrop');
+        const openBtn = document.getElementById('mobile-menu-toggle');
+        const closeBtn = document.getElementById('kb-sidebar-close');
+        const focusableSelectors = 'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        let lastFocus = null;
+
+        function openSidebar(){
+            if(!sidebar) return;
+            lastFocus = document.activeElement;
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            if(backdrop){
+                backdrop.classList.remove('opacity-0','pointer-events-none');
+                backdrop.classList.add('opacity-100');
+            }
+            document.documentElement.classList.add('overflow-hidden');
+            const focusable = sidebar.querySelectorAll(focusableSelectors);
+            if(focusable.length){ focusable[0].focus(); }
+        }
+        function closeSidebar(){
+            if(!sidebar) return;
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            if(backdrop){
+                backdrop.classList.add('opacity-0','pointer-events-none');
+                backdrop.classList.remove('opacity-100');
+            }
+            document.documentElement.classList.remove('overflow-hidden');
+            if(lastFocus){ lastFocus.focus(); }
+        }
+        openBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        backdrop?.addEventListener('click', closeSidebar);
+        document.addEventListener('keydown', (e)=>{
+            if(e.key === 'Escape') closeSidebar();
+            if(e.key === 'Tab' && sidebar && !sidebar.classList.contains('-translate-x-full')){
+                const focusable = Array.from(sidebar.querySelectorAll(focusableSelectors)).filter(el=>!el.hasAttribute('disabled'));
+                if(!focusable.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length-1];
+                if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+                else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

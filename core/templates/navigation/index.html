@@ -33,8 +33,17 @@
   </style>
 </head>
 <body>
-  <div id="react-navigation-root"></div>
-  <script src="{% static 'js/kibray-navigation.js' %}"></script>
+  {% if enable_react_nav|default:False %}
+    <div id="react-navigation-root"></div>
+    <script src="{% static 'js/kibray-navigation.js' %}"></script>
+  {% else %}
+    <div class="app-container" style="display:flex;align-items:center;justify-content:center;height:100vh;">
+      <div style="text-align:center;color:#475569;max-width:420px;padding:24px;">
+        <h1 style="margin:0 0 8px;font-size:22px;">Navigation deshabilitada</h1>
+        <p style="margin:0;font-size:15px;">La navegación React legacy está desactivada. Usa la nueva interfaz server-rendered.</p>
+      </div>
+    </div>
+  {% endif %}
 </body>
 </html>
 

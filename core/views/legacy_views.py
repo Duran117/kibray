@@ -746,9 +746,9 @@ def dashboard_client(request):
         "active_filter": active_filter,
     }
 
-    # Use clean template by default, legacy with ?legacy=true
-    use_legacy = request.GET.get("legacy")
-    template_name = "core/dashboard_client.html" if use_legacy else "core/dashboard_client_clean.html"
+    # Always serve clean modern template; legacy can be enabled manually if needed
+    force_legacy = request.GET.get("legacy", "false").lower() == "true"
+    template_name = "core/dashboard_client.html" if force_legacy else "core/dashboard_client_clean.html"
     return render(request, template_name, context)
 
 
@@ -2836,7 +2836,7 @@ def changeorder_create_view(request):
 
     # Use clean Design System template by default
     # Legacy template available via ?legacy=true
-    use_legacy = request.GET.get("legacy", "false").lower() == "true"
+    force_legacy = request.GET.get("legacy", "false").lower() == "true"
     use_standalone = request.GET.get("standalone", "false").lower() == "true"
 
     if use_standalone:
@@ -5121,11 +5121,13 @@ def project_progress_csv(request, project_id):
 @login_required
 def dashboard_employee(request):
     """Dashboard simple para empleados: qué hacer hoy, clock in/out, materiales"""
+    force_legacy = request.GET.get("legacy", "false").lower() == "true"
     # Obtener empleado ligado al usuario
     employee = Employee.objects.filter(user=request.user).first()
     if not employee:
         messages.error(request, "Tu usuario no está vinculado a un empleado.")
-        return render(request, "core/dashboard_employee.html", {"employee": None})
+        template_name = "core/dashboard_employee.html" if force_legacy else "core/dashboard_employee_clean.html"
+        return render(request, template_name, {"employee": None, "badges": {"unread_notifications_count": 0}})
 
     today = timezone.localdate()
     now = timezone.localtime()
@@ -5304,9 +5306,8 @@ def dashboard_employee(request):
         "has_assignments_today": has_assignments_today,  # ✅ NUEVO
     }
 
-    # Use clean template by default, legacy with ?legacy=true
-    use_legacy = request.GET.get("legacy")
-    template_name = "core/dashboard_employee.html" if use_legacy else "core/dashboard_employee_clean.html"
+    # Use clean template by default; honor ?legacy=true explicitly
+    template_name = "core/dashboard_employee.html" if force_legacy else "core/dashboard_employee_clean.html"
     return render(request, template_name, context)
 
 
@@ -5515,9 +5516,9 @@ def dashboard_pm(request):
         "badges": {"unread_notifications_count": 0},  # Placeholder
     }
 
-    # Use clean template by default, legacy with ?legacy=true
-    use_legacy = request.GET.get("legacy")
-    template_name = "core/dashboard_pm.html" if use_legacy else "core/dashboard_pm_clean.html"
+    # Use clean template by default; legacy only when explicitly requested
+    force_legacy = request.GET.get("legacy", "false").lower() == "true"
+    template_name = "core/dashboard_pm.html" if force_legacy else "core/dashboard_pm_clean.html"
     return render(request, template_name, context)
 
 
@@ -8042,9 +8043,9 @@ def dashboard_designer(request):
         "active_filter": active_filter,
     }
 
-    # Use clean template by default, legacy with ?legacy=true
-    use_legacy = request.GET.get("legacy")
-    template_name = "core/dashboard_designer.html" if use_legacy else "core/dashboard_designer_clean.html"
+    # Use clean template by default; legacy only when explicitly requested
+    force_legacy = request.GET.get("legacy", "false").lower() == "true"
+    template_name = "core/dashboard_designer.html" if force_legacy else "core/dashboard_designer_clean.html"
     return render(request, template_name, context)
 
 
