@@ -9,15 +9,15 @@
     <!-- Modern Header -->
     <div class="bg-gradient-to-r from-blue-900 to-blue-600 text-white px-4 py-6 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
-            <div class="flex justify-between items-center">
-                <div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="min-w-0">
                     <h1 class="text-3xl font-bold">{% trans "Daily Planning" %}</h1>
-                    <p class="text-blue-100 mt-1">
+                    <p class="text-blue-100 mt-1 whitespace-normal">
                         <i class="bi bi-calendar3 mr-2"></i>
                         {{ today|date:"l, F d, Y" }}
                     </p>
                 </div>
-                <button onclick="openCreateWizard()" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl">
+                <button onclick="openCreateWizard()" class="w-full sm:w-auto text-center bg-white text-blue-600 px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl whitespace-nowrap">
                     <i class="bi bi-plus-lg mr-2"></i>{% trans "New Plan" %}
                 </button>
             </div>
@@ -174,7 +174,8 @@
                 </h2>
             </div>
             
-            <div class="overflow-x-auto">
+            <!-- Desktop table -->
+            <div class="overflow-x-auto hidden md:block">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -230,6 +231,54 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile cards -->
+            <div class="md:hidden divide-y divide-gray-200">
+                {% for plan in recent_plans %}
+                <div class="p-4 flex flex-col gap-3">
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="min-w-0">
+                            <div class="text-base font-semibold text-gray-900 break-words">{{ plan.project.name }}</div>
+                            <div class="text-sm text-gray-500">{{ plan.plan_date|date:"M d, Y" }}</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            {% if plan.status == 'DRAFT' %}
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">{% trans "Draft" %}</span>
+                            {% elif plan.status == 'IN_PROGRESS' %}
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">{% trans "In Progress" %}</span>
+                            {% elif plan.status == 'COMPLETED' %}
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">{% trans "Completed" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 text-sm text-gray-700">
+                        <div class="flex items-center gap-1">
+                            <i class="bi bi-list-check text-blue-600"></i>
+                            <span>{{ plan.activities.count }} {% trans "activities" %}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <i class="bi bi-person text-gray-500"></i>
+                            <span class="break-words">{{ plan.created_by.username }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{% url 'daily_plan_detail' plan.id %}" class="inline-flex items-center px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-semibold">
+                            <i class="bi bi-pencil-square mr-1"></i>{% trans "Edit" %}
+                        </a>
+                        <a href="{% url 'daily_plan_timeline' plan.id %}" class="inline-flex items-center px-3 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-semibold">
+                            <i class="bi bi-calendar-range mr-1"></i>{% trans "Timeline" %}
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-6 text-center text-gray-500">
+                    <i class="bi bi-inbox text-gray-300 text-5xl mb-3"></i>
+                    <p>{% trans "No recent plans" %}</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
