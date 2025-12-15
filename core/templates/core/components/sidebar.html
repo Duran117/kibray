@@ -1,10 +1,5 @@
 {% load i18n %}
 
-{#
-  Role-aware sidebar with accordion sections.
-  Mobile: overlay drawer; Desktop: fixed.
-#}
-
 {% with prof=request.user.profile|default_if_none:'' %}
 <aside id="kb-sidebar" class="fixed left-0 top-0 lg:top-16 bottom-0 w-72 lg:w-64 bg-white border-r border-gray-200 overflow-y-auto z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-200" aria-label="Primary navigation">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 lg:hidden">
