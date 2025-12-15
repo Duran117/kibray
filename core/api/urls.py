@@ -238,16 +238,39 @@ urlpatterns = [
     # Ensure gantt endpoint resolves under router and direct mapping
     path("tasks/gantt/", TaskGanttView.as_view(), name="tasks-gantt"),
     path("tasks/gantt/", TaskViewSet.as_view({"get": "gantt"}), name="tasks-gantt-router"),
-    # Dashboards
+    # Dashboards (UI)
+    path("dashboards/admin/", AdminDashboardView.as_view(), name="dashboard-admin"),
     path("dashboards/invoices/", InvoiceDashboardView.as_view(), name="dashboard-invoices"),
     path("dashboards/invoices/trends/", InvoiceTrendsView.as_view(), name="dashboard-invoice-trends"),
     path("dashboards/materials/", MaterialsDashboardView.as_view(), name="dashboard-materials"),
     path("dashboards/materials/usage/", MaterialsUsageAnalyticsView.as_view(), name="dashboard-materials-usage"),
     path("dashboards/financial/", FinancialDashboardView.as_view(), name="financial-dashboard"),
+
+    # Analytics API endpoints (used by tests)
+    path(
+        "analytics/project-health/<int:project_id>/",
+        ProjectHealthDashboardView.as_view(),
+        name="analytics-project-health",
+    ),
+    path("analytics/touchups/", TouchupAnalyticsDashboardView.as_view(), name="analytics-touchups"),
+    path("analytics/color-approvals/", ColorApprovalAnalyticsDashboardView.as_view(), name="analytics-color-approvals"),
+    path("analytics/pm-performance/", PMPerformanceDashboardView.as_view(), name="analytics-pm-performance"),
     
     # SOP Express API
     path("sop/generate/", sop_api.generate_sop_with_ai, name="sop-generate-ai"),
     path("sop/save/", sop_api.save_sop, name="sop-save"),
+
+    # Gap D/E/F: Financial reporting & client portal
+    path("financial/aging-report/", InvoiceAgingReportAPIView.as_view(), name="financial-aging-report"),
+    path("financial/cash-flow-projection/", CashFlowProjectionAPIView.as_view(), name="financial-cash-flow-projection"),
+    path("financial/budget-variance/", BudgetVarianceAnalysisAPIView.as_view(), name="financial-budget-variance"),
+    path("inventory/valuation-report/", InventoryValuationReportView.as_view(), name="inventory-valuation-report"),
+    path("client/invoices/", ClientInvoiceListAPIView.as_view(), name="client-invoice-list"),
+    path(
+        "client/invoices/<int:invoice_id>/approve/",
+        ClientInvoiceApprovalAPIView.as_view(),
+        name="client-invoice-approval",
+    ),
 
     # Master Schedule API
     path("schedule/master/", schedule_api.get_master_schedule_data, name="api-schedule-master"),

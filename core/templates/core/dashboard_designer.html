@@ -1,5 +1,7 @@
-{% extends 'core/base.html' %}
+{% extends "core/dashboard_designer_clean.html" %}
 {% load i18n %}
+{% comment %}Legacy layout retained for reference; main rendering delegated to dashboard_designer_clean.{% endcomment %}
+{% comment %}
 {% block content %}
 <div class="container mt-4 kb-container-narrow" aria-labelledby="designerDashboardTitle">
   <h2 id="designerDashboardTitle" class="mb-1"><span class="text-gradient"><i class="bi bi-brush"></i> Dashboard Diseñador</span></h2>
@@ -15,9 +17,10 @@
         <div class="list-group">
           {% for p in projects %}
             <a href="{% url 'project_overview' p.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-              <div>
-                <strong>{{ p.name }}</strong>
-                <br><small class="text-muted">Cliente: {{ p.client }}</small>
+            </div>
+
+          {% endblock %}
+          {% endcomment %}
               </div>
               <span class="badge bg-info">{{ p.status }}</span>
             </a>

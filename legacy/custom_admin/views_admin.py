@@ -17,6 +17,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from core.models import ChangeOrder, Expense, FloorPlan, Income, Profile, Project, Schedule, Task, TimeEntry
+from core import views as core_views
 
 
 def admin_required(view_func):
@@ -372,6 +373,71 @@ def admin_model_list(request, model_name):
         "total_count": objects.count(),
     }
     return render(request, "core/admin/model_list.html", context)
+
+
+# ============================================================
+# DASHBOARD + WRAPPERS TO EXISTING VIEWS
+# ============================================================
+
+
+@admin_required
+def admin_dashboard_main(request):
+    """Entry point for admin-panel; reuse existing admin dashboard view."""
+    return core_views.dashboard_admin(request)
+
+
+# Proyectos (wrappers to core views)
+@admin_required
+def admin_project_create(request):
+    return core_views.project_create(request)
+
+
+@admin_required
+def admin_project_edit(request, project_id):
+    return core_views.project_edit(request, project_id)
+
+
+@admin_required
+def admin_project_delete(request, project_id):
+    return core_views.project_delete(request, project_id)
+
+
+# Gastos (wrappers)
+@admin_required
+def admin_expense_create(request):
+    return core_views.expense_create_view(request)
+
+
+@admin_required
+def admin_expense_edit(request, expense_id):
+    return core_views.expense_edit_view(request, expense_id)
+
+
+@admin_required
+def admin_expense_delete(request, expense_id):
+    return core_views.expense_delete_view(request, expense_id)
+
+
+# Ingresos (wrappers)
+@admin_required
+def admin_income_create(request):
+    return core_views.income_create(request)
+
+
+@admin_required
+def admin_income_edit(request, income_id):
+    return core_views.income_edit_view(request, income_id)
+
+
+@admin_required
+def admin_income_delete(request, income_id):
+    return core_views.income_delete_view(request, income_id)
+
+
+@admin_required
+def admin_activity_logs(request):
+    # Minimal stub for tests
+    return render(request, "core/admin/activity_logs.html", {})
 
 
 # ============================================================

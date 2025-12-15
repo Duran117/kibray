@@ -3,6 +3,7 @@ Django Settings - Development Environment
 Settings for local development
 """
 import os
+import sys
 from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -50,31 +51,49 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
-# Channel Layers - Redis (or in-memory for simple dev)
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379/0")],
-            "capacity": 1500,
-            "expiry": 10,
-        },
-    },
-}
+# Channel Layers / Cache
+USE_IN_MEMORY_LAYERS = (
+    os.getenv("PYTEST_CURRENT_TEST")
+    or os.getenv("USE_IN_MEMORY_CHANNEL_LAYER") == "1"
+    or any("pytest" in arg for arg in sys.argv)
+)
 
-# Cache - Redis or dummy cache
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.getenv("REDIS_URL", "redis://localhost:6379/1"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "IGNORE_EXCEPTIONS": True,
-        },
-        "KEY_PREFIX": "kibray_dev",
-        "TIMEOUT": 300,
+if USE_IN_MEMORY_LAYERS:
+    CHANNEL_LAYERS = {
+        "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
     }
-}
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-kibray-test-cache",
+            "TIMEOUT": None,
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379/0")],
+                "capacity": 1500,
+                "expiry": 10,
+            },
+        },
+    }
+
+    # Cache - Redis
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": os.getenv("REDIS_URL", "redis://localhost:6379/1"),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+            },
+            "KEY_PREFIX": "kibray_dev",
+            "TIMEOUT": 300,
+        }
+    }
 
 # Logging - Verbose in development
 LOGGING = {

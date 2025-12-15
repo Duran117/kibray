@@ -4,7 +4,8 @@ URLs para el panel administrativo avanzado
 
 from django.urls import path
 
-from core import views_admin
+# Admin panel views (lightweight wrappers)
+from . import views_admin
 
 urlpatterns = [
     # Dashboard principal

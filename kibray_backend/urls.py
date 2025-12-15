@@ -53,6 +53,8 @@ urlpatterns = [
     
     # Admin
     path("admin/", admin.site.urls),
+    # Legacy custom admin panel (admin-panel/*)
+    path("admin-panel/", include("legacy.custom_admin.urls_admin")),
     # User Management Wizard
     path("users/manage/", views_user_wizard.user_list_view, name="user_wizard_list"),
     path("users/manage/new/", views_user_wizard.user_wizard_view, name="user_wizard_create"),

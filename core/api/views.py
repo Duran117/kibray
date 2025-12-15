@@ -1260,19 +1260,12 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
         return Response({"status": "ok"})
 
     @action(detail=True, methods=["post"])
-    def lock(self, request, pk=None):
-        """Gap B: Lock the payroll period to prevent further changes."""
-        period = self.get_object()
-        period.locked = True
-        period.save(update_fields=["locked"])
-        return Response({"status": "locked"})
-
-    @action(detail=True, methods=["post"])
     def recompute(self, request, pk=None):
-        """Gap B: Recompute all records in period (tax, overtime, gross/net)."""
-        from core.services.payroll_recompute import recompute_period
+        """Recompute payroll records and totals for a period."""
+        from core.services.payroll import recompute_period
+
         period = self.get_object()
-        force = request.data.get("force", False)
+        force = request.data.get("force") in (True, "true", "1", 1)
         try:
             count = recompute_period(period, force=bool(force))
             return Response({"status": "recomputed", "records_updated": count})
@@ -1748,18 +1741,22 @@ def tasks_gantt_alias(request):
 
     @action(detail=True, methods=["get"], url_path="migratable-pins")
     def migratable_pins(self, request, pk=None):
-        """
-        Get list of pins from old version that need migration.
+        # Get list of pins from old version that need migration.
+        # plan = self.get_object()
+        # If this is a new version, get pins from replaced plan
+        # If plan.version > 1:
+        #   Find the plan this one replaced
+        #   old_plan = FloorPlan.objects.filter(replaced_by=plan).first()
+        #   if old_plan:
+        #       migratable_pins = old_plan.get_migratable_pins()
+        #   else:
+        #       migratable_pins = []
+        # else:
+        #   migratable_pins = []
 
-        Returns:
-        - Array of pins with status='pending_migration'
-        - Useful for building migration UI
-        """
         plan = self.get_object()
 
-        # If this is a new version, get pins from replaced plan
         if plan.version > 1:
-            # Find the plan this one replaced
             old_plan = FloorPlan.objects.filter(replaced_by=plan).first()
             if old_plan:
                 migratable_pins = old_plan.get_migratable_pins()
@@ -1913,7 +1910,7 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
 
     Features:
     - Auto-generate sample_number on create (KPISM format)
-    - Approval workflow: proposed → review → approved/rejected
+    - Approval workflow: proposed -> review -> approved/rejected
     - Digital signature on approval (SHA256 hash)
     - Required rejection reason (Q19.12)
     - Room grouping for organization
@@ -2109,7 +2106,7 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
         """Ensure a category exists even if frontend omits it.
 
         Frontend initial Gantt create flow currently sends: project, name(title), planned_start, planned_end, status,
-        percent_complete, is_milestone, description — but may omit 'category'. The model requires a non-null category.
+    percent_complete, is_milestone, description - but may omit 'category'. The model requires a non-null category.
         To keep UX simple, we auto-provision or reuse a default category named 'General' for the given project when
         none is supplied. This prevents 400 validation errors while allowing later explicit categorization.
         """
@@ -3044,7 +3041,7 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def recompute_actual_hours(self, request, pk=None):
-        """Sum hours from time entries linked to tasks converted from this plan's activities."""
+        # Sum hours from time entries linked to tasks converted from this plan's activities.
         from django.db.models import Sum
 
         plan = self.get_object()
@@ -3104,10 +3101,6 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
             OR
             - transcription text (if client did speech-to-text)
 
-        Returns:
-            - transcription
-            - parsed command
-            - suggested activities
         """
         from core.models import VoiceCommand
         from core.services.nlp_service import nlp_service
@@ -3185,18 +3178,13 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def ai_auto_create(self, request, pk=None):
-        """
-        Auto-create activities from AI suggestions
-
-        Body:
-            {
-                "command": { /* parsed command object */ },
-                "confirm": true
-            }
-
-        Returns:
-            - created activities
-        """
+        # Auto-create activities from AI suggestions
+        # Body:
+        #   {
+        #       "command": { /* parsed command object */ },
+        #       "confirm": true
+        #   }
+        # Returns: created activities
         from core.services.nlp_service import ParsedCommand, nlp_service
 
         plan = self.get_object()
@@ -3236,17 +3224,12 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def timeline(self, request):
-        """
-        Get timeline data for date range
-
-        Query params:
-            - start_date: YYYY-MM-DD
-            - end_date: YYYY-MM-DD
-            - project: project ID (optional)
-
-        Returns:
-            List of daily plans with full context for timeline view
-        """
+        # Get timeline data for date range
+        # Query params:
+        # - start_date: YYYY-MM-DD
+        # - end_date: YYYY-MM-DD
+        # - project: project ID (optional)
+        # Returns: List of daily plans with full context for timeline view
         from datetime import datetime
 
         start_date_str = request.query_params.get("start_date")
@@ -3314,14 +3297,9 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def inline_update(self, request, pk=None):
-        """
-        Update a single field inline (for timeline editing)
-
-        Body:
-            { "field": "notes", "value": "Updated notes..." }
-
-        Supported fields: status, notes, etc.
-        """
+        # Update a single field inline (for timeline editing)
+        # Body: { "field": "notes", "value": "Updated notes..." }
+        # Supported fields: status, notes, etc.
         plan = self.get_object()
         field = request.data.get("field")
         value = request.data.get("value")
@@ -3351,7 +3329,7 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
 
 
 class PlannedActivityViewSet(viewsets.ModelViewSet):
-    """CRUD for PlannedActivity with material checks"""
+    # CRUD for PlannedActivity with material checks
 
     queryset = (
         PlannedActivity.objects.all()
@@ -3380,7 +3358,8 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def variance(self, request, pk=None):
-        """Compute variance using estimated vs actual hours. If actual_hours is None, compute from converted_task time entries."""
+        # Compute variance using estimated vs actual hours.
+        # If actual_hours is None, compute from converted_task time entries.
         from django.db.models import Sum
 
         activity = self.get_object()
@@ -3406,15 +3385,12 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def move(self, request, pk=None):
-        """
-        Move activity to different day or reorder within same day
-
-        Body:
-            {
-                "new_daily_plan": 123,  // Optional: move to different day
-                "new_order": 2          // New position
-            }
-        """
+        # Move activity to different day or reorder within same day
+        # Body:
+        #   {
+        #       "new_daily_plan": 123,  // Optional: move to different day
+        #       "new_order": 2          // New position
+        #   }
         activity = self.get_object()
         new_plan_id = request.data.get("new_daily_plan")
         new_order = request.data.get("new_order")
@@ -3452,7 +3428,7 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
 
 
 class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for WeatherSnapshot (Module 30)"""
+    # ViewSet for WeatherSnapshot (Module 30)
 
     queryset = WeatherSnapshot.objects.all()
     serializer_class = WeatherSnapshotSerializer
@@ -3464,7 +3440,7 @@ class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"])
     def by_project_date(self, request):
-        """Get weather snapshot for specific project and date"""
+        # Get weather snapshot for specific project and date
         project_id = request.query_params.get("project_id")
         date = request.query_params.get("date")
 
@@ -3485,11 +3461,8 @@ class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AISuggestionViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for AI Suggestions
-
-    Allows users to view, accept, or dismiss AI suggestions
-    """
+    # ViewSet for AI Suggestions
+    # Allows users to view, accept, or dismiss AI suggestions
 
     from core.api.serializers import AISuggestionSerializer
 
@@ -3507,7 +3480,7 @@ class AISuggestionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def accept(self, request, pk=None):
-        """Accept an AI suggestion"""
+        # Accept an AI suggestion
         suggestion = self.get_object()
         suggestion.accept(request.user)
         return Response(
@@ -3521,7 +3494,7 @@ class AISuggestionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def dismiss(self, request, pk=None):
-        """Dismiss an AI suggestion"""
+        # Dismiss an AI suggestion
         suggestion = self.get_object()
         suggestion.dismiss(request.user)
         return Response(
@@ -3535,15 +3508,11 @@ class AISuggestionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
-        """
-        Get summary of AI suggestions
-
-        Query params:
-            - daily_plan: Daily plan ID
-            - status: pending/accepted/dismissed
-
-        Returns counts by severity and type
-        """
+        # Get summary of AI suggestions
+        # Query params:
+        # - daily_plan: Daily plan ID
+        # - status: pending/accepted/dismissed
+        # Returns counts by severity and type
         queryset = self.filter_queryset(self.get_queryset())
 
         summary = {
@@ -3589,7 +3558,7 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def stop(self, request, pk=None):
-        """Stop an open time entry by setting end_time; accepts optional end_time in payload (HH:MM[:SS])."""
+        # Stop an open time entry by setting end_time; accepts optional end_time in payload (HH:MM[:SS]).
         entry = self.get_object()
         end_time = request.data.get("end_time")
         from datetime import datetime
@@ -3609,7 +3578,8 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
-        """Aggregate total hours by grouping key (employee|project|task). Example: /time-entries/summary/?group=task&project=<id>"""
+        # Aggregate total hours by grouping key (employee|project|task).
+        # Example: /time-entries/summary/?group=task&project=<id>
         from django.db.models import Sum
 
         group = request.query_params.get("group", "employee")
@@ -3645,10 +3615,8 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def valuation_report(self, request, pk=None):
-        """
-        Gap D: Get detailed valuation report for an inventory item.
-        Returns cost breakdown by method (FIFO/LIFO/AVG).
-        """
+        # Gap D: Get detailed valuation report for an inventory item.
+        # Returns cost breakdown by method (FIFO/LIFO/AVG).
         item = self.get_object()
         
         # Get total quantity across all locations
@@ -3698,10 +3666,8 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def calculate_cogs(self, request, pk=None):
-        """
-        Gap D: Calculate COGS (Cost of Goods Sold) for a quantity to be consumed.
-        POST data: {"quantity": "10.00"}
-        """
+        # Gap D: Calculate COGS (Cost of Goods Sold) for a quantity to be consumed.
+        # POST data: {"quantity": "10.00"}
         item = self.get_object()
         
         try:
@@ -3744,7 +3710,7 @@ class InventoryLocationViewSet(viewsets.ModelViewSet):
 
 
 class ProjectInventoryViewSet(viewsets.ModelViewSet):
-    """ViewSet for per-project inventory stock (ProjectInventory)."""
+    # ViewSet for per-project inventory stock (ProjectInventory).
 
     serializer_class = ProjectInventorySerializer
     permission_classes = [IsAuthenticated]
@@ -3761,7 +3727,7 @@ class ProjectInventoryViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def low_stock(self, request):
-        """Return items below their effective threshold."""
+        # Return items below their effective threshold.
         data = []
         for stock in self.get_queryset():
             threshold = stock.threshold or stock.item.get_effective_threshold() or Decimal("0")
@@ -3779,7 +3745,7 @@ class ProjectInventoryViewSet(viewsets.ModelViewSet):
 
 
 class InventoryMovementViewSet(viewsets.ModelViewSet):
-    """ViewSet for inventory movements (receive, consume, transfer)."""
+    # ViewSet for inventory movements (receive, consume, transfer).
 
     serializer_class = InventoryMovementSerializer
     permission_classes = [IsAuthenticated]
@@ -3856,7 +3822,7 @@ class MaterialRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def receive(self, request, pk=None):
-        """Payload: {"items": [{"id": <item_id>, "received_quantity": <qty>}, ...]}"""
+        # Payload: {"items": [{"id": <item_id>, "received_quantity": <qty>}, ...]}
         mr = self.get_object()
         items = request.data.get("items", [])
         mapping = {}
@@ -3873,9 +3839,8 @@ class MaterialRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def direct_purchase_expense(self, request, pk=None):
-        """Create an expense for this request and receive all items directly.
-        Payload: {"total_amount": 123.45}
-        """
+        # Create an expense for this request and receive all items directly.
+        # Payload: {"total_amount": 123.45}
         mr = self.get_object()
         try:
             total = Decimal(str(request.data.get("total_amount")))
@@ -3886,11 +3851,10 @@ class MaterialRequestViewSet(viewsets.ModelViewSet):
 
 
 class FieldMaterialsViewSet(viewsets.ViewSet):
-    """Module 15: Simple endpoints for field employees to:
-    - Report material usage (consumption)
-    - Submit a quick material request (single-line request)
-    - View current project stock (available quantities)
-    """
+    # Module 15: Simple endpoints for field employees to:
+    # - Report material usage (consumption)
+    # - Submit a quick material request (single-line request)
+    # - View current project stock (available quantities)
 
     permission_classes = [IsAuthenticated]
 
@@ -4059,7 +4023,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
 
 
 class ClientRequestViewSet(viewsets.ModelViewSet):
-    """Client Requests: Material, Change Order, Info"""
+    # Client Requests: Material, Change Order, Info
 
     from core.api.serializers import ClientRequestSerializer as Serializer
     from core.models import ClientRequest as Model
@@ -4091,6 +4055,9 @@ class ClientRequestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
+
+        # Keep a copy before applying date filters for fallback adjustments
+        qs_without_date = qs
         if user.is_staff:
             return qs
         # Restrict to projects the user has access to
@@ -4134,18 +4101,15 @@ class ClientRequestAttachmentViewSet(viewsets.ModelViewSet):
 
 
 class ChatChannelViewSet(viewsets.ModelViewSet):
-    """
-    Chat Channels API - project-based communication channels
-
-    Endpoints:
-    - GET /api/v1/chat/channels/ - List all channels user has access to
-    - POST /api/v1/chat/channels/ - Create new channel
-    - GET /api/v1/chat/channels/{id}/ - Get channel details
-    - PATCH /api/v1/chat/channels/{id}/ - Update channel
-    - DELETE /api/v1/chat/channels/{id}/ - Delete channel
-    - POST /api/v1/chat/channels/{id}/add_participant/ - Add user to channel
-    - POST /api/v1/chat/channels/{id}/remove_participant/ - Remove user from channel
-    """
+    # Chat Channels API - project-based communication channels
+    # Endpoints:
+    # - GET /api/v1/chat/channels/ - List all channels user has access to
+    # - POST /api/v1/chat/channels/ - Create new channel
+    # - GET /api/v1/chat/channels/{id}/ - Get channel details
+    # - PATCH /api/v1/chat/channels/{id}/ - Update channel
+    # - DELETE /api/v1/chat/channels/{id}/ - Delete channel
+    # - POST /api/v1/chat/channels/{id}/add_participant/ - Add user to channel
+    # - POST /api/v1/chat/channels/{id}/remove_participant/ - Remove user from channel
 
     from core.api.serializers import ChatChannelSerializer as Serializer
     from core.models import ChatChannel as Model
@@ -4182,7 +4146,7 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def add_participant(self, request, pk=None):
-        """Add user to channel participants"""
+        # Add user to channel participants
         channel = self.get_object()
         user_id = request.data.get("user_id")
 
@@ -4202,7 +4166,7 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def remove_participant(self, request, pk=None):
-        """Remove user from channel participants"""
+        # Remove user from channel participants
         channel = self.get_object()
         user_id = request.data.get("user_id")
 
@@ -4222,25 +4186,21 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
 
 
 class ChatMessageViewSet(viewsets.ModelViewSet):
-    """
-    Chat Messages API - messages with @mentions, entity linking, and attachments
-
-    Features:
-    - Automatic @mention parsing (e.g., @username, @task#123)
-    - Entity linking to tasks, damages, color samples, etc.
-    - Notification creation for mentioned users
-    - File/image attachments
-    - Soft delete (admin only)
-
-    Endpoints:
-    - GET /api/v1/chat/messages/ - List messages (filtered by channel)
-    - POST /api/v1/chat/messages/ - Create message (auto-parses mentions)
-    - GET /api/v1/chat/messages/{id}/ - Get message details
-    - PATCH /api/v1/chat/messages/{id}/ - Update message
-    - DELETE /api/v1/chat/messages/{id}/ - Hard delete (admin only)
-    - POST /api/v1/chat/messages/{id}/soft_delete/ - Soft delete message
-    - GET /api/v1/chat/messages/my_mentions/ - Get messages where user is mentioned
-    """
+    # Chat Messages API - messages with @mentions, entity linking, and attachments
+    # Features:
+    # - Automatic @mention parsing (e.g., @username, @task#123)
+    # - Entity linking to tasks, damages, color samples, etc.
+    # - Notification creation for mentioned users
+    # - File/image attachments
+    # - Soft delete (admin only)
+    # Endpoints:
+    # - GET /api/v1/chat/messages/ - List messages (filtered by channel)
+    # - POST /api/v1/chat/messages/ - Create message (auto-parses mentions)
+    # - GET /api/v1/chat/messages/{id}/ - Get message details
+    # - PATCH /api/v1/chat/messages/{id}/ - Update message
+    # - DELETE /api/v1/chat/messages/{id}/ - Hard delete (admin only)
+    # - POST /api/v1/chat/messages/{id}/soft_delete/ - Soft delete message
+    # - GET /api/v1/chat/messages/my_mentions/ - Get messages where user is mentioned
 
     from core.api.serializers import ChatMessageSerializer as Serializer
     from core.models import ChatMessage as Model
@@ -4261,7 +4221,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]  # Default ordering for cursor pagination
 
     def _check_pm_trainee_write_permission(self, message=None, channel=None):
-        """Helper: deny PM Trainee write access on general_client channel"""
+        # Helper: deny PM Trainee write access on general_client channel
         user = self.request.user
         groups = set(user.groups.values_list("name", flat=True))
         if "Project Manager Trainee" not in groups:
@@ -4311,7 +4271,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def soft_delete(self, request, pk=None):
-        """Soft delete message (admin only)"""
+        # Soft delete message (admin only)
         message = self.get_object()
 
         # Check if user is admin/superuser
@@ -4333,7 +4293,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def my_mentions(self, request):
-        """Get messages where current user is mentioned"""
+        # Get messages where current user is mentioned
         user = request.user
 
         # Find ChatMentions for this user
@@ -4356,36 +4316,8 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="paginated")
     def paginated_messages(self, request):
-        """
-        Cursor-based paginated chat messages for infinite scroll
-        
-        Query Params:
-            - channel (required): Channel ID to fetch messages from
-            - cursor (optional): Cursor token from previous/next links
-            - page_size (optional): Number of messages per page (default 50, max 100)
-        
-        Response:
-            {
-                "next": "cursor_for_newer_messages",
-                "previous": "cursor_for_older_messages",
-                "has_more": true,  # More older messages available
-                "has_previous": false,  # No newer messages available
-                "results": [
-                    {
-                        "id": 123,
-                        "user": {...},
-                        "message": "Hello world",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "read_by_count": 5,
-                        ...
-                    }
-                ]
-            }
-        
-        Usage:
-            - Initial load: GET /api/v1/chat-messages/paginated/?channel=10
-            - Load older: GET /api/v1/chat-messages/paginated/?channel=10&cursor=abc123
-        """
+        # Cursor-based paginated chat messages for infinite scroll.
+        # Query params: channel (required), cursor (optional), page_size (optional, default 50, max 100).
         from core.api.pagination import ChatMessageCursorPagination
 
         # Validate required channel parameter
@@ -4425,7 +4357,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
 
 class DailyLogSanitizedViewSet(viewsets.ReadOnlyModelViewSet):
-    """Read-only sanitized DailyLog reports for client-facing consumption"""
+    # Read-only sanitized DailyLog reports for client-facing consumption
 
     from core.api.serializers import DailyLogSanitizedSerializer as Serializer
     from core.models import DailyLog as Model
@@ -4461,32 +4393,27 @@ class DailyLogSanitizedViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class SitePhotoViewSet(viewsets.ModelViewSet):
-    """
-    MÓDULO 18: Site Photos with GPS auto-tagging, thumbnail generation, and gallery system.
-
-    Features:
-    - GPS extraction from EXIF data (handled in serializer)
-    - Auto-generate thumbnails on save (handled in model)
-    - Filter by project, damage_report, photo_type, date_range
-    - Gallery action for organized photo viewing
-    - ClientProjectAccess enforcement for non-staff users
-
-    Endpoints:
-    - GET /api/v1/site-photos/ - List all photos (with filters)
-    - POST /api/v1/site-photos/ - Upload new photo (multipart/form-data)
-    - GET /api/v1/site-photos/{id}/ - Retrieve single photo
-    - PATCH /api/v1/site-photos/{id}/ - Update photo metadata
-    - DELETE /api/v1/site-photos/{id}/ - Delete photo
-    - GET /api/v1/site-photos/gallery/ - Organized gallery view grouped by photo_type
-
-    Query Parameters:
-    - project={id} - Filter by project
-    - damage_report={id} - Filter by damage report
-    - photo_type=before|progress|after|defect|reference - Filter by type
-    - start=YYYY-MM-DD - Filter photos from this date
-    - end=YYYY-MM-DD - Filter photos until this date
-    - visibility=public|internal - Filter by visibility (staff only)
-    """
+    # MÓDULO 18: Site Photos with GPS auto-tagging, thumbnail generation, and gallery system.
+    # Features:
+    # - GPS extraction from EXIF data (handled in serializer)
+    # - Auto-generate thumbnails on save (handled in model)
+    # - Filter by project, damage_report, photo_type, date_range
+    # - Gallery action for organized photo viewing
+    # - ClientProjectAccess enforcement for non-staff users
+    # Endpoints:
+    # - GET /api/v1/site-photos/ - List all photos (with filters)
+    # - POST /api/v1/site-photos/ - Upload new photo (multipart/form-data)
+    # - GET /api/v1/site-photos/{id}/ - Retrieve single photo
+    # - PATCH /api/v1/site-photos/{id}/ - Update photo metadata
+    # - DELETE /api/v1/site-photos/{id}/ - Delete photo
+    # - GET /api/v1/site-photos/gallery/ - Organized gallery view grouped by photo_type
+    # Query Parameters:
+    # - project={id} - Filter by project
+    # - damage_report={id} - Filter by damage report
+    # - photo_type=before|progress|after|defect|reference - Filter by type
+    # - start=YYYY-MM-DD - Filter photos from this date
+    # - end=YYYY-MM-DD - Filter photos until this date
+    # - visibility=public|internal - Filter by visibility (staff only)
 
     queryset = SitePhoto.objects.select_related("project", "damage_report", "created_by").all().order_by("-created_at")
     serializer_class = SitePhotoSerializer
@@ -4549,14 +4476,16 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
                     s = date_start or (dt_start and dt_start.date())
                     e = date_end or (dt_end and dt_end.date())
                     if s and e:
-                        start_dt = timezone.make_aware(datetime.combine(s, datetime.min.time()))
-                        end_dt = timezone.make_aware(datetime.combine(e, datetime.max.time()))
-                        qs = (
-                            super()
-                            .get_queryset()
-                            .filter(project_id=self.request.query_params.get("project"))
-                            .filter(created_at__gte=start_dt, created_at__lte=end_dt)
-                        )
+                        from datetime import datetime, time
+
+                        start_dt = datetime.combine(s, time.min)
+                        end_dt = datetime.combine(e, time.max)
+                        if timezone.is_naive(start_dt):
+                            start_dt = timezone.make_aware(start_dt)
+                        if timezone.is_naive(end_dt):
+                            end_dt = timezone.make_aware(end_dt)
+
+                        qs = qs_without_date.filter(created_at__gte=start_dt, created_at__lte=end_dt)
             except Exception:
                 pass
 
@@ -4587,21 +4516,9 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="gallery")
     def gallery(self, request):
-        """
-        Organized gallery view grouped by photo_type.
-
-        Returns photos organized by type (before, progress, after, defect, reference)
-        with thumbnails for efficient loading.
-
-        Example response:
-        {
-            "before": [{id, thumbnail, caption, created_at}, ...],
-            "progress": [...],
-            "after": [...],
-            "defect": [...],
-            "reference": [...]
-        }
-        """
+        # Organized gallery view grouped by photo_type.
+        # Returns photos organized by type (before, progress, after, defect, reference)
+        # with thumbnails for efficient loading.
         qs = self.filter_queryset(self.get_queryset())
 
         # Group photos by type
@@ -4660,7 +4577,7 @@ class InvoiceDashboardView(APIView):
 
 
 class InvoiceTrendsView(APIView):
-    """Monthly invoice trends and aging report"""
+    # Monthly invoice trends and aging report
 
     permission_classes = [IsAuthenticated]
 
@@ -4773,7 +4690,7 @@ class MaterialsDashboardView(APIView):
 
 
 class MaterialsUsageAnalyticsView(APIView):
-    """Materials usage analytics: top consumed, consumption by project, turnover, reorder suggestions"""
+    # Materials usage analytics: top consumed, consumption by project, turnover, reorder suggestions
 
     permission_classes = [IsAuthenticated]
 
@@ -4869,7 +4786,7 @@ class MaterialsUsageAnalyticsView(APIView):
 
 
 class FinancialDashboardView(APIView):
-    """Per-project financial summary with EV metrics and budget tracking"""
+    # Per-project financial summary with EV metrics and budget tracking
 
     permission_classes = [IsAuthenticated]
 
@@ -4947,7 +4864,7 @@ class FinancialDashboardView(APIView):
 
 
 class PayrollDashboardView(APIView):
-    """Weekly payroll overview: periods, totals, outstanding"""
+    # Weekly payroll overview: periods, totals, outstanding
 
     permission_classes = [IsAuthenticated]
 
@@ -5004,7 +4921,7 @@ class PayrollDashboardView(APIView):
 
 
 class AdminDashboardView(APIView):
-    """Company-wide consolidated dashboard: projects, employees, financial health, recent activity"""
+    # Company-wide consolidated dashboard: projects, employees, financial health, recent activity
 
     permission_classes = [IsAuthenticated, IsAdminUser]
 
@@ -5035,16 +4952,14 @@ class AdminDashboardView(APIView):
         total_employees = Employee.objects.count()
 
         # Financial summary
-        total_income = Income.objects.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
-        total_expenses = Expense.objects.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        total_income = Income.objects.aggregate(total=Sum("amount"))['total'] or Decimal("0.00")
+        total_expenses = Expense.objects.aggregate(total=Sum("amount"))['total'] or Decimal("0.00")
         net_profit = total_income - total_expenses
         profit_margin = (net_profit / total_income * 100) if total_income > 0 else Decimal("0.00")
 
         # Invoice summary
-        total_invoiced = Invoice.objects.aggregate(total=Sum("total_amount"))["total"] or Decimal("0.00")
-        total_paid = Invoice.objects.filter(status="PAID").aggregate(total=Sum("total_amount"))["total"] or Decimal(
-            "0.00"
-        )
+        total_invoiced = Invoice.objects.aggregate(total=Sum("total_amount"))['total'] or Decimal("0.00")
+        total_paid = Invoice.objects.aggregate(total=Sum("amount_paid"))['total'] or Decimal("0.00")
         outstanding_invoices = total_invoiced - total_paid
         overdue_invoices = Invoice.objects.filter(status="OVERDUE").count()
 
@@ -5150,12 +5065,12 @@ class AdminDashboardView(APIView):
 
 
 class ProjectHealthDashboardView(APIView):
-    """Comprehensive project health metrics dashboard."""
+    # Comprehensive project health metrics dashboard.
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, project_id: int) -> Response:
-        """Get project health metrics including completion, budget, timeline, risks."""
+        # Get project health metrics including completion, budget, timeline, risks.
         from core.services.analytics import get_project_health_metrics
 
         data = get_project_health_metrics(project_id)
@@ -5165,12 +5080,12 @@ class ProjectHealthDashboardView(APIView):
 
 
 class TouchupAnalyticsDashboardView(APIView):
-    """Touch-up task analytics with trends."""
+    # Touch-up task analytics with trends.
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        """Get touchup analytics with optional project filter."""
+        # Get touchup analytics with optional project filter.
         from core.services.analytics import get_touchup_analytics
 
         project_id = request.query_params.get("project")
@@ -5179,12 +5094,12 @@ class TouchupAnalyticsDashboardView(APIView):
 
 
 class ColorApprovalAnalyticsDashboardView(APIView):
-    """Color approval workflow metrics."""
+    # Color approval workflow metrics.
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        """Get color approval analytics with optional project filter."""
+        # Get color approval analytics with optional project filter.
         from core.services.analytics import get_color_approval_analytics
 
         project_id = request.query_params.get("project")
@@ -5193,12 +5108,12 @@ class ColorApprovalAnalyticsDashboardView(APIView):
 
 
 class PMPerformanceDashboardView(APIView):
-    """PM workload and performance analytics."""
+    # PM workload and performance analytics.
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        """Get PM performance analytics. Admin access required."""
+        # Get PM performance analytics. Admin access required.
         from core.services.analytics import get_pm_performance_analytics
 
         # Restrict to admins or staff
@@ -5218,14 +5133,12 @@ class PMPerformanceDashboardView(APIView):
 
 
 class InventoryValuationReportView(APIView):
-    """
-    Gap D: Comprehensive inventory valuation report.
-    Shows total inventory value, breakdown by category, and aging.
-    """
+    # Gap D: Comprehensive inventory valuation report.
+    # Shows total inventory value, breakdown by category, and aging.
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        """Get inventory valuation report."""
+        # Get inventory valuation report.
         from django.db.models import Sum, Count
         
         # Get all active inventory items with their quantities
@@ -5318,14 +5231,12 @@ class InventoryValuationReportView(APIView):
 
 
 class InvoiceAgingReportAPIView(APIView):
-    """
-    Gap E: Invoice aging report API endpoint.
-    Returns unpaid invoices grouped by age buckets (0-30, 31-60, 61-90, 90+ days).
-    """
+    # Gap E: Invoice aging report API endpoint.
+    # Returns unpaid invoices grouped by age buckets (0-30, 31-60, 61-90, 90+ days).
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        """Get accounts receivable aging report."""
+        # Get accounts receivable aging report.
         from django.utils import timezone
         
         today = timezone.now().date()
@@ -5397,14 +5308,12 @@ class InvoiceAgingReportAPIView(APIView):
 
 
 class CashFlowProjectionAPIView(APIView):
-    """
-    Gap E: Cash flow projection API endpoint.
-    Shows expected cash inflows (unpaid invoices) and outflows (projected expenses).
-    """
+    # Gap E: Cash flow projection API endpoint.
+    # Shows expected cash inflows (unpaid invoices) and outflows (projected expenses).
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        """Get cash flow projection for next 90 days."""
+        # Get cash flow projection for next 90 days.
         from django.utils import timezone
         
         today = timezone.now().date()
@@ -5499,14 +5408,12 @@ class CashFlowProjectionAPIView(APIView):
 
 
 class BudgetVarianceAnalysisAPIView(APIView):
-    """
-    Gap E: Budget variance analysis API endpoint.
-    Shows budget vs actual for active projects.
-    """
+    # Gap E: Budget variance analysis API endpoint.
+    # Shows budget vs actual for active projects.
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        """Get budget variance analysis for all active projects."""
+        # Get budget variance analysis for all active projects.
         from django.db.models import Sum
         
         project_id = request.query_params.get("project")
@@ -5603,14 +5510,12 @@ class BudgetVarianceAnalysisAPIView(APIView):
 
 
 class ClientInvoiceListAPIView(APIView):
-    """
-    Gap F: Client-facing invoice list API.
-    Returns invoices for projects the client has access to.
-    """
+    # Gap F: Client-facing invoice list API.
+    # Returns invoices for projects the client has access to.
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        """Get invoices accessible to the current client user."""
+        # Get invoices accessible to the current client user.
         from core.models import ClientProjectAccess
         
         user = request.user
@@ -5663,14 +5568,12 @@ class ClientInvoiceListAPIView(APIView):
 
 
 class ClientInvoiceApprovalAPIView(APIView):
-    """
-    Gap F: Client invoice approval endpoint.
-    Allows clients to approve invoices for payment.
-    """
+    # Gap F: Client invoice approval endpoint.
+    # Allows clients to approve invoices for payment.
     permission_classes = [IsAuthenticated]
 
     def post(self, request: Request, invoice_id: int) -> Response:
-        """Approve an invoice as a client."""
+        # Approve an invoice as a client.
         from core.models import ClientProjectAccess
         
         user = request.user
@@ -5724,20 +5627,16 @@ class ClientInvoiceApprovalAPIView(APIView):
 # ============================================================================
 
 class BIAnalyticsViewSet(viewsets.ViewSet):
-    """API endpoints for Business Intelligence metrics and analytics.
-    
-    Provides JSON access to financial KPIs, cash flow projections, 
-    project margins, and inventory risk data for SPA/dashboard consumption.
-    """
+    # API endpoints for Business Intelligence metrics and analytics.
+    # Provides JSON access to financial KPIs, cash flow projections,
+    # project margins, and inventory risk data for SPA/dashboard consumption.
     permission_classes = [IsAuthenticated]
     
     @action(detail=False, methods=["get"], url_path="kpis")
     def company_kpis(self, request):
-        """Get company health KPIs: net profit, receivables, burn rate.
-        
-        Query params:
-            as_of (str): Date in YYYY-MM-DD format (default: today)
-        """
+        # Get company health KPIs: net profit, receivables, burn rate.
+        # Query params:
+        #   as_of (str): Date in YYYY-MM-DD format (default: today)
         from core.services.financial_service import FinancialAnalyticsService
         from django.utils import timezone
         
@@ -5760,12 +5659,10 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=["get"], url_path="cash-flow")
     def cash_flow_projection(self, request):
-        """Get cash flow projection for next N days.
-        
-        Query params:
-            days (int): Forecast horizon in days (default: 30)
-            as_of (str): Date in YYYY-MM-DD format (default: today)
-        """
+        # Get cash flow projection for next N days.
+        # Query params:
+        #   days (int): Forecast horizon in days (default: 30)
+        #   as_of (str): Date in YYYY-MM-DD format (default: today)
         from core.services.financial_service import FinancialAnalyticsService
         from django.utils import timezone
         
@@ -5811,10 +5708,8 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=["get"], url_path="margins")
     def project_margins(self, request):
-        """Get project margin analysis (invoiced vs costs).
-        
-        Returns list of active projects with margin percentages.
-        """
+        # Get project margin analysis (invoiced vs costs).
+        # Returns list of active projects with margin percentages.
         from core.services.financial_service import FinancialAnalyticsService
         
         service = FinancialAnalyticsService()
@@ -5824,10 +5719,8 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=["get"], url_path="inventory-risk")
     def inventory_risk(self, request):
-        """Get inventory items below threshold (critical stock levels).
-        
-        Returns list of items requiring reorder.
-        """
+        # Get inventory items below threshold (critical stock levels).
+        # Returns list of items requiring reorder.
         from core.services.financial_service import FinancialAnalyticsService
         
         service = FinancialAnalyticsService()
@@ -5837,12 +5730,10 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=["get"], url_path="top-performers")
     def top_performers(self, request):
-        """Get top performing employees by productivity percentage.
-        
-        Query params:
-            limit (int): Number of employees to return (default: 5)
-            as_of (str): Date in YYYY-MM-DD format (default: today)
-        """
+        # Get top performing employees by productivity percentage.
+        # Query params:
+        #   limit (int): Number of employees to return (default: 5)
+        #   as_of (str): Date in YYYY-MM-DD format (default: today)
         from core.services.financial_service import FinancialAnalyticsService
         from django.utils import timezone
         
@@ -5878,22 +5769,17 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
 # ============================================================================
 
 class ProjectFileViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing project files.
-    
-    Phase 4 Feature: File Manager
-    
-    Endpoints:
-    - GET /api/v1/files/ - List all files (with filters)
-    - POST /api/v1/files/ - Upload new file
-    - GET /api/v1/files/{id}/ - Get file details
-    - DELETE /api/v1/files/{id}/ - Delete file
-    
-    Query Parameters:
-    - project: Filter by project ID
-    - category: Filter by category ID
-    - ordering: Sort by field (default: -uploaded_at)
-    """
+    # ViewSet for managing project files.
+    # Phase 4 Feature: File Manager
+    # Endpoints:
+    # - GET /api/v1/files/ - List all files (with filters)
+    # - POST /api/v1/files/ - Upload new file
+    # - GET /api/v1/files/{id}/ - Get file details
+    # - DELETE /api/v1/files/{id}/ - Delete file
+    # Query Parameters:
+    # - project: Filter by project ID
+    # - category: Filter by category ID
+    # - ordering: Sort by field (default: -uploaded_at)
     
     queryset = ProjectFile.objects.select_related('project', 'category', 'uploaded_by').all()
     serializer_class = ProjectFileSerializer
@@ -5905,11 +5791,11 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
     ordering = ['-uploaded_at']
     
     def perform_create(self, serializer):
-        """Auto-set uploaded_by to current user"""
+        # Auto-set uploaded_by to current user
         serializer.save(uploaded_by=self.request.user)
     
     def destroy(self, request, *args, **kwargs):
-        """Delete file and remove from storage"""
+        # Delete file and remove from storage
         instance = self.get_object()
         
         # Check permissions - only uploader, project PM, or admin can delete
@@ -5941,16 +5827,13 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
 # ============================================================================
 
 class PushNotificationPreferencesView(APIView):
-    """
-    API endpoint for managing user push notification preferences
-    
-    GET: Retrieve current preferences
-    PATCH: Update preferences
-    """
+    # API endpoint for managing user push notification preferences
+    # GET: Retrieve current preferences
+    # PATCH: Update preferences
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        """Get user's notification preferences"""
+        # Get user's notification preferences
         from core.models import NotificationPreference
         
         preference, created = NotificationPreference.objects.get_or_create(
@@ -5975,7 +5858,7 @@ class PushNotificationPreferencesView(APIView):
         })
     
     def patch(self, request):
-        """Update user's notification preferences"""
+        # Update user's notification preferences
         from core.models import NotificationPreference
         
         preference, created = NotificationPreference.objects.get_or_create(
@@ -6012,18 +5895,15 @@ class PushNotificationPreferencesView(APIView):
 
 
 class DeviceTokenViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for managing device tokens for push notifications
-    
-    list: Get all active device tokens for current user
-    create: Register a new device token
-    destroy: Unregister a device token
-    """
+    # API endpoint for managing device tokens for push notifications
+    # list: Get all active device tokens for current user
+    # create: Register a new device token
+    # destroy: Unregister a device token
     permission_classes = [IsAuthenticated]
     serializer_class = 'DeviceTokenSerializer'  # Will be imported
     
     def get_queryset(self):
-        """Return only current user's active tokens"""
+        # Return only current user's active tokens
         from core.models import DeviceToken
         return DeviceToken.objects.filter(
             user=self.request.user,
@@ -6031,7 +5911,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
         ).order_by('-last_used')
     
     def create(self, request):
-        """Register a new device token"""
+        # Register a new device token
         from core.models import DeviceToken
         from core.push_notifications import PushNotificationService
         
@@ -6072,7 +5952,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_201_CREATED)
     
     def destroy(self, request, pk=None):
-        """Unregister a device token"""
+        # Unregister a device token
         from core.models import DeviceToken
         from core.push_notifications import PushNotificationService
         
@@ -6096,7 +5976,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def test_notification(self, request):
-        """Send a test push notification to all user's devices"""
+        # Send a test push notification to all user's devices
         from core.push_notifications import PushNotificationService
         
         push_service = PushNotificationService()
@@ -6124,15 +6004,12 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
 # ============================================================================
 
 class WebSocketMetricsView(APIView):
-    """
-    API endpoint for WebSocket metrics
-    
-    GET: Retrieve current metrics summary
-    """
+    # API endpoint for WebSocket metrics
+    # GET: Retrieve current metrics summary
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        """Get WebSocket metrics summary"""
+        # Get WebSocket metrics summary
         from core.websocket_metrics import get_metrics_summary
         
         # Check if user is staff
@@ -6147,15 +6024,12 @@ class WebSocketMetricsView(APIView):
 
 
 class WebSocketMetricsHistoryView(APIView):
-    """
-    API endpoint for historical WebSocket metrics
-    
-    GET: Retrieve metrics history (last 24 hours)
-    """
+    # API endpoint for historical WebSocket metrics
+    # GET: Retrieve metrics history (last 24 hours)
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        """Get historical metrics"""
+        # Get historical metrics
         from django.core.cache import cache
         
         # Check if user is staff
@@ -6190,24 +6064,18 @@ class WebSocketMetricsHistoryView(APIView):
 # ============================================================================
 
 class ChatMessageSearchView(APIView):
-    """
-    Full-text search for chat messages
-    
-    GET /api/chat/search/?q=query&channel=123&user=1&limit=20&offset=0
-    """
+    # Full-text search for chat messages
+    # GET /api/chat/search/?q=query&channel=123&user=1&limit=20&offset=0
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        """
-        Search chat messages with full-text search
-        
-        Query Parameters:
-        - q: Search query (required)
-        - channel: Filter by channel ID (optional)
-        - user: Filter by user ID (optional)
-        - limit: Results per page (default 20, max 100)
-        - offset: Pagination offset (default 0)
-        """
+        # Search chat messages with full-text search
+        # Query Parameters:
+        # - q: Search query (required)
+        # - channel: Filter by channel ID (optional)
+        # - user: Filter by user ID (optional)
+        # - limit: Results per page (default 20, max 100)
+        # - offset: Pagination offset (default 0)
         from django.contrib.postgres.search import SearchQuery, SearchRank
         from core.models import ChatMessage
         from core.api.serializers import ChatMessageSerializer
@@ -6268,9 +6136,7 @@ class ChatMessageSearchView(APIView):
 # PWA PUSH NOTIFICATIONS
 # ====================================================================
 class PushSubscriptionViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for managing PWA push notification subscriptions
-    """
+    # API endpoint for managing PWA push notification subscriptions
     serializer_class = PushSubscriptionSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'delete']
@@ -6280,7 +6146,7 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
         return PushSubscription.objects.filter(user=self.request.user)
     
     def create(self, request, *args, **kwargs):
-        """Subscribe to push notifications"""
+        # Subscribe to push notifications
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -6295,7 +6161,7 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='unsubscribe')
     def unsubscribe(self, request):
-        """Unsubscribe from push notifications by endpoint"""
+        # Unsubscribe from push notifications by endpoint
         endpoint = request.data.get('endpoint')
         
         if not endpoint:
