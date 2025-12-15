@@ -239,6 +239,8 @@ urlpatterns = [
     path("tasks/gantt/", TaskGanttView.as_view(), name="tasks-gantt"),
     path("tasks/gantt/", TaskViewSet.as_view({"get": "gantt"}), name="tasks-gantt-router"),
     # Dashboards (UI)
+    path("dashboards/projects/<int:project_id>/", ProjectDashboardView.as_view(), name="dashboard-project"),
+    path("dashboards/client/", ClientDashboardView.as_view(), name="dashboard-client"),
     path("dashboards/admin/", AdminDashboardView.as_view(), name="dashboard-admin"),
     path("dashboards/invoices/", InvoiceDashboardView.as_view(), name="dashboard-invoices"),
     path("dashboards/invoices/trends/", InvoiceTrendsView.as_view(), name="dashboard-invoice-trends"),

@@ -119,6 +119,12 @@
     gap: 0.75rem;
     position: relative;
   }
+
+  .gantt-bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
   
   .gantt-bar-container {
     position: relative;
@@ -180,6 +186,80 @@
     border-radius: 4px;
     font-size: 0.75rem;
     margin-left: 0.5rem;
+  }
+
+  .gantt-item-row {
+    position: relative;
+    height: 40px;
+    background: #f8fafc;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .gantt-item-bar {
+    position: absolute;
+    height: 32px;
+    top: 4px;
+    border-radius: 8px;
+    padding: 0.35rem 0.75rem;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: grab;
+  }
+
+  .gantt-item-bar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+  }
+
+  .gantt-item-bar:active {
+    cursor: grabbing;
+  }
+
+  .gantt-item-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: rgba(255,255,255,0.25);
+    border-radius: 8px 0 0 8px;
+  }
+
+  .gantt-item-text {
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .gantt-item-add {
+    position: absolute;
+    right: 6px;
+    top: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .gantt-item-add:hover {
+    background: rgba(255,255,255,0.28);
+    transform: scale(1.05);
   }
   
   /* Calendar View Styles */
@@ -259,6 +339,87 @@
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
+
+  /* Task modal */
+  .task-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .task-modal {
+    background: #fff;
+    border-radius: 14px;
+    max-width: 520px;
+    width: 92%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+
+  .task-modal header {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .task-modal form {
+    padding: 18px 20px 20px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .task-modal label {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.95rem;
+  }
+
+  .task-modal input,
+  .task-modal select,
+  .task-modal textarea {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .task-modal textarea { min-height: 90px; }
+
+  .task-modal .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .btn-secondary {
+    background: #e2e8f0;
+    color: #0f172a;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 10px 25px rgba(99,102,241,0.25);
+  }
   
   @keyframes spin {
     to { transform: rotate(360deg); }
@@ -320,6 +481,10 @@
       <div class="stat-value" id="statProjects">--</div>
     </div>
     <div class="stat-card">
+      <div class="stat-label">Schedule Items</div>
+      <div class="stat-value" id="statScheduleItems">--</div>
+    </div>
+    <div class="stat-card">
       <div class="stat-label">Upcoming Events</div>
       <div class="stat-value" id="statEvents">--</div>
     </div>
@@ -376,6 +541,10 @@
         <div class="legend-color" style="background:#06b6d4;"></div>
         <span>Material Requests</span>
       </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#cbd5e1;"></div>
+          <span>Schedule Items (status-coded)</span>
+        </div>
     </div>
   </div>
 </div>
@@ -383,6 +552,48 @@
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
+</div>
+
+<!-- Task creation modal -->
+<div class="task-modal-backdrop" id="taskModal">
+  <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+    <header>
+      <div>
+        <div class="text-sm text-white/80">{% trans "Nueva tarea" %}</div>
+        <div class="text-lg font-bold" id="taskModalTitle">{% trans "Crear tarea" %}</div>
+      </div>
+      <button type="button" aria-label="Close" class="text-white/80" onclick="window.MasterSchedule.closeTaskModal()">✕</button>
+    </header>
+    <form id="taskForm">
+      <input type="hidden" name="project" id="taskProject">
+      <input type="hidden" name="schedule_item" id="taskScheduleItem">
+      <div>
+        <label for="taskTitle">{% trans "Título" %}</label>
+        <input id="taskTitle" name="title" required placeholder="{% trans 'Ej. Definir alcance con cliente' %}">
+      </div>
+      <div>
+        <label for="taskDueDate">{% trans "Fecha límite" %}</label>
+        <input id="taskDueDate" name="due_date" type="date">
+      </div>
+      <div>
+        <label for="taskPriority">{% trans "Prioridad" %}</label>
+        <select id="taskPriority" name="priority">
+          <option value="medium">{% trans "Media" %}</option>
+          <option value="high">{% trans "Alta" %}</option>
+          <option value="urgent">{% trans "Urgente" %}</option>
+          <option value="low">{% trans "Baja" %}</option>
+        </select>
+      </div>
+      <div>
+        <label for="taskDescription">{% trans "Descripción" %}</label>
+        <textarea id="taskDescription" name="description" placeholder="{% trans 'Notas opcionales' %}"></textarea>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn-secondary" onclick="window.MasterSchedule.closeTaskModal()">{% trans "Cancelar" %}</button>
+        <button type="submit" class="btn-primary">{% trans "Crear" %}</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <!-- FullCalendar JS -->
@@ -394,6 +605,10 @@
   
   let scheduleData = null;
   let calendar = null;
+  let scheduleItems = [];
+  let ganttMinDate = null;
+  let ganttTotalDays = 0;
+  let dragState = null;
   
   // View Toggle Logic
   const toggleButtons = document.querySelectorAll('.toggle-btn');
@@ -439,8 +654,9 @@
       scheduleData = await response.json();
       
       // Update stats
-      document.getElementById('statProjects').textContent = scheduleData.metadata.total_projects;
-      document.getElementById('statEvents').textContent = scheduleData.metadata.total_events;
+  document.getElementById('statProjects').textContent = scheduleData.metadata.total_projects;
+  document.getElementById('statEvents').textContent = scheduleData.metadata.total_events;
+  document.getElementById('statScheduleItems').textContent = scheduleData.metadata.total_schedule_items;
       
       const startDate = new Date(scheduleData.metadata.date_range.start);
       const endDate = new Date(scheduleData.metadata.date_range.end);
@@ -448,7 +664,8 @@
       document.getElementById('statRange').textContent = `${daysDiff} days`;
       
       // Render views
-      renderGantt(scheduleData.projects);
+  scheduleItems = scheduleData.schedule_items || [];
+  renderGantt(scheduleData.projects, scheduleItems);
       initCalendar(scheduleData.events);
       
       document.getElementById('loadingOverlay').style.display = 'none';
@@ -459,17 +676,21 @@
   }
   
   // Render Gantt Chart
-  function renderGantt(projects) {
+  function renderGantt(projects, scheduleItems = []) {
     if (!projects || projects.length === 0) {
       document.getElementById('ganttContent').innerHTML = '<div class="text-center py-12 text-gray-400">No active projects found.</div>';
       return;
     }
     
-    // Calculate date range
-    const allDates = projects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]);
-    const minDate = new Date(Math.min(...allDates));
-    const maxDate = new Date(Math.max(...allDates));
-    const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
+    // Calculate date range across projects and items
+  const projectDates = projects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]);
+  const itemDates = (scheduleItems || []).flatMap(si => [new Date(si.start_date), new Date(si.end_date)]);
+    const allDates = [...projectDates, ...itemDates].filter(Boolean);
+  const minDate = new Date(Math.min(...allDates));
+  const maxDate = new Date(Math.max(...allDates));
+  const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
+  ganttMinDate = minDate;
+  ganttTotalDays = totalDays;
     
     // Build Gantt HTML
     const labelsHTML = projects.map(p => `
@@ -488,19 +709,39 @@
       
       const leftPercent = (daysFromStart / totalDays) * 100;
       const widthPercent = (duration / totalDays) * 100;
+
+      const itemsForProject = (scheduleItems || []).filter(si => si.project === p.id);
+      const itemsHTML = itemsForProject.map(si => {
+        const iStart = new Date(si.start_date);
+        const iEnd = new Date(si.end_date);
+        const iDaysFromStart = Math.max(0, Math.ceil((iStart - minDate) / (1000 * 60 * 60 * 24)));
+        const iDuration = Math.max(1, Math.ceil((iEnd - iStart) / (1000 * 60 * 60 * 24)));
+        const iLeftPercent = (iDaysFromStart / totalDays) * 100;
+        const iWidthPercent = Math.max((iDuration / totalDays) * 100, 0.8);
+        return `
+          <div class="gantt-item-bar" data-item-id="${si.id}" data-project-id="${si.project}" data-start="${si.start_date}" data-end="${si.end_date}">
+            <div class="gantt-item-progress" style="width: ${si.percent_complete}%; background: rgba(255,255,255,0.25);"></div>
+            <span class="gantt-item-text">${si.is_milestone ? '🚧 ' : ''}${escapeHtml(si.title)}</span>
+            <button type="button" class="gantt-item-add" data-item-id="${si.id}" title="{% trans 'Agregar tarea' %}">+</button>
+          </div>
+        `;
+      }).join('');
       
       return `
-        <div class="gantt-bar-container">
-          <div class="gantt-bar" 
-               style="left: ${leftPercent}%; width: ${widthPercent}%; background: ${p.color};"
-               onclick="window.location.href='${p.url}'"
-               title="${escapeHtml(p.name)} - PM: ${escapeHtml(p.pm_name)} - Client: ${escapeHtml(p.client_name)}">
-            <div class="gantt-bar-progress" style="width: ${p.progress_pct}%;"></div>
-            <div class="gantt-bar-content">
-              <span class="gantt-bar-text">${escapeHtml(p.name)}</span>
-              <span class="gantt-bar-percent">${p.progress_pct}%</span>
+        <div class="gantt-bar-row">
+          <div class="gantt-bar-container">
+            <div class="gantt-bar" 
+                 style="left: ${leftPercent}%; width: ${widthPercent}%; background: ${p.color};"
+                 onclick="window.location.href='${p.url}'"
+                 title="${escapeHtml(p.name)} - PM: ${escapeHtml(p.pm_name)} - Client: ${escapeHtml(p.client_name)}">
+              <div class="gantt-bar-progress" style="width: ${p.progress_pct}%;"></div>
+              <div class="gantt-bar-content">
+                <span class="gantt-bar-text">${escapeHtml(p.name)}</span>
+                <span class="gantt-bar-percent">${p.progress_pct}%</span>
+              </div>
             </div>
           </div>
+          ${itemsForProject.length ? `<div class="gantt-item-row">${itemsHTML}</div>` : ''}
         </div>
       `;
     }).join('');
@@ -511,6 +752,157 @@
         <div class="gantt-bars">${barsHTML}</div>
       </div>
     `;
+
+    attachGanttInteractions();
+  }
+
+  function attachGanttInteractions() {
+    const bars = document.querySelectorAll('.gantt-item-bar');
+    bars.forEach(bar => {
+      const itemId = bar.dataset.itemId;
+      const start = new Date(bar.dataset.start);
+      const end = new Date(bar.dataset.end);
+      const barsContainer = bar.closest('.gantt-bars');
+      const widthPx = barsContainer ? barsContainer.getBoundingClientRect().width : 1;
+
+      // Position bar based on dates
+      const daysFromStart = Math.max(0, Math.ceil((start - ganttMinDate) / (1000 * 60 * 60 * 24)));
+      const duration = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+      const leftPercent = (daysFromStart / ganttTotalDays) * 100;
+      const widthPercent = Math.max((duration / ganttTotalDays) * 100, 0.8);
+      bar.style.left = `${leftPercent}%`;
+      bar.style.width = `${widthPercent}%`;
+
+      bar.addEventListener('mousedown', (e) => {
+        if ((e.target && e.target.classList.contains('gantt-item-add'))) return;
+        dragState = {
+          el: bar,
+          startX: e.clientX,
+          origStart: start,
+          origEnd: end,
+          widthPx,
+        };
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      });
+    });
+
+    const addButtons = document.querySelectorAll('.gantt-item-add');
+    addButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const itemId = btn.dataset.itemId;
+        const item = scheduleItems.find(si => String(si.id) === String(itemId));
+        if (item) {
+          openTaskModal(item);
+        }
+      });
+    });
+  }
+
+  function onDragMove(e) {
+    if (!dragState) return;
+    const deltaX = e.clientX - dragState.startX;
+    const pxPerDay = dragState.widthPx / ganttTotalDays;
+    const deltaDays = Math.round(deltaX / pxPerDay);
+    const newStart = addDays(dragState.origStart, deltaDays);
+    const newEnd = addDays(dragState.origEnd, deltaDays);
+    const daysFromStart = Math.max(0, Math.ceil((newStart - ganttMinDate) / (1000 * 60 * 60 * 24)));
+    const duration = Math.max(1, Math.ceil((newEnd - newStart) / (1000 * 60 * 60 * 24)));
+    const leftPercent = (daysFromStart / ganttTotalDays) * 100;
+    const widthPercent = Math.max((duration / ganttTotalDays) * 100, 0.8);
+    dragState.el.style.left = `${leftPercent}%`;
+    dragState.el.style.width = `${widthPercent}%`;
+    dragState.newStart = newStart;
+    dragState.newEnd = newEnd;
+  }
+
+  function onDragEnd() {
+    if (!dragState) return;
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup', onDragEnd);
+    const { newStart, newEnd, origStart, origEnd, el } = dragState;
+    const itemId = el.dataset.itemId;
+    dragState = null;
+    if (newStart && newEnd && (newStart.toDateString() !== origStart.toDateString() || newEnd.toDateString() !== origEnd.toDateString())) {
+      saveScheduleItemDates(itemId, newStart, newEnd);
+    }
+  }
+
+  async function saveScheduleItemDates(itemId, startDate, endDate) {
+    try {
+      const payload = {
+        updates: [
+          {
+            id: Number(itemId),
+            planned_start: startDate.toISOString().slice(0, 10),
+            planned_end: endDate.toISOString().slice(0, 10),
+          },
+        ],
+      };
+      const res = await fetch('/api/v1/scheduleitems/bulk_update/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to save dates');
+      }
+      const updated = await res.json();
+      if (Array.isArray(updated)) {
+        scheduleItems = scheduleItems.map(si => {
+          const hit = updated.find(u => u.id === si.id);
+          return hit ? { ...si, start_date: hit.planned_start, end_date: hit.planned_end } : si;
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      alert('{% trans "No se pudo guardar las fechas. Intenta de nuevo." %}');
+    }
+  }
+
+  function openTaskModal(item) {
+    const modal = document.getElementById('taskModal');
+    document.getElementById('taskProject').value = item.project;
+    document.getElementById('taskScheduleItem').value = item.id;
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDescription').value = '';
+    document.getElementById('taskPriority').value = 'medium';
+    document.getElementById('taskDueDate').value = item.start_date ? item.start_date.slice(0,10) : '';
+    modal.style.display = 'flex';
+  }
+
+  function closeTaskModal() {
+    const modal = document.getElementById('taskModal');
+    modal.style.display = 'none';
+  }
+
+  async function submitTaskForm(e) {
+    e.preventDefault();
+    const form = document.getElementById('taskForm');
+    const data = Object.fromEntries(new FormData(form));
+    try {
+      const res = await fetch('/api/v1/tasks/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Error creating task');
+      }
+      closeTaskModal();
+      alert('{% trans "Tarea creada" %}');
+    } catch (err) {
+      console.error(err);
+      alert(err.message || '{% trans "No se pudo crear la tarea" %}');
+    }
   }
   
   // Initialize FullCalendar
@@ -583,11 +975,19 @@
     div.textContent = text;
     return div.innerHTML;
   }
+
+  function addDays(date, days) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
   
   // Initialize
   document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('schedule-center');
     fetchScheduleData();
+    document.getElementById('taskForm').addEventListener('submit', submitTaskForm);
+    window.MasterSchedule = { closeTaskModal };
   });
 })();
 </script>

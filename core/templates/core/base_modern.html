@@ -73,7 +73,7 @@
         
         {# Main Content #}
         <main class="flex-1 w-full min-w-0 transition-all duration-300 {% if show_sidebar|default:True %}lg:pl-64{% endif %}" id="main-content" tabindex="-1">
-            <div class="w-full px-4 sm:px-6 lg:px-8 py-6 fade-in">
+            <div class="w-full px-4 sm:px-6 lg:px-8 py-6 fade-in min-w-0">
                 {# Page Header (optional breadcrumbs, title, actions) #}
                 {% block page_header %}{% endblock %}
                 

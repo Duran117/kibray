@@ -5328,7 +5328,13 @@ class DailyPlan(models.Model):
     # Compatibilidad: algunos tests referencian daily_plan.plannedactivities
     @property
     def plannedactivities(self):
-        return self.planned_activities.all()
+        # Alias legacy hacia el related_name actual "activities"
+        return self.activities.all()
+
+    # Compatibilidad: alias al related manager por el nombre por defecto
+    @property
+    def plannedactivity_set(self):
+        return self.activities
 
     def save(self, *args, **kwargs):
         """Normaliza completion_deadline y dispara fetch weather si necesario.

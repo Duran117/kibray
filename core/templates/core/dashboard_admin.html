@@ -1,9 +1,25 @@
-{% extends "core/dashboard_admin_clean.html" %}
+{% extends "core/base_modern.html" %}
 {% load i18n %}
 {% load static %}
 
-{% comment %}Legacy layout retained for reference; main rendering delegated to dashboard_admin_clean.{% endcomment %}
 {% block title %}{% trans "Admin Dashboard" %} - Kibray{% endblock %}
+
+{% block page_header %}
+{% now "c" as now %}
+<div class="flex items-center gap-4">
+  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+    <i class="bi bi-speedometer2 text-2xl"></i>
+  </div>
+  <div>
+    <h1 class="text-3xl font-bold text-slate-900">{% trans "Admin Dashboard" %}</h1>
+    <p class="text-slate-600 mt-1">{{ today|default:now|date:"D, M d, Y" }}</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+  {% include "core/dashboard_admin_clean.html" %}
+{% endblock %}
 
 {% comment %}
 {% block extra_css %}

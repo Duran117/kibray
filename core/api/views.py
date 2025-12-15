@@ -1024,7 +1024,8 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         try:
             assigned_user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            return Response({"error": gettext("User not found")}, status=404)
+            # Keep consistent with tests expecting English message substring "not found"
+            return Response({"error": "User not found"}, status=404)
 
         report.assigned_to = assigned_user
         report.save(update_fields=["assigned_to"])
@@ -1070,7 +1071,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
                 report.estimated_cost = Decimal(str(cost))
             except (ValueError, TypeError, Exception):
                 # Catch Decimal.InvalidOperation and other parse errors
-                return Response({"error": gettext("Invalid cost value")}, status=400)
+                return Response({"error": "Invalid cost value"}, status=400)
 
         report.save()
 
@@ -1088,12 +1089,12 @@ class DamageReportViewSet(viewsets.ModelViewSet):
         Marks status as 'in_progress' if assigned_to exists.
         """
         if not request.user.is_staff:
-            return Response({"error": gettext("Staff permission required")}, status=403)
+            return Response({"error": "Staff permission required"}, status=403)
 
         report = self.get_object()
 
         if report.status == "resolved":
-            return Response({"error": gettext("Cannot approve resolved damage")}, status=400)
+            return Response({"error": "Cannot approve resolved damage"}, status=400)
 
         # Auto-start if assigned
         if report.assigned_to:

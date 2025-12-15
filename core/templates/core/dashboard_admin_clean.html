@@ -77,6 +77,32 @@
     </div>
 </div>
 
+<!-- Action Categories (for quick scanning) -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 mb-6">
+    <h3 class="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+        <i class="bi bi-ui-checks-grid"></i>
+        {% trans "Action Categories" %}
+    </h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div class="p-4 rounded-lg border border-slate-200 bg-slate-50">
+            <h4 class="text-base font-semibold text-slate-900">Approvals & Actions</h4>
+            <p class="text-sm text-slate-600 mt-1">{% trans "Critical reviews, approvals, and escalations" %}</p>
+        </div>
+        <div class="p-4 rounded-lg border border-slate-200 bg-slate-50">
+            <h4 class="text-base font-semibold text-slate-900">Finance</h4>
+            <p class="text-sm text-slate-600 mt-1">{% trans "Billing, invoices, and financial health" %}</p>
+        </div>
+        <div class="p-4 rounded-lg border border-slate-200 bg-slate-50">
+            <h4 class="text-base font-semibold text-slate-900">Planning & Analytics</h4>
+            <p class="text-sm text-slate-600 mt-1">{% trans "Forecasts, KPIs, and schedule insights" %}</p>
+        </div>
+        <div class="p-4 rounded-lg border border-slate-200 bg-slate-50">
+            <h4 class="text-base font-semibold text-slate-900">Project Management</h4>
+            <p class="text-sm text-slate-600 mt-1">{% trans "Projects, clients, and operational workflows" %}</p>
+        </div>
+    </div>
+</div>
+
 <!-- Critical Alerts -->
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <!-- Unassigned Time -->

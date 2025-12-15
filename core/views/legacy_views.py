@@ -368,6 +368,12 @@ def dashboard_admin(request):
         messages.error(request, _("Acceso solo para Admin/Staff."))
         return redirect("dashboard")
 
+    # Respect session language hint for legacy rendering (used by i18n tests)
+    session_lang = request.session.get("lang")
+    if session_lang:
+        translation.activate(session_lang)
+        request.LANGUAGE_CODE = session_lang
+
     today = timezone.localdate()
     now = timezone.localtime()
     
@@ -559,6 +565,13 @@ def dashboard_admin(request):
     elif active_filter == 'approvals':
         morning_briefing = [item for item in morning_briefing if item.get('category') == 'approvals']
 
+    active_lang = (
+        session_lang
+        or getattr(request, "LANGUAGE_CODE", None)
+        or translation.get_language()
+    )
+    english_mode = str(active_lang or "").lower().startswith("en")
+
     context = {
         # Financiero
         "total_income": total_income,
@@ -597,10 +610,13 @@ def dashboard_admin(request):
         "employee": employee,
         "open_entry": open_entry,
         "form": form,
+        "active_lang": active_lang,
+        "session_lang": session_lang,
+        "english_mode": english_mode,
     }
 
     use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
-    template = "core/dashboard_admin.html" if use_legacy else "core/dashboard_admin_clean.html"
+    template = "core/dashboard_admin_legacy.html" if use_legacy else "core/dashboard_admin_clean.html"
 
     context.setdefault("badges", {"unread_notifications_count": 0})
 
@@ -2837,7 +2853,7 @@ def changeorder_create_view(request):
 
     # Use clean Design System template by default
     # Legacy template available via ?legacy=true
-    force_legacy = request.GET.get("legacy", "false").lower() == "true"
+    use_legacy = request.GET.get("legacy", "false").lower() == "true"
     use_standalone = request.GET.get("standalone", "false").lower() == "true"
 
     if use_standalone:

@@ -380,6 +380,9 @@ class SitePhotoSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     assigned_to_name = serializers.CharField(source="assigned_to.get_full_name", read_only=True, allow_null=True)
     project_name = serializers.CharField(source="project.name", read_only=True)
+    schedule_item = serializers.PrimaryKeyRelatedField(
+        queryset=ScheduleItem.objects.all(), required=False, allow_null=True
+    )
     # Make priority and due_date writable for API updates
     priority = serializers.ChoiceField(choices=["low", "medium", "high", "urgent"], required=False)
     due_date = serializers.DateField(required=False, allow_null=True)
@@ -399,6 +402,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "project",
+            "schedule_item",
             "project_name",
             "assigned_to",
             "assigned_to_name",

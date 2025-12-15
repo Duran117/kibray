@@ -5408,7 +5408,13 @@ class DailyPlan(models.Model):
     # Compatibility: some tests reference daily_plan.plannedactivities
     @property
     def plannedactivities(self):
-        return self.planned_activities.all()
+        # Legacy alias kept for backwards compatibility
+        return self.activities.all()
+
+    # Compatibility: Django default related name plannedactivity_set
+    @property
+    def plannedactivity_set(self):
+        return self.activities
 
     def save(self, *args, **kwargs):
         """Normaliza completion_deadline y dispara fetch weather si necesario.
