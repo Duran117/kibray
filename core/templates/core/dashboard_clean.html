@@ -49,7 +49,7 @@
         <a href="{% url 'changeorder_board' %}" 
            class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-yellow-50 text-yellow-700 border-2 border-yellow-400 rounded-lg transition shadow-sm">
             <i class="bi bi-kanban text-3xl"></i>
-            <span class="text-sm font-medium text-center">Change Orders</span>
+            <span class="text-sm font-medium text-center">{% trans "Change Orders" %}</span>
         </a>
         <a href="{% url 'changeorder_create' %}" 
            class="flex flex-col items-center gap-2 p-4 bg-white hover:bg-indigo-50 text-indigo-700 border-2 border-indigo-400 rounded-lg transition shadow-sm">
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
             events: {{ calendar_events|safe }},
-            locale: '{{ request.session.lang|default:"en" }}',
+            locale: '{{ request.LANGUAGE_CODE|default:"en" }}',
             height: 'auto',
             headerToolbar: {
                 left: 'prev,next today',

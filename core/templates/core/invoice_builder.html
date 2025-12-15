@@ -199,7 +199,7 @@
                                 <div class="form-check mb-2">
                                     <input class="form-check-input co-checkbox" type="checkbox" name="change_orders" value="{{ co.id }}" id="co_{{ co.id }}" checked>
                                     <label class="form-check-label" for="co_{{ co.id }}">
-                                        <strong>CO #{{ co.id }}</strong>: {{ co.description|truncatewords:15 }}
+                                        <strong>{% trans "CO" %} #{{ co.id }}</strong>: {{ co.description|truncatewords:15 }}
                                         <span class="badge bg-{{ co.status|default:'secondary' }}">{{ co.get_status_display }}</span>
                                     </label>
                                     <div class="ms-4 small">
@@ -271,7 +271,7 @@
                             <div class="form-check mb-2">
                                 <input class="form-check-input time-co-checkbox" type="checkbox" name="time_cos" value="{{ co_data.co.id }}" id="time_co_{{ co_data.co.id }}" checked>
                                 <label class="form-check-label" for="time_co_{{ co_data.co.id }}">
-                                    <strong>CO #{{ co_data.co.id }}</strong>: {{ co_data.co.description|truncatewords:10 }}
+                                    <strong>{% trans "CO" %} #{{ co_data.co.id }}</strong>: {{ co_data.co.description|truncatewords:10 }}
                                 </label>
                                 <div class="ms-4 small">
                                     ⏱️ {{ co_data.total_hours }} {% trans "horas" %} | 💵 {% trans "Facturar" %}: <strong>${{ co_data.billable_amount|floatformat:2 }}</strong>
@@ -313,7 +313,7 @@
             <div class="col-md-4">
                 <div class="card sticky-top" style="top: 20px;">
                     <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">💰 Resumen de Factura</h5>
+                        <h5 class="mb-0">💰 {% trans "Resumen de Factura" %}</h5>
                     </div>
                     <div class="card-body">
                         <table class="table table-sm">

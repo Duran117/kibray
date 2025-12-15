@@ -1,7 +1,7 @@
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token }}">
@@ -41,8 +41,11 @@
     
     {# Custom CSS overrides #}
     <style>
-        /* Smooth scrolling */
-        html { scroll-behavior: smooth; }
+    /* Smooth scrolling and overflow guard */
+    html { scroll-behavior: smooth; max-width: 100vw; overflow-x: hidden; }
+    body { max-width: 100vw; overflow-x: hidden; }
+    [data-layout-root] { width: 100%; min-width: 0; }
+    #main-content { min-width: 0; overflow-x: hidden; }
         
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -57,20 +60,20 @@
     
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-900 antialiased">
+<body class="bg-gray-50 min-h-screen text-gray-900 antialiased overflow-x-hidden">
     {# Header/Navbar #}
     {% include "core/components/header.html" %}
     
     {# Main Layout #}
-    <div class="flex min-h-[calc(100vh-64px)]" data-layout-root>
+    <div class="flex min-h-[calc(100vh-64px)] w-full min-w-0 {% if show_sidebar|default:True %}lg:pl-64{% endif %}" data-layout-root>
         {# Sidebar (on by default, can be hidden via show_sidebar=False) #}
         {% if show_sidebar|default:True %}
         {% include "core/components/sidebar.html" %}
         {% endif %}
         
         {# Main Content #}
-        <main class="flex-1 {% if show_sidebar|default:True %}ml-0 lg:ml-64{% endif %} transition-all duration-300" id="main-content" tabindex="-1">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 fade-in">
+        <main class="flex-1 w-full min-w-0 transition-all duration-300" id="main-content" tabindex="-1">
+            <div class="w-full px-4 sm:px-6 lg:px-8 py-6 fade-in">
                 {# Page Header (optional breadcrumbs, title, actions) #}
                 {% block page_header %}{% endblock %}
                 

@@ -674,7 +674,7 @@
           {% if pending_cos_list %}
           <h6 class="text-muted mb-2 small">
             <i class="bi bi-file-earmark-text me-1"></i>
-            Change Orders ({{ pending_cos }})
+            {% trans "Change Orders" %} ({{ pending_cos }})
           </h6>
           <ul class="list-group mb-3">
             {% for co in pending_cos_list %}

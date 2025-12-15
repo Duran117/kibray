@@ -53,7 +53,7 @@
                         <div class="col-6 col-md-4 col-lg-3">
                             <a href="{% url 'changeorder_board' %}" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center py-3">
                                 <i class="bi bi-kanban fs-4 mb-1"></i>
-                                <span class="small">Change Orders</span>
+                                <span class="small">{% trans "Change Orders" %}</span>
                             </a>
                         </div>
                         <div class="col-6 col-md-4 col-lg-3">
@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
             events: {{ calendar_events|safe }},
-            locale: '{{ request.session.lang|default:"en" }}',
+            locale: '{{ request.LANGUAGE_CODE|default:"en" }}',
             height: 'auto',
             headerToolbar: {
                 left: 'prev,next today',

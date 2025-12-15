@@ -16,11 +16,11 @@
     </div>
     <div class="flex items-center gap-2">
     <a href="/i18n/setlang/?language=es" 
-           class="px-3 py-1.5 {% if request.session.lang == 'es' %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700{% endif %} rounded-lg text-sm font-medium transition">
+           class="px-3 py-1.5 {% if request.LANGUAGE_CODE == 'es' %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700{% endif %} rounded-lg text-sm font-medium transition">
             ES
         </a>
     <a href="/i18n/setlang/?language=en" 
-           class="px-3 py-1.5 {% if request.session.lang != 'es' %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700{% endif %} rounded-lg text-sm font-medium transition">
+           class="px-3 py-1.5 {% if request.LANGUAGE_CODE != 'es' %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700{% endif %} rounded-lg text-sm font-medium transition">
             EN
         </a>
     </div>
@@ -110,11 +110,11 @@
                     {{ form.project }}
                 </div>
                 <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Change Order:</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Change Order" %}:</label>
                     {{ form.change_order }}
                 </div>
                 <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Cost Code:</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Cost Code" %}:</label>
                     {{ form.cost_code }}
                 </div>
             </div>
@@ -207,7 +207,7 @@
     <a href="{% url 'changeorder_board' %}" 
        class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-indigo-50 rounded-lg shadow-sm hover:shadow-md transition">
         <i class="bi bi-file-earmark-text text-3xl text-cyan-600"></i>
-        <span class="text-sm font-medium text-slate-900">Change Orders</span>
+        <span class="text-sm font-medium text-slate-900">{% trans "Change Orders" %}</span>
     </a>
   </div>
 </div>
@@ -239,7 +239,7 @@
     <a href="{% url 'pm_select_project' 'chat' %}" 
        class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-yellow-50 rounded-lg shadow-sm hover:shadow-md transition">
         <i class="bi bi-chat-dots text-3xl text-blue-600"></i>
-        <span class="text-sm font-medium text-slate-900">Chat</span>
+        <span class="text-sm font-medium text-slate-900">{% trans "Chat" %}</span>
     </a>
     <a href="{% url 'notifications_list' %}" 
        class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-yellow-50 rounded-lg shadow-sm hover:shadow-md transition relative">

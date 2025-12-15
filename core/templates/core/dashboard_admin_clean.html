@@ -117,7 +117,7 @@
     <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_cos > 0 %}border-cyan-500{% else %}border-green-500{% endif %} p-4">
         <div class="flex justify-between items-start mb-3">
             <div>
-                <p class="text-sm text-slate-600 mb-1">Change Orders</p>
+                <p class="text-sm text-slate-600 mb-1">{% trans "Change Orders" %}</p>
                 <h3 class="text-2xl font-bold text-slate-900">{{ pending_cos }}</h3>
                 <p class="text-xs text-slate-500 mt-1">{% trans "Awaiting approval" %}</p>
             </div>
@@ -313,7 +313,7 @@
         {% if pending_cos_list %}
         <h6 class="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
             <i class="bi bi-file-earmark-text"></i>
-            Change Orders ({{ pending_cos }})
+            {% trans "Change Orders" %} ({{ pending_cos }})
         </h6>
         <div class="space-y-2 mb-4">
             {% for co in pending_cos_list %}

@@ -10,9 +10,9 @@
   <!-- Language switch pill -->
   <div class="d-flex align-items-center mb-3">
     <div class="btn-group" role="group" aria-label="Language switch">
-    <a class="btn {% if request.session.lang == 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+    <a class="btn {% if request.LANGUAGE_CODE == 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}"
       href="/i18n/setlang/?language=es">ES</a>
-    <a class="btn {% if request.session.lang != 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+    <a class="btn {% if request.LANGUAGE_CODE != 'es' %}btn-primary{% else %}btn-outline-primary{% endif %}"
       href="/i18n/setlang/?language=en">EN</a>
     </div>
   </div>
@@ -23,11 +23,11 @@
       <div class="kb-kpi accent">
         <div class="d-flex align-items-center gap-2">
           <div class="kb-icon-wrap"><i class="bi bi-clock-history"></i></div>
-          <small>Tiempo sin CO</small>
+          <small>{% trans "Tiempo sin CO" %}</small>
         </div>
         <h3>{{ unassigned_time_count }}</h3>
         {% if unassigned_time_count > 0 %}
-          <a href="{% url 'unassigned_timeentries' %}" class="btn btn-sm btn-soft mt-2"><i class="bi bi-arrow-right"></i> Asignar</a>
+          <a href="{% url 'unassigned_timeentries' %}" class="btn btn-sm btn-soft mt-2"><i class="bi bi-arrow-right"></i> {% trans "Asignar" %}</a>
         {% endif %}
       </div>
     </div>
@@ -35,11 +35,11 @@
       <div class="kb-kpi">
         <div class="d-flex align-items-center gap-2">
           <div class="kb-icon-wrap"><i class="bi bi-box-seam"></i></div>
-          <small>Materiales Pendientes</small>
+          <small>{% trans "Materiales Pendientes" %}</small>
         </div>
         <h3>{{ pending_materials }}</h3>
         {% if pending_materials > 0 %}
-          <a href="{% url 'materials_requests_list_all' %}" class="btn btn-sm btn-soft mt-2"><i class="bi bi-arrow-right"></i> Revisar</a>
+          <a href="{% url 'materials_requests_list_all' %}" class="btn btn-sm btn-soft mt-2"><i class="bi bi-arrow-right"></i> {% trans "Revisar" %}</a>
         {% endif %}
       </div>
     </div>
@@ -47,7 +47,7 @@
       <div class="kb-kpi success">
         <div class="d-flex align-items-center gap-2">
           <div class="kb-icon-wrap"><i class="bi bi-exclamation-triangle"></i></div>
-          <small>Issues Abiertos</small>
+          <small>{% trans "Issues Abiertos" %}</small>
         </div>
         <h3>{{ open_issues }}</h3>
       </div>
@@ -56,7 +56,7 @@
       <div class="kb-kpi">
         <div class="d-flex align-items-center gap-2">
           <div class="kb-icon-wrap"><i class="bi bi-question-circle"></i></div>
-          <small>RFIs Abiertos</small>
+          <small>{% trans "RFIs Abiertos" %}</small>
         </div>
         <h3>{{ open_rfis }}</h3>
       </div>
@@ -67,17 +67,17 @@
   <div class="row g-2 mb-3 kb-action-grid" role="grid" aria-label="Acciones rápidas PM">
     <a class="shadow-hover" href="{% url 'daily_planning_dashboard' %}"><i class="bi bi-calendar-check"></i> {% trans "Daily Planning" %}</a>
     <a class="shadow-hover" href="{% url 'strategic_planning_dashboard' %}"><i class="bi bi-compass"></i> {% trans "Strategic Planner" %}</a>
-    <a class="shadow-hover" href="{% url 'pm_select_project' 'materials' %}"><i class="bi bi-box"></i> {% trans "Materiales" %}</a>
-    <a class="shadow-hover" href="{% url 'changeorder_board' %}"><i class="bi bi-file-earmark-text"></i> Change Orders</a>
+  <a class="shadow-hover" href="{% url 'pm_select_project' 'materials' %}"><i class="bi bi-box"></i> {% trans "Materiales" %}</a>
+  <a class="shadow-hover" href="{% url 'changeorder_board' %}"><i class="bi bi-file-earmark-text"></i> {% trans "Change Orders" %}</a>
     <a class="shadow-hover" href="{% url 'pm_select_project' 'overview' %}"><i class="bi bi-folder"></i> {% trans "Proyecto" %}</a>
-    <a class="shadow-hover" href="{% url 'pm_select_project' 'touchups' %}"><i class="bi bi-brush"></i> Touch-Ups</a>
-    <a class="shadow-hover" href="{% url 'pm_select_project' 'damages' %}"><i class="bi bi-shield-exclamation"></i> Daños</a>
+  <a class="shadow-hover" href="{% url 'pm_select_project' 'touchups' %}"><i class="bi bi-brush"></i> {% trans "Touch-Ups" %}</a>
+  <a class="shadow-hover" href="{% url 'pm_select_project' 'damages' %}"><i class="bi bi-shield-exclamation"></i> {% trans "Daños" %}</a>
   </div>
   
   <div class="row g-2 mb-4 kb-action-grid" role="grid" aria-label="Navegación rápida PM">
-    <a class="shadow-hover" href="{% url 'pm_select_project' 'chat' %}"><i class="bi bi-chat-dots"></i> Chat</a>
-    <a class="shadow-hover" href="{% url 'notifications_list' %}"><i class="bi bi-bell"></i> Notificaciones {% if badges.unread_notifications_count > 0 %}<span class="badge bg-danger ms-1">{{ badges.unread_notifications_count }}</span>{% endif %}</a>
-    <a class="shadow-hover" href="{% url 'pm_select_project' 'plans' %}"><i class="bi bi-map"></i> Planos</a>
+  <a class="shadow-hover" href="{% url 'pm_select_project' 'chat' %}"><i class="bi bi-chat-dots"></i> {% trans "Chat" %}</a>
+  <a class="shadow-hover" href="{% url 'notifications_list' %}"><i class="bi bi-bell"></i> {% trans "Notificaciones" %} {% if badges.unread_notifications_count > 0 %}<span class="badge bg-danger ms-1">{{ badges.unread_notifications_count }}</span>{% endif %}</a>
+  <a class="shadow-hover" href="{% url 'pm_select_project' 'plans' %}"><i class="bi bi-map"></i> {% trans "Planos" %}</a>
     <a class="shadow-hover" href="{% url 'pm_select_project' 'colors' %}"><i class="bi bi-palette"></i> Colores</a>
     <a class="shadow-hover" href="{% url 'expense_create' %}"><i class="bi bi-cash-stack"></i> {% trans "Nuevo Gasto" %}</a>
     <a class="shadow-hover" href="{% url 'expense_list' %}"><i class="bi bi-receipt"></i> {% trans "Ver Gastos" %}</a>

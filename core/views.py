@@ -598,10 +598,11 @@ def dashboard_admin(request):
         "form": form,
     }
 
-    # Use clean Design System template by default
-    # Legacy template available via ?legacy=true
-    # Forzar legacy como default absoluto
-    template = "core/dashboard_admin.html"
+    use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
+    template = "core/dashboard_admin.html" if use_legacy else "core/dashboard_admin_clean.html"
+
+    # Provide a safe badges fallback for header/sidebar (context processor may override)
+    context.setdefault("badges", {"unread_notifications_count": 0})
 
     return render(request, template, context)
 
@@ -5424,8 +5425,8 @@ def dashboard_pm(request):
         "badges": {"unread_notifications_count": 0},  # Placeholder
     }
 
-    # Use clean template by default, legacy with ?legacy=true
-    use_legacy = request.GET.get("legacy")
+    # Use clean template by default; legacy only when explicitly requested
+    use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
     template_name = "core/dashboard_pm.html" if use_legacy else "core/dashboard_pm_clean.html"
     return render(request, template_name, context)
 
@@ -5475,23 +5476,27 @@ def pm_select_project(request, action: str):
 
 
 def set_language_view(request, code: str):
-    """Set language in session and activate for the current request, then redirect back."""
-    code = (code or "").lower()
-    if code not in ("en", "es"):
-        code = "en"
-    request.session["lang"] = code
-    translation.activate(code)
-    # persist on user profile if logged in
-    try:
-        if request.user.is_authenticated:
-            prof = getattr(request.user, "profile", None)
-            if prof and prof.language != code:
-                prof.language = code
-                prof.save(update_fields=["language"])
-    except Exception:
-        pass
+    """Set language consistently (session + cookie) and persist on profile when available."""
+    lang_code = (code or "").lower()
+    valid_codes = {c[0] for c in getattr(settings, "LANGUAGES", [])} or {settings.LANGUAGE_CODE}
+    if lang_code not in valid_codes:
+        lang_code = settings.LANGUAGE_CODE
+
+    translation.activate(lang_code)
+
     next_url = request.META.get("HTTP_REFERER") or reverse("dashboard")
-    return redirect(next_url)
+    response = redirect(next_url)
+
+    if request.user.is_authenticated:
+        prof = getattr(request.user, "profile", None)
+        if prof and getattr(prof, "language", None) != lang_code:
+            prof.language = lang_code
+            prof.save(update_fields=["language"])
+
+    request.session[translation.LANGUAGE_SESSION_KEY] = lang_code
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang_code)
+
+    return response
 
 
 @login_required
@@ -7666,8 +7671,8 @@ def dashboard_designer(request):
         "active_filter": active_filter,
     }
 
-    # Use clean template by default, legacy with ?legacy=true
-    use_legacy = request.GET.get("legacy")
+    # Use clean template by default; legacy only when explicitly requested
+    use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
     template_name = "core/dashboard_designer.html" if use_legacy else "core/dashboard_designer_clean.html"
     return render(request, template_name, context)
 

@@ -29,6 +29,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone, translation
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _, gettext
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core import signing
@@ -598,10 +599,10 @@ def dashboard_admin(request):
         "form": form,
     }
 
-    # Use clean Design System template by default
-    # Legacy template available via ?legacy=true
-    # Forzar legacy como default absoluto
-    template = "core/dashboard_admin.html"
+    use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
+    template = "core/dashboard_admin.html" if use_legacy else "core/dashboard_admin_clean.html"
+
+    context.setdefault("badges", {"unread_notifications_count": 0})
 
     return render(request, template, context)
 
@@ -5517,7 +5518,7 @@ def dashboard_pm(request):
     }
 
     # Use clean template by default; legacy only when explicitly requested
-    force_legacy = request.GET.get("legacy", "false").lower() == "true"
+    force_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
     template_name = "core/dashboard_pm.html" if force_legacy else "core/dashboard_pm_clean.html"
     return render(request, template_name, context)
 
@@ -5566,24 +5567,41 @@ def pm_select_project(request, action: str):
     return render(request, "core/pm_select_project.html", {"action": action, "projects": projects})
 
 
-def set_language_view(request, code: str):
-    """Set language in session and activate for the current request, then redirect back."""
-    code = (code or "").lower()
-    if code not in ("en", "es"):
-        code = "en"
-    request.session["lang"] = code
-    translation.activate(code)
+def set_language_view(request, code: str = ""):
+    """Set language using Django's standard session/cookie key and persist on profile."""
+    lang_code = (code or request.POST.get("language") or "").lower()
+    supported = {c[0] for c in settings.LANGUAGES}
+    if lang_code not in supported:
+        lang_code = settings.LANGUAGE_CODE
+
+    translation.activate(lang_code)
+    request.session[translation.LANGUAGE_SESSION_KEY] = lang_code
+
     # persist on user profile if logged in
     try:
         if request.user.is_authenticated:
             prof = getattr(request.user, "profile", None)
-            if prof and prof.language != code:
-                prof.language = code
+            if prof and prof.language != lang_code:
+                prof.language = lang_code
                 prof.save(update_fields=["language"])
     except Exception:
         pass
-    next_url = request.META.get("HTTP_REFERER") or reverse("dashboard")
-    return redirect(next_url)
+
+    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER") or reverse("dashboard")
+    response = redirect(next_url)
+
+    # mirror Django's set_language cookie behavior
+    response.set_cookie(
+        settings.LANGUAGE_COOKIE_NAME,
+        lang_code,
+        max_age=getattr(settings, "LANGUAGE_COOKIE_AGE", None),
+        path=getattr(settings, "LANGUAGE_COOKIE_PATH", "/"),
+        domain=getattr(settings, "LANGUAGE_COOKIE_DOMAIN", None),
+        secure=getattr(settings, "LANGUAGE_COOKIE_SECURE", False),
+        httponly=getattr(settings, "LANGUAGE_COOKIE_HTTPONLY", False),
+        samesite=getattr(settings, "LANGUAGE_COOKIE_SAMESITE", None),
+    )
+    return response
 
 
 @login_required
@@ -8044,7 +8062,7 @@ def dashboard_designer(request):
     }
 
     # Use clean template by default; legacy only when explicitly requested
-    force_legacy = request.GET.get("legacy", "false").lower() == "true"
+    force_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
     template_name = "core/dashboard_designer.html" if force_legacy else "core/dashboard_designer_clean.html"
     return render(request, template_name, context)
 

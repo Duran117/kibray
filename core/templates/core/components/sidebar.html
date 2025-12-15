@@ -47,7 +47,7 @@
                 <a href="{% url 'daily_planning_dashboard' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-600">{% trans "Daily Planning" %}</a>
                 <a href="{% url 'strategic_planning_dashboard' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-600">{% trans "Strategic Planning" %}</a>
                 <a href="{% url 'pm_select_project' 'overview' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-600">{% trans "Proyectos" %}</a>
-                <a href="{% url 'changeorder_board' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-600">Change Orders</a>
+                <a href="{% url 'changeorder_board' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-600">{% trans "Change Orders" %}</a>
             </div>
         </details>
 
@@ -60,7 +60,7 @@
                 <a href="{% url 'pm_select_project' 'materials' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-600">{% trans "Materiales" %}</a>
                 <a href="{% url 'pm_select_project' 'touchups' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-600">{% trans "Touch-Ups" %}</a>
                 <a href="{% url 'pm_select_project' 'damages' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-600">{% trans "Daños" %}</a>
-                <a href="{% url 'pm_select_project' 'chat' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-600">Chat</a>
+                <a href="{% url 'pm_select_project' 'chat' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-600">{% trans "Chat" %}</a>
                 <a href="{% url 'unassigned_timeentries' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-600">{% trans "Tiempo sin CO" %}</a>
             </div>
         </details>
@@ -83,14 +83,14 @@
             </summary>
             <div class="border-t border-slate-100 py-2 space-y-1">
                 <a href="{% url 'pm_select_project' 'ev' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-600">EV / {% trans "Project Value" %}</a>
-                <a href="{% url 'master_schedule_center' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-600">Master Schedule</a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-600" aria-disabled="true">Executive BI</a>
+                <a href="{% url 'master_schedule_center' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-600">{% trans "Master Schedule" %}</a>
+                <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-600" aria-disabled="true">{% trans "Executive BI" %}</a>
             </div>
         </details>
 
         <details class="group rounded-lg border border-rose-200 bg-white">
             <summary class="flex items-center justify-between px-4 py-3 cursor-pointer select-none">
-                <div class="flex items-center gap-2 text-sm font-semibold text-rose-900"><i class="bi bi-gear text-lg text-rose-600"></i>Admin</div>
+                <div class="flex items-center gap-2 text-sm font-semibold text-rose-900"><i class="bi bi-gear text-lg text-rose-600"></i>{% trans "Admin" %}</div>
                 <i class="bi bi-chevron-down text-gray-500 group-open:rotate-180 transition"></i>
             </summary>
             <div class="border-t border-rose-100 py-2 space-y-1">

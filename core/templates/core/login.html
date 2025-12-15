@@ -1,7 +1,7 @@
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
-<html lang="{{ request.session.lang|default:'en' }}">
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
@@ -295,8 +295,8 @@
         
         <div class="language-selector">
             <small class="text-muted">{% trans "Language" %}:</small>
-            <a href="?lang=en" class="{% if request.session.lang == 'en' or not request.session.lang %}active{% endif %}">{% trans "English" %}</a>
-            <a href="?lang=es" class="{% if request.session.lang == 'es' %}active{% endif %}">{% trans "Español" %}</a>
+            <a href="/i18n/setlang/?language=en" class="{% if request.LANGUAGE_CODE == 'en' or not request.LANGUAGE_CODE %}active{% endif %}">{% trans "English" %}</a>
+            <a href="/i18n/setlang/?language=es" class="{% if request.LANGUAGE_CODE == 'es' %}active{% endif %}">{% trans "Español" %}</a>
         </div>
     </div>
     
