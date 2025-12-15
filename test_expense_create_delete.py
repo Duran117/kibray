@@ -6,6 +6,7 @@ from datetime import date
 from decimal import Decimal
 
 import django
+import pytest
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings")
 django.setup()
@@ -17,6 +18,7 @@ from django.test import Client, override_settings
 from core.models import Expense, Project
 
 
+@pytest.mark.django_db
 @override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost"])
 def test_expense_create_delete_flow():
     print("=" * 60)

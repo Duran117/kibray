@@ -339,6 +339,10 @@ class Expense(models.Model):
         "ChangeOrder", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses"
     )
     cost_code = models.ForeignKey("CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses")
+    # Compatibilidad legacy: vínculo opcional a línea de factura
+    invoice_line = models.ForeignKey(
+        "InvoiceLine", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses_linked"
+    )
 
     def __str__(self):
         return f"{self.project_name} - {self.category} - ${self.amount}"
@@ -773,10 +777,12 @@ class Task(models.Model):
         choices=[
             ("Pendiente", _("Pendiente")),
             ("En Progreso", _("En Progreso")),
+            ("En Revisión", _("En Revisión")),
             ("Completada", _("Completada")),
             ("Cancelada", _("Cancelada")),
         ],
     )
+    is_visible_to_client = models.BooleanField(default=False)
 
     # Q11.6: Priorización
     priority = models.CharField(
@@ -805,6 +811,8 @@ class Task(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    # Progreso visual (0-100). Al alcanzar 100, pasa a "En Revisión" automáticamente.
+    progress_percent = models.IntegerField(default=0, help_text="Porcentaje de progreso (0-100)")
     is_touchup = models.BooleanField(default=False, help_text="Marcar si esta tarea es un touch-up")
     # Q17.7 / Q17.9: Client request flags (added via migration 0069, missing in model definition)
     is_client_request = models.BooleanField(default=False, help_text="Q17.7: Task created by client as request")
@@ -911,6 +919,30 @@ class Task(models.Model):
             return int(elapsed)
         return None
 
+    def approve_by_pm(self, user=None):
+        """Marcar tarea como completada y visible al cliente."""
+        from django.utils import timezone
+
+        self.status = "Completada"
+        self.progress_percent = 100
+        self.is_visible_to_client = True
+        self.completed_at = timezone.now()
+        self._current_user = user
+        self.save(skip_validation=True)
+
+    def reject_by_pm(self, user=None, reason: str = ""):
+        """Rechazar tarea, volver a En Progreso y aumentar contador de rechazos del perfil."""
+        from django.db.models import F
+
+        self.status = "En Progreso"
+        self.progress_percent = 50
+        self._current_user = user
+        self._change_notes = reason or "Rechazada por PM"
+        self.save(skip_validation=True)
+        if user and hasattr(user, "profile"):
+            Profile.objects.filter(pk=user.profile.pk).update(rejections_count=F("rejections_count") + 1)
+            user.profile.refresh_from_db()
+
     def get_time_tracked_hours(self):
         """Retorna horas trabajadas en formato decimal"""
         return round(self.time_tracked_seconds / 3600.0, 2)
@@ -973,6 +1005,14 @@ class Task(models.Model):
         skip_validation = kwargs.pop("skip_validation", False)
         if not skip_validation:
             self.full_clean()
+        # Regla de negocio: si el progreso llega a 100 y no está completada, mover a "En Revisión"
+        try:
+            if self.progress_percent is not None and int(self.progress_percent) >= 100 and self.status != "Completada":
+                if self.status not in ("En Revisión", "Completada"):
+                    self.status = "En Revisión"
+        except Exception:
+            # Ignorar si el campo no existe en migraciones antiguas
+            pass
         is_new = self.pk is None
         old_assigned_to = None
         old_status = None
@@ -1409,6 +1449,7 @@ class Profile(models.Model):
     language = models.CharField(
         max_length=5, choices=[("en", "English"), ("es", "Español")], default="en", help_text="Preferred UI language"
     )
+    rejections_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
@@ -1507,6 +1548,8 @@ class ChangeOrder(models.Model):
     notes = models.TextField(blank=True)
     color = models.CharField(max_length=7, blank=True, null=True, help_text="Color hex (ej: #FF5733)")
     reference_code = models.CharField(max_length=50, blank=True, null=True, help_text="Código de referencia o color")
+    # Compatibilidad: PDF firmado generado por flujo de firmas
+    signed_pdf = models.FileField(upload_to="changeorders/signed_pdfs/", null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         """Map test aliases to actual field names."""
@@ -2119,6 +2162,23 @@ class Invoice(models.Model):
 
     # Payment tracking (NEW)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+
+    # Restored fields for compatibility with legacy flows/tests
+    invoice_type = models.CharField(
+        max_length=20,
+        choices=[("standard", "Por Items"), ("deposit", "Anticipo/Porcentaje"), ("final", "Cierre")],
+        default="standard",
+        help_text="Tipo de factura: Items, Anticipo o Cierre final",
+    )
+    is_draft_for_review = models.BooleanField(
+        default=False, help_text="True si es borrador de PM que requiere revisión de Admin"
+    )
+    retention_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Monto de retención contractual (compatibilidad)",
+    )
 
     # Legacy field (DEPRECATED): mantener temporalmente para reportes antiguos.
     # Será removido en futura migración; usar amount_paid >= total_amount para determinar pago completo.
@@ -4794,6 +4854,11 @@ class ProjectInventory(models.Model):
     def __str__(self):
         return f"{self.location} · {self.item} = {self.quantity}"
 
+    @property
+    def available_quantity(self):
+        """Compatibilidad para tests: alias de quantity."""
+        return self.quantity
+
 
 class InventoryMovement(models.Model):
     TYPE_CHOICES = [
@@ -5259,6 +5324,11 @@ class DailyPlan(models.Model):
         ]
         verbose_name = "Daily Plan"
         verbose_name_plural = "Daily Plans"
+
+    # Compatibilidad: algunos tests referencian daily_plan.plannedactivities
+    @property
+    def plannedactivities(self):
+        return self.planned_activities.all()
 
     def save(self, *args, **kwargs):
         """Normaliza completion_deadline y dispara fetch weather si necesario.

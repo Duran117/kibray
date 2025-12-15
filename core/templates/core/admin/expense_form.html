@@ -1,0 +1,34 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% trans "Expense" %}</title>
+</head>
+<body>
+  <h1>{% trans "Expense" %}</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label>{% trans "Project" %}</label>
+    <select name="project">
+      {% for p in projects %}
+        <option value="{{ p.id }}" {% if expense.project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select><br/>
+    <label>{% trans "Project Name" %}</label>
+    <input type="text" name="project_name" value="{{ expense.project_name }}"/><br/>
+    <label>{% trans "Amount" %}</label>
+    <input type="number" step="0.01" name="amount" value="{{ expense.amount }}"/><br/>
+    <label>{% trans "Date" %}</label>
+    <input type="date" name="date" value="{{ expense.date|date:'Y-m-d' }}"/><br/>
+    <label>{% trans "Category" %}</label>
+    <select name="category">
+      {% for code,label in category_choices %}
+        <option value="{{ code }}" {% if expense.category == code %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select><br/>
+    <label>{% trans "Description" %}</label>
+    <textarea name="description">{{ expense.description }}</textarea><br/>
+    <button type="submit">{% trans "Save" %}</button>
+  </form>
+</body>
+</html>

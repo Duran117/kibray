@@ -6,6 +6,7 @@ from datetime import date
 from decimal import Decimal
 
 import django
+import pytest
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings")
 django.setup()
@@ -16,6 +17,7 @@ from django.test import Client, override_settings
 from core.models import Expense, Income, Project
 
 
+@pytest.mark.django_db
 def setup_admin_user():
     if not User.objects.filter(username="admin_test").exists():
         user = User.objects.create_superuser("admin_test", "admin@test.local", "pass1234")
@@ -24,6 +26,7 @@ def setup_admin_user():
     return user
 
 
+@pytest.mark.django_db
 def create_project_with_related():
     p = Project.objects.create(
         name="Proyecto Eliminar", start_date=date.today(), client="Cliente X", budget_total=Decimal("1000.00")
@@ -37,6 +40,7 @@ def create_project_with_related():
     return p
 
 
+@pytest.mark.django_db
 @override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost"])
 def test_delete_flow():
     print("=" * 60)
