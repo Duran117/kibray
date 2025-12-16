@@ -1,0 +1,338 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Horas sin proyecto" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.07), transparent 35%),
+                radial-gradient(circle at 80% 0%, rgba(56, 189, 248, 0.09), transparent 35%),
+                #f8fafc;
+  }
+  .kb-card {
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 18px;
+    box-shadow: 0 14px 48px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(6px);
+  }
+  .soft-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f5f7fb 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    border-radius: 18px 18px 0 0;
+  }
+  .pill-badge {
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    background: #eef2ff;
+    color: #4338ca;
+    letter-spacing: 0.02em;
+  }
+  .glass {
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.07);
+    border-radius: 16px;
+  }
+  .kb-input, .form-control, .form-select {
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+    background: #fff;
+  }
+  .entry-card {
+    border: 1px solid rgba(0,0,0,0.03);
+    border-radius: 14px;
+    padding: 14px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  }
+  .ghost-divider { border-top: 1px dashed rgba(15,23,42,0.08); margin: 14px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4 gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="pill-badge">Wizard</span>
+        <span class="text-muted small">{% trans "Corrección de horas" %}</span>
+      </div>
+      <h2 class="mb-1">{% trans "Horas sin proyecto" %}</h2>
+      <p class="text-muted mb-0">{% trans "Revisa, corrige y asigna las horas registradas que aún no están vinculadas a un proyecto." %}</p>
+    </div>
+    <form method="get" class="d-flex flex-wrap gap-2 align-items-center glass p-2" style="min-width: 320px;">
+      <div class="d-flex flex-column">
+        <label class="small text-muted" for="from">{% trans "Desde" %}</label>
+        <input type="date" id="from" name="from" value="{{ date_from }}" class="form-control form-control-sm">
+      </div>
+      <div class="d-flex flex-column">
+        <label class="small text-muted" for="to">{% trans "Hasta" %}</label>
+        <input type="date" id="to" name="to" value="{{ date_to }}" class="form-control form-control-sm">
+      </div>
+      <div class="d-flex align-items-end">
+        <button class="btn btn-primary btn-sm shadow-sm" type="submit">
+          <i class="bi bi-funnel me-1"></i> {% trans "Filtrar" %}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="glass p-3 h-100">
+        <div class="text-muted small">{% trans "Entradas sin proyecto" %}</div>
+        <div class="d-flex align-items-baseline gap-2">
+          <span class="fs-3 fw-bold">{{ total_entries }}</span>
+          <span class="text-success small"><i class="bi bi-circle-fill me-1"></i>{% trans "pendientes" %}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="glass p-3 h-100">
+        <div class="text-muted small">{% trans "Horas totales" %}</div>
+        <div class="d-flex align-items-baseline gap-2">
+          <span class="fs-3 fw-bold">{{ total_hours|default:0 }}</span>
+          <span class="text-muted small">{% trans "hrs" %}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="glass p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small">{% trans "Acción recomendada" %}</div>
+          <div class="fw-semibold">{% trans "Asigna cada entrada a un proyecto y ajusta las horas si es necesario." %}</div>
+        </div>
+        {% if not can_manage %}
+          <span class="badge bg-warning text-dark">{% trans "Solo lectura" %}</span>
+        {% else %}
+          <span class="badge bg-success">{% trans "Edición habilitada" %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="glass p-3 mb-4 d-flex flex-wrap align-items-end gap-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="small text-muted" for="employee">{% trans "Empleado" %}</label>
+        <select name="employee" id="employee" class="form-select form-select-sm">
+          <option value="">{% trans "Todos" %}</option>
+          {% for emp in employees %}
+            <option value="{{ emp.id }}" {% if employee_filter|stringformat:'s' == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.first_name }} {{ emp.last_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="small text-muted" for="project">{% trans "Proyecto" %}</label>
+        <select name="project" id="project" class="form-select form-select-sm">
+          <option value="">{% trans "Todos" %}</option>
+          {% for p in projects %}
+            <option value="{{ p.id }}" {% if project_filter|stringformat:'s' == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="small text-muted" for="cost_code">{% trans "Cost Code" %}</label>
+        <select name="cost_code" id="cost_code" class="form-select form-select-sm">
+          <option value="">{% trans "Todos" %}</option>
+          {% for cc in cost_codes %}
+            <option value="{{ cc.id }}" {% if cost_code_filter|stringformat:'s' == cc.id|stringformat:'s' %}selected{% endif %}>{{ cc.code }} - {{ cc.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="small text-muted" for="week">{% trans "Semana que inicia" %}</label>
+        <input type="date" id="week" name="week" value="{{ week_start|date:'Y-m-d' }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-auto d-flex align-items-end gap-2">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-search me-1"></i> {% trans "Aplicar" %}</button>
+        <a href="?week={{ prev_week }}&employee={{ employee_filter }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        <a href="?week={{ next_week }}&employee={{ employee_filter }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-right"></i></a>
+        <a href="?week={{ week_start|date:'Y-m-d' }}&employee={{ employee_filter }}&project={{ project_filter }}&cost_code={{ cost_code_filter }}" class="btn btn-outline-secondary btn-sm">{% trans "Hoy" %}</a>
+        <a href="?week={{ week_start|date:'Y-m-d' }}&employee={{ employee_filter }}&project={{ project_filter }}&cost_code={{ cost_code_filter }}&export=csv" class="btn btn-outline-success btn-sm">
+          <i class="bi bi-download me-1"></i> CSV
+        </a>
+      </div>
+    </form>
+    <div class="ms-auto text-muted small">
+      {% trans "Semana" %}: {{ week_start|date:'M d' }} — {{ week_end|date:'M d' }}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card kb-card">
+        <div class="card-header soft-header d-flex align-items-center justify-content-between">
+          <div>
+            <strong>{% trans "Agregar corrección" %}</strong>
+            <div class="text-muted small">{% trans "Registrar nueva entrada o migrar horas" %}</div>
+          </div>
+          <span class="pill-badge">{% trans "Nuevo" %}</span>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            {% for field in create_form %}
+              <div class="mb-3">
+                <label class="form-label small text-muted" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors|striptags }}</div>{% endif %}
+              </div>
+            {% endfor %}
+            {% if not can_manage %}
+              <div class="alert alert-warning mb-3"><i class="bi bi-shield-lock me-1"></i> {% trans "Solo PM/Admin pueden crear o editar." %}</div>
+            {% endif %}
+            <button class="btn btn-primary w-100" type="submit" {% if not can_manage %}disabled{% endif %}>
+              <i class="bi bi-plus-lg me-1"></i> {% trans "Guardar entrada" %}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card kb-card">
+        <div class="card-header soft-header d-flex align-items-center justify-content-between">
+          <div>
+            <strong>{% trans "Horas por asignar" %}</strong>
+            <div class="text-muted small">{% trans "Edita, asigna proyecto o elimina" %}</div>
+          </div>
+          <span class="pill-badge">{% trans "Lista" %}</span>
+        </div>
+        <div class="card-body">
+          {% if weekly_rows %}
+            <div class="table-responsive mb-4">
+              <table class="table align-middle">
+                <thead>
+                  <tr>
+                    <th class="text-muted small">{% trans "Empleado" %}</th>
+                    {% for day in week_days %}
+                      <th class="text-center text-muted small">{{ day|date:"D d" }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in weekly_rows %}
+                    <tr>
+                      <td class="fw-semibold">{{ row.employee.first_name }} {{ row.employee.last_name }}</td>
+                      {% for cell in row.days %}
+                        <td style="min-width: 140px;">
+                          {% if cell.entries %}
+                            {% for e in cell.entries %}
+                              <div class="border rounded p-2 mb-2" style="background:#f8fafc;">
+                                <div class="small fw-semibold">{{ e.start_time }} — {{ e.end_time|default:"--" }}</div>
+                                <div class="text-muted small">{{ e.hours_worked|default:"--" }} h</div>
+                                <div class="text-muted small">{% trans "Sin proyecto" %}</div>
+                                <a class="btn btn-link btn-sm p-0" href="#entry-{{ e.id }}">{% trans "Editar" %}</a>
+                              </div>
+                            {% endfor %}
+                          {% else %}
+                            <div class="text-muted small">—</div>
+                          {% endif %}
+                        </td>
+                      {% endfor %}
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+          {% if unassigned_entries %}
+            <div class="d-flex flex-column gap-3">
+              {% for entry, form in entries_with_forms %}
+                <div class="entry-card" id="entry-{{ entry.id }}">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <div class="fw-semibold">{{ entry.employee }}</div>
+                      <div class="text-muted small">{{ entry.date }} · {{ entry.start_time }} - {{ entry.end_time|default:"--" }}</div>
+                    </div>
+                    <span class="badge bg-light text-dark">ID {{ entry.id }}</span>
+                  </div>
+
+                  {% if inline_error_id == entry.id and form.non_field_errors %}
+                    <div class="alert alert-danger py-2 mb-2">{{ form.non_field_errors }}</div>
+                  {% endif %}
+
+                  <form method="post" class="row g-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="entry_id" value="{{ entry.id }}">
+
+                    <div class="col-md-4">
+                      <label class="form-label small text-muted" for="{{ form.employee.id_for_label }}">{{ form.employee.label }}</label>
+                      {{ form.employee }}
+                      {% if inline_error_id == entry.id %}{% for e in form.employee.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label small text-muted" for="{{ form.project.id_for_label }}">{{ form.project.label }}</label>
+                      {{ form.project }}
+                      {% if inline_error_id == entry.id %}{% for e in form.project.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label small text-muted" for="{{ form.cost_code.id_for_label }}">{{ form.cost_code.label }}</label>
+                      {{ form.cost_code }}
+                      {% if inline_error_id == entry.id %}{% for e in form.cost_code.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label small text-muted" for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+                      {{ form.date }}
+                      {% if inline_error_id == entry.id %}{% for e in form.date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label small text-muted" for="{{ form.start_time.id_for_label }}">{{ form.start_time.label }}</label>
+                      {{ form.start_time }}
+                      {% if inline_error_id == entry.id %}{% for e in form.start_time.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label small text-muted" for="{{ form.end_time.id_for_label }}">{{ form.end_time.label }}</label>
+                      {{ form.end_time }}
+                      {% if inline_error_id == entry.id %}{% for e in form.end_time.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label small text-muted" for="{{ form.hours_worked.id_for_label }}">{{ form.hours_worked.label }}</label>
+                      {{ form.hours_worked }}
+                      {% if inline_error_id == entry.id %}{% for e in form.hours_worked.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label small text-muted" for="{{ form.change_order.id_for_label }}">{{ form.change_order.label }}</label>
+                      {{ form.change_order }}
+                      {% if inline_error_id == entry.id %}{% for e in form.change_order.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label small text-muted" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                      {{ form.notes }}
+                      {% if inline_error_id == entry.id %}{% for e in form.notes.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}{% endif %}
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-between align-items-center mt-1">
+                      <div class="text-muted small">{% trans "Al guardar, las horas se recalculan si existe inicio y fin." %}</div>
+                      <div class="d-flex gap-2">
+                        <button class="btn btn-outline-danger btn-sm" type="submit" name="action" value="delete" formmethod="post" formaction="" {% if not can_manage %}disabled{% endif %}>
+                          <i class="bi bi-trash"></i>
+                        </button>
+                        <button class="btn btn-primary btn-sm" type="submit" name="action" value="update" {% if not can_manage %}disabled{% endif %}>
+                          <i class="bi bi-check2 me-1"></i> {% trans "Actualizar" %}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-check2-circle fs-2 d-block mb-2"></i>
+              {% trans "No hay horas pendientes de asignar" %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -345,6 +345,16 @@
                 <a class="kb-nav-icon" href="{% url 'pm_select_project' 'colors' %}" title="Colores" aria-label="Colores" data-bs-toggle="tooltip" data-bs-placement="bottom">
                   <i class="bi bi-palette"></i>
                 </a>
+                {% with role=user.profile.role|default_if_none:'' %}
+                  {% if user.is_staff or user.is_superuser or role == 'project_manager' or role == 'pm' or role == 'leader' %}
+                  <a class="kb-nav-icon" href="{% url 'assignment_hub' %}" title="Asignaciones" aria-label="Asignaciones" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="bi bi-people"></i>
+                  </a>
+                  <a class="kb-nav-icon" href="{% url 'unassigned_hours_hub' %}" title="Horas sin proyecto" aria-label="Horas sin proyecto" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="bi bi-clock-history"></i>
+                  </a>
+                  {% endif %}
+                {% endwith %}
               </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

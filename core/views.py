@@ -943,6 +943,18 @@ def schedule_create_view(request):
     return render(request, "core/schedule_form.html", {"form": form})
 
 
+# --- Helpers ---
+
+
+def _update_project_total_expenses(project):
+    from django.db.models import Sum
+
+    total = project.expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    project.total_expenses = total
+    project.save(update_fields=["total_expenses"])
+    return total
+
+
 @login_required
 def expense_create_view(request):
     profile = getattr(request.user, "profile", None)
@@ -954,7 +966,8 @@ def expense_create_view(request):
     if request.method == "POST":
         form = ExpenseForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            expense = form.save()
+            _update_project_total_expenses(expense.project)
             return redirect("dashboard")
     else:
         form = ExpenseForm()
@@ -1060,7 +1073,8 @@ def expense_edit_view(request, expense_id):
     if request.method == "POST":
         form = ExpenseForm(request.POST, request.FILES, instance=expense)
         if form.is_valid():
-            form.save()
+            expense = form.save()
+            _update_project_total_expenses(expense.project)
             messages.success(request, "Gasto actualizado.")
             return redirect("expense_list")
     else:
@@ -1079,7 +1093,9 @@ def expense_delete_view(request, expense_id):
         messages.error(request, "Acceso denegado.")
         return redirect("expense_list")
     if request.method == "POST":
+        project = expense.project
         expense.delete()
+        _update_project_total_expenses(project)
         messages.success(request, "Gasto eliminado.")
         return redirect("expense_list")
     return render(request, "core/expense_confirm_delete.html", {"expense": expense})
@@ -9287,9 +9303,11 @@ def project_delete(request, project_id):
         has_schedules = ScheduleItem.objects.filter(project=project).exists()
         has_invoices = Invoice.objects.filter(project=project).exists()
 
+        confirm = request.POST.get("confirm")
+
         if any(
             [has_expenses, has_incomes, has_timeentries, has_changeorders, has_dailylogs, has_schedules, has_invoices]
-        ):
+        ) and not confirm:
             messages.error(
                 request,
                 "❌ No se puede eliminar este proyecto porque tiene datos financieros o operacionales asociados. "

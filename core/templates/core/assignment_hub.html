@@ -1,0 +1,166 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Asignaciones" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.06), transparent 35%),
+                radial-gradient(circle at 80% 0%, rgba(56, 189, 248, 0.08), transparent 35%),
+                #f8fafc;
+  }
+  .kb-card {
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.07);
+    backdrop-filter: blur(6px);
+  }
+  .soft-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f5f7fb 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    border-radius: 16px 16px 0 0;
+  }
+  .pill-badge {
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    background: #eef2ff;
+    color: #4338ca;
+  }
+  .list-group-item {
+    border: 1px solid rgba(0,0,0,0.03);
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .list-group-item:last-child { margin-bottom: 0; }
+  .ghost-divider {
+    border-top: 1px dashed rgba(15,23,42,0.08);
+    margin: 12px 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-1"><i class="bi bi-people"></i> {% trans "Asignaciones" %}</h2>
+      <p class="text-muted mb-0">{% trans "Asigna empleados a proyectos (máx. 2 por día: mañana / tarde)." %}</p>
+    </div>
+    <form method="get" class="d-flex align-items-center gap-2">
+      <label class="text-muted small mb-0" for="date">{% trans "Fecha base" %}</label>
+      <input type="date" id="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" class="form-control" style="max-width: 170px;" onchange="this.form.submit()">
+    </form>
+  </div>
+
+  {% if not can_assign %}
+    <div class="alert alert-warning"><i class="bi bi-shield-exclamation"></i> {% trans "Solo PM o admin pueden crear asignaciones." %}</div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card kb-card">
+        <div class="card-header soft-header d-flex align-items-center justify-content-between">
+          <div>
+            <strong>{% trans "Nueva asignación" %}</strong>
+            <div class="text-muted small">{% trans "Selecciona empleado, proyecto y turno" %}</div>
+          </div>
+          <span class="pill-badge">{% trans "Wizard" %}</span>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="mb-3">
+              <label class="form-label">{% trans "Empleado" %}</label>
+              {{ form.employee }}
+              {% if form.employee.errors %}<div class="text-danger small">{{ form.employee.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{% trans "Proyecto" %}</label>
+              {{ form.project }}
+              {% if form.project.errors %}<div class="text-danger small">{{ form.project.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{% trans "Fecha" %}</label>
+                {{ form.date }}
+                {% if form.date.errors %}<div class="text-danger small">{{ form.date.errors|striptags }}</div>{% endif %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{% trans "Turno" %}</label>
+                {{ form.shift }}
+                {% if form.shift.errors %}<div class="text-danger small">{{ form.shift.errors|striptags }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{% trans "Notas" %}</label>
+              {{ form.notes }}
+              {% if form.notes.errors %}<div class="text-danger small">{{ form.notes.errors|striptags }}</div>{% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary w-100" {% if not can_assign %}disabled{% endif %}>
+              <i class="bi bi-plus-circle"></i> {% trans "Asignar" %}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card kb-card">
+        <div class="card-header soft-header d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{% trans "Calendario de asignaciones" %}</strong>
+            <div class="text-muted small">{% trans "Ventana deslizante de 14 días" %}</div>
+          </div>
+          <span class="pill-badge">±14d</span>
+        </div>
+        <div class="card-body">
+          {% if assignments_by_date %}
+            {% for day, items in assignments_by_date.items %}
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h6 class="mb-0">{{ day|date:'l, M d, Y' }}</h6>
+                  <span class="badge bg-secondary">{{ items|length }} {% trans "asignaciones" %}</span>
+                </div>
+                <div class="list-group mb-2">
+                  {% for a in items %}
+                  <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ a.employee.first_name }} {{ a.employee.last_name }}</strong>
+                      <div class="text-muted small">{{ a.project.name }} · {{ a.get_shift_display }}</div>
+                      {% if a.notes %}<div class="small">{{ a.notes }}</div>{% endif %}
+                    </div>
+                    <div class="text-end text-muted small">
+                      {% if a.created_by %}{% trans "Por" %} {{ a.created_by.username }}<br>{% endif %}
+                      {{ a.created_at|date:'M d, H:i' }}
+                      {% if can_assign %}
+                      <div class="mt-2 d-flex justify-content-end gap-2">
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'assignment_edit' a.id %}"><i class="bi bi-pencil"></i></a>
+                        <form method="post" action="{% url 'assignment_delete' a.id %}" onsubmit="return confirm('{% trans '¿Eliminar asignación?' %}');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center text-muted py-5">
+              <i class="bi bi-calendar2-x fs-3 d-block mb-2"></i>
+              {% trans "Sin asignaciones en la ventana seleccionada." %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

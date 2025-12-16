@@ -431,6 +431,71 @@ class Employee(models.Model):
 
 
 # ---------------------
+# Asignaciones de recursos (empleados ↔ proyectos por día/turno)
+# ---------------------
+class ResourceAssignment(models.Model):
+    """Asignación de empleado a proyecto con validación de capacidad diaria."""
+
+    SHIFT_CHOICES = [
+        ("MORNING", _("Mañana")),
+        ("AFTERNOON", _("Tarde")),
+        ("FULL_DAY", _("Día completo")),
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="resource_assignments")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="resource_assignments")
+    date = models.DateField()
+    shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, default="FULL_DAY")
+    notes = models.CharField(max_length=255, blank=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_resource_assignments"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("employee", "date", "shift")
+        ordering = ["-date", "employee_id"]
+
+    def __str__(self):
+        return f"{self.employee} → {self.project} ({self.date} {self.shift})"
+
+    def clean(self):
+        errors = {}
+        if not self.employee_id:
+            errors["employee"] = _("Empleado requerido")
+        if not self.project_id:
+            errors["project"] = _("Proyecto requerido")
+        if not self.date:
+            errors["date"] = _("Fecha requerida")
+
+        if self.employee_id and self.date:
+            existing = ResourceAssignment.objects.filter(employee_id=self.employee_id, date=self.date).exclude(pk=self.pk)
+
+            # Si ya hay un día completo, no permitir más asignaciones
+            if any(a.shift == "FULL_DAY" for a in existing):
+                errors["shift"] = _("Este empleado ya tiene un turno de día completo en esta fecha.")
+
+            if self.shift == "FULL_DAY" and existing.exists():
+                errors["shift"] = _("No se puede asignar día completo: ya tiene turnos asignados.")
+
+            if self.shift != "FULL_DAY":
+                # Evitar duplicar el mismo turno (mañana/tarde)
+                if any(a.shift == self.shift for a in existing):
+                    errors["shift"] = _("Ya existe una asignación para este turno.")
+                # Máximo 2 slots por día (Mañana + Tarde)
+                slot_count = sum(2 if a.shift == "FULL_DAY" else 1 for a in existing)
+                if slot_count >= 2:
+                    errors["shift"] = _("Máximo dos proyectos por día por empleado.")
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+# ---------------------
 # Modelo de Registro de Horas
 # ---------------------
 class TimeEntry(models.Model):

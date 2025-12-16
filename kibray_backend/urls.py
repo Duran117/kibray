@@ -16,6 +16,8 @@ from core import views_wizards
 from core import views_user_wizard
 from core import views_calendar_wizard
 from core import views_financial as fin_views
+from core import views_assignments
+from core import views_unassigned_hours
 from core import views_notifications as notif_views
 from core import views_planner as planner_views
 from core import views_pm_calendar as pm_calendar_views
@@ -53,8 +55,8 @@ urlpatterns = [
     
     # Admin
     path("admin/", admin.site.urls),
-    # Legacy custom admin panel (admin-panel/*)
-    path("admin-panel/", include("legacy.custom_admin.urls_admin")),
+    # Legacy custom admin panel (admin-panel/*) → redirect to Django admin (preserve extra path)
+        path("admin-panel/", include("legacy.custom_admin.urls_admin")),
     # User Management Wizard
     path("users/manage/", views_user_wizard.user_list_view, name="user_wizard_list"),
     path("users/manage/new/", views_user_wizard.user_wizard_view, name="user_wizard_create"),
@@ -80,6 +82,10 @@ urlpatterns = [
     path("planner/strategic/", views.StrategicPlanningDashboardView.as_view(), name="strategic_planning_dashboard"),
     path("planner/strategic/<int:pk>/", views.StrategicPlanningDetailView.as_view(), name="strategic_planning_detail"),
     path("planner/full/", planner_views.strategic_ritual_wizard, name="strategic_planner"),
+    path("assignments/", views_assignments.assignment_hub, name="assignment_hub"),
+    path("assignments/<int:pk>/edit/", views_assignments.assignment_edit, name="assignment_edit"),
+    path("assignments/<int:pk>/delete/", views_assignments.assignment_delete, name="assignment_delete"),
+    path("hours/unassigned/", views_unassigned_hours.unassigned_hours_hub, name="unassigned_hours_hub"),
     path("dashboard/employee/", views.dashboard_employee, name="dashboard_employee"),
     path("dashboard/pm/", views.dashboard_pm, name="dashboard_pm"),
     path("dashboard/pm/select/<str:action>/", views.pm_select_project, name="pm_select_project"),

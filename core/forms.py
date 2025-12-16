@@ -42,6 +42,7 @@ from .models import (
     Profile,
     Project,
     ProjectFile,
+    ResourceAssignment,
     Risk,
     Schedule,
     ScheduleCategory,
@@ -165,6 +166,19 @@ class TimeEntryForm(forms.ModelForm):
                 total += 24 * 60
             cleaned["hours_worked"] = round(total / 60.0, 2)
         return cleaned
+
+
+class ResourceAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = ResourceAssignment
+        fields = ["employee", "project", "date", "shift", "notes"]
+        widgets = {
+            "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "shift": forms.Select(attrs={"class": "form-select"}),
+            "notes": forms.TextInput(attrs={"class": "form-control", "placeholder": "Notas (opcional)"}),
+            "employee": forms.Select(attrs={"class": "form-select"}),
+            "project": forms.Select(attrs={"class": "form-select"}),
+        }
 
 
 class InvoiceForm(forms.ModelForm):

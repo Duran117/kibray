@@ -71,7 +71,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         user = request.user
         queryset = Project.objects.filter(
             Q(project_lead__user=user) | Q(observers__user=user)
-        ).distinct()
+        ).distinct().order_by('name')
         
         page = self.paginate_queryset(queryset)
         if page is not None:

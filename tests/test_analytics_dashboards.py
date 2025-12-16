@@ -12,7 +12,7 @@ Covers:
 """
 
 import json
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -20,6 +20,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+from django.utils import timezone
 
 from core.models import (
     ColorApproval,
@@ -98,8 +99,8 @@ def project_with_tasks(db, admin_user):
         budget_materials=Decimal("10000.00"),
         budget_labor=Decimal("20000.00"),
         budget_total=Decimal("30000.00"),
-        start_date=date.today() - timedelta(days=30),
-        end_date=date.today() + timedelta(days=30),
+        start_date=timezone.localdate() - timedelta(days=30),
+        end_date=timezone.localdate() + timedelta(days=30),
     )
 
     # Create tasks with different statuses
@@ -125,7 +126,7 @@ def project_with_tasks(db, admin_user):
         title="Task 4 Overdue",
         project=project,
         status="Pendiente",
-        due_date=date.today() - timedelta(days=5),
+        due_date=timezone.localdate() - timedelta(days=5),
         assigned_to=admin_user.employee_profile,
     )
 
@@ -138,8 +139,8 @@ def project_with_touchups(db, admin_user):
     project = Project.objects.create(
         name="Touchup Test Project",
         client="Touchup Client",
-        start_date=date.today(),
-        end_date=date.today() + timedelta(days=30),
+        start_date=timezone.localdate(),
+        end_date=timezone.localdate() + timedelta(days=30),
     )
 
     # Create mix of touchup tasks
@@ -151,8 +152,8 @@ def project_with_touchups(db, admin_user):
             status="Completada" if i < 2 else "Pendiente",
             priority="urgent" if i == 0 else "medium",
             assigned_to=admin_user.employee_profile,
-            created_at=date.today() - timedelta(days=i),
-            completed_at=date.today() - timedelta(days=i - 1) if i < 2 else None,
+            created_at=timezone.now() - timedelta(days=i),
+            completed_at=(timezone.now() - timedelta(days=i - 1)) if i < 2 else None,
         )
 
     return project
@@ -164,8 +165,8 @@ def project_with_approvals(db, admin_user):
     project = Project.objects.create(
         name="Approval Test Project",
         client="Approval Client",
-        start_date=date.today(),
-        end_date=date.today() + timedelta(days=30),
+        start_date=timezone.localdate(),
+        end_date=timezone.localdate() + timedelta(days=30),
     )
 
     # Create color approvals with different statuses
@@ -176,7 +177,7 @@ def project_with_approvals(db, admin_user):
         color_code="#0000FF",
         brand="BrandA",
         status="APPROVED",
-        created_at=date.today() - timedelta(days=5),
+        created_at=timezone.now() - timedelta(days=5),
     )
     ColorApproval.objects.create(
         project=project,
@@ -185,7 +186,7 @@ def project_with_approvals(db, admin_user):
         color_code="#FF0000",
         brand="BrandB",
         status="PENDING",
-        created_at=date.today() - timedelta(days=2),
+        created_at=timezone.now() - timedelta(days=2),
     )
     ColorApproval.objects.create(
         project=project,
@@ -194,7 +195,7 @@ def project_with_approvals(db, admin_user):
         color_code="#00FF00",
         brand="BrandA",
         status="REJECTED",
-        created_at=date.today() - timedelta(days=1),
+        created_at=timezone.now() - timedelta(days=1),
     )
 
     return project
@@ -493,8 +494,8 @@ class TestAnalyticsEdgeCases:
             budget_materials=Decimal("0.00"),
             budget_labor=Decimal("0.00"),
             budget_total=Decimal("0.00"),
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=30),
+            start_date=timezone.localdate(),
+            end_date=timezone.localdate() + timedelta(days=30),
         )
 
         api_client.force_authenticate(user=admin_user)
@@ -511,8 +512,8 @@ class TestAnalyticsEdgeCases:
         project = Project.objects.create(
             name="Rate Test",
             client="Client",
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=30),
+            start_date=timezone.localdate(),
+            end_date=timezone.localdate() + timedelta(days=30),
         )
 
         # Create 7 completed, 3 pending touchups
@@ -538,8 +539,8 @@ class TestAnalyticsEdgeCases:
         project = Project.objects.create(
             name="Brand Test",
             client="Client",
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=30),
+            start_date=timezone.localdate(),
+            end_date=timezone.localdate() + timedelta(days=30),
         )
 
         # Create 15 different brands
@@ -567,8 +568,8 @@ class TestAnalyticsEdgeCases:
         project = Project.objects.create(
             name="PM Rate Test",
             client="Client",
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=30),
+            start_date=timezone.localdate(),
+            end_date=timezone.localdate() + timedelta(days=30),
         )
 
         ProjectManagerAssignment.objects.create(
@@ -611,8 +612,8 @@ class TestAnalyticsPerformance:
             client="Client",
             budget_materials=Decimal("10000.00"),
             budget_total=Decimal("10000.00"),
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=30),
+            start_date=timezone.localdate(),
+            end_date=timezone.localdate() + timedelta(days=30),
         )
 
         # Create multiple tasks
