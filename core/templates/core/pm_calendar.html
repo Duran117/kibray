@@ -8,28 +8,31 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 <style>
     .pm-calendar-container {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #f5f5f7;
         min-height: 100vh;
         padding: 2rem 0;
     }
     
     .pm-header {
-        background: white;
-        border-radius: 15px;
+        background: #ffffffcc;
+        border-radius: 18px;
         padding: 2rem;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+        backdrop-filter: blur(8px);
     }
     
     .pm-header h1 {
-        color: #667eea;
+        color: #111827;
         font-weight: 700;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.35rem;
+        letter-spacing: -0.02em;
     }
     
     .pm-header .subtitle {
-        color: #6c757d;
-        font-size: 1.1rem;
+        color: #6b7280;
+        font-size: 1.05rem;
     }
     
     .workload-indicator {
@@ -41,38 +44,40 @@
     
     .workload-bar {
         flex: 1;
-        height: 30px;
-        background: #e9ecef;
-        border-radius: 15px;
+        height: 26px;
+        background: #e5e7eb;
+        border-radius: 999px;
         overflow: hidden;
         position: relative;
+        border: 1px solid rgba(0,0,0,0.04);
     }
     
     .workload-fill {
         height: 100%;
-        background: linear-gradient(90deg, #28a745 0%, #ffc107 50%, #dc3545 100%);
-        border-radius: 15px;
-        transition: width 0.3s ease;
+        background: linear-gradient(90deg, #34c759 0%, #ffd60a 50%, #ff3b30 100%);
+        border-radius: 999px;
+        transition: width 0.25s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: #0b1a33;
         font-weight: 600;
         font-size: 0.9rem;
     }
     
     .sidebar {
-        background: white;
-        border-radius: 15px;
+        background: #fff;
+        border-radius: 16px;
         padding: 1.5rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.07);
+        border: 1px solid rgba(0,0,0,0.04);
         height: fit-content;
         max-height: calc(100vh - 200px);
         overflow-y: auto;
     }
     
     .sidebar h4 {
-        color: #667eea;
+        color: #0a84ff;
         font-weight: 600;
         margin-bottom: 1rem;
         display: flex;
@@ -81,28 +86,28 @@
     }
     
     .project-card {
-        background: #f8f9fa;
-        border-radius: 10px;
+        background: #fdfdfd;
+        border-radius: 14px;
         padding: 1rem;
         margin-bottom: 1rem;
-        border-left: 4px solid #667eea;
-        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(0,0,0,0.04);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         cursor: pointer;
     }
     
     .project-card:hover {
-        transform: translateX(5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        border-color: rgba(10,132,255,0.35);
     }
     
     .project-card.pipeline {
-        border-left-color: #6c757d;
-        opacity: 0.8;
+        opacity: 0.9;
     }
     
     .project-name {
         font-weight: 600;
-        color: #343a40;
+        color: #1f2937;
         margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
@@ -111,23 +116,24 @@
     
     .progress-bar-wrapper {
         height: 8px;
-        background: #dee2e6;
-        border-radius: 10px;
+        background: #e5e7eb;
+        border-radius: 999px;
         overflow: hidden;
         margin-top: 0.5rem;
     }
     
     .progress-bar-fill {
         height: 100%;
-        border-radius: 10px;
-        transition: width 0.3s ease;
+        border-radius: 999px;
+        transition: width 0.25s ease;
     }
     
     .calendar-container {
-        background: white;
-        border-radius: 15px;
+        background: #fff;
+        border-radius: 18px;
         padding: 1.5rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.07);
+        border: 1px solid rgba(0,0,0,0.04);
         margin-bottom: 2rem;
     }
     
@@ -136,25 +142,30 @@
     }
     
     .fc-toolbar-title {
-        color: #667eea !important;
+        color: #111827 !important;
         font-weight: 700;
     }
     
     .fc-button {
-        background: #667eea !important;
-        border-color: #667eea !important;
+        background: #0a84ff !important;
+        border-color: #0a84ff !important;
+        border-radius: 12px !important;
+        padding: 0.4rem 0.85rem !important;
+        text-transform: none !important;
+        box-shadow: 0 5px 15px rgba(10,132,255,0.25);
     }
     
     .fc-button:hover {
-        background: #764ba2 !important;
-        border-color: #764ba2 !important;
+        background: #0066cc !important;
+        border-color: #0066cc !important;
     }
     
     .deadlines-section {
-        background: white;
-        border-radius: 15px;
+        background: #fff;
+        border-radius: 16px;
         padding: 1.5rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.07);
+        border: 1px solid rgba(0,0,0,0.04);
     }
     
     .deadline-item {
@@ -162,16 +173,18 @@
         align-items: center;
         gap: 1rem;
         padding: 1rem;
-        background: #f8f9fa;
-        border-radius: 10px;
+        background: #f9fafb;
+        border-radius: 12px;
         margin-bottom: 0.75rem;
-        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid transparent;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         cursor: pointer;
     }
     
     .deadline-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        border-color: rgba(10,132,255,0.2);
     }
     
     .deadline-icon {
@@ -209,18 +222,19 @@
     }
     
     .block-day-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #0a84ff;
         border: none;
         color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 10px;
+        padding: 0.8rem 1.6rem;
+        border-radius: 14px;
         font-weight: 600;
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        box-shadow: 0 10px 20px rgba(10,132,255,0.25);
     }
     
     .block-day-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 12px 22px rgba(10,132,255,0.3);
     }
     
     .stats-grid {
@@ -231,28 +245,29 @@
     }
     
     .stat-card {
-        background: #f8f9fa;
-        border-radius: 10px;
+        background: #f9fafb;
+        border-radius: 14px;
         padding: 1rem;
         text-align: center;
+        border: 1px solid rgba(0,0,0,0.04);
     }
     
     .stat-value {
         font-size: 2rem;
         font-weight: 700;
-        color: #667eea;
+        color: #0a84ff;
     }
     
     .stat-label {
         font-size: 0.85rem;
-        color: #6c757d;
+        color: #6b7280;
         margin-top: 0.25rem;
     }
     
     .empty-state {
         text-align: center;
         padding: 3rem;
-        color: #6c757d;
+        color: #6b7280;
     }
     
     .empty-state-icon {

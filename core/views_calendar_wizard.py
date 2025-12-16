@@ -8,7 +8,18 @@ import json
 import logging
 from datetime import datetime, timedelta
 
-from .models import Project, Task, ScheduleItem, PMBlockedDay, Employee
+from .models import (
+    Project,
+    Task,
+    ScheduleItem,
+    ScheduleCategory,
+    PMBlockedDay,
+    Employee,
+)
+try:
+    from .models import MeetingMinute
+except Exception:  # pragma: no cover - optional model
+    MeetingMinute = None
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +61,11 @@ def calendar_wizard_save(request):
             return save_task_event(data, request.user)
         elif event_type == 'blocked':
             return save_blocked_day(data, request.user)
-        # Add other types as needed
-        
+        elif event_type == 'milestone':
+            return save_milestone_event(data, request.user)
+        elif event_type == 'meeting':
+            return save_meeting_event(data, request.user)
+
         return JsonResponse({'success': False, 'error': 'Unknown event type'})
         
     except Exception as e:
@@ -101,6 +115,64 @@ def save_task_event(data, user):
     )
     
     return JsonResponse({'success': True, 'event_id': task.id, 'type': 'task'})
+
+
+def _get_default_schedule_category(project):
+    """Return a schedule category for the project, creating a minimalist default if missing."""
+    category = project.schedule_categories.order_by('order', 'id').first()
+    if category:
+        return category
+    return ScheduleCategory.objects.create(project=project, name="General", order=0)
+
+
+def save_milestone_event(data, user):
+    project_id = data.get('project_id')
+    title = data.get('title')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date') or start_date
+
+    project = get_object_or_404(Project, pk=project_id)
+    category = _get_default_schedule_category(project)
+
+    planned_start = datetime.strptime(start_date, '%Y-%m-%d').date()
+    planned_end = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+    milestone = ScheduleItem.objects.create(
+        project=project,
+        category=category,
+        title=title,
+        planned_start=planned_start,
+        planned_end=planned_end,
+        is_milestone=True,
+        status='NOT_STARTED',
+        percent_complete=0,
+        description='',
+        order=0,
+    )
+
+    return JsonResponse({'success': True, 'event_id': milestone.id, 'type': 'milestone'})
+
+
+def save_meeting_event(data, user):
+    if MeetingMinute is None:
+        return JsonResponse({'success': False, 'error': 'Meeting model not available'})
+
+    project_id = data.get('project_id')
+    title = data.get('title')
+    start_date = data.get('start_date')
+
+    project = get_object_or_404(Project, pk=project_id)
+    meeting_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+
+    meeting = MeetingMinute.objects.create(
+        project=project,
+        date=meeting_date,
+        content=title or '',
+        attendees='',
+        created_by=user,
+    )
+
+    return JsonResponse({'success': True, 'event_id': meeting.id, 'type': 'meeting'})
 
 def save_blocked_day(data, user):
     start_date = data.get('start_date')
