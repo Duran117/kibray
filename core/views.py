@@ -2,7 +2,7 @@ import csv
 import io
 import json
 from collections import defaultdict
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time as dt_time
 from decimal import Decimal, InvalidOperation
 from functools import wraps
 from io import BytesIO
@@ -3192,6 +3192,7 @@ def payroll_summary_view(request):
                 day = week_start + timedelta(days=i)
                 start_val = request.POST.get(f"start_{emp.id}_{i}")
                 end_val = request.POST.get(f"end_{emp.id}_{i}")
+                hours_field = request.POST.get(f"hours_{emp.id}_{i}")
 
                 existing_qs = TimeEntry.objects.filter(employee=emp, date=day, change_order__isnull=True)
 
@@ -3208,6 +3209,21 @@ def payroll_summary_view(request):
 
                     time_entry.start_time = start_time
                     time_entry.end_time = end_time
+                    time_entry.save()
+                elif hours_field not in (None, ""):
+                    try:
+                        hours_decimal = Decimal(hours_field)
+                    except Exception:
+                        continue
+                    # Fallback: guardar solo horas con rango 00:00 -> hours
+                    time_entry = existing_qs.order_by("start_time", "id").first()
+                    if not time_entry:
+                        time_entry = TimeEntry(employee=emp, date=day)
+                    start_time = dt_time(0, 0)
+                    end_dt = datetime.combine(day, start_time) + timedelta(minutes=int(hours_decimal * 60))
+                    time_entry.start_time = start_time
+                    time_entry.end_time = end_dt.time()
+                    time_entry.hours_worked = hours_decimal
                     time_entry.save()
                 else:
                     existing_qs.delete()

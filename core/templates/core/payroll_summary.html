@@ -206,37 +206,43 @@
                         <td>{{ row.employee.first_name }} {{ row.employee.last_name }}</td>
                         <td>{{ row.week_period }}</td>
                         {# Compatibilidad: si no viene day_entries, se usa hours_by_day para render básico #}
-                        {% if row.day_entries %}
-                            {% for day in row.day_entries %}
-                                <td style="min-width:110px;">
-                                    <div class="d-flex flex-column gap-1">
-                                        <input type="time"
-                                               name="start_{{ row.employee.id }}_{{ forloop.counter0 }}"
-                                               value="{{ day.start }}"
-                                               class="form-control form-control-sm" />
-                                        <input type="time"
-                                               name="end_{{ row.employee.id }}_{{ forloop.counter0 }}"
-                                               value="{{ day.end }}"
-                                               class="form-control form-control-sm" />
-                                        <small class="text-muted">{{ day.hours|default_if_none:'0' }} h</small>
-                                    </div>
-                                </td>
-                            {% endfor %}
-                        {% elif row.hours_by_day %}
-                            {% for h in row.hours_by_day %}
-                                <td style="min-width:90px;">
-                                    <div class="d-flex flex-column gap-1">
-                                        <input type="number"
-                                               name="hours_{{ row.employee.id }}_{{ forloop.counter0 }}"
-                                               value="{{ h|default_if_none:'' }}"
-                                               min="0"
-                                               step="0.25"
-                                               class="form-control form-control-sm" />
-                                        <small class="text-muted">h</small>
-                                    </div>
-                                </td>
-                            {% endfor %}
-                        {% endif %}
+                        {% with entries=row.day_entries|default:None %}
+                            {% if entries %}
+                                {% for day in entries %}
+                                    <td style="min-width:110px;">
+                                        <div class="d-flex flex-column gap-1">
+                                            <input type="time"
+                                                   name="start_{{ row.employee.id }}_{{ forloop.counter0 }}"
+                                                   value="{{ day.start }}"
+                                                   class="form-control form-control-sm" />
+                                            <input type="time"
+                                                   name="end_{{ row.employee.id }}_{{ forloop.counter0 }}"
+                                                   value="{{ day.end }}"
+                                                   class="form-control form-control-sm" />
+                                            <small class="text-muted">{{ day.hours|default_if_none:'0' }} h</small>
+                                        </div>
+                                    </td>
+                                {% endfor %}
+                            {% else %}
+                                {# Fallback: render time inputs even si solo viene hours_by_day #}
+                                {% for h in row.hours_by_day %}
+                                    <td style="min-width:110px;">
+                                        <div class="d-flex flex-column gap-1">
+                                            <input type="time"
+                                                   name="start_{{ row.employee.id }}_{{ forloop.counter0 }}"
+                                                   value=""
+                                                   class="form-control form-control-sm" />
+                                            <input type="time"
+                                                   name="end_{{ row.employee.id }}_{{ forloop.counter0 }}"
+                                                   value=""
+                                                   class="form-control form-control-sm" />
+                                            <input type="hidden" name="hours_{{ row.employee.id }}_{{ forloop.counter0 }}" value="{{ h|default_if_none:'' }}" />
+                                            <small class="text-muted">{{ h|default_if_none:'0' }} h</small>
+                                        </div>
+                                    </td>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
                         <td>
                             <input type="number" 
                                    name="total_hours_{{ row.employee.id }}" 
