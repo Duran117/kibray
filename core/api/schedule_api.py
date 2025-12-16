@@ -256,6 +256,8 @@ def get_master_schedule_data(request):
         ).order_by("created_at")
         for mr in material_requests:
             start_date = mr.created_at.date()
+            # Not all deployments have a "description" field; fall back to notes/blank
+            mr_description = getattr(mr, "description", None) or getattr(mr, "notes", "") or ""
             events_data.append(
                 {
                     "title": f"📦 Material Request #{mr.id}",
@@ -264,7 +266,7 @@ def get_master_schedule_data(request):
                     "type": "material_request",
                     "color": "#06b6d4",
                     "url": f"/material-requests/{mr.id}/",
-                    "description": (mr.description or "")[:80],
+                    "description": mr_description[:80],
                 }
             )
 
