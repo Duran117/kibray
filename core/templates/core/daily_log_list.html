@@ -105,9 +105,16 @@
             <small class="text-muted">
               <i class="bi bi-person"></i> {{ log.created_by.username }}
             </small>
-            <a href="{% url 'daily_log_detail' log.id %}" class="btn btn-sm btn-outline-primary">
-              <i class="bi bi-eye"></i> Ver Detalle
-            </a>
+            <div class="d-flex gap-2">
+              <a href="{% url 'daily_log_detail' log.id %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i> Ver Detalle
+              </a>
+              {% if can_create %}
+              <a href="{% url 'daily_log_delete' log.id %}" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+              </a>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>

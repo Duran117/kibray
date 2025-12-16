@@ -4377,6 +4377,30 @@ def daily_log_detail(request, log_id):
 
 
 @login_required
+def daily_log_delete(request, log_id):
+    """Eliminar un Daily Log (solo PM, admin, superuser)"""
+    from core.models import DailyLog
+
+    log = get_object_or_404(DailyLog.objects.select_related("project"), id=log_id)
+
+    profile = getattr(request.user, "profile", None)
+    role = getattr(profile, "role", "employee")
+    can_delete = role in ["admin", "superuser", "project_manager"]
+
+    if not can_delete:
+        messages.error(request, "No tienes permisos para eliminar Daily Logs")
+        return redirect("daily_log_detail", log_id=log.id)
+
+    if request.method == "POST":
+        project_id = log.project_id
+        log.delete()
+        messages.success(request, "Daily Log eliminado correctamente")
+        return redirect("daily_log", project_id=project_id)
+
+    return render(request, "core/daily_log_confirm_delete.html", {"log": log, "project": log.project})
+
+
+@login_required
 def daily_log_create(request, project_id):
     """Vista dedicada para crear un nuevo Daily Log"""
     from datetime import date

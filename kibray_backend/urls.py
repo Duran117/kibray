@@ -282,6 +282,7 @@ urlpatterns = [
     path("projects/<int:project_id>/daily-log/", views.daily_log_view, name="daily_log"),
     path("projects/<int:project_id>/daily-log/create/", views.daily_log_create, name="daily_log_create"),
     path("daily-log/<int:log_id>/", views.daily_log_detail, name="daily_log_detail"),
+    path("daily-log/<int:log_id>/delete/", views.daily_log_delete, name="daily_log_delete"),
     path("projects/<int:project_id>/rfis/", views.rfi_list_view, name="rfi_list"),
     path("rfis/<int:rfi_id>/answer/", views.rfi_answer_view, name="rfi_answer"),
     path("rfis/<int:rfi_id>/edit/", views.rfi_edit_view, name="rfi_edit"),

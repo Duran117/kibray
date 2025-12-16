@@ -287,6 +287,9 @@
         <a href="#" class="btn btn-outline-primary">
           <i class="bi bi-pencil"></i> Editar Daily Log
         </a>
+        <a href="{% url 'daily_log_delete' log.id %}" class="btn btn-outline-danger">
+          <i class="bi bi-trash"></i> Eliminar Daily Log
+        </a>
         {% endif %}
       </div>
     </div>

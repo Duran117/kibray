@@ -1,0 +1,43 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-danger text-white d-flex align-items-center">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <div>
+            <h5 class="mb-0">{% trans "Eliminar Daily Log" %}</h5>
+            <small class="text-white-50">{% trans "Esta acción no se puede deshacer" %}</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="mb-3">{% trans "Vas a eliminar el siguiente Daily Log:" %}</p>
+          <ul class="list-unstyled mb-3">
+            <li><strong>{% trans "Proyecto" %}:</strong> {{ project.name }}</li>
+            <li><strong>{% trans "Fecha" %}:</strong> {{ log.date|date:"M d, Y" }}</li>
+            <li><strong>{% trans "Creado por" %}:</strong> {{ log.created_by }}</li>
+          </ul>
+          <div class="alert alert-warning" role="alert">
+            <i class="bi bi-info-circle me-1"></i>
+            {% trans "Al eliminarlo se eliminarán también sus fotos y relaciones asociadas." %}
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'daily_log_detail' log.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Cancelar" %}
+              </a>
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> {% trans "Eliminar definitivamente" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
