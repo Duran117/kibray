@@ -113,7 +113,8 @@ def get_master_schedule_data(request):
                 "category": item.category_id,
                 "category_name": item.category.name if item.category else None,
                 "color": status_colors.get(item.status, "#94a3b8"),
-                "url": f"/schedule/items/{item.id}/",
+                # Use existing Django route (singular) to avoid 404s when clicking details
+                "url": f"/schedule/item/{item.id}/edit/",
             }
         )
 

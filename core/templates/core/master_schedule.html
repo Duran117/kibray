@@ -71,19 +71,97 @@
   
   /* Gantt View Styles */
   .gantt-container {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    overflow-x: auto;
-  }
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow-x: auto;
+    }
   
-  .gantt-timeline {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: 1rem;
-    min-width: 1200px;
-  }
+    .gantt-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .gantt-zoom {
+      display: inline-flex;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+
+    .gantt-zoom button {
+      padding: 0.5rem 0.9rem;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .gantt-zoom button.active {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+  
+    .gantt-timeline {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 1rem;
+      min-width: 1200px;
+    }
+
+    .gantt-scale {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      align-items: stretch;
+    }
+
+    .gantt-scale-labels {
+      color: #475569;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gantt-scale-ticks {
+      position: relative;
+      height: 42px;
+      background: #f8fafc;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .gantt-scale-tick {
+      position: relative;
+      flex: 1;
+      border-left: 1px solid #e2e8f0;
+      display: flex;
+      align-items: flex-end;
+      padding: 0.35rem 0.35rem 0.45rem;
+      font-size: 0.75rem;
+      color: #475569;
+      min-width: 50px;
+      box-sizing: border-box;
+    }
+
+    .gantt-scale-tick:first-child { border-left: none; }
+
+    .gantt-scale-tick.today {
+      background: rgba(14,165,233,0.08);
+      color: #0ea5e9;
+      font-weight: 700;
+    }
   
   .gantt-labels {
     display: flex;
@@ -596,6 +674,26 @@
   </div>
 </div>
 
+<div class="task-modal-backdrop" id="itemDetailModal" aria-hidden="true">
+  <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="itemDetailTitle">
+    <header>
+      <div class="text-lg font-bold" id="itemDetailTitle">{% trans "Detalle de item" %}</div>
+      <button type="button" aria-label="Close" class="text-white/80" onclick="window.MasterSchedule.closeItemDetail()">✕</button>
+    </header>
+    <div style="padding: 18px 20px 12px; display: grid; gap: 10px;">
+      <div><strong>{% trans "Título" %}:</strong> <span data-field="title">-</span></div>
+      <div><strong>{% trans "Estado" %}:</strong> <span data-field="status">-</span></div>
+      <div><strong>{% trans "Rango" %}:</strong> <span data-field="dates">-</span></div>
+      <div><strong>{% trans "Progreso" %}:</strong> <span data-field="progress">0%</span></div>
+    </div>
+    <div class="actions" style="padding: 0 20px 18px; display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" class="btn-secondary" onclick="window.MasterSchedule.closeItemDetail()">{% trans "Cerrar" %}</button>
+      <a class="btn-secondary" data-action="edit" href="#" target="_blank" rel="noopener">{% trans "Ver/editar" %}</a>
+      <button type="button" class="btn-primary" data-action="create-task">{% trans "Crear tarea" %}</button>
+    </div>
+  </div>
+</div>
+
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
@@ -608,6 +706,7 @@
   let scheduleItems = [];
   let ganttMinDate = null;
   let ganttTotalDays = 0;
+  let ganttZoom = 'week';
   let dragState = null;
   
   // View Toggle Logic
@@ -691,6 +790,8 @@
   const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
   ganttMinDate = minDate;
   ganttTotalDays = totalDays;
+
+    const ticks = buildScaleTicks(minDate, maxDate, ganttZoom);
     
     // Build Gantt HTML
     const labelsHTML = projects.map(p => `
@@ -711,7 +812,7 @@
       const widthPercent = (duration / totalDays) * 100;
 
       const itemsForProject = (scheduleItems || []).filter(si => si.project === p.id);
-      const itemsHTML = itemsForProject.map(si => {
+        const itemsHTML = itemsForProject.map(si => {
         const iStart = new Date(si.start_date);
         const iEnd = new Date(si.end_date);
         const iDaysFromStart = Math.max(0, Math.ceil((iStart - minDate) / (1000 * 60 * 60 * 24)));
@@ -719,7 +820,7 @@
         const iLeftPercent = (iDaysFromStart / totalDays) * 100;
         const iWidthPercent = Math.max((iDuration / totalDays) * 100, 0.8);
         return `
-          <div class="gantt-item-bar" data-item-id="${si.id}" data-project-id="${si.project}" data-start="${si.start_date}" data-end="${si.end_date}">
+          <div class="gantt-item-bar" data-item-id="${si.id}" data-project-id="${si.project}" data-start="${si.start_date}" data-end="${si.end_date}" data-url="${si.url || ''}" data-title="${escapeHtml(si.title)}" data-status="${si.status}" data-progress="${si.percent_complete}" data-milestone="${si.is_milestone}">
             <div class="gantt-item-progress" style="width: ${si.percent_complete}%; background: rgba(255,255,255,0.25);"></div>
             <span class="gantt-item-text">${si.is_milestone ? '🚧 ' : ''}${escapeHtml(si.title)}</span>
             <button type="button" class="gantt-item-add" data-item-id="${si.id}" title="{% trans 'Agregar tarea' %}">+</button>
@@ -747,6 +848,20 @@
     }).join('');
     
     document.getElementById('ganttContent').innerHTML = `
+      <div class="gantt-toolbar">
+        <div class="text-sm text-slate-600">Rango: ${formatDate(minDate)} → ${formatDate(maxDate)} · ${totalDays}d</div>
+        <div class="gantt-zoom" role="group" aria-label="Zoom timeline">
+          <button type="button" class="${ganttZoom === 'day' ? 'active' : ''}" data-zoom="day">Día</button>
+          <button type="button" class="${ganttZoom === 'week' ? 'active' : ''}" data-zoom="week">Semana</button>
+          <button type="button" class="${ganttZoom === 'month' ? 'active' : ''}" data-zoom="month">Mes</button>
+        </div>
+      </div>
+      <div class="gantt-scale">
+        <div class="gantt-scale-labels">Línea de tiempo</div>
+        <div class="gantt-scale-ticks">
+          ${ticks.map(t => `<div class="gantt-scale-tick ${t.isToday ? 'today' : ''}" style="flex: ${t.flex}">${t.label}</div>`).join('')}
+        </div>
+      </div>
       <div class="gantt-timeline">
         <div class="gantt-labels">${labelsHTML}</div>
         <div class="gantt-bars">${barsHTML}</div>
@@ -754,6 +869,30 @@
     `;
 
     attachGanttInteractions();
+
+    // Zoom button handlers
+    document.querySelectorAll('.gantt-zoom button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const z = btn.dataset.zoom;
+        if (z && z !== ganttZoom) {
+          ganttZoom = z;
+          renderGantt(projects, scheduleItems);
+        }
+      });
+    });
+  }
+
+  function buildScaleTicks(minDate, maxDate, zoom) {
+    const ticks = [];
+    const stepDays = zoom === 'day' ? 1 : zoom === 'month' ? 30 : 7;
+    const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
+    const count = Math.max(1, Math.ceil(totalDays / stepDays));
+    for (let i = 0; i < count; i++) {
+      const d = addDays(minDate, i * stepDays);
+      const label = zoom === 'month' ? d.toLocaleString(undefined, { month: 'short', year: 'numeric' }) : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      ticks.push({ label, isToday: isSameDay(d, new Date()), flex: stepDays });
+    }
+    return ticks;
   }
 
   function attachGanttInteractions() {
@@ -775,6 +914,8 @@
 
       bar.addEventListener('mousedown', (e) => {
         if ((e.target && e.target.classList.contains('gantt-item-add'))) return;
+        // Only start drag with primary button
+        if (e.button !== 0) return;
         dragState = {
           el: bar,
           startX: e.clientX,
@@ -784,6 +925,17 @@
         };
         document.addEventListener('mousemove', onDragMove);
         document.addEventListener('mouseup', onDragEnd);
+      });
+
+      // Click opens detail modal (without dragging)
+      bar.addEventListener('click', (e) => {
+        if (dragState) return; // ignore if in drag
+        if (e.target && e.target.classList.contains('gantt-item-add')) return;
+        const itemId = bar.dataset.itemId;
+        const item = scheduleItems.find(si => String(si.id) === String(itemId));
+        if (item) {
+          openItemDetail(item);
+        }
       });
     });
 
@@ -873,6 +1025,30 @@
     document.getElementById('taskPriority').value = 'medium';
     document.getElementById('taskDueDate').value = item.start_date ? item.start_date.slice(0,10) : '';
     modal.style.display = 'flex';
+  }
+
+  function openItemDetail(item) {
+    const detail = document.getElementById('itemDetailModal');
+    detail.querySelector('[data-field="title"]').textContent = item.title || '-';
+    detail.querySelector('[data-field="status"]').textContent = item.status || '-';
+    detail.querySelector('[data-field="dates"]').textContent = `${item.start_date} → ${item.end_date}`;
+    detail.querySelector('[data-field="progress"]').textContent = `${item.percent_complete || 0}%`;
+    const editLink = detail.querySelector('[data-action="edit"]');
+    editLink.href = item.url || '#';
+    editLink.target = '_blank';
+    editLink.rel = 'noopener noreferrer';
+
+    const createTaskBtn = detail.querySelector('[data-action="create-task"]');
+    createTaskBtn.onclick = () => {
+      closeItemDetail();
+      openTaskModal(item);
+    };
+    detail.style.display = 'flex';
+  }
+
+  function closeItemDetail() {
+    const detail = document.getElementById('itemDetailModal');
+    detail.style.display = 'none';
   }
 
   function closeTaskModal() {
@@ -976,6 +1152,14 @@
     return div.innerHTML;
   }
 
+  function isSameDay(a, b) {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  function formatDate(d) {
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
   function addDays(date, days) {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
@@ -987,7 +1171,7 @@
     document.body.classList.add('schedule-center');
     fetchScheduleData();
     document.getElementById('taskForm').addEventListener('submit', submitTaskForm);
-    window.MasterSchedule = { closeTaskModal };
+    window.MasterSchedule = { closeTaskModal, closeItemDetail };
   });
 })();
 </script>
