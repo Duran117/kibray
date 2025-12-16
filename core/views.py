@@ -3184,21 +3184,42 @@ def payroll_summary_view(request):
         employees = employees.filter(id=employee_id)
 
     payroll_rows = []
+    time_format = "%H:%M"
     if request.method == "POST":
         for emp in employees:
             # Procesa horas por día
             for i in range(7):
                 day = week_start + timedelta(days=i)
-                hours_field = f"hours_{emp.id}_{i}"
-                hours_val = request.POST.get(hours_field)
-                if hours_val is not None and hours_val != "":
-                    # Busca o crea el TimeEntry para ese día y empleado
-                    time_entry, created = TimeEntry.objects.get_or_create(
-                        employee=emp, date=day, defaults={"hours_worked": float(hours_val)}
-                    )
-                    if not created:
-                        time_entry.hours_worked = float(hours_val)
-                        time_entry.save()
+                start_val = request.POST.get(f"start_{emp.id}_{i}")
+                end_val = request.POST.get(f"end_{emp.id}_{i}")
+
+                existing_qs = TimeEntry.objects.filter(employee=emp, date=day, change_order__isnull=True)
+
+                if start_val and end_val:
+                    try:
+                        start_time = datetime.strptime(start_val, time_format).time()
+                        end_time = datetime.strptime(end_val, time_format).time()
+                    except ValueError:
+                        continue
+
+                    time_entry = existing_qs.order_by("start_time", "id").first()
+                    if not time_entry:
+                        time_entry = TimeEntry(employee=emp, date=day)
+
+                    time_entry.start_time = start_time
+                    time_entry.end_time = end_time
+                    time_entry.save()
+                else:
+                    existing_qs.delete()
+
+            # Recalcula horas semanales desde TimeEntries guardados (evita duplicar lógica)
+            weekly_hours = (
+                TimeEntry.objects.filter(employee=emp, date__range=(week_start, week_end), change_order__isnull=True)
+                .aggregate(total=Sum("hours_worked"))
+                .get("total")
+                or Decimal("0")
+            )
+
             # Procesa PayrollRecordForm como ya lo haces
             record, created = PayrollRecord.objects.get_or_create(
                 employee=emp,
@@ -3212,7 +3233,11 @@ def payroll_summary_view(request):
             )
             form = PayrollRecordForm(request.POST, prefix=str(emp.id), instance=record)
             if form.is_valid():
-                form.save()
+                rec = form.save(commit=False)
+                rec.total_hours = weekly_hours
+                rec.split_hours_regular_overtime()
+                rec.calculate_total_pay()
+                rec.save()
             # --- Aquí marcas como pagado si hay número de cheque ---
             check_number = request.POST.get(f"check_number_{emp.id}")
             if check_number:
@@ -3226,12 +3251,23 @@ def payroll_summary_view(request):
 
     for emp in employees:
         hours_by_day = []
+        day_entries = []
         total_hours = 0
         for i in range(7):
             day = week_start + timedelta(days=i)
-            entries = TimeEntry.objects.filter(employee=emp, date=day, change_order__isnull=True)
+            entries = TimeEntry.objects.filter(employee=emp, date=day, change_order__isnull=True).order_by(
+                "start_time", "id"
+            )
+            te = entries.first()
             day_hours = sum(e.hours_worked or 0 for e in entries)
             hours_by_day.append(day_hours if day_hours else "")
+            day_entries.append(
+                {
+                    "start": te.start_time.strftime(time_format) if te and te.start_time else "",
+                    "end": te.end_time.strftime(time_format) if te and te.end_time else "",
+                    "hours": day_hours if day_hours else "",
+                }
+            )
             total_hours += day_hours
 
         record, created = PayrollRecord.objects.get_or_create(
@@ -3256,6 +3292,7 @@ def payroll_summary_view(request):
                 "employee": emp,
                 "week_period": f"{week_start} - {week_end}",
                 "hours_by_day": hours_by_day,
+                "day_entries": day_entries,
                 "total_hours": total_hours,
                 "hourly_rate": emp.hourly_rate,
                 "total_pay": round(total_hours * float(emp.hourly_rate), 2),
@@ -3268,6 +3305,7 @@ def payroll_summary_view(request):
         "employees": Employee.objects.all(),
         "selected_employee": int(employee_id) if employee_id else "",
         "selected_week": week_start.isoformat(),
+        "selected_week_end": week_end.isoformat(),
     }
     return render(request, "core/payroll_summary.html", context)
 
@@ -5979,9 +6017,34 @@ def task_delete_view(request, task_id: int):
 
 @login_required
 def task_list_all(request):
-    """Lista de tareas asignadas al usuario actual (para empleado)."""
-    tasks = Task.objects.filter(assigned_to=request.user).select_related("project").order_by("-id") if Task else []
-    return render(request, "core/task_list_all.html", {"tasks": tasks})
+    """Listado agrupado de tareas.
+    - Staff / PM: todas las tareas agrupadas por proyecto.
+    - Empleado: solo sus tareas asignadas.
+    """
+    if not Task:
+        tasks = []
+    elif request.user.is_staff or request.user.is_superuser:
+        tasks = Task.objects.select_related("project", "assigned_to").prefetch_related("dependencies").order_by(
+            "project__name", "-id"
+        )
+    else:
+        tasks = (
+            Task.objects.filter(assigned_to=request.user)
+            .select_related("project", "assigned_to")
+            .prefetch_related("dependencies")
+            .order_by("project__name", "-id")
+        )
+
+    can_manage = request.user.is_staff or request.user.is_superuser
+
+    return render(
+        request,
+        "core/task_list_all.html",
+        {
+            "tasks": tasks,
+            "can_manage": can_manage,
+        },
+    )
 
 
 # ===========================

@@ -1300,7 +1300,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def recompute(self, request, pk=None):
         """Recompute payroll records and totals for a period."""
-        from core.services.payroll import recompute_period
+        from core.services.payroll_recompute import recompute_period
 
         period = self.get_object()
         force = request.data.get("force") in (True, "true", "1", 1)

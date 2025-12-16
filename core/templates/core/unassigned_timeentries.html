@@ -92,33 +92,39 @@
       <table class="table table-striped align-middle">
         <thead>
           <tr>
-            <th style="width:28px"><input type="checkbox" onclick="document.querySelectorAll('input[name=selected]').forEach(cb=>cb.checked=this.checked)" /></th>
+            <th style="width:28px"><input type="checkbox" onclick="toggleAll(this)" /></th>
             <th>Fecha</th>
             <th>Empleado</th>
             <th>Proyecto</th>
-            <thead class="table-secondary">
+            <th>Horas</th>
             <th>Notas</th>
+            <th>Acción</th>
           </tr>
         </thead>
         <tbody>
           {% for te in page_obj.object_list %}
             <tr>
-              <td><input type="checkbox" name="selected" value="{{ te.id }}" /></td>
-                <th>Acción</th>
+              <td><input type="checkbox" name="selected" value="{{ te.id }}" data-hours="{{ te.hours_worked|default:'0' }}" data-project="{{ te.project.id|default:'' }}" onchange="recalcSelection()" /></td>
               <td>{{ te.date }}</td>
               <td>{{ te.employee.first_name }} {{ te.employee.last_name }}</td>
-              <td>{{ te.project.name if te.project }}{% if not te.project %}<span class="text-muted">—</span>{% endif %}</td>
+              <td>
+                {% if te.project %}
+                  {{ te.project.name }}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
               <td>{{ te.hours_worked|default:"-" }}</td>
               <td class="small">{{ te.notes|default:"" }}</td>
+              <td>
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="quickAssign({{ te.id }})" title="Asignar rápidamente a CO seleccionado" disabled>⇨</button>
+              </td>
             </tr>
           {% empty %}
-            <tr><td colspan="6" class="text-center text-muted">No hay registros sin CO.</td></tr>
+            <tr><td colspan="7" class="text-center text-muted">No hay registros sin CO.</td></tr>
           {% endfor %}
         </tbody>
       </table>
-                  <td>
-                    <button type="button" class="btn btn-sm btn-outline-success" onclick="quickAssign({{ te.id }})" title="Asignar rápidamente a CO seleccionado" disabled>⇨</button>
-                  </td>
     </div>
   </form>
 
