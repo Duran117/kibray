@@ -1,0 +1,43 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-danger text-white d-flex align-items-center">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <div>
+            <h5 class="mb-0">{% trans "Delete Daily Plan" %}</h5>
+            <small class="text-white-50">{% trans "This action cannot be undone" %}</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="mb-3">{% trans "You're about to delete this daily plan:" %}</p>
+          <ul class="list-unstyled mb-3">
+            <li><strong>{% trans "Project" %}:</strong> {{ plan.project.name }}</li>
+            <li><strong>{% trans "Date" %}:</strong> {{ plan.plan_date|date:"M d, Y" }}</li>
+            <li><strong>{% trans "Status" %}:</strong> {{ plan.get_status_display }}</li>
+          </ul>
+          <div class="alert alert-warning" role="alert">
+            <i class="bi bi-info-circle me-1"></i>
+            {% trans "Deleting will also remove its planned activities." %}
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'daily_plan_detail' plan.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
+              </a>
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> {% trans "Delete plan" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

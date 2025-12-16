@@ -409,6 +409,7 @@ urlpatterns = [
     path("planning/<int:plan_id>/", views.daily_plan_detail, name="daily_plan_detail"),
     path("planning/<int:plan_id>/edit/", views.daily_plan_edit, name="daily_plan_edit"),
     path("planning/<int:plan_id>/timeline/", views.daily_plan_timeline, name="daily_plan_timeline"),
+    path("planning/<int:plan_id>/delete/", views.daily_plan_delete, name="daily_plan_delete"),
     path(
         "planning/activity/<int:activity_id>/delete/",
         views.daily_plan_delete_activity,

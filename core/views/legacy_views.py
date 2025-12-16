@@ -7249,6 +7249,24 @@ def daily_plan_detail(request, plan_id):
 
 
 @login_required
+def daily_plan_delete(request, plan_id):
+    """Delete a daily plan (staff/PM only). Shows confirm page."""
+    if not _is_staffish(request.user):
+        return HttpResponseForbidden("Access denied")
+
+    plan = get_object_or_404(DailyPlan.objects.select_related("project"), pk=plan_id)
+
+    if request.method == "POST":
+        project_name = plan.project.name
+        plan_date = plan.plan_date
+        plan.delete()
+        messages.success(request, _("Daily plan for %(date)s in %(project)s deleted") % {"date": plan_date, "project": project_name})
+        return redirect("daily_planning_dashboard")
+
+    return render(request, "core/daily_plan_confirm_delete.html", {"plan": plan})
+
+
+@login_required
 def daily_planning_dashboard(request):
     """
     Main dashboard for daily planning - shows all plans and overdue alerts
