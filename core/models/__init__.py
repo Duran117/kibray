@@ -7658,6 +7658,22 @@ class CalendarEvent(models.Model):
         return user == self.created_by or self.assigned_to.filter(pk=user.pk).exists()
 
 
+# Meeting Minutes (API expectations in tests)
+class MeetingMinute(models.Model):
+    date = models.DateField()
+    attendees = models.TextField(blank=True, help_text="Lista de asistentes")
+    content = models.TextField(help_text="Contenido enriquecido / markdown")
+    created_at = models.DateTimeField(auto_now_add=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="meeting_minutes")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+
+    def __str__(self):
+        return f"Meeting {self.project_id} on {self.date}"
+
+
 # PWA Push Notifications
 from .push_notifications import PushSubscription
 

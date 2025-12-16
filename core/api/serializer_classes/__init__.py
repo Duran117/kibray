@@ -40,6 +40,8 @@ from .analytics_serializers import (
     KPISerializer,
     ChartDataSerializer,
 )
+# Re-export budget summary serializer used by viewsets/tests
+from core.api.serializers import ProjectBudgetSummarySerializer
 
 __all__ = [
     # User serializers
@@ -72,4 +74,5 @@ __all__ = [
     'ProjectAnalyticsSerializer',
     'KPISerializer',
     'ChartDataSerializer',
+    'ProjectBudgetSummarySerializer',
 ]

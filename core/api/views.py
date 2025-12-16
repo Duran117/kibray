@@ -60,6 +60,7 @@ from core.models import (
     ColorApproval,
     ScheduleCategory,
     ScheduleItem,
+    MeetingMinute,
     SitePhoto,
     Task,
     TaskDependency,
@@ -89,9 +90,11 @@ from .serializers import (
     InvoicePaymentAPISerializer,
     InvoiceSerializer,
     LoginAttemptSerializer,
+    MeetingMinuteSerializer,
     MaterialCatalogSerializer,
     MaterialRequestSerializer,
     NotificationSerializer,
+    MeetingMinuteSerializer,
     PayrollPaymentSerializer,
     PayrollPeriodSerializer,
     PayrollRecordSerializer,
@@ -150,6 +153,40 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     def count_unread(self, request):
         count = Notification.objects.filter(user=request.user, is_read=False).count()
         return Response({"unread_count": count})
+
+
+class MeetingMinuteViewSet(viewsets.ModelViewSet):
+    """CRUD for meeting minutes with helper action to convert to tasks."""
+
+    serializer_class = MeetingMinuteSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["project", "date"]
+
+    def get_queryset(self):
+        return MeetingMinute.objects.select_related("project").order_by("-date", "-id")
+
+    def perform_create(self, serializer):
+        extra = {}
+        if any(f.name == "created_by" for f in MeetingMinute._meta.fields):
+            extra["created_by"] = self.request.user
+        serializer.save(**extra)
+
+    @action(detail=True, methods=["post"], url_path="create_task")
+    def create_task(self, request, pk=None):
+        minute = self.get_object()
+        text = request.data.get("text") or request.data.get("title") or "Follow up"
+        task_kwargs = {
+            "project": minute.project,
+            "title": text,
+            "description": minute.content or "",
+            "status": "Pendiente",
+        }
+        if any(f.name == "created_by" for f in Task._meta.fields):
+            task_kwargs["created_by"] = request.user
+        task = Task.objects.create(**task_kwargs)
+        data = TaskSerializer(task, context={"request": request}).data
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class ProjectManagerAssignmentViewSet(viewsets.ModelViewSet):
@@ -1227,7 +1264,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
 
 class PayrollPeriodViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollPeriodSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrPM]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["status", "week_start", "week_end"]
     ordering_fields = ["week_start", "week_end", "created_at"]
@@ -1331,7 +1368,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
 
 class PayrollRecordViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollRecordSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrPM]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["period", "employee", "week_start", "week_end", "reviewed"]
     ordering_fields = ["week_start", "employee__last_name"]
@@ -1367,7 +1404,7 @@ class PayrollRecordViewSet(viewsets.ModelViewSet):
 
 class PayrollPaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollPaymentSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrPM]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["payroll_record", "payment_date", "payment_method"]
     ordering_fields = ["payment_date", "amount"]

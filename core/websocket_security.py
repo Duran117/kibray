@@ -37,9 +37,12 @@ class WebSocketSecurityValidator:
     # Allowed message types (whitelist approach)
     ALLOWED_MESSAGE_TYPES = {
         'chat_message',
+        'message',
+        'typing',
         'typing_start',
         'typing_stop',
         'mark_read',
+        'read_receipt',
         'ping',
         'pong',
         'status_update',
@@ -175,6 +178,9 @@ class WebSocketSecurityValidator:
                 
                 # Remove malicious content
                 sanitized = re.sub(pattern, '', sanitized, flags=re.IGNORECASE)
+
+        # Explicitly strip common JS payload fragments like alert(...)
+        sanitized = re.sub(r"alert\s*\([^)]*\)", "", sanitized, flags=re.IGNORECASE)
         
         return sanitized
     

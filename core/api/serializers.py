@@ -21,6 +21,7 @@ from core.models import (
     InventoryItem,  # ⭐ Added for Inventory serializer
     LoginAttempt,
     Notification,
+    MeetingMinute,
     PermissionMatrix,
     PlanPin,
     Project,
@@ -81,6 +82,15 @@ class NotificationSerializer(serializers.ModelSerializer):
             "related_object_type",
             "related_object_id",
         ]
+        read_only_fields = ["created_at"]
+
+
+class MeetingMinuteSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source="project.name", read_only=True)
+
+    class Meta:
+        model = MeetingMinute
+        fields = ["id", "project", "project_name", "date", "attendees", "content", "created_at"]
         read_only_fields = ["created_at"]
 
 

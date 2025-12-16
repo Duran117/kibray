@@ -35,6 +35,7 @@ from .views import (
     BIAnalyticsViewSet,
     BudgetLineViewSet,
     BudgetVarianceAnalysisAPIView,
+    MeetingMinuteViewSet,
     CashFlowProjectionAPIView,
     ChatChannelViewSet,
     ChatMessageViewSet,
@@ -78,6 +79,7 @@ from .views import (
     PayrollPaymentViewSet,
     PayrollPeriodViewSet,
     PayrollRecordViewSet,
+    PayrollDashboardView,
     PermissionMatrixViewSet,
     PlannedActivityViewSet,
     PlanPinViewSet,
@@ -175,6 +177,7 @@ router.register(r"inventory/locations", InventoryLocationViewSet, basename="inve
 router.register(r"inventory/stocks", ProjectInventoryViewSet, basename="project-inventory")
 router.register(r"inventory/movements", InventoryMovementViewSet, basename="inventory-movement")
 router.register(r"field-materials", FieldMaterialsViewSet, basename="field-materials")
+router.register(r"meeting-minutes", MeetingMinuteViewSet, basename="meeting-minute")
 
 # Module 16: Payroll
 router.register(r"payroll/periods", PayrollPeriodViewSet, basename="payroll-period")
@@ -242,6 +245,7 @@ urlpatterns = [
     path("dashboards/projects/<int:project_id>/", ProjectDashboardView.as_view(), name="dashboard-project"),
     path("dashboards/client/", ClientDashboardView.as_view(), name="dashboard-client"),
     path("dashboards/admin/", AdminDashboardView.as_view(), name="dashboard-admin"),
+    path("dashboards/payroll/", PayrollDashboardView.as_view(), name="dashboard-payroll"),
     path("dashboards/invoices/", InvoiceDashboardView.as_view(), name="dashboard-invoices"),
     path("dashboards/invoices/trends/", InvoiceTrendsView.as_view(), name="dashboard-invoice-trends"),
     path("dashboards/materials/", MaterialsDashboardView.as_view(), name="dashboard-materials"),

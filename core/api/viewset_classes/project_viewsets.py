@@ -1,6 +1,9 @@
 """
 Project-related viewsets for the Kibray API
 """
+from decimal import Decimal
+
+from django.db import models
 from django.db.models import Q, Count, Sum
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -12,6 +15,7 @@ from core.api.serializer_classes import (
     ProjectDetailSerializer,
     ProjectCreateUpdateSerializer,
     ProjectStatsSerializer,
+    ProjectBudgetSummarySerializer,
 )
 from core.api.filter_classes import ProjectFilter
 from core.api.permission_classes import IsProjectMember
@@ -106,6 +110,33 @@ class ProjectViewSet(viewsets.ModelViewSet):
         
         serializer = ProjectStatsSerializer(data)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def budget_overview(self, request):
+        """Budget overview for all projects (lightweight aggregation)."""
+        projects = self.get_queryset().annotate(
+            expense_total=models.functions.Coalesce(models.Sum('expenses__amount'), Decimal('0.00'))
+        )
+        summaries = []
+        for project in projects:
+            percent_spent = round(
+                (project.expense_total / project.budget_total * 100) if project.budget_total > 0 else 0, 2
+            )
+            summaries.append(
+                {
+                    "project_id": project.id,
+                    "project_name": project.name,
+                    "budget_total": project.budget_total,
+                    "budget_labor": project.budget_labor,
+                    "budget_materials": project.budget_materials,
+                    "budget_other": project.budget_other,
+                    "total_expenses": project.expense_total,
+                    "budget_remaining": project.budget_total - project.expense_total,
+                    "percent_spent": percent_spent,
+                    "is_over_budget": project.expense_total > project.budget_total,
+                }
+            )
+        return Response(ProjectBudgetSummarySerializer(summaries, many=True).data)
     
     def perform_create(self, serializer):
         """Set created_by on project creation"""

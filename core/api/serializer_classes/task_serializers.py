@@ -86,14 +86,17 @@ class TaskCreateUpdateSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
-    dependencies_ids = serializers.ListField(child=serializers.IntegerField(), required=False)
+    # Accept dependencies from clients; expose computed dependencies_ids in responses
+    dependencies = serializers.ListField(child=serializers.IntegerField(), required=False, write_only=True)
+    dependencies_ids = serializers.SerializerMethodField(read_only=True)
     progress_percent = serializers.IntegerField(required=False)
+    reopen_events_count = serializers.IntegerField(read_only=True, default=0)
     
     class Meta:
         model = Task
         fields = [
             'project', 'title', 'description', 'status', 'priority',
-            'due_date', 'assigned_to', 'dependencies_ids', 'progress_percent'
+            'due_date', 'assigned_to', 'dependencies', 'dependencies_ids', 'progress_percent', 'reopen_events_count'
         ]
     
     def validate_due_date(self, value):
@@ -113,7 +116,7 @@ class TaskCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        dep_ids = validated_data.pop('dependencies_ids', [])
+        dep_ids = validated_data.pop('dependencies', [])
         task = super().create(validated_data)
         if dep_ids:
             from core.models import Task as TaskModel
@@ -122,13 +125,26 @@ class TaskCreateUpdateSerializer(serializers.ModelSerializer):
         return task
 
     def update(self, instance, validated_data):
-        dep_ids = validated_data.pop('dependencies_ids', None)
+        dep_ids = validated_data.pop('dependencies', None)
         task = super().update(instance, validated_data)
         if dep_ids is not None:
             from core.models import Task as TaskModel
             deps = TaskModel.objects.filter(id__in=dep_ids)
             task.dependencies.set(deps)
         return task
+
+    def get_dependencies_ids(self, obj):
+        try:
+            return list(obj.dependencies.values_list('id', flat=True))
+        except Exception:
+            return []
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Ensure dependencies_ids always present in responses
+        data['dependencies_ids'] = self.get_dependencies_ids(instance)
+        data['reopen_events_count'] = getattr(instance, 'reopen_events_count', 0)
+        return data
 
 
 class TaskStatsSerializer(serializers.Serializer):

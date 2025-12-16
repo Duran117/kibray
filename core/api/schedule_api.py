@@ -212,15 +212,15 @@ def get_master_schedule_data(request):
     # Meetings
     if MeetingMinute is not None:
         meetings = MeetingMinute.objects.filter(
-            meeting_date__gte=start_range,
-            meeting_date__lte=end_range,
-        ).order_by("meeting_date")
+            date__gte=start_range,
+            date__lte=end_range,
+        ).order_by("date")
         for meeting in meetings:
             events_data.append(
                 {
                     "title": f"📅 Meeting: {meeting.title}",
-                    "start": meeting.meeting_date.isoformat(),
-                    "end": meeting.meeting_date.isoformat(),
+                    "start": meeting.date.isoformat(),
+                    "end": meeting.date.isoformat(),
                     "type": "meeting",
                     "color": "#8b5cf6",
                     "url": f"/meeting-minutes/{meeting.id}/",
