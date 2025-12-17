@@ -4,172 +4,318 @@
 
 {% block title %}{% trans "Calendar Event Wizard" %} - Kibray{% endblock %}
 
+{% block extra_css %}
+<style>
+    .wizard-wrapper {
+        background: #f5f5f7;
+        min-height: 100vh;
+        padding: 2.5rem 0;
+    }
+
+    .wizard-card {
+        border-radius: 18px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 18px 32px rgba(0,0,0,0.08);
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .wizard-header {
+        background: #ffffffcc;
+        border-radius: 18px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 16px 30px rgba(0,0,0,0.06);
+        backdrop-filter: blur(8px);
+        text-align: center;
+    }
+
+    .wizard-header h2 {
+        color: #111827;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.35rem;
+    }
+
+    .wizard-header p {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    /* Steps */
+    .steps-track {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        position: relative;
+        margin-top: 1.5rem;
+    }
+
+    .steps-track::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 55%;
+        height: 3px;
+        background: #e5e7eb;
+        z-index: 0;
+    }
+
+    .step-indicator {
+        width: 90px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-circle {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin: 0 auto 6px;
+        transition: all 0.25s ease;
+        background: #e5e7eb;
+        color: #111827;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    }
+
+    .step-indicator.active .step-circle {
+        background: #0a84ff;
+        color: #fff;
+        box-shadow: 0 0 0 6px rgba(10,132,255,0.18);
+    }
+
+    .step-label {
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    /* Progress */
+    .progress-slim {
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .progress-slim .progress-bar {
+        background: linear-gradient(90deg, #0a84ff, #34c759);
+    }
+
+    /* Form cards */
+    .wizard-card .card-body {
+        padding: 1.75rem;
+    }
+
+    .card-radio label {
+        cursor: pointer;
+        transition: all 0.2s;
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.05);
+        background: #f9fafb;
+        min-height: 120px;
+    }
+
+    .card-radio .form-check-input {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+    }
+
+    .card-radio .form-check-input:checked + label {
+        border-color: rgba(10,132,255,0.45);
+        background: #e8f2ff;
+        box-shadow: 0 12px 24px rgba(10,132,255,0.15);
+    }
+
+    .wizard-step h5 {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .form-control, .form-select {
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.08);
+        padding: 0.65rem 0.9rem;
+    }
+
+    .review-box {
+        background: #f9fafb;
+        border-radius: 14px;
+        padding: 1.25rem;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .wizard-actions .btn {
+        border-radius: 12px;
+        padding: 0.65rem 1.25rem;
+        font-weight: 700;
+    }
+
+    .wizard-actions .btn-primary {
+        background: #0a84ff;
+        border-color: #0a84ff;
+        box-shadow: 0 12px 24px rgba(10,132,255,0.25);
+    }
+
+    .wizard-actions .btn-primary:hover {
+        background: #0066cc;
+        border-color: #0066cc;
+    }
+
+    .wizard-actions .btn-success {
+        box-shadow: 0 12px 24px rgba(52,199,89,0.22);
+    }
+
+    @media (max-width: 768px) {
+        .wizard-card .card-body {
+            padding: 1.25rem;
+        }
+
+        .steps-track::before {
+            width: 80%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="text-center mb-5">
-                <h2 class="h3">{% trans "Create Calendar Event" %}</h2>
-                <p class="text-muted">{% trans "Follow the steps to add a new event to the calendar." %}</p>
-                
-                <!-- Progress -->
-                <div class="d-flex justify-content-center align-items-center mt-4 position-relative">
-                    <div class="progress position-absolute w-50" style="height: 2px; z-index: 0;">
+<div class="wizard-wrapper">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-9">
+                <div class="wizard-header">
+                    <h2 class="h3">{% trans "Create Calendar Event" %}</h2>
+                    <p>{% trans "Follow the steps to add a new event to the calendar." %}</p>
+                    <div class="steps-track">
+                        <div class="progress progress-slim position-absolute w-50" style="z-index:0; visibility:hidden; height:0"></div>
+                        <div class="step-indicator active" data-step="1">
+                            <div class="step-circle">1</div>
+                            <small class="step-label">{% trans "Type" %}</small>
+                        </div>
+                        <div class="step-indicator" data-step="2">
+                            <div class="step-circle">2</div>
+                            <small class="step-label">{% trans "Details" %}</small>
+                        </div>
+                        <div class="step-indicator" data-step="3">
+                            <div class="step-circle">3</div>
+                            <small class="step-label">{% trans "Review" %}</small>
+                        </div>
+                    </div>
+                    <div class="progress progress-slim mt-4 mx-auto" style="max-width: 360px;">
                         <div class="progress-bar" id="wizardProgress" style="width: 0%"></div>
                     </div>
-                    
-                    <div class="step-indicator active" data-step="1">
-                        <div class="step-circle bg-primary text-white">1</div>
-                        <small class="step-label">{% trans "Type" %}</small>
-                    </div>
-                    <div class="step-indicator" data-step="2">
-                        <div class="step-circle bg-light text-muted">2</div>
-                        <small class="step-label">{% trans "Details" %}</small>
-                    </div>
-                    <div class="step-indicator" data-step="3">
-                        <div class="step-circle bg-light text-muted">3</div>
-                        <small class="step-label">{% trans "Review" %}</small>
-                    </div>
                 </div>
-            </div>
 
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-4 p-md-5">
-                    <form id="calendarWizardForm">
-                        {% csrf_token %}
-                        
-                        <!-- Step 1: Type -->
-                        <div class="wizard-step" id="step1">
-                            <h5 class="mb-4">{% trans "Select Event Type" %}</h5>
-                            <div class="row g-3">
-                                {% for type_code, type_name in event_types %}
-                                <div class="col-md-6">
-                                    <div class="form-check card-radio">
-                                        <input class="form-check-input" type="radio" name="type" id="type_{{ type_code }}" value="{{ type_code }}" required>
-                                        <label class="form-check-label card p-3 h-100" for="type_{{ type_code }}">
-                                            <span class="fw-bold d-block mb-1">{{ type_name }}</span>
-                                            <small class="text-muted">
-                                                {% if type_code == 'task' %}{% trans "Project task or activity" %}
-                                                {% elif type_code == 'blocked' %}{% trans "Time off or unavailable" %}
-                                                {% else %}{% trans "General event" %}{% endif %}
-                                            </small>
-                                        </label>
+                <div class="wizard-card">
+                    <div class="card-body">
+                        <form id="calendarWizardForm">
+                            {% csrf_token %}
+                            
+                            <!-- Step 1: Type -->
+                            <div class="wizard-step" id="step1">
+                                <h5 class="mb-4">{% trans "Select Event Type" %}</h5>
+                                <div class="row g-3">
+                                    {% for type_code, type_name in event_types %}
+                                    <div class="col-md-6">
+                                        <div class="form-check card-radio position-relative h-100">
+                                            <input class="form-check-input" type="radio" name="type" id="type_{{ type_code }}" value="{{ type_code }}" required>
+                                            <label class="form-check-label card p-3 h-100" for="type_{{ type_code }}">
+                                                <span class="fw-bold d-block mb-1">{{ type_name }}</span>
+                                                <small class="text-muted d-block">
+                                                    {% if type_code == 'task' %}{% trans "Project task or activity" %}
+                                                    {% elif type_code == 'blocked' %}{% trans "Time off or unavailable" %}
+                                                    {% else %}{% trans "General event" %}{% endif %}
+                                                </small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Details -->
+                            <div class="wizard-step d-none" id="step2">
+                                <h5 class="mb-4">{% trans "Event Details" %}</h5>
+                                
+                                <!-- Project Selection (Hidden for Blocked) -->
+                                <div id="projectField" class="mb-3">
+                                    <label class="form-label">{% trans "Project" %} <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="project_id">
+                                        <option value="">{% trans "Select Project..." %}</option>
+                                        {% for p in projects %}
+                                        <option value="{{ p.id }}">{{ p.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "Title / Reason" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="title" required>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{% trans "Start Date" %} <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="start_date" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">{% trans "End Date" %} <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="end_date" required>
                                     </div>
                                 </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Step 2: Details -->
-                        <div class="wizard-step d-none" id="step2">
-                            <h5 class="mb-4">{% trans "Event Details" %}</h5>
-                            
-                            <!-- Project Selection (Hidden for Blocked) -->
-                            <div id="projectField" class="mb-3">
-                                <label class="form-label">{% trans "Project" %} <span class="text-danger">*</span></label>
-                                <select class="form-select" name="project_id">
-                                    <option value="">{% trans "Select Project..." %}</option>
-                                    {% for p in projects %}
-                                    <option value="{{ p.id }}">{{ p.name }}</option>
-                                    {% endfor %}
-                                </select>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">{% trans "Title / Reason" %} <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="title" required>
-                            </div>
-
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">{% trans "Start Date" %} <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control" name="start_date" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">{% trans "End Date" %} <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control" name="end_date" required>
+                            <!-- Step 3: Review -->
+                            <div class="wizard-step d-none" id="step3">
+                                <h5 class="mb-4">{% trans "Review Event" %}</h5>
+                                <div class="review-box">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-4">{% trans "Type" %}</dt>
+                                        <dd class="col-sm-8" id="reviewType">-</dd>
+                                        
+                                        <dt class="col-sm-4">{% trans "Title" %}</dt>
+                                        <dd class="col-sm-8" id="reviewTitle">-</dd>
+                                        
+                                        <dt class="col-sm-4">{% trans "Date Range" %}</dt>
+                                        <dd class="col-sm-8" id="reviewDate">-</dd>
+                                        
+                                        <dt class="col-sm-4" id="reviewProjectLabel">{% trans "Project" %}</dt>
+                                        <dd class="col-sm-8" id="reviewProject">-</dd>
+                                    </dl>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Step 3: Review -->
-                        <div class="wizard-step d-none" id="step3">
-                            <h5 class="mb-4">{% trans "Review Event" %}</h5>
-                            <div class="bg-light p-4 rounded">
-                                <dl class="row mb-0">
-                                    <dt class="col-sm-4">{% trans "Type" %}</dt>
-                                    <dd class="col-sm-8" id="reviewType">-</dd>
-                                    
-                                    <dt class="col-sm-4">{% trans "Title" %}</dt>
-                                    <dd class="col-sm-8" id="reviewTitle">-</dd>
-                                    
-                                    <dt class="col-sm-4">{% trans "Date Range" %}</dt>
-                                    <dd class="col-sm-8" id="reviewDate">-</dd>
-                                    
-                                    <dt class="col-sm-4" id="reviewProjectLabel">{% trans "Project" %}</dt>
-                                    <dd class="col-sm-8" id="reviewProject">-</dd>
-                                </dl>
+                            <!-- Navigation -->
+                            <div class="wizard-actions d-flex justify-content-between align-items-center mt-5">
+                                <button type="button" class="btn btn-outline-secondary" id="prevBtn" disabled>
+                                    <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-primary" id="nextBtn">
+                                        {% trans "Next Step" %}<i class="bi bi-arrow-right ms-2"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-success d-none" id="submitBtn">
+                                        <i class="bi bi-check-lg me-2"></i>{% trans "Create Event" %}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- Navigation -->
-                        <div class="d-flex justify-content-between mt-5">
-                            <button type="button" class="btn btn-outline-secondary" id="prevBtn" disabled>
-                                <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
-                            </button>
-                            <button type="button" class="btn btn-primary" id="nextBtn">
-                                {% trans "Next Step" %}<i class="bi bi-arrow-right ms-2"></i>
-                            </button>
-                            <button type="button" class="btn btn-success d-none" id="submitBtn">
-                                <i class="bi bi-check-lg me-2"></i>{% trans "Create Event" %}
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.step-circle {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin: 0 auto 5px;
-    position: relative;
-    z-index: 1;
-    transition: all 0.3s ease;
-}
-.step-indicator {
-    width: 80px;
-    text-align: center;
-    position: relative;
-    z-index: 1;
-}
-.step-indicator.active .step-circle {
-    background-color: var(--bs-primary) !important;
-    color: white !important;
-    box-shadow: 0 0 0 5px rgba(var(--bs-primary-rgb), 0.2);
-}
-.card-radio .form-check-input {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-}
-.card-radio label {
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.card-radio .form-check-input:checked + label {
-    border-color: var(--bs-primary);
-    background-color: rgba(var(--bs-primary-rgb), 0.05);
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -198,13 +344,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update Indicators
         document.querySelectorAll('.step-indicator').forEach(el => {
             const step = parseInt(el.dataset.step);
-            const circle = el.querySelector('.step-circle');
             if (step <= currentStep) {
-                circle.classList.remove('bg-light', 'text-muted');
-                circle.classList.add('bg-primary', 'text-white');
+                el.classList.add('active');
             } else {
-                circle.classList.add('bg-light', 'text-muted');
-                circle.classList.remove('bg-primary', 'text-white');
+                el.classList.remove('active');
             }
         });
 
