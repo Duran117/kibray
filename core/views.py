@@ -1198,8 +1198,35 @@ def payroll_weekly_review(request):
     from datetime import datetime, timedelta
 
     week_start_str = request.GET.get("week_start")
-    if week_start_str:
-        week_start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
+
+    def _parse_week_start(raw: str):
+        if not raw:
+            return None
+        raw = raw.strip()
+        formats = [
+            "%Y-%m-%d",
+            "%Y/%m/%d",
+            "%m/%d/%Y",
+            "%d/%m/%Y",
+            "%m-%d-%Y",
+            "%d-%m-%Y",
+        ]
+        # Permitir entradas sin año (ej: 12-11) usando año actual
+        short_match = re.match(r"^(\d{1,2})[/-](\d{1,2})$", raw)
+        if short_match:
+            m, d = short_match.groups()
+            raw = f"{datetime.now().year}-{int(m):02d}-{int(d):02d}"
+            formats.insert(0, "%Y-%m-%d")
+        for fmt in formats:
+            try:
+                return datetime.strptime(raw, fmt).date()
+            except Exception:
+                continue
+        return None
+
+    parsed = _parse_week_start(week_start_str)
+    if parsed:
+        week_start = parsed
     else:
         today = datetime.now().date()
         week_start = today - timedelta(days=today.weekday())  # Lunes de esta semana
