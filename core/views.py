@@ -8,6 +8,7 @@ from functools import wraps
 from io import BytesIO
 
 from django.contrib import messages
+import logging
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives, send_mail
@@ -32,6 +33,8 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _, gettext
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core import signing
+
+logger = logging.getLogger(__name__)
 import re
 try:
     from xhtml2pdf import pisa  # Optional HTML->PDF engine (requires system cairo libs)
@@ -3147,8 +3150,22 @@ def unassigned_timeentries_view(request):
         page_size = int(request.GET.get("ps", 50))
     except (TypeError, ValueError):
         page_size = 50
-    paginator = Paginator(qs, page_size)
-    page_obj = paginator.get_page(request.GET.get("page"))
+
+    # Evitar valores inválidos que rompan la paginación (ps=0 lanza ValueError)
+    if page_size <= 0:
+        page_size = 50
+    # Limitar tamaño máximo para no cargar demasiadas filas a la vez
+    if page_size > 500:
+        page_size = 500
+
+    try:
+        paginator = Paginator(qs, page_size)
+        page_obj = paginator.get_page(request.GET.get("page"))
+    except Exception:
+        logger.exception("Failed to paginate unassigned timeentries", extra={"page_size": page_size})
+        messages.error(request, _("No se pudo paginar los registros; se usará el tamaño por defecto."))
+        paginator = Paginator(qs, 50)
+        page_obj = paginator.get_page(1)
 
     projects = Project.objects.all().order_by("name")
     employees = Employee.objects.filter(is_active=True).order_by("last_name")
