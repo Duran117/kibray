@@ -106,7 +106,13 @@
             <tr>
               <td><input type="checkbox" name="selected" value="{{ te.id }}" data-hours="{{ te.hours_worked|default:'0' }}" data-project="{% if te.project %}{{ te.project.id }}{% endif %}" onchange="recalcSelection()" /></td>
               <td>{{ te.date }}</td>
-              <td>{{ te.employee.first_name }} {{ te.employee.last_name }}</td>
+              <td>
+                {% if te.employee %}
+                  {{ te.employee.first_name }} {{ te.employee.last_name }}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
               <td>
                 {% if te.project %}
                   {{ te.project.name }}
