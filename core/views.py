@@ -3070,7 +3070,10 @@ def changeorder_board_view(request):
 @login_required
 def unassigned_timeentries_view(request):
     """Lista de TimeEntries sin change_order para asignación masiva por PM/admin."""
-    profile = getattr(request.user, "profile", None)
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = None
     role = getattr(profile, "role", "employee")
     # Permitir staff/superuser aunque no tengan profile de PM
     if role not in ["admin", "superuser", "project_manager"] and not (
