@@ -646,6 +646,38 @@ class ClockInForm(forms.Form):
                 self.fields['project'].empty_label = "No tienes proyectos asignados hoy"
                 self.fields['project'].widget.attrs['disabled'] = True
 
+        # Filtrar COs por proyecto enviado para evitar combinaciones inválidas
+        project_id = None
+        if self.is_bound:
+            project_id = self.data.get("project")
+        elif self.initial.get("project"):
+            project_id = getattr(self.initial.get("project"), "id", self.initial.get("project"))
+
+        if project_id:
+            self.fields["change_order"].queryset = ChangeOrder.objects.filter(
+                project_id=project_id, status__in=["pending", "approved", "sent"]
+            ).order_by("-date_created")
+            self.fields["change_order"].empty_label = "Selecciona CO del proyecto"
+        else:
+            self.fields["change_order"].queryset = ChangeOrder.objects.none()
+            self.fields["change_order"].empty_label = "Selecciona un proyecto"
+
+    def clean(self):
+        cleaned = super().clean()
+        project = cleaned.get("project")
+        co = cleaned.get("change_order")
+
+        if project:
+            project_cos = ChangeOrder.objects.filter(project=project, status__in=["pending", "approved", "sent"])
+            if co and co.project_id != project.id:
+                raise forms.ValidationError("El CO seleccionado no pertenece al proyecto elegido.")
+            if not co and project_cos.count() == 1:
+                cleaned["change_order"] = project_cos.first()
+            elif project_cos.exists() and not co:
+                raise forms.ValidationError("Selecciona el CO del proyecto para que las horas no queden sin asignar.")
+
+        return cleaned
+
 
 class MaterialsRequestForm(forms.Form):
     catalog_item = forms.ChoiceField(required=False, label="Material del catálogo")
