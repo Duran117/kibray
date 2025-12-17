@@ -3189,6 +3189,7 @@ def unassigned_timeentries_view(request):
                 "date_to": date_to,
                 "page_size": page_size,
             },
+            "page_sizes": [25, 50, 100],
         },
     )
 

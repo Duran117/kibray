@@ -37,8 +37,8 @@
     <div class="col-md-2">
       <label class="form-label">Por página</label>
       <select name="ps" class="form-select">
-        {% for s in '25,50,100'.split(',') %}
-          <option value="{{ s }}" {% if filters.page_size|stringformat:'s' == s %}selected{% endif %}>{{ s }}</option>
+        {% for s in page_sizes %}
+          <option value="{{ s }}" {% if filters.page_size|stringformat:'s' == s|stringformat:'s' %}selected{% endif %}>{{ s }}</option>
         {% endfor %}
       </select>
     </div>

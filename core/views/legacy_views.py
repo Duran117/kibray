@@ -3199,8 +3199,15 @@ def unassigned_timeentries_view(request):
                 messages.success(request, _("CO #%(co_id)s creado y %(count)s registros asignados.") % {"co_id": co.id, "count": updated})
             return redirect(request.get_full_path())
 
-    # Paginación ligera
-    page_size = int(request.GET.get("ps", 50))
+    # Paginación ligera (tolerante a valores inválidos)
+    try:
+        page_size = int(request.GET.get("ps", 50))
+    except (TypeError, ValueError):
+        page_size = 50
+    if page_size <= 0:
+        page_size = 50
+    if page_size > 500:
+        page_size = 500
     paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
@@ -3226,6 +3233,7 @@ def unassigned_timeentries_view(request):
                 "date_to": date_to,
                 "page_size": page_size,
             },
+            "page_sizes": [25, 50, 100],
         },
     )
 
