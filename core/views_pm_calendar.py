@@ -129,6 +129,7 @@ def pm_calendar_view(request):
             'type': 'invoice',
             'icon': '💵',
             'urgency': urgency,
+                'badge_class': 'bg-rose-100 text-rose-700' if urgency == 'danger' else 'bg-amber-100 text-amber-700' if urgency == 'warning' else 'bg-sky-100 text-sky-700',
             'days_until': days_until,
         })
     
@@ -153,6 +154,7 @@ def pm_calendar_view(request):
             'type': 'milestone',
             'icon': '🚧',
             'urgency': urgency,
+                'badge_class': 'bg-rose-100 text-rose-700' if urgency == 'danger' else 'bg-amber-100 text-amber-700' if urgency == 'warning' else 'bg-sky-100 text-sky-700',
             'days_until': days_until,
         })
     
@@ -178,6 +180,7 @@ def pm_calendar_view(request):
             'type': 'task',
             'icon': '📋',
             'urgency': urgency,
+                'badge_class': 'bg-rose-100 text-rose-700' if urgency == 'danger' else 'bg-amber-100 text-amber-700' if urgency == 'warning' else 'bg-sky-100 text-sky-700',
             'days_until': days_until,
             'priority': task.priority,
         })
