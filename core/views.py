@@ -3072,7 +3072,10 @@ def unassigned_timeentries_view(request):
     """Lista de TimeEntries sin change_order para asignación masiva por PM/admin."""
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
-    if role not in ["admin", "superuser", "project_manager"]:
+    # Permitir staff/superuser aunque no tengan profile de PM
+    if role not in ["admin", "superuser", "project_manager"] and not (
+        request.user.is_staff or request.user.is_superuser
+    ):
         return redirect("dashboard")
 
     # Filtros
@@ -3136,8 +3139,11 @@ def unassigned_timeentries_view(request):
                 messages.success(request, _("CO #%(co_id)s creado y %(count)s registros asignados.") % {"co_id": co.id, "count": updated})
             return redirect(request.get_full_path())
 
-    # Paginación ligera
-    page_size = int(request.GET.get("ps", 50))
+    # Paginación ligera (tolerante a valores inválidos)
+    try:
+        page_size = int(request.GET.get("ps", 50))
+    except (TypeError, ValueError):
+        page_size = 50
     paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
