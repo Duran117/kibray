@@ -1241,6 +1241,14 @@ def payroll_weekly_review(request):
     # Obtener todos los empleados activos
     employees = Employee.objects.filter(is_active=True).order_by("last_name", "first_name")
 
+    # Diagnóstico: entradas sin employee o con employee inactivo en la semana
+    missing_employee_entries = TimeEntry.objects.filter(employee__isnull=True, date__range=(week_start, week_end))
+    inactive_employee_entries = TimeEntry.objects.filter(
+        employee__isnull=False,
+        employee__is_active=False,
+        date__range=(week_start, week_end),
+    ).select_related("employee")
+
     # Preparar datos de cada empleado
     employee_data = []
     for emp in employees:
@@ -1352,6 +1360,8 @@ def payroll_weekly_review(request):
         "total_payroll": period.total_payroll(),
         "total_paid": period.total_paid(),
         "balance_due": period.balance_due(),
+        "missing_employee_entries": missing_employee_entries,
+        "inactive_employee_entries": inactive_employee_entries,
     }
 
     return render(request, "core/payroll_weekly_review.html", context)

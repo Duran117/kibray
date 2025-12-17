@@ -19,6 +19,18 @@
     Total Nómina: <strong>${{ total_payroll|floatformat:2 }}</strong> · Pagado: <strong>${{ total_paid|floatformat:2 }}</strong> · Pendiente: <strong>${{ balance_due|floatformat:2 }}</strong>
   </div>
 
+  {% if missing_employee_entries.exists or inactive_employee_entries.exists %}
+  <div class="alert alert-warning">
+    <strong>Diagnóstico:</strong>
+    {% if missing_employee_entries.exists %}
+      {{ missing_employee_entries.count }} registros de tiempo en la semana no tienen empleado vinculado; no se pueden asignar a nómina.
+    {% endif %}
+    {% if inactive_employee_entries.exists %}
+      {{ inactive_employee_entries.count }} registros pertenecen a empleados inactivos y se omiten en la nómina.
+    {% endif %}
+  </div>
+  {% endif %}
+
   <form method="post" class="card">{% csrf_token %}
     <input type="hidden" name="action" value="update_records" />
     <div class="table-responsive">
