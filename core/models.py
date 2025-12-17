@@ -4,6 +4,7 @@ import hmac
 import secrets
 import struct
 import time
+import re
 from collections.abc import Callable
 from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
@@ -7147,6 +7148,14 @@ class ProjectFile(models.Model):
                 return f"{size:.1f} {unit}"
             size /= 1024.0
         return f"{size:.1f} TB"
+
+    @property
+    def tags_list(self):
+        """Split comma/whitespace separated tags into a clean list for templates."""
+        if not self.tags:
+            return []
+        parts = re.split(r"[,\s]+", self.tags)
+        return [p for p in parts if p]
 
 
 # ========================================================================================

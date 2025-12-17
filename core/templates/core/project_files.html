@@ -131,9 +131,9 @@
               {% endif %}
 
               <!-- Tags -->
-              {% if file.tags %}
+              {% if file.tags_list %}
               <div class="mb-2">
-                {% for tag in file.tags.split %}
+                {% for tag in file.tags_list %}
                 <span class="badge bg-light text-dark">{{ tag }}</span>
                 {% endfor %}
               </div>
