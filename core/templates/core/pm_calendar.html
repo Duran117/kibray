@@ -1,4 +1,4 @@
-{% extends "core/base.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
 {% load i18n %}
 
@@ -7,441 +7,309 @@
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 <style>
-    .pm-calendar-container {
-        background: #f5f5f7;
-        min-height: 100vh;
-        padding: 2rem 0;
-    }
-    
-    .pm-header {
-        background: #ffffffcc;
+    body.pm-calendar-page { background: #f5f7fb; }
+
+    .pm-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
         border-radius: 18px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.06);
-        backdrop-filter: blur(8px);
+        box-shadow: 0 18px 32px rgba(15, 23, 42, 0.07);
     }
-    
-    .pm-header h1 {
-        color: #111827;
-        font-weight: 700;
-        margin-bottom: 0.35rem;
-        letter-spacing: -0.02em;
-    }
-    
-    .pm-header .subtitle {
-        color: #6b7280;
-        font-size: 1.05rem;
-    }
-    
-    .workload-indicator {
-        display: flex;
+
+    .pm-badge {
+        display: inline-flex;
         align-items: center;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    
-    .workload-bar {
-        flex: 1;
-        height: 26px;
-        background: #e5e7eb;
+        gap: 0.4rem;
+        padding: 0.45rem 0.8rem;
         border-radius: 999px;
-        overflow: hidden;
-        position: relative;
-        border: 1px solid rgba(0,0,0,0.04);
-    }
-    
-    .workload-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #34c759 0%, #ffd60a 50%, #ff3b30 100%);
-        border-radius: 999px;
-        transition: width 0.25s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #0b1a33;
         font-weight: 600;
         font-size: 0.9rem;
     }
-    
-    .sidebar {
-        background: #fff;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.07);
-        border: 1px solid rgba(0,0,0,0.04);
-        height: fit-content;
-        max-height: calc(100vh - 200px);
-        overflow-y: auto;
-    }
-    
-    .sidebar h4 {
-        color: #0a84ff;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .project-card {
-        background: #fdfdfd;
-        border-radius: 14px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid rgba(0,0,0,0.04);
-        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-        cursor: pointer;
-    }
-    
-    .project-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-        border-color: rgba(10,132,255,0.35);
-    }
-    
-    .project-card.pipeline {
-        opacity: 0.9;
-    }
-    
-    .project-name {
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    
-    .progress-bar-wrapper {
-        height: 8px;
-        background: #e5e7eb;
+
+    .pm-progress-bar {
+        position: relative;
+        height: 16px;
+        background: #eef2ff;
         border-radius: 999px;
         overflow: hidden;
-        margin-top: 0.5rem;
     }
-    
-    .progress-bar-fill {
+
+    .pm-progress-fill {
         height: 100%;
         border-radius: 999px;
-        transition: width 0.25s ease;
+        background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
+        transition: width 250ms ease;
     }
-    
-    .calendar-container {
-        background: #fff;
-        border-radius: 18px;
-        padding: 1.5rem;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.07);
-        border: 1px solid rgba(0,0,0,0.04);
-        margin-bottom: 2rem;
+
+    /* FullCalendar modern look */
+    .fc { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .fc-toolbar.fc-header-toolbar { margin-bottom: 1rem; }
+    .fc .fc-toolbar-title { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+    .fc .fc-button-primary {
+        background: #4f46e5;
+        border-color: #4f46e5;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(79,70,229,0.22);
+        text-transform: none;
+        padding: 0.45rem 0.9rem;
     }
-    
-    .fc {
-        font-family: 'Inter', sans-serif;
+    .fc .fc-button-primary:hover { background: #4338ca; border-color: #4338ca; }
+    .fc .fc-daygrid-day-number { color: #0f172a; font-weight: 600; }
+    .fc .fc-daygrid-day {
+        transition: background 120ms ease, transform 120ms ease;
     }
-    
-    .fc-toolbar-title {
-        color: #111827 !important;
-        font-weight: 700;
+    .fc .fc-daygrid-day:hover { background: #f8fafc; }
+    .fc .fc-day-today { background: #eef2ff !important; }
+    .fc .fc-event {
+        border: none;
+        border-radius: 10px;
+        padding: 4px 8px;
+        box-shadow: 0 10px 18px rgba(99,102,241,0.16);
+        font-weight: 600;
     }
-    
-    .fc-button {
-        background: #0a84ff !important;
-        border-color: #0a84ff !important;
-        border-radius: 12px !important;
-        padding: 0.4rem 0.85rem !important;
-        text-transform: none !important;
-        box-shadow: 0 5px 15px rgba(10,132,255,0.25);
-    }
-    
-    .fc-button:hover {
-        background: #0066cc !important;
-        border-color: #0066cc !important;
-    }
-    
-    .deadlines-section {
-        background: #fff;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.07);
-        border: 1px solid rgba(0,0,0,0.04);
-    }
-    
-    .deadline-item {
+    .fc-theme-standard td, .fc-theme-standard th { border-color: #e5e7eb; }
+
+    .list-card-item {
         display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        background: #f9fafb;
-        border-radius: 12px;
-        margin-bottom: 0.75rem;
-        border: 1px solid transparent;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid #f1f5f9;
+        background: #f8fafc;
+        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
         cursor: pointer;
     }
-    
-    .deadline-item:hover {
+    .list-card-item:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        border-color: rgba(10,132,255,0.2);
+        box-shadow: 0 12px 20px rgba(15, 23, 42, 0.08);
+        border-color: #cbd5e1;
     }
-    
-    .deadline-icon {
-        font-size: 2rem;
-        min-width: 40px;
+    .list-empty {
         text-align: center;
-    }
-    
-    .deadline-info {
-        flex: 1;
-    }
-    
-    .deadline-title {
-        font-weight: 600;
-        color: #343a40;
-        margin-bottom: 0.25rem;
-    }
-    
-    .deadline-meta {
-        font-size: 0.85rem;
-        color: #6c757d;
-    }
-    
-    .deadline-date {
-        min-width: 120px;
-        text-align: right;
-    }
-    
-    .days-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
+        padding: 1.5rem 1rem;
+        color: #94a3b8;
         font-weight: 600;
     }
-    
-    .block-day-btn {
-        background: #0a84ff;
-        border: none;
-        color: white;
-        padding: 0.8rem 1.6rem;
-        border-radius: 14px;
-        font-weight: 600;
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-        box-shadow: 0 10px 20px rgba(10,132,255,0.25);
+
+    .stat-pill {
+        border-radius: 16px;
+        padding: 12px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
     }
-    
-    .block-day-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 22px rgba(10,132,255,0.3);
-    }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-top: 1.5rem;
-    }
-    
-    .stat-card {
-        background: #f9fafb;
-        border-radius: 14px;
-        padding: 1rem;
-        text-align: center;
-        border: 1px solid rgba(0,0,0,0.04);
-    }
-    
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #0a84ff;
-    }
-    
-    .stat-label {
-        font-size: 0.85rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: #6b7280;
-    }
-    
-    .empty-state-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-    
-    @media (max-width: 768px) {
-        .pm-calendar-container {
-            padding: 1rem 0;
-        }
-        
-        .stats-grid {
-            grid-template-columns: 1fr 1fr;
-        }
+
+    .stat-pill strong { font-size: 1.2rem; }
+
+    @media (max-width: 1024px) {
+        .fc .fc-toolbar { flex-wrap: wrap; gap: 0.5rem; }
     }
 </style>
 {% endblock %}
 
+{% block page_header %}
+<div class="pm-card p-6 bg-white/90 backdrop-blur" aria-label="Encabezado calendario PM">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">📅 {{ title }}</h1>
+            <p class="text-slate-500">{% trans "Bienvenido" %}, {{ user.get_full_name|default:user.username }}</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <span class="pm-badge bg-indigo-50 text-indigo-700">
+                <i class="bi bi-speedometer2 text-indigo-600"></i>
+                {% trans "Carga" %}: {{ workload_score }}% ({{ workload_level }})
+            </span>
+            <a href="{% url 'calendar_wizard_new' %}" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-500 focus:ring-2 focus:ring-indigo-400 flex items-center gap-2">
+                <i class="bi bi-plus-lg"></i>
+                {% trans "New Event" %}
+            </a>
+            <button type="button" data-bs-toggle="modal" data-bs-target="#blockDayModal" class="px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 font-semibold hover:bg-indigo-50 focus:ring-2 focus:ring-indigo-200 flex items-center gap-2">
+                <i class="bi bi-slash-circle"></i>
+                {% trans "Block Day" %}
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+        <div class="stat-pill">
+            <span class="text-slate-500 text-sm">{% trans "Activos" %}</span>
+            <strong class="text-indigo-700">{{ active_count }}</strong>
+        </div>
+        <div class="stat-pill">
+            <span class="text-slate-500 text-sm">{% trans "Urgentes" %}</span>
+            <strong class="text-rose-600">{{ urgent_task_count }}</strong>
+        </div>
+        <div class="stat-pill">
+            <span class="text-slate-500 text-sm">{% trans "Hitos próximos" %}</span>
+            <strong class="text-amber-600">{{ upcoming_milestone_count }}</strong>
+        </div>
+        <div class="stat-pill">
+            <span class="text-slate-500 text-sm">{% trans "Días bloqueados" %}</span>
+            <strong class="text-slate-700">{{ blocked_days.count }}</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="pm-calendar-container">
-    <div class="container-fluid">
-        <!-- Header -->
-        <div class="pm-header">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h1>👤 {{ title }}</h1>
-                    <p class="subtitle">Bienvenido, {{ user.get_full_name|default:user.username }}</p>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'calendar_wizard_new' %}" class="btn btn-primary shadow-sm">
-                        <i class="bi bi-plus-lg me-2"></i>{% trans "New Event" %}
-                    </a>
-                    <button class="btn btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#blockDayModal">
-                        <i class="bi bi-slash-circle me-2"></i>{% trans "Block Day" %}
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Workload Indicator -->
-            <div class="workload-indicator">
-                <span style="font-weight: 600; color: #343a40;">Carga de Trabajo:</span>
-                <div class="workload-bar">
-                    <div class="workload-fill bg-{{ workload_color }}" style="width: {{ workload_score }}%;">
-                        {{ workload_score }}% - {{ workload_level }}
+<div class="grid gap-6 xl:grid-cols-3">
+    <div class="xl:col-span-2 space-y-6">
+        <div class="pm-card p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">📆</div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">{% trans "Mi Calendario" %}</h2>
+                        <p class="text-sm text-slate-500">{% trans "Vista mensual y semanal" %}</p>
                     </div>
                 </div>
+                <div class="flex gap-3 text-sm">
+                    <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold">{% trans "Eventos" %}</span>
+                    <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold">{% trans "Días Bloqueados" %}</span>
+                </div>
             </div>
-            
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">{{ active_count }}</div>
-                    <div class="stat-label">Proyectos Activos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{{ urgent_task_count }}</div>
-                    <div class="stat-label">Tareas Urgentes</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{{ upcoming_milestone_count }}</div>
-                    <div class="stat-label">Milestones Próximos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{{ blocked_days.count }}</div>
-                    <div class="stat-label">Días Bloqueados</div>
-                </div>
+            <div id="pmCalendar"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="pm-card p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+                <p class="text-sm opacity-80">{% trans "Proyectos Activos" %}</p>
+                <p class="text-3xl font-bold">{{ active_count }}</p>
+            </div>
+            <div class="pm-card p-4 bg-gradient-to-r from-rose-500 to-rose-600 text-white">
+                <p class="text-sm opacity-80">{% trans "Tareas Urgentes" %}</p>
+                <p class="text-3xl font-bold">{{ urgent_task_count }}</p>
+            </div>
+            <div class="pm-card p-4 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900">
+                <p class="text-sm opacity-80">{% trans "Milestones Próximos" %}</p>
+                <p class="text-3xl font-bold">{{ upcoming_milestone_count }}</p>
+            </div>
+            <div class="pm-card p-4 bg-gradient-to-r from-slate-500 to-slate-700 text-white">
+                <p class="text-sm opacity-80">{% trans "Días Bloqueados" %}</p>
+                <p class="text-3xl font-bold">{{ blocked_days.count }}</p>
             </div>
         </div>
-        
-        <div class="row">
-            <!-- Sidebar: Projects -->
-            <div class="col-lg-3 mb-4">
-                <div class="sidebar">
-                    <h4>📁 Proyectos Activos</h4>
-                    
-                    {% if assigned_projects %}
-                        {% for project in assigned_projects %}
-                        <div class="project-card" onclick="window.location.href='{% url 'project_overview' project.id %}'">
-                            <div class="project-name">
-                                <span>{{ project.name }}</span>
-                                <span class="badge bg-{{ project.status_color }}">{{ project.progress_pct }}%</span>
-                            </div>
-                            <div style="font-size: 0.85rem; color: #6c757d;">
-                                {{ project.client|default:"Sin cliente" }}
-                            </div>
-                            <div class="progress-bar-wrapper">
-                                <div class="progress-bar-fill bg-{{ project.status_color }}" style="width: {{ project.progress_pct }}%;"></div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <div class="empty-state-icon">📂</div>
-                            <p>No hay proyectos activos asignados</p>
-                        </div>
-                    {% endif %}
-                    
-                    <hr class="my-4">
-                    
-                    <h4>🚀 Pipeline</h4>
-                    
-                    {% if pipeline_projects %}
-                        {% for project in pipeline_projects %}
-                        <div class="project-card pipeline" onclick="window.location.href='{% url 'project_overview' project.id %}'">
-                            <div class="project-name">
-                                <span>{{ project.name }}</span>
-                            </div>
-                            <div style="font-size: 0.85rem; color: #6c757d;">
-                                Inicia: {{ project.start_date|date:"M d, Y" }}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🎯</div>
-                            <p>No hay proyectos en pipeline</p>
-                        </div>
-                    {% endif %}
-                    
-                    <div class="text-center mt-4">
-                        <button class="block-day-btn" data-bs-toggle="modal" data-bs-target="#blockDayModal">
-                            ⛔ Bloquear Día
-                        </button>
-                    </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="pm-card p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-500">{% trans "Carga de Trabajo" %}</p>
+                    <p class="text-lg font-semibold text-slate-900">{{ workload_level }}</p>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold">{{ workload_score }}%</span>
+            </div>
+            <div class="pm-progress-bar mb-2">
+                <div class="pm-progress-fill" style="width: {{ workload_score }}%;"></div>
+            </div>
+            <p class="text-sm text-slate-500">{% trans "Balancea tu agenda antes de asignar más tareas." %}</p>
+        </div>
+
+        <div class="pm-card p-5 space-y-4">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">📁</div>
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-slate-500">{% trans "Proyectos Activos" %}</p>
+                    <p class="text-lg font-semibold text-slate-900">{{ assigned_projects|length }}</p>
                 </div>
             </div>
-            
-            <!-- Main Content: Calendar -->
-            <div class="col-lg-6 mb-4">
-                <div class="calendar-container">
-                    <h4 style="color: #667eea; font-weight: 600; margin-bottom: 1.5rem;">📅 Mi Calendario</h4>
-                    <div id="pmCalendar"></div>
+
+            {% if assigned_projects %}
+                <div class="space-y-2">
+                    {% for project in assigned_projects %}
+                        <div class="list-card-item" onclick="window.location.href='{% url 'project_overview' project.id %}'">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold">{{ project.progress_pct }}%</div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-900 truncate">{{ project.name }}</p>
+                                <p class="text-sm text-slate-500 truncate">{{ project.client|default:"Sin cliente" }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="list-empty">{% trans "No hay proyectos activos asignados" %}</div>
+            {% endif %}
+
+            <div class="pt-2 border-t border-slate-100"></div>
+
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">🚀</div>
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-slate-500">Pipeline</p>
+                    <p class="text-lg font-semibold text-slate-900">{{ pipeline_projects|length }}</p>
                 </div>
             </div>
-            
-            <!-- Right Sidebar: Deadlines -->
-            <div class="col-lg-3 mb-4">
-                <div class="deadlines-section">
-                    <h4 style="color: #667eea; font-weight: 600; margin-bottom: 1rem;">📌 Próximas Deadlines</h4>
-                    
+
+            {% if pipeline_projects %}
+                <div class="space-y-2">
+                    {% for project in pipeline_projects %}
+                        <div class="list-card-item" onclick="window.location.href='{% url 'project_overview' project.id %}'">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold">▶</div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-900 truncate">{{ project.name }}</p>
+                                <p class="text-sm text-slate-500 truncate">{% trans "Inicia" %}: {{ project.start_date|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="list-empty">{% trans "No hay proyectos en pipeline" %}</div>
+            {% endif %}
+
+            <div class="flex justify-center pt-2">
+                <button class="px-4 py-2 rounded-lg bg-rose-50 text-rose-700 font-semibold border border-rose-100 hover:bg-rose-100" data-bs-toggle="modal" data-bs-target="#blockDayModal">
+                    ⛔ {% trans "Bloquear Día" %}
+                </button>
+            </div>
+        </div>
+
+        <div class="pm-card p-5">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">📌</div>
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-slate-500">{% trans "Próximas Deadlines" %}</p>
+                    <p class="text-lg font-semibold text-slate-900">{{ upcoming_deadlines|length }}</p>
+                </div>
+            </div>
+
                     {% if upcoming_deadlines %}
-                        {% for deadline in upcoming_deadlines %}
-                        <div class="deadline-item" onclick="window.location.href='{% url 'project_overview' deadline.project_id %}'">
-                            <div class="deadline-icon">{{ deadline.icon }}</div>
-                            <div class="deadline-info">
-                                <div class="deadline-title">{{ deadline.title }}</div>
-                                <div class="deadline-meta">{{ deadline.project }}</div>
-                            </div>
-                            <div class="deadline-date">
-                                <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 0.25rem;">
-                                    {{ deadline.date|date:"M d" }}
+                        <div class="space-y-2">
+                            {% for deadline in upcoming_deadlines %}
+                                {% if deadline.urgency == 'danger' %}
+                                    {% with 'bg-rose-100 text-rose-700' as badge_classes %}
+                                {% elif deadline.urgency == 'warning' %}
+                                    {% with 'bg-amber-100 text-amber-700' as badge_classes %}
+                                {% else %}
+                                    {% with 'bg-sky-100 text-sky-700' as badge_classes %}
+                                {% endif %}
+                                <div class="list-card-item" onclick="window.location.href='{% url 'project_overview' deadline.project_id %}'">
+                                    <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-semibold">{{ deadline.icon }}</div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-semibold text-slate-900 truncate">{{ deadline.title }}</p>
+                                        <p class="text-sm text-slate-500 truncate">{{ deadline.project }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm text-slate-500">{{ deadline.date|date:"M d" }}</p>
+                                        <span class="px-2 py-1 rounded-full text-xs font-semibold {{ badge_classes }}">
+                                            {% if deadline.days_until == 0 %}
+                                                Hoy
+                                            {% elif deadline.days_until == 1 %}
+                                                Mañana
+                                            {% else %}
+                                                {{ deadline.days_until }}d
+                                            {% endif %}
+                                        </span>
+                                    </div>
                                 </div>
-                                <span class="days-badge bg-{{ deadline.urgency }} text-white">
-                                    {% if deadline.days_until == 0 %}
-                                        Hoy
-                                    {% elif deadline.days_until == 1 %}
-                                        Mañana
-                                    {% else %}
-                                        {{ deadline.days_until }}d
-                                    {% endif %}
-                                </span>
-                            </div>
+                                {% endwith %}
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     {% else %}
-                        <div class="empty-state">
-                            <div class="empty-state-icon">✅</div>
-                            <p>No hay deadlines próximos</p>
-                        </div>
+                        <div class="list-empty">{% trans "No hay deadlines próximos" %}</div>
                     {% endif %}
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -451,44 +319,42 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="blockDayModalLabel">⛔ Bloquear Día</h5>
+                <h5 class="modal-title" id="blockDayModalLabel">⛔ {% trans "Bloquear Día" %}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="blockDayForm">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="blockDate" class="form-label">Fecha</label>
+                        <label for="blockDate" class="form-label">{% trans "Fecha" %}</label>
                         <input type="date" class="form-control" id="blockDate" name="date" required>
                     </div>
                     <div class="mb-3">
-                        <label for="blockReason" class="form-label">Razón</label>
+                        <label for="blockReason" class="form-label">{% trans "Razón" %}</label>
                         <select class="form-select" id="blockReason" name="reason" required>
-                            <option value="vacation">Vacaciones</option>
-                            <option value="personal">Personal</option>
-                            <option value="sick">Enfermedad</option>
-                            <option value="training">Capacitación</option>
-                            <option value="other">Otro</option>
+                            <option value="vacation">{% trans "Vacaciones" %}</option>
+                            <option value="personal">{% trans "Personal" %}</option>
+                            <option value="sick">{% trans "Enfermedad" %}</option>
+                            <option value="training">{% trans "Capacitación" %}</option>
+                            <option value="other">{% trans "Otro" %}</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="blockNotes" class="form-label">Notas (opcional)</label>
+                        <label for="blockNotes" class="form-label">{% trans "Notas (opcional)" %}</label>
                         <textarea class="form-control" id="blockNotes" name="notes" rows="2"></textarea>
                     </div>
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="isFullDay" name="is_full_day" checked>
-                        <label class="form-check-label" for="isFullDay">
-                            Día completo
-                        </label>
+                        <label class="form-check-label" for="isFullDay">{% trans "Día completo" %}</label>
                     </div>
                     <div id="partialTimeFields" style="display: none;">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="startTime" class="form-label">Hora inicio</label>
+                                <label for="startTime" class="form-label">{% trans "Hora inicio" %}</label>
                                 <input type="time" class="form-control" id="startTime" name="start_time">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="endTime" class="form-label">Hora fin</label>
+                                <label for="endTime" class="form-label">{% trans "Hora fin" %}</label>
                                 <input type="time" class="form-control" id="endTime" name="end_time">
                             </div>
                         </div>
@@ -496,8 +362,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="saveBlockedDay">Bloquear</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+                <button type="button" class="btn btn-primary" id="saveBlockedDay">{% trans "Bloquear" %}</button>
             </div>
         </div>
     </div>
@@ -508,7 +374,8 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize FullCalendar
+    document.body.classList.add('pm-calendar-page');
+
     const calendarEl = document.getElementById('pmCalendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -521,27 +388,19 @@ document.addEventListener('DOMContentLoaded', function() {
         editable: true,
         events: '{% url "pm_calendar_api_data" %}',
         select: function(info) {
-            // Open block day modal or add event modal
-            if (confirm('{% trans "Do you want to block this day?" %}')) {
-                document.getElementById('blockStart').value = info.startStr;
-                document.getElementById('blockEnd').value = info.endStr;
-                const modal = new bootstrap.Modal(document.getElementById('blockDayModal'));
-                modal.show();
-            }
+            document.getElementById('blockDate').value = info.startStr;
+            const modal = new bootstrap.Modal(document.getElementById('blockDayModal'));
+            modal.show();
         },
         eventDrop: function(info) {
-            // Handle drag and drop (optional: implement API endpoint for this)
             if (!confirm('{% trans "Move this event?" %}')) {
                 info.revert();
-            } else {
-                // TODO: Call API to update event date
-                console.log('Event moved to ' + info.event.start.toISOString());
             }
         },
         eventClick: function(info) {
             const props = info.event.extendedProps;
             if (props.type === 'blocked') {
-                if (confirm('¿Desbloquear este día?')) {
+                if (confirm('{% trans "¿Desbloquear este día?" %}')) {
                     unblockDay(props.blocked_day_id);
                 }
             } else if (props.project_id) {
@@ -549,57 +408,46 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         eventDidMount: function(info) {
-            // Add tooltips
             info.el.title = info.event.title;
         },
         height: 'auto',
         locale: 'es'
     });
-    
+
     calendar.render();
-    
+
     // Toggle partial time fields
     document.getElementById('isFullDay').addEventListener('change', function() {
-        document.getElementById('partialTimeFields').style.display = 
-            this.checked ? 'none' : 'block';
+        document.getElementById('partialTimeFields').style.display = this.checked ? 'none' : 'block';
     });
-    
+
     // Block day submission
     document.getElementById('saveBlockedDay').addEventListener('click', function() {
         const form = document.getElementById('blockDayForm');
         const formData = new FormData(form);
-        
+
         fetch('{% url "pm_block_day" %}', {
             method: 'POST',
             body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Close modal
                 bootstrap.Modal.getInstance(document.getElementById('blockDayModal')).hide();
-                
-                // Refresh calendar
                 calendar.refetchEvents();
-                
-                // Show success message
                 alert(data.message);
-                
-                // Reload page to update stats
-                setTimeout(() => window.location.reload(), 500);
+                setTimeout(() => window.location.reload(), 400);
             } else {
                 alert('Error: ' + data.error);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al bloquear el día');
+            alert('{% trans "Error al bloquear el día" %}');
         });
     });
-    
+
     // Unblock day function
     window.unblockDay = function(blockedDayId) {
         fetch(`/pm-calendar/unblock/${blockedDayId}/`, {
@@ -614,14 +462,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 calendar.refetchEvents();
                 alert(data.message);
-                setTimeout(() => window.location.reload(), 500);
+                setTimeout(() => window.location.reload(), 400);
             } else {
                 alert('Error: ' + data.error);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al desbloquear el día');
+            alert('{% trans "Error al desbloquear el día" %}');
         });
     };
 });
