@@ -668,13 +668,9 @@ class ClockInForm(forms.Form):
         co = cleaned.get("change_order")
 
         if project:
-            project_cos = ChangeOrder.objects.filter(project=project, status__in=["pending", "approved", "sent"])
             if co and co.project_id != project.id:
                 raise forms.ValidationError("El CO seleccionado no pertenece al proyecto elegido.")
-            if not co and project_cos.count() == 1:
-                cleaned["change_order"] = project_cos.first()
-            elif project_cos.exists() and not co:
-                raise forms.ValidationError("Selecciona el CO del proyecto para que las horas no queden sin asignar.")
+            # Si no se elige CO, se considera horas base del contrato (permitido).
 
         return cleaned
 
