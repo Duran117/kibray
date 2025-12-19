@@ -212,21 +212,61 @@
                 <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Notes" %} ({% trans "optional" %}):</label>
                 {{ form.notes }}
             </div>
+            
+            <!-- Test: Mostrar valor seleccionado -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-900">
+                <strong>⚠️ Prueba esto ANTES de hacer Clock In:</strong>
+                <button type="button" onclick="testProjectSelection()" class="ml-2 px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700">
+                    Verificar proyecto seleccionado
+                </button>
+                <div id="testResult" class="mt-2 hidden"></div>
+            </div>
+            
             <button type="submit" class="w-full md:w-auto px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition">
                 <i class="bi bi-box-arrow-in-right mr-2"></i>
                 {% trans "Clock In" %}
             </button>
             
-            <!-- JavaScript para validar antes de enviar -->
+            <!-- JavaScript mejorado para validar y debugging -->
             <script>
+            function testProjectSelection() {
+                const projectSelect = document.getElementById('id_project');
+                const resultDiv = document.getElementById('testResult');
+                const selectedValue = projectSelect.value;
+                const selectedText = projectSelect.options[projectSelect.selectedIndex].text;
+                
+                resultDiv.classList.remove('hidden');
+                
+                if (!selectedValue || selectedValue === '') {
+                    resultDiv.innerHTML = '❌ <strong>ERROR:</strong> No has seleccionado ningún proyecto. Por favor selecciona uno de la lista.';
+                    resultDiv.className = 'mt-2 p-2 bg-red-100 border border-red-300 rounded text-red-800';
+                } else {
+                    resultDiv.innerHTML = '✅ <strong>CORRECTO:</strong> Has seleccionado el proyecto ID: ' + selectedValue + ' - ' + selectedText;
+                    resultDiv.className = 'mt-2 p-2 bg-green-100 border border-green-300 rounded text-green-800';
+                }
+            }
+            
             document.getElementById('clockInForm').addEventListener('submit', function(e) {
-                const projectSelect = this.querySelector('select[name="project"]');
-                if (!projectSelect.value || projectSelect.value === '') {
+                const projectSelect = document.getElementById('id_project');
+                const selectedValue = projectSelect.value;
+                
+                console.log('Form submit - Project value:', selectedValue);
+                
+                if (!selectedValue || selectedValue === '') {
                     e.preventDefault();
-                    alert('❌ Debes seleccionar un proyecto antes de marcar entrada');
+                    alert('❌ DEBES SELECCIONAR UN PROYECTO\n\nPor favor, abre el menú desplegable de "Project" y selecciona uno de los 4 proyectos disponibles antes de hacer Clock In.');
                     projectSelect.focus();
+                    projectSelect.style.border = '2px solid red';
                     return false;
                 }
+                
+                // Log para debugging
+                console.log('Form data being submitted:', {
+                    project: selectedValue,
+                    action: 'clock_in'
+                });
+                
+                return true;
             });
             </script>
         </form>
