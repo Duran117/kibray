@@ -5290,7 +5290,7 @@ def dashboard_employee(request):
                 messages.success(request, _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime('%H:%M')})
                 return redirect("dashboard_employee")
             else:
-                # Mostrar errores de validación en el formulario
+                # Mostrar errores de validación en el formulario y conservar estado
                 error_text = "; ".join([f"{field}: {', '.join(err_list)}" for field, err_list in form.errors.items()])
                 messages.error(request, f"No se pudo registrar la entrada: {error_text or 'revisa los campos.'}")
 
@@ -5304,9 +5304,9 @@ def dashboard_employee(request):
                 request, f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}"
             )
             return redirect("dashboard_employee")
-
-    # GET o POST inválido
-    form = ClockInForm(available_projects=available_projects)
+    else:
+        # GET
+        form = ClockInForm(available_projects=available_projects)
 
     # === MORNING BRIEFING (Employee Daily Tasks) ===
     morning_briefing = []
