@@ -5227,9 +5227,24 @@ def dashboard_employee(request):
     my_projects_today = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
     has_assignments_today = assignments_today.exists()
 
-    # Modo temporal: permitir elegir cualquier proyecto si no hay asignaciones o si el usuario lo solicita
-    allow_all_projects = request.GET.get("all_projects") == "1" or request.POST.get("all_projects") == "1"
-    available_projects = Project.objects.all() if (allow_all_projects or not has_assignments_today) else my_projects_today
+    # === VALIDACIÓN 3: Proyectos permitidos para clock-in (RESTRICCIÓN ESTRICTA) ===
+    # Override solo para staff/admin (no para empleados regulares)
+    allow_override = (request.GET.get("all_projects") == "1" or request.POST.get("all_projects") == "1") and request.user.is_staff
+    
+    # Determinar proyectos disponibles según política estricta
+    if allow_override:
+        # Staff/Admin puede ver todos los proyectos
+        available_projects = Project.objects.all()
+        clock_in_mode = "override_admin"
+    elif has_assignments_today:
+        # Empleado con asignaciones: SOLO proyectos asignados hoy
+        available_projects = my_projects_today
+        clock_in_mode = "assigned"
+    else:
+        # Empleado SIN asignaciones: lista vacía (flujo de excepción)
+        available_projects = Project.objects.none()
+        clock_in_mode = "no_assignments"
+    
     available_projects_count = available_projects.count()
     available_projects_preview = list(available_projects[:5])
 
@@ -5289,9 +5304,29 @@ def dashboard_employee(request):
             
             form = ClockInForm(request.POST, available_projects=available_projects)
             if form.is_valid():
+                # === VALIDACIÓN BACKEND: Verificar que el proyecto sea permitido ===
+                selected_project = form.cleaned_data["project"]
+                
+                # Recalcular proyectos permitidos (no confiar solo en UI)
+                if request.user.is_staff:
+                    # Staff puede clock-in en cualquier proyecto
+                    pass
+                elif has_assignments_today:
+                    # Empleado debe estar asignado HOY a este proyecto
+                    if selected_project not in my_projects_today:
+                        messages.error(request, f"❌ No estás asignado al proyecto '{selected_project.name}' hoy. Contacta a tu supervisor.")
+                        logger.warning(f"Clock-in denied: employee={employee.id} tried project={selected_project.id} without assignment")
+                        return redirect("dashboard_employee")
+                else:
+                    # Sin asignaciones: no permitir clock-in normal (requiere flujo de excepción)
+                    messages.error(request, "❌ No tienes asignaciones para hoy. Contacta a tu supervisor para que te asigne a un proyecto.")
+                    logger.warning(f"Clock-in denied: employee={employee.id} has no assignments today")
+                    return redirect("dashboard_employee")
+                
+                # Si pasa validación, crear TimeEntry
                 te = TimeEntry.objects.create(
                     employee=employee,
-                    project=form.cleaned_data["project"],
+                    project=selected_project,
                     change_order=form.cleaned_data.get("change_order"),
                     date=today,
                     start_time=now.time(),
@@ -5305,7 +5340,7 @@ def dashboard_employee(request):
                     "project": te.project.name
                 })
                 try:
-                    logger.info(f"TimeEntry created id={te.id} employee={employee.id} project={getattr(te.project, 'id', None)}")
+                    logger.info(f"TimeEntry created id={te.id} employee={employee.id} project={selected_project.id}")
                 except Exception:
                     logger.exception("Failed to log TimeEntry debug info")
                 return redirect("dashboard_employee")
@@ -5407,10 +5442,10 @@ def dashboard_employee(request):
         "assignments_today": assignments_today,
         "upcoming_assignments": upcoming_assignments,
         "available_projects_count": available_projects_count,
-        "allow_all_projects": allow_all_projects,
-        "form_errors": form.errors if request.method == "POST" else None,
         "available_projects_preview": available_projects_preview,
+        "clock_in_mode": clock_in_mode,  # ← Nuevo: indica el modo de clock-in
         "disable_notification_center": True,  # Desactivar React NotificationCenter en esta página
+        "form_errors": form.errors if request.method == "POST" else None,
     }
 
     # Use clean template by default, legacy with ?legacy=true

@@ -94,36 +94,56 @@
         <i class="bi bi-clock text-indigo-500 text-6xl mb-4"></i>
         <h4 class="text-2xl font-bold text-slate-900 mb-6">{% trans "Clock In" %}</h4>
 
-        <!-- Aviso temporal: permitir elegir cualquier proyecto -->
-        {% if has_assignments_today and not allow_all_projects %}
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 text-sm text-slate-700 flex flex-col gap-2">
+        <!-- Estado según modo de clock-in -->
+        {% if clock_in_mode == "no_assignments" %}
+        <!-- SIN ASIGNACIONES: Flujo de excepción -->
+        <div class="bg-amber-50 border border-amber-300 rounded-lg p-6 mb-4">
+            <div class="flex items-start gap-3 mb-4">
+                <i class="bi bi-exclamation-triangle text-amber-600 text-3xl"></i>
+                <div>
+                    <h5 class="text-lg font-bold text-amber-900 mb-2">No tienes asignaciones para hoy</h5>
+                    <p class="text-amber-800 text-sm">
+                        No puedes hacer clock-in sin una asignación de proyecto. 
+                        <strong>Contacta a tu supervisor</strong> para que te asigne a un proyecto antes de comenzar a trabajar.
+                    </p>
+                </div>
+            </div>
+            
+            {% if upcoming_assignments %}
+            <div class="mt-4 pt-4 border-t border-amber-200">
+                <p class="text-sm font-semibold text-amber-900 mb-2">📅 Tus próximas asignaciones:</p>
+                <ul class="text-sm text-amber-800 space-y-1">
+                {% for a in upcoming_assignments %}
+                    <li>• {{ a.date|date:"D, M d" }} - {{ a.project.name }} ({{ a.get_shift_display }})</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% elif clock_in_mode == "assigned" %}
+        <!-- CON ASIGNACIONES: Mostrar proyectos asignados -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-900">
             <div class="flex items-center gap-2">
-                <i class="bi bi-shield-check text-indigo-600 text-lg"></i>
-                <span>Mostrando solo tus proyectos asignados hoy ({{ available_projects_count }}).</span>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                <a href="{% url 'dashboard_employee' %}?all_projects=1" class="px-3 py-1 rounded-lg bg-amber-100 text-amber-900 font-semibold text-xs">
-                    Modo temporal: ver todos los proyectos
-                </a>
-                <span class="text-xs text-slate-500">(Solo para desbloquear mientras afinamos las asignaciones.)</span>
+                <i class="bi bi-shield-check text-blue-600 text-lg"></i>
+                <span>Mostrando tus proyectos asignados para hoy ({{ available_projects_count }}).</span>
             </div>
         </div>
-        {% elif allow_all_projects %}
-        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 text-sm text-emerald-800 flex flex-wrap items-center gap-2">
-            <i class="bi bi-unlock"></i>
-            <span>Modo temporal activo: puedes elegir cualquier proyecto ({{ available_projects_count }} disponibles).</span>
-            <a href="{% url 'dashboard_employee' %}" class="px-3 py-1 rounded-lg bg-white text-emerald-700 border border-emerald-300 text-xs font-semibold">Volver a asignados</a>
-        </div>
-        {% else %}
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 text-sm text-slate-700 flex items-center gap-2">
-            <i class="bi bi-info-circle text-indigo-600"></i>
-            <span>Sin asignaciones hoy: puedes elegir cualquier proyecto disponible ({{ available_projects_count }}).</span>
+
+        {% elif clock_in_mode == "override_admin" %}
+        <!-- ADMIN OVERRIDE: Mostrar aviso -->
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 text-sm text-purple-900">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-shield-fill-exclamation text-purple-600 text-lg"></i>
+                <span><strong>Modo Admin:</strong> Puedes ver todos los proyectos ({{ available_projects_count }}).</span>
+            </div>
         </div>
         {% endif %}
 
+        <!-- Formulario solo si hay proyectos disponibles -->
         {% if available_projects_count == 0 %}
         <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
-            <strong>Debug:</strong> No se encontraron proyectos en la lista disponible. Verifica que existan proyectos en la base o activa el modo temporal (?all_projects=1).
+            <strong>⚠️ No hay proyectos disponibles para clock-in.</strong>
         </div>
         {% else %}
         <div class="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-3 mb-4 text-xs text-slate-600">
