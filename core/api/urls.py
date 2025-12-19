@@ -280,6 +280,26 @@ urlpatterns = [
 
     # Master Schedule API
     path("schedule/master/", schedule_api.get_master_schedule_data, name="api-schedule-master"),
+    # Gantt v2 per project (React Modern Gantt feed)
+    path(
+        "gantt/v2/projects/<int:project_id>/",
+        schedule_api.get_project_gantt_v2,
+        name="api-gantt-v2-project",
+    ),
+    path("gantt/v2/items/", schedule_api.create_schedule_item_v2, name="api-gantt-v2-item-create"),
+    path("gantt/v2/items/<int:item_id>/", schedule_api.update_schedule_item_v2, name="api-gantt-v2-item-update"),
+    path("gantt/v2/tasks/", schedule_api.create_schedule_task_v2, name="api-gantt-v2-task-create"),
+    path("gantt/v2/tasks/<int:task_id>/", schedule_api.update_schedule_task_v2, name="api-gantt-v2-task-update"),
+    path(
+        "gantt/v2/dependencies/",
+        schedule_api.create_schedule_dependency_v2,
+        name="api-gantt-v2-dependency-create",
+    ),
+    path(
+        "gantt/v2/dependencies/<int:dependency_id>/",
+        schedule_api.delete_schedule_dependency_v2,
+        name="api-gantt-v2-dependency-delete",
+    ),
 
     # Include router URLs
     path("", include(router.urls)),

@@ -7742,6 +7742,158 @@ class AISuggestion(models.Model):
         self.save()
 
 
+class SchedulePhaseV2(models.Model):
+    """Fase del cronograma tipo Gantt por proyecto (v2 para evitar colisiones con el legado)."""
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="gantt_phases")
+    name = models.CharField(max_length=200)
+    color = models.CharField(max_length=32, default="#4F46E5")
+    order = models.IntegerField(default=0)
+    allow_sunday = models.BooleanField(
+        default=False, help_text=_("Permitir trabajo en domingo para esta fase (por defecto se bloquea)")
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "schedule_phases_v2"
+        ordering = ["project_id", "order", "id"]
+        unique_together = ("project", "name")
+        indexes = [models.Index(fields=["project", "order"])]
+
+    def __str__(self):
+        return f"{self.project.name} · {self.name}"
+
+
+class ScheduleItemV2(models.Model):
+    """Item planificable (barra/hito) dentro de una fase del Gantt v2."""
+
+    STATUS_CHOICES = [
+        ("planned", _("Planificado")),
+        ("in_progress", _("En progreso")),
+        ("blocked", _("Bloqueado")),
+        ("done", _("Completado")),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="gantt_items")
+    phase = models.ForeignKey(SchedulePhaseV2, on_delete=models.CASCADE, related_name="items")
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="gantt_items")
+    color = models.CharField(max_length=32, default="#22D3EE")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="planned")
+    progress = models.PositiveIntegerField(default=0, help_text="0-100")
+    order = models.IntegerField(default=0)
+    is_milestone = models.BooleanField(default=False, help_text=_("Si es hito, start=end y se muestra como diamante"))
+    allow_sunday_override = models.BooleanField(
+        default=False,
+        help_text=_("Permitir trabajo en domingo solo para este item (override de la fase/proyecto)"),
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "schedule_items_v2"
+        ordering = ["project_id", "phase_id", "order", "id"]
+        indexes = [
+            models.Index(fields=["project", "phase"]),
+            models.Index(fields=["project", "start_date"]),
+            models.Index(fields=["project", "end_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.project.name} · {self.name}"
+
+    def clean(self):
+        errors = {}
+        if self.start_date and self.end_date and self.start_date > self.end_date:
+            errors["end_date"] = _("La fecha de fin debe ser mayor o igual a la fecha de inicio")
+        if self.phase_id and self.project_id and self.phase.project_id != self.project_id:
+            errors["phase"] = _("La fase debe pertenecer al mismo proyecto que el item")
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        # Clamp progreso a 0-100 y validar milestone
+        self.progress = max(0, min(100, self.progress or 0))
+        if self.is_milestone and self.start_date and self.end_date:
+            self.end_date = self.start_date
+        super().save(*args, **kwargs)
+
+
+class ScheduleTaskV2(models.Model):
+    """Tarea granular asociada a un item del Gantt v2."""
+
+    STATUS_CHOICES = [
+        ("pending", _("Pendiente")),
+        ("in_progress", _("En progreso")),
+        ("blocked", _("Bloqueada")),
+        ("done", _("Completada")),
+    ]
+
+    item = models.ForeignKey(ScheduleItemV2, on_delete=models.CASCADE, related_name="tasks")
+    title = models.CharField(max_length=200)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    due_date = models.DateField(null=True, blank=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "schedule_tasks_v2"
+        ordering = ["item_id", "order", "id"]
+        indexes = [models.Index(fields=["item", "order"])]
+
+    def __str__(self):
+        return f"{self.title} ({self.item})"
+
+
+class ScheduleDependencyV2(models.Model):
+    """Dependencias entre items (links) para el Gantt v2."""
+
+    DEPENDENCY_CHOICES = [
+        ("FS", "Finish to Start"),
+    ]
+
+    source_item = models.ForeignKey(
+        ScheduleItemV2, on_delete=models.CASCADE, related_name="outgoing_dependencies"
+    )
+    target_item = models.ForeignKey(
+        ScheduleItemV2, on_delete=models.CASCADE, related_name="incoming_dependencies"
+    )
+    dependency_type = models.CharField(max_length=8, choices=DEPENDENCY_CHOICES, default="FS")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "schedule_dependencies_v2"
+        ordering = ["source_item_id", "target_item_id"]
+        unique_together = ("source_item", "target_item")
+        indexes = [
+            models.Index(fields=["source_item", "target_item"]),
+        ]
+
+    def __str__(self):
+        return f"{self.source_item} → {self.target_item} ({self.dependency_type})"
+
+    def clean(self):
+        errors = {}
+        if self.source_item_id and self.target_item_id and self.source_item_id == self.target_item_id:
+            errors["target_item"] = _("Un item no puede depender de sí mismo")
+        # Validar mismo proyecto para evitar cross-project links
+        if (
+            self.source_item_id
+            and self.target_item_id
+            and self.source_item.project_id != self.target_item.project_id
+        ):
+            errors["target_item"] = _("La dependencia debe ser dentro del mismo proyecto")
+        if errors:
+            raise ValidationError(errors)
+
+
 class PMBlockedDay(models.Model):
     """
     Días bloqueados para Project Managers.

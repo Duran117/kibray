@@ -2,13 +2,26 @@
 Master Schedule Center API
 Provides unified data for Strategic Gantt (Projects timeline) and Tactical Calendar (Daily events).
 """
-from datetime import timedelta
+from datetime import timedelta, date
 from decimal import Decimal
-from django.db.models import Q, Sum, Count, F
+from django.db.models import Q, Sum, Count, F, Prefetch
 from django.utils import timezone
+from datetime import date
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from core.api.serializer_classes.schedule_v2_serializers import (
+    ProjectMinimalSerializer,
+    ScheduleDependencyV2Serializer,
+    ScheduleDependencyV2WriteSerializer,
+    ScheduleItemV2Serializer,
+    ScheduleItemV2WriteSerializer,
+    SchedulePhaseV2Serializer,
+    ScheduleTaskV2Serializer,
+    ScheduleTaskV2WriteSerializer,
+)
+from core.models import Project, ScheduleDependencyV2, ScheduleItemV2, SchedulePhaseV2, ScheduleTaskV2
 
 
 @api_view(["GET"])
@@ -289,3 +302,158 @@ def get_master_schedule_data(request):
             },
         }
     )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_project_gantt_v2(request, project_id=None):
+    """Gantt v2 read-only endpoint (phases → items → tasks, deps aparte) por proyecto."""
+
+    project_param = project_id or request.query_params.get("project")
+    if not project_param:
+        return Response({"error": "project id is required"}, status=400)
+
+    assigned_param = request.query_params.get("assigned_to")
+    start_param = request.query_params.get("start_date")
+    end_param = request.query_params.get("end_date")
+
+    def parse_date_or_none(value):
+        if not value:
+            return None
+        try:
+            return date.fromisoformat(value)
+        except Exception:
+            return None
+
+    start_filter = parse_date_or_none(start_param)
+    end_filter = parse_date_or_none(end_param)
+
+    project = Project.objects.filter(id=project_param).first()
+    if not project:
+        return Response({"error": "project not found"}, status=404)
+
+    items_qs = (
+        ScheduleItemV2.objects.select_related("phase", "assigned_to", "project")
+        .prefetch_related("tasks")
+        .filter(project=project)
+    )
+
+    # Filtros: asignado y rango de fechas (intersección)
+    if assigned_param:
+        if assigned_param.lower() != "all":
+            items_qs = items_qs.filter(assigned_to_id=assigned_param)
+
+    if start_filter and end_filter:
+        items_qs = items_qs.filter(start_date__lte=end_filter, end_date__gte=start_filter)
+    elif start_filter:
+        items_qs = items_qs.filter(end_date__gte=start_filter)
+    elif end_filter:
+        items_qs = items_qs.filter(start_date__lte=end_filter)
+
+    phases = (
+        SchedulePhaseV2.objects.filter(project=project)
+        .prefetch_related(
+            Prefetch(
+                "items",
+                queryset=items_qs.order_by("order", "id"),
+            )
+        )
+        .order_by("order", "id")
+    )
+
+    # Limitar dependencias a los items filtrados (si aplica)
+    filtered_item_ids = set()
+    for p in phases:
+        for it in p.items.all():
+            filtered_item_ids.add(it.id)
+
+    dependencies = (
+        ScheduleDependencyV2.objects.filter(source_item__project=project, target_item__project=project)
+        .select_related("source_item", "target_item")
+        .order_by("source_item_id", "target_item_id")
+    )
+
+    if filtered_item_ids:
+        dependencies = dependencies.filter(source_item_id__in=filtered_item_ids, target_item_id__in=filtered_item_ids)
+
+    phases_data = SchedulePhaseV2Serializer(phases, many=True).data
+    deps_data = ScheduleDependencyV2Serializer(dependencies, many=True).data
+    project_data = ProjectMinimalSerializer(project).data
+
+    # Totals for quick client-side metrics
+    items_count = sum(len(p.get("items", [])) for p in phases_data)
+    tasks_count = sum(len(i.get("tasks", [])) for p in phases_data for i in p.get("items", []))
+
+    return Response(
+        {
+            "project": project_data,
+            "phases": phases_data,
+            "dependencies": deps_data,
+            "metadata": {
+                "items_count": items_count,
+                "tasks_count": tasks_count,
+                "dependencies_count": len(deps_data),
+            },
+        }
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_schedule_item_v2(request):
+    serializer = ScheduleItemV2WriteSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    item = serializer.save()
+    return Response(ScheduleItemV2Serializer(item).data, status=201)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_schedule_item_v2(request, item_id: int):
+    item = ScheduleItemV2.objects.filter(id=item_id).first()
+    if not item:
+        return Response({"error": "item not found"}, status=404)
+    serializer = ScheduleItemV2WriteSerializer(item, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    item = serializer.save()
+    return Response(ScheduleItemV2Serializer(item).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_schedule_task_v2(request):
+    serializer = ScheduleTaskV2WriteSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    task = serializer.save()
+    return Response(ScheduleTaskV2Serializer(task).data, status=201)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_schedule_task_v2(request, task_id: int):
+    task = ScheduleTaskV2.objects.filter(id=task_id).first()
+    if not task:
+        return Response({"error": "task not found"}, status=404)
+    serializer = ScheduleTaskV2WriteSerializer(task, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    task = serializer.save()
+    return Response(ScheduleTaskV2Serializer(task).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_schedule_dependency_v2(request):
+    serializer = ScheduleDependencyV2WriteSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    dep = serializer.save()
+    return Response(ScheduleDependencyV2Serializer(dep).data, status=201)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_schedule_dependency_v2(request, dependency_id: int):
+    dep = ScheduleDependencyV2.objects.filter(id=dependency_id).first()
+    if not dep:
+        return Response({"error": "dependency not found"}, status=404)
+    dep.delete()
+    return Response(status=204)

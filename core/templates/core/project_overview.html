@@ -50,6 +50,10 @@
           EN
         </button>
       </form>
+      <a href="{% url 'schedule_gantt_react' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600 text-white text-sm font-semibold shadow-sm hover:bg-purple-700 transition" title="{% trans 'Abrir Gantt v2 (React)' %}">
+        <i class="bi bi-diagram-3"></i>
+        <span class="hidden sm:inline">{% trans "Gantt v2" %}</span>
+      </a>
     </div>
   </div>
 {% endblock %}
