@@ -127,8 +127,6 @@ class ResourceAssignmentAdmin(admin.ModelAdmin):
     search_fields = ("employee__first_name", "employee__last_name", "project__name")
     list_filter = ("date", "shift")
     autocomplete_fields = ("employee", "project")
-    autocomplete_fields = ("billing_organization", "project_lead")
-    filter_horizontal = ("observers",)
 
 
 # Registro de Horas

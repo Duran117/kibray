@@ -32,7 +32,7 @@
         </details>
 
         {# Staff / PM / Admin #}
-        {% if user.is_staff or user.is_superuser %}
+        {% if (user.is_staff or user.is_superuser) and prof.role != 'employee' %}
         <details open class="group rounded-lg border border-indigo-200 bg-white">
             <summary class="flex items-center justify-between px-4 py-3 cursor-pointer select-none">
                 <div class="flex items-center gap-2 text-sm font-semibold text-indigo-900"><i class="bi bi-kanban text-lg text-indigo-600"></i>{% trans "Planificación" %}</div>
@@ -107,7 +107,7 @@
         {% endif %}
 
         {# Empleado (no staff) #}
-        {% if not user.is_staff and prof and prof.role == 'employee' %}
+        {% if prof and prof.role == 'employee' %}
         <details open class="group rounded-lg border border-green-200 bg-white">
             <summary class="flex items-center justify-between px-4 py-3 cursor-pointer select-none">
                 <div class="flex items-center gap-2 text-sm font-semibold text-green-900"><i class="bi bi-briefcase-fill text-lg text-green-600"></i>{% trans "Mi Jornada" %}</div>
@@ -117,6 +117,7 @@
                 <a href="{% url 'dashboard_employee' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-600">{% trans "Dashboard Empleado" %}</a>
                 <a href="{% url 'employee_morning_dashboard' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-600">{% trans "Plan Mañana" %}</a>
                 <a href="{% url 'task_list_all' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-600">{% trans "Mis Tareas" %}</a>
+                <a href="{% url 'pm_select_project' 'colors' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-600">{% trans "Colores" %}</a>
                 <a href="{% url 'notifications_list' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-600">{% trans "Notificaciones" %}</a>
             </div>
         </details>
