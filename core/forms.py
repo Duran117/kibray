@@ -639,12 +639,18 @@ class ClockInForm(forms.Form):
         super().__init__(*args, **kwargs)
         
         if available_projects is not None:
-            self.fields['project'].queryset = available_projects
-            
-            # Mostrar mensaje si no hay proyectos
-            if not available_projects.exists():
-                self.fields['project'].empty_label = "No tienes proyectos asignados hoy"
-                self.fields['project'].widget.attrs['disabled'] = True
+            fallback_qs = available_projects
+            # Si el queryset viene vacío, usamos todos los proyectos para no bloquear el combo
+            if not fallback_qs.exists():
+                fallback_qs = Project.objects.all()
+
+            self.fields['project'].queryset = fallback_qs
+
+            # Mensaje de estado, pero sin deshabilitar el campo
+            if not fallback_qs.exists():
+                self.fields['project'].empty_label = "No hay proyectos disponibles"
+            elif not available_projects.exists():
+                self.fields['project'].empty_label = "Sin asignaciones hoy: selecciona cualquier proyecto"
 
         # Filtrar COs por proyecto enviado para evitar combinaciones inválidas
         project_id = None
