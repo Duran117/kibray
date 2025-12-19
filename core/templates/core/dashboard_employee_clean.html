@@ -93,9 +93,40 @@
         {% else %}
         <i class="bi bi-clock text-indigo-500 text-6xl mb-4"></i>
         <h4 class="text-2xl font-bold text-slate-900 mb-6">{% trans "Clock In" %}</h4>
+
+        <!-- Aviso temporal: permitir elegir cualquier proyecto -->
+        {% if has_assignments_today and not allow_all_projects %}
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 text-sm text-slate-700 flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-shield-check text-indigo-600 text-lg"></i>
+                <span>Mostrando solo tus proyectos asignados hoy ({{ available_projects_count }}).</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'dashboard_employee' %}?all_projects=1" class="px-3 py-1 rounded-lg bg-amber-100 text-amber-900 font-semibold text-xs">
+                    Modo temporal: ver todos los proyectos
+                </a>
+                <span class="text-xs text-slate-500">(Solo para desbloquear mientras afinamos las asignaciones.)</span>
+            </div>
+        </div>
+        {% elif allow_all_projects %}
+        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 text-sm text-emerald-800 flex flex-wrap items-center gap-2">
+            <i class="bi bi-unlock"></i>
+            <span>Modo temporal activo: puedes elegir cualquier proyecto ({{ available_projects_count }} disponibles).</span>
+            <a href="{% url 'dashboard_employee' %}" class="px-3 py-1 rounded-lg bg-white text-emerald-700 border border-emerald-300 text-xs font-semibold">Volver a asignados</a>
+        </div>
+        {% else %}
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 text-sm text-slate-700 flex items-center gap-2">
+            <i class="bi bi-info-circle text-indigo-600"></i>
+            <span>Sin asignaciones hoy: puedes elegir cualquier proyecto disponible ({{ available_projects_count }}).</span>
+        </div>
+        {% endif %}
+
         <form method="post" class="max-w-2xl mx-auto">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
+            {% if allow_all_projects %}
+            <input type="hidden" name="all_projects" value="1">
+            {% endif %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div class="text-left">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Project" %}:</label>

@@ -5219,7 +5219,11 @@ def dashboard_employee(request):
     )
     my_projects_today = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
     has_assignments_today = assignments_today.exists()
-    available_projects_count = my_projects_today.count() if has_assignments_today else Project.objects.count()
+
+    # Modo temporal: permitir elegir cualquier proyecto si no hay asignaciones o si el usuario lo solicita
+    allow_all_projects = request.GET.get("all_projects") == "1" or request.POST.get("all_projects") == "1"
+    available_projects = Project.objects.all() if (allow_all_projects or not has_assignments_today) else my_projects_today
+    available_projects_count = available_projects.count()
 
     # TimeEntry abierto (si está trabajando)
     open_entry = (
@@ -5271,10 +5275,7 @@ def dashboard_employee(request):
             if open_entry:
                 messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
                 return redirect("dashboard_employee")
-            form = ClockInForm(
-                request.POST,
-                available_projects=my_projects_today if has_assignments_today else Project.objects.all(),
-            )
+            form = ClockInForm(request.POST, available_projects=available_projects)
             if form.is_valid():
                 te = TimeEntry.objects.create(
                     employee=employee,
@@ -5301,7 +5302,7 @@ def dashboard_employee(request):
             return redirect("dashboard_employee")
 
     # GET o POST inválido
-    form = ClockInForm(available_projects=my_projects_today if has_assignments_today else Project.objects.all())
+    form = ClockInForm(available_projects=available_projects)
 
     # === MORNING BRIEFING (Employee Daily Tasks) ===
     morning_briefing = []
@@ -5372,6 +5373,7 @@ def dashboard_employee(request):
         "assignments_today": assignments_today,
         "upcoming_assignments": upcoming_assignments,
         "available_projects_count": available_projects_count,
+        "allow_all_projects": allow_all_projects,
     }
 
     # Use clean template by default, legacy with ?legacy=true

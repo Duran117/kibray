@@ -37,6 +37,14 @@
             <li>{{ a.project.name }} ({{ a.get_shift_display }})</li>
             {% endfor %}
           </ul>
+          {% if not allow_all_projects %}
+          <div class="mt-2">
+            <a href="{% url 'dashboard_employee' %}?all_projects=1" class="btn btn-sm btn-outline-warning">
+              Modo temporal: ver todos los proyectos
+            </a>
+            <small class="text-muted d-block">Solo mientras afinamos las asignaciones.</small>
+          </div>
+          {% endif %}
         </div>
         {% else %}
         <div class="alert alert-warning mb-3">
@@ -57,6 +65,17 @@
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="clock_in">
+          {% if allow_all_projects %}
+          <input type="hidden" name="all_projects" value="1">
+          <div class="alert alert-success small text-start">
+            <i class="bi bi-unlock"></i> Modo temporal activo: puedes elegir cualquier proyecto ({{ available_projects_count }}).
+            <a href="{% url 'dashboard_employee' %}" class="ms-2">Volver a asignados</a>
+          </div>
+          {% elif not assignments_today %}
+          <div class="alert alert-secondary small text-start">
+            <i class="bi bi-info-circle"></i> Sin asignaciones hoy: mostramos todos los proyectos disponibles ({{ available_projects_count }}).
+          </div>
+          {% endif %}
           <div class="row g-3 justify-content-center">
             <div class="col-md-6">
               <label class="form-label"><strong>Proyecto:</strong></label>
