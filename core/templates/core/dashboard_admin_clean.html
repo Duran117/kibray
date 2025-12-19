@@ -19,6 +19,60 @@
 {% endblock %}
 
 {% block content %}
+{% if employee %}
+<!-- Clock In/Out para Admin (si está vinculado a un empleado) -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+    <div class="text-center">
+        {% if open_entry %}
+        <i class="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
+        <h4 class="text-xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
+        <p class="text-slate-600 mb-4">{% trans "Clock in" %}: {{ open_entry.start_time|date:"g:i A" }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_out">
+            <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
+                <i class="bi bi-box-arrow-right mr-2"></i>
+                {% trans "Clock Out" %}
+            </button>
+        </form>
+        {% else %}
+        <i class="bi bi-clock text-indigo-500 text-5xl mb-3"></i>
+        <h4 class="text-xl font-bold text-slate-900 mb-4">{% trans "Clock In" %}</h4>
+        <form method="post" class="max-w-3xl mx-auto">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_in">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Project" %}:</label>
+                    {{ form.project }}
+                </div>
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">CO (T&M / Fijo):</label>
+                    {{ form.change_order }}
+                </div>
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Cost Code" %}:</label>
+                    {{ form.cost_code }}
+                </div>
+            </div>
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Notes" %} ({% trans "optional" %}):</label>
+                {{ form.notes }}
+            </div>
+            <button type="submit" class="px-8 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
+                <i class="bi bi-box-arrow-in-right mr-2"></i>
+                {% trans "Clock In" %}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6 text-sm">
+    <strong>{% trans "Clock-In unavailable" %}:</strong> {% trans "Your user is not linked to an Employee. Ask an admin to link it." %}
+</div>
+{% endif %}
+
 <!-- Django Admin Panel -->
 <a href="/admin/" class="block mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
     <div class="flex flex-col md:flex-row items-stretch">

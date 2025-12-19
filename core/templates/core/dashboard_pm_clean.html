@@ -28,6 +28,11 @@
 {% endblock %}
 
 {% block content %}
+{% if not employee %}
+<div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6 text-sm">
+    <strong>{% trans "Clock-In unavailable" %}:</strong> {% trans "Your user is not linked to an Employee profile. Ask an admin to link it." %}
+</div>
+{% endif %}
 {% if morning_briefing %}
 <!-- Morning Briefing: resumen operativo del día -->
 <div class="bg-white rounded-lg shadow-sm border border-indigo-200 p-4 mb-6">
