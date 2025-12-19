@@ -32,7 +32,8 @@
         </details>
 
         {# Staff / PM / Admin #}
-        {% if (user.is_staff or user.is_superuser) and prof.role != 'employee' %}
+        {% if user.is_staff or user.is_superuser %}
+        {% if prof.role != 'employee' %}
         <details open class="group rounded-lg border border-indigo-200 bg-white">
             <summary class="flex items-center justify-between px-4 py-3 cursor-pointer select-none">
                 <div class="flex items-center gap-2 text-sm font-semibold text-indigo-900"><i class="bi bi-kanban text-lg text-indigo-600"></i>{% trans "Planificación" %}</div>
@@ -104,7 +105,8 @@
                 <a href="{% url 'admin:index' %}" class="flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-600">Django Admin</a>
             </div>
         </details>
-        {% endif %}
+    {% endif %}
+    {% endif %}
 
         {# Empleado (no staff) #}
         {% if prof and prof.role == 'employee' %}
