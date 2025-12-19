@@ -54,6 +54,7 @@ from .models import (
     QualityDefect,
     QualityInspection,
     RecurringTask,
+    ResourceAssignment,
     Schedule,
     ScheduleItem,
     SitePhoto,
@@ -118,6 +119,14 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ("project_code", "name", "client", "billing_organization__name")
     list_filter = ("start_date", "end_date", "billing_organization")
     ordering = ("-start_date",)
+
+
+@admin.register(ResourceAssignment)
+class ResourceAssignmentAdmin(admin.ModelAdmin):
+    list_display = ("date", "employee", "project", "shift")
+    search_fields = ("employee__first_name", "employee__last_name", "project__name")
+    list_filter = ("date", "shift")
+    autocomplete_fields = ("employee", "project")
     autocomplete_fields = ("billing_organization", "project_lead")
     filter_horizontal = ("observers",)
 

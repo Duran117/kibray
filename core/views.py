@@ -32,7 +32,13 @@ from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _, gettext
 from django.views.decorators.http import require_http_methods, require_POST
-from django.core import signing
+            assignments_today = ResourceAssignment.objects.filter(employee=employee, date=today).select_related("project")
+            my_projects_today = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
+            has_assignments_today = assignments_today.exists()
+            form = ClockInForm(
+                request.POST,
+                available_projects=my_projects_today if has_assignments_today else Project.objects.all(),
+            )
 
 logger = logging.getLogger(__name__)
 import re
@@ -5202,6 +5208,13 @@ def dashboard_employee(request):
     today = timezone.localdate()
     now = timezone.localtime()
 
+    # Asignaciones de proyecto para hoy (ResourceAssignment)
+    from core.models import ResourceAssignment
+
+    assignments_today = ResourceAssignment.objects.filter(employee=employee, date=today).select_related("project")
+    my_projects_today = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
+    has_assignments_today = assignments_today.exists()
+
     # TimeEntry abierto (si está trabajando)
     open_entry = (
         TimeEntry.objects.filter(employee=employee, end_time__isnull=True).order_by("-date", "-start_time").first()
@@ -5247,7 +5260,10 @@ def dashboard_employee(request):
             if open_entry:
                 messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
                 return redirect("dashboard_employee")
-            form = ClockInForm(request.POST)
+            form = ClockInForm(
+                request.POST,
+                available_projects=my_projects_today if has_assignments_today else Project.objects.all(),
+            )
             if form.is_valid():
                 te = TimeEntry.objects.create(
                     employee=employee,
@@ -5274,7 +5290,7 @@ def dashboard_employee(request):
             return redirect("dashboard_employee")
 
     # GET o POST inválido
-    form = ClockInForm()
+    form = ClockInForm(available_projects=my_projects_today if has_assignments_today else Project.objects.all())
 
     # === MORNING BRIEFING (Employee Daily Tasks) ===
     morning_briefing = []
@@ -5346,6 +5362,7 @@ def dashboard_employee(request):
         "morning_briefing": morning_briefing,
         "active_filter": active_filter,
         "badges": {"unread_notifications_count": 0},  # Placeholder
+        "has_assignments_today": has_assignments_today,
     }
 
     # Use clean template by default, legacy with ?legacy=true
@@ -5388,7 +5405,7 @@ def dashboard_pm(request):
     
     # Manejo de Clock In/Out para PMs
     if request.method == "POST" and employee:
-        action = request.POST.get("action")
+            from core.models import ResourceAssignment, Project
 
         if action == "clock_in":
             if open_entry:
