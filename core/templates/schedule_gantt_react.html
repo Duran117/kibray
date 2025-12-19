@@ -35,6 +35,10 @@
 {% else %}
     <!-- Production: Load built Gantt bundle -->
     <script type="module" crossorigin src="{% static 'gantt/gantt-app.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'gantt/assets/index-ec751674.css' %}">
+    <!-- CSS is inlined in JS bundle or check actual filename in static/gantt/assets/ -->
+    {% comment %}
+    If CSS is needed separately, update the hash after each build:
+    <link rel="stylesheet" href="{% static 'gantt/assets/index-HASH.css' %}">
+    {% endcomment %}
 {% endif %}
 {% endblock %}
