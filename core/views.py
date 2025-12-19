@@ -423,8 +423,13 @@ def dashboard_admin(request):
             )
             return redirect("dashboard_admin")
 
+    # Proyectos disponibles (admin puede ver todos)
+    available_projects = Project.objects.all()
+    available_projects_count = available_projects.count()
+    available_projects_preview = list(available_projects[:5])
+
     # Form para clock in
-    form = ClockInForm() if employee else None
+    form = ClockInForm(available_projects=available_projects) if employee else None
 
     # === MÉTRICAS FINANCIERAS (refactored to service) ===
     fa = FinancialAnalyticsService()
@@ -605,6 +610,8 @@ def dashboard_admin(request):
         "employee": employee,
         "open_entry": open_entry,
         "form": form,
+        "available_projects_count": available_projects_count,
+        "available_projects_preview": available_projects_preview,
     }
 
     use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}

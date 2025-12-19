@@ -23,6 +23,15 @@
 <!-- Clock In/Out para Admin (si está vinculado a un empleado) -->
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
     <div class="text-center">
+        <div class="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-3 mb-4 text-xs text-slate-600 text-left">
+            <strong>Debug:</strong> Proyectos disponibles (máx 5):
+            <ul class="list-disc list-inside">
+                {% for p in available_projects_preview %}
+                <li>{{ p.id }} · {{ p.name }}</li>
+                {% endfor %}
+            </ul>
+            <div class="mt-1">Total: {{ available_projects_count }}</div>
+        </div>
         {% if open_entry %}
         <i class="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
         <h4 class="text-xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
