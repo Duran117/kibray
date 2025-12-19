@@ -5287,7 +5287,13 @@ def dashboard_employee(request):
                     notes=form.cleaned_data.get("notes") or "",
                     cost_code=form.cleaned_data.get("cost_code"),
                 )
+                # Debug: adicionamos info para confirmar la creación en prod
                 messages.success(request, _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime('%H:%M')})
+                try:
+                    logger.info(f"TimeEntry created id={te.id} employee={employee.id} project={getattr(te.project, 'id', None)}")
+                    messages.info(request, f"(debug) entry_id={te.id} project_id={getattr(te.project, 'id', None)}")
+                except Exception:
+                    logger.exception("Failed to log TimeEntry debug info")
                 return redirect("dashboard_employee")
             else:
                 # Mostrar errores de validación en el formulario y conservar estado
