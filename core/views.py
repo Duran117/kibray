@@ -5410,6 +5410,7 @@ def dashboard_employee(request):
         "allow_all_projects": allow_all_projects,
         "form_errors": form.errors if request.method == "POST" else None,
         "available_projects_preview": available_projects_preview,
+        "disable_notification_center": True,  # Desactivar React NotificationCenter en esta página
     }
 
     # Use clean template by default, legacy with ?legacy=true

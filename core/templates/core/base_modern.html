@@ -91,8 +91,8 @@
     
     {# Core JavaScript #}
     <script src="{% static 'core/js/kibray-core.js' %}"></script>
-    {# NotificationCenter React bundle (only if authenticated) #}
-    {% if user.is_authenticated %}
+    {# NotificationCenter React bundle (only if authenticated and not in employee dashboard) #}
+    {% if user.is_authenticated and not disable_notification_center %}
     <script type="module" src="{% static 'gantt/notification.DugCJ5ir.js' %}"></script>
     {% endif %}
     
