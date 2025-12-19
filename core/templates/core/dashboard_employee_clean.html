@@ -121,6 +121,17 @@
         </div>
         {% endif %}
 
+        {% if form.errors %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
+            <strong>Errores:</strong>
+            <ul class="list-disc list-inside mt-1">
+            {% for field, errs in form.errors.items %}
+                <li>{{ field }}: {{ errs|join:", " }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
         <form method="post" class="max-w-2xl mx-auto">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">

@@ -62,6 +62,17 @@
           {% endif %}
         </div>
         {% endif %}
+        {% if form.errors %}
+        <div class="alert alert-danger text-start">
+          <strong>Errores:</strong>
+          <ul class="mb-0 mt-2 ps-3">
+            {% for field, errs in form.errors.items %}
+            <li>{{ field }}: {{ errs|join:", " }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="clock_in">

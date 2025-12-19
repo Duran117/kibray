@@ -5289,6 +5289,10 @@ def dashboard_employee(request):
                 )
                 messages.success(request, _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime('%H:%M')})
                 return redirect("dashboard_employee")
+            else:
+                # Mostrar errores de validación en el formulario
+                error_text = "; ".join([f"{field}: {', '.join(err_list)}" for field, err_list in form.errors.items()])
+                messages.error(request, f"No se pudo registrar la entrada: {error_text or 'revisa los campos.'}")
 
         elif action == "clock_out":
             if not open_entry:
