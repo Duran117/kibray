@@ -152,7 +152,7 @@
         </div>
         {% endif %}
 
-        <form method="post" class="max-w-2xl mx-auto" id="clockInForm">
+        <form method="post" class="max-w-2xl mx-auto" id="clockInForm" action="{% url 'dashboard_employee' %}" novalidate>
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
             {% if allow_all_projects %}
@@ -185,7 +185,7 @@
                     </label>
                     
                     <!-- Renderizar select manualmente para más control -->
-                    <select name="project" id="id_project" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <select name="project" id="id_project" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="">{{ form.project.field.empty_label }}</option>
                         {% for proj in form.project.field.queryset %}
                         <option value="{{ proj.id }}">{{ proj.name }} (ID: {{ proj.id }})</option>
@@ -229,45 +229,70 @@
             
             <!-- JavaScript mejorado para validar y debugging -->
             <script>
-            function testProjectSelection() {
-                const projectSelect = document.getElementById('id_project');
-                const resultDiv = document.getElementById('testResult');
-                const selectedValue = projectSelect.value;
-                const selectedText = projectSelect.options[projectSelect.selectedIndex].text;
+            // Proteger contra errores de React
+            (function() {
+                'use strict';
                 
-                resultDiv.classList.remove('hidden');
-                
-                if (!selectedValue || selectedValue === '') {
-                    resultDiv.innerHTML = '❌ <strong>ERROR:</strong> No has seleccionado ningún proyecto. Por favor selecciona uno de la lista.';
-                    resultDiv.className = 'mt-2 p-2 bg-red-100 border border-red-300 rounded text-red-800';
-                } else {
-                    resultDiv.innerHTML = '✅ <strong>CORRECTO:</strong> Has seleccionado el proyecto ID: ' + selectedValue + ' - ' + selectedText;
-                    resultDiv.className = 'mt-2 p-2 bg-green-100 border border-green-300 rounded text-green-800';
-                }
-            }
-            
-            document.getElementById('clockInForm').addEventListener('submit', function(e) {
-                const projectSelect = document.getElementById('id_project');
-                const selectedValue = projectSelect.value;
-                
-                console.log('Form submit - Project value:', selectedValue);
-                
-                if (!selectedValue || selectedValue === '') {
-                    e.preventDefault();
-                    alert('❌ DEBES SELECCIONAR UN PROYECTO\n\nPor favor, abre el menú desplegable de "Project" y selecciona uno de los 4 proyectos disponibles antes de hacer Clock In.');
-                    projectSelect.focus();
-                    projectSelect.style.border = '2px solid red';
-                    return false;
+                function testProjectSelection() {
+                    const projectSelect = document.getElementById('id_project');
+                    const resultDiv = document.getElementById('testResult');
+                    const selectedValue = projectSelect.value;
+                    const selectedText = projectSelect.options[projectSelect.selectedIndex].text;
+                    
+                    resultDiv.classList.remove('hidden');
+                    
+                    if (!selectedValue || selectedValue === '') {
+                        resultDiv.innerHTML = '❌ <strong>ERROR:</strong> No has seleccionado ningún proyecto. Por favor selecciona uno de la lista.';
+                        resultDiv.className = 'mt-2 p-2 bg-red-100 border border-red-300 rounded text-red-800';
+                    } else {
+                        resultDiv.innerHTML = '✅ <strong>CORRECTO:</strong> Has seleccionado el proyecto ID: ' + selectedValue + ' - ' + selectedText;
+                        resultDiv.className = 'mt-2 p-2 bg-green-100 border border-green-300 rounded text-green-800';
+                    }
                 }
                 
-                // Log para debugging
-                console.log('Form data being submitted:', {
-                    project: selectedValue,
-                    action: 'clock_in'
-                });
+                // Exponer globalmente
+                window.testProjectSelection = testProjectSelection;
                 
-                return true;
-            });
+                // Validación del formulario con protección contra errores
+                const form = document.getElementById('clockInForm');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        try {
+                            const projectSelect = document.getElementById('id_project');
+                            const selectedValue = projectSelect ? projectSelect.value : '';
+                            
+                            console.log('[Clock-In] Form submit - Project value:', selectedValue);
+                            
+                            if (!selectedValue || selectedValue === '') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                                
+                                alert('❌ DEBES SELECCIONAR UN PROYECTO\n\nPor favor, abre el menú desplegable de "Project" y selecciona uno de los 4 proyectos disponibles antes de hacer Clock In.');
+                                if (projectSelect) {
+                                    projectSelect.focus();
+                                    projectSelect.style.border = '2px solid red';
+                                }
+                                return false;
+                            }
+                            
+                            // Log para debugging
+                            console.log('[Clock-In] Form data being submitted:', {
+                                project: selectedValue,
+                                action: 'clock_in',
+                                formAction: form.action,
+                                formMethod: form.method
+                            });
+                            
+                            return true;
+                        } catch (error) {
+                            console.error('[Clock-In] Error in form validation:', error);
+                            // Si hay error, permitir el submit de todas formas
+                            return true;
+                        }
+                    }, true); // useCapture = true para ejecutar antes que React
+                }
+            })();
             </script>
         </form>
         {% endif %}
