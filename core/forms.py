@@ -624,7 +624,7 @@ class BudgetProgressEditForm(forms.ModelForm):
 
 
 class ClockInForm(forms.Form):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), label="Proyecto")
+    project = forms.ModelChoiceField(queryset=Project.objects.all(), label="Proyecto", empty_label=None)
     change_order = forms.ModelChoiceField(
         queryset=ChangeOrder.objects.filter(status__in=["approved", "sent"]).exclude(status__in=["billed", "paid"]),
         required=False,
@@ -655,7 +655,7 @@ class ClockInForm(forms.Form):
         # Filtrar COs por proyecto enviado para evitar combinaciones inválidas
         project_id = None
         if self.is_bound:
-            project_id = self.data.get("project")
+            project_id = self.data.get("project") or self.data.get("project_id")
         elif self.initial.get("project"):
             project_id = getattr(self.initial.get("project"), "id", self.initial.get("project"))
 

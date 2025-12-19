@@ -5378,6 +5378,7 @@ def dashboard_employee(request):
         "upcoming_assignments": upcoming_assignments,
         "available_projects_count": available_projects_count,
         "allow_all_projects": allow_all_projects,
+        "form_errors": form.errors if request.method == "POST" else None,
     }
 
     # Use clean template by default, legacy with ?legacy=true
