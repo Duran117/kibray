@@ -5212,6 +5212,11 @@ def dashboard_employee(request):
     from core.models import ResourceAssignment
 
     assignments_today = ResourceAssignment.objects.filter(employee=employee, date=today).select_related("project")
+    upcoming_assignments = (
+        ResourceAssignment.objects.filter(employee=employee, date__gt=today)
+        .select_related("project")
+        .order_by("date")[:5]
+    )
     my_projects_today = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
     has_assignments_today = assignments_today.exists()
     available_projects_count = my_projects_today.count() if has_assignments_today else Project.objects.count()
@@ -5365,6 +5370,7 @@ def dashboard_employee(request):
         "badges": {"unread_notifications_count": 0},  # Placeholder
         "has_assignments_today": has_assignments_today,
         "assignments_today": assignments_today,
+        "upcoming_assignments": upcoming_assignments,
         "available_projects_count": available_projects_count,
     }
 

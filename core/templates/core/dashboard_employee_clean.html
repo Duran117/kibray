@@ -60,6 +60,16 @@
         <div>
             <h5 class="text-amber-900 font-semibold">{% trans "No assignments for today" %}</h5>
             <p class="text-amber-800 text-sm mt-1">{% trans "Contact your supervisor to be assigned to a project" %}</p>
+            {% if upcoming_assignments %}
+            <p class="text-amber-800 text-sm mt-2">
+                {% trans "Upcoming assignments" %}:
+                <ul class="list-disc list-inside text-amber-900">
+                {% for a in upcoming_assignments %}
+                    <li>{{ a.date }} · {{ a.project.name }} ({{ a.get_shift_display }})</li>
+                {% endfor %}
+                </ul>
+            </p>
+            {% endif %}
         </div>
     </div>
 </div>
