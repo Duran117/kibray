@@ -5214,6 +5214,7 @@ def dashboard_employee(request):
     assignments_today = ResourceAssignment.objects.filter(employee=employee, date=today).select_related("project")
     my_projects_today = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
     has_assignments_today = assignments_today.exists()
+    available_projects_count = my_projects_today.count() if has_assignments_today else Project.objects.count()
 
     # TimeEntry abierto (si está trabajando)
     open_entry = (
@@ -5363,6 +5364,8 @@ def dashboard_employee(request):
         "active_filter": active_filter,
         "badges": {"unread_notifications_count": 0},  # Placeholder
         "has_assignments_today": has_assignments_today,
+        "assignments_today": assignments_today,
+        "available_projects_count": available_projects_count,
     }
 
     # Use clean template by default, legacy with ?legacy=true
