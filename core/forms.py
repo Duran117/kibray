@@ -627,23 +627,20 @@ class ClockInForm(forms.Form):
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(), 
         label="Proyecto", 
-        empty_label="-- Selecciona un proyecto --",
-        widget=forms.Select(attrs={"class": "form-control"})
+        empty_label="-- Selecciona proyecto --"
     )
     change_order = forms.ModelChoiceField(
         queryset=ChangeOrder.objects.filter(status__in=["approved", "sent"]).exclude(status__in=["billed", "paid"]),
         required=False,
-        label="Change Order (opcional)",
-        widget=forms.Select(attrs={"class": "form-control"})
+        label="Change Order (opcional)"
     )
     cost_code = forms.ModelChoiceField(
         queryset=CostCode.objects.filter(active=True), 
         required=False, 
-        label="Cost Code",
-        widget=forms.Select(attrs={"class": "form-control"})
+        label="Cost Code"
     )
     notes = forms.CharField(
-        widget=forms.Textarea(attrs={"rows": 2, "class": "form-control"}), 
+        widget=forms.Textarea(attrs={"rows": 2}), 
         required=False, 
         label="Notas"
     )
@@ -653,21 +650,24 @@ class ClockInForm(forms.Form):
         available_projects = kwargs.pop('available_projects', None)
         super().__init__(*args, **kwargs)
         
+        # SIMPLIFICADO: Siempre asegurar que haya proyectos disponibles
         if available_projects is not None:
-            fallback_qs = available_projects
-            # Si el queryset viene vacío, usamos todos los proyectos para no bloquear el combo
-            if not fallback_qs.exists():
-                fallback_qs = Project.objects.all()
-
-            self.fields['project'].queryset = fallback_qs
-
-            # Mensaje de estado
-            if not fallback_qs.exists():
-                self.fields['project'].empty_label = "-- No hay proyectos disponibles --"
-            elif not available_projects.exists():
-                self.fields['project'].empty_label = "-- Sin asignaciones hoy: selecciona cualquier proyecto --"
+            # Si el queryset de asignaciones está vacío, mostrar todos los proyectos
+            if available_projects.exists():
+                self.fields['project'].queryset = available_projects
+                self.fields['project'].empty_label = "-- Selecciona proyecto asignado --"
             else:
-                self.fields['project'].empty_label = "-- Selecciona un proyecto --"
+                # No hay asignaciones hoy: mostrar todos los proyectos
+                self.fields['project'].queryset = Project.objects.all()
+                self.fields['project'].empty_label = "-- Selecciona cualquier proyecto --"
+        else:
+            # Fallback: todos los proyectos
+            self.fields['project'].queryset = Project.objects.all()
+            self.fields['project'].empty_label = "-- Selecciona proyecto --"
+
+        # Validar que haya al menos un proyecto
+        if not self.fields['project'].queryset.exists():
+            self.fields['project'].empty_label = "⚠️ No hay proyectos en el sistema"
 
         # Filtrar COs por proyecto enviado para evitar combinaciones inválidas
         project_id = None
@@ -680,7 +680,7 @@ class ClockInForm(forms.Form):
             self.fields["change_order"].queryset = ChangeOrder.objects.filter(
                 project_id=project_id, status__in=["pending", "approved", "sent"]
             ).order_by("-date_created")
-            self.fields["change_order"].empty_label = "-- Ninguno (opcional) --"
+            self.fields["change_order"].empty_label = "-- Ninguno --"
         else:
             self.fields["change_order"].queryset = ChangeOrder.objects.none()
             self.fields["change_order"].empty_label = "-- Primero selecciona proyecto --"
