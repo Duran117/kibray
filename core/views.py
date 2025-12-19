@@ -5253,6 +5253,11 @@ def dashboard_employee(request):
         .order_by("start_datetime")
     )
 
+    # Horas de la semana (se calcula antes de usar en el briefing)
+    week_start = today - timedelta(days=today.weekday())
+    week_entries = TimeEntry.objects.filter(employee=employee, date__gte=week_start, date__lte=today)
+    week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
+
     if request.method == "POST":
         action = request.POST.get("action")
 
@@ -5342,11 +5347,6 @@ def dashboard_employee(request):
 
     # Historial reciente (últimas 5 entradas)
     recent = TimeEntry.objects.filter(employee=employee).order_by("-date", "-start_time")[:5]
-
-    # Horas de la semana
-    week_start = today - timedelta(days=today.weekday())
-    week_entries = TimeEntry.objects.filter(employee=employee, date__gte=week_start, date__lte=today)
-    week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
 
     context = {
         "employee": employee,
