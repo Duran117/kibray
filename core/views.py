@@ -5224,6 +5224,7 @@ def dashboard_employee(request):
     allow_all_projects = request.GET.get("all_projects") == "1" or request.POST.get("all_projects") == "1"
     available_projects = Project.objects.all() if (allow_all_projects or not has_assignments_today) else my_projects_today
     available_projects_count = available_projects.count()
+    available_projects_preview = list(available_projects[:5])
 
     # TimeEntry abierto (si está trabajando)
     open_entry = (
@@ -5385,6 +5386,7 @@ def dashboard_employee(request):
         "available_projects_count": available_projects_count,
         "allow_all_projects": allow_all_projects,
         "form_errors": form.errors if request.method == "POST" else None,
+        "available_projects_preview": available_projects_preview,
     }
 
     # Use clean template by default, legacy with ?legacy=true

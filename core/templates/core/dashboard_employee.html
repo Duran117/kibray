@@ -73,6 +73,21 @@
         </div>
         {% endif %}
 
+        {% if available_projects_count == 0 %}
+        <div class="alert alert-danger small text-start">
+          <strong>Debug:</strong> No se encontraron proyectos en la lista disponible. Verifica que existan proyectos o usa ?all_projects=1.
+        </div>
+        {% else %}
+        <div class="alert alert-secondary small text-start">
+          <strong>Debug:</strong> Proyectos disponibles (máx 5):
+          <ul class="mb-0 mt-1 ps-3">
+            {% for p in available_projects_preview %}
+            <li>{{ p.id }} · {{ p.name }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="clock_in">

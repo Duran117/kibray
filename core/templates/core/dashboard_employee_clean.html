@@ -121,6 +121,21 @@
         </div>
         {% endif %}
 
+        {% if available_projects_count == 0 %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
+            <strong>Debug:</strong> No se encontraron proyectos en la lista disponible. Verifica que existan proyectos en la base o activa el modo temporal (?all_projects=1).
+        </div>
+        {% else %}
+        <div class="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-3 mb-4 text-xs text-slate-600">
+            <strong>Debug:</strong> Proyectos disponibles (máx 5):
+            <ul class="list-disc list-inside">
+                {% for p in available_projects_preview %}
+                <li>{{ p.id }} · {{ p.name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
         {% if form.errors %}
         <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
             <strong>Errores:</strong>
