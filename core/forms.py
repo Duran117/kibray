@@ -624,14 +624,29 @@ class BudgetProgressEditForm(forms.ModelForm):
 
 
 class ClockInForm(forms.Form):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), label="Proyecto", empty_label=None)
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(), 
+        label="Proyecto", 
+        empty_label="-- Selecciona un proyecto --",
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
     change_order = forms.ModelChoiceField(
         queryset=ChangeOrder.objects.filter(status__in=["approved", "sent"]).exclude(status__in=["billed", "paid"]),
         required=False,
-        label="Change Order (opcional)"
+        label="Change Order (opcional)",
+        widget=forms.Select(attrs={"class": "form-control"})
     )
-    cost_code = forms.ModelChoiceField(queryset=CostCode.objects.filter(active=True), required=False, label="Cost Code")
-    notes = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Notas")
+    cost_code = forms.ModelChoiceField(
+        queryset=CostCode.objects.filter(active=True), 
+        required=False, 
+        label="Cost Code",
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
+    notes = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 2, "class": "form-control"}), 
+        required=False, 
+        label="Notas"
+    )
     
     def __init__(self, *args, **kwargs):
         # ✅ Permitir filtrar proyectos disponibles
@@ -646,11 +661,13 @@ class ClockInForm(forms.Form):
 
             self.fields['project'].queryset = fallback_qs
 
-            # Mensaje de estado, pero sin deshabilitar el campo
+            # Mensaje de estado
             if not fallback_qs.exists():
-                self.fields['project'].empty_label = "No hay proyectos disponibles"
+                self.fields['project'].empty_label = "-- No hay proyectos disponibles --"
             elif not available_projects.exists():
-                self.fields['project'].empty_label = "Sin asignaciones hoy: selecciona cualquier proyecto"
+                self.fields['project'].empty_label = "-- Sin asignaciones hoy: selecciona cualquier proyecto --"
+            else:
+                self.fields['project'].empty_label = "-- Selecciona un proyecto --"
 
         # Filtrar COs por proyecto enviado para evitar combinaciones inválidas
         project_id = None
@@ -663,19 +680,28 @@ class ClockInForm(forms.Form):
             self.fields["change_order"].queryset = ChangeOrder.objects.filter(
                 project_id=project_id, status__in=["pending", "approved", "sent"]
             ).order_by("-date_created")
-            self.fields["change_order"].empty_label = "Selecciona CO del proyecto"
+            self.fields["change_order"].empty_label = "-- Ninguno (opcional) --"
         else:
             self.fields["change_order"].queryset = ChangeOrder.objects.none()
-            self.fields["change_order"].empty_label = "Selecciona un proyecto"
+            self.fields["change_order"].empty_label = "-- Primero selecciona proyecto --"
+
+    def clean_project(self):
+        """Validación explícita del campo project"""
+        project = self.cleaned_data.get("project")
+        if not project:
+            raise forms.ValidationError("Debes seleccionar un proyecto para marcar entrada")
+        return project
 
     def clean(self):
         cleaned = super().clean()
         project = cleaned.get("project")
         co = cleaned.get("change_order")
 
-        if project:
-            if co and co.project_id != project.id:
-                raise forms.ValidationError("El CO seleccionado no pertenece al proyecto elegido.")
+        if not project:
+            raise forms.ValidationError("Debes seleccionar un proyecto antes de marcar entrada")
+
+        if co and co.project_id != project.id:
+            raise forms.ValidationError("El CO seleccionado no pertenece al proyecto elegido.")
             # Si no se elige CO, se considera horas base del contrato (permitido).
 
         return cleaned

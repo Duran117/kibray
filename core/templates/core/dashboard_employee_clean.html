@@ -138,29 +138,53 @@
 
         {% if form.errors %}
         <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
-            <strong>Errores:</strong>
+            <strong>⚠️ Errores de validación:</strong>
             <ul class="list-disc list-inside mt-1">
             {% for field, errs in form.errors.items %}
-                <li>{{ field }}: {{ errs|join:", " }}</li>
+                <li><strong>{{ field }}:</strong> {{ errs|join:", " }}</li>
             {% endfor %}
             </ul>
+            {% if form.non_field_errors %}
+            <div class="mt-2 p-2 bg-red-100 rounded">
+                <strong>Errores generales:</strong> {{ form.non_field_errors|join:", " }}
+            </div>
+            {% endif %}
         </div>
         {% endif %}
 
-        <form method="post" class="max-w-2xl mx-auto">
+        <form method="post" class="max-w-2xl mx-auto" id="clockInForm">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
             {% if allow_all_projects %}
             <input type="hidden" name="all_projects" value="1">
             {% endif %}
+            
+            <!-- Debug: mostrar estado del formulario -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-4 text-xs text-blue-800">
+                <strong>Debug del formulario:</strong>
+                <ul class="mt-1">
+                    <li>Proyectos en queryset: {{ form.project.field.queryset.count }}</li>
+                    <li>Empty label: "{{ form.project.field.empty_label }}"</li>
+                    <li>Required: {{ form.project.field.required }}</li>
+                </ul>
+            </div>
+            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Project" %}:</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        {% trans "Project" %}: <span class="text-red-600">*</span>
+                    </label>
                     {{ form.project }}
+                    {% if form.project.errors %}
+                    <p class="text-red-600 text-xs mt-1">{{ form.project.errors|join:", " }}</p>
+                    {% endif %}
                 </div>
                 <div class="text-left">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">CO (T&M / Fijo):</label>
                     {{ form.change_order }}
+                    {% if form.change_order.errors %}
+                    <p class="text-red-600 text-xs mt-1">{{ form.change_order.errors|join:", " }}</p>
+                    {% endif %}
                 </div>
                 <div class="text-left">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">Cost Code:</label>
@@ -175,6 +199,19 @@
                 <i class="bi bi-box-arrow-in-right mr-2"></i>
                 {% trans "Clock In" %}
             </button>
+            
+            <!-- JavaScript para validar antes de enviar -->
+            <script>
+            document.getElementById('clockInForm').addEventListener('submit', function(e) {
+                const projectSelect = this.querySelector('select[name="project"]');
+                if (!projectSelect.value || projectSelect.value === '') {
+                    e.preventDefault();
+                    alert('❌ Debes seleccionar un proyecto antes de marcar entrada');
+                    projectSelect.focus();
+                    return false;
+                }
+            });
+            </script>
         </form>
         {% endif %}
     </div>

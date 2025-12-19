@@ -5283,6 +5283,10 @@ def dashboard_employee(request):
             if open_entry:
                 messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
                 return redirect("dashboard_employee")
+            
+            # Debug: ver qué datos se están enviando
+            logger.info(f"Clock-in attempt - POST data: project={request.POST.get('project')}, available_projects_count={available_projects.count()}")
+            
             form = ClockInForm(request.POST, available_projects=available_projects)
             if form.is_valid():
                 te = TimeEntry.objects.create(
@@ -5296,17 +5300,29 @@ def dashboard_employee(request):
                     cost_code=form.cleaned_data.get("cost_code"),
                 )
                 # Debug: adicionamos info para confirmar la creación en prod
-                messages.success(request, _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime('%H:%M')})
+                messages.success(request, _("✓ Entrada registrada a las %(time)s en %(project)s") % {
+                    "time": now.strftime('%H:%M'),
+                    "project": te.project.name
+                })
                 try:
                     logger.info(f"TimeEntry created id={te.id} employee={employee.id} project={getattr(te.project, 'id', None)}")
-                    messages.info(request, f"(debug) entry_id={te.id} project_id={getattr(te.project, 'id', None)}")
                 except Exception:
                     logger.exception("Failed to log TimeEntry debug info")
                 return redirect("dashboard_employee")
             else:
-                # Mostrar errores de validación en el formulario y conservar estado
-                error_text = "; ".join([f"{field}: {', '.join(err_list)}" for field, err_list in form.errors.items()])
-                messages.error(request, f"No se pudo registrar la entrada: {error_text or 'revisa los campos.'}")
+                # Mostrar errores de validación detallados
+                error_details = []
+                for field, err_list in form.errors.items():
+                    if field == "__all__":
+                        error_details.append(f"Error general: {', '.join(err_list)}")
+                    elif field == "project":
+                        error_details.append(f"❌ Proyecto: {', '.join(err_list)}")
+                    else:
+                        error_details.append(f"{field}: {', '.join(err_list)}")
+                
+                error_message = " | ".join(error_details) if error_details else "Revisa los campos del formulario"
+                messages.error(request, f"No se pudo registrar la entrada. {error_message}")
+                logger.warning(f"Clock-in validation failed for employee={employee.id}: {form.errors.as_json()}")
 
         elif action == "clock_out":
             if not open_entry:
