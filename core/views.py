@@ -32,13 +32,6 @@ from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _, gettext
 from django.views.decorators.http import require_http_methods, require_POST
-            assignments_today = ResourceAssignment.objects.filter(employee=employee, date=today).select_related("project")
-            my_projects_today = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
-            has_assignments_today = assignments_today.exists()
-            form = ClockInForm(
-                request.POST,
-                available_projects=my_projects_today if has_assignments_today else Project.objects.all(),
-            )
 
 logger = logging.getLogger(__name__)
 import re
@@ -5497,7 +5490,7 @@ def dashboard_pm(request):
     
     # Manejo de Clock In/Out para PMs
     if request.method == "POST" and employee:
-            from core.models import ResourceAssignment, Project
+        action = request.POST.get("action")
 
         if action == "clock_in":
             if open_entry:
