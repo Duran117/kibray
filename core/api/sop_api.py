@@ -1,19 +1,19 @@
 """
 SOP Express API - AI-powered SOP generation and management
 """
+import base64
 import json
 import logging
-import base64
 import uuid
+
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view, permission_classes
+from django.utils.translation import gettext as _
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.conf import settings
-from django.db.models import Count
-from django.utils.translation import gettext as _
 
 from core.models import ActivityTemplate
 
@@ -33,7 +33,7 @@ except ImportError:
 def generate_sop_with_ai(request):
     """
     Generate a complete SOP using AI based on task description
-    
+
     POST /api/v1/sop/generate/
     {
         "task_description": "Instalación de puertas interiores",
@@ -46,24 +46,24 @@ def generate_sop_with_ai(request):
             'success': False,
             'error': _('AI no disponible. Configure OPENAI_API_KEY.')
         }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    
+
     task_description = request.data.get('task_description', '').strip()
     category = request.data.get('category', 'OTHER')
     language = request.data.get('language', 'es')
-    
+
     if not task_description:
         return Response({
             'success': False,
             'error': _('La descripción de la tarea es requerida')
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+
     try:
         client = OpenAI(api_key=settings.OPENAI_API_KEY)
         model = getattr(settings, 'OPENAI_MODEL', 'gpt-4o-mini')
-        
+
         # Build prompt based on language
         if language == 'es':
-            prompt = f"""Eres un experto en construcción y acabados profesionales. 
+            prompt = f"""Eres un experto en construcción y acabados profesionales.
 Genera un SOP (Procedimiento Operativo Estándar) completo para la siguiente tarea:
 
 TAREA: {task_description}
@@ -117,31 +117,31 @@ Include between 5-10 detailed steps.
             response_format={"type": "json_object"},
             temperature=0.7
         )
-        
+
         sop_data = json.loads(response.choices[0].message.content)
-        
+
         # Validate required fields
         required_fields = ['name', 'steps']
         for field in required_fields:
             if field not in sop_data:
                 raise ValueError(f"AI response missing required field: {field}")
-        
+
         # Ensure lists are lists
         for field in ['steps', 'materials_list', 'tools_list']:
             if field in sop_data and not isinstance(sop_data[field], list):
                 sop_data[field] = [sop_data[field]] if sop_data[field] else []
-        
+
         # Add category
         sop_data['category'] = category
-        
+
         logger.info(f"AI generated SOP: {sop_data.get('name')} for user {request.user.id}")
-        
+
         return Response({
             'success': True,
             'sop': sop_data,
             'ai_generated': True
         })
-        
+
     except json.JSONDecodeError as e:
         logger.error(f"AI response JSON parse error: {e}")
         return Response({
@@ -161,20 +161,20 @@ Include between 5-10 detailed steps.
 def get_popular_templates(request):
     """
     Get popular SOP templates for quick selection
-    
+
     GET /api/v1/sop/templates/popular/
     """
     category = request.query_params.get('category', None)
     limit = int(request.query_params.get('limit', 6))
-    
+
     queryset = ActivityTemplate.objects.filter(is_active=True)
-    
+
     if category:
         queryset = queryset.filter(category=category)
-    
+
     # Order by usage (you could add a usage_count field later)
     templates = queryset.order_by('-created_at')[:limit]
-    
+
     data = []
     for t in templates:
         data.append({
@@ -188,7 +188,7 @@ def get_popular_templates(request):
             'time_estimate': float(t.time_estimate) if t.time_estimate else None,
             'completion_points': t.completion_points,
         })
-    
+
     return Response({
         'success': True,
         'templates': data
@@ -200,12 +200,12 @@ def get_popular_templates(request):
 def get_template_detail(request, template_id):
     """
     Get full template details for cloning/editing
-    
+
     GET /api/v1/sop/templates/<id>/
     """
     try:
         template = ActivityTemplate.objects.get(pk=template_id, is_active=True)
-        
+
         return Response({
             'success': True,
             'template': {
@@ -239,11 +239,11 @@ def get_template_detail(request, template_id):
 def save_sop(request):
     """
     Save a new SOP (from AI or manual creation)
-    
+
     POST /api/v1/sop/save/
     """
     data = request.data
-    
+
     required_fields = ['name', 'category']
     for field in required_fields:
         if not data.get(field):
@@ -251,13 +251,13 @@ def save_sop(request):
                 'success': False,
                 'error': f'{field} es requerido'
             }, status=status.HTTP_400_BAD_REQUEST)
-    
+
     try:
         # Parse time estimate
         time_hours = float(data.get('time_hours', 0) or 0)
         time_minutes = float(data.get('time_minutes', 0) or 0)
         time_estimate = time_hours + (time_minutes / 60.0)
-        
+
         # Create SOP
         sop = ActivityTemplate.objects.create(
             name=data['name'],
@@ -276,15 +276,15 @@ def save_sop(request):
             created_by=request.user,
             is_active=data.get('is_active', True),
         )
-        
+
         logger.info(f"SOP created: {sop.name} (ID: {sop.id}) by user {request.user.id}")
-        
+
         return Response({
             'success': True,
             'sop_id': sop.id,
             'message': _('¡SOP creado exitosamente!')
         }, status=status.HTTP_201_CREATED)
-        
+
     except Exception as e:
         logger.error(f"Error saving SOP: {e}")
         return Response({
@@ -298,7 +298,7 @@ def save_sop(request):
 def get_categories(request):
     """
     Get all available SOP categories with counts
-    
+
     GET /api/v1/sop/categories/
     """
     categories = []
@@ -310,7 +310,7 @@ def get_categories(request):
             'count': count,
             'icon': CATEGORY_ICONS.get(code, '📋')
         })
-    
+
     return Response({
         'success': True,
         'categories': categories
@@ -376,12 +376,12 @@ CATEGORY_SUGGESTIONS = {
 def get_suggestions(request):
     """
     Get material/tool suggestions for a category
-    
+
     GET /api/v1/sop/suggestions/?category=PAINT
     """
     category = request.query_params.get('category', 'OTHER')
     suggestions = CATEGORY_SUGGESTIONS.get(category, CATEGORY_SUGGESTIONS['OTHER'])
-    
+
     return Response({
         'success': True,
         'materials': suggestions.get('materials', []),
@@ -391,7 +391,7 @@ def get_suggestions(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def save_sop(request):
+def save_sop_express_creator(request):
     """
     Save a new SOP from the Express Creator
     """
@@ -409,8 +409,8 @@ def save_sop(request):
         reference_photos = []
         if image_data and ';base64,' in image_data:
             try:
-                format, imgstr = image_data.split(';base64,') 
-                ext = format.split('/')[-1] 
+                format, imgstr = image_data.split(';base64,')
+                ext = format.split('/')[-1]
                 filename = f"sop_images/{uuid.uuid4()}.{ext}"
                 file_data = ContentFile(base64.b64decode(imgstr), name=filename)
                 file_path = default_storage.save(filename, file_data)
@@ -436,3 +436,8 @@ def save_sop(request):
     except Exception as e:
         logger.error(f"Error saving SOP: {str(e)}")
         return Response({'status': 'error', 'message': str(e)}, status=500)
+
+
+# Backwards-compatible alias to avoid breaking any older imports.
+# NOTE: Keep only one real definition of `save_sop` in this module.
+save_sop_express = save_sop_express_creator

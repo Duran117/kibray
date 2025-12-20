@@ -16,10 +16,7 @@ User = get_user_model()
 def get_client_ip(request):
     """Extract client IP from request"""
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0]
-    else:
-        ip = request.META.get("REMOTE_ADDR")
+    ip = x_forwarded_for.split(",")[0] if x_forwarded_for else request.META.get("REMOTE_ADDR")
     # Fallback for test clients without REMOTE_ADDR
     return ip or "127.0.0.1"
 
@@ -259,8 +256,12 @@ class AuditLogMiddleware:
         response = self.get_response(request)
 
         # Log API access for sensitive endpoints
-        if request.path.startswith("/api/v1/") and request.method in ["POST", "PUT", "PATCH", "DELETE"]:
-            if hasattr(request, "user") and request.user.is_authenticated:
+        if (
+            request.path.startswith("/api/v1/")
+            and request.method in ["POST", "PUT", "PATCH", "DELETE"]
+            and hasattr(request, "user")
+            and request.user.is_authenticated
+        ):
                 # Extract entity info from path if possible
                 # e.g., /api/v1/projects/5/ -> entity_type=project, entity_id=5
                 path_parts = request.path.strip("/").split("/")

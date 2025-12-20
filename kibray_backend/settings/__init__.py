@@ -5,11 +5,11 @@ Auto-loads the correct settings module based on DJANGO_SETTINGS_MODULE environme
 import os
 
 # Default to development settings
-ENVIRONMENT = os.getenv('DJANGO_ENV', 'development')
+ENVIRONMENT = os.getenv("DJANGO_ENV", "development")
 
-if ENVIRONMENT == 'production':
-    from .production import *
-elif ENVIRONMENT == 'staging':
-    from .staging import *
+if ENVIRONMENT == "production":
+    from .production import *  # noqa: F403
+elif ENVIRONMENT == "staging":
+    from .staging import *  # noqa: F403
 else:
-    from .development import *
+    from .development import *  # noqa: F403

@@ -1,5 +1,6 @@
 from django.db import migrations, models
 
+
 class Migration(migrations.Migration):
     dependencies = [
         ('core', '0117_merge_20251202_2230'),

@@ -3,16 +3,18 @@ Django Settings - Production Environment
 Secure settings for production deployment
 """
 import os
+
 import dj_database_url
-from .base import *
+
+from .base import *  # noqa: F403
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 # HOTFIX: Disable template caching temporarily to force recompile
 # This ensures the fixed template syntax is loaded immediately
-TEMPLATES[0]['APP_DIRS'] = False  # Must be False when loaders is defined
-TEMPLATES[0]['OPTIONS']['loaders'] = [
+TEMPLATES[0]["APP_DIRS"] = False  # noqa: F405
+TEMPLATES[0]["OPTIONS"]["loaders"] = [  # noqa: F405
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 ]
@@ -52,7 +54,7 @@ if not DATABASE_URL:
     print("❌ ERROR: DATABASE_URL not set!")
     raise ValueError("DATABASE_URL environment variable must be set in production!")
 else:
-    print(f"✅ DATABASE_URL configured")
+    print("✅ DATABASE_URL configured")
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -92,9 +94,9 @@ else:
         # Also create floor_plans subdirectory
         os.makedirs(os.path.join(MEDIA_ROOT, "floor_plans"), exist_ok=True)
         print(f"✅ Using Railway Volume for media: {MEDIA_ROOT}")
-        print(f"✅ Created subdirectories: floor_plans/")
+        print("✅ Created subdirectories: floor_plans/")
     else:
-        MEDIA_ROOT = BASE_DIR / "media"
+        MEDIA_ROOT = BASE_DIR / "media"  # noqa: F405
         os.makedirs(MEDIA_ROOT, exist_ok=True)
         os.makedirs(os.path.join(MEDIA_ROOT, "floor_plans"), exist_ok=True)
         print("⚠️ Using local filesystem for media (not persistent!)")
@@ -248,7 +250,7 @@ LOGGING = {
 }
 
 # DRF Spectacular - Production server URL
-SPECTACULAR_SETTINGS["SERVERS"] = [
+SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
     {"url": os.getenv("API_BASE_URL", "https://api.kibray.com"), "description": "Production server"},
 ]
 
@@ -256,9 +258,9 @@ SPECTACULAR_SETTINGS["SERVERS"] = [
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 if SENTRY_DSN:
     import sentry_sdk
+    from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
-    from sentry_sdk.integrations.celery import CeleryIntegration
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,

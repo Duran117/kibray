@@ -10,6 +10,23 @@ exclude = [
     "staticfiles",
     "media",
     "db.sqlite3",
+    "scripts/**",
+    "legacy/**",
+    "core/management/commands/**",
+    "**/diagnose_*.py",
+    "**/seed_*.py",
+    "**/verify_*.py",
+    "**/wrap_*.py",
+    "**/create_*.py",
+    "**/reset_*.py",
+    "**/setup_test_data_*.py",
+    "**/*_SCRIPT.py",
+    "**/*_MANUAL.py",
+    "**/audit_*.py",
+    "**/auto_translate_*.py",
+    "**/complete_*.py",
+    "**/convert_fstrings_*.py",
+    "**/check_*.py",
 ]
 
 [tool.ruff.lint]

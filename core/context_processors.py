@@ -40,7 +40,15 @@ def notification_badges(request):
         return {"badges": badges}
 
     try:
-        from core.models import ChangeOrder, ColorSample, Issue, MaterialRequest, Notification, Task, TimeEntry
+        from core.models import (
+            ChangeOrder,
+            ColorSample,
+            Issue,
+            MaterialRequest,
+            Notification,
+            Task,
+            TimeEntry,
+        )
 
         # Notificaciones no leídas (prioridad)
         badges["unread_notifications_count"] = Notification.objects.filter(user=request.user, is_read=False).count()

@@ -1,16 +1,19 @@
+from datetime import date
 import os
+
 import django
-from datetime import date, timedelta
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings")
 django.setup()
 
 from django.contrib.auth.models import User
-from core.models import Project, Employee
+
+from core.models import Employee, Project
+
 
 def setup_data():
     print("Setting up test data...")
-    
+
     # Ensure Admin
     if not User.objects.filter(username='admin').exists():
         User.objects.create_superuser('admin', 'admin@example.com', 'Kibray2025!Admin')

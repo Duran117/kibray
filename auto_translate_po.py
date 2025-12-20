@@ -1555,7 +1555,7 @@ TRANSLATIONS = {
 
 def translate_simple(text):
     """Traducir texto simple usando el diccionario"""
-    return TRANSLATIONS.get(text, None)
+    return TRANSLATIONS.get(text)
 
 
 def process_po_file(filepath):

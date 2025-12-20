@@ -1,47 +1,44 @@
 """
 Serializers for Kibray API
 """
-from .user_serializers import (
-    UserListSerializer,
-    UserDetailSerializer,
-    UserCreateSerializer,
-    UserUpdateSerializer,
-    CurrentUserSerializer,
-    UserMinimalSerializer,
-    UserProfileSerializer,
-)
-
-from .project_serializers import (
-    ProjectListSerializer,
-    ProjectDetailSerializer,
-    ProjectCreateUpdateSerializer,
-    ProjectStatsSerializer,
-    ClientOrganizationMinimalSerializer,
-    ClientContactMinimalSerializer,
-)
-
-from .task_serializers import (
-    TaskListSerializer,
-    TaskDetailSerializer,
-    TaskCreateUpdateSerializer,
-    TaskStatsSerializer,
-)
-
-from .changeorder_serializers import (
-    ChangeOrderListSerializer,
-    ChangeOrderDetailSerializer,
-    ChangeOrderCreateUpdateSerializer,
-    ChangeOrderApprovalSerializer,
-)
+# Re-export budget summary serializer used by viewsets/tests
+from core.api.serializers import ProjectBudgetSummarySerializer
 
 from .analytics_serializers import (
     AnalyticsResponseSerializer,
-    ProjectAnalyticsSerializer,
-    KPISerializer,
     ChartDataSerializer,
+    KPISerializer,
+    ProjectAnalyticsSerializer,
 )
-# Re-export budget summary serializer used by viewsets/tests
-from core.api.serializers import ProjectBudgetSummarySerializer
+from .changeorder_serializers import (
+    ChangeOrderApprovalSerializer,
+    ChangeOrderCreateUpdateSerializer,
+    ChangeOrderDetailSerializer,
+    ChangeOrderListSerializer,
+)
+from .project_serializers import (
+    ClientContactMinimalSerializer,
+    ClientOrganizationMinimalSerializer,
+    ProjectCreateUpdateSerializer,
+    ProjectDetailSerializer,
+    ProjectListSerializer,
+    ProjectStatsSerializer,
+)
+from .task_serializers import (
+    TaskCreateUpdateSerializer,
+    TaskDetailSerializer,
+    TaskListSerializer,
+    TaskStatsSerializer,
+)
+from .user_serializers import (
+    CurrentUserSerializer,
+    UserCreateSerializer,
+    UserDetailSerializer,
+    UserListSerializer,
+    UserMinimalSerializer,
+    UserProfileSerializer,
+    UserUpdateSerializer,
+)
 
 __all__ = [
     # User serializers

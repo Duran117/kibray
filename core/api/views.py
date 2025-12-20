@@ -1,34 +1,36 @@
 import base64
-import json
-import re
+import contextlib
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
+import json
+import re
 
 from django.contrib.auth import get_user_model
 from django.db.models import DecimalField, F, Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext_lazy as _, gettext
+from django.utils import timezone
+from django.utils.translation import gettext
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from core.api.permissions import IsAdminOrPM
-
 from core.models import (
     AISuggestion,
     AuditLog,
     BudgetLine,
+    ChangeOrder,
     ChangeOrderPhoto,
     ChatChannel,
+    ColorApproval,
     ColorSample,
     CostCode,
     DailyLog,
@@ -41,10 +43,11 @@ from core.models import (
     InventoryItem,
     InventoryLocation,
     InventoryMovement,
-    DailyLog,
+    Invoice,
     LoginAttempt,
     MaterialCatalog,
     MaterialRequest,
+    MeetingMinute,
     Notification,
     PayrollPayment,
     PayrollPeriod,
@@ -54,13 +57,11 @@ from core.models import (
     PlanPin,
     Project,
     ProjectFile,  # ⭐ Phase 4 File Manager
-    ProjectManagerAssignment,
     ProjectInventory,
+    ProjectManagerAssignment,
     PushSubscription,  # ⭐ PWA Push Notifications
-    ColorApproval,
     ScheduleCategory,
     ScheduleItem,
-    MeetingMinute,
     SitePhoto,
     Task,
     TaskDependency,
@@ -75,6 +76,7 @@ from .serializers import (
     AuditLogSerializer,
     BudgetLineSerializer,
     ChatChannelSerializer,
+    ColorApprovalSerializer,
     ColorSampleSerializer,
     CostCodeSerializer,
     DailyLogPlanningSerializer,
@@ -90,11 +92,10 @@ from .serializers import (
     InvoicePaymentAPISerializer,
     InvoiceSerializer,
     LoginAttemptSerializer,
-    MeetingMinuteSerializer,
     MaterialCatalogSerializer,
     MaterialRequestSerializer,
-    NotificationSerializer,
     MeetingMinuteSerializer,
+    NotificationSerializer,
     PayrollPaymentSerializer,
     PayrollPeriodSerializer,
     PayrollRecordSerializer,
@@ -105,10 +106,13 @@ from .serializers import (
     ProjectFileSerializer,  # ⭐ Phase 4 File Manager
     ProjectInventorySerializer,
     ProjectListSerializer,
-    ProjectSerializer,
     ProjectManagerAssignmentSerializer,
+    ProjectSerializer,
+    # Module 15: Field Materials (new lightweight serializers)
+    ProjectStockSerializer,
     PushSubscriptionSerializer,  # ⭐ PWA Push Notifications
-    ColorApprovalSerializer,
+    QuickMaterialRequestSerializer,
+    ReportUsageResultSerializer,
     ScheduleCategorySerializer,
     ScheduleItemSerializer,
     SitePhotoSerializer,
@@ -120,13 +124,9 @@ from .serializers import (
     TwoFactorEnableSerializer,
     TwoFactorTokenObtainPairSerializer,
     WeatherSnapshotSerializer,
-    # Module 15: Field Materials (new lightweight serializers)
-    ProjectStockSerializer,
-    ReportUsageResultSerializer,
-    QuickMaterialRequestSerializer,
 )
 
-User = get_user_model()
+user_model = get_user_model()
 
 
 # Notifications
@@ -446,7 +446,9 @@ class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # Chat
-class ChatChannelViewSet(viewsets.ReadOnlyModelViewSet):
+# NOTE: The router uses the ModelViewSet implementation later in this file.
+# This read-only legacy version remains for backward compatibility in imports.
+class ChatChannelViewSetReadOnly(viewsets.ReadOnlyModelViewSet):
     serializer_class = ChatChannelSerializer
     permission_classes = [IsAuthenticated]
 
@@ -547,23 +549,23 @@ class TaskViewSet(viewsets.ModelViewSet):
             from core.models import Employee
 
             emp = Employee.objects.filter(user=self.request.user).first()
-            if emp:
-                qs = qs.filter(assigned_to=emp)
-            else:
-                qs = qs.none()
+            qs = qs.filter(assigned_to=emp) if emp else qs.none()
         return qs
 
-    @action(detail=False, methods=["get"])
-    def touchup_board(self, request: Request):
-        """Return a kanban-style board of touch-up tasks grouped by status and priority."""
+    @action(detail=False, methods=["get"], url_path="touchup-board-simple")
+    def touchup_board_simple(self, request: Request):
+        """Return a minimal board of touch-up tasks grouped by status and priority.
+
+        Note: Kept for backward compatibility. For the richer API, use `touchup_board`.
+        """
         project_id = request.query_params.get("project")
         qs = self.get_queryset().filter(is_touchup=True)
         if project_id:
             qs = qs.filter(project_id=project_id)
         board = {}
-        for status in ["Pendiente", "En Progreso", "Completada", "Cancelada"]:
-            board[status] = list(
-                qs.filter(status=status)
+        for task_status in ["Pendiente", "En Progreso", "Completada", "Cancelada"]:
+            board[task_status] = list(
+                qs.filter(status=task_status)
                 .order_by("-priority", "due_date")
                 .values(
                     "id",
@@ -595,10 +597,6 @@ class TaskViewSet(viewsets.ModelViewSet):
           "stats": {...}
         }
         """
-        from django.utils import timezone
-
-        from core.models import Task
-
         # Base queryset - touch-ups only
         qs = Task.objects.filter(is_touchup=True).select_related("project", "assigned_to", "created_by")
 
@@ -643,27 +641,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                     score += 2
                 elif age_days > 3:
                     score += 1
-
-        @action(detail=False, methods=["get"], url_path="gantt")
-        def gantt(self, request):
-            """Expose Gantt data under /api/v1/tasks/gantt/ to satisfy tests."""
-            project_id = request.query_params.get("project")
-            tasks = Task.objects.all().order_by("id")
-            if project_id:
-                tasks = tasks.filter(project_id=project_id)
-            deps = TaskDependency.objects.filter(task__in=tasks).values(
-                "task_id", "predecessor_id", "type", "lag_minutes"
-            )
-            data_tasks = [
-                {
-                    "id": t.id,
-                    "title": t.title,
-                    "status": t.status,
-                    "project": t.project_id,
-                }
-                for t in tasks
-            ]
-            return Response({"tasks": data_tasks, "dependencies": list(deps)})
 
             # Damage report severity
             if hasattr(task, "damage_reports"):
@@ -729,11 +706,11 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Response({"error": gettext("Invalid status. Valid: %(statuses)s") % {"statuses": valid_statuses}}, status=status.HTTP_400_BAD_REQUEST)
 
         # Touch-up completion validation
-        if task.is_touchup and new_status == "Completada":
-            if not task.images.exists():
-                return Response(
-                    {"error": gettext("Touch-up requires photo evidence before completion")}, status=status.HTTP_400_BAD_REQUEST
-                )
+        if task.is_touchup and new_status == "Completada" and not task.images.exists():
+            return Response(
+                {"error": gettext("Touch-up requires photo evidence before completion")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         old_status = task.status
         task.status = new_status
@@ -754,12 +731,15 @@ class TaskViewSet(viewsets.ModelViewSet):
         new_status = request.data.get("status")
         if new_status:
             # Module 28: Prevent completing touch-up without photo evidence
-            if task.is_touchup and str(new_status).lower() in ["completada", "completed"]:
-                # Ensure at least one image exists
-                if not task.images.exists():
-                    return Response(
-                        {"error": gettext("Touch-up requires a photo before completion")}, status=status.HTTP_400_BAD_REQUEST
-                    )
+            if (
+                task.is_touchup
+                and str(new_status).lower() in ["completada", "completed"]
+                and not task.images.exists()
+            ):
+                return Response(
+                    {"error": gettext("Touch-up requires a photo before completion")},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             task.status = new_status
             task.save()
             return Response({"status": "updated"})
@@ -874,14 +854,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                 "reopen_count": task.reopen_events_count,
             }
         )
-        return Response(
-            {
-                "status": "ok",
-                "elapsed_seconds": elapsed,
-                "time_tracked_seconds": task.time_tracked_seconds,
-                "time_tracked_hours": task.get_time_tracked_hours(),
-            }
-        )
 
     @action(detail=True, methods=["get"])
     def hours_summary(self, request, pk=None):
@@ -951,10 +923,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             from core.models import Employee
 
             emp = Employee.objects.filter(user=request.user).first()
-            if emp:
-                qs = qs.filter(assigned_to=emp)
-            else:
-                qs = qs.none()
+            qs = qs.filter(assigned_to=emp) if emp else qs.none()
 
         # Group by status columns
         statuses = ["Pendiente", "En Progreso", "Completada"]
@@ -1057,10 +1026,10 @@ class DamageReportViewSet(viewsets.ModelViewSet):
 
         from django.contrib.auth import get_user_model
 
-        User = get_user_model()
+        user_model = get_user_model()
         try:
-            assigned_user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
+            assigned_user = user_model.objects.get(id=user_id)
+        except user_model.DoesNotExist:
             # Keep consistent with tests expecting English message substring "not found"
             return Response({"error": "User not found"}, status=404)
 
@@ -1092,7 +1061,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
 
         old_severity = report.severity
 
-        if severity and severity in dict(DamageReport.SEVERITY_CHOICES).keys():
+        if severity and severity in dict(DamageReport.SEVERITY_CHOICES):
             report.severity = severity
             # Q21.7: Track severity changes
             if severity != old_severity:
@@ -1315,11 +1284,12 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
         """Gap B: Export period summary as JSON or CSV."""
         import csv
         from io import StringIO
+
         from django.http import HttpResponse
-        
+
         period = self.get_object()
         format_type = request.query_params.get("format", "json")
-        
+
         records = period.records.select_related("employee").all()
         data = {
             "period_id": period.id,
@@ -1343,7 +1313,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
                 for r in records
             ],
         }
-        
+
         if format_type == "csv":
             output = StringIO()
             writer = csv.writer(output)
@@ -1362,7 +1332,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
             response = HttpResponse(output.getvalue(), content_type="text/csv")
             response["Content-Disposition"] = f'attachment; filename="payroll_{period.id}.csv"'
             return response
-        
+
         return Response(data)
 
 
@@ -1634,12 +1604,12 @@ class FloorPlanViewSet(viewsets.ModelViewSet):
         Returns pins with status='pending_migration' from the replaced plan.
         """
         plan = self.get_object()
-        from core.models import FloorPlan as FP
+        from core.models import FloorPlan as FloorPlanModel
         from core.models import PlanPin
 
         migratable_pins = []
         # If this plan replaced another, gather pins from that plan
-        old_plan = FP.objects.filter(replaced_by=plan).first()
+        old_plan = FloorPlanModel.objects.filter(replaced_by=plan).first()
         if old_plan:
             migratable_pins = list(PlanPin.objects.filter(plan=old_plan, status="pending_migration"))
 
@@ -1796,10 +1766,7 @@ def tasks_gantt_alias(request):
 
         if plan.version > 1:
             old_plan = FloorPlan.objects.filter(replaced_by=plan).first()
-            if old_plan:
-                migratable_pins = old_plan.get_migratable_pins()
-            else:
-                migratable_pins = []
+            migratable_pins = old_plan.get_migratable_pins() if old_plan else []
         else:
             migratable_pins = []
 
@@ -2106,12 +2073,10 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
 
 
 # Projects
-class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = ProjectListSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Project.objects.all().order_by("-created_at")
+# NOTE: Project endpoints are served by the newer implementation in
+# `core/api/viewset_classes/ProjectViewSet` (see `core/api/urls.py`).
+# The legacy read-only version was kept here historically, but it causes
+# a duplicated class name (F811) and isn't wired to the router anymore.
 
 
 # Schedule Categories
@@ -2189,10 +2154,6 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(updated_items, many=True)
         return Response(serializer.data)
-
-
-# ===== GLOBAL SEARCH API =====
-from core.models import ChangeOrder, Invoice
 
 
 @api_view(["GET"])
@@ -2281,7 +2242,7 @@ def global_search(request):
     ]
 
     # Search Employees
-    employees = User.objects.filter(
+    employees = user_model.objects.filter(
         Q(first_name__icontains=query)
         | Q(last_name__icontains=query)
         | Q(email__icontains=query)
@@ -2353,10 +2314,7 @@ def save_changeorder_photo_annotations(request, photo_id):
         elif isinstance(raw, dict):
             # Accept either {'annotations': [...]} or full dict representing annotations
             inner = raw.get("annotations")
-            if inner is not None:
-                annotations = inner
-            else:
-                annotations = raw
+            annotations = inner if inner is not None else raw
         elif isinstance(raw, str):
             # Could be a JSON string representing list/dict
             try:
@@ -3656,15 +3614,15 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
         # Gap D: Get detailed valuation report for an inventory item.
         # Returns cost breakdown by method (FIFO/LIFO/AVG).
         item = self.get_object()
-        
+
         # Get total quantity across all locations
         total_qty = item.total_quantity_all_locations()
-        
+
         # Calculate costs by different methods
         fifo_cost, _ = item.get_fifo_cost(total_qty)
         lifo_cost, _ = item.get_lifo_cost(total_qty)
         avg_cost = item.average_cost * total_qty if item.average_cost else Decimal("0")
-        
+
         # Get purchase history for analysis
         purchases = item.movements.filter(
             movement_type="RECEIVE",
@@ -3673,10 +3631,10 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
         ).order_by("-created_at").values(
             "quantity", "unit_cost", "created_at", "reason"
         )[:10]
-        
+
         # Calculate inventory value by active method
         current_value = item.get_cost_for_quantity(total_qty)
-        
+
         return Response({
             "item_id": item.id,
             "item_name": item.name,
@@ -3707,7 +3665,7 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
         # Gap D: Calculate COGS (Cost of Goods Sold) for a quantity to be consumed.
         # POST data: {"quantity": "10.00"}
         item = self.get_object()
-        
+
         try:
             quantity = Decimal(str(request.data.get("quantity", "0")))
         except (ValueError, TypeError, InvalidOperation):
@@ -3715,17 +3673,17 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
                 {"error": "Invalid quantity format"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         if quantity <= 0:
             return Response(
                 {"error": "Quantity must be greater than zero"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Calculate COGS based on valuation method
         cogs = item.get_cost_for_quantity(quantity)
         unit_cogs = cogs / quantity if quantity > 0 else Decimal("0")
-        
+
         return Response({
             "item_id": item.id,
             "item_name": item.name,
@@ -3803,7 +3761,7 @@ class InventoryMovementViewSet(viewsets.ModelViewSet):
             except Exception as e:
                 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-                raise DRFValidationError({"detail": str(e)})
+                raise DRFValidationError({"detail": str(e)}) from e
         return movement
         # (Removed duplicate ChatChannelViewSet & ChatMessageViewSet with inventory-related actions)
 
@@ -3902,7 +3860,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"], url_path="project-stock")
     def project_stock(self, request):
-        from core.models import ProjectInventory, InventoryItem
+        from core.models import ProjectInventory
         project_id = request.query_params.get('project_id') or request.query_params.get('project')
         if not project_id:
             return Response({"success": False, "error": "project_id requerido"}, status=400)
@@ -3930,9 +3888,17 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["post"], url_path="report-usage")
     def report_usage(self, request):
         from decimal import Decimal, InvalidOperation
-        from django.db import transaction
+
         from django.core.exceptions import ValidationError as DjangoValidationError
-        from core.models import InventoryItem, InventoryMovement, ProjectInventory, ProjectManagerAssignment, Notification
+        from django.db import transaction
+
+        from core.models import (
+            InventoryItem,
+            InventoryMovement,
+            Notification,
+            ProjectInventory,
+            ProjectManagerAssignment,
+        )
 
         item_id = request.data.get('item_id')
         project_id = request.data.get('project_id') or request.data.get('project')
@@ -3988,7 +3954,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
                 related_object_id=movement.id,
             )
         # Basic admin broadcast (optional)
-        for admin in User.objects.filter(is_staff=True, is_active=True):
+        for admin in user_model.objects.filter(is_staff=True, is_active=True):
             Notification.objects.create(
                 user=admin,
                 notification_type="material_usage",
@@ -4012,7 +3978,13 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["post"], url_path="quick-request")
     def quick_request(self, request):
         from decimal import Decimal, InvalidOperation
-        from core.models import MaterialRequest, MaterialRequestItem, ProjectManagerAssignment, Notification
+
+        from core.models import (
+            MaterialRequest,
+            MaterialRequestItem,
+            Notification,
+            ProjectManagerAssignment,
+        )
         project_id = request.data.get('project_id') or request.data.get('project')
         item_name = request.data.get('item_name') or request.data.get('name')
         qty_raw = request.data.get('quantity')
@@ -4095,7 +4067,6 @@ class ClientRequestViewSet(viewsets.ModelViewSet):
         user = self.request.user
 
         # Keep a copy before applying date filters for fallback adjustments
-        qs_without_date = qs
         if user.is_staff:
             return qs
         # Restrict to projects the user has access to
@@ -4193,13 +4164,13 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
 
         from django.contrib.auth import get_user_model
 
-        User = get_user_model()
+        user_model = get_user_model()
 
         try:
-            user = User.objects.get(id=user_id)
+            user = user_model.objects.get(id=user_id)
             channel.participants.add(user)
             return Response({"success": True, "message": f"User {user.username} added to channel"})
-        except User.DoesNotExist:
+        except user_model.DoesNotExist:
             return Response({"error": gettext("User not found")}, status=404)
 
     @action(detail=True, methods=["post"])
@@ -4213,13 +4184,13 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
 
         from django.contrib.auth import get_user_model
 
-        User = get_user_model()
+        user_model = get_user_model()
 
         try:
-            user = User.objects.get(id=user_id)
+            user = user_model.objects.get(id=user_id)
             channel.participants.remove(user)
             return Response({"success": True, "message": f"User {user.username} removed from channel"})
-        except User.DoesNotExist:
+        except user_model.DoesNotExist:
             return Response({"error": gettext("User not found")}, status=404)
 
 
@@ -4301,8 +4272,9 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
             return qs
 
         # Non-staff: filter by ClientProjectAccess via channel->project
-        from core.models import ClientProjectAccess
         from django.db.models import Q
+
+        from core.models import ClientProjectAccess
 
         project_ids = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
         return qs.filter(Q(channel__project_id__in=list(project_ids)) | Q(user=user))
@@ -4372,11 +4344,12 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         qs = ChatMessage.objects.select_related("channel__project", "user", "deleted_by").prefetch_related("mentions").filter(
             channel_id=channel_id
         ).order_by('-created_at')
-        
+
         # Apply permission filtering: staff sees all, non-staff sees messages they authored or from accessible projects
         if not request.user.is_staff:
-            from core.models import ClientProjectAccess
             from django.db.models import Q
+
+            from core.models import ClientProjectAccess
             project_ids = ClientProjectAccess.objects.filter(user=request.user).values_list("project_id", flat=True)
             # Allow if: (1) message author is current user OR (2) project is in user's accessible projects
             qs = qs.filter(Q(user=request.user) | Q(channel__project_id__in=list(project_ids)))
@@ -4384,7 +4357,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         # Apply cursor pagination
         paginator = ChatMessageCursorPagination()
         page = paginator.paginate_queryset(qs, request, view=self)
-        
+
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
@@ -4475,6 +4448,9 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
             accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
             qs = qs.filter(project_id__in=accessible_projects)
 
+            # Keep a copy before date filtering for fallback widening.
+            qs_without_date = qs
+
             # Non-staff users only see public photos
             qs = qs.filter(visibility="public")
 
@@ -4531,10 +4507,7 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
         if (start or end) and not qs.exists():
             project_id = self.request.query_params.get("project")
             base = super().get_queryset()
-            if project_id:
-                qs = base.filter(project_id=project_id)
-            else:
-                qs = base
+            qs = base.filter(project_id=project_id) if project_id else base
 
         return qs
 
@@ -4873,10 +4846,8 @@ class FinancialDashboardView(APIView):
 
             # EV metrics (if available)
             ev_summary = None
-            try:
+            with contextlib.suppress(Exception):
                 ev_summary = proj.earned_value_summary()
-            except Exception:
-                pass
 
             projects_data.append(
                 {
@@ -5005,7 +4976,7 @@ class AdminDashboardView(APIView):
         total_inventory_items = InventoryItem.objects.filter(active=True).count()
 
         # Recent activity feed (last 10 items)
-        thirty_days_ago = timezone.now() - timedelta(days=30)
+        timezone.now() - timedelta(days=30)
         recent_activity = []
 
         # Recent projects
@@ -5177,13 +5148,13 @@ class InventoryValuationReportView(APIView):
 
     def get(self, request: Request) -> Response:
         # Get inventory valuation report.
-        from django.db.models import Sum, Count
-        
+        from django.db.models import Sum
+
         # Get all active inventory items with their quantities
         items = InventoryItem.objects.filter(active=True).annotate(
             total_quantity=Sum("projectinventory__quantity")
         ).filter(total_quantity__gt=0)
-        
+
         # Calculate total value and breakdown by category
         total_value = Decimal("0")
         category_breakdown = {}
@@ -5193,31 +5164,31 @@ class InventoryValuationReportView(APIView):
             "61-90_days": {"count": 0, "value": Decimal("0")},
             "over_90_days": {"count": 0, "value": Decimal("0")}
         }
-        
+
         items_detail = []
-        
+
         for item in items:
             quantity = item.total_quantity
             value = item.get_cost_for_quantity(quantity)
             total_value += value
-            
+
             # Category breakdown
             category = item.get_category_display()
             if category not in category_breakdown:
                 category_breakdown[category] = {"count": 0, "value": Decimal("0")}
             category_breakdown[category]["count"] += 1
             category_breakdown[category]["value"] += value
-            
+
             # Aging analysis (based on last purchase date)
             last_purchase = item.movements.filter(
                 movement_type="RECEIVE",
                 applied=True
             ).order_by("-created_at").first()
-            
+
             if last_purchase and last_purchase.created_at:
                 from django.utils import timezone
                 days_old = (timezone.now() - last_purchase.created_at).days
-                
+
                 if days_old <= 30:
                     aging_analysis["0-30_days"]["count"] += 1
                     aging_analysis["0-30_days"]["value"] += value
@@ -5230,7 +5201,7 @@ class InventoryValuationReportView(APIView):
                 else:
                     aging_analysis["over_90_days"]["count"] += 1
                     aging_analysis["over_90_days"]["value"] += value
-            
+
             items_detail.append({
                 "id": item.id,
                 "name": item.name,
@@ -5243,7 +5214,7 @@ class InventoryValuationReportView(APIView):
                 "last_purchase_date": last_purchase.created_at.isoformat() if last_purchase and last_purchase.created_at else None,
                 "days_old": days_old if last_purchase and last_purchase.created_at else None
             })
-        
+
         # Format response
         return Response({
             "report_date": datetime.now().isoformat(),
@@ -5276,24 +5247,24 @@ class InvoiceAgingReportAPIView(APIView):
     def get(self, request: Request) -> Response:
         # Get accounts receivable aging report.
         from django.utils import timezone
-        
+
         today = timezone.now().date()
-        
+
         aging_buckets = {
             "current": [],  # 0-30 days
             "30_60": [],
             "60_90": [],
             "over_90": []
         }
-        
+
         unpaid_invoices = Invoice.objects.filter(
             status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL", "OVERDUE"]
         ).select_related("project")
-        
+
         for invoice in unpaid_invoices:
             days_outstanding = (today - invoice.date_issued).days
             balance = invoice.balance_due
-            
+
             invoice_data = {
                 "id": invoice.id,
                 "invoice_number": invoice.invoice_number,
@@ -5306,7 +5277,7 @@ class InvoiceAgingReportAPIView(APIView):
                 "days_outstanding": days_outstanding,
                 "status": invoice.status
             }
-            
+
             if days_outstanding <= 30:
                 aging_buckets["current"].append(invoice_data)
             elif days_outstanding <= 60:
@@ -5315,20 +5286,20 @@ class InvoiceAgingReportAPIView(APIView):
                 aging_buckets["60_90"].append(invoice_data)
             else:
                 aging_buckets["over_90"].append(invoice_data)
-        
+
         # Calculate totals
         totals = {
             bucket: sum(Decimal(inv["balance"]) for inv in invoices)
             for bucket, invoices in aging_buckets.items()
         }
         grand_total = sum(totals.values())
-        
+
         # Calculate percentages
         percentages = {
             bucket: float(total / grand_total * 100) if grand_total > 0 else 0.0
             for bucket, total in totals.items()
         }
-        
+
         return Response({
             "report_date": today.isoformat(),
             "aging_buckets": aging_buckets,
@@ -5353,35 +5324,35 @@ class CashFlowProjectionAPIView(APIView):
     def get(self, request: Request) -> Response:
         # Get cash flow projection for next 90 days.
         from django.utils import timezone
-        
+
         today = timezone.now().date()
         next_90_days = today + timedelta(days=90)
-        
+
         # Inflows: Unpaid invoices with due dates
         expected_inflows = Invoice.objects.filter(
             status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"],
             due_date__isnull=False,
             due_date__lte=next_90_days
         ).order_by("due_date")
-        
+
         inflows_by_week = {}
         total_expected_inflow = Decimal("0")
-        
+
         for invoice in expected_inflows:
             balance = invoice.balance_due
             total_expected_inflow += balance
-            
+
             # Group by week
             week_start = invoice.due_date - timedelta(days=invoice.due_date.weekday())
             week_key = week_start.isoformat()
-            
+
             if week_key not in inflows_by_week:
                 inflows_by_week[week_key] = {
                     "week_start": week_key,
                     "invoices": [],
                     "total": Decimal("0")
                 }
-            
+
             inflows_by_week[week_key]["invoices"].append({
                 "invoice_number": invoice.invoice_number,
                 "project": invoice.project.name if invoice.project else None,
@@ -5389,26 +5360,26 @@ class CashFlowProjectionAPIView(APIView):
                 "balance": str(balance)
             })
             inflows_by_week[week_key]["total"] += balance
-        
+
         # Outflows: Active projects' projected expenses
         active_projects = Project.objects.filter(end_date__isnull=True)
-        
+
         total_project_budgets = Decimal("0")
         total_spent = Decimal("0")
         projected_remaining = Decimal("0")
-        
+
         projects_detail = []
-        
+
         for project in active_projects:
             budget = project.budget_total or Decimal("0")
             spent = project.expenses.aggregate(Sum("amount"))["amount__sum"] or Decimal("0")
             remaining = budget - spent
-            
+
             if remaining > 0:
                 total_project_budgets += budget
                 total_spent += spent
                 projected_remaining += remaining
-                
+
                 projects_detail.append({
                     "project": project.name,
                     "budget": str(budget),
@@ -5416,10 +5387,10 @@ class CashFlowProjectionAPIView(APIView):
                     "remaining": str(remaining),
                     "completion_percentage": float(spent / budget * 100) if budget > 0 else 0.0
                 })
-        
+
         # Net cash flow projection
         net_projection = total_expected_inflow - projected_remaining
-        
+
         return Response({
             "projection_date": today.isoformat(),
             "projection_period": f"{today.isoformat()} to {next_90_days.isoformat()}",
@@ -5453,54 +5424,54 @@ class BudgetVarianceAnalysisAPIView(APIView):
     def get(self, request: Request) -> Response:
         # Get budget variance analysis for all active projects.
         from django.db.models import Sum
-        
+
         project_id = request.query_params.get("project")
-        
+
         if project_id:
             projects = Project.objects.filter(id=project_id)
         else:
             projects = Project.objects.filter(end_date__isnull=True)
-        
+
         projects_analysis = []
         total_budget = Decimal("0")
         total_actual = Decimal("0")
         over_budget_count = 0
-        
+
         for project in projects:
             budget_total = project.budget_total or Decimal("0")
             budget_labor = project.budget_labor or Decimal("0")
             budget_materials = project.budget_materials or Decimal("0")
             budget_other = project.budget_other or Decimal("0")
-            
+
             # Actual expenses by category
             expenses = project.expenses.values("category").annotate(total=Sum("amount"))
-            
+
             actual_labor = Decimal("0")
             actual_materials = Decimal("0")
             actual_other = Decimal("0")
-            
+
             for expense in expenses:
                 category = expense["category"]
                 amount = expense["total"] or Decimal("0")
-                
+
                 if category in ["PAYROLL", "LABOR"]:
                     actual_labor += amount
                 elif category in ["MATERIALES", "MATERIALS"]:
                     actual_materials += amount
                 else:
                     actual_other += amount
-            
+
             actual_total = actual_labor + actual_materials + actual_other
-            
+
             variance_total = budget_total - actual_total
             variance_pct = float(variance_total / budget_total * 100) if budget_total > 0 else 0.0
-            
+
             if actual_total > budget_total:
                 over_budget_count += 1
-            
+
             total_budget += budget_total
             total_actual += actual_total
-            
+
             projects_analysis.append({
                 "project_id": project.id,
                 "project_name": project.name,
@@ -5525,9 +5496,9 @@ class BudgetVarianceAnalysisAPIView(APIView):
                 },
                 "status": "over_budget" if actual_total > budget_total else "under_budget" if variance_total > 0 else "on_budget"
             })
-        
+
         overall_variance = total_budget - total_actual
-        
+
         return Response({
             "report_date": datetime.now().isoformat(),
             "summary": {
@@ -5555,30 +5526,30 @@ class ClientInvoiceListAPIView(APIView):
     def get(self, request: Request) -> Response:
         # Get invoices accessible to the current client user.
         from core.models import ClientProjectAccess
-        
+
         user = request.user
-        
+
         # Get projects client has access to
         client_access = ClientProjectAccess.objects.filter(
             user=user
         ).select_related("project")
-        
+
         accessible_project_ids = [access.project_id for access in client_access]
-        
+
         # Get invoices for those projects
         invoices = Invoice.objects.filter(
             project_id__in=accessible_project_ids
         ).select_related("project").order_by("-date_issued")
-        
+
         # Apply status filter if provided
         status_filter = request.query_params.get("status")
         if status_filter:
             invoices = invoices.filter(status=status_filter.upper())
-        
+
         invoices_data = []
         for invoice in invoices:
             balance = invoice.balance_due
-            
+
             invoices_data.append({
                 "id": invoice.id,
                 "invoice_number": invoice.invoice_number,
@@ -5594,7 +5565,7 @@ class ClientInvoiceListAPIView(APIView):
                 "can_approve": invoice.status in ["SENT", "VIEWED"] and balance > 0,
                 "payment_progress": invoice.payment_progress
             })
-        
+
         return Response({
             "invoices": invoices_data,
             "total_count": len(invoices_data),
@@ -5613,9 +5584,9 @@ class ClientInvoiceApprovalAPIView(APIView):
     def post(self, request: Request, invoice_id: int) -> Response:
         # Approve an invoice as a client.
         from core.models import ClientProjectAccess
-        
+
         user = request.user
-        
+
         try:
             invoice = Invoice.objects.select_related("project").get(id=invoice_id)
         except Invoice.DoesNotExist:
@@ -5623,32 +5594,32 @@ class ClientInvoiceApprovalAPIView(APIView):
                 {"error": "Invoice not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
         # Check if user has access to this project
         has_access = ClientProjectAccess.objects.filter(
             user=user,
             project=invoice.project
         ).exists()
-        
+
         if not has_access:
             return Response(
                 {"error": "You do not have access to this invoice"},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         # Check if invoice can be approved
         if invoice.status not in ["SENT", "VIEWED"]:
             return Response(
                 {"error": f"Invoice cannot be approved (current status: {invoice.status})"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Mark as approved
         from django.utils import timezone
         invoice.status = "APPROVED"
         invoice.approved_date = timezone.now()
         invoice.save()
-        
+
         return Response({
             "message": "Invoice approved successfully",
             "invoice": {
@@ -5669,15 +5640,16 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
     # Provides JSON access to financial KPIs, cash flow projections,
     # project margins, and inventory risk data for SPA/dashboard consumption.
     permission_classes = [IsAuthenticated]
-    
+
     @action(detail=False, methods=["get"], url_path="kpis")
     def company_kpis(self, request):
         # Get company health KPIs: net profit, receivables, burn rate.
         # Query params:
         #   as_of (str): Date in YYYY-MM-DD format (default: today)
-        from core.services.financial_service import FinancialAnalyticsService
         from django.utils import timezone
-        
+
+        from core.services.financial_service import FinancialAnalyticsService
+
         as_of_str = request.query_params.get("as_of")
         if as_of_str:
             try:
@@ -5689,21 +5661,22 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
                 )
         else:
             as_of = timezone.localdate()
-        
+
         service = FinancialAnalyticsService(as_of=as_of)
         kpis = service.get_company_health_kpis()
-        
+
         return Response(kpis)
-    
+
     @action(detail=False, methods=["get"], url_path="cash-flow")
     def cash_flow_projection(self, request):
         # Get cash flow projection for next N days.
         # Query params:
         #   days (int): Forecast horizon in days (default: 30)
         #   as_of (str): Date in YYYY-MM-DD format (default: today)
-        from core.services.financial_service import FinancialAnalyticsService
         from django.utils import timezone
-        
+
+        from core.services.financial_service import FinancialAnalyticsService
+
         as_of_str = request.query_params.get("as_of")
         if as_of_str:
             try:
@@ -5715,7 +5688,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
                 )
         else:
             as_of = timezone.localdate()
-        
+
         days = request.query_params.get("days", "30")
         try:
             days = int(days)
@@ -5724,10 +5697,10 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
                 {"error": "Invalid days parameter. Must be integer."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         service = FinancialAnalyticsService(as_of=as_of)
         data = service.get_cash_flow_projection(days=days)
-        
+
         # Serialize dataclass rows to dicts
         serialized_rows = [
             {
@@ -5738,43 +5711,44 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
             }
             for row in data["rows"]
         ]
-        
+
         return Response({
             "rows": serialized_rows,
             "chart": data["chart"]
         })
-    
+
     @action(detail=False, methods=["get"], url_path="margins")
     def project_margins(self, request):
         # Get project margin analysis (invoiced vs costs).
         # Returns list of active projects with margin percentages.
         from core.services.financial_service import FinancialAnalyticsService
-        
+
         service = FinancialAnalyticsService()
         margins = service.get_project_margins()
-        
+
         return Response({"projects": margins})
-    
+
     @action(detail=False, methods=["get"], url_path="inventory-risk")
     def inventory_risk(self, request):
         # Get inventory items below threshold (critical stock levels).
         # Returns list of items requiring reorder.
         from core.services.financial_service import FinancialAnalyticsService
-        
+
         service = FinancialAnalyticsService()
         items = service.get_inventory_risk_items()
-        
+
         return Response({"items": items})
-    
+
     @action(detail=False, methods=["get"], url_path="top-performers")
     def top_performers(self, request):
         # Get top performing employees by productivity percentage.
         # Query params:
         #   limit (int): Number of employees to return (default: 5)
         #   as_of (str): Date in YYYY-MM-DD format (default: today)
-        from core.services.financial_service import FinancialAnalyticsService
         from django.utils import timezone
-        
+
+        from core.services.financial_service import FinancialAnalyticsService
+
         as_of_str = request.query_params.get("as_of")
         if as_of_str:
             try:
@@ -5786,7 +5760,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
                 )
         else:
             as_of = timezone.localdate()
-        
+
         limit = request.query_params.get("limit", "5")
         try:
             limit = int(limit)
@@ -5795,10 +5769,10 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
                 {"error": "Invalid limit parameter. Must be integer."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         service = FinancialAnalyticsService(as_of=as_of)
         employees = service.get_top_performing_employees(limit=limit)
-        
+
         return Response({"employees": employees})
 
 
@@ -5818,7 +5792,7 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
     # - project: Filter by project ID
     # - category: Filter by category ID
     # - ordering: Sort by field (default: -uploaded_at)
-    
+
     queryset = ProjectFile.objects.select_related('project', 'category', 'uploaded_by').all()
     serializer_class = ProjectFileSerializer
     permission_classes = [IsAuthenticated]
@@ -5827,15 +5801,15 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'description', 'tags']
     ordering_fields = ['uploaded_at', 'name', 'file_size']
     ordering = ['-uploaded_at']
-    
+
     def perform_create(self, serializer):
         # Auto-set uploaded_by to current user
         serializer.save(uploaded_by=self.request.user)
-    
+
     def destroy(self, request, *args, **kwargs):
         # Delete file and remove from storage
         instance = self.get_object()
-        
+
         # Check permissions - only uploader, project PM, or admin can delete
         user = request.user
         can_delete = (
@@ -5843,20 +5817,20 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
             user.is_staff or
             (hasattr(user, 'pm_projects') and instance.project in user.pm_projects.all())
         )
-        
+
         if not can_delete:
             return Response(
                 {"detail": "You do not have permission to delete this file."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         # Delete the physical file
         if instance.file:
             instance.file.delete(save=False)
-        
+
         # Delete the database record
         instance.delete()
-        
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -5869,11 +5843,11 @@ class PushNotificationPreferencesView(APIView):
     # GET: Retrieve current preferences
     # PATCH: Update preferences
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         # Get user's notification preferences
         from core.models import NotificationPreference
-        
+
         preference, created = NotificationPreference.objects.get_or_create(
             user=request.user,
             defaults={
@@ -5887,18 +5861,18 @@ class PushNotificationPreferencesView(APIView):
                 }
             }
         )
-        
+
         return Response({
             'push_enabled': preference.push_enabled,
             'email_enabled': preference.email_enabled,
             'preferences': preference.preferences,
             'updated_at': preference.updated_at,
         })
-    
+
     def patch(self, request):
         # Update user's notification preferences
         from core.models import NotificationPreference
-        
+
         preference, created = NotificationPreference.objects.get_or_create(
             user=request.user,
             defaults={
@@ -5907,23 +5881,23 @@ class PushNotificationPreferencesView(APIView):
                 'preferences': {}
             }
         )
-        
+
         # Update fields
         if 'push_enabled' in request.data:
             preference.push_enabled = request.data['push_enabled']
-        
+
         if 'email_enabled' in request.data:
             preference.email_enabled = request.data['email_enabled']
-        
+
         if 'preferences' in request.data:
             # Merge preferences instead of replacing
             current_prefs = preference.preferences or {}
             new_prefs = request.data['preferences']
             current_prefs.update(new_prefs)
             preference.preferences = current_prefs
-        
+
         preference.save()
-        
+
         return Response({
             'push_enabled': preference.push_enabled,
             'email_enabled': preference.email_enabled,
@@ -5939,7 +5913,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
     # destroy: Unregister a device token
     permission_classes = [IsAuthenticated]
     serializer_class = 'DeviceTokenSerializer'  # Will be imported
-    
+
     def get_queryset(self):
         # Return only current user's active tokens
         from core.models import DeviceToken
@@ -5947,22 +5921,21 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
             user=self.request.user,
             is_active=True
         ).order_by('-last_used')
-    
+
     def create(self, request):
         # Register a new device token
-        from core.models import DeviceToken
         from core.push_notifications import PushNotificationService
-        
+
         token = request.data.get('token')
         device_type = request.data.get('device_type', 'web')
         device_name = request.data.get('device_name', '')
-        
+
         if not token:
             return Response(
                 {'error': 'Token is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Validate device type
         valid_types = ['web', 'ios', 'android']
         if device_type not in valid_types:
@@ -5970,7 +5943,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
                 {'error': f'Device type must be one of: {", ".join(valid_types)}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Register token using service
         push_service = PushNotificationService()
         device_token = push_service.register_device_token(
@@ -5979,7 +5952,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
             device_type=device_type,
             device_name=device_name
         )
-        
+
         return Response({
             'id': device_token.id,
             'token': device_token.token,
@@ -5988,12 +5961,12 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
             'created_at': device_token.created_at,
             'last_used': device_token.last_used,
         }, status=status.HTTP_201_CREATED)
-    
+
     def destroy(self, request, pk=None):
         # Unregister a device token
         from core.models import DeviceToken
         from core.push_notifications import PushNotificationService
-        
+
         try:
             device_token = DeviceToken.objects.get(
                 id=pk,
@@ -6005,18 +5978,18 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
                 {'error': 'Device token not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
         # Unregister token using service
         push_service = PushNotificationService()
         push_service.unregister_device_token(device_token.token)
-        
+
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
     @action(detail=False, methods=['post'])
     def test_notification(self, request):
         # Send a test push notification to all user's devices
         from core.push_notifications import PushNotificationService
-        
+
         push_service = PushNotificationService()
         success = push_service.send_notification(
             user=request.user,
@@ -6027,7 +6000,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
                 'timestamp': datetime.now().isoformat(),
             }
         )
-        
+
         if success:
             return Response({'message': 'Test notification sent successfully'})
         else:
@@ -6045,18 +6018,18 @@ class WebSocketMetricsView(APIView):
     # API endpoint for WebSocket metrics
     # GET: Retrieve current metrics summary
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         # Get WebSocket metrics summary
         from core.websocket_metrics import get_metrics_summary
-        
+
         # Check if user is staff
         if not request.user.is_staff:
             return Response(
                 {'error': 'Only staff can view metrics'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         summary = get_metrics_summary()
         return Response(summary)
 
@@ -6065,22 +6038,22 @@ class WebSocketMetricsHistoryView(APIView):
     # API endpoint for historical WebSocket metrics
     # GET: Retrieve metrics history (last 24 hours)
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         # Get historical metrics
         from django.core.cache import cache
-        
+
         # Check if user is staff
         if not request.user.is_staff:
             return Response(
                 {'error': 'Only staff can view metrics'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         # Get time range from query params
         hours = int(request.GET.get('hours', 24))
         hours = min(hours, 168)  # Max 7 days
-        
+
         # Get metrics from cache
         history = []
         for i in range(hours * 12):  # 5-minute intervals
@@ -6088,7 +6061,7 @@ class WebSocketMetricsHistoryView(APIView):
             data = cache.get(timestamp_key)
             if data:
                 history.append(data)
-        
+
         return Response({
             'hours': hours,
             'interval_minutes': 5,
@@ -6105,7 +6078,7 @@ class ChatMessageSearchView(APIView):
     # Full-text search for chat messages
     # GET /api/chat/search/?q=query&channel=123&user=1&limit=20&offset=0
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         # Search chat messages with full-text search
         # Query Parameters:
@@ -6115,9 +6088,10 @@ class ChatMessageSearchView(APIView):
         # - limit: Results per page (default 20, max 100)
         # - offset: Pagination offset (default 0)
         from django.contrib.postgres.search import SearchQuery, SearchRank
-        from core.models import ChatMessage
+
         from core.api.serializers import ChatMessageSerializer
-        
+        from core.models import ChatMessage
+
         # Get search query
         search_query = request.GET.get('q', '').strip()
         if not search_query:
@@ -6125,42 +6099,42 @@ class ChatMessageSearchView(APIView):
                 {'error': 'Search query is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Base queryset (exclude deleted messages)
         queryset = ChatMessage.objects.filter(
             is_deleted=False
         ).select_related('user', 'channel')
-        
+
         # Check user has access to channels
         # Users can only search in channels they're members of
         accessible_channels = request.user.chat_channels.all()
         queryset = queryset.filter(channel__in=accessible_channels)
-        
+
         # Apply filters
         channel_id = request.GET.get('channel')
         if channel_id:
             queryset = queryset.filter(channel_id=channel_id)
-        
+
         user_id = request.GET.get('user')
         if user_id:
             queryset = queryset.filter(user_id=user_id)
-        
+
         # Full-text search
         search = SearchQuery(search_query, config='english')
         queryset = queryset.filter(search_vector=search).annotate(
             rank=SearchRank('search_vector', search)
         ).order_by('-rank', '-created_at')
-        
+
         # Pagination
         limit = min(int(request.GET.get('limit', 20)), 100)
         offset = int(request.GET.get('offset', 0))
-        
+
         total_count = queryset.count()
         messages = queryset[offset:offset + limit]
-        
+
         # Serialize results
         serializer = ChatMessageSerializer(messages, many=True)
-        
+
         return Response({
             'count': total_count,
             'limit': limit,
@@ -6178,17 +6152,17 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
     serializer_class = PushSubscriptionSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'delete']
-    
+
     def get_queryset(self):
         # Users can only see their own subscriptions
         return PushSubscription.objects.filter(user=self.request.user)
-    
+
     def create(self, request, *args, **kwargs):
         # Subscribe to push notifications
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        
+
         return Response(
             {
                 'message': 'Successfully subscribed to push notifications',
@@ -6196,23 +6170,23 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
-    
+
     @action(detail=False, methods=['post'], url_path='unsubscribe')
     def unsubscribe(self, request):
         # Unsubscribe from push notifications by endpoint
         endpoint = request.data.get('endpoint')
-        
+
         if not endpoint:
             return Response(
                 {'error': 'Endpoint is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         deleted_count, _ = PushSubscription.objects.filter(
             user=request.user,
             endpoint=endpoint
         ).delete()
-        
+
         if deleted_count > 0:
             return Response(
                 {'message': 'Successfully unsubscribed'},

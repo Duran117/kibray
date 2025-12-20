@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate inventory.json for repo files (skip .git, venvs, node_modules)."""
-import os
 import json
+import os
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 items = []

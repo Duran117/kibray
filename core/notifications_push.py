@@ -5,8 +5,8 @@ Uses OneSignal REST API for web push notifications
 
 import logging
 
-import requests
 from django.conf import settings
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -121,8 +121,8 @@ def notify_changeorder_created(change_order):
     from django.contrib.auth import get_user_model
     from django.urls import reverse
 
-    User = get_user_model()
-    admins = User.objects.filter(is_staff=True, is_active=True)
+    user_model = get_user_model()
+    admins = user_model.objects.filter(is_staff=True, is_active=True)
 
     if admins.exists():
         url = reverse("changeorder_detail", args=[change_order.id])
@@ -156,9 +156,9 @@ def notify_material_request(material_request):
     from django.contrib.auth import get_user_model
     from django.urls import reverse
 
-    User = get_user_model()
+    user_model = get_user_model()
     # Assuming you have a group or role for inventory managers
-    managers = User.objects.filter(groups__name="Inventory Manager", is_active=True)
+    managers = user_model.objects.filter(groups__name="Inventory Manager", is_active=True)
 
     if managers.exists():
         url = reverse("materials_request_list", args=[material_request.project.id])
@@ -222,13 +222,13 @@ def notify_project_budget_alert(project):
     from django.contrib.auth import get_user_model
     from django.urls import reverse
 
-    User = get_user_model()
+    user_model = get_user_model()
     users_to_notify = []
 
     if project.pm:
         users_to_notify.append(project.pm.pk)
 
-    admins = User.objects.filter(is_staff=True, is_active=True)
+    admins = user_model.objects.filter(is_staff=True, is_active=True)
     users_to_notify.extend([admin.pk for admin in admins])
 
     if users_to_notify:

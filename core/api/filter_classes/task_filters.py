@@ -1,9 +1,10 @@
 """
 Task filters for the Kibray API
 """
-import django_filters
 from django.db import models
 from django.utils import timezone
+import django_filters
+
 from core.models import Task
 
 
@@ -33,15 +34,15 @@ class TaskFilter(django_filters.FilterSet):
     due_date_to = django_filters.DateFilter(field_name='due_date', lookup_expr='lte')
     is_overdue = django_filters.BooleanFilter(method='filter_overdue')
     created_by = django_filters.NumberFilter(field_name='created_by__id')
-    
+
     class Meta:
         model = Task
         fields = ['status', 'priority', 'assigned_to', 'project']
-    
+
     def filter_overdue(self, queryset, name, value):
         """Filter overdue tasks"""
         today = timezone.now().date()
-        
+
         if value:
             # Overdue: due_date < today AND status != 'Completada'
             return queryset.filter(due_date__lt=today).exclude(status='Completada')

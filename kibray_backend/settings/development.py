@@ -4,7 +4,8 @@ Settings for local development
 """
 import os
 import sys
-from .base import *
+
+from .base import *  # noqa: F403
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -13,9 +14,9 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver", "*"]
 
 # Database - SQLite for development
 DATABASES = {
-    "default": {
+    "default": {  # noqa: F405
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    "NAME": BASE_DIR / "db.sqlite3",  # noqa: F405
     }
 }
 
@@ -24,7 +25,7 @@ STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 # Media files - Local filesystem
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR / "media"  # noqa: F405
 
 # Email - Console backend for development
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -130,7 +131,7 @@ LOGGING = {
 }
 
 # DRF Spectacular - Include localhost server
-SPECTACULAR_SETTINGS["SERVERS"] = [
+SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
     {"url": "http://localhost:8000", "description": "Development server"},
 ]
 

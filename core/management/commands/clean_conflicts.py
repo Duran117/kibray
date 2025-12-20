@@ -14,13 +14,11 @@ Author: Senior Django Cleanup Specialist
 Date: 2025-11-29
 """
 
-import os
-import shutil
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+import shutil
 
 from django.core.management.base import BaseCommand
-
 
 # ANSI Color Codes for Terminal Output
 GREEN = '\033[92m'
@@ -62,7 +60,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         auto_yes = options.get('auto_yes', False)
         dry_run = options.get('dry_run', False)
-        
+
         self.stdout.write(f"\n{CYAN}{'='*80}{RESET}")
         self.stdout.write(f"{BOLD}{CYAN}DJANGO CLEANUP SPECIALIST{RESET}")
         self.stdout.write(f"{CYAN}File Conflict Resolution{RESET}")
@@ -70,7 +68,7 @@ class Command(BaseCommand):
 
         if dry_run:
             self.stdout.write(f"{YELLOW}🔍 DRY RUN MODE - No files will be deleted{RESET}\n")
-        
+
         if auto_yes:
             self.stdout.write(f"{YELLOW}⚠️  AUTO-YES MODE - All deletions will be confirmed automatically{RESET}\n")
 
@@ -94,7 +92,7 @@ class Command(BaseCommand):
             self.stdout.write(f"\n{BLUE}{'─'*80}{RESET}")
             self.stdout.write(f"{BOLD}PHASE 2: CLEANUP EXECUTION{RESET}\n")
             self.stdout.write(f"{BLUE}{'─'*80}{RESET}\n")
-            
+
             self.execute_cleanup(dry_run)
         else:
             self.stdout.write(f"\n{GREEN}✅ No conflicts found. Codebase is clean!{RESET}\n")
@@ -112,11 +110,11 @@ class Command(BaseCommand):
         """Get file size and last modified date."""
         if not filepath.exists():
             return None
-        
+
         stat = filepath.stat()
         size_kb = stat.st_size / 1024
         modified = datetime.fromtimestamp(stat.st_mtime)
-        
+
         return {
             'path': filepath,
             'size_kb': size_kb,
@@ -130,7 +128,7 @@ class Command(BaseCommand):
 
         # Find all consumers*.py files
         consumers_files = list(self.core_dir.glob('consumers*.py'))
-        
+
         if not consumers_files:
             self.stdout.write(f"{GREEN}✓ No consumers.py files found{RESET}\n")
             return
@@ -156,11 +154,11 @@ class Command(BaseCommand):
             name = info['name']
             size = info['size_kb']
             modified = info['modified'].strftime('%Y-%m-%d %H:%M:%S')
-            
+
             # Determine if this is the main file or backup
             is_main = name == 'consumers.py'
             is_backup = '.broken' in name or '_fixed' in name or '_backup' in name
-            
+
             status = ""
             if is_main:
                 status = f"{GREEN}KEEP (Main File){RESET}"
@@ -184,10 +182,10 @@ class Command(BaseCommand):
         self.stdout.write(f"\n{YELLOW}{'─'*60}{RESET}")
         self.stdout.write(f"{BOLD}Recommended Action:{RESET}")
         self.stdout.write(f"  • KEEP: {GREEN}consumers.py{RESET} (main file)")
-        
+
         for backup in backup_files:
             self.stdout.write(f"  • DELETE: {RED}{backup['name']}{RESET} (backup/old version)")
-        
+
         self.stdout.write(f"{YELLOW}{'─'*60}{RESET}\n")
 
         if auto_yes:
@@ -220,17 +218,17 @@ class Command(BaseCommand):
             self.stdout.write(f"\n{RED}{'='*80}{RESET}")
             self.stdout.write(f"{BOLD}{RED}⚠️  CRITICAL CONFLICT DETECTED ⚠️{RESET}\n")
             self.stdout.write(f"{RED}{'='*80}{RESET}\n")
-            
+
             self.stdout.write(f"{YELLOW}You have BOTH:{RESET}")
             self.stdout.write(f"  1. {BOLD}core/models.py{RESET} (file)")
-            
+
             file_info = self.get_file_info(models_file)
             if file_info:
                 self.stdout.write(f"     Size: {file_info['size_kb']:.1f} KB")
                 self.stdout.write(f"     Modified: {file_info['modified'].strftime('%Y-%m-%d %H:%M:%S')}")
-            
+
             self.stdout.write(f"\n  2. {BOLD}core/models/{RESET} (directory)")
-            
+
             # List files in models/ directory
             model_files = list(models_dir.glob('*.py'))
             model_files = [f for f in model_files if f.name != '__init__.py']
@@ -239,7 +237,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"       • {mf.name}")
             if len(model_files) > 5:
                 self.stdout.write(f"       • ... and {len(model_files) - 5} more")
-            
+
             self.stdout.write(f"\n{RED}{'─'*80}{RESET}")
             self.stdout.write(f"{BOLD}{RED}Django cannot handle both simultaneously!{RESET}")
             self.stdout.write(f"{YELLOW}This causes import confusion and unpredictable behavior.{RESET}\n")
@@ -248,16 +246,16 @@ class Command(BaseCommand):
             # Recommendations
             self.stdout.write(f"{BOLD}Recommended Solution:{RESET}")
             self.stdout.write(f"\n{GREEN}Option A: Keep Modular Structure (RECOMMENDED){RESET}")
-            self.stdout.write(f"  • KEEP: core/models/ directory")
-            self.stdout.write(f"  • DELETE: core/models.py")
-            self.stdout.write(f"  • Why: Modular structure is better for large projects")
-            self.stdout.write(f"  • Action: models.py should only contain imports from models/")
-            
+            self.stdout.write("  • KEEP: core/models/ directory")
+            self.stdout.write("  • DELETE: core/models.py")
+            self.stdout.write("  • Why: Modular structure is better for large projects")
+            self.stdout.write("  • Action: models.py should only contain imports from models/")
+
             self.stdout.write(f"\n{YELLOW}Option B: Keep Monolithic File{RESET}")
-            self.stdout.write(f"  • KEEP: core/models.py")
-            self.stdout.write(f"  • DELETE: core/models/ directory")
-            self.stdout.write(f"  • Why: Simpler structure for small projects")
-            self.stdout.write(f"  • Risk: May lose modular organization work\n")
+            self.stdout.write("  • KEEP: core/models.py")
+            self.stdout.write("  • DELETE: core/models/ directory")
+            self.stdout.write("  • Why: Simpler structure for small projects")
+            self.stdout.write("  • Risk: May lose modular organization work\n")
 
             if auto_yes:
                 self.stdout.write(f"\n{RED}❌ AUTO-YES disabled for this critical decision{RESET}")
@@ -267,9 +265,9 @@ class Command(BaseCommand):
             # Manual decision required
             self.stdout.write(f"\n{BOLD}{'─'*80}{RESET}")
             self.stdout.write(f"{BOLD}What do you want to do?{RESET}")
-            self.stdout.write(f"  A) Keep core/models/ directory (delete models.py)")
-            self.stdout.write(f"  B) Keep core/models.py file (delete models/ directory)")
-            self.stdout.write(f"  C) Skip (manual resolution later)")
+            self.stdout.write("  A) Keep core/models/ directory (delete models.py)")
+            self.stdout.write("  B) Keep core/models.py file (delete models/ directory)")
+            self.stdout.write("  C) Skip (manual resolution later)")
             self.stdout.write(f"{BOLD}{'─'*80}{RESET}\n")
 
             response = input(f"{BOLD}Choose option (A/B/C): {RESET}").strip().upper()
@@ -277,7 +275,7 @@ class Command(BaseCommand):
             if response == 'A':
                 self.stdout.write(f"\n{GREEN}✓ You chose: Keep modular structure (models/ directory){RESET}")
                 self.stdout.write(f"{YELLOW}Note: Ensure models.py only contains imports from models/{RESET}\n")
-                
+
                 confirm = input(f"{BOLD}{RED}Confirm deletion of models.py? (type 'DELETE' to confirm): {RESET}").strip()
                 if confirm == 'DELETE':
                     self.files_to_delete.append(models_file)
@@ -289,7 +287,7 @@ class Command(BaseCommand):
             elif response == 'B':
                 self.stdout.write(f"\n{YELLOW}⚠️  You chose: Keep monolithic file (models.py){RESET}")
                 self.stdout.write(f"{RED}Warning: This will delete the modular structure!{RESET}\n")
-                
+
                 confirm = input(f"{BOLD}{RED}Confirm deletion of models/ directory? (type 'DELETE' to confirm): {RESET}").strip()
                 if confirm == 'DELETE':
                     self.files_to_delete.append(models_dir)
@@ -390,12 +388,12 @@ class Command(BaseCommand):
 
         self.stdout.write(f"\n{BOLD}Actions Performed:{RESET}")
         self.stdout.write(f"  • Consumer Backups Cleaned: {self.stats['consumers_cleaned']}")
-        
+
         if self.stats['models_conflict_resolved']:
             self.stdout.write(f"  • Models Conflict Resolved: {GREEN}Yes{RESET}")
         else:
             self.stdout.write(f"  • Models Conflict Resolved: {YELLOW}No (skipped or none){RESET}")
-        
+
         self.stdout.write(f"  • Python Cache Cleared: {self.stats['pyc_files_deleted']} files")
 
         total_actions = self.stats['consumers_cleaned'] + (1 if self.stats['models_conflict_resolved'] else 0)

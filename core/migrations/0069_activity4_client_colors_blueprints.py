@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         # ============================================
         # MODULE 19: COLOR SAMPLES ENHANCEMENTS
         # ============================================
-        
+
         # Q19.3: Grouping by room/location
         migrations.AddField(
             model_name='colorsample',
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 help_text='Group multiple samples by room'
             ),
         ),
-        
+
         # Q19.4: Sequential numbering with client prefix
         migrations.AddField(
             model_name='colorsample',
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                 help_text='Unique sample number (e.g., KPISM10001)'
             ),
         ),
-        
+
         # Q19.5: Track who rejected and when
         migrations.AddField(
             model_name='colorsample',
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
                 help_text='Q19.12: Required reason for rejection'
             ),
         ),
-        
+
         # Q19.6: Audit trail for status changes
         migrations.AddField(
             model_name='colorsample',
@@ -103,7 +103,7 @@ class Migration(migrations.Migration):
                 help_text='When status was last changed'
             ),
         ),
-        
+
         # Q19.13: Digital signature for legal purposes
         migrations.AddField(
             model_name='colorsample',
@@ -122,7 +122,7 @@ class Migration(migrations.Migration):
                 help_text='IP address of approver for legal purposes'
             ),
         ),
-        
+
         # Q19.7: Link to tasks
         migrations.AddField(
             model_name='colorsample',
@@ -134,15 +134,15 @@ class Migration(migrations.Migration):
                 help_text='Tasks that use this color'
             ),
         ),
-        
+
         # Q19.8: Multiple photos support (will use separate model)
         # Already supported via sample_image + reference_photo
         # Can add ColorSamplePhoto model if needed
-        
+
         # ============================================
         # MODULE 20: BLUEPRINTS/FLOOR PLANS ENHANCEMENTS
         # ============================================
-        
+
         # Q20.1: Versioning for floor plans
         migrations.AddField(
             model_name='floorplan',
@@ -172,7 +172,7 @@ class Migration(migrations.Migration):
                 help_text='Newer version that replaces this plan'
             ),
         ),
-        
+
         # Q20.2: Pin status for migration tracking
         migrations.AddField(
             model_name='planpin',
@@ -201,7 +201,7 @@ class Migration(migrations.Migration):
                 help_text='New pin in updated plan version'
             ),
         ),
-        
+
         # Q20.9: PDF export tracking
         migrations.AddField(
             model_name='floorplan',
@@ -212,7 +212,7 @@ class Migration(migrations.Migration):
                 help_text='Last time plan with pins was exported to PDF'
             ),
         ),
-        
+
         # Q20.10: Client commenting on pins
         migrations.AddField(
             model_name='planpin',
@@ -223,11 +223,11 @@ class Migration(migrations.Migration):
                 help_text='Array of client comments with timestamps'
             ),
         ),
-        
+
         # ============================================
         # MODULE 17: CLIENT PORTAL (Basic structure)
         # ============================================
-        
+
         # Q17.2: Client request system (will use existing models)
         # Client can create MaterialRequest, ChangeOrder, Tasks with is_client_request=True
         migrations.AddField(
@@ -254,11 +254,11 @@ class Migration(migrations.Migration):
                 help_text='Q17.9: Why client cancelled request'
             ),
         ),
-        
+
         # ============================================
         # INDEXES FOR PERFORMANCE
         # ============================================
-        
+
         migrations.AddIndex(
             model_name='colorsample',
             index=models.Index(fields=['project', 'room_group', 'status'], name='colorsample_proj_room_status_idx'),

@@ -5,8 +5,8 @@ Interactive CLI tool to quickly access project documentation
 """
 
 import os
-import sys
 from pathlib import Path
+import sys
 
 
 class Colors:
@@ -39,7 +39,7 @@ def get_project_root():
 def print_menu():
     """Print the main menu"""
     print(f"{Colors.OKBLUE}{Colors.BOLD}🚀 QUICK ACCESS:{Colors.ENDC}\n")
-    
+
     menu_items = [
         ("1", "📊 Master Status (START HERE)", "00_MASTER_STATUS_NOV2025.md", Colors.OKGREEN),
         ("2", "📖 README & Setup", "README.md", Colors.OKCYAN),
@@ -55,7 +55,7 @@ def print_menu():
         ("", "", "", ""),  # Spacer
         ("0", "❌ Exit", "exit", Colors.FAIL),
     ]
-    
+
     for num, desc, _, color in menu_items:
         if num:
             print(f"  {color}{num}.{Colors.ENDC} {desc}")
@@ -66,9 +66,9 @@ def print_menu():
 def list_module_docs():
     """List all module documentation files"""
     project_root = get_project_root()
-    
+
     print(f"\n{Colors.OKGREEN}{Colors.BOLD}📦 MODULE DOCUMENTATION:{Colors.ENDC}\n")
-    
+
     module_docs = [
         ("MODULE_11_TASKS_COMPLETE.md", "Task Management"),
         ("MODULE_12_DAILY_PLANS_COMPLETE.md", "Daily Planning"),
@@ -79,19 +79,19 @@ def list_module_docs():
         ("MODULE_29_PRETASK_LIBRARY_COMPLETE.md", "Pre-task Library"),
         ("MODULE_30_WEATHER_SNAPSHOTS_COMPLETE.md", "Weather Snapshots"),
     ]
-    
+
     for i, (filename, title) in enumerate(module_docs, 1):
         filepath = project_root / filename
         status = "✅" if filepath.exists() else "❌"
         print(f"  {status} {i}. {title}")
         print(f"     {Colors.OKCYAN}{filename}{Colors.ENDC}")
-    
+
     print(f"\n{Colors.WARNING}Enter module number to open, or 'b' to go back:{Colors.ENDC} ", end="")
     choice = input().strip().lower()
-    
+
     if choice == 'b':
         return
-    
+
     try:
         idx = int(choice) - 1
         if 0 <= idx < len(module_docs):
@@ -107,9 +107,9 @@ def open_file(filepath):
     if not filepath.exists():
         print(f"{Colors.FAIL}❌ File not found: {filepath}{Colors.ENDC}")
         return
-    
+
     print(f"\n{Colors.OKGREEN}📖 Opening: {filepath.name}{Colors.ENDC}")
-    
+
     # Try different commands based on OS
     if sys.platform == 'darwin':  # macOS
         os.system(f'open "{filepath}"')
@@ -135,43 +135,43 @@ def show_project_status():
 def main():
     """Main application loop"""
     project_root = get_project_root()
-    
+
     while True:
         print_header()
         show_project_status()
         print_menu()
-        
+
         print(f"\n{Colors.BOLD}Select an option (0-9):{Colors.ENDC} ", end="")
         choice = input().strip()
-        
+
         if choice == "0":
             print(f"\n{Colors.OKGREEN}👋 Goodbye!{Colors.ENDC}\n")
             break
-        
+
         elif choice == "1":
             open_file(project_root / "00_MASTER_STATUS_NOV2025.md")
-        
+
         elif choice == "2":
             open_file(project_root / "README.md")
-        
+
         elif choice == "3":
             open_file(project_root / "API_README.md")
-        
+
         elif choice == "4":
             open_file(project_root / "QUICK_START.md")
-        
+
         elif choice == "5":
             open_file(project_root / "docs" / "00_DOCUMENTATION_INDEX.md")
-        
+
         elif choice == "6":
             open_file(project_root / "docs" / "GAPS_COMPLETION_SUMMARY.md")
-        
+
         elif choice == "7":
             open_file(project_root / "docs" / "GAPS_D_E_F_COMPLETION.md")
-        
+
         elif choice == "8":
             list_module_docs()
-        
+
         elif choice == "9":
             archive_path = project_root / "docs" / "archive"
             if archive_path.exists():
@@ -179,10 +179,10 @@ def main():
                 open_file(archive_path / "README.md")
             else:
                 print(f"{Colors.FAIL}Archive directory not found!{Colors.ENDC}")
-        
+
         else:
             print(f"\n{Colors.FAIL}❌ Invalid option. Please try again.{Colors.ENDC}")
-        
+
         input(f"\n{Colors.OKCYAN}Press Enter to continue...{Colors.ENDC}")
         print("\n" * 50)  # Clear screen
 

@@ -2,12 +2,13 @@
 Database Backup Management Command
 Usage: python manage.py backup_database [--upload-s3]
 """
+from datetime import datetime, timedelta
+import logging
 import os
 import subprocess
-from datetime import datetime, timedelta
-from django.core.management.base import BaseCommand
+
 from django.conf import settings
-import logging
+from django.core.management.base import BaseCommand
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class Command(BaseCommand):
         try:
             # Get database URL from environment
             database_url = os.getenv("DATABASE_URL")
-            
+
             if not database_url:
                 self.stdout.write(self.style.ERROR("❌ DATABASE_URL not found in environment"))
                 return

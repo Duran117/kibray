@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import re
 
 filepath = '/Users/jesus/Documents/kibray/locale/es/LC_MESSAGES/django.po'
 
@@ -40,7 +39,7 @@ translations = {
     "Due date cannot be in the past": "La fecha de vencimiento no puede estar en el pasado",
 }
 
-with open(filepath, 'r', encoding='utf-8') as f:
+with open(filepath, encoding='utf-8') as f:
     lines = f.readlines()
 
 result = []
@@ -50,17 +49,16 @@ translated_count = 0
 while i < len(lines):
     line = lines[i]
     result.append(line)
-    
+
     if line.startswith('msgid "') and not line.startswith('msgid ""'):
         msgid_text = line[7:-2]
-        
-        if i + 1 < len(lines) and lines[i + 1].strip() == 'msgstr ""':
-            if msgid_text in translations:
-                result.append(f'msgstr "{translations[msgid_text]}"\n')
-                translated_count += 1
-                i += 2
-                continue
-    
+
+        if i + 1 < len(lines) and lines[i + 1].strip() == 'msgstr ""' and msgid_text in translations:
+            result.append(f'msgstr "{translations[msgid_text]}"\n')
+            translated_count += 1
+            i += 2
+            continue
+
     i += 1
 
 with open(filepath, 'w', encoding='utf-8') as f:

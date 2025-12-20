@@ -5,22 +5,24 @@ Gap A Resolution: Cryptographic signature verification for legal compliance
 
 import hashlib
 import json
-from typing import Dict, Any, Optional
-from django.contrib.auth.models import User
+from typing import Any
+
 from django.db.models import Model
+
+from core.models import DigitalSignature
 
 
 def create_signature(
     entity: Model,
-    signer: User,
-    ip_address: Optional[str] = None,
-    signature_canvas_data: Optional[str] = None,
-    user_agent: Optional[str] = None,
-    geolocation: Optional[Dict[str, float]] = None
-) -> 'DigitalSignature':
+    signer,
+    ip_address: str | None = None,
+    signature_canvas_data: str | None = None,
+    user_agent: str | None = None,
+    geolocation: dict[str, float] | None = None
+) -> DigitalSignature:
     """
     Generic signature creation for any signable entity.
-    
+
     Args:
         entity: Django model instance (must have get_signature_snapshot method)
         signer: User creating the signature
@@ -28,22 +30,20 @@ def create_signature(
         signature_canvas_data: Optional JSON vector data from signature pad
         user_agent: Browser user agent string
         geolocation: Optional {'lat': float, 'lng': float}
-    
+
     Returns:
         DigitalSignature instance
-    
+
     Raises:
         AttributeError: If entity doesn't have get_signature_snapshot method
     """
-    import json
-    from core.models import DigitalSignature
     from signatures.models import Signature as BaseSignature
-    
+
     if not hasattr(entity, 'get_signature_snapshot'):
         raise AttributeError(
             f"{entity.__class__.__name__} must implement get_signature_snapshot() method"
         )
-    
+
     # Get entity type from model name and map to choices
     class_name = entity.__class__.__name__
     entity_type_map = {
@@ -51,14 +51,14 @@ def create_signature(
         'ChangeOrder': 'change_order',
     }
     entity_type = entity_type_map.get(class_name, 'change_order')
-    
+
     # Generate snapshot
     snapshot = entity.get_signature_snapshot()
-    
+
     # Compute hash from snapshot (static function)
     snapshot_str = json.dumps(snapshot, sort_keys=True)
     content_hash = hashlib.sha256(snapshot_str.encode()).hexdigest()
-    
+
     # Create base signature
     base_sig = BaseSignature.objects.create(
         signer=signer,
@@ -67,7 +67,7 @@ def create_signature(
         content_hash=content_hash,
         note=f"Digital signature for {entity}"
     )
-    
+
     # Create enhanced signature
     digital_sig = DigitalSignature.objects.create(
         base_signature=base_sig,
@@ -81,46 +81,46 @@ def create_signature(
         user_agent=user_agent or '',
         geolocation=geolocation
     )
-    
+
     return digital_sig
 
 
 def verify_signature(entity: Model) -> tuple:
     """
     Verify the integrity of a signed entity.
-    
+
     Compares current document state with signed snapshot to detect tampering.
     Uses cryptographic hash comparison (SHA256).
-    
+
     Args:
         entity: Model instance (ColorSample, ChangeOrder, etc.)
-    
+
     Returns:
         Tuple: (is_valid: bool, message: str)
-    
+
     Raises:
         AttributeError: If entity doesn't have digital_signature or get_signature_snapshot
     """
     if not hasattr(entity, 'digital_signature'):
         return False, 'Entity not signable'
-    
+
     if not entity.digital_signature:
         return False, 'No digital signature found'
-    
+
     if not hasattr(entity, 'get_signature_snapshot'):
         return False, 'Entity missing get_signature_snapshot method'
-    
+
     # Use the model's verify_integrity method
     return entity.digital_signature.verify_integrity()
 
 
-def bulk_verify_signatures(queryset) -> Dict[str, Any]:
+def bulk_verify_signatures(queryset) -> dict[str, Any]:
     """
     Verify signatures for multiple entities at once.
-    
+
     Args:
         queryset: Django QuerySet of entities with digital_signature relationship
-    
+
     Returns:
         {
             'total': int,
@@ -140,7 +140,7 @@ def bulk_verify_signatures(queryset) -> Dict[str, Any]:
         'unsigned': 0,
         'details': []
     }
-    
+
     for entity in queryset:
         if not hasattr(entity, 'digital_signature') or not entity.digital_signature:
             results['unsigned'] += 1
@@ -150,14 +150,14 @@ def bulk_verify_signatures(queryset) -> Dict[str, Any]:
                 'message': 'unsigned'
             })
             continue
-        
+
         is_valid, message = verify_signature(entity)
-        
+
         if is_valid:
             results['valid'] += 1
         else:
             results['invalid'] += 1
-        
+
         results['details'].append({
             'id': entity.id,
             'is_valid': is_valid,
@@ -165,18 +165,18 @@ def bulk_verify_signatures(queryset) -> Dict[str, Any]:
             'signed_at': str(entity.digital_signature.timestamp),
             'signer': entity.digital_signature.signer.username
         })
-    
+
     return results
 
 
-def export_signature_proof(entity: Model, format: str = 'json') -> Dict[str, Any]:
+def export_signature_proof(entity: Model, format: str = 'json') -> dict[str, Any]:
     """
     Export signature proof for legal documentation.
-    
+
     Args:
         entity: Signed entity
         format: 'json' or 'pdf' (future)
-    
+
     Returns:
         {
             'entity_type': str,
@@ -197,12 +197,12 @@ def export_signature_proof(entity: Model, format: str = 'json') -> Dict[str, Any
             'entity_type': entity.__class__.__name__,
             'entity_id': entity.id
         })
-    
+
     sig = entity.digital_signature
     is_valid, message = verify_signature(entity)
-    
+
     from django.utils import timezone
-    
+
     proof = {
         'entity_type': sig.entity_type,
         'entity_id': sig.entity_id,
@@ -223,10 +223,10 @@ def export_signature_proof(entity: Model, format: str = 'json') -> Dict[str, Any
         ),
         'export_timestamp': timezone.now().isoformat()
     }
-    
+
     if format == 'json':
         return json.dumps(proof, indent=2)
-    
+
     # Future: PDF export
     return proof
 

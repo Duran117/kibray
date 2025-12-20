@@ -10,8 +10,8 @@ except ImportError:
     openai = None
 
 import json
+
 from django.conf import settings
-from typing import List, Dict, Optional
 
 # Configure OpenAI
 if OPENAI_AVAILABLE and openai:
@@ -20,16 +20,16 @@ if OPENAI_AVAILABLE and openai:
 
 class PlannerAI:
     """AI Assistant for Strategic Planning"""
-    
+
     @staticmethod
-    def process_brain_dump(text: str, user_context: Optional[Dict] = None) -> Dict:
+    def process_brain_dump(text: str, user_context: dict | None = None) -> dict:
         """
         Process brain dump text and categorize tasks into high-impact vs noise.
-        
+
         Args:
             text: Raw brain dump text from user
             user_context: Optional dict with user's life visions, habits, etc.
-            
+
         Returns:
             {
                 'high_impact': [{'text': 'Task 1', 'reason': 'Why it matters'}],
@@ -43,14 +43,14 @@ class PlannerAI:
                 'noise': [],
                 'summary': 'OpenAI API key not configured'
             }
-        
+
         # Build context prompt
         context_info = ""
         if user_context:
             visions = user_context.get('visions', [])
             if visions:
-                context_info = f"\n\nUser's Life Visions:\n" + "\n".join([f"- {v}" for v in visions])
-        
+                context_info = "\n\nUser's Life Visions:\n" + "\n".join([f"- {v}" for v in visions])
+
         prompt = f"""You are an executive productivity coach. Analyze this brain dump and apply the 80/20 rule.
 
 Brain Dump:
@@ -89,19 +89,19 @@ RULES:
                 temperature=0.7,
                 max_tokens=1000
             )
-            
+
             result_text = response.choices[0].message.content.strip()
-            
+
             # Parse JSON response
             # Handle markdown code blocks if present
             if result_text.startswith('```'):
                 result_text = result_text.split('```')[1]
                 if result_text.startswith('json'):
                     result_text = result_text[4:]
-            
+
             result = json.loads(result_text)
             return result
-            
+
         except Exception as e:
             print(f"AI Brain Dump Error: {e}")
             return {
@@ -109,16 +109,16 @@ RULES:
                 'noise': [],
                 'summary': f'Error processing: {str(e)}'
             }
-    
+
     @staticmethod
-    def suggest_frog(high_impact_items: List[Dict], user_context: Optional[Dict] = None) -> Dict:
+    def suggest_frog(high_impact_items: list[dict], user_context: dict | None = None) -> dict:
         """
         Suggest which high-impact item should be "The Frog" (most important).
-        
+
         Args:
             high_impact_items: List of high-impact tasks
             user_context: Optional context about user's energy, goals, etc.
-            
+
         Returns:
             {
                 'recommended_index': 0,
@@ -132,16 +132,16 @@ RULES:
                 'reasoning': 'No AI available or no items to analyze',
                 'alternative': ''
             }
-        
+
         # Build context
         context_info = ""
         if user_context:
             energy = user_context.get('energy_level')
             if energy:
                 context_info += f"\nUser's current energy level: {energy}/10"
-        
+
         items_list = "\n".join([f"{i+1}. {item['text']}" for i, item in enumerate(high_impact_items)])
-        
+
         prompt = f"""You are Brian Tracy, author of "Eat That Frog". Help choose THE ONE most important task.
 
 High-Impact Tasks:
@@ -173,18 +173,18 @@ Return JSON:
                 temperature=0.7,
                 max_tokens=300
             )
-            
+
             result_text = response.choices[0].message.content.strip()
-            
+
             # Parse JSON
             if result_text.startswith('```'):
                 result_text = result_text.split('```')[1]
                 if result_text.startswith('json'):
                     result_text = result_text[4:]
-            
+
             result = json.loads(result_text)
             return result
-            
+
         except Exception as e:
             print(f"AI Frog Suggestion Error: {e}")
             return {
@@ -192,16 +192,16 @@ Return JSON:
                 'reasoning': f'Error: {str(e)}',
                 'alternative': ''
             }
-    
+
     @staticmethod
-    def generate_micro_steps(frog_title: str, context: Optional[str] = None) -> List[Dict]:
+    def generate_micro_steps(frog_title: str, context: str | None = None) -> list[dict]:
         """
         Generate actionable micro-steps for completing the frog.
-        
+
         Args:
             frog_title: The main task to break down
             context: Optional additional context
-            
+
         Returns:
             [
                 {'text': 'Step 1: ...', 'done': false},
@@ -215,9 +215,9 @@ Return JSON:
                 {'text': 'Complete the main work', 'done': False},
                 {'text': 'Review and finalize', 'done': False}
             ]
-        
+
         context_text = f"\nContext: {context}" if context else ""
-        
+
         prompt = f"""Break this task into 3-5 micro-steps (specific, actionable, 15-30 minutes each).
 
 Task: {frog_title}
@@ -247,20 +247,20 @@ Return JSON array:
                 temperature=0.7,
                 max_tokens=400
             )
-            
+
             result_text = response.choices[0].message.content.strip()
-            
+
             # Parse JSON
             if result_text.startswith('```'):
                 result_text = result_text.split('```')[1]
                 if result_text.startswith('json'):
                     result_text = result_text[4:]
-            
+
             steps = json.loads(result_text)
-            
+
             # Ensure proper format
             return [{'text': step.get('text', step), 'done': False} for step in steps]
-            
+
         except Exception as e:
             print(f"AI Micro-Steps Error: {e}")
             return [
@@ -268,17 +268,17 @@ Return JSON array:
                 {'text': 'Complete the main work', 'done': False},
                 {'text': 'Finalize and review', 'done': False}
             ]
-    
+
     @staticmethod
-    def suggest_time_blocks(frog_title: str, energy_level: int, micro_steps: List[Dict]) -> Dict:
+    def suggest_time_blocks(frog_title: str, energy_level: int, micro_steps: list[dict]) -> dict:
         """
         Suggest optimal time blocks based on task complexity and user energy.
-        
+
         Args:
             frog_title: The task
             energy_level: User's energy (1-10)
             micro_steps: List of micro-steps
-            
+
         Returns:
             {
                 'suggested_start': 'HH:MM',
@@ -300,9 +300,9 @@ Return JSON array:
                     'suggested_end': '12:00',
                     'reasoning': 'Start after warm-up period'
                 }
-        
+
         num_steps = len(micro_steps)
-        
+
         prompt = f"""Suggest optimal time block for this task.
 
 Task: {frog_title}
@@ -332,16 +332,16 @@ Consider:
                 temperature=0.7,
                 max_tokens=150
             )
-            
+
             result_text = response.choices[0].message.content.strip()
-            
+
             if result_text.startswith('```'):
                 result_text = result_text.split('```')[1]
                 if result_text.startswith('json'):
                     result_text = result_text[4:]
-            
+
             return json.loads(result_text)
-            
+
         except Exception as e:
             print(f"AI Time Block Error: {e}")
             return {

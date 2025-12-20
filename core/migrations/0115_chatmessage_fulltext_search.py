@@ -1,9 +1,7 @@
 # Generated migration for full-text search on ChatMessage
 # PostgreSQL only - will be skipped on SQLite
 
-from django.contrib.postgres.search import SearchVector, SearchVectorField
-from django.contrib.postgres.indexes import GinIndex
-from django.db import migrations, connection
+from django.db import connection, migrations
 
 
 def check_postgres(apps, schema_editor):

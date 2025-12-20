@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='date',
             field=models.DateField(db_index=True),
         ),
-        
+
         # Invoice indexes - frequently filtered by status
         migrations.AlterField(
             model_name='invoice',
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 max_length=20
             ),
         ),
-        
+
         # ChangeOrder indexes - frequently filtered by status
         migrations.AlterField(
             model_name='changeorder',
@@ -50,14 +50,14 @@ class Migration(migrations.Migration):
                 max_length=20
             ),
         ),
-        
+
         # BudgetProgress indexes - filtered by date for EV calculations
         migrations.AlterField(
             model_name='budgetprogress',
             name='date',
             field=models.DateField(db_index=True),
         ),
-        
+
         # MaterialRequest indexes - frequently filtered by status
         migrations.AlterField(
             model_name='materialrequest',
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
                 max_length=20
             ),
         ),
-        
+
         # Task indexes - filtered by status and touchup flag
         migrations.AlterField(
             model_name='task',
@@ -93,7 +93,7 @@ class Migration(migrations.Migration):
             name='is_touchup',
             field=models.BooleanField(db_index=True, default=False),
         ),
-        
+
         # DailyPlan indexes - frequently queried by date
         migrations.AlterField(
             model_name='dailyplan',
@@ -112,14 +112,14 @@ class Migration(migrations.Migration):
                 max_length=20
             ),
         ),
-        
+
         # Employee indexes - filtered by active status
         migrations.AlterField(
             model_name='employee',
             name='is_active',
             field=models.BooleanField(db_index=True, default=True),
         ),
-        
+
         # Add composite indexes for common query patterns
         migrations.AddIndex(
             model_name='timeentry',

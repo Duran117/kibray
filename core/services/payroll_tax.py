@@ -3,9 +3,9 @@
 Supports flat and tiered tax profiles.
 """
 from decimal import Decimal
-from typing import Dict
 
 from core.models import TaxProfile
+
 
 def calculate_tax(profile: TaxProfile, gross: Decimal) -> Decimal:
     """Compute tax withheld using TaxProfile."""
@@ -14,7 +14,7 @@ def calculate_tax(profile: TaxProfile, gross: Decimal) -> Decimal:
     return profile.compute_tax(gross)
 
 
-def preview_tiered(profile: TaxProfile, gross: Decimal) -> Dict:
+def preview_tiered(profile: TaxProfile, gross: Decimal) -> dict:
     """Return breakdown of tiered computation for UI/debug."""
     if profile.method != "tiered":
         return {"method": profile.method, "tax": str(calculate_tax(profile, gross)), "tiers": []}
@@ -27,10 +27,7 @@ def preview_tiered(profile: TaxProfile, gross: Decimal) -> Dict:
         limit_raw = bracket.get("up_to")
         limit = Decimal(str(limit_raw)) if limit_raw is not None else None
         rate = Decimal(str(bracket.get("rate", 0)))
-        if limit is None:
-            span = remaining
-        else:
-            span = min(remaining, limit - last_limit)
+        span = remaining if limit is None else min(remaining, limit - last_limit)
         if span <= 0:
             continue
         part_tax = span * rate / Decimal("100")

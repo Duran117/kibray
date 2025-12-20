@@ -1,10 +1,13 @@
 import os
+
 import django
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kibray.settings')
 django.setup()
 
-from core.models import Employee, Project, ResourceAssignment
 from django.utils import timezone
+
+from core.models import Employee, Project, ResourceAssignment
 
 employee = Employee.objects.filter(user__username='cesar123').first()
 project = Project.objects.get(id=308)

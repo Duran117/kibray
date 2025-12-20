@@ -1,7 +1,7 @@
 from collections import defaultdict
-from decimal import Decimal
-from datetime import timedelta
 import csv
+from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -18,7 +18,7 @@ from core.views_assignments import _user_can_assign
 def _style_timeentry_form(form):
     """Apply a clean, compact style to form widgets without changing their types."""
 
-    for name, field in form.fields.items():
+    for _name, field in form.fields.items():
         input_type = getattr(field.widget, "input_type", "") or ""
         base_class = "form-control"
         if input_type.lower() == "select" or field.widget.__class__.__name__.lower().startswith("select"):

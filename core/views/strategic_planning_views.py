@@ -1,24 +1,24 @@
-from rest_framework import viewsets, status, permissions
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.utils.translation import gettext_lazy as _
 
 from core.models import (
-    StrategicPlanningSession,
     StrategicItem,
-    StrategicTask,
+    StrategicMaterialRequirement,
+    StrategicPlanningSession,
     StrategicSubtask,
-    StrategicMaterialRequirement
+    StrategicTask,
 )
 from core.serializers.strategic_planning_serializers import (
-    StrategicPlanningSessionSerializer,
-    StrategicPlanningSessionDetailSerializer,
     StrategicItemSerializer,
-    StrategicTaskSerializer,
+    StrategicMaterialRequirementSerializer,
+    StrategicPlanningSessionDetailSerializer,
+    StrategicPlanningSessionSerializer,
     StrategicSubtaskSerializer,
-    StrategicMaterialRequirementSerializer
+    StrategicTaskSerializer,
 )
 from core.services.strategic_planning_service import StrategicPlanningService
+
 
 class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
     """
@@ -26,7 +26,7 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [permissions.IsAuthenticated]
     queryset = StrategicPlanningSession.objects.all()
-    
+
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return StrategicPlanningSessionDetailSerializer
@@ -36,13 +36,13 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
         # Use service to create session with auto-generated days
         # We override perform_create to use the service logic
         # Note: DRF's serializer.save() calls model.save(), but we want service.create_session
-        pass 
+        pass
 
     def create(self, request, *args, **kwargs):
         """Custom create using Service"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         try:
             session = StrategicPlanningService.create_session(
                 user=request.user,
@@ -51,11 +51,11 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
                 end_date=serializer.validated_data['date_range_end'],
                 notes=serializer.validated_data.get('notes', '')
             )
-            
+
             # Return the created session using the detail serializer
             response_serializer = StrategicPlanningSessionDetailSerializer(session)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -69,7 +69,7 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
         new_status = request.data.get('status')
         if not new_status:
              return Response({'error': 'Status is required'}, status=status.HTTP_400_BAD_REQUEST)
-             
+
         try:
             StrategicPlanningService.update_status(session, new_status, request.user)
             return Response({'status': new_status})
@@ -134,17 +134,17 @@ class StrategicItemViewSet(viewsets.ModelViewSet):
         # For now standard save is fine, but we might want to use service for ordering
         super().perform_create(serializer)
         # Trigger recalculation?
-        
+
     @action(detail=True, methods=['post'])
     def add_task(self, request, pk=None):
         """Add a task to this item"""
         item = self.get_object()
         description = request.data.get('description')
         hours = request.data.get('estimated_hours', 0)
-        
+
         if not description:
             return Response({'error': 'Description required'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
         try:
             task = StrategicPlanningService.add_task_to_item(item.id, description, hours)
             return Response(StrategicTaskSerializer(task).data, status=status.HTTP_201_CREATED)

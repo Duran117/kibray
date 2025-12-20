@@ -6,12 +6,13 @@ Verifica que todas las variables necesarias estén configuradas
 import os
 import sys
 
+
 def check_env_vars():
     """Check if all required environment variables are set"""
-    
+
     print("🔍 VERIFICANDO VARIABLES DE ENTORNO PARA RAILWAY\n")
     print("=" * 60)
-    
+
     # Required variables
     required_vars = {
         "DJANGO_SECRET_KEY": "Clave secreta de Django",
@@ -19,7 +20,7 @@ def check_env_vars():
         "DATABASE_URL": "URL de PostgreSQL (creada por Railway)",
         "ALLOWED_HOSTS": "Dominios permitidos",
     }
-    
+
     # Optional but recommended
     optional_vars = {
         "USE_S3": "Usar AWS S3 para archivos (False para local)",
@@ -28,7 +29,7 @@ def check_env_vars():
         "REDIS_URL": "URL de Redis para cache",
         "OPENAI_API_KEY": "API key de OpenAI (para features AI)",
     }
-    
+
     # AWS S3 variables (needed if USE_S3=True)
     s3_vars = {
         "AWS_ACCESS_KEY_ID": "ID de acceso AWS",
@@ -36,11 +37,11 @@ def check_env_vars():
         "AWS_STORAGE_BUCKET_NAME": "Nombre del bucket S3",
         "AWS_S3_REGION_NAME": "Región del bucket S3",
     }
-    
+
     missing_required = []
     missing_optional = []
     missing_s3 = []
-    
+
     print("\n✅ VARIABLES REQUERIDAS:")
     print("-" * 60)
     for var, description in required_vars.items():
@@ -55,7 +56,7 @@ def check_env_vars():
         else:
             print(f"  ❌ {var}: NO CONFIGURADA")
             missing_required.append((var, description))
-    
+
     print("\n⚠️  VARIABLES OPCIONALES:")
     print("-" * 60)
     for var, description in optional_vars.items():
@@ -69,7 +70,7 @@ def check_env_vars():
         else:
             print(f"  ⚠️  {var}: No configurada")
             missing_optional.append((var, description))
-    
+
     # Check S3 if USE_S3 is True
     use_s3 = os.getenv("USE_S3", "True")
     if use_s3 == "True":
@@ -86,34 +87,34 @@ def check_env_vars():
             else:
                 print(f"  ❌ {var}: NO CONFIGURADA")
                 missing_s3.append((var, description))
-    
+
     print("\n" + "=" * 60)
     print("📋 RESUMEN:")
     print("=" * 60)
-    
+
     if not missing_required and not missing_s3:
         print("✅ Todas las variables requeridas están configuradas!")
     else:
         print("❌ FALTAN VARIABLES REQUERIDAS:\n")
-        
+
         if missing_required:
             print("🔴 Variables obligatorias faltantes:")
             for var, desc in missing_required:
                 print(f"   - {var}: {desc}")
-        
+
         if missing_s3:
             print("\n🟡 Variables AWS S3 faltantes (USE_S3=True):")
             for var, desc in missing_s3:
                 print(f"   - {var}: {desc}")
             print("\n💡 SOLUCIÓN: Configura USE_S3=False en Railway si no usas AWS S3")
-    
+
     if missing_optional:
         print("\n⚠️  Variables opcionales no configuradas:")
         for var, desc in missing_optional:
             print(f"   - {var}: {desc}")
-    
+
     print("\n" + "=" * 60)
-    
+
     # Recommendations
     if missing_s3 and use_s3 == "True":
         print("\n🚨 PROBLEMA DETECTADO:")
@@ -125,21 +126,21 @@ def check_env_vars():
         print("\n   Esto usará almacenamiento local en lugar de S3")
         print("=" * 60)
         return False
-    
+
     if missing_required:
         print("\n🚨 ACCIÓN REQUERIDA:")
         print("   Configura las variables obligatorias en Railway")
         print("   Railway → Tu servicio → Variables → + New Variable")
         print("=" * 60)
         return False
-    
+
     return True
 
 if __name__ == "__main__":
     # Set DJANGO_ENV to production for testing
     if not os.getenv("DJANGO_ENV"):
         os.environ["DJANGO_ENV"] = "production"
-    
+
     try:
         success = check_env_vars()
         sys.exit(0 if success else 1)

@@ -14,10 +14,9 @@ Features:
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from datetime import datetime
 
-from django.db.models import Q, Sum
+from django.db.models import Sum
 from django.utils import timezone
 
 from core.models import (
@@ -26,11 +25,7 @@ from core.models import (
     InventoryItem,
     PlannedActivity,
     Project,
-    ProjectInventory,
-    ScheduleItem,
-    Task,
 )
-
 
 # ===== DATA STRUCTURES =====
 
@@ -57,7 +52,7 @@ class EmployeeIssue:
     description: str
     severity: str
     suggestion: str
-    affected_activities: List[int]  # Activity IDs
+    affected_activities: list[int]  # Activity IDs
 
 
 @dataclass
@@ -68,7 +63,7 @@ class ScheduleIssue:
     description: str
     severity: str
     suggestion: str
-    affected_activities: List[int]
+    affected_activities: list[int]
 
 
 @dataclass
@@ -89,10 +84,10 @@ class ActivitySuggestion:
     title: str
     description: str
     estimated_hours: float
-    suggested_employees: List[str]  # Employee names
-    required_materials: List[str]
-    schedule_item_id: Optional[int] = None
-    activity_template_id: Optional[int] = None
+    suggested_employees: list[str]  # Employee names
+    required_materials: list[str]
+    schedule_item_id: int | None = None
+    activity_template_id: int | None = None
     confidence: float = 0.8  # 0-1
 
 
@@ -103,12 +98,12 @@ class AnalysisReport:
     daily_plan_id: int
     timestamp: datetime
     overall_score: int  # 0-100
-    passed_checks: List[str]
-    material_issues: List[MaterialIssue]
-    employee_issues: List[EmployeeIssue]
-    schedule_issues: List[ScheduleIssue]
-    safety_issues: List[SafetyIssue]
-    suggestions: List[ActivitySuggestion]
+    passed_checks: list[str]
+    material_issues: list[MaterialIssue]
+    employee_issues: list[EmployeeIssue]
+    schedule_issues: list[ScheduleIssue]
+    safety_issues: list[SafetyIssue]
+    suggestions: list[ActivitySuggestion]
 
     @property
     def has_critical_issues(self) -> bool:
@@ -131,7 +126,7 @@ class AnalysisReport:
             + len(self.safety_issues)
         )
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Convert to JSON-serializable dict"""
         return {
             "daily_plan_id": self.daily_plan_id,
@@ -241,10 +236,7 @@ class DailyPlanAIAssistant:
 
         # Calculate overall score
         total_checks = len(passed_checks) + len(material_issues) + len(employee_issues) + len(schedule_issues) + len(safety_issues)
-        if total_checks > 0:
-            score = int((len(passed_checks) / total_checks) * 100)
-        else:
-            score = 100
+        score = int(len(passed_checks) / total_checks * 100) if total_checks > 0 else 100
 
         # Penalize for critical issues
         critical_count = sum(
@@ -267,8 +259,8 @@ class DailyPlanAIAssistant:
         )
 
     def _check_materials(
-        self, activities: List[PlannedActivity], project: Project
-    ) -> Tuple[List[str], List[MaterialIssue]]:
+        self, activities: list[PlannedActivity], project: Project
+    ) -> tuple[list[str], list[MaterialIssue]]:
         """Check material availability for all activities"""
         passed = []
         issues = []
@@ -334,8 +326,8 @@ class DailyPlanAIAssistant:
         return passed, issues
 
     def _check_employees(
-        self, activities: List[PlannedActivity], plan_date
-    ) -> Tuple[List[str], List[EmployeeIssue]]:
+        self, activities: list[PlannedActivity], plan_date
+    ) -> tuple[list[str], list[EmployeeIssue]]:
         """Check employee assignments and conflicts"""
         passed = []
         issues = []
@@ -374,7 +366,7 @@ class DailyPlanAIAssistant:
                             issue_type="overtime",
                             description=f"Scheduled for {total_hours:.1f} hours (exceeds 8-hour limit)",
                             severity="warning",
-                            suggestion=f"Reduce workload or split tasks among multiple employees",
+                            suggestion="Reduce workload or split tasks among multiple employees",
                             affected_activities=[a.id for a in activities if employee in a.assigned_employees.all()],
                         )
                     )
@@ -392,7 +384,7 @@ class DailyPlanAIAssistant:
 
         return passed, issues
 
-    def _check_schedule(self, activities: List[PlannedActivity]) -> Tuple[List[str], List[ScheduleIssue]]:
+    def _check_schedule(self, activities: list[PlannedActivity]) -> tuple[list[str], list[ScheduleIssue]]:
         """Check schedule coherence and dependencies"""
         passed = []
         issues = []
@@ -442,7 +434,7 @@ class DailyPlanAIAssistant:
 
         return passed, issues
 
-    def _check_safety(self, activities: List[PlannedActivity], daily_plan: DailyPlan) -> Tuple[List[str], List[SafetyIssue]]:
+    def _check_safety(self, activities: list[PlannedActivity], daily_plan: DailyPlan) -> tuple[list[str], list[SafetyIssue]]:
         """Check safety and compliance requirements"""
         passed = []
         issues = []
@@ -497,7 +489,7 @@ class DailyPlanAIAssistant:
 
         return passed, issues
 
-    def generate_checklist(self, daily_plan: DailyPlan) -> Dict:
+    def generate_checklist(self, daily_plan: DailyPlan) -> dict:
         """
         Generate AI checklist for display
 
@@ -531,7 +523,7 @@ class DailyPlanAIAssistant:
             ]
             + [
                 {
-                    "title": f"Schedule Issue",
+                    "title": "Schedule Issue",
                     "description": i.description,
                     "suggestion": i.suggestion,
                     "auto_fixable": False,
@@ -541,7 +533,7 @@ class DailyPlanAIAssistant:
             ]
             + [
                 {
-                    "title": f"Safety Issue",
+                    "title": "Safety Issue",
                     "description": i.description,
                     "suggestion": i.suggestion,
                     "auto_fixable": False,
@@ -571,7 +563,7 @@ class DailyPlanAIAssistant:
             ]
             + [
                 {
-                    "title": f"Critical Schedule Issue",
+                    "title": "Critical Schedule Issue",
                     "description": i.description,
                     "action": i.suggestion,
                     "auto_fixable": False,
@@ -581,7 +573,7 @@ class DailyPlanAIAssistant:
             ]
             + [
                 {
-                    "title": f"Critical Safety Issue",
+                    "title": "Critical Safety Issue",
                     "description": i.description,
                     "action": i.required_action,
                     "auto_fixable": False,

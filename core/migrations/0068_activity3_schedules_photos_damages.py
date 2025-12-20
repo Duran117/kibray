@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         # ============================================
         # MODULE 18: SITE PHOTOS ENHANCEMENTS
         # ============================================
-        
+
         # Q18.2: GPS location (store lat/long from project)
         migrations.AddField(
             model_name='sitephoto',
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 help_text='Longitude from project location'
             ),
         ),
-        
+
         # Q18.4: Privacy control
         migrations.AddField(
             model_name='sitephoto',
@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
                 help_text='Photo visibility control'
             ),
         ),
-        
+
         # Q18.6: Versioning
         migrations.AddField(
             model_name='sitephoto',
@@ -86,7 +86,7 @@ class Migration(migrations.Migration):
                 help_text='Newer version that replaces this photo'
             ),
         ),
-        
+
         # Q18.10: Enhanced categorization (already has photo_type, add caption)
         migrations.AddField(
             model_name='sitephoto',
@@ -97,7 +97,7 @@ class Migration(migrations.Migration):
                 help_text='Photo caption/title for search'
             ),
         ),
-        
+
         # Q18.12: Thumbnail (will be generated on save)
         migrations.AddField(
             model_name='sitephoto',
@@ -109,11 +109,11 @@ class Migration(migrations.Migration):
                 help_text='Auto-generated thumbnail'
             ),
         ),
-        
+
         # ============================================
         # MODULE 21: DAMAGE REPORTS ENHANCEMENTS
         # ============================================
-        
+
         # Q21.2: Assignee for damage resolution
         migrations.AddField(
             model_name='damagereport',
@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
                 help_text='User responsible for resolving this damage'
             ),
         ),
-        
+
         # Q21.4: Auto-created task reference
         migrations.AddField(
             model_name='damagereport',
@@ -141,7 +141,7 @@ class Migration(migrations.Migration):
                 help_text='Automatically created repair task'
             ),
         ),
-        
+
         # Q21.9: Time tracking fields
         migrations.AddField(
             model_name='damagereport',
@@ -152,7 +152,7 @@ class Migration(migrations.Migration):
                 help_text='When work started on this damage'
             ),
         ),
-        
+
         # Q21.7: Allow severity changes after creation (already mutable, add audit)
         migrations.AddField(
             model_name='damagereport',
@@ -175,7 +175,7 @@ class Migration(migrations.Migration):
                 help_text='Who changed the severity'
             ),
         ),
-        
+
         # Q21.13: Grouping by location/cause
         migrations.AddField(
             model_name='damagereport',
@@ -195,11 +195,11 @@ class Migration(migrations.Migration):
                 help_text='Root cause for pattern analysis'
             ),
         ),
-        
+
         # ============================================
         # INDEXES FOR PERFORMANCE
         # ============================================
-        
+
         migrations.AddIndex(
             model_name='sitephoto',
             index=models.Index(fields=['project', 'photo_type', 'visibility'], name='sitephoto_proj_type_vis_idx'),

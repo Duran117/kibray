@@ -1,9 +1,10 @@
 """
 Django management command to create initial superuser
 """
-from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
 import os
+
+from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
@@ -49,9 +50,9 @@ class Command(BaseCommand):
             self.stdout.write(f'   Is staff: {user.is_staff}')
         else:
             user = User.objects.create_superuser(username, email, password)
-            self.stdout.write(self.style.SUCCESS(f'✅ Superuser created successfully!'))
+            self.stdout.write(self.style.SUCCESS('✅ Superuser created successfully!'))
             self.stdout.write(f'   Username: {username}')
             self.stdout.write(f'   Email: {email}')
-            self.stdout.write(f'   Password: [HIDDEN]')
+            self.stdout.write('   Password: [HIDDEN]')
             self.stdout.write(f'   Is superuser: {user.is_superuser}')
             self.stdout.write(f'   Is staff: {user.is_staff}')

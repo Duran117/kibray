@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.shortcuts import redirect
+from django.utils import timezone
 
 from .models import (
     ActivityCompletion,
@@ -60,6 +61,13 @@ from .models import (
     SitePhoto,
     SOPCompletion,
     SOPReferenceFile,
+    StrategicDay,
+    StrategicDependency,
+    StrategicItem,
+    StrategicMaterialRequirement,
+    StrategicPlanningSession,
+    StrategicSubtask,
+    StrategicTask,
     Subcontractor,
     SubcontractorAssignment,
     TaskTemplate,
@@ -1082,7 +1090,7 @@ class UserStatusAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "user__email")
     readonly_fields = ("last_seen", "last_heartbeat")
     ordering = ("-last_seen",)
-    
+
     fieldsets = (
         ("User", {
             "fields": ("user",)
@@ -1094,7 +1102,7 @@ class UserStatusAdmin(admin.ModelAdmin):
             "fields": ("last_seen", "last_heartbeat")
         }),
     )
-    
+
     def has_add_permission(self, request):
         """Prevent manual creation - status is auto-created"""
         return False
@@ -1108,7 +1116,7 @@ class NotificationLogAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "title", "message")
     readonly_fields = ("created_at", "delivered_at", "read_at")
     ordering = ("-created_at",)
-    
+
     fieldsets = (
         ("User & Content", {
             "fields": ("user", "title", "message", "category", "url")
@@ -1120,9 +1128,9 @@ class NotificationLogAdmin(admin.ModelAdmin):
             "fields": ("created_at",)
         }),
     )
-    
+
     actions = ["mark_as_read", "mark_as_delivered"]
-    
+
     def mark_as_read(self, request, queryset):
         """Bulk action to mark notifications as read"""
         count = 0
@@ -1132,7 +1140,7 @@ class NotificationLogAdmin(admin.ModelAdmin):
                 count += 1
         self.message_user(request, f"{count} notification(s) marked as read.")
     mark_as_read.short_description = "Mark selected as read"
-    
+
     def mark_as_delivered(self, request, queryset):
         """Bulk action to mark notifications as delivered"""
         count = 0
@@ -1153,7 +1161,7 @@ class PMBlockedDayAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
     ordering = ("-date",)
     date_hierarchy = "date"
-    
+
     fieldsets = (
         ("PM & Date", {
             "fields": ("pm", "date")
@@ -1166,7 +1174,7 @@ class PMBlockedDayAdmin(admin.ModelAdmin):
             "classes": ("collapse",)
         }),
     )
-    
+
     def get_queryset(self, request):
         """Optimize query with select_related"""
         qs = super().get_queryset(request)
@@ -1176,13 +1184,6 @@ class PMBlockedDayAdmin(admin.ModelAdmin):
 # ==============================================================================
 # STRATEGIC FUTURE PLANNING (Phase A1)
 # ==============================================================================
-from django.utils import timezone
-from .models import (
-    StrategicPlanningSession, StrategicDay, StrategicItem, 
-    StrategicTask, StrategicSubtask, StrategicMaterialRequirement,
-    StrategicDependency
-)
-
 class StrategicDayInline(admin.TabularInline):
     model = StrategicDay
     extra = 0
@@ -1198,7 +1199,7 @@ class StrategicPlanningSessionAdmin(admin.ModelAdmin):
     date_hierarchy = 'date_range_start'
     inlines = [StrategicDayInline]
     actions = ['mark_as_approved', 'mark_as_in_review']
-    
+
     fieldsets = (
         ('Session Info', {
             'fields': ('project', 'user', 'status')

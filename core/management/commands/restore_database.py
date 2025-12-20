@@ -2,11 +2,11 @@
 Database Restore Management Command
 Usage: python manage.py restore_database --file=backup_file.sql.gz
 """
+import logging
 import os
 import subprocess
+
 from django.core.management.base import BaseCommand
-from django.conf import settings
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class Command(BaseCommand):
         try:
             # Get database URL from environment
             database_url = os.getenv("DATABASE_URL")
-            
+
             if not database_url:
                 self.stdout.write(self.style.ERROR("❌ DATABASE_URL not found in environment"))
                 return

@@ -4,14 +4,12 @@ Vista de calendario dedicada para clientes que muestra el cronograma
 del proyecto de forma visual, limpia y fácil de entender.
 """
 
-import json
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-from datetime import timedelta
 
-from .models import Project, ScheduleItem, ScheduleCategory
+from .models import Project, ScheduleItem
 
 
 @login_required
@@ -22,56 +20,49 @@ def client_project_calendar_view(request, project_id):
     Solo información relevante para el cliente (sin costos, notas internas).
     """
     project = get_object_or_404(Project, id=project_id)
-    
+
     # Verificar que el cliente tiene acceso al proyecto
     profile = getattr(request.user, 'profile', None)
-    
+
     # Permitir acceso a:
     # 1. Cliente del proyecto
     # 2. Staff/Admin
     # 3. PM asignado
     has_access = False
-    
+
     if request.user.is_staff or request.user.is_superuser:
         has_access = True
     elif profile:
         if profile.role == 'client' and project.client and project.client.user == request.user:
             has_access = True
-        elif profile.role == 'project_manager':
+        elif profile.role == 'project_manager' and project.pm_assignments.filter(user=request.user).exists():
             # Verificar si es PM del proyecto
-            if project.pm_assignments.filter(user=request.user).exists():
-                has_access = True
-    
+            has_access = True
+
     if not has_access:
         return HttpResponseForbidden("No tienes acceso a este calendario.")
-    
+
     # Obtener milestones y fases principales (información visible para cliente)
     schedule_items = project.schedule_items.select_related(
         'category'
     ).order_by('planned_start')
-    
+
     # Obtener categorías (fases del proyecto)
     categories = project.schedule_categories.filter(
         parent__isnull=True  # Solo categorías de nivel superior
     ).order_by('order')
-    
+
     # Calcular estadísticas del proyecto
     today = timezone.localdate()
     total_items = schedule_items.count()
     completed_items = schedule_items.filter(status='DONE').count()
     in_progress_items = schedule_items.filter(status='IN_PROGRESS').count()
-    
-    if total_items > 0:
-        overall_progress = int((completed_items / total_items) * 100)
-    else:
-        overall_progress = 0
-    
+
+    overall_progress = int(completed_items / total_items * 100) if total_items > 0 else 0
+
     # Calcular días restantes
-    if project.end_date:
-        days_remaining = (project.end_date - today).days
-    else:
-        days_remaining = None
-    
+    days_remaining = (project.end_date - today).days if project.end_date else None
+
     # Preparar datos para el template
     context = {
         'project': project,
@@ -85,7 +76,7 @@ def client_project_calendar_view(request, project_id):
         'title': f'Cronograma - {project.name}',
         'today': today,
     }
-    
+
     return render(request, 'core/client_project_calendar.html', context)
 
 
@@ -96,29 +87,28 @@ def client_calendar_api_data(request, project_id):
     para FullCalendar.js
     """
     project = get_object_or_404(Project, id=project_id)
-    
+
     # Verificar acceso (mismo check que la vista principal)
     profile = getattr(request.user, 'profile', None)
     has_access = False
-    
+
     if request.user.is_staff or request.user.is_superuser:
         has_access = True
     elif profile:
-        if profile.role == 'client' and project.client and project.client.user == request.user:
-            has_access = True
-        elif profile.role == 'project_manager':
-            if project.pm_assignments.filter(user=request.user).exists():
-                has_access = True
-    
+        has_access = (
+            (profile.role == 'client' and project.client and project.client.user == request.user)
+            or (profile.role == 'project_manager' and project.pm_assignments.filter(user=request.user).exists())
+        )
+
     if not has_access:
         return JsonResponse({'error': 'No autorizado'}, status=403)
-    
+
     # Obtener schedule items
     schedule_items = project.schedule_items.select_related('category')
-    
+
     # Preparar eventos para FullCalendar
     events = []
-    
+
     for item in schedule_items:
         # Color según estado
         if item.status == 'DONE':
@@ -133,10 +123,10 @@ def client_calendar_api_data(request, project_id):
         else:  # NOT_STARTED
             color = '#6c757d'  # Gris - No iniciado
             text_color = 'white'
-        
+
         # Icono según si es milestone
         icon = '🎯' if item.is_milestone else '📋'
-        
+
         event = {
             'id': item.id,
             'title': f"{icon} {item.title}",
@@ -154,11 +144,11 @@ def client_calendar_api_data(request, project_id):
                 # NO incluir: cost_code, estimate_line, internal_notes
             }
         }
-        
+
         # Solo agregar eventos con fechas válidas
         if event['start']:
             events.append(event)
-    
+
     return JsonResponse({
         'events': events,
         'project': {
@@ -176,27 +166,26 @@ def client_calendar_milestone_detail(request, item_id):
     para mostrar en modal o popover.
     """
     item = get_object_or_404(ScheduleItem, id=item_id)
-    
+
     # Verificar acceso al proyecto
     project = item.project
     profile = getattr(request.user, 'profile', None)
     has_access = False
-    
+
     if request.user.is_staff or request.user.is_superuser:
         has_access = True
     elif profile:
-        if profile.role == 'client' and project.client and project.client.user == request.user:
-            has_access = True
-        elif profile.role == 'project_manager':
-            if project.pm_assignments.filter(user=request.user).exists():
-                has_access = True
-    
+        has_access = (
+            (profile.role == 'client' and project.client and project.client.user == request.user)
+            or (profile.role == 'project_manager' and project.pm_assignments.filter(user=request.user).exists())
+        )
+
     if not has_access:
         return JsonResponse({'error': 'No autorizado'}, status=403)
-    
+
     # Obtener tareas vinculadas (si existen)
     tasks = item.tasks.all()
-    
+
     data = {
         'id': item.id,
         'title': item.title,
@@ -220,5 +209,5 @@ def client_calendar_milestone_detail(request, item_id):
         ],
         'tasks_count': tasks.count(),
     }
-    
+
     return JsonResponse(data)

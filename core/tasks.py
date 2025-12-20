@@ -5,9 +5,9 @@ Handles automated background jobs and scheduled maintenance tasks.
 Created during comprehensive automation implementation.
 """
 
-import logging
 from datetime import date, timedelta
 from decimal import Decimal
+import logging
 
 from celery import shared_task
 from django.conf import settings
@@ -32,7 +32,7 @@ def check_inventory_shortages():
 
     from core.models import InventoryItem, Notification, ProjectInventory
 
-    User = get_user_model()
+    user_model = get_user_model()
     from datetime import date as _date
 
     today = _date.today()
@@ -60,7 +60,7 @@ def check_inventory_shortages():
 
     # Send notifications to admins and managers
     if low_stock_items:
-        recipients = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+        recipients = user_model.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
 
         # Create summary notification
         item_list = ", ".join(
@@ -103,7 +103,7 @@ def check_overdue_invoices():
     # Use timezone.localdate() to align with Django's configured local date and tests
     # Compute both local date and naive date to cover test environments that use date.today()
     local_today = timezone.localdate()
-    naive_today = date.today()
+    date.today()
     # Use local_today as primary, but also ensure snapshots exist for naive_today if different
     today = local_today
 
@@ -145,7 +145,7 @@ def alert_incomplete_daily_plans():
 
     from core.models import DailyPlan, Notification
 
-    User = get_user_model()
+    user_model = get_user_model()
     now = timezone.now()
 
     # Find overdue draft plans
@@ -157,7 +157,7 @@ def alert_incomplete_daily_plans():
     for plan in overdue_plans:
         # Notify creator and admins
         recipients = [plan.created_by] if plan.created_by else []
-        admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+        admins = user_model.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
         recipients.extend(admins)
 
         for user in set(recipients):
@@ -189,7 +189,7 @@ def generate_weekly_payroll():
 
     from core.models import Employee, PayrollPeriod, PayrollRecord, TimeEntry
 
-    User = get_user_model()
+    user_model = get_user_model()
     today = date.today()
 
     # Calculate previous week (Mon-Sun)
@@ -205,7 +205,7 @@ def generate_weekly_payroll():
         return {"status": "exists", "period_id": existing.id}
 
     # Get first admin user as creator
-    creator = User.objects.filter(Q(is_superuser=True) | Q(is_staff=True)).first()
+    creator = user_model.objects.filter(Q(is_superuser=True) | Q(is_staff=True)).first()
 
     # Create payroll period
     period = PayrollPeriod.objects.create(
@@ -252,8 +252,8 @@ def update_daily_weather_snapshots():
     """
     import logging
 
-    import requests
     from django.db.models import Q
+    import requests
 
     from core.models import Project, WeatherSnapshot
 
@@ -261,7 +261,7 @@ def update_daily_weather_snapshots():
 
     # Compute both local and naive dates
     local_today = timezone.localdate()
-    naive_today = date.today()
+    date.today()
     # Use local_today as primary
     today = local_today
 
@@ -421,8 +421,8 @@ def alert_high_priority_touchups():
 
     from core.models import Notification, Project
 
-    User = get_user_model()
-    THRESHOLD = 3  # Alert if 3+ high-priority touchups
+    user_model = get_user_model()
+    threshold = 3  # Alert if 3+ high-priority touchups
 
     today = timezone.now().date()
 
@@ -439,7 +439,7 @@ def alert_high_priority_touchups():
 
         touchup_count = high_priority_touchups.count()
 
-        if touchup_count >= THRESHOLD:
+    if touchup_count >= threshold:
             # Get project managers and admins
             recipients = []
 
@@ -455,7 +455,7 @@ def alert_high_priority_touchups():
                 pass
 
             # Add admin users
-            admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+            admins = user_model.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
             recipients.extend(admins)
 
             # Remove duplicates
@@ -476,7 +476,7 @@ def alert_high_priority_touchups():
             alerts_sent += len(recipients)
             logger.info(f"Sent {len(recipients)} alerts for {touchup_count} touchups in project {project.id}")
 
-    return {"date": str(today), "alerts_sent": alerts_sent, "threshold": THRESHOLD}
+    return {"date": str(today), "alerts_sent": alerts_sent, "threshold": threshold}
 
 
 @shared_task(name="core.tasks.update_daily_weather_snapshots_legacy")
@@ -504,68 +504,6 @@ def update_daily_weather_snapshots_legacy():
         count += 1
     logger.info(f"Weather snapshots generated for {count} projects at {now}")
     return {"snapshots": count, "timestamp": str(now)}
-
-
-@shared_task(name="core.tasks.check_inventory_shortages")
-def check_inventory_shortages():
-    """
-    Check inventory levels and alert on shortages.
-    Runs daily at 8 AM.
-
-    Identifies items below threshold and sends notifications.
-    """
-    from django.contrib.auth import get_user_model
-
-    from core.models import Notification, ProjectInventory
-
-    User = get_user_model()
-
-    # Get all project inventories with shortages
-    shortages = []
-    stocks = ProjectInventory.objects.select_related("item", "location", "location__project")
-
-    for stock in stocks:
-        if stock.is_below:  # Property that checks if below threshold
-            shortages.append(
-                {
-                    "item": stock.item.name,
-                    "location": stock.location.name,
-                    "project": stock.location.project.name if stock.location.project else "Storage",
-                    "current": float(stock.quantity),
-                    "threshold": float(stock.threshold or stock.item.default_threshold or 0),
-                }
-            )
-
-    if not shortages:
-        logger.info("No inventory shortages detected")
-        return {"shortages": 0}
-
-    # Notify all PMs and admins
-    recipients = User.objects.filter(
-        Q(is_staff=True) | Q(is_superuser=True) | Q(profile__role__in=["admin", "project_manager"])
-    )
-
-    message = f"Low inventory detected for {len(shortages)} items:\n\n"
-    for s in shortages[:10]:  # Limit to first 10
-        message += f"• {s['item']} at {s['location']} ({s['project']}): {s['current']} (min: {s['threshold']})\n"
-
-    if len(shortages) > 10:
-        message += f"\n...and {len(shortages) - 10} more items"
-
-    for user in recipients:
-        Notification.objects.create(
-            user=user,
-            notification_type="alert",
-            title="Inventory Shortage Alert",
-            message=message,
-            related_url="/inventory/",
-            priority="medium",
-        )
-
-    logger.info(f"Sent inventory shortage alerts for {len(shortages)} items")
-    return {"shortages": len(shortages), "notified": recipients.count()}
-
-
 @shared_task(name="core.tasks.send_pending_notifications")
 def send_pending_notifications():
     """
@@ -798,15 +736,15 @@ def cleanup_stale_user_status(threshold_minutes=5):
     """
     Mark users as offline if their last heartbeat is older than threshold.
     Runs every 5 minutes to keep online status accurate.
-    
+
     Args:
         threshold_minutes: Minutes without heartbeat before marking offline
-        
+
     Returns:
         dict: Status with count of users marked offline
     """
     from core.models import UserStatus
-    
+
     try:
         count = UserStatus.cleanup_stale_online_status(threshold_minutes=threshold_minutes)
         logger.info(f"Cleaned up {count} stale user status records")
@@ -828,28 +766,29 @@ def send_websocket_notification(user_id, title, message, category="info", url=""
     """
     Send a notification via WebSocket to a specific user.
     Falls back to database-only if WebSocket fails.
-    
+
     Args:
         user_id: Target user ID
         title: Notification title
         message: Notification message
         category: Notification category (info/success/warning/error/task/chat)
         url: Optional URL to link
-        
+
     Returns:
         dict: Status of notification delivery
     """
-    from django.contrib.auth import get_user_model
-    from channels.layers import get_channel_layer
     from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    from django.contrib.auth import get_user_model
+
     from core.models import NotificationLog
-    
-    User = get_user_model()
+
+    user_model = get_user_model()
     channel_layer = get_channel_layer()
-    
+
     try:
-        user = User.objects.get(id=user_id)
-        
+        user = user_model.objects.get(id=user_id)
+
         # Create notification log
         notification = NotificationLog.objects.create(
             user=user,
@@ -858,7 +797,7 @@ def send_websocket_notification(user_id, title, message, category="info", url=""
             category=category,
             url=url,
         )
-        
+
         # Try to send via WebSocket
         try:
             async_to_sync(channel_layer.group_send)(
@@ -892,8 +831,8 @@ def send_websocket_notification(user_id, title, message, category="info", url=""
                 "delivered_via_websocket": False,
                 "error": str(ws_error),
             }
-            
-    except User.DoesNotExist:
+
+    except user_model.DoesNotExist:
         logger.error(f"User {user_id} not found for notification")
         return {
             "status": "error",
@@ -917,37 +856,38 @@ def send_websocket_notification(user_id, title, message, category="info", url=""
 def collect_websocket_metrics():
     """
     Collect and store WebSocket metrics every 5 minutes
-    
+
     Stores metrics in cache with timestamp key for historical tracking.
     Metrics are kept for 24 hours.
     """
-    from core.websocket_metrics import get_metrics_summary
     from django.core.cache import cache
     from django.utils import timezone
-    
+
+    from core.websocket_metrics import get_metrics_summary
+
     try:
         # Get current metrics
         metrics = get_metrics_summary()
-        
+
         # Store with timestamp key
         timestamp = timezone.now()
         cache_key = f"ws_metrics_{timestamp.strftime('%Y%m%d%H%M')}"
-        
+
         # Store for 24 hours
         cache.set(cache_key, metrics, timeout=86400)
-        
+
         # Also update the latest summary
         cache.set('ws_metrics_summary', metrics, timeout=3600)
-        
+
         logger.info(f"WebSocket metrics collected and stored: {cache_key}")
-        
+
         return {
             "status": "success",
             "timestamp": timestamp.isoformat(),
             "connections": metrics['connections']['total'],
             "message_rate": metrics['messages']['rate_1m'],
         }
-        
+
     except Exception as e:
         logger.error(f"Error collecting WebSocket metrics: {e}")
         return {
@@ -960,21 +900,22 @@ def collect_websocket_metrics():
 def cleanup_old_websocket_metrics():
     """
     Clean up old WebSocket metrics from cache
-    
+
     Runs daily to remove metrics older than 7 days.
     """
+    from datetime import timedelta
+
     from django.core.cache import cache
     from django.utils import timezone
-    from datetime import timedelta
-    
+
     try:
-        cutoff_date = timezone.now() - timedelta(days=7)
+        timezone.now() - timedelta(days=7)
         deleted_count = 0
-        
+
         # Generate keys for last 7 days
         for day_offset in range(8, 365):  # Check up to a year back
             check_date = timezone.now() - timedelta(days=day_offset)
-            
+
             # Check each 5-minute interval
             for hour in range(24):
                 for minute in range(0, 60, 5):
@@ -984,18 +925,18 @@ def cleanup_old_websocket_metrics():
                         second=0
                     ).strftime('%Y%m%d%H%M')
                     cache_key = f"ws_metrics_{timestamp_str}"
-                    
+
                     if cache.get(cache_key):
                         cache.delete(cache_key)
                         deleted_count += 1
-        
+
         logger.info(f"Cleaned up {deleted_count} old WebSocket metrics entries")
-        
+
         return {
             "status": "success",
             "deleted_count": deleted_count,
         }
-        
+
     except Exception as e:
         logger.error(f"Error cleaning up WebSocket metrics: {e}")
         return {

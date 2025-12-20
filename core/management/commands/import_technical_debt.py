@@ -13,18 +13,16 @@ Author: Product Manager & Python Developer
 Date: November 29, 2025
 """
 
-import os
-import re
 from pathlib import Path
-from typing import Dict, List, Tuple, Set
+import re
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.conf import settings
 from django.utils import timezone
 
 # Import strategic planning models (available via core.models package)
-from core.models import LifeVision, PowerAction, DailyRitualSession
+from core.models import DailyRitualSession, LifeVision, PowerAction
 
 COMMENT_PATTERNS = [
     r"TODO\s*:",
@@ -73,7 +71,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         dry_run: bool = options["dry_run"]
         root_path = Path(options["root"]).resolve()
-        exclude_list: List[str] = options["exclude"]
+        exclude_list: list[str] = options["exclude"]
 
         if not root_path.exists():
             self.stdout.write(self.style.ERROR(f"❌ Root path not found: {root_path}"))
@@ -88,14 +86,14 @@ class Command(BaseCommand):
             re.IGNORECASE,
         )
 
-        items: List[Tuple[str, int, str, str]] = []  # (rel_path, line_no, tag, text)
-        unique_titles: Set[str] = set()  # dedup by title
+        items: list[tuple[str, int, str, str]] = []  # (rel_path, line_no, tag, text)
+        unique_titles: set[str] = set()  # dedup by title
 
         # Walk files
         for file_path in self.iter_files(root_path, exclude_list):
             rel_path = str(file_path.relative_to(root_path))
             try:
-                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                with open(file_path, encoding="utf-8", errors="ignore") as f:
                     for i, line in enumerate(f, start=1):
                         # Skip long binary-like lines early
                         if "\x00" in line:
@@ -187,7 +185,7 @@ class Command(BaseCommand):
             )
         )
 
-    def iter_files(self, root: Path, excludes: List[str]):
+    def iter_files(self, root: Path, excludes: list[str]):
         """Yield files with allowed extensions, excluding paths containing any of the excludes."""
         for path in root.rglob("*"):
             if not path.is_file():

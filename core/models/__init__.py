@@ -1,13 +1,13 @@
 import base64
+from collections.abc import Callable
+from datetime import date, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 import hashlib
 import hmac
 import secrets
 import struct
 import time
-from collections.abc import Callable
-from datetime import date, datetime, timedelta
-from decimal import ROUND_HALF_UP, Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
@@ -69,7 +69,7 @@ class Project(models.Model):
         default=Decimal("0.00"),
         help_text=_("Presupuesto para otros gastos (seguros, almacenamiento, etc.)"),
     )
-    
+
     # Financial snapshots: default billing rate for Change Orders
     default_co_labor_rate = models.DecimalField(
         max_digits=6,
@@ -255,7 +255,7 @@ class ColorApproval(models.Model):
     def __str__(self):
         return f"{self.project.name} · {self.color_name} ({self.status})"
 
-    def approve(self, approver: Optional[User] = None, signature_file=None):
+    def approve(self, approver: User | None = None, signature_file=None):
         from django.utils import timezone
 
         self.status = "APPROVED"
@@ -278,7 +278,7 @@ class ColorApproval(models.Model):
                 related_object_id=self.project_id,
             )
 
-    def reject(self, approver: Optional[User] = None, reason: str = ""):
+    def reject(self, approver: User | None = None, reason: str = ""):
         self.status = "REJECTED"
         if approver:
             self.approved_by = approver
@@ -549,22 +549,22 @@ class TimeEntry(models.Model):
             hours = Decimal(minutes) / Decimal(60)
 
             # Almuerzo: solo si cruza 12:30 y el turno dura al menos 5 h
-            LUNCH_MIN = 12 * 60 + 30
-            if s < LUNCH_MIN <= e and hours >= Decimal("5.0"):
+            lunch_min = 12 * 60 + 30
+            if s < lunch_min <= e and hours >= Decimal("5.0"):
                 hours -= Decimal("0.5")
 
             if hours < 0:
                 hours = Decimal("0.00")
 
             self.hours_worked = hours.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        
+
         # Capture financial snapshots on creation (immutable)
         creating = self.pk is None
         if creating:
             # Cost rate: employee's hourly rate
             if self.employee and self.employee.hourly_rate:
                 self.cost_rate_snapshot = self.employee.hourly_rate
-            
+
             # Billable rate: from CO labor_rate_override, or project default_co_labor_rate, or None
             if self.change_order:
                 if self.change_order.labor_rate_override:
@@ -579,9 +579,9 @@ class TimeEntry(models.Model):
                 self.cost_rate_snapshot = Decimal('0.00')
             if self.billable_rate_snapshot is None:
                 self.billable_rate_snapshot = Decimal('0.00')
-        
+
         super().save(*args, **kwargs)
-        
+
         # Handle invoice_line reverse FK assignment (if passed via __init__)
         if hasattr(self, '_invoice_line_to_set') and self._invoice_line_to_set:
             self._invoice_line_to_set.time_entry = self
@@ -1068,21 +1068,6 @@ class Task(models.Model):
         help_text="Tareas que deben completarse antes de esta",
     )
 
-    class Meta:
-        ordering = ["-created_at"]
-        verbose_name = "Tarea"
-        verbose_name_plural = "Tareas"
-        indexes = [
-            models.Index(fields=["project", "status"]),
-            models.Index(fields=["assigned_to", "status"]),
-            models.Index(fields=["is_touchup"]),
-            models.Index(fields=["due_date"]),
-            models.Index(fields=["priority", "status"]),
-        ]
-
-    def __str__(self):
-        return f"{self.title} - {self.status}"
-
     def clean(self):
         """Validaciones de negocio del modelo Task."""
         from django.core.exceptions import ValidationError
@@ -1212,7 +1197,6 @@ class Task(models.Model):
         """Reabrir una tarea completada (Q11.12)."""
         if self.status != "Completada":
             return False
-        old_status = self.status
         self.status = "En Progreso" if self.can_start() else "Pendiente"
         self.completed_at = None
         # Preparar metadata para que la señal de post_save cree UN solo TaskStatusChange
@@ -1230,21 +1214,21 @@ class Task(models.Model):
             self.full_clean()
         # Regla de negocio: si el progreso llega a 100 y no está completada, mover a "En Revisión"
         try:
-            if self.progress_percent is not None and int(self.progress_percent) >= 100 and self.status != "Completada":
-                if self.status not in ("En Revisión", "Completada"):
-                    self.status = "En Revisión"
+            if (
+                self.progress_percent is not None
+                and int(self.progress_percent) >= 100
+                and self.status not in ("En Revisión", "Completada")
+            ):
+                self.status = "En Revisión"
         except Exception:
             # Ignorar si el campo no existe en migraciones antiguas
             pass
         is_new = self.pk is None
         old_assigned_to = None
-        old_status = None
         if not is_new:
             old_obj = Task.objects.filter(pk=self.pk).first()
-            if old_obj:
-                if old_obj.assigned_to != self.assigned_to:
-                    old_assigned_to = old_obj.assigned_to
-                old_status = old_obj.status
+            if old_obj and old_obj.assigned_to != self.assigned_to:
+                old_assigned_to = old_obj.assigned_to
         super().save(*args, **kwargs)
         if old_assigned_to != self.assigned_to and self.assigned_to:
             self._notify_assignment()
@@ -1351,10 +1335,10 @@ class TaskDependency(models.Model):
         """Detect if adding predecessor->task creates a cycle using DFS over existing dependencies."""
         from collections import defaultdict
 
-        from core.models import TaskDependency as TD
+        from core.models import TaskDependency
 
         graph = defaultdict(list)
-        for td in TD.objects.all().values("task_id", "predecessor_id"):
+        for td in TaskDependency.objects.all().values("task_id", "predecessor_id"):
             graph[td["predecessor_id"]].append(td["task_id"])
         # add proposed edge
         graph[predecessor_id].append(task_id)
@@ -1375,11 +1359,7 @@ class TaskDependency(models.Model):
             return False
 
         # run dfs from all nodes
-        for node in list(graph.keys()):
-            if node not in visited:
-                if dfs(node):
-                    return True
-        return False
+        return any(node not in visited and dfs(node) for node in list(graph.keys()))
 
     def clean(self):
         """Validaciones de negocio específicas de dependencias."""
@@ -1390,9 +1370,12 @@ class TaskDependency(models.Model):
         if self.task_id and self.predecessor_id and self.task_id == self.predecessor_id:
             errors["predecessor"] = _("Una tarea no puede depender de sí misma.")
         # Detectar ciclos con la arista propuesta
-        if self.task_id and self.predecessor_id:
-            if TaskDependency.would_create_cycle(self.task_id, self.predecessor_id):
-                errors["predecessor"] = _("Dependencia circular detectada. Las tareas no pueden formar ciclos.")
+        if (
+            self.task_id
+            and self.predecessor_id
+            and TaskDependency.would_create_cycle(self.task_id, self.predecessor_id)
+        ):
+            errors["predecessor"] = _("Dependencia circular detectada. Las tareas no pueden formar ciclos.")
         if errors:
             raise ValidationError(errors)
 
@@ -1597,7 +1580,7 @@ class TaskTemplate(models.Model):
 
         # Fallback: Simple icontains search with relevance scoring
         # Score: title exact match > title contains > description contains
-        query_lower = query.lower()
+        query.lower()
         qs = (
             cls.objects.filter(is_active=True)
             .filter(Q(title__icontains=query) | Q(description__icontains=query))
@@ -1789,7 +1772,7 @@ class ChangeOrder(models.Model):
 
     def __str__(self):
         return f"CO {self.id} | {self.project.name} | ${self.amount:.2f}"
-    
+
     def clean(self):
         """Validate T&M change orders have amount=0."""
         from django.core.exceptions import ValidationError
@@ -1798,7 +1781,7 @@ class ChangeOrder(models.Model):
             errors['amount'] = "Los Change Orders de Tiempo y Materiales deben tener amount=0. El total se calcula dinámicamente."
         if errors:
             raise ValidationError(errors)
-    
+
     def get_effective_billing_rate(self) -> Decimal:
         """
         Return the hourly billing rate for this change order.
@@ -1814,22 +1797,22 @@ class ChangeOrder(models.Model):
     def get_effective_labor_rate(self) -> Decimal:
         """Return labor billing rate (alias of get_effective_billing_rate)."""
         return self.get_effective_billing_rate()
-    
+
     # Compatibility aliases for tests
     @property
     def billing_hourly_rate(self) -> Decimal:
         """Alias for labor_rate_override (test compatibility)."""
         return self.labor_rate_override
-    
+
     @billing_hourly_rate.setter
     def billing_hourly_rate(self, value):
         self.labor_rate_override = value
-    
+
     @property
     def material_markup_pct(self) -> Decimal:
         """Alias for material_markup_percent (test compatibility)."""
         return self.material_markup_percent
-    
+
     @material_markup_pct.setter
     def material_markup_pct(self, value):
         self.material_markup_percent = value
@@ -2273,7 +2256,7 @@ class TwoFactorProfile(models.Model):
         return b32
 
     @staticmethod
-    def _totp(secret_b32: str, for_time: Optional[int] = None, period: int = 30, digits: int = 6) -> str:
+    def _totp(secret_b32: str, for_time: int | None = None, period: int = 30, digits: int = 6) -> str:
         if for_time is None:
             for_time = int(time.time())
         counter = int(for_time // period)
@@ -2439,7 +2422,6 @@ class Invoice(models.Model):
         """Sincroniza flags legacy y fechas según estado de pago derivado."""
         from django.utils import timezone
 
-        was_paid = self.is_paid
         self.is_paid = self.fully_paid  # Mantener compatibilidad
         if self.is_paid and not self.paid_date:
             self.paid_date = timezone.now()
@@ -2455,19 +2437,21 @@ class Invoice(models.Model):
 
         self._sync_payment_flags()
         # Overdue logic sólo si aún no está pagada o cancelada
-        if self.due_date and timezone.now().date() > self.due_date and self.balance_due > 0:
-            if self.status not in ["DRAFT", "CANCELLED", "PAID"]:
-                self.status = "OVERDUE"
-        super(Invoice, self).save(update_fields=["status", "paid_date", "is_paid"])
+        if (
+            self.due_date
+            and timezone.now().date() > self.due_date
+            and self.balance_due > 0
+            and self.status not in ["DRAFT", "CANCELLED", "PAID"]
+        ):
+            self.status = "OVERDUE"
+        super().save(update_fields=["status", "paid_date", "is_paid"])
         return self.status
 
     def save(self, *args, **kwargs):
         creating = self._state.adding
-        old_status = None
         old_is_paid = None
         if not creating and self.pk:
             old = Invoice.objects.get(pk=self.pk)
-            old_status = old.status
             old_is_paid = old.is_paid
 
         if not self.invoice_number:
@@ -2702,9 +2686,8 @@ class BudgetLine(models.Model):
         if self.planned_start and self.planned_finish and self.planned_finish < self.planned_start:
             raise ValidationError("Planned finish must be on/after planned start.")
         # weight_override entre 0 y 1
-        if self.weight_override is not None:
-            if self.weight_override < 0 or self.weight_override > 1:
-                raise ValidationError("Weight override must be between 0 and 1.")
+        if self.weight_override is not None and (self.weight_override < 0 or self.weight_override > 1):
+            raise ValidationError("Weight override must be between 0 and 1.")
 
 
 # --- Estimating / Proposals ---
@@ -3036,9 +3019,12 @@ class BudgetProgress(models.Model):
         # Si no envían percent y existe qty en la línea, intenta derivarlo de qty_completed
         try:
             total_qty = getattr(self.budget_line, "qty", None)
-            if (not self.percent_complete or self.percent_complete == 0) and total_qty:
-                if total_qty != 0:
-                    self.percent_complete = min(100, (self.qty_completed / total_qty) * 100)
+            if (
+                (not self.percent_complete or self.percent_complete == 0)
+                and total_qty
+                and total_qty != 0
+            ):
+                self.percent_complete = min(100, (self.qty_completed / total_qty) * 100)
         except Exception:
             pass
         self.full_clean(exclude=None)  # valida clean()
@@ -3046,9 +3032,8 @@ class BudgetProgress(models.Model):
 
     def clean(self):
         super().clean()
-        if self.percent_complete is not None:
-            if self.percent_complete < 0 or self.percent_complete > 100:
-                raise ValidationError("Percent complete must be between 0 and 100.")
+        if self.percent_complete is not None and (self.percent_complete < 0 or self.percent_complete > 100):
+            raise ValidationError("Percent complete must be between 0 and 100.")
         if self.qty_completed is not None and self.qty_completed < 0:
             raise ValidationError("Qty completed cannot be negative.")
 
@@ -3711,8 +3696,8 @@ class SitePhoto(models.Model):
         # Q18.12: Generate thumbnail
         if self.image and not self.thumbnail:
             try:
-                import os
                 from io import BytesIO
+                import os
 
                 from django.core.files.base import ContentFile
                 from PIL import Image
@@ -4166,7 +4151,7 @@ class PlanPin(models.Model):
         """Q20.2: Migrate pin to new plan version"""
         # Preserve client comments during migration
         comments_to_copy = list(self.client_comments) if self.client_comments else []
-        
+
         new_pin = PlanPin.objects.create(
             plan=new_plan,
             x=new_x,
@@ -4182,7 +4167,7 @@ class PlanPin(models.Model):
             created_by=self.created_by,
             status="active",
         )
-        
+
         # Copy comments after creation to avoid mutable default issues
         new_pin.client_comments = comments_to_copy
         new_pin.save()
@@ -4331,13 +4316,11 @@ class DamageReport(models.Model):
         """Q21.4: Auto-create repair task when damage is reported"""
         is_new = self.pk is None
         old_status = None
-        old_severity = None
 
         if not is_new:
             old_damage = DamageReport.objects.filter(pk=self.pk).first()
             if old_damage:
                 old_status = old_damage.status
-                old_severity = old_damage.severity
 
         super().save(*args, **kwargs)
 
@@ -4479,7 +4462,7 @@ class ChatMessage(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="deleted_chat_messages"
     )
     deleted_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Phase 6: Read receipts for real-time messaging
     read_by = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -4496,15 +4479,15 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"ChatMsg ch={self.channel_id} by {getattr(self.user,'username','?')}"
-    
+
     def mark_as_read(self, user):
         """Mark this message as read by a user"""
         self.read_by.add(user)
-    
+
     def is_read_by(self, user):
         """Check if message was read by user"""
         return self.read_by.filter(id=user.id).exists()
-    
+
     @property
     def read_count(self):
         """Number of users who have read this message"""
@@ -4681,9 +4664,7 @@ class PermissionMatrix(models.Model):
 
         if self.effective_from and today < self.effective_from:
             return False
-        if self.effective_until and today > self.effective_until:
-            return False
-        return True
+        return not (self.effective_until and today > self.effective_until)
 
 
 class AuditLog(models.Model):
@@ -5209,16 +5190,15 @@ class InventoryMovement(models.Model):
                 s_to.quantity += self.quantity
                 s_to.save()
 
-        elif self.movement_type == "ADJUST":
-            if self.to_location:
-                stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
-                stock.quantity += self.quantity
+        elif self.movement_type == "ADJUST" and self.to_location:
+            stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
+            stock.quantity += self.quantity
 
-                # Q15.10: Prevent negative after adjustment
-                if stock.quantity < 0:
-                    stock.quantity = Decimal("0")
+            # Q15.10: Prevent negative after adjustment
+            if stock.quantity < 0:
+                stock.quantity = Decimal("0")
 
-                stock.save()
+            stock.save()
 
         self.applied = True
         self.save(update_fields=["applied"])
@@ -5887,8 +5867,8 @@ class PlannedActivity(models.Model):
 
         IMPROVED: Added comprehensive error handling for malformed data
         """
-        import logging
         from decimal import Decimal, InvalidOperation
+        import logging
 
         from django.db.models import Q
 
@@ -5938,7 +5918,7 @@ class PlannedActivity(models.Model):
                         if m:
                             try:
                                 required_qty = Decimal(m.group("num"))
-                                unit_suffix = m.group("unit") or "unit"
+                                m.group("unit") or "unit"
                             except (InvalidOperation, ValueError) as e:
                                 logger.warning(
                                     f"PlannedActivity {self.id}: Invalid quantity '{m.group('num')}' in '{raw}': {e}"
@@ -5946,7 +5926,6 @@ class PlannedActivity(models.Model):
                                 required_qty = Decimal("1")
                         else:
                             name_tokens.append(qty_token)  # treat as part of name
-                            unit_suffix = "unit"
 
                         name_key = ":".join(t.lower() for t in name_tokens)
 
@@ -5958,7 +5937,7 @@ class PlannedActivity(models.Model):
                     continue
 
             # Build quick lookup for inventory by item name (case-insensitive contains)
-            InventoryItem = apps.get_model("core", "InventoryItem")
+            apps.get_model("core", "InventoryItem")
             ProjectInventory = apps.get_model("core", "ProjectInventory")
             InventoryLocation = apps.get_model("core", "InventoryLocation")
 
@@ -5985,7 +5964,7 @@ class PlannedActivity(models.Model):
                         qty_available = available_map[key]
                     else:
                         # fuzzy contains
-                        matches = [k for k in available_map.keys() if key in k or k in key]
+                        matches = [k for k in available_map if key in k or k in key]
                         if matches:
                             qty_available = sum(available_map[m] for m in matches)
 
@@ -7413,7 +7392,7 @@ class ClientOrganization(models.Model):
     @property
     def outstanding_balance(self):
         """Total unpaid invoices for all projects in this organization."""
-        from django.db.models import F, Sum
+        from django.db.models import Sum
         from django.db.models.functions import Coalesce
 
         # Use aggregation to avoid N+1 queries
@@ -7573,11 +7552,11 @@ class ClientContact(models.Model):
             return True
         if self in project.observers.all():
             return True
-        if self.organization and project.billing_organization == self.organization:
-            # Executives and accounting can see all org projects
-            if self.role in ["executive", "accounting", "owner"]:
-                return True
-        return False
+        return bool(
+            self.organization
+            and project.billing_organization == self.organization
+            and self.role in ["executive", "accounting", "owner"]
+        )
 
 
 # ============================================================================
@@ -7626,18 +7605,18 @@ class UserStatus(models.Model):
         verbose_name="Active Connections",
         help_text="Number of active WebSocket connections",
     )
-    
+
     class Meta:
         verbose_name = "User Status"
         verbose_name_plural = "User Statuses"
         indexes = [
             models.Index(fields=['is_online', '-last_seen']),
         ]
-    
+
     def __str__(self):
         status = "Online" if self.is_online else "Offline"
         return f"{self.user.username} - {status}"
-    
+
     def mark_online(self):
         """Mark user as online and update heartbeat"""
         from django.utils import timezone
@@ -7645,30 +7624,30 @@ class UserStatus(models.Model):
         self.last_heartbeat = timezone.now()
         self.connection_count += 1
         self.save(update_fields=['is_online', 'last_heartbeat', 'last_seen', 'connection_count'])
-    
+
     def mark_offline(self):
         """Mark user as offline"""
         self.connection_count = max(0, self.connection_count - 1)
         if self.connection_count == 0:
             self.is_online = False
         self.save(update_fields=['is_online', 'last_seen', 'connection_count'])
-    
+
     def update_heartbeat(self):
         """Update heartbeat timestamp"""
         from django.utils import timezone
         self.last_heartbeat = timezone.now()
         self.save(update_fields=['last_heartbeat', 'last_seen'])
-    
+
     @property
     def last_seen_ago(self):
         """Human-readable last seen time"""
         from django.utils import timezone
-        
+
         if self.is_online:
             return "Online now"
-        
+
         delta = timezone.now() - self.last_seen
-        
+
         if delta.seconds < 60:
             return "Just now"
         elif delta.seconds < 3600:
@@ -7683,21 +7662,22 @@ class UserStatus(models.Model):
             return f"{delta.days} days ago"
         else:
             return self.last_seen.strftime("%b %d, %Y")
-    
+
     @classmethod
     def get_online_users(cls):
         """Get all currently online users"""
         return cls.objects.filter(is_online=True).select_related('user')
-    
+
     @classmethod
     def cleanup_stale_online_status(cls, threshold_minutes=5):
         """
         Mark users as offline if their last heartbeat is older than threshold.
         Should be called periodically via Celery task.
         """
-        from django.utils import timezone
         from datetime import timedelta
-        
+
+        from django.utils import timezone
+
         threshold = timezone.now() - timedelta(minutes=threshold_minutes)
         stale = cls.objects.filter(
             is_online=True,
@@ -7768,7 +7748,7 @@ class NotificationLog(models.Model):
         db_index=True,
         verbose_name="Created At",
     )
-    
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -7777,23 +7757,23 @@ class NotificationLog(models.Model):
         ]
         verbose_name = "Notification Log"
         verbose_name_plural = "Notification Logs"
-    
+
     def __str__(self):
         return f"{self.user.username}: {self.title}"
-    
+
     def mark_as_read(self):
         """Mark notification as read"""
         from django.utils import timezone
-        
+
         if not self.read:
             self.read = True
             self.read_at = timezone.now()
             self.save(update_fields=['read', 'read_at'])
-    
+
     def mark_as_delivered(self):
         """Mark notification as delivered via WebSocket"""
         from django.utils import timezone
-        
+
         if not self.delivered_via_websocket:
             self.delivered_via_websocket = True
             self.delivered_at = timezone.now()
@@ -7893,33 +7873,59 @@ class MeetingMinute(models.Model):
         return f"Meeting {self.project_id} on {self.date}"
 
 
-# PWA Push Notifications
-from .push_notifications import PushSubscription
+"""core.models
+
+This project historically kept some models directly in this module, and others
+in submodules under `core/models/`.
+
+Some call sites import these submodule models from `core.models` (e.g.
+`from core.models import StrategicDay`). In order to keep those imports
+working, we re-export key models near the bottom of the file.
+
+Important: These re-exports must happen *after* the base models in this module
+are defined (to avoid circular imports during Django app loading).
+"""
+
+# ---------------------------------------------------------------------------
+# Re-export models that live in submodules (compatibility layer)
+# ---------------------------------------------------------------------------
+# These imports intentionally live at the bottom of the file to avoid circular
+# imports during Django app loading.
+# ruff: noqa: E402
+
+# Daily Plan AI Enhancements (Dec 2025)
+from .daily_plan_ai import AIAnalysisLog, AISuggestion, TimelineView, VoiceCommand
 
 # Executive Focus Workflow (Module 25)
 from .focus_workflow import DailyFocusSession, FocusTask
 
-# Strategic Planning (Module 25 Part B)
-from .strategic_planning import (
-    LifeVision, ExecutiveHabit, DailyRitualSession, 
-    PowerAction, HabitCompletion
-)
+# PWA Push Notifications
+from .push_notifications import PushSubscription
 
 # Strategic Future Planning (Phase A1 - Dec 2025)
 from .strategic_future_planning import (
-    StrategicPlanningSession, StrategicDay, StrategicItem, StrategicTask,
-    StrategicSubtask, StrategicMaterialRequirement, StrategicDependency
+    StrategicDay,
+    StrategicDependency,
+    StrategicItem,
+    StrategicMaterialRequirement,
+    StrategicPlanningSession,
+    StrategicSubtask,
+    StrategicTask,
 )
 
-# Daily Plan AI Enhancements (Dec 2025)
-from .daily_plan_ai import (
-    TimelineView, AIAnalysisLog, AISuggestion, VoiceCommand
+# Strategic Planning (Module 25 Part B)
+from .strategic_planning import (
+    DailyRitualSession,
+    ExecutiveHabit,
+    HabitCompletion,
+    LifeVision,
+    PowerAction,
 )
 
 __all__ = [
-    'PushSubscription', 
+    'PushSubscription',
     'DailyFocusSession', 'FocusTask',
-    'LifeVision', 'ExecutiveHabit', 'DailyRitualSession', 
+    'LifeVision', 'ExecutiveHabit', 'DailyRitualSession',
     'PowerAction', 'HabitCompletion',
     'StrategicPlanningSession', 'StrategicDay', 'StrategicItem', 'StrategicTask',
     'StrategicSubtask', 'StrategicMaterialRequirement', 'StrategicDependency',

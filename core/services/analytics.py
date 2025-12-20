@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
-from typing import Any, Dict
+from typing import Any
 
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from core.models import (
@@ -10,11 +10,10 @@ from core.models import (
     Project,
     ProjectManagerAssignment,
     Task,
-    TimeEntry,
 )
 
 
-def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
+def get_project_health_metrics(project_id: int) -> dict[str, Any]:
     """
     Comprehensive project health analytics.
 
@@ -104,7 +103,7 @@ def get_project_health_metrics(project_id: int) -> Dict[str, Any]:
     }
 
 
-def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
+def get_touchup_analytics(project_id: int = None) -> dict[str, Any]:
     """
     Touch-up task analytics with trends and performance metrics.
 
@@ -172,7 +171,7 @@ def get_touchup_analytics(project_id: int = None) -> Dict[str, Any]:
     }
 
 
-def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
+def get_color_approval_analytics(project_id: int = None) -> dict[str, Any]:
     """
     Color approval workflow metrics.
 
@@ -230,7 +229,7 @@ def get_color_approval_analytics(project_id: int = None) -> Dict[str, Any]:
     }
 
 
-def get_pm_performance_analytics() -> Dict[str, Any]:
+def get_pm_performance_analytics() -> dict[str, Any]:
     """
     Project Manager workload and performance metrics.
 

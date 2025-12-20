@@ -1,8 +1,7 @@
-from decimal import Decimal
 from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
-from django.http import HttpRequest, HttpResponse
 
 from core.services.financial_service import FinancialAnalyticsService
 

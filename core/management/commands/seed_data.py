@@ -1,34 +1,34 @@
 """
 Management command to seed the database with realistic test data using Faker
 """
-import random
-from decimal import Decimal
 from datetime import timedelta
+from decimal import Decimal
+import random
 
-from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker
 
 from core.models import (
-    ClientOrganization,
-    ClientContact,
-    Project,
-    Task,
     ChangeOrder,
+    ClientContact,
+    ClientOrganization,
     Employee,
     Profile,
+    Project,
+    Task,
 )
 
 
 class Command(BaseCommand):
     help = 'Seed database with realistic test data for development'
-    
+
     def handle(self, *args, **options):
         fake = Faker()
-        
+
         self.stdout.write('Starting database seed...')
-        
+
         # Create Client Organizations
         orgs = []
         self.stdout.write('Creating client organizations...')
@@ -45,9 +45,9 @@ class Command(BaseCommand):
                 is_active=fake.boolean(chance_of_getting_true=90)
             )
             orgs.append(org)
-        
+
         self.stdout.write(self.style.SUCCESS(f'Created {len(orgs)} organizations'))
-        
+
         # Create Users
         users = []
         self.stdout.write('Creating users...')
@@ -65,9 +65,9 @@ class Command(BaseCommand):
             except:
                 # Skip if username already exists
                 continue
-        
+
         self.stdout.write(self.style.SUCCESS(f'Created {len(users)} users'))
-        
+
         # Create Profiles
         self.stdout.write('Creating user profiles...')
         roles = ['admin', 'pm', 'employee', 'client', 'designer']
@@ -78,7 +78,7 @@ class Command(BaseCommand):
                     role=random.choice(roles),
                     phone_number=fake.phone_number()[:20]
                 )
-        
+
         # Create Client Contacts
         contacts = []
         self.stdout.write('Creating client contacts...')
@@ -99,16 +99,16 @@ class Command(BaseCommand):
                     can_view_financials=fake.boolean(chance_of_getting_true=80)
                 )
                 contacts.append(contact)
-        
+
         self.stdout.write(self.style.SUCCESS(f'Created {len(contacts)} client contacts'))
-        
+
         # Create Projects
         projects = []
         self.stdout.write('Creating projects...')
         for i in range(10):
             start_date = fake.date_between(start_date='-1y', end_date='today')
             end_date = start_date + timedelta(days=random.randint(30, 365))
-            
+
             project = Project.objects.create(
                 name=fake.sentence(nb_words=3)[:-1],
                 project_code=f"PRJ-{2024}-{i+1:04d}",
@@ -126,16 +126,16 @@ class Command(BaseCommand):
                 total_income=Decimal(str(random.randint(0, 300000))),
                 total_expenses=Decimal(str(random.randint(0, 250000))),
             )
-            
+
             # Add observers
             if len(contacts) > 3:
                 observers = random.sample(contacts, k=random.randint(1, 3))
                 project.observers.set(observers)
-            
+
             projects.append(project)
-        
+
         self.stdout.write(self.style.SUCCESS(f'Created {len(projects)} projects'))
-        
+
         # Create Employees
         employees = []
         self.stdout.write('Creating employees...')
@@ -151,20 +151,20 @@ class Command(BaseCommand):
             except:
                 # Skip if employee already exists
                 continue
-        
+
         self.stdout.write(self.style.SUCCESS(f'Created {len(employees)} employees'))
-        
+
         # Create Tasks
         tasks = []
         self.stdout.write('Creating tasks...')
         statuses = ['Pendiente', 'En Progreso', 'Completada', 'Cancelada']
         priorities = ['low', 'medium', 'high', 'urgent']
-        
+
         for i in range(50):
             project = random.choice(projects)
             due_date = fake.date_between(start_date='today', end_date='+30d')
             status = random.choice(statuses)
-            
+
             task = Task.objects.create(
                 project=project,
                 title=fake.sentence(nb_words=5)[:-1],
@@ -175,25 +175,25 @@ class Command(BaseCommand):
                 created_by=random.choice(users),
                 assigned_to=random.choice(employees) if employees and random.random() > 0.3 else None,
             )
-            
+
             if status == 'Completada':
                 task.completed_at = timezone.now() - timedelta(days=random.randint(1, 30))
                 task.save()
-            
+
             tasks.append(task)
-        
+
         self.stdout.write(self.style.SUCCESS(f'Created {len(tasks)} tasks'))
-        
+
         # Create Change Orders
         change_orders = []
         self.stdout.write('Creating change orders...')
         co_statuses = ['draft', 'pending', 'approved', 'sent', 'billed', 'paid']
-        
+
         for i in range(20):
             project = random.choice(projects)
             amount = Decimal(str(random.randint(500, 50000)))
             status = random.choice(co_statuses)
-            
+
             co = ChangeOrder.objects.create(
                 project=project,
                 description=fake.text(max_nb_chars=150),
@@ -203,9 +203,9 @@ class Command(BaseCommand):
                 notes=fake.text(max_nb_chars=100) if random.random() > 0.5 else '',
             )
             change_orders.append(co)
-        
+
         self.stdout.write(self.style.SUCCESS(f'Created {len(change_orders)} change orders'))
-        
+
         # Summary
         self.stdout.write(self.style.SUCCESS('\n=== Seed Data Summary ==='))
         self.stdout.write(self.style.SUCCESS(f'Organizations: {len(orgs)}'))

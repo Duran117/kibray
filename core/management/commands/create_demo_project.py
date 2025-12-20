@@ -2,9 +2,9 @@
 Management command to create a comprehensive demo project with realistic data
 """
 
-import random
 from datetime import timedelta
 from decimal import Decimal
+import random
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand

@@ -10,13 +10,12 @@ Author: Senior Python Code Cleaner
 Date: November 29, 2025
 """
 
-import os
+from pathlib import Path
 import re
 import shutil
-from pathlib import Path
 
-from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
@@ -46,7 +45,7 @@ class Command(BaseCommand):
 
         # Base directory: core/
         base_dir = Path(settings.BASE_DIR) / 'core'
-        
+
         if not base_dir.exists():
             self.stdout.write(self.style.ERROR(f"❌ Directory not found: {base_dir}"))
             return
@@ -97,7 +96,7 @@ class Command(BaseCommand):
             # Match if filename or directory contains any of the patterns
             relative_path = py_file.relative_to(base_dir)
             file_name = py_file.stem  # filename without extension
-            
+
             is_target = any(
                 pattern in file_name.lower() or pattern in str(relative_path).lower()
                 for pattern in target_patterns
@@ -128,7 +127,7 @@ class Command(BaseCommand):
             for file_path, count in modified_files_list:
                 rel_path = file_path.relative_to(settings.BASE_DIR)
                 self.stdout.write(f"   • {rel_path}: {count} prints silenced")
-        
+
         if not dry_run and files_modified > 0:
             self.stdout.write("\n💾 Backups created with .bak extension")
             self.stdout.write("   To restore: python manage.py silence_prints --restore")
@@ -143,7 +142,7 @@ class Command(BaseCommand):
             Number of print statements silenced
         """
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 original_content = f.read()
                 lines = original_content.split('\n')
         except Exception as e:
@@ -154,7 +153,7 @@ class Command(BaseCommand):
 
         modified_lines = []
         silenced_count = 0
-        
+
         # Regex pattern to match print statements
         # Matches: print(...) with any indentation
         # Does NOT match: # print(...) or """ print(...) """
@@ -166,27 +165,27 @@ class Command(BaseCommand):
         for line_num, line in enumerate(lines, 1):
             # Check if line contains a print statement
             match = print_pattern.match(line)
-            
+
             if match:
                 # Additional checks to avoid false positives
                 stripped = line.strip()
-                
+
                 # Skip if already commented
                 if stripped.startswith('#'):
                     modified_lines.append(line)
                     continue
-                
+
                 # Skip if inside a string (basic check)
                 if stripped.startswith(('"""', "'''", '"', "'")):
                     modified_lines.append(line)
                     continue
-                
+
                 # Silence the print statement
                 indent = match.group(1)
                 silenced_line = f"{indent}# [SILENCED] {stripped}"
                 modified_lines.append(silenced_line)
                 silenced_count += 1
-                
+
                 if verbose:
                     rel_path = file_path.relative_to(Path(settings.BASE_DIR))
                     self.stdout.write(
@@ -233,29 +232,29 @@ class Command(BaseCommand):
         Restore all files from their .bak backups.
         """
         self.stdout.write(self.style.WARNING("🔄 Restoring files from backups..."))
-        
+
         restored_count = 0
-        
+
         for backup_file in base_dir.rglob('*.py.bak'):
             original_file = Path(str(backup_file)[:-4])  # Remove .bak extension
-            
+
             if original_file.exists():
                 try:
                     shutil.copy2(backup_file, original_file)
                     restored_count += 1
-                    
+
                     if verbose:
                         rel_path = original_file.relative_to(settings.BASE_DIR)
                         self.stdout.write(f"   ✅ Restored: {rel_path}")
-                    
+
                     # Optionally remove backup after restoration
                     # backup_file.unlink()
-                    
+
                 except Exception as e:
                     self.stdout.write(
                         self.style.ERROR(f"❌ Error restoring {original_file}: {e}")
                     )
-        
+
         if restored_count > 0:
             self.stdout.write(
                 self.style.SUCCESS(f"\n✅ Restored {restored_count} files from backups")

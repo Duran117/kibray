@@ -1,20 +1,32 @@
- 
+
 """
 Management command para simular escenarios de la arquitectura final Kibray
 Genera datos realistas para testing - Villa Moderna
 """
+from datetime import date, time, timedelta
 from decimal import Decimal
-from datetime import date, timedelta, time
+
+from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User, Group
 from django.db import transaction
 from django.utils import timezone
 
 from core.models import (
-    Project, Employee, Estimate, EstimateLine, Invoice, InvoiceLine,
-    ChangeOrder, Expense, InventoryItem, InventoryLocation,
-    ProjectInventory, PlanPin, FloorPlan, Task, DailyLog,
-    Schedule, ScheduleItem
+    ChangeOrder,
+    DailyLog,
+    Employee,
+    Estimate,
+    Expense,
+    FloorPlan,
+    InventoryItem,
+    InventoryLocation,
+    Invoice,
+    InvoiceLine,
+    PlanPin,
+    Project,
+    ProjectInventory,
+    Schedule,
+    Task,
 )
 
 
@@ -23,21 +35,21 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('\n🎬 SIMULACIÓN KIBRAY - VILLA MODERNA (Arquitectura Final)\n'))
-        
+
         with transaction.atomic():
             # Setup users and roles
             users = self._setup_users()
-            
+
             # Create complete scenario
             self._simulate_villa_moderna(users)
-        
+
         self.stdout.write(self.style.SUCCESS('\n✅ SIMULACIÓN COMPLETADA\n'))
         self._print_credentials(users)
-    
+
     def _setup_users(self):
         """Crea usuarios con roles configurados"""
         users = {}
-        
+
         # Admin
         users['admin'], _ = User.objects.get_or_create(
             username='admin_kibray',
@@ -51,7 +63,7 @@ class Command(BaseCommand):
         )
         users['admin'].set_password('admin123')
         users['admin'].save()
-        
+
         # PM Full
         users['pm'], _ = User.objects.get_or_create(
             username='pm_full',
@@ -64,10 +76,10 @@ class Command(BaseCommand):
         )
         users['pm'].set_password('pm123')
         users['pm'].save()
-        
+
         pm_group, _ = Group.objects.get_or_create(name='Project Manager')
         users['pm'].groups.add(pm_group)
-        
+
         # PM Trainee
         users['trainee'], _ = User.objects.get_or_create(
             username='pm_trainee',
@@ -80,10 +92,10 @@ class Command(BaseCommand):
         )
         users['trainee'].set_password('trainee123')
         users['trainee'].save()
-        
+
         trainee_group, _ = Group.objects.get_or_create(name='Project Manager (Trainee)')
         users['trainee'].groups.add(trainee_group)
-        
+
         # Designer
         users['designer'], _ = User.objects.get_or_create(
             username='designer',
@@ -96,10 +108,10 @@ class Command(BaseCommand):
         )
         users['designer'].set_password('designer123')
         users['designer'].save()
-        
+
         designer_group, _ = Group.objects.get_or_create(name='Designer')
         users['designer'].groups.add(designer_group)
-        
+
         # Superintendent
         users['super'], _ = User.objects.get_or_create(
             username='superintendent',
@@ -112,10 +124,10 @@ class Command(BaseCommand):
         )
         users['super'].set_password('super123')
         users['super'].save()
-        
+
         super_group, _ = Group.objects.get_or_create(name='Superintendent')
         users['super'].groups.add(super_group)
-        
+
         # Employee for reimbursement
         users['employee'], _ = Employee.objects.get_or_create(
             first_name='José',
@@ -126,7 +138,7 @@ class Command(BaseCommand):
                 'is_active': True
             }
         )
-        
+
         # Client
         users['client'], _ = User.objects.get_or_create(
             username='cliente_villa',
@@ -138,13 +150,13 @@ class Command(BaseCommand):
         )
         users['client'].set_password('client123')
         users['client'].save()
-        
+
         client_group, _ = Group.objects.get_or_create(name='Client')
         users['client'].groups.add(client_group)
-        
+
         self.stdout.write('  ✅ 7 usuarios creados (Admin, PM, PM Trainee, Designer, Superintendent, Employee, Client)')
         return users
-    
+
     def _simulate_villa_moderna(self, users):
         """
         Escenario completo: Villa Moderna
@@ -157,7 +169,7 @@ class Command(BaseCommand):
         - Daily Plan con tareas
         """
         self.stdout.write(self.style.WARNING('\n🏡 ESCENARIO: VILLA MODERNA\n'))
-        
+
         # 1. Crear proyecto
         project, created = Project.objects.get_or_create(
             name='Villa Moderna - Familia Villa',
@@ -174,13 +186,13 @@ class Command(BaseCommand):
                 'material_markup_percent': Decimal('15.00'),
             }
         )
-        
+
         if created:
             self.stdout.write(f'  📋 Proyecto: {project.name}')
             self.stdout.write(f'     Presupuesto: ${project.budget_total:,.2f}')
             self.stdout.write(f'     Labor Rate: ${project.default_co_labor_rate}/hr')
             self.stdout.write(f'     Material Markup: {project.material_markup_percent}%')
-        
+
         # 2. Crear estimate
         estimate, _ = Estimate.objects.get_or_create(
             project=project,
@@ -194,9 +206,9 @@ class Command(BaseCommand):
                 'notes': 'Renovación completa de villa de 3 pisos'
             }
         )
-        
+
         self.stdout.write(f'  📄 Estimate: {estimate.code} (Aprobado)')
-        
+
         # 3. Invoice deposit (pagada)
         invoice_deposit, inv_created = Invoice.objects.get_or_create(
             project=project,
@@ -211,16 +223,16 @@ class Command(BaseCommand):
                 'notes': 'Anticipo 10% del contrato ($50,000)'
             }
         )
-        
+
         if inv_created:
             InvoiceLine.objects.create(
                 invoice=invoice_deposit,
                 description=f'Anticipo 10% - Contrato {estimate.code}',
                 amount=Decimal('5000.00')
             )
-        
+
         self.stdout.write(f'  💰 Invoice Deposit: #{invoice_deposit.invoice_number} - ${invoice_deposit.total_amount:,.2f} (PAGADA)')
-        
+
         # 4. Change Order (aprobado)
         co, _ = ChangeOrder.objects.get_or_create(
             project=project,
@@ -232,22 +244,22 @@ class Command(BaseCommand):
                 'labor_rate_override': Decimal('50.00')
             }
         )
-        
+
         self.stdout.write(f'  📝 Change Order: CO-{co.id} - ${co.amount:,.2f} (APROBADO)')
-        
+
         # 5. Calcular saldo restante
         remaining = project.calculate_remaining_balance()
-        
+
         self.stdout.write('\n  📊 RESUMEN FINANCIERO:')
         self.stdout.write(f'     Presupuesto Original:  ${project.budget_total:,.2f}')
         self.stdout.write(f'     + Change Orders:       ${co.amount:,.2f}')
         self.stdout.write(f'     = Total Actualizado:   ${project.budget_total + co.amount:,.2f}')
         self.stdout.write(f'     - Facturado (Deposit): ${invoice_deposit.total_amount:,.2f}')
         self.stdout.write(self.style.SUCCESS(f'     = SALDO RESTANTE:      ${remaining:,.2f}'))
-        
+
         # 6. Gasto reembolsable
         employee = users['employee']
-        
+
         expense, _ = Expense.objects.get_or_create(
             project=project,
             amount=Decimal('15.00'),
@@ -260,35 +272,35 @@ class Command(BaseCommand):
                 'project_name': project.name
             }
         )
-        
-        self.stdout.write(f'\n  💳 Gasto Reembolsable:')
+
+        self.stdout.write('\n  💳 Gasto Reembolsable:')
         self.stdout.write(f'     Empleado: {employee.first_name} {employee.last_name}')
         self.stdout.write(f'     Monto: ${expense.amount}')
         self.stdout.write(f'     Estado: {expense.get_reimbursement_status_display()}')
         self.stdout.write(f'     Descripción: {expense.description}')
-        
+
         # 7. Setup inventario
         self._setup_inventory(project)
-        
+
         # 8. Setup visual (planos y pines)
         self._setup_visual_data(project, users)
-        
+
         # 9. Setup planner (schedule y tareas)
         self._setup_planner_data(project, users)
-    
+
     def _setup_inventory(self, project):
         """Setup inventario con herramientas y materiales"""
         self.stdout.write('\n  📦 INVENTARIO:')
-        
+
         # Create project location
         project_location, _ = InventoryLocation.objects.get_or_create(
-            name=f'Sitio Villa Moderna',
+            name='Sitio Villa Moderna',
             project=project,
             defaults={
                 'is_storage': False
             }
         )
-        
+
         # Create inventory items
         items_data = [
             ('Rodillo profesional 9"', 'HERRAMIENTA', 'unit', 8),
@@ -299,7 +311,7 @@ class Command(BaseCommand):
             ('Masking tape 2"', 'MATERIAL', 'roll', 20),
             ('Cinta de papel', 'MATERIAL', 'roll', 15),
         ]
-        
+
         for name, category, unit, qty in items_data:
             item, _ = InventoryItem.objects.get_or_create(
                 name=name,
@@ -309,21 +321,21 @@ class Command(BaseCommand):
                     'low_stock_threshold': Decimal('2')
                 }
             )
-            
+
             ProjectInventory.objects.get_or_create(
                 item=item,
                 location=project_location,
                 defaults={'quantity': Decimal(str(qty))}
             )
-        
+
         self.stdout.write(f'     Ubicación: {project_location.name}')
         self.stdout.write(f'     Items: {len(items_data)} tipos de herramientas/materiales')
         self.stdout.write('     ✅ Listos para "Transferir a Bodega"')
-    
+
     def _setup_visual_data(self, project, users):
         """Setup planos y pines para visualización"""
         self.stdout.write('\n  🎨 DATOS VISUALES (Planos & Pines):')
-        
+
         # Create floor plans
         floor_plan_1, _ = FloorPlan.objects.get_or_create(
             project=project,
@@ -333,7 +345,7 @@ class Command(BaseCommand):
                 'image': None
             }
         )
-        
+
         floor_plan_2, _ = FloorPlan.objects.get_or_create(
             project=project,
             level=1,
@@ -342,7 +354,7 @@ class Command(BaseCommand):
                 'image': None
             }
         )
-        
+
         # Create pins on floor plan 1
         pins_data = [
             (Decimal('0.25'), Decimal('0.30'), 'task', 'Preparación de pared sala', 'Lijar y limpiar superficie antes de pintar'),
@@ -350,7 +362,7 @@ class Command(BaseCommand):
             (Decimal('0.60'), Decimal('0.40'), 'info', 'Punto eléctrico', 'Evitar pintar sobre switch - cliente lo reemplazará'),
             (Decimal('0.75'), Decimal('0.65'), 'leftover', 'Pintura sobrante', 'Galón de pintura blanca guardado en closet'),
         ]
-        
+
         for x, y, pin_type, title, desc in pins_data:
             PlanPin.objects.get_or_create(
                 plan=floor_plan_1,
@@ -365,15 +377,15 @@ class Command(BaseCommand):
                     'is_visible': True
                 }
             )
-        
+
         self.stdout.write(f'     Plano 1: {floor_plan_1.name} ({len(pins_data)} pines)')
         self.stdout.write(f'     Plano 2: {floor_plan_2.name}')
         self.stdout.write('     Pin tipos: task, touchup, info, leftover')
-    
+
     def _setup_planner_data(self, project, users):
         """Setup schedule y tareas con features del planner"""
         self.stdout.write('\n  📅 PLANNER (Schedule & Tareas):')
-        
+
         # Create main schedule
         from datetime import datetime
         schedule, _ = Schedule.objects.get_or_create(
@@ -387,10 +399,10 @@ class Command(BaseCommand):
                 'completion_percentage': 30
             }
         )
-        
+
         # Create tasks with planner features
         employee = users['employee']
-        
+
         task1, _ = Task.objects.get_or_create(
             project=project,
             title='Preparar paredes planta baja',
@@ -412,7 +424,7 @@ class Command(BaseCommand):
                 ]
             }
         )
-        
+
         task2, _ = Task.objects.get_or_create(
             project=project,
             title='Pintar sala y comedor',
@@ -433,7 +445,7 @@ class Command(BaseCommand):
                 ]
             }
         )
-        
+
         task3, _ = Task.objects.get_or_create(
             project=project,
             title='Aprobar colores cocina',
@@ -448,7 +460,7 @@ class Command(BaseCommand):
                 'due_date': project.start_date + timedelta(days=12),
             }
         )
-        
+
         # Create daily log entry
         daily_log, _ = DailyLog.objects.get_or_create(
             project=project,
@@ -466,18 +478,18 @@ class Command(BaseCommand):
                 'created_by': users['pm']
             }
         )
-        
+
         self.stdout.write(f'     Schedule: {schedule.title}')
         self.stdout.write(f'     Tareas: {Task.objects.filter(project=project).count()}')
         self.stdout.write(f'     Daily Log: {daily_log.date.strftime("%d/%m/%Y")}')
         self.stdout.write('     ✅ Checklist funcional, schedule_weight, client_responsibility')
-    
+
     def _print_credentials(self, users):
         """Imprime credenciales de acceso para auditoría visual"""
         self.stdout.write(self.style.SUCCESS('\n' + '='*80))
         self.stdout.write(self.style.SUCCESS('🔑 CREDENCIALES DE ACCESO - AUDITORÍA VISUAL'))
         self.stdout.write(self.style.SUCCESS('='*80 + '\n'))
-        
+
         credentials = [
             ('👔 Admin (Full Access)', 'admin_kibray', 'admin123', 'Acceso total + costos reales'),
             ('🎯 PM Full (Can send emails)', 'pm_full', 'pm123', 'CRUD proyectos + envío emails'),
@@ -486,13 +498,13 @@ class Command(BaseCommand):
             ('🏗️  Superintendent (Operativo)', 'superintendent', 'super123', 'Tareas, Daily Log (sin finanzas)'),
             ('👷 Client (Vista externa)', 'cliente_villa', 'client123', 'Solo lectura de su proyecto'),
         ]
-        
+
         for role, username, password, description in credentials:
             self.stdout.write(f'  {role}:')
             self.stdout.write(f'    Username: {username}')
             self.stdout.write(f'    Password: {password}')
             self.stdout.write(f'    Acceso: {description}\n')
-        
+
         self.stdout.write(self.style.SUCCESS('='*80))
         self.stdout.write(self.style.WARNING('\n⚠️  ESCENARIO LISTO PARA PRUEBAS:\n'))
         self.stdout.write('  ✅ Finanzas: $5,000 deposit pagado, $500 CO, $45,500 saldo restante')

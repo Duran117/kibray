@@ -5,10 +5,10 @@ Ejecutar con:
 """
 from __future__ import annotations
 
-import os
-import sys
 from datetime import date, timedelta
+import os
 from pathlib import Path
+import sys
 
 import django
 
@@ -17,7 +17,13 @@ sys.path.append(str(ROOT_DIR))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings")
 django.setup()
 
-from core.models import Project, ScheduleDependencyV2, ScheduleItemV2, SchedulePhaseV2, ScheduleTaskV2  # noqa: E402
+from core.models import (  # noqa: E402
+    Project,
+    ScheduleDependencyV2,
+    ScheduleItemV2,
+    SchedulePhaseV2,
+    ScheduleTaskV2,
+)
 
 
 def main() -> None:

@@ -13,20 +13,20 @@ from channels.middleware import BaseMiddleware
 class WebSocketCompressionMiddleware(BaseMiddleware):
     """
     Middleware to enable WebSocket compression (permessage-deflate).
-    
+
     Adds compression headers during WebSocket handshake to reduce
     bandwidth usage for large messages.
-    
+
     Benefits:
     - Reduces bandwidth by 40-70% for text messages
     - Lower latency for large payloads
     - Automatic decompression on client side
-    
+
     Usage:
         Add to ASGI application in asgi.py:
-        
+
         from core.websocket_middleware import WebSocketCompressionMiddleware
-        
+
         application = ProtocolTypeRouter({
             "websocket": WebSocketCompressionMiddleware(
                 AllowedHostsOriginValidator(
@@ -41,7 +41,7 @@ class WebSocketCompressionMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
         """
         Process WebSocket connection with compression support.
-        
+
         Args:
             scope: ASGI scope dict containing connection info
             receive: Async callable to receive messages
@@ -50,11 +50,11 @@ class WebSocketCompressionMiddleware(BaseMiddleware):
         if scope["type"] == "websocket":
             # Add compression extension to headers
             headers = dict(scope.get("headers", []))
-            
+
             # Check if client supports permessage-deflate
             if b"sec-websocket-extensions" in headers:
                 extensions = headers[b"sec-websocket-extensions"].decode()
-                
+
                 # Enable compression if supported by client
                 if "permessage-deflate" in extensions:
                     scope.setdefault("websocket", {})
@@ -73,15 +73,15 @@ class WebSocketCompressionMiddleware(BaseMiddleware):
 class MessageCompressionMiddleware(BaseMiddleware):
     """
     Middleware to compress individual messages before sending.
-    
+
     Applies zlib compression to text messages over 1KB to reduce bandwidth.
     Binary messages are passed through unchanged.
-    
+
     Usage:
         Wrap your consumer in this middleware for automatic compression:
-        
+
         from core.websocket_middleware import MessageCompressionMiddleware
-        
+
         class MyChatConsumer(AsyncWebsocketConsumer):
             async def connect(self):
                 await self.accept()
@@ -93,19 +93,19 @@ class MessageCompressionMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
         """
         Intercept send to compress large messages.
-        
+
         Args:
             scope: ASGI scope dict
             receive: Async callable to receive messages
             send: Async callable to send messages
         """
-        
+
         async def compressed_send(message):
             """Send with optional compression"""
             if message.get("type") == "websocket.send":
                 # Check if compression is enabled and message is large enough
                 text_data = message.get("text")
-                
+
                 if text_data and len(text_data) > self.COMPRESSION_THRESHOLD:
                     # Get compression settings from scope
                     compression_enabled = (
@@ -113,7 +113,7 @@ class MessageCompressionMiddleware(BaseMiddleware):
                         .get("compression", {})
                         .get("enabled", False)
                     )
-                    
+
                     if compression_enabled:
                         # Message will be compressed by the WebSocket protocol layer
                         # Just pass through - compression handled automatically
@@ -129,10 +129,10 @@ class MessageCompressionMiddleware(BaseMiddleware):
 def get_compression_stats(scope):
     """
     Get WebSocket compression statistics for monitoring.
-    
+
     Args:
         scope: ASGI scope dict
-        
+
     Returns:
         dict: Compression statistics including:
             - enabled: bool - Whether compression is active
@@ -140,7 +140,7 @@ def get_compression_stats(scope):
             - context_takeover: bool - Context preservation setting
     """
     compression = scope.get("websocket", {}).get("compression", {})
-    
+
     return {
         "enabled": compression.get("enabled", False),
         "server_window_bits": compression.get("server_max_window_bits", 15),

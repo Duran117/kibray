@@ -21,8 +21,8 @@ class ChartDatasetSerializer(serializers.Serializer):
     """Serializer for chart dataset"""
     label = serializers.CharField()
     data = serializers.ListField(child=serializers.FloatField())
-    borderColor = serializers.CharField(required=False)
-    backgroundColor = serializers.CharField(required=False)
+    border_color = serializers.CharField(required=False, source="borderColor")
+    background_color = serializers.CharField(required=False, source="backgroundColor")
 
 
 class ChartDataSerializer(serializers.Serializer):
@@ -34,12 +34,12 @@ class ChartDataSerializer(serializers.Serializer):
 class AnalyticsResponseSerializer(serializers.Serializer):
     """Complete analytics response"""
     kpis = KPISerializer()
-    budgetChart = ChartDataSerializer()
-    projectProgress = ChartDataSerializer()
-    taskDistribution = ChartDataSerializer()
-    monthlyTrends = ChartDataSerializer()
-    timeRange = serializers.CharField()
-    generatedAt = serializers.DateTimeField()
+    budget_chart = ChartDataSerializer(source="budgetChart")
+    project_progress = ChartDataSerializer(source="projectProgress")
+    task_distribution = ChartDataSerializer(source="taskDistribution")
+    monthly_trends = ChartDataSerializer(source="monthlyTrends")
+    time_range = serializers.CharField(source="timeRange")
+    generated_at = serializers.DateTimeField(source="generatedAt")
 
 
 class ProjectAnalyticsSerializer(serializers.Serializer):

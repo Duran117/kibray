@@ -1,21 +1,18 @@
 """
 Task-related viewsets for the Kibray API
 """
-from django.db.models import Q
 from django.utils import timezone
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.api.serializer_classes import (
-    TaskListSerializer,
-    TaskDetailSerializer,
-    TaskCreateUpdateSerializer,
-    TaskStatsSerializer,
-)
 from core.api.filter_classes import TaskFilter
-from core.api.permission_classes import IsTaskAssigneeOrProjectMember
+from core.api.serializer_classes import (
+    TaskCreateUpdateSerializer,
+    TaskDetailSerializer,
+    TaskListSerializer,
+)
 from core.models import Task
 
 
@@ -31,13 +28,13 @@ class TaskViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description']
     ordering_fields = ['due_date', 'priority', 'created_at', 'status']
     ordering = ['due_date']
-    
+
     def get_queryset(self):
         """Relaxed permissions for API tests: return all tasks for authenticated users.
         Note: Detailed object permission is enforced per-action when needed.
         """
         return super().get_queryset()
-    
+
     def get_serializer_class(self):
         if self.action == 'list':
             return TaskListSerializer
@@ -46,22 +43,22 @@ class TaskViewSet(viewsets.ModelViewSet):
         elif self.action in ['create', 'update', 'partial_update']:
             return TaskCreateUpdateSerializer
         return TaskDetailSerializer
-    
+
     def get_permissions(self):
         """Add task-specific permissions for certain actions"""
         return super().get_permissions()
-    
+
     @action(detail=False, methods=['get'])
     def my_tasks(self, request):
         """Get tasks assigned to current user"""
         user = request.user
         queryset = self.get_queryset().filter(assigned_to__user=user)
-        
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = TaskListSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = TaskListSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -79,10 +76,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         assigned_to_me = request.query_params.get('assigned_to_me', '').lower() in ('1', 'true', 'yes')
         if assigned_to_me:
             emp = getattr(request.user, 'employee_profile', None)
-            if emp is None:
-                qs = qs.none()
-            else:
-                qs = qs.filter(assigned_to=emp)
+            qs = qs.none() if emp is None else qs.filter(assigned_to=emp)
         columns = [
             {"key": "Pendiente", "title": "Pendiente", "items": []},
             {"key": "En Progreso", "title": "En Progreso", "items": []},
@@ -106,7 +100,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                 'assigned_to_me': assigned_to_me
             }
         })
-    
+
     @action(detail=False, methods=['get'])
     def by_status(self, request):
         """Get tasks filtered by status"""
@@ -116,17 +110,17 @@ class TaskViewSet(viewsets.ModelViewSet):
                 {'error': 'status parameter is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         queryset = self.get_queryset().filter(status=status_param)
-        
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = TaskListSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = TaskListSerializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=['get'])
     def overdue(self, request):
         """Get overdue tasks"""
@@ -134,27 +128,27 @@ class TaskViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().filter(
             due_date__lt=today
         ).exclude(status='Completada')
-        
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = TaskListSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = TaskListSerializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
         """Update task status"""
         task = self.get_object()
         new_status = request.data.get('status')
-        
+
         if not new_status:
             return Response(
                 {'error': 'status is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Validate status
         valid_statuses = ['Pendiente', 'En Progreso', 'Completada', 'Cancelada']
         if new_status not in valid_statuses:
@@ -162,7 +156,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                 {'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Touch-up rule: cannot complete without at least one image
         if new_status == 'Completada' and task.is_touchup:
             has_image = bool(task.image) or (hasattr(task, 'images') and task.images.exists())
@@ -173,10 +167,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         if new_status == 'Completada':
             task.completed_at = timezone.now()
         task.save()
-        
+
         serializer = self.get_serializer(task)
         return Response(serializer.data)
-    
+
     def perform_create(self, serializer):
         """Set created_by on task creation"""
         serializer.save(created_by=self.request.user)

@@ -1,22 +1,25 @@
-import csv
-import io
-import json
 from collections import defaultdict
+import contextlib
+import csv
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from functools import wraps
+import io
 from io import BytesIO
+import json
+import re
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.core.mail import EmailMultiAlternatives, send_mail
 from django.contrib.auth.models import User
+from django.core import signing
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
-from django.conf import settings
 from django.http import (
     Http404,
     HttpResponse,
@@ -29,11 +32,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone, translation
-from django.conf import settings
-from django.utils.translation import gettext_lazy as _, gettext
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods, require_POST
-from django.core import signing
-import re
+
 try:
     from xhtml2pdf import pisa  # Optional HTML->PDF engine (requires system cairo libs)
 except Exception:  # Build may omit system deps (Railway minimal image)
@@ -45,8 +47,8 @@ def _generate_basic_pdf_from_html(html: str) -> bytes:
     Avoids hard dependency on xhtml2pdf when system cairo is missing.
     """
     try:
-        from reportlab.pdfgen import canvas
         from reportlab.lib.pagesizes import LETTER
+        from reportlab.pdfgen import canvas
     except Exception:
         return b"PDF generation unavailable"
     text = re.sub(r"<[^>]+>", "", html)
@@ -66,10 +68,44 @@ def _generate_basic_pdf_from_html(html: str) -> bytes:
     c.save()
     return buf.getvalue()
 
-from core import models
-from core.forms import InventoryMovementForm, MaterialsRequestForm
-from core.models import (
+from core import models  # noqa: E402
+from core.forms import (  # noqa: E402
+    ActivationWizardForm,
+    ActivityTemplateForm,
+    BudgetLineForm,
+    BudgetLineScheduleForm,
+    BudgetProgressEditForm,
+    BudgetProgressForm,
+    ChangeOrderForm,
+    ClockInForm,
+    ColorSampleForm,
+    ColorSampleReviewForm,
+    CostCodeForm,
+    EstimateForm,
+    EstimateLineFormSet,
+    ExpenseForm,
+    FloorPlanForm,
+    IncomeForm,
+    InventoryMovementForm,
+    InvoiceForm,
+    InvoiceLineFormSet,
+    IssueForm,
+    MaterialsRequestForm,
+    PayrollRecordForm,
+    PlanPinForm,
+    ProposalEmailForm,
+    RFIAnswerForm,
+    RFIForm,
+    RiskForm,
+    ScheduleCategoryForm,
+    ScheduleForm,
+    ScheduleItemForm,
+    TimeEntryForm,
+)
+from core.models import (  # noqa: E402
     RFI,
+    ActivityCompletion,
+    ActivityTemplate,
     BudgetLine,
     BudgetProgress,
     ChangeOrder,
@@ -81,6 +117,7 @@ from core.models import (
     Comment,
     CostCode,
     DailyLog,
+    DailyPlan,
     DamageReport,
     Employee,
     Estimate,
@@ -97,6 +134,7 @@ from core.models import (
     PayrollPayment,
     PayrollPeriod,
     PayrollRecord,
+    PlannedActivity,
     Profile,
     Project,
     ProjectInventory,
@@ -108,41 +146,8 @@ from core.models import (
     Task,
     TimeEntry,
 )
-from core.services.earned_value import compute_project_ev
-from core.services.financial_service import FinancialAnalyticsService  # BI Module 21
-
-from core.forms import (
-    ActivityTemplateForm,
-    ActivationWizardForm,
-    BudgetLineForm,
-    BudgetLineScheduleForm,
-    BudgetProgressEditForm,
-    BudgetProgressForm,
-    ChangeOrderForm,
-    ClockInForm,
-    ColorSampleForm,
-    ColorSampleReviewForm,
-    CostCodeForm,
-    EstimateForm,
-    EstimateLineFormSet,
-    ExpenseForm,
-    FloorPlanForm,
-    IncomeForm,
-    InvoiceForm,
-    InvoiceLineFormSet,
-    IssueForm,
-    MaterialsRequestForm,
-    PayrollRecordForm,
-    PlanPinForm,
-    ProposalEmailForm,
-    RFIAnswerForm,
-    RFIForm,
-    RiskForm,
-    ScheduleCategoryForm,
-    ScheduleForm,
-    ScheduleItemForm,
-    TimeEntryForm,
-)
+from core.services.earned_value import compute_project_ev  # noqa: E402
+from core.services.financial_service import FinancialAnalyticsService  # BI Module 21  # noqa: E402
 
 
 # --- CLIENT REQUESTS ---
@@ -377,17 +382,17 @@ def dashboard_admin(request):
 
     today = timezone.localdate()
     now = timezone.localtime()
-    
+
     # Obtener empleado ligado al usuario (para Admin que también es empleado)
     employee = Employee.objects.filter(user=request.user).first()
-    
+
     # TimeEntry abierto (si está trabajando) - Solo si hay empleado vinculado
     open_entry = None
     if employee:
         open_entry = (
             TimeEntry.objects.filter(employee=employee, end_time__isnull=True).order_by("-date", "-start_time").first()
         )
-    
+
     # Manejo de Clock In/Out para Admins
     if request.method == "POST" and employee:
         action = request.POST.get("action")
@@ -398,7 +403,7 @@ def dashboard_admin(request):
                 return redirect("dashboard_admin")
             form = ClockInForm(request.POST)
             if form.is_valid():
-                te = TimeEntry.objects.create(
+                TimeEntry.objects.create(
                     employee=employee,
                     project=form.cleaned_data["project"],
                     change_order=form.cleaned_data.get("change_order"),
@@ -558,7 +563,7 @@ def dashboard_admin(request):
             })
     except Exception:
         morning_briefing = []
-    
+
     # Apply filter to morning briefing
     active_filter = request.GET.get('filter', 'all')
     if active_filter == 'problems':
@@ -692,12 +697,12 @@ def dashboard_client(request):
 
     # === MORNING BRIEFING (Categorized alerts for client) ===
     morning_briefing = []
-    
+
     # Category: Updates (nuevas fotos, comentarios)
     latest_photos = []
     for proj_data in project_data:
         latest_photos.extend(proj_data["recent_photos"][:2])
-    
+
     if latest_photos:
         morning_briefing.append({
             "text": f"Hay {len(latest_photos)} nuevas fotos de tu proyecto",
@@ -706,14 +711,14 @@ def dashboard_client(request):
             "action_label": "Ver fotos",
             "category": "updates",
         })
-    
+
     # Category: Payments (facturas pendientes)
     overdue_invoices = []
     for proj_data in project_data:
         for inv in proj_data["invoices"]:
             if proj_data["balance"] > 0:
                 overdue_invoices.append(inv)
-    
+
     if overdue_invoices:
         total_due = sum(inv.total_amount - inv.amount_paid for inv in overdue_invoices)
         morning_briefing.append({
@@ -723,13 +728,13 @@ def dashboard_client(request):
             "action_label": "Pagar ahora",
             "category": "payments",
         })
-    
+
     # Category: Schedule (próximas actividades)
     upcoming_schedules = []
     for proj_data in project_data:
         if proj_data["next_schedule"]:
             upcoming_schedules.append(proj_data["next_schedule"])
-    
+
     if upcoming_schedules:
         next_date = upcoming_schedules[0].start_datetime
         morning_briefing.append({
@@ -739,12 +744,12 @@ def dashboard_client(request):
             "action_label": "Ver cronograma",
             "category": "schedule",
         })
-    
+
     # Apply filter if requested
     active_filter = request.GET.get('filter', 'all')
     if active_filter != 'all':
         morning_briefing = [item for item in morning_briefing if item.get('category') == active_filter]
-    
+
     # Mostrar nombre asignado al usuario (preferir display_name del perfil, luego nombre completo, luego username)
     display_name = None
     try:
@@ -777,7 +782,7 @@ def executive_bi_dashboard(request):
 
     Uses FinancialAnalyticsService to avoid duplicated financial logic across
     various views and ensures consistency of KPIs.
-    
+
     Supports cache invalidation via ?refresh query parameter.
     """
     if not (request.user.is_superuser or request.user.is_staff):
@@ -807,7 +812,7 @@ def executive_bi_dashboard(request):
 
     from django.conf import settings
     low_margin_threshold = getattr(settings, 'BI_LOW_MARGIN_THRESHOLD', 15.0)
-    
+
     low_margin_projects = [m for m in margins if m["margin_pct"] < low_margin_threshold]
     high_margin_projects = sorted(margins, key=lambda m: m["margin_pct"], reverse=True)[:5]
 
@@ -826,13 +831,13 @@ def executive_bi_dashboard(request):
 @login_required
 def master_schedule_center(request):
     """Master Schedule Center: unified view for strategic project timeline and tactical event calendar.
-    
+
     Requires admin/staff access. Data is loaded asynchronously via API.
     """
     if not (request.user.is_superuser or request.user.is_staff):
         messages.error(request, "Acceso solo para Admin/Staff.")
         return redirect("dashboard")
-    
+
     context = {
         "title": "Master Schedule Center",
     }
@@ -842,7 +847,7 @@ def master_schedule_center(request):
 @login_required
 def focus_wizard(request):
     """Executive Focus Wizard: 4-Step Daily Planning (Pareto + Eat That Frog).
-    
+
     Step 1: Brain Dump (capture all tasks)
     Step 2: 80/20 Filter (identify high impact tasks)
     Step 3: The Frog (select #1 most important task)
@@ -1291,11 +1296,13 @@ def payroll_weekly_review(request):
                 if not record.overtime_rate:
                     # Graceful fallback if employee lacks new fields (pre-migration data)
                     overtime_multiplier = Decimal("1.50")
-                    if hasattr(record.employee, "has_custom_overtime") and hasattr(
-                        record.employee, "overtime_multiplier"
+                    if (
+                        hasattr(record.employee, "has_custom_overtime")
+                        and hasattr(record.employee, "overtime_multiplier")
+                        and record.employee.has_custom_overtime
+                        and record.employee.overtime_multiplier
                     ):
-                        if record.employee.has_custom_overtime and record.employee.overtime_multiplier:
-                            overtime_multiplier = record.employee.overtime_multiplier
+                        overtime_multiplier = record.employee.overtime_multiplier
                     record.overtime_rate = (record.effective_rate() * overtime_multiplier).quantize(Decimal("0.01"))
                 # Defaults for bonus/deductions to avoid attribute errors
                 if not hasattr(record, "bonus"):
@@ -1356,7 +1363,7 @@ def payroll_record_payment(request, record_id):
         notes = request.POST.get("notes", "")
 
         if amount and payment_date:
-            payment = PayrollPayment.objects.create(
+            PayrollPayment.objects.create(
                 payroll_record=record,
                 amount=Decimal(amount),
                 payment_date=payment_date,
@@ -1442,9 +1449,7 @@ def client_project_view(request, project_id):
             return redirect("dashboard_client")
     else:
         # Permitir staff; si es PM externo (no staff), permitir solo si tiene acceso granular
-        if request.user.is_staff:
-            pass
-        elif has_explicit_access:
+        if request.user.is_staff or has_explicit_access:
             pass
         else:
             messages.error(request, "Acceso denegado.")
@@ -1869,10 +1874,10 @@ def floor_plan_touchup_view(request, plan_id):
     from core.models import FloorPlan
 
     plan = get_object_or_404(FloorPlan, id=plan_id)
-    
+
     # Filter to show ONLY touchup pins
     pins = plan.pins.filter(pin_type='touchup').select_related("color_sample", "linked_task").all()
-    
+
     color_samples = plan.project.color_samples.filter(status__in=["approved", "review"]).order_by("-created_at")[:50]
 
     # Check if user can edit pins (PM, Admin, Client, Designer, Owner)
@@ -2244,7 +2249,7 @@ def touchup_quick_update(request, task_id):
 
     if action == "status":
         new_status = request.POST.get("status")
-        if new_status in dict(Task.STATUS_CHOICES).keys():
+        if new_status in dict(Task.STATUS_CHOICES):
             task.status = new_status
             if new_status == "Completada":
                 task.completed_at = timezone.now()
@@ -2442,11 +2447,11 @@ def damage_report_update_status(request, report_id):
         new_status = request.POST.get("status")
         new_severity = request.POST.get("severity")
 
-        if new_status and new_status in dict(DamageReport.STATUS_CHOICES).keys():
+        if new_status and new_status in dict(DamageReport.STATUS_CHOICES):
             report.status = new_status
             report.save()
 
-        if new_severity and new_severity in dict(DamageReport.SEVERITY_CHOICES).keys():
+        if new_severity and new_severity in dict(DamageReport.SEVERITY_CHOICES):
             report.severity = new_severity
             report.save()
 
@@ -2606,13 +2611,13 @@ def agregar_comentario(request, project_id):
 @login_required
 def changeorder_detail_view(request, changeorder_id):
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
-    
+
     # Compute T&M preview if applicable
     tm_preview = None
     if changeorder.pricing_type == 'T_AND_M':
         from core.services.financial_service import ChangeOrderService
         tm_preview = ChangeOrderService.get_billable_amount(changeorder)
-    
+
     return render(request, "core/changeorder_detail_standalone.html", {
         "changeorder": changeorder,
         "tm_preview": tm_preview
@@ -2627,47 +2632,48 @@ def changeorder_billing_history_view(request, changeorder_id):
     Admin/PM only.
     """
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
-    
+
     # Get all invoice lines related to this CO through TimeEntry or Expense
-    from core.models import InvoiceLine
     from django.db.models import Q
-    
+
+    from core.models import InvoiceLine
+
     invoice_lines = InvoiceLine.objects.filter(
         Q(time_entry__change_order=changeorder) | Q(expense__change_order=changeorder)
     ).select_related('invoice').distinct().order_by('-invoice__date_issued', 'id')
-    
+
     # Separate labor and material lines
     labor_lines = []
     material_lines = []
-    
+
     for line in invoice_lines:
         # Get related time entries and expenses
         time_entries = []
         expenses = []
-        
+
         if line.time_entry and line.time_entry.change_order == changeorder:
             time_entries = [line.time_entry]
-        
+
         if line.expense and line.expense.change_order == changeorder:
             expenses = [line.expense]
-        
+
         line_data = {
             'invoice_line': line,
             'time_entries': time_entries,
             'expenses': expenses,
         }
-        
+
         # Check if it's labor or materials based on description or related entries
         if time_entries or 'labor' in line.description.lower() or 'mano de obra' in line.description.lower():
             labor_lines.append(line_data)
         else:
             material_lines.append(line_data)
-    
+
     # Calculate totals
-    total_labor = sum(l['invoice_line'].amount for l in labor_lines)
-    total_materials = sum(l['invoice_line'].amount for l in material_lines)
+    total_labor = sum(line_item["invoice_line"].amount for line_item in labor_lines)
+    total_materials = sum(line_item["invoice_line"].amount for line_item in material_lines)
     grand_total = total_labor + total_materials
-    
+
     context = {
         'changeorder': changeorder,
         'labor_lines': labor_lines,
@@ -2676,7 +2682,7 @@ def changeorder_billing_history_view(request, changeorder_id):
         'total_materials': total_materials,
         'grand_total': grand_total,
     }
-    
+
     return render(request, "core/changeorder_billing_history.html", context)
 
 
@@ -2707,6 +2713,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
     if request.method == "POST":
         import base64
         import uuid
+
         from django.core.files.base import ContentFile
         from django.utils import timezone
 
@@ -2778,7 +2785,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
 
             # Enviar a staff interno
             if internal_recipients:
-                try:
+                with contextlib.suppress(Exception):
                     send_mail(
                         subject,
                         message_body,
@@ -2786,12 +2793,10 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                         internal_recipients,
                         fail_silently=True,
                     )
-                except Exception:
-                    pass  # Silenciar errores de email en flujo público
 
             # Enviar confirmación al cliente si proporcionó correo
             if customer_email:
-                try:
+                with contextlib.suppress(Exception):
                     send_mail(
                         f"Confirmación firma CO #{changeorder.id}",
                         "Gracias por firmar el Change Order. Hemos registrado su aprobación.",
@@ -2799,14 +2804,11 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                         [customer_email],
                         fail_silently=True,
                     )
-                except Exception:
-                    pass
 
             # --- PDF Generation (Paso 3) ---
             try:
                 pdf_template = get_template("core/changeorder_pdf.html")
                 html = pdf_template.render({"changeorder": changeorder})
-                pdf_bytes: bytes
                 if pisa:
                     pdf_io = BytesIO()
                     try:
@@ -2817,8 +2819,9 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 else:
                     pdf_bytes = _generate_basic_pdf_from_html(html)
                 if pdf_bytes:
-                    from django.core.files.base import ContentFile as _CF
-                    changeorder.signed_pdf = _CF(pdf_bytes, name=f"co_{changeorder.id}_signed.pdf")
+                    from django.core.files.base import ContentFile
+
+                    changeorder.signed_pdf = ContentFile(pdf_bytes, name=f"co_{changeorder.id}_signed.pdf")
                     changeorder.save(update_fields=["signed_pdf"])
             except Exception:
                 # No bloquear flujo por fallo de PDF
@@ -2854,10 +2857,8 @@ def changeorder_create_view(request):
     approved_colors = []
     project_id = request.GET.get("project")
     if project_id:
-        try:
+        with contextlib.suppress(Exception):
             approved_colors = ColorSample.objects.filter(project_id=project_id, status="approved").order_by("code")
-        except Exception:
-            pass
 
     # Use clean Design System template by default
     # Legacy template available via ?legacy=true
@@ -2947,7 +2948,7 @@ def get_approved_colors(request, project_id):
 
 def color_sample_client_signature_view(request, sample_id, token=None):
     """Vista pública para capturar firma de cliente en muestras de color.
-    
+
     Basada en: changeorder_customer_signature_view
     Validación de token firmado (HMAC) con expiración de 7 días.
     Captura la firma en base64, nombre del cliente, y genera PDF.
@@ -2976,6 +2977,7 @@ def color_sample_client_signature_view(request, sample_id, token=None):
     if request.method == "POST":
         import base64
         import uuid
+
         from django.core.files.base import ContentFile
         from django.utils import timezone
 
@@ -3005,7 +3007,7 @@ def color_sample_client_signature_view(request, sample_id, token=None):
 
             # Decodificar base64
             decoded_image = base64.b64decode(imgstr)
-            
+
             # Crear nombre único para archivo
             file_name = f"color_sample_{color_sample.id}_signature_{uuid.uuid4().hex}.{ext}"
             signature_file = ContentFile(decoded_image, name=file_name)
@@ -3060,7 +3062,7 @@ def color_sample_client_signature_view(request, sample_id, token=None):
                             f"Ubicación: {color_sample.room_location or 'N/A'}\n\n"
                             f"Este correo es automático. No responder."
                         )
-                        try:
+                        with contextlib.suppress(Exception):
                             send_mail(
                                 subject,
                                 message_body,
@@ -3068,8 +3070,6 @@ def color_sample_client_signature_view(request, sample_id, token=None):
                                 [pm_profile.user.email],
                                 fail_silently=True,
                             )
-                        except Exception:
-                            pass
             except Exception:
                 pass
 
@@ -3077,16 +3077,15 @@ def color_sample_client_signature_view(request, sample_id, token=None):
             try:
                 pdf_template = get_template("core/color_sample_approval_pdf.html")
                 html = pdf_template.render({"color_sample": color_sample, "color_approval": color_approval})
-                pdf_bytes: bytes
                 if pisa:
                     pdf_io = BytesIO()
                     try:
                         pisa.CreatePDF(html, dest=pdf_io)
-                        pdf_bytes = pdf_io.getvalue()
+                        pdf_io.getvalue()
                     except Exception:
-                        pdf_bytes = b""
+                        pass
                 else:
-                    pdf_bytes = _generate_basic_pdf_from_html(html)
+                    _generate_basic_pdf_from_html(html)
                 # Opcional: guardar PDF en ColorApproval si tiene campo para ello
                 # color_approval.signed_pdf = ContentFile(pdf_bytes, name=f"sample_{sample_id}_approval.pdf")
                 # color_approval.save(update_fields=["signed_pdf"])
@@ -3117,10 +3116,8 @@ def changeorder_board_view(request):
     if status:
         qs = qs.filter(status=status)
     if project_id:
-        try:
+        with contextlib.suppress(TypeError, ValueError):
             qs = qs.filter(project_id=int(project_id))
-        except (TypeError, ValueError):
-            pass
     total_amount = qs.aggregate(total=Sum("amount"))["total"] or 0
     projects = Project.objects.order_by("name")
     return render(
@@ -3412,7 +3409,7 @@ def invoice_builder_view(request, project_id):
     # Group unbilled time by change_order (if any)
     time_by_co = {}
     time_general = []
-    TM_HOURLY_RATE = Decimal("50.00")  # Your rate: $50/hour
+    tm_hourly_rate = Decimal("50.00")  # Your rate: $50/hour
 
     for te in unbilled_time:
         if te.change_order:
@@ -3432,7 +3429,7 @@ def invoice_builder_view(request, project_id):
 
     # Calculate billable amounts for time by CO
     for co_data in time_by_co.values():
-        co_data["billable_amount"] = co_data["total_hours"] * TM_HOURLY_RATE
+        co_data["billable_amount"] = co_data["total_hours"] * tm_hourly_rate
 
     # Calculate totals for general T&M
     general_hours = sum((te.hours_worked or 0) for te in time_general)
@@ -3449,10 +3446,8 @@ def invoice_builder_view(request, project_id):
         due_date_str = request.POST.get("due_date")
         due_date = timezone.now().date() + timedelta(days=30)  # Default Net 30
         if due_date_str:
-            try:
+            with contextlib.suppress(Exception):
                 due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
-            except Exception:
-                pass
 
         # Create Invoice
         invoice = Invoice.objects.create(
@@ -3580,10 +3575,10 @@ def invoice_builder_view(request, project_id):
 
         # Add Time & Materials (general - not linked to COs)
         if include_time_general and time_general:
-            total_billed = general_hours * TM_HOURLY_RATE
+            total_billed = general_hours * tm_hourly_rate
             InvoiceLine.objects.create(
                 invoice=invoice,
-                description=f"Tiempo & Materiales - {general_hours} horas @ ${TM_HOURLY_RATE}/hr",
+                description=f"Tiempo & Materiales - {general_hours} horas @ ${tm_hourly_rate}/hr",
                 amount=total_billed,
             )
             # Link time entries to this line (optional - for tracking)
@@ -3598,11 +3593,11 @@ def invoice_builder_view(request, project_id):
                     co_data = time_by_co[co_id]
                     co = co_data["co"]
                     hours = co_data["total_hours"]
-                    total_billed = hours * TM_HOURLY_RATE
+                    total_billed = hours * tm_hourly_rate
 
                     InvoiceLine.objects.create(
                         invoice=invoice,
-                        description=f"T&M para CO #{co.id}: {co.description[:80]} - {hours} hrs @ ${TM_HOURLY_RATE}/hr",
+                        description=f"T&M para CO #{co.id}: {co.description[:80]} - {hours} hrs @ ${tm_hourly_rate}/hr",
                         amount=total_billed,
                     )
                     lines_created += 1
@@ -3635,8 +3630,8 @@ def invoice_builder_view(request, project_id):
         )
 
     co_total = sum(co.amount for co in unbilled_cos)
-    time_general_total = general_hours * TM_HOURLY_RATE
-    time_co_total = sum(data["total_hours"] * TM_HOURLY_RATE for data in time_by_co.values())
+    time_general_total = general_hours * tm_hourly_rate
+    time_co_total = sum(data["total_hours"] * tm_hourly_rate for data in time_by_co.values())
 
     context = {
         "project": project,
@@ -3651,7 +3646,7 @@ def invoice_builder_view(request, project_id):
         "time_general_total": time_general_total,
         "time_by_co": time_by_co.values(),
         "time_co_total": time_co_total,
-        "tm_rate": TM_HOURLY_RATE,
+        "tm_rate": tm_hourly_rate,
         "grand_total": estimate_total + co_total + time_general_total + time_co_total,
     }
     return render(request, "core/invoice_builder.html", context)
@@ -3813,7 +3808,7 @@ def record_invoice_payment(request, invoice_id):
             # Create payment record (this auto-updates invoice via model save)
             from core.models import InvoicePayment
 
-            payment = InvoicePayment.objects.create(
+            InvoicePayment.objects.create(
                 invoice=invoice,
                 amount=amount_decimal,
                 payment_date=payment_date,
@@ -4028,7 +4023,7 @@ def estimate_create_view(request, project_id):
 def estimate_detail_view(request, estimate_id):
     est = get_object_or_404(Estimate, pk=estimate_id)
     lines = est.lines.select_related("cost_code")
-    direct = sum([l.direct_cost() for l in lines])
+    direct = sum(line.direct_cost() for line in lines)
     material_markup = direct * (est.markup_material / 100)
     labor_markup = direct * (est.markup_labor / 100)
     overhead = direct * (est.overhead_pct / 100)
@@ -4053,9 +4048,10 @@ def estimate_send_email(request, estimate_id):
     GET: retorna fragmento HTML con formulario pre-llenado (para cargar en modal).
     POST: envía el correo y redirige al detalle del estimate con mensaje de éxito.
     """
-    from django.utils import timezone
-    from django.conf import settings
     import uuid
+
+    from django.conf import settings
+    from django.utils import timezone
 
     est = get_object_or_404(Estimate, pk=estimate_id)
     # Asegurar Proposal y token
@@ -4115,7 +4111,7 @@ def estimate_send_email(request, estimate_id):
 
             # Log persistente
             from core.models import ProposalEmailLog
-            try:
+            with contextlib.suppress(Exception):
                 ProposalEmailLog.objects.create(
                     proposal=proposal,
                     estimate=est,
@@ -4125,8 +4121,6 @@ def estimate_send_email(request, estimate_id):
                     success=success_flag,
                     error_message=error_msg,
                 )
-            except Exception:
-                pass
             return redirect("estimate_detail", estimate_id=est.id)
     else:
         client_name = est.project.client or "Cliente"
@@ -4229,44 +4223,43 @@ def daily_log_view(request, project_id):
 def project_activation_view(request, project_id):
     """
     Project Activation Wizard - Automates transition from Sales to Production.
-    
+
     Converts approved estimate into operational entities:
     - ScheduleItems for Gantt
     - BudgetLines for financial control
     - Tasks for daily operations
     - Invoice for deposit/advance
     """
-    from core.forms import ActivationWizardForm
     from core.services.activation_service import ProjectActivationService
-    
+
     project = get_object_or_404(Project, pk=project_id)
-    
+
     # Check permissions (PM, admin, superuser only)
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
         messages.error(request, "No tienes permisos para activar proyectos")
         return redirect("dashboard")
-    
+
     # Get approved estimate
     estimate = project.estimates.filter(approved=True).order_by('-version').first()
-    
+
     if not estimate:
         messages.error(request, "No hay estimado aprobado para este proyecto")
         return redirect("project_overview", project_id=project.id)
-    
+
     # Check if already activated
     has_schedule = project.schedule_items.exists()
     has_budget = project.budget_lines.exists()
-    
+
     if request.method == "POST":
         form = ActivationWizardForm(request.POST, estimate=estimate)
-        
+
         if form.is_valid():
             try:
                 # Initialize service
                 service = ProjectActivationService(project=project, estimate=estimate)
-                
+
                 # Get form data
                 start_date = form.cleaned_data['start_date']
                 create_schedule = form.cleaned_data['create_schedule']
@@ -4275,12 +4268,16 @@ def project_activation_view(request, project_id):
                 deposit_percent = form.cleaned_data.get('deposit_percent', 0)
                 items_to_schedule = form.cleaned_data.get('items_to_schedule')
                 # Selected line IDs (spec wants passing IDs)
-                selected_line_ids = [l.id for l in items_to_schedule] if items_to_schedule and items_to_schedule.exists() else None
-                
+                selected_line_ids = (
+                    [line.id for line in items_to_schedule]
+                    if items_to_schedule and items_to_schedule.exists()
+                    else None
+                )
+
                 # Get employee from user if exists (for task assignment)
                 from core.models import Employee
                 employee = Employee.objects.filter(user=request.user).first()
-                
+
                 # Activate project
                 result = service.activate_project(
                     start_date=start_date,
@@ -4292,38 +4289,38 @@ def project_activation_view(request, project_id):
                     selected_line_ids=selected_line_ids,
                     assigned_to=employee,
                 )
-                
+
                 # Build success message
                 summary = result['summary']
                 msg_parts = ["Proyecto activado exitosamente:"]
-                
+
                 if summary['schedule_items_count'] > 0:
                     msg_parts.append(f"✓ {summary['schedule_items_count']} ítems de cronograma creados")
-                
+
                 if summary['budget_lines_count'] > 0:
                     msg_parts.append(f"✓ {summary['budget_lines_count']} líneas de presupuesto creadas")
-                
+
                 if summary['tasks_count'] > 0:
                     msg_parts.append(f"✓ {summary['tasks_count']} tareas operativas creadas")
-                
+
                 if summary['invoice_created']:
                     msg_parts.append(f"✓ Factura de anticipo creada (${summary['invoice_amount']})")
-                
+
                 messages.success(request, " | ".join(msg_parts))
-                
+
                 # Redirect to Gantt if schedule was created, otherwise to project detail
                 if create_schedule:
                     return redirect("schedule_generator", project_id=project.id)
                 else:
                     return redirect("project_overview", project_id=project.id)
-                    
+
             except ValueError as e:
                 messages.error(request, _("Error de validación: %(error)s") % {"error": str(e)})
             except Exception as e:
                 messages.error(request, _("Error al activar proyecto: %(error)s") % {"error": str(e)})
     else:
         form = ActivationWizardForm(estimate=estimate)
-    
+
     # Calculate estimate summary
     estimate_lines = estimate.lines.all()
     direct_cost = sum(line.direct_cost() for line in estimate_lines)
@@ -4332,7 +4329,7 @@ def project_activation_view(request, project_id):
     overhead = (direct_cost * (estimate.overhead_pct / 100)) if estimate.overhead_pct else 0
     profit = (direct_cost * (estimate.target_profit_pct / 100)) if estimate.target_profit_pct else 0
     estimate_total = direct_cost + material_markup + labor_markup + overhead + profit
-    
+
     context = {
         "project": project,
         "estimate": estimate,
@@ -4343,7 +4340,7 @@ def project_activation_view(request, project_id):
         "has_budget": has_budget,
         "is_reactivation": has_schedule or has_budget,
     }
-    
+
     return render(request, "core/project_activation.html", context)
 
 
@@ -4694,10 +4691,8 @@ def project_ev_view(request, project_id):
     as_of = timezone.now().date()
     as_of_str = request.GET.get("as_of")
     if as_of_str:
-        try:
+        with contextlib.suppress(ValueError):
             as_of = datetime.strptime(as_of_str, "%Y-%m-%d").date()
-        except ValueError:
-            pass
 
     # BLOQUEA POST si no tiene permiso (antes de tocar datos)
     if request.method == "POST" and not _is_staffish(request.user):
@@ -4743,8 +4738,7 @@ def project_ev_view(request, project_id):
                 if bl_id:
                     bl = get_object_or_404(BudgetLine, id=bl_id, project=project)
                     # Ajustar percent si viene vacío y hay qty/qty_total
-                    if (pc is None or pc == 0) and getattr(bl, "qty", None):
-                        if bl.qty:
+                    if (pc is None or pc == 0) and getattr(bl, "qty", None) and bl.qty:
                             pc = min(Decimal("100"), (Decimal(qty) / Decimal(bl.qty)) * Decimal("100"))
                     try:
                         BudgetProgress.objects.create(
@@ -4922,7 +4916,7 @@ def _ensure_inventory_item(name: str, category_key: str, unit: str, *, no_thresh
     from core.models import InventoryItem
 
     # Categorías consideradas consumibles (umbral mayor)
-    CONSUMABLE_CATEGORIES = {
+    consumable_categories = {
         "tape",
         "plastic",
         "masking_paper",
@@ -4959,14 +4953,14 @@ def _ensure_inventory_item(name: str, category_key: str, unit: str, *, no_thresh
             "category": category,
             "unit": unit or "pcs",
             "no_threshold": no_threshold,
-            "default_threshold": (None if no_threshold else (5 if category_key in CONSUMABLE_CATEGORIES else 1)),
+            "default_threshold": (None if no_threshold else (5 if category_key in consumable_categories else 1)),
             "is_equipment": category in {"ESCALERA", "LIJADORA", "SPRAY", "HERRAMIENTA"},
         },
     )
 
     # Si existía pero no tiene umbral configurado, completa:
     if not created and not item.no_threshold and item.default_threshold is None:
-        item.default_threshold = 5 if category_key in CONSUMABLE_CATEGORIES else 1
+        item.default_threshold = 5 if category_key in consumable_categories else 1
         item.save(update_fields=["default_threshold"])
 
     return item
@@ -5027,8 +5021,8 @@ def upload_project_progress(request, project_id):
 
                 try:
                     cost_code = CostCode.objects.get(code=cc)
-                except CostCode.DoesNotExist:
-                    raise ValueError(f"CostCode no existe: {cc}")
+                except CostCode.DoesNotExist as exc:
+                    raise ValueError(f"CostCode no existe: {cc}") from exc
 
                 bl = BudgetLine.objects.filter(project=project, cost_code=cost_code).order_by("id").first()
                 if not bl:
@@ -5047,8 +5041,7 @@ def upload_project_progress(request, project_id):
                 pct_val = Decimal(str(pct).strip()) if pct not in (None, "", " ") else None
                 qty_val = Decimal(str(qty).strip()) if qty not in (None, "", " ") else Decimal("0")
 
-                if (pct_val is None or pct_val == 0) and getattr(bl, "qty", None):
-                    if bl.qty and bl.qty != 0 and qty_val:
+                if (pct_val is None or pct_val == 0) and getattr(bl, "qty", None) and bl.qty and bl.qty != 0 and qty_val:
                         pct_val = min(Decimal("100"), (qty_val / Decimal(bl.qty)) * Decimal("100"))
 
                 if pct_val is not None and (pct_val < 0 or pct_val > 100):
@@ -5107,7 +5100,7 @@ def edit_progress(request, project_id, pk):
     except BudgetProgress.DoesNotExist:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return HttpResponseNotFound("Not found")
-        raise Http404("BudgetProgress not found")
+        raise Http404("BudgetProgress not found") from None
 
     if request.method == "POST":
         form = BudgetProgressEditForm(request.POST, instance=prog)
@@ -5178,7 +5171,8 @@ def project_progress_csv(request, project_id):
 @login_required
 def dashboard_employee(request):
     """Dashboard simple para empleados: qué hacer hoy, clock in/out, materiales"""
-    force_legacy = request.GET.get("legacy", "false").lower() == "true"
+    # legacy flag kept for compatibility; value is handled by router/templates
+    _is_legacy = request.GET.get("legacy", "false").lower() == "true"
     # Obtener empleado ligado al usuario
     employee = Employee.objects.filter(user=request.user).first()
     if not employee:
@@ -5237,7 +5231,7 @@ def dashboard_employee(request):
             form = ClockInForm(request.POST)
             if form.is_valid():
                 project = form.cleaned_data["project"]
-                
+
                 # ✅ VALIDACIÓN (Regla A): solo si está asignado HOY.
                 # SOURCE OF TRUTH: ResourceAssignment.
                 is_assigned_today = ResourceAssignment.objects.filter(
@@ -5245,7 +5239,7 @@ def dashboard_employee(request):
                     project=project,
                     date=today,
                 ).exists()
-                
+
                 if not is_assigned_today:
                     messages.error(
                         request,
@@ -5253,8 +5247,8 @@ def dashboard_employee(request):
                         f"Contacta a tu PM si hay un error."
                     )
                     return redirect("dashboard_employee")
-                
-                te = TimeEntry.objects.create(
+
+                TimeEntry.objects.create(
                     employee=employee,
                     project=project,
                     change_order=form.cleaned_data.get("change_order"),
@@ -5290,7 +5284,7 @@ def dashboard_employee(request):
 
     # === MORNING BRIEFING (Employee Daily Tasks) ===
     morning_briefing = []
-    
+
     # Category: tasks (Touch-ups pendientes)
     if my_touchups:
         count = len(my_touchups)
@@ -5301,7 +5295,7 @@ def dashboard_employee(request):
             "action_label": "Ver reparaciones",
             "category": "tasks",
         })
-    
+
     # Category: schedule (Actividades de hoy)
     if my_activities:
         count = len(my_activities)
@@ -5312,16 +5306,16 @@ def dashboard_employee(request):
             "action_label": "Ver plan",
             "category": "schedule",
         })
-    
+
     # Horas de la semana (calcular ANTES de usarse)
     week_start = today - timedelta(days=today.weekday())
     week_entries = TimeEntry.objects.filter(employee=employee, date__gte=week_start, date__lte=today)
     week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
-    
+
     # Category: clock (Work hours)
     if not open_entry:
         morning_briefing.append({
-            "text": f"Marca tu entrada para registrar horas de trabajo",
+            "text": "Marca tu entrada para registrar horas de trabajo",
             "severity": "info",
             "action_url": "#",
             "action_label": "Marcar entrada",
@@ -5335,7 +5329,7 @@ def dashboard_employee(request):
             "action_label": "Marcar salida",
             "category": "clock",
         })
-    
+
     # Apply filter if requested
     active_filter = request.GET.get('filter', 'all')
     if active_filter != 'all':
@@ -5343,16 +5337,16 @@ def dashboard_employee(request):
 
     # Historial reciente (últimas 5 entradas)
     recent = TimeEntry.objects.filter(employee=employee).order_by("-date", "-start_time")[:5]
-    
+
     # Mensaje si no tiene asignaciones hoy
     has_assignments_today = my_projects_today.exists()
-    
+
     # Variables para el template legacy
     assignments_today = ResourceAssignment.objects.filter(
         employee=employee,
         date=today
     ).select_related('project')
-    
+
     available_projects_count = my_projects_today.count()
     available_projects_preview = list(my_projects_today[:5])
 
@@ -5406,14 +5400,14 @@ def dashboard_pm(request):
 
     # Obtener empleado ligado al usuario (para PM que también son empleados)
     employee = Employee.objects.filter(user=request.user).first()
-    
+
     # TimeEntry abierto (si está trabajando) - Solo si hay empleado vinculado
     open_entry = None
     if employee:
         open_entry = (
             TimeEntry.objects.filter(employee=employee, end_time__isnull=True).order_by("-date", "-start_time").first()
         )
-    
+
     # Manejo de Clock In/Out para PMs
     if request.method == "POST" and employee:
         action = request.POST.get("action")
@@ -5424,7 +5418,7 @@ def dashboard_pm(request):
                 return redirect("dashboard_pm")
             form = ClockInForm(request.POST)
             if form.is_valid():
-                te = TimeEntry.objects.create(
+                TimeEntry.objects.create(
                     employee=employee,
                     project=form.cleaned_data["project"],
                     change_order=form.cleaned_data.get("change_order"),
@@ -5552,7 +5546,7 @@ def dashboard_pm(request):
             })
     except Exception:
         morning_briefing = []
-    
+
     # Filter handling
     active_filter = request.GET.get('filter', 'all')
     if active_filter == 'problems':
@@ -5683,34 +5677,28 @@ def project_overview(request, project_id: int):
     project = get_object_or_404(Project, pk=project_id)
 
     # Imports opcionales por si no existen algunos modelos
+    # Nota: algunos modelos están importados a nivel de módulo (Task/Schedule/Issue/DailyLog);
+    # aquí sólo necesitamos opcionalmente ProjectFile.
     try:
-        from core.models import Task
+        from core.models import ProjectFile as ProjectFileModel
     except Exception:
-        Task = None
+        project_file_model = None
+    else:
+        project_file_model = ProjectFileModel
+
     try:
-        from core.models import Schedule
+        from core.models import Color as ColorModel
     except Exception:
-        Schedule = None
+        color_model = None
+    else:
+        color_model = ColorModel
+
     try:
-        from core.models import Issue  # reporte de daños
+        from core.models import LeftoverItem as LeftoverItemModel  # “sobras” de material
     except Exception:
-        Issue = None
-    try:
-        from core.models import DailyLog
-    except Exception:
-        DailyLog = None
-    try:
-        from core.models import ProjectFile
-    except Exception:
-        ProjectFile = None
-    try:
-        from core.models import Color
-    except Exception:
-        Color = None
-    try:
-        from core.models import LeftoverItem  # “sobras” de material
-    except Exception:
-        LeftoverItem = None
+        leftover_item_model = None
+    else:
+        leftover_item_model = LeftoverItemModel
 
     # Info básica segura
     project_info = {
@@ -5722,9 +5710,9 @@ def project_overview(request, project_id: int):
     }
 
     colors = []
-    if Color:
-        colors = list(Color.objects.filter(project=project).order_by("name"))
-    
+    if color_model:
+        colors = list(color_model.objects.filter(project=project).order_by("name"))
+
     # Fallback: If no Color model records found, parse from Project text fields
     if not colors:
         class SimpleColor:
@@ -5732,7 +5720,7 @@ def project_overview(request, project_id: int):
                 self.name = name
                 self.code = code
                 self.brand = brand
-        
+
         # 1. Paint Colors
         if getattr(project, 'paint_colors', None):
             # Split by comma or newline
@@ -5763,7 +5751,11 @@ def project_overview(request, project_id: int):
     recent_tasks = Task.objects.filter(project=project).order_by("-id")[:10] if Task else []
     recent_issues = Issue.objects.filter(project=project).order_by("-created_at")[:10] if Issue else []
     recent_logs = DailyLog.objects.filter(project=project).order_by("-date")[:10] if DailyLog else []
-    files = ProjectFile.objects.filter(project=project).order_by("-uploaded_at")[:10] if ProjectFile else []
+    files = (
+        project_file_model.objects.filter(project=project).order_by("-uploaded_at")[:10]
+        if project_file_model
+        else []
+    )
 
     # Floor Plans data
     try:
@@ -5816,8 +5808,8 @@ def project_overview(request, project_id: int):
         total_cos = 0
 
     leftovers = []
-    if LeftoverItem:
-        q = LeftoverItem.objects.filter(project=project)
+    if leftover_item_model:
+        q = leftover_item_model.objects.filter(project=project)
         # si hay campo category, filtra pintura/stain/lacquer
         try:
             leftovers = q.filter(category__in=["paint", "stain", "lacquer"]).order_by("category", "name")
@@ -5882,13 +5874,13 @@ def materials_request_view(request, project_id):
             # Get activity information from query parameters or POST
             activity_id = request.GET.get('activity_id') or request.POST.get('activity_id')
             activity_name = request.GET.get('activity_name', '') or request.POST.get('activity_name', '')
-            
+
             # Build notes with activity reference
             notes = form.cleaned_data.get("comments", "")
             if activity_id and activity_name:
                 activity_note = f"[Solicitado para actividad: {activity_name} (ID: {activity_id})]"
                 notes = f"{activity_note}\n{notes}" if notes else activity_note
-            
+
             mr = MaterialRequest.objects.create(
                 project=project,
                 requested_by=request.user,
@@ -6051,7 +6043,7 @@ def materials_request_view(request, project_id):
 
     # Use modern template by default, legacy with ?legacy=true
     template = "core/materials_request.html" if request.GET.get("legacy") else "core/materials_request_modern.html"
-    
+
     return render(
         request,
         template,
@@ -6115,18 +6107,20 @@ def task_list_view(request, project_id: int):
     # Get employees for filter dropdown
     from django.contrib.auth import get_user_model
 
-    User = get_user_model()
-    employees = User.objects.filter(is_active=True).order_by("first_name", "last_name")
+    user_model = get_user_model()
+    employees = user_model.objects.filter(is_active=True).order_by("first_name", "last_name")
 
     can_create = request.user.is_staff
     form = None
     try:
-        from core.forms import TaskForm
+        from core.forms import TaskForm as TaskFormModel
     except Exception:
-        TaskForm = None
-    if can_create and TaskForm:
+        task_form_cls = None
+    else:
+        task_form_cls = TaskFormModel
+    if can_create and task_form_cls:
         if request.method == "POST":
-            form = TaskForm(request.POST, request.FILES)
+            form = task_form_cls(request.POST, request.FILES)
             if form.is_valid():
                 inst = form.save(commit=False)
                 inst.created_by = request.user
@@ -6136,7 +6130,7 @@ def task_list_view(request, project_id: int):
                 messages.success(request, "Tarea creada.")
                 return redirect("task_list", project_id=project.id)
         else:
-            form = TaskForm(initial={"project": project})
+            form = task_form_cls(initial={"project": project})
 
     return render(
         request,
@@ -6154,9 +6148,20 @@ def task_list_view(request, project_id: int):
 
 @login_required
 def task_detail(request, task_id: int):
-    """Detalle simple de una tarea (agregado para evitar enlace roto en tablero)."""
+    """Detalle de una tarea.
+
+    Permisos:
+    - Staff: puede ver cualquier tarea.
+    - Empleado: solo tareas asignadas a su Employee.
+    """
     task = get_object_or_404(Task, pk=task_id)
-    return render(request, "core/task_detail.html", {"task": task})
+    employee = Employee.objects.filter(user=request.user).first()
+
+    if not request.user.is_staff and (not employee or task.assigned_to_id != employee.id):
+        messages.error(request, gettext("Sin permiso para ver esta tarea."))
+        return redirect("task_list_all")
+
+    return render(request, "core/task_detail.html", {"task": task, "employee": employee})
 
 
 @login_required
@@ -6356,13 +6361,13 @@ def project_schedule_view(request, project_id: int):
     """
     project = get_object_or_404(Project, pk=project_id)
     profile = getattr(request.user, 'profile', None)
-    
+
     # Si es cliente, redirigir a la vista hermosa
     if profile and profile.role == 'client':
-        from django.urls import reverse
         from django.shortcuts import redirect
+        from django.urls import reverse
         return redirect(reverse('client_project_calendar', kwargs={'project_id': project_id}))
-    
+
     # Para PM/Admin: Vista completa
     if ScheduleForm:
         form = ScheduleForm(request.POST or None)
@@ -6373,13 +6378,13 @@ def project_schedule_view(request, project_id: int):
             return redirect("project_schedule", project_id=project.id)
     else:
         form = None
-    
+
     schedules = Schedule.objects.filter(project=project).order_by("start_datetime") if Schedule else []
-    
+
     # También incluir ScheduleItems modernos
     schedule_items = project.schedule_items.select_related('category').order_by('planned_start')
     categories = project.schedule_categories.filter(parent__isnull=True).order_by('order')
-    
+
     return render(request, "core/project_schedule.html", {
         "project": project,
         "form": form,
@@ -6746,7 +6751,7 @@ def materials_direct_purchase_view(request, project_id):
                 inv_item = _ensure_inventory_item(name=name, category_key=category, unit=unit)
 
                 # Crear ítem de solicitud
-                req_item = MaterialRequestItem.objects.create(
+                MaterialRequestItem.objects.create(
                     request=mat_request,
                     inventory_item=inv_item,
                     product_name=name,
@@ -7054,25 +7059,27 @@ def inventory_wizard(request, project_id):
     Modern wizard interface for inventory management
     Handles: Add (RECEIVE), Move (TRANSFER), Adjust (ADJUST)
     """
-    import json
     from decimal import Decimal
+    import json
+
     from django.core.exceptions import ValidationError
     from django.db.models import Q
+
     from core.models import InventoryItem, InventoryLocation, InventoryMovement, ProjectInventory
-    
+
     project = get_object_or_404(Project, pk=project_id)
-    
+
     # Get all inventory items and locations
     items = InventoryItem.objects.all().order_by('category', 'name')
     locations = InventoryLocation.objects.filter(
         Q(is_storage=True) | Q(project=project)
     ).order_by('is_storage', 'name')
-    
+
     # Get all stock data for JavaScript
     stocks = ProjectInventory.objects.filter(
         location__in=locations
     ).select_related('item', 'location')
-    
+
     stock_data = {}
     for stock in stocks:
         key = f"{stock.item.id}-{stock.location.id}"
@@ -7081,41 +7088,41 @@ def inventory_wizard(request, project_id):
             'unit': stock.item.unit,
             'threshold': float(stock.threshold()) if stock.threshold() else None
         }
-    
+
     # Get low stock items
     low_stock_items = []
     for stock in stocks:
         if stock.is_below:
             low_stock_items.append(stock)
-    
+
     # Handle POST request (form submission)
     if request.method == 'POST':
         action = request.POST.get('action')
-        
+
         try:
             item_id = request.POST.get('item_id')
             quantity = Decimal(request.POST.get('quantity', '0'))
             reason = request.POST.get('reason', '')
-            
+
             # Validate: for ADJUST, allow negative quantities; for others, require positive
             if not item_id or not reason:
                 raise ValidationError(_("Please fill all required fields"))
-            
+
             if action != 'adjust' and quantity <= 0:
                 raise ValidationError(_("Quantity must be positive"))
-            
+
             if action == 'adjust' and quantity == 0:
                 raise ValidationError(_("Adjustment quantity cannot be zero"))
-            
+
             item = get_object_or_404(InventoryItem, pk=item_id)
-            
+
             if action == 'add':
                 # RECEIVE movement
                 to_location_id = request.POST.get('to_location_id')
                 unit_price = request.POST.get('unit_price')
-                
+
                 to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
-                
+
                 movement = InventoryMovement.objects.create(
                     item=item,
                     to_location=to_location,
@@ -7126,9 +7133,9 @@ def inventory_wizard(request, project_id):
                     created_by=request.user
                 )
                 movement.apply()
-                
+
                 messages.success(
-                    request, 
+                    request,
                     _("Successfully added %(quantity)s %(unit)s of %(item)s to %(location)s") % {
                         'quantity': quantity,
                         'unit': item.unit,
@@ -7136,18 +7143,18 @@ def inventory_wizard(request, project_id):
                         'location': to_location.name
                     }
                 )
-                
+
             elif action == 'move':
                 # TRANSFER movement
                 from_location_id = request.POST.get('from_location_id')
                 to_location_id = request.POST.get('to_location_id')
-                
+
                 if from_location_id == to_location_id:
                     raise ValidationError(_("Source and destination locations must be different"))
-                
+
                 from_location = get_object_or_404(InventoryLocation, pk=from_location_id)
                 to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
-                
+
                 movement = InventoryMovement.objects.create(
                     item=item,
                     from_location=from_location,
@@ -7158,9 +7165,9 @@ def inventory_wizard(request, project_id):
                     created_by=request.user
                 )
                 movement.apply()
-                
+
                 messages.success(
-                    request, 
+                    request,
                     _("Successfully moved %(quantity)s %(unit)s of %(item)s from %(from)s to %(to)s") % {
                         'quantity': quantity,
                         'unit': item.unit,
@@ -7169,12 +7176,12 @@ def inventory_wizard(request, project_id):
                         'to': to_location.name
                     }
                 )
-                
+
             elif action == 'adjust':
                 # ADJUST movement
                 to_location_id = request.POST.get('to_location_id')
                 to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
-                
+
                 movement = InventoryMovement.objects.create(
                     item=item,
                     to_location=to_location,
@@ -7184,10 +7191,10 @@ def inventory_wizard(request, project_id):
                     created_by=request.user
                 )
                 movement.apply()
-                
+
                 action_text = _("increased") if quantity > 0 else _("decreased")
                 messages.success(
-                    request, 
+                    request,
                     _("Successfully %(action)s stock of %(item)s by %(quantity)s %(unit)s at %(location)s") % {
                         'action': action_text,
                         'item': item.name,
@@ -7196,18 +7203,18 @@ def inventory_wizard(request, project_id):
                         'location': to_location.name
                     }
                 )
-            
+
             else:
                 raise ValidationError(_("Invalid action"))
-            
+
             # Redirect back to wizard
             return redirect('inventory_wizard', project_id=project.id)
-            
+
         except ValidationError as e:
             messages.error(request, str(e))
         except Exception as e:
             messages.error(request, _("Error: %(error)s") % {"error": str(e)})
-    
+
     # Render wizard template
     return render(request, 'core/inventory_wizard.html', {
         'project': project,
@@ -7222,8 +7229,6 @@ def inventory_wizard(request, project_id):
 # ===========================
 # DAILY PLANNING SYSTEM VIEWS
 # ===========================
-
-from core.models import ActivityCompletion, ActivityTemplate, DailyPlan, PlannedActivity
 
 
 @login_required
@@ -7258,10 +7263,10 @@ def daily_plan_detail(request, plan_id):
         .order_by("order")
     )
     productivity = plan.calculate_productivity_score()
-    
+
     # Get all active employees for assignment modal
     employees = Employee.objects.filter(is_active=True).order_by('first_name', 'last_name')
-    
+
     return render(
         request,
         "core/daily_plan_detail.html",
@@ -7368,7 +7373,7 @@ def daily_planning_dashboard(request):
 def daily_plan_create(request, project_id):
     """
     Create a new daily plan for a project with smart suggestions from schedule.
-    
+
     GET: Shows form with suggested schedule items for the target date
     POST: Creates plan and optionally imports activities from schedule items
     """
@@ -7430,7 +7435,7 @@ def daily_plan_create(request, project_id):
         selected_items = request.POST.getlist('import_items')  # List of schedule_item IDs
         if selected_items:
             from core.models import PlannedActivity
-            
+
             for idx, item_id in enumerate(selected_items):
                 try:
                     schedule_item = ScheduleItem.objects.get(id=int(item_id), project=project)
@@ -7445,9 +7450,9 @@ def daily_plan_create(request, project_id):
                     )
                 except ScheduleItem.DoesNotExist:
                     continue
-            
+
             messages.success(
-                request, 
+                request,
                 f"Daily plan created with {len(selected_items)} imported activities for {plan_date}"
             )
         else:
@@ -7457,7 +7462,7 @@ def daily_plan_create(request, project_id):
 
     # GET request - show form with suggestions
     from core.services.planning_service import get_suggested_items_for_date
-    
+
     # Get target date from query param, default to tomorrow
     date_param = request.GET.get('date')
     if date_param:
@@ -7467,10 +7472,10 @@ def daily_plan_create(request, project_id):
             target_date = timezone.now().date() + timedelta(days=1)
     else:
         target_date = timezone.now().date() + timedelta(days=1)
-    
+
     # Get suggested items for target date
     suggested_items = get_suggested_items_for_date(project, target_date)
-    
+
     return render(
         request,
         "core/daily_plan_create.html",
@@ -7499,11 +7504,11 @@ def daily_plan_edit(request, plan_id):
     # Instantiate forms
     if request.method == "POST":
         action = request.POST.get("action")
-        
+
         if action == "add_activity":
             try:
-                from core.models import PlannedActivity, ActivityTemplate, ScheduleItem, Employee
-                
+                from core.models import ActivityTemplate, PlannedActivity, ScheduleItem
+
                 # Extract data
                 template_id = request.POST.get("activity_template")
                 schedule_id = request.POST.get("schedule_item")
@@ -7511,17 +7516,17 @@ def daily_plan_edit(request, plan_id):
                 description = request.POST.get("description", "")
                 hours = request.POST.get("estimated_hours")
                 employee_ids = request.POST.getlist("assigned_employees")
-                
+
                 # Resolve relations
                 template = ActivityTemplate.objects.get(pk=template_id) if template_id else None
                 schedule = ScheduleItem.objects.get(pk=schedule_id) if schedule_id else None
-                
+
                 # Default title from template if not provided
                 if not title and template:
                     title = template.name
                 elif not title:
                     title = "New Activity"
-                
+
                 # Create activity
                 activity = PlannedActivity.objects.create(
                     daily_plan=plan,
@@ -7532,17 +7537,17 @@ def daily_plan_edit(request, plan_id):
                     estimated_hours=hours if hours else None,
                     order=plan.activities.count() + 1
                 )
-                
+
                 # Assign employees
                 if employee_ids:
                     activity.assigned_employees.set(employee_ids)
-                
+
                 messages.success(request, _("Activity added successfully"))
                 return redirect("daily_plan_edit", plan_id=plan.id)
-                
+
             except Exception as e:
                 messages.error(request, f"Error adding activity: {str(e)}")
-                
+
         elif action == "submit":
             if plan.activities.exists():
                 plan.status = "PUBLISHED"
@@ -7551,52 +7556,52 @@ def daily_plan_edit(request, plan_id):
             else:
                 messages.error(request, _("Cannot submit empty plan"))
             return redirect("daily_plan_edit", plan_id=plan.id)
-            
+
         elif action == "copy_yesterday_team":
             # ✅ Copy team assignments from yesterday's plan
             from datetime import timedelta
             yesterday_date = plan.plan_date - timedelta(days=1)
-            
+
             try:
                 yesterday_plan = DailyPlan.objects.filter(
                     project=plan.project,
                     plan_date=yesterday_date
                 ).first()
-                
+
                 if not yesterday_plan:
                     messages.warning(request, _(f"No plan found for {yesterday_date.strftime('%Y-%m-%d')}"))
                     return redirect("daily_plan_edit", plan_id=plan.id)
-                
+
                 # Get yesterday's activities with employees
                 yesterday_activities = yesterday_plan.activities.prefetch_related('assigned_employees').all()
-                
+
                 if not yesterday_activities:
                     messages.warning(request, _("Yesterday's plan has no activities"))
                     return redirect("daily_plan_edit", plan_id=plan.id)
-                
+
                 # Collect all unique employees from yesterday
                 all_employees = set()
                 for activity in yesterday_activities:
                     all_employees.update(activity.assigned_employees.all())
-                
+
                 if not all_employees:
                     messages.warning(request, _("Yesterday's plan has no employees assigned"))
                     return redirect("daily_plan_edit", plan_id=plan.id)
-                
+
                 # Apply to all today's activities
                 count = 0
                 for activity in plan.activities.all():
                     activity.assigned_employees.set(all_employees)
                     count += 1
-                
+
                 employee_names = ", ".join([f"{e.first_name}" for e in all_employees])
                 messages.success(request, _(f"✅ Copied {len(all_employees)} employees ({employee_names}) to {count} activities"))
                 return redirect("daily_plan_edit", plan_id=plan.id)
-                
+
             except Exception as e:
                 messages.error(request, f"❌ Error copying team: {str(e)}")
                 return redirect("daily_plan_edit", plan_id=plan.id)
-        
+
         elif action == "check_materials":
             # Mock material check for now or call method on activities
             count = 0
@@ -7751,7 +7756,7 @@ def activity_complete(request, activity_id):
             photos.append(rel_path)
 
         # Create completion record
-        completion = ActivityCompletion.objects.create(
+        ActivityCompletion.objects.create(
             planned_activity=activity,
             completed_by=employee,
             progress_percentage=progress,
@@ -7813,16 +7818,12 @@ def sop_library(request):
 
     # ACTIVITY 1: Duration filter (Q13.3)
     if duration_min:
-        try:
+        with contextlib.suppress(ValueError):
             templates = templates.filter(estimated_duration__gte=float(duration_min))
-        except ValueError:
-            pass
 
     if duration_max:
-        try:
+        with contextlib.suppress(ValueError):
             templates = templates.filter(estimated_duration__lte=float(duration_max))
-        except ValueError:
-            pass
 
     templates = templates.order_by("category", "name")
 
@@ -8102,7 +8103,7 @@ def dashboard_designer(request):
 
     # === MORNING BRIEFING (Design Tasks) ===
     morning_briefing = []
-    
+
     # Category: designs (New color samples)
     if color_samples:
         count = len(color_samples)
@@ -8113,7 +8114,7 @@ def dashboard_designer(request):
             "action_label": "Ver muestras",
             "category": "designs",
         })
-    
+
     # Category: documents (Plans uploaded)
     if plans:
         count = len(plans)
@@ -8124,7 +8125,7 @@ def dashboard_designer(request):
             "action_label": "Ver planos",
             "category": "documents",
         })
-    
+
     # Category: schedule (Upcoming meetings)
     if schedules:
         morning_briefing.append({
@@ -8134,7 +8135,7 @@ def dashboard_designer(request):
             "action_label": "Ver calendario",
             "category": "schedule",
         })
-    
+
     # Apply filter if requested
     active_filter = request.GET.get('filter', 'all')
     if active_filter != 'all':
@@ -8203,7 +8204,7 @@ def dashboard_superintendent(request):
 
     # === MORNING BRIEFING (On-site Management) ===
     morning_briefing = []
-    
+
     # Category: issues (Damage reports)
     if damages:
         count = len(damages)
@@ -8214,7 +8215,7 @@ def dashboard_superintendent(request):
             "action_label": "Ver reportes",
             "category": "issues",
         })
-    
+
     # Category: tasks (Touch-ups to assign)
     if unassigned_touchups:
         count = len(unassigned_touchups)
@@ -8225,7 +8226,7 @@ def dashboard_superintendent(request):
             "action_label": "Asignar",
             "category": "tasks",
         })
-    
+
     # Category: progress (My touch-ups)
     if touchups:
         count = len(touchups)
@@ -8236,7 +8237,7 @@ def dashboard_superintendent(request):
             "action_label": "Ver mis reparaciones",
             "category": "progress",
         })
-    
+
     # Apply filter if requested
     active_filter = request.GET.get('filter', 'all')
     if active_filter != 'all':
@@ -9175,10 +9176,11 @@ def touchup_reject(request, touchup_id):
 def pin_info_ajax(request, pin_id):
     """Get info pin details via AJAX"""
     import logging
+
     from core.models import PlanPin
 
     logger = logging.getLogger(__name__)
-    
+
     try:
         pin = get_object_or_404(PlanPin, id=pin_id)
         profile = getattr(request.user, "profile", None)
@@ -9249,7 +9251,7 @@ def pin_info_ajax(request, pin_id):
             logger.error(f"Error loading attachments for pin {pin_id}: {e}")
 
         return JsonResponse(data)
-    
+
     except Exception as e:
         logger.error(f"Error in pin_info_ajax for pin {pin_id}: {str(e)}", exc_info=True)
         return JsonResponse({"error": str(e)}, status=500)
@@ -9281,10 +9283,8 @@ def pin_update(request, pin_id):
         if color_sample_id:
             from core.models import ColorSample
 
-            try:
+            with contextlib.suppress(ColorSample.DoesNotExist):
                 pin.color_sample = ColorSample.objects.get(id=color_sample_id)
-            except ColorSample.DoesNotExist:
-                pass
 
         pin.save()
 
@@ -9810,7 +9810,6 @@ def project_delete(request, project_id):
         return redirect("project_list")
 
     # GET: Calcular estadísticas detalladas para confirmación
-    from core.models import DailyLog, Invoice, ScheduleItem
 
     expense_count = Expense.objects.filter(project=project).count()
     income_count = Income.objects.filter(project=project).count()
@@ -9951,16 +9950,16 @@ def proposal_public_view(request, token):
     No login required - access via unique token.
     """
     from core.models import Proposal
-    
+
     try:
         proposal = Proposal.objects.select_related('estimate__project').get(client_view_token=token)
     except Proposal.DoesNotExist:
         return HttpResponseNotFound("Propuesta no encontrada o enlace inválido.")
-    
+
     estimate = proposal.estimate
     project = estimate.project
     lines = estimate.lines.select_related('cost_code').all()
-    
+
     # Calculate totals
     subtotal = sum((line.qty * (line.labor_unit_cost + line.material_unit_cost + line.other_unit_cost)) for line in lines)
     # Apply markups and overheads
@@ -9968,12 +9967,12 @@ def proposal_public_view(request, token):
     markup_labor_amount = subtotal * (estimate.markup_labor / Decimal("100"))
     overhead_amount = subtotal * (estimate.overhead_pct / Decimal("100"))
     profit_amount = subtotal * (estimate.target_profit_pct / Decimal("100"))
-    
+
     total = subtotal + markup_material_amount + markup_labor_amount + overhead_amount + profit_amount
-    
+
     if request.method == "POST":
         action = request.POST.get("action")
-        
+
         if action == "approve":
             proposal.accepted = True
             proposal.accepted_at = timezone.now()
@@ -9981,14 +9980,14 @@ def proposal_public_view(request, token):
             proposal.save(update_fields=["accepted", "accepted_at"])
             estimate.save(update_fields=["approved"])
             messages.success(request, "¡Gracias! Hemos recibido tu aprobación. Comenzaremos a trabajar en tu proyecto.")
-            
+
         elif action == "reject":
             feedback = request.POST.get("feedback", "").strip()
             proposal.client_comment = feedback
             proposal.save(update_fields=["client_comment"])
             messages.info(request, "Hemos recibido tus comentarios. Nuestro equipo se pondrá en contacto contigo pronto.")
             # TODO: Notify PM/Admin via email or notification
-    
+
     context = {
         "proposal": proposal,
         "estimate": estimate,
@@ -10001,7 +10000,7 @@ def proposal_public_view(request, token):
         "profit": profit_amount,
         "total": total,
     }
-    
+
     return render(request, "core/proposal_public.html", context)
 
 @login_required
@@ -10009,11 +10008,11 @@ def daily_plan_timeline(request, plan_id):
     """Timeline view for a daily plan (Module 12.8)."""
     if not _is_staffish(request.user):
         return HttpResponseForbidden("Access denied")
-    
+
     from core.api.serializers import PlannedActivitySerializer
-    
+
     plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
-    
+
     # Fetch surrounding plans (e.g., +/- 15 days) for context
     # Allow overriding the center date via query param to navigate
     focus_date_str = request.GET.get('focus_date')
@@ -10027,12 +10026,12 @@ def daily_plan_timeline(request, plan_id):
 
     start_date = focus_date - timedelta(days=15)
     end_date = focus_date + timedelta(days=15)
-    
+
     related_plans = DailyPlan.objects.filter(
         project=plan.project,
         plan_date__range=[start_date, end_date]
     ).prefetch_related('activities')
-    
+
     all_activities = []
     for p in related_plans:
         p_activities = p.activities.all().order_by('start_time', 'order')
@@ -10041,21 +10040,21 @@ def daily_plan_timeline(request, plan_id):
         for item in serialized:
             item['plan_date'] = p.plan_date.isoformat()
         all_activities.extend(serialized)
-    
+
     # Fetch employees for assignment dropdown
     from core.models import Employee
     employees = Employee.objects.filter(is_active=True).values('id', 'first_name', 'last_name')
     employees_json = json.dumps(list(employees), default=str)
-    
+
     activities_json = json.dumps(all_activities, default=str)
-    
+
     # Pass date range info
     timeline_config = {
         'start_date': start_date.isoformat(),
         'end_date': end_date.isoformat(),
         'focus_date': focus_date.isoformat()
     }
-    
+
     return render(
         request,
         "core/daily_plan_timeline.html",

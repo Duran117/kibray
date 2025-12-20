@@ -11,21 +11,21 @@ This service handles the conversion of approved estimates into operational entit
 
 from datetime import timedelta
 from decimal import Decimal
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 from django.db import transaction
 from django.utils import timezone
 
 from core.models import (
-    Project,
+    BudgetLine,
     Estimate,
     EstimateLine,
-    ScheduleItem,
-    ScheduleCategory,
-    BudgetLine,
-    Task,
     Invoice,
     InvoiceLine,
+    Project,
+    ScheduleCategory,
+    ScheduleItem,
+    Task,
 )
 
 
@@ -35,7 +35,7 @@ class ProjectActivationService:
     def __init__(self, project: Project, estimate: Estimate):
         """
         Initialize service with project and estimate.
-        
+
         Args:
             project: Target project
             estimate: Source estimate (should be approved)
@@ -43,36 +43,36 @@ class ProjectActivationService:
         self.project = project
         self.estimate = estimate
 
-    def validate_estimate(self) -> tuple[bool, Optional[str]]:
+    def validate_estimate(self) -> tuple[bool, str | None]:
         """
         Validate that estimate is ready for activation.
-        
+
         Returns:
             Tuple of (is_valid, error_message)
         """
         if not self.estimate.approved:
             return False, "El estimado debe estar aprobado antes de activar el proyecto"
-        
+
         if not self.estimate.lines.exists():
             return False, "El estimado no tiene líneas para procesar"
-        
+
         return True, None
 
     @transaction.atomic
     def create_schedule_from_estimate(
         self,
         start_date,
-        items_to_schedule: Optional[List[EstimateLine]] = None,
-        selected_line_ids: Optional[List[int]] = None,
-    ) -> List[ScheduleItem]:
+        items_to_schedule: list[EstimateLine] | None = None,
+        selected_line_ids: list[int] | None = None,
+    ) -> list[ScheduleItem]:
         """
         Create ScheduleItems from EstimateLines.
-        
+
         Args:
             start_date: Project start date
             items_to_schedule: Optional list of specific lines to schedule.
                              If None, schedules all estimate lines.
-        
+
         Returns:
             List of created ScheduleItems
         """
@@ -109,10 +109,10 @@ class ProjectActivationService:
             labor_hours = float(line.qty) if line.cost_code and line.cost_code.category == 'labor' else 8.0
             duration_days = max(1, int((labor_hours + 7) // 8))  # ceiling division
             end_date = _add_business_days(current_date, duration_days - 1)  # duration of 1 day ends same day
-            
+
             # Create title from line description or cost code
             title = line.description or f"{line.cost_code.name if line.cost_code else 'Item'} - {line.qty} {line.unit}"
-            
+
             schedule_item = ScheduleItem.objects.create(
                 project=self.project,
                 category=category,
@@ -126,32 +126,32 @@ class ProjectActivationService:
                 cost_code=line.cost_code,
                 estimate_line=line,
             )
-            
+
             created_items.append(schedule_item)
-            
+
             # Sequential scheduling: next item starts after previous ends
             current_date = end_date + timedelta(days=1)
 
         return created_items
 
     @transaction.atomic
-    def create_budget_from_estimate(self) -> List[BudgetLine]:
+    def create_budget_from_estimate(self) -> list[BudgetLine]:
         """
         Create BudgetLines from EstimateLines.
-        
+
         Copies costs and quantities to budget for financial tracking.
-        
+
         Returns:
             List of created BudgetLines
         """
         # Clean previous budget lines (spec requirement: reset baseline before regeneration)
         BudgetLine.objects.filter(project=self.project).delete()
         created_lines = []
-        
+
         for line in self.estimate.lines.all():
             # Calculate direct cost and round to 2 decimal places
             total_cost = line.direct_cost().quantize(Decimal('0.01'))
-            
+
             budget_line = BudgetLine.objects.create(
                 project=self.project,
                 cost_code=line.cost_code,
@@ -162,7 +162,7 @@ class ProjectActivationService:
                 baseline_amount=total_cost,
                 revised_amount=total_cost,
             )
-            
+
             created_lines.append(budget_line)
 
         return created_lines
@@ -170,21 +170,21 @@ class ProjectActivationService:
     @transaction.atomic
     def create_tasks_from_schedule(
         self,
-        schedule_items: List[ScheduleItem],
+        schedule_items: list[ScheduleItem],
         assigned_to=None
-    ) -> List[Task]:
+    ) -> list[Task]:
         """
         Create operational Tasks from ScheduleItems.
-        
+
         Args:
             schedule_items: List of schedule items to convert
             assigned_to: Optional employee to assign tasks to
-        
+
         Returns:
             List of created Tasks
         """
         created_tasks = []
-        
+
         for schedule_item in schedule_items:
             task = Task.objects.create(
                 project=self.project,
@@ -195,7 +195,7 @@ class ProjectActivationService:
                 due_date=schedule_item.planned_end,
                 assigned_to=assigned_to,
             )
-            
+
             created_tasks.append(task)
 
         return created_tasks
@@ -218,14 +218,14 @@ class ProjectActivationService:
         self,
         deposit_percent: int,
         due_date=None
-    ) -> Optional[Invoice]:
+    ) -> Invoice | None:
         """
         Create deposit/advance invoice.
-        
+
         Args:
             deposit_percent: Percentage of estimate total (0-100)
             due_date: Optional due date for invoice
-        
+
         Returns:
             Created Invoice or None if deposit_percent is 0
         """
@@ -248,7 +248,6 @@ class ProjectActivationService:
         )
 
         # Create single line item for deposit
-        from core.models import InvoiceLine
         InvoiceLine.objects.create(
             invoice=invoice,
             description=f"Anticipo del proyecto ({deposit_percent}%)",
@@ -260,7 +259,7 @@ class ProjectActivationService:
     def _generate_invoice_number(self) -> str:
         """Generate unique invoice number."""
         from django.db.models import Max
-        
+
         last_invoice = Invoice.objects.aggregate(Max('id'))['id__max'] or 0
         return f"INV-{last_invoice + 1:05d}"
 
@@ -272,13 +271,13 @@ class ProjectActivationService:
         create_budget: bool = True,
         create_tasks: bool = False,
         deposit_percent: int = 0,
-        items_to_schedule: Optional[List[EstimateLine]] = None,
-        selected_line_ids: Optional[List[int]] = None,
+        items_to_schedule: list[EstimateLine] | None = None,
+        selected_line_ids: list[int] | None = None,
         assigned_to=None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Complete project activation workflow.
-        
+
         Args:
             start_date: Project start date
             create_schedule: Whether to create schedule items
@@ -287,7 +286,7 @@ class ProjectActivationService:
             deposit_percent: Deposit invoice percentage (0-100)
             items_to_schedule: Optional specific lines to schedule
             assigned_to: Optional user to assign tasks to
-        
+
         Returns:
             Dictionary with created entities and summary
         """

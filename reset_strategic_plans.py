@@ -1,5 +1,6 @@
 import os
 import sys
+
 import django
 
 # Setup Django environment
@@ -8,6 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kibray_backend.settings')
 django.setup()
 
 from core.models import StrategicPlanningSession
+
 
 def reset_sessions():
     count = StrategicPlanningSession.objects.count()

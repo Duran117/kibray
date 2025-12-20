@@ -10,12 +10,11 @@ Tests WebSocket performance under load:
 """
 
 import asyncio
-import aiohttp
-import json
-import time
-import statistics
 from datetime import datetime
-from collections import defaultdict
+import statistics
+import time
+
+import aiohttp
 
 
 class WebSocketLoadTester:
@@ -29,7 +28,7 @@ class WebSocketLoadTester:
     - Connection stability monitoring
     - Performance metrics collection
     """
-    
+
     def __init__(self, base_url="ws://localhost:8000", auth_token=None):
         self.base_url = base_url
         self.auth_token = auth_token
@@ -41,7 +40,7 @@ class WebSocketLoadTester:
         }
         self.start_time = None
         self.end_time = None
-    
+
     async def create_client(self, client_id, endpoint="/ws/chat/general/"):
         """
         Create a WebSocket client connection.
@@ -54,26 +53,26 @@ class WebSocketLoadTester:
             tuple: (websocket, session, connect_time)
         """
         url = f"{self.base_url}{endpoint}"
-        
+
         if self.auth_token:
             url += f"?token={self.auth_token}"
-        
+
         session = aiohttp.ClientSession()
-        
+
         try:
             start = time.time()
             ws = await session.ws_connect(url)
             connect_time = time.time() - start
-            
+
             self.results['connections'].append({
                 'client_id': client_id,
                 'status': 'connected',
                 'connect_time': connect_time,
                 'timestamp': datetime.now().isoformat(),
             })
-            
+
             return ws, session, connect_time
-            
+
         except Exception as e:
             self.results['errors'].append({
                 'client_id': client_id,
@@ -83,7 +82,7 @@ class WebSocketLoadTester:
             })
             await session.close()
             return None, None, None
-    
+
     async def send_message(self, ws, client_id, message_num):
         """
         Send a message through WebSocket and measure latency.
@@ -102,17 +101,17 @@ class WebSocketLoadTester:
             'client_id': client_id,
             'sent_at': time.time(),
         }
-        
+
         try:
             send_time = time.time()
             await ws.send_json(message)
-            
+
             # Wait for response
             response = await asyncio.wait_for(ws.receive(), timeout=5.0)
             receive_time = time.time()
-            
+
             latency = (receive_time - send_time) * 1000  # milliseconds
-            
+
             self.results['messages'].append({
                 'client_id': client_id,
                 'message_num': message_num,
@@ -120,12 +119,12 @@ class WebSocketLoadTester:
                 'status': 'success',
                 'timestamp': datetime.now().isoformat(),
             })
-            
+
             self.results['latencies'].append(latency)
-            
+
             return latency
-            
-        except asyncio.TimeoutError:
+
+        except TimeoutError:
             self.results['errors'].append({
                 'client_id': client_id,
                 'error': 'Timeout waiting for response',
@@ -133,7 +132,7 @@ class WebSocketLoadTester:
                 'message_num': message_num,
             })
             return None
-            
+
         except Exception as e:
             self.results['errors'].append({
                 'client_id': client_id,
@@ -142,7 +141,7 @@ class WebSocketLoadTester:
                 'message_num': message_num,
             })
             return None
-    
+
     async def run_client(self, client_id, num_messages=10, delay=0.1):
         """
         Run a single client that sends multiple messages.
@@ -153,23 +152,23 @@ class WebSocketLoadTester:
             delay: Delay between messages (seconds)
         """
         ws, session, connect_time = await self.create_client(client_id)
-        
+
         if not ws:
             return
-        
+
         try:
             for msg_num in range(num_messages):
                 latency = await self.send_message(ws, client_id, msg_num)
-                
+
                 if latency:
                     print(f"Client {client_id} - Message {msg_num}: {latency:.2f}ms")
-                
+
                 await asyncio.sleep(delay)
-        
+
         finally:
             await ws.close()
             await session.close()
-    
+
     async def run_load_test(self, num_clients=10, messages_per_client=10, delay=0.1):
         """
         Run load test with multiple concurrent clients.
@@ -179,27 +178,27 @@ class WebSocketLoadTester:
             messages_per_client: Messages each client sends
             delay: Delay between messages
         """
-        print(f"\n🔥 Starting Load Test")
+        print("\n🔥 Starting Load Test")
         print(f"Clients: {num_clients}")
         print(f"Messages per client: {messages_per_client}")
         print(f"Total messages: {num_clients * messages_per_client}")
         print(f"Delay between messages: {delay}s\n")
-        
+
         self.start_time = time.time()
-        
+
         # Create tasks for all clients
         tasks = [
             self.run_client(i, messages_per_client, delay)
             for i in range(num_clients)
         ]
-        
+
         # Run all clients concurrently
         await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         self.end_time = time.time()
-        
-        print(f"\n✅ Load Test Complete\n")
-    
+
+        print("\n✅ Load Test Complete\n")
+
     def generate_report(self):
         """
         Generate performance report from test results.
@@ -208,19 +207,19 @@ class WebSocketLoadTester:
             dict: Performance metrics and statistics
         """
         duration = self.end_time - self.start_time if self.end_time else 0
-        
+
         successful_messages = [
             m for m in self.results['messages']
             if m['status'] == 'success'
         ]
-        
+
         successful_connections = [
             c for c in self.results['connections']
             if c['status'] == 'connected'
         ]
-        
+
         latencies = self.results['latencies']
-        
+
         report = {
             'summary': {
                 'duration_seconds': round(duration, 2),
@@ -263,40 +262,40 @@ class WebSocketLoadTester:
             },
             'errors': self.results['errors'],
         }
-        
+
         return report
-    
+
     def print_report(self):
         """Print formatted performance report"""
         report = self.generate_report()
-        
+
         print("=" * 60)
         print("📊 LOAD TEST REPORT")
         print("=" * 60)
-        
+
         print("\n📋 SUMMARY")
         print("-" * 60)
         for key, value in report['summary'].items():
             print(f"{key.replace('_', ' ').title()}: {value}")
-        
+
         print("\n🔌 CONNECTION PERFORMANCE")
         print("-" * 60)
         for key, value in report['connection_performance'].items():
             print(f"{key.replace('_', ' ').title()}: {value}")
-        
+
         print("\n📨 MESSAGE PERFORMANCE")
         print("-" * 60)
         for key, value in report['message_performance'].items():
             print(f"{key.replace('_', ' ').title()}: {value}")
-        
+
         if report['errors']:
             print(f"\n❌ ERRORS ({len(report['errors'])})")
             print("-" * 60)
             for error in report['errors'][:10]:  # Show first 10 errors
                 print(f"Client {error['client_id']}: {error['error']}")
-        
+
         print("\n" + "=" * 60)
-        
+
         # Performance assessment
         avg_latency = report['message_performance']['avg_latency_ms']
         success_rate = (
@@ -304,26 +303,26 @@ class WebSocketLoadTester:
             report['summary']['total_messages_sent'] * 100
             if report['summary']['total_messages_sent'] > 0 else 0
         )
-        
+
         print("\n🎯 PERFORMANCE ASSESSMENT")
         print("-" * 60)
-        
+
         if avg_latency < 100:
             print("✅ Latency: EXCELLENT (< 100ms)")
         elif avg_latency < 500:
             print("⚠️  Latency: GOOD (100-500ms)")
         else:
             print("❌ Latency: POOR (> 500ms)")
-        
+
         if success_rate > 99:
             print("✅ Success Rate: EXCELLENT (> 99%)")
         elif success_rate > 95:
             print("⚠️  Success Rate: GOOD (95-99%)")
         else:
             print("❌ Success Rate: POOR (< 95%)")
-        
+
         print("=" * 60 + "\n")
-        
+
         return report
 
 
@@ -374,8 +373,7 @@ async def test_stress():
 
 
 if __name__ == "__main__":
-    import sys
-    
+
     print("\n🚀 Kibray WebSocket Load Tester\n")
     print("Select test scenario:")
     print("1. Light Load (10 clients)")
@@ -383,9 +381,9 @@ if __name__ == "__main__":
     print("3. Heavy Load (100 clients)")
     print("4. Stress Test (200 clients)")
     print("5. Custom")
-    
+
     choice = input("\nEnter choice (1-5): ").strip()
-    
+
     if choice == "1":
         asyncio.run(test_light_load())
     elif choice == "2":
@@ -398,7 +396,7 @@ if __name__ == "__main__":
         num_clients = int(input("Number of clients: "))
         messages = int(input("Messages per client: "))
         delay = float(input("Delay between messages (seconds): "))
-        
+
         tester = WebSocketLoadTester()
         asyncio.run(tester.run_load_test(num_clients, messages, delay))
         tester.print_report()

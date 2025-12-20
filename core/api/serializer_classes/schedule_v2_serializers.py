@@ -2,10 +2,10 @@ from rest_framework import serializers
 
 from core.models import (
     Project,
-    SchedulePhaseV2,
-    ScheduleItemV2,
-    ScheduleTaskV2,
     ScheduleDependencyV2,
+    ScheduleItemV2,
+    SchedulePhaseV2,
+    ScheduleTaskV2,
 )
 
 
@@ -63,9 +63,7 @@ class ScheduleItemV2Serializer(serializers.ModelSerializer):
         # precedence: item override -> phase flag -> False
         if obj.allow_sunday_override:
             return True
-        if obj.phase and obj.phase.allow_sunday:
-            return True
-        return False
+        return bool(obj.phase and obj.phase.allow_sunday)
 
 
 class SchedulePhaseV2Serializer(serializers.ModelSerializer):

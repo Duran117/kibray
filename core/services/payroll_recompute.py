@@ -2,8 +2,10 @@
 Recalculates payroll records: splits hours, overtime, gross/net, tax withholding.
 """
 from decimal import Decimal
+
 from django.utils import timezone
-from core.models import PayrollPeriod, PayrollRecord
+
+from core.models import PayrollPeriod
 from core.services.payroll_tax import calculate_tax
 
 RECORD_FIELDS_FOR_RECALC = [

@@ -1,9 +1,10 @@
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.db import models
 from decimal import Decimal
 
-from core.models import Project, WarrantyTicket, Expense
+from django.core.management.base import BaseCommand
+from django.db import models
+from django.utils import timezone
+
+from core.models import Expense, Project, WarrantyTicket
 
 
 class Command(BaseCommand):

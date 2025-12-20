@@ -89,13 +89,13 @@ class MobileFriendlyPagination(LimitOffsetPagination):
 class ChatMessageCursorPagination(CursorPagination):
     """
     Cursor-based pagination optimized for chat message infinite scroll
-    
+
     Advantages over offset pagination for chat:
     - O(1) performance regardless of scroll position
     - Stable pagination even when new messages arrive
     - No duplicate messages when real-time inserts occur
     - No skipped messages due to concurrent writes
-    
+
     Usage:
         - Scrolling up (loading older messages): Use 'cursor' param from 'previous' link
         - Initial load: No cursor, returns newest 50 messages
@@ -111,15 +111,15 @@ class ChatMessageCursorPagination(CursorPagination):
     def get_paginated_response(self, data):
         """
         Enhanced response structure for infinite scroll UX
-        
+
         IMPORTANT: With ordering="-created_at" (descending), DRF's cursor semantics are:
         - self.get_next_link() = cursor for OLDER messages (lower created_at values)
         - self.get_previous_link() = cursor for NEWER messages (higher created_at values)
-        
+
         Chat UI semantic mapping:
         - "has_more" = can load OLDER messages (scroll up in chat) = next_link exists
         - "has_previous" = can load NEWER messages (scroll down in chat) = previous_link exists
-        
+
         Returns:
             {
                 "next": "cursor_token_for_newer_messages",  # For UI "load newer"
@@ -134,7 +134,7 @@ class ChatMessageCursorPagination(CursorPagination):
             OrderedDict(
                 [
                     ("next", self.get_previous_link()),  # Swapped: newer messages
-                    ("previous", self.get_next_link()),  # Swapped: older messages  
+                    ("previous", self.get_next_link()),  # Swapped: older messages
                     ("has_more", self.get_next_link() is not None),  # Can scroll up (older)
                     ("has_previous", self.get_previous_link() is not None),  # Can scroll down (newer)
                     ("results", data),
@@ -146,7 +146,7 @@ class ChatMessageCursorPagination(CursorPagination):
 class NotificationCursorPagination(CursorPagination):
     """
     Cursor-based pagination for notification feed
-    
+
     Similar to ChatMessageCursorPagination but with smaller page size
     for faster initial load in notification dropdown
     """

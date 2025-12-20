@@ -8,7 +8,6 @@ Date: December 3, 2025
 
 import json
 import logging
-from typing import Dict, List, Optional
 
 from django.conf import settings
 
@@ -27,17 +26,17 @@ def calculate_task_impact_ai(
     task_title: str,
     task_description: str,
     user_role: str,
-    session_context: Dict
-) -> Dict:
+    session_context: dict
+) -> dict:
     """
     Calculate task impact score (1-10) using AI analysis
-    
+
     Args:
         task_title: Brief task title
         task_description: Detailed description
         user_role: 'admin', 'owner', 'pm', 'superintendent', 'employee'
         session_context: {'energy_level': 8, 'date': '2025-12-03'}
-    
+
     Returns:
         {
             'score': 8,
@@ -45,7 +44,7 @@ def calculate_task_impact_ai(
             'is_delegable': False,
             'delegation_reason': 'Requires owner expertise'
         }
-    
+
     Example:
         >>> score = calculate_task_impact_ai(
         ...     "Follow up ABC Corp $120K proposal",
@@ -58,9 +57,9 @@ def calculate_task_impact_ai(
     if not OPENAI_AVAILABLE:
         logger.info("OpenAI unavailable, using fallback scoring")
         return _fallback_scoring(task_title, task_description, user_role)
-    
+
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    
+
     # Role-specific priorities
     role_priorities = {
         'admin': 'Strategic decisions, sales, high-value client relationships, business growth',
@@ -69,11 +68,11 @@ def calculate_task_impact_ai(
         'superintendent': 'On-site management, crew coordination, safety, quality inspection',
         'employee': 'Task execution, quality work, skill development, efficiency'
     }
-    
+
     priority_desc = role_priorities.get(user_role, 'General productivity and task completion')
-    
+
     prompt = f"""
-You are an executive productivity coach for a construction business. 
+You are an executive productivity coach for a construction business.
 Analyze this task for a {user_role} and score its impact.
 
 TASK:
@@ -106,7 +105,7 @@ Response format (JSON only, no markdown):
 
 Be HONEST. Low scores are OK for admin work. High scores only for truly impactful tasks.
 """
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-4",
@@ -121,19 +120,19 @@ Be HONEST. Low scores are OK for admin work. High scores only for truly impactfu
             temperature=0.7,
             max_tokens=300
         )
-        
+
         result = json.loads(response.choices[0].message.content)
-        
+
         # Validate and clamp score
         score = result.get('score', 5)
         if not isinstance(score, (int, float)):
             score = 5
         score = max(1, min(10, int(score)))
         result['score'] = score
-        
+
         logger.info(f"AI scored '{task_title[:40]}...' as {score}/10")
         return result
-        
+
     except json.JSONDecodeError as e:
         logger.error(f"AI returned invalid JSON: {e}")
         return _fallback_scoring(task_title, task_description, user_role)
@@ -142,12 +141,12 @@ Be HONEST. Low scores are OK for admin work. High scores only for truly impactfu
         return _fallback_scoring(task_title, task_description, user_role)
 
 
-def recommend_one_thing_ai(tasks: List[Dict], user_context: Dict) -> Optional[Dict]:
+def recommend_one_thing_ai(tasks: list[dict], user_context: dict) -> dict | None:
     """
     AI analyzes all tasks and recommends THE ONE THING (Frog task)
-    
+
     Applies "Eat That Frog" principle: tackle most important task first.
-    
+
     Args:
         tasks: List of task dicts with keys: id, title, description, ai_impact_score
         user_context: {
@@ -155,7 +154,7 @@ def recommend_one_thing_ai(tasks: List[Dict], user_context: Dict) -> Optional[Di
             'energy_level': 8,
             'date': '2025-12-03'
         }
-    
+
     Returns:
         {
             'recommended_task_id': 123,
@@ -163,7 +162,7 @@ def recommend_one_thing_ai(tasks: List[Dict], user_context: Dict) -> Optional[Di
             'reasoning': 'Highest revenue impact and time-sensitive'
         }
         or None if no tasks
-    
+
     Example:
         >>> tasks = [
         ...     {'id': 1, 'title': 'Follow up proposal', 'ai_impact_score': 9},
@@ -174,7 +173,7 @@ def recommend_one_thing_ai(tasks: List[Dict], user_context: Dict) -> Optional[Di
     """
     if not tasks:
         return None
-    
+
     if not OPENAI_AVAILABLE:
         # Fallback: return highest impact score
         highest = max(tasks, key=lambda t: t.get('ai_impact_score', 0))
@@ -183,15 +182,15 @@ def recommend_one_thing_ai(tasks: List[Dict], user_context: Dict) -> Optional[Di
             'confidence': 0.7,
             'reasoning': 'Highest impact score (AI unavailable, using fallback)'
         }
-    
+
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    
+
     # Format tasks for AI
     tasks_summary = "\n".join([
         f"{i+1}. {t['title']} (Impact: {t.get('ai_impact_score', '?')}/10)\n   {t.get('description', 'No description')[:100]}"
         for i, t in enumerate(tasks)
     ])
-    
+
     prompt = f"""
 You are advising a construction {user_context.get('role', 'executive')} on their ONE THING today.
 
@@ -221,7 +220,7 @@ Response (JSON only):
 Task number must be 1-{len(tasks)}.
 Be decisive. Pick ONE.
 """
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-4",
@@ -230,9 +229,9 @@ Be decisive. Pick ONE.
             temperature=0.6,
             max_tokens=200
         )
-        
+
         result = json.loads(response.choices[0].message.content)
-        
+
         # Convert task number to task ID
         task_num = result.get('recommended_task_number', 1) - 1
         if 0 <= task_num < len(tasks):
@@ -248,7 +247,7 @@ Be decisive. Pick ONE.
                 'confidence': 0.6,
                 'reasoning': 'Highest impact score (AI recommendation invalid)'
             }
-        
+
     except Exception as e:
         logger.error(f"AI Frog recommendation failed: {e}")
         # Fallback
@@ -265,22 +264,22 @@ Be decisive. Pick ONE.
 def generate_priming_script_ai(user_name: str, one_thing: str, energy_level: int) -> str:
     """
     Generate personalized morning priming/motivation script
-    
+
     Style: Tony Robbins meets construction executive - powerful but brief.
-    
+
     Args:
         user_name: User's first name
         one_thing: Their Frog task for today
         energy_level: 1-10
-    
+
     Returns:
         Motivational script (60 seconds to read)
-    
+
     Example:
         >>> script = generate_priming_script_ai("Jesus", "Close ABC Corp deal", 8)
         >>> print(script)
         Good morning, Jesus!
-        
+
         Today you're tackling your ONE THING: Close ABC Corp deal.
         This is what moves the needle. Everything else is noise.
         ...
@@ -299,9 +298,9 @@ You have the energy ({energy_level}/10) and focus to make this happen.
 
 Now go crush it! 🚀
 """
-    
+
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    
+
     prompt = f"""
 Generate a powerful, concise morning priming script for:
 
@@ -324,7 +323,7 @@ Structure:
 
 Be concise. No generic platitudes. Make it PERSONAL to their task.
 """
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-4",
@@ -338,30 +337,30 @@ Be concise. No generic platitudes. Make it PERSONAL to their task.
             temperature=0.8,
             max_tokens=250
         )
-        
+
         script = response.choices[0].message.content.strip()
         logger.info(f"Generated AI priming script for {user_name}")
         return script
-        
+
     except Exception as e:
         logger.error(f"AI priming script generation failed: {e}")
         # Fallback
         return generate_priming_script_ai.__doc__
 
 
-def analyze_delegation_batch(tasks: List[Dict], user_role: str = 'owner') -> List[Dict]:
+def analyze_delegation_batch(tasks: list[dict], user_role: str = 'owner') -> list[dict]:
     """
     Batch analyze which tasks are delegable
-    
+
     Identifies tasks that:
     - Someone else can do 80% as well
     - Are below the user's pay grade
     - Are routine/repetitive
-    
+
     Args:
         tasks: List of task dicts with title, description, ai_impact_score
         user_role: User's role for context
-    
+
     Returns:
         [
             {
@@ -372,7 +371,7 @@ def analyze_delegation_batch(tasks: List[Dict], user_role: str = 'owner') -> Lis
             },
             ...
         ]
-    
+
     Example:
         >>> tasks = [
         ...     {'id': 1, 'title': 'Review invoices', 'ai_impact_score': 3},
@@ -393,14 +392,14 @@ def analyze_delegation_batch(tasks: List[Dict], user_role: str = 'owner') -> Lis
                     'reasoning': 'Low impact score suggests delegable (AI unavailable)'
                 })
         return delegable
-    
+
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    
+
     tasks_list = "\n".join([
         f"{i+1}. (ID: {t['id']}) {t['title']} - Score: {t.get('ai_impact_score', '?')}/10\n   {t.get('description', '')[:80]}"
         for i, t in enumerate(tasks)
     ])
-    
+
     prompt = f"""
 Review these tasks for a construction {user_role} and identify which are DELEGABLE.
 
@@ -425,7 +424,7 @@ Be STRICT: Only delegate if it truly doesn't require {user_role} expertise.
 High-impact tasks (8-10) are rarely delegable.
 Return ONLY delegable tasks (skip non-delegable ones).
 """
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-4",
@@ -434,61 +433,60 @@ Return ONLY delegable tasks (skip non-delegable ones).
             temperature=0.6,
             max_tokens=500
         )
-        
+
         result = json.loads(response.choices[0].message.content)
         delegable_tasks = result.get('delegable_tasks', [])
-        
+
         logger.info(f"AI identified {len(delegable_tasks)} delegable tasks out of {len(tasks)}")
         return delegable_tasks
-        
+
     except Exception as e:
         logger.error(f"AI delegation analysis failed: {e}")
         return []
 
 
-def _fallback_scoring(title: str, description: str, role: str) -> Dict:
+def _fallback_scoring(title: str, description: str, role: str) -> dict:
     """
     Fallback heuristic scoring when AI is unavailable
-    
+
     Uses keyword matching and role-based logic.
     """
     score = 5  # Default medium
-    
+
     # High-value keywords (boost score)
     high_value_keywords = [
         'sale', 'sales', 'client', 'contract', 'proposal', 'meeting',
         'revenue', 'deal', 'close', 'vip', 'major', 'strategic'
     ]
-    
+
     # Low-value keywords (reduce score)
     low_value_keywords = [
         'email', 'admin', 'file', 'organize', 'sort', 'schedule',
         'routine', 'minor', 'paperwork'
     ]
-    
+
     # Combine title and description
     text_lower = f"{title} {description}".lower()
-    
+
     # Keyword scoring
     if any(kw in text_lower for kw in high_value_keywords):
         score += 3
     if any(kw in text_lower for kw in low_value_keywords):
         score -= 2
-    
+
     # Role-specific adjustments
-    if role in ['admin', 'owner']:
-        if 'client' in text_lower or 'contract' in text_lower:
-            score += 2
-    
+    if role in ['admin', 'owner'] and ('client' in text_lower or 'contract' in text_lower):
+        score += 2
+
     # Clamp to 1-10
     score = max(1, min(10, score))
-    
+
     # Determine delegability
     is_delegable = score < 6  # Low scores usually delegable
-    
+
     return {
         'score': score,
-        'reason': f'Heuristic scoring based on keywords (AI unavailable)',
+        'reason': 'Heuristic scoring based on keywords (AI unavailable)',
         'is_delegable': is_delegable,
         'delegation_reason': 'Routine task, appears delegable' if is_delegable else 'Requires direct attention'
     }
@@ -498,7 +496,7 @@ def _fallback_scoring(title: str, description: str, role: str) -> Dict:
 if __name__ == "__main__":
     print("🧪 Testing AI Focus Helper...")
     print(f"OpenAI Available: {OPENAI_AVAILABLE}\n")
-    
+
     if OPENAI_AVAILABLE:
         print("Test 1: Task Impact Scoring")
         print("-" * 50)
@@ -514,7 +512,7 @@ if __name__ == "__main__":
         if test_score['delegation_reason']:
             print(f"Delegation: {test_score['delegation_reason']}")
         print()
-        
+
         print("Test 2: ONE THING Recommendation")
         print("-" * 50)
         test_tasks = [
@@ -528,13 +526,13 @@ if __name__ == "__main__":
             print(f"Confidence: {rec['confidence']*100:.0f}%")
             print(f"Reasoning: {rec['reasoning']}")
         print()
-        
+
         print("✅ Tests complete!")
     else:
         print("⚠️ OpenAI not configured")
         print("Set OPENAI_API_KEY in Django settings to test AI features")
         print("\nTesting fallback scoring...")
-        
+
         test_score = calculate_task_impact_ai(
             "Follow up proposal",
             "Call client about contract",

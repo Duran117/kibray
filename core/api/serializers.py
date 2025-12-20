@@ -7,11 +7,11 @@ from core.models import (
     BudgetLine,
     ChatChannel,
     ChatMessage,
-    DailyLog,
+    ColorApproval,
     ColorSample,
     CostCode,
-    DailyLog,
     DailyFocusSession,
+    DailyLog,
     DamageReport,
     Employee,  # ⭐ Added for Employee serializer
     Expense,
@@ -20,8 +20,8 @@ from core.models import (
     Income,
     InventoryItem,  # ⭐ Added for Inventory serializer
     LoginAttempt,
-    Notification,
     MeetingMinute,
+    Notification,
     PermissionMatrix,
     PlanPin,
     Project,
@@ -30,7 +30,6 @@ from core.models import (
     PushSubscription,  # ⭐ PWA Push Notifications
     ScheduleCategory,
     ScheduleItem,
-    ColorApproval,
     Task,
     TaskTemplate,
     WeatherSnapshot,
@@ -48,7 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
 class EmployeeSerializer(serializers.ModelSerializer):
     """Employee serializer with human-readable key"""
     full_name = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Employee
         fields = [
@@ -63,7 +62,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["employee_key", "created_at"]
-    
+
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
 
@@ -192,14 +191,19 @@ class LoginAttemptSerializer(serializers.ModelSerializer):
         return "✓" if obj.success else "✗"
 
 
-class ChatChannelSerializer(serializers.ModelSerializer):
+class ChatChannelSerializerSimple(serializers.ModelSerializer):
+    """Legacy/simple chat channel serializer.
+
+    Kept for backwards compatibility in older API responses.
+    """
+
     class Meta:
         model = ChatChannel
         fields = ["id", "name", "project", "created_at"]
         read_only_fields = ["created_at"]
 
 
-class ChatMessageSerializer(serializers.ModelSerializer):
+class ChatMessageSerializerSimple(serializers.ModelSerializer):
     """Unified Chat message serializer merging simple + rich variants.
     Provides alias 'content' for incoming message text and exposes user details plus mentions.
     """
@@ -478,10 +482,10 @@ class TaskDependencySerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at"]
 
     def create(self, validated_data):
-        from core.models import TaskDependency as TD
+        from core.models import TaskDependency as TaskDependencyModel
 
         # Explicit creation to avoid any unintended model mixups
-        return TD.objects.create(**validated_data)
+        return TaskDependencyModel.objects.create(**validated_data)
 
 
 class ProjectManagerAssignmentSerializer(serializers.ModelSerializer):
@@ -1645,7 +1649,6 @@ class AISuggestionSerializer(serializers.ModelSerializer):
 
 class InventoryItemSerializer(serializers.ModelSerializer):
     class Meta:
-        from core.models import InventoryItem
 
         model = InventoryItem
         fields = [
@@ -1733,7 +1736,7 @@ class InventoryMovementSerializer(serializers.ModelSerializer):
             movement.apply()
         except DjangoValidationError as e:
             # surface as DRF validation error
-            raise serializers.ValidationError({"detail": _("%(error)s") % {"error": str(e)}})
+            raise serializers.ValidationError({"detail": _("%(error)s") % {"error": str(e)}}) from e
         return movement
 
 
@@ -1847,18 +1850,18 @@ class MaterialRequestSerializer(serializers.ModelSerializer):
     # Nota: evitamos duplicar Meta; ya incluye legacy_status_used
 
     def create(self, validated_data):
-        from core.models import MaterialRequestItem as MRI
+        from core.models import MaterialRequestItem as MaterialRequestItemModel
 
         items_data = validated_data.pop("items", [])
         req = super().create(validated_data)
         for item in items_data:
             data = item if isinstance(item, dict) else {}
             data["request"] = req
-            MRI.objects.create(**data)
+            MaterialRequestItemModel.objects.create(**data)
         return req
 
     def update(self, instance, validated_data):
-        from core.models import MaterialRequestItem as MRI
+        from core.models import MaterialRequestItem as MaterialRequestItemModel
 
         items_data = validated_data.pop("items", None)
         req = super().update(instance, validated_data)
@@ -1868,7 +1871,7 @@ class MaterialRequestSerializer(serializers.ModelSerializer):
             for item in items_data:
                 data = item if isinstance(item, dict) else {}
                 data["request"] = req
-                MRI.objects.create(**data)
+                MaterialRequestItemModel.objects.create(**data)
         return req
 
 
@@ -2134,9 +2137,9 @@ class TwoFactorTokenObtainPairSerializer(TokenObtainPairSerializer):  # type: ig
                 otp = self.initial_data.get("otp")
                 if not otp or not prof.verify_otp(otp):
                     raise serializers.ValidationError({"otp": _("Invalid or missing OTP for 2FA-enabled account")})
-        except Exception:
+        except Exception as e:
             # If any unexpected error, deny for safety
-            raise serializers.ValidationError({"otp": _("2FA validation failed")})
+            raise serializers.ValidationError({"otp": _("2FA validation failed")}) from e
         return data
 
 
@@ -2146,34 +2149,34 @@ class TwoFactorTokenObtainPairSerializer(TokenObtainPairSerializer):  # type: ig
 
 class ProjectFileSerializer(serializers.ModelSerializer):
     """Serializer for ProjectFile model - Phase 4 File Manager feature"""
-    
+
     uploaded_by_name = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
     file_url = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = ProjectFile
         fields = [
-            'id', 
-            'project', 
-            'category', 
+            'id',
+            'project',
+            'category',
             'category_name',
-            'file', 
+            'file',
             'file_url',
-            'name', 
+            'name',
             'description',
-            'file_type', 
-            'file_size', 
+            'file_type',
+            'file_size',
             'uploaded_by',
             'uploaded_by_name',
-            'uploaded_at', 
+            'uploaded_at',
             'updated_at',
             'tags',
             'is_public',
             'version',
         ]
         read_only_fields = ['id', 'uploaded_at', 'updated_at', 'file_size', 'file_type']
-    
+
     def get_file_url(self, obj):
         """Return full URL for file download"""
         if obj.file:
@@ -2189,22 +2192,22 @@ class ProjectFileSerializer(serializers.ModelSerializer):
 # ---------------------
 class PushSubscriptionSerializer(serializers.ModelSerializer):
     """Serializer for PWA push notification subscriptions"""
-    
+
     class Meta:
         model = PushSubscription
         fields = ['id', 'endpoint', 'p256dh', 'auth', 'created_at']
         read_only_fields = ['id', 'created_at']
-    
+
     def create(self, validated_data):
         # Automatically assign current user
         validated_data['user'] = self.context['request'].user
-        
+
         # Remove existing subscription with same endpoint (update scenario)
         PushSubscription.objects.filter(
             user=validated_data['user'],
             endpoint=validated_data['endpoint']
         ).delete()
-        
+
         return super().create(validated_data)
 
 
@@ -2215,7 +2218,7 @@ class PushSubscriptionSerializer(serializers.ModelSerializer):
 class FocusTaskSerializer(serializers.ModelSerializer):
     """Serializer for FocusTask model"""
     checklist_progress = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = FocusTask
         fields = [
@@ -2235,16 +2238,16 @@ class FocusTaskSerializer(serializers.ModelSerializer):
             'order',
         ]
         read_only_fields = ['id', 'completed_at', 'checklist_progress']
-    
+
     def get_checklist_progress(self, obj):
         """Calculate checklist completion progress"""
         if not obj.checklist:
             return {'total': 0, 'done': 0, 'percent': 0}
-        
+
         total = len(obj.checklist)
         done = sum(1 for item in obj.checklist if item.get('done', False))
         percent = int((done / total) * 100) if total > 0 else 0
-        
+
         return {'total': total, 'done': done, 'percent': percent}
 
 
@@ -2255,7 +2258,7 @@ class DailyFocusSessionSerializer(serializers.ModelSerializer):
     completed_tasks = serializers.ReadOnlyField()
     high_impact_tasks = serializers.ReadOnlyField()
     frog_task_title = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = DailyFocusSession
         fields = [
@@ -2273,7 +2276,7 @@ class DailyFocusSessionSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
-    
+
     def get_frog_task_title(self, obj):
         """Return the frog task title if exists"""
         frog = obj.frog_task
@@ -2286,24 +2289,24 @@ class FocusSessionCreateSerializer(serializers.Serializer):
     energy_level = serializers.IntegerField(min_value=1, max_value=10, default=5)
     notes = serializers.CharField(required=False, allow_blank=True, default='')
     tasks = serializers.ListField(child=serializers.DictField())
-    
+
     def validate_tasks(self, value):
         """Validate tasks data structure"""
         if not value:
             raise serializers.ValidationError("At least one task is required")
-        
+
         # Ensure at most one frog
         frog_count = sum(1 for task in value if task.get('is_frog', False))
         if frog_count > 1:
             raise serializers.ValidationError("Only one task can be marked as Frog")
-        
+
         return value
-    
+
     def create(self, validated_data):
         """Create session and associated tasks"""
         user = self.context['request'].user
         tasks_data = validated_data.pop('tasks', [])
-        
+
         # Create or update session for this date
         session, _ = DailyFocusSession.objects.update_or_create(
             user=user,
@@ -2313,27 +2316,27 @@ class FocusSessionCreateSerializer(serializers.Serializer):
                 'notes': validated_data.get('notes', ''),
             }
         )
-        
+
         # Clear existing tasks and create new ones
         session.focus_tasks.all().delete()
-        
+
         for order, task_data in enumerate(tasks_data):
             is_frog = task_data.get('is_frog', False)
             is_high_impact = task_data.get('is_high_impact', False)
             impact_reason = task_data.get('impact_reason', '')
-            
+
             # Auto-fix: If frog, must be high impact
             if is_frog:
                 is_high_impact = True
-            
+
             # Auto-fix: If high impact without reason, provide default
             if is_high_impact and not impact_reason.strip():
                 impact_reason = "High priority task"
-            
+
             # Parse datetime strings if needed
             scheduled_start = task_data.get('scheduled_start')
             scheduled_end = task_data.get('scheduled_end')
-            
+
             # Handle datetime-local format from HTML input
             if scheduled_start and isinstance(scheduled_start, str):
                 try:
@@ -2341,14 +2344,14 @@ class FocusSessionCreateSerializer(serializers.Serializer):
                     scheduled_start = parse_datetime(scheduled_start.replace('T', ' '))
                 except (ValueError, TypeError):
                     scheduled_start = None
-            
+
             if scheduled_end and isinstance(scheduled_end, str):
                 try:
                     from django.utils.dateparse import parse_datetime
                     scheduled_end = parse_datetime(scheduled_end.replace('T', ' '))
                 except (ValueError, TypeError):
                     scheduled_end = None
-            
+
             # Create task without calling full_clean (skip model validation)
             task = FocusTask(
                 session=session,
@@ -2364,7 +2367,7 @@ class FocusSessionCreateSerializer(serializers.Serializer):
             )
             # Save without triggering full_clean
             task.save(update_fields=None)
-        
+
         return session
 
 

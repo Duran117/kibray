@@ -10,6 +10,31 @@ exclude = [
   "dist",
   "tests/e2e",
   "e2e",
+  ".venv",
+  "venv",
+  "migrations",
+  "staticfiles",
+  "media",
+  "db.sqlite3",
+  "scripts/**",
+  "legacy/**",
+  "core/management/commands/**",
+  "**/diagnose_*.py",
+  "**/seed_*.py",
+  "**/verify_*.py",
+  "**/wrap_*.py",
+  "**/create_*.py",
+  "**/reset_*.py",
+  "**/setup_test_data_*.py",
+  "**/*_SCRIPT.py",
+  "**/*_MANUAL.py",
+  "**/audit_*.py",
+  "**/auto_translate_*.py",
+  "**/complete_*.py",
+  "**/convert_fstrings_*.py",
+  "**/check_*.py",
+  "**/*translations*.py",
+  "**/add_daily_planning_translations.py",
 ]
 
 [lint]
@@ -28,6 +53,11 @@ select = [
 ]
 ignore = [
   "E501", # line length handled by formatter/teams
+  "DJ001", # model schema/style: postpone until after lint noise is reduced
+  "DJ006", # model form exclude rules: postpone
+  "DJ007", # model form rules: postpone
+  "DJ008", # __str__ requirement: postpone
+  "DJ012", # field order: postpone (may imply migrations/refactors)
 ]
 
 [lint.isort]

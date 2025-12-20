@@ -4,8 +4,8 @@ AUDITORÍA EXHAUSTIVA - Verificación función por función
 """
 
 import os
-import re
 from pathlib import Path
+import re
 
 
 def count_models():

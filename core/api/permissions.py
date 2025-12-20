@@ -128,11 +128,11 @@ class IsAdminOrPM(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        
+
         # Check if user is staff (Django admin)
         if request.user.is_staff or request.user.is_superuser:
             return True
-        
+
         # Check profile role
         try:
             profile = request.user.profile

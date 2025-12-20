@@ -8,7 +8,6 @@ Date: December 3, 2025
 
 import json
 import logging
-from typing import Dict, Optional, List
 
 from django.conf import settings
 
@@ -27,18 +26,18 @@ def generate_sop_with_ai(
     task_description: str,
     category: str = 'general',
     language: str = 'es'
-) -> Dict:
+) -> dict:
     """
     Generate a complete SOP using GPT-4 based on task description
-    
+
     Args:
         task_description: Brief description like "Install drywall in 12x15 living room"
         category: prep, paint, sand, stain, seal, caulk, cleanup, other
         language: 'es' or 'en'
-    
+
     Returns:
         dict: Structured SOP ready to save to ActivityTemplate model
-        
+
     Example:
         >>> sop = generate_sop_with_ai(
         ...     "Instalar drywall en sala de 12x15 pies",
@@ -52,9 +51,9 @@ def generate_sop_with_ai(
         raise RuntimeError(
             "OpenAI not configured. Set OPENAI_API_KEY in settings or install: pip install openai"
         )
-    
+
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    
+
     # Language-specific prompts
     prompts = {
         'es': f"""
@@ -144,9 +143,9 @@ IMPORTANT:
 - Critical safety warnings to protect workers
 """
     }
-    
+
     prompt = prompts.get(language, prompts['es'])
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-4",
@@ -161,48 +160,48 @@ IMPORTANT:
             temperature=0.7,
             max_tokens=2000
         )
-        
+
         sop_data = json.loads(response.choices[0].message.content)
-        
+
         # Validate required fields
         required_fields = ['name', 'description', 'steps', 'materials_list', 'tools_list']
         missing_fields = [f for f in required_fields if f not in sop_data]
-        
+
         if missing_fields:
             raise ValueError(f"AI response missing required fields: {missing_fields}")
-        
+
         # Ensure steps is a list
         if isinstance(sop_data['steps'], str):
             sop_data['steps'] = [s.strip() for s in sop_data['steps'].split('\n') if s.strip()]
-        
+
         # Add metadata
         sop_data['ai_generated'] = True
         sop_data['ai_model'] = 'gpt-4'
         sop_data['original_prompt'] = task_description
-        
+
         logger.info(f"Successfully generated SOP: {sop_data['name']}")
         return sop_data
-        
+
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse AI response as JSON: {e}")
-        raise ValueError(f"AI returned invalid JSON: {e}")
+        raise ValueError(f"AI returned invalid JSON: {e}") from e
     except Exception as e:
         logger.error(f"Error generating SOP with AI: {e}")
         raise
 
 
-def improve_existing_sop(sop_id: int, feedback: str, language: str = 'es') -> Dict:
+def improve_existing_sop(sop_id: int, feedback: str, language: str = 'es') -> dict:
     """
     Improve an existing SOP based on field feedback
-    
+
     Args:
         sop_id: ID of ActivityTemplate to improve
         feedback: Field feedback like "Steps 3-4 are confusing, missing tool X"
         language: 'es' or 'en'
-    
+
     Returns:
         dict: Improved SOP data
-        
+
     Example:
         >>> improved = improve_existing_sop(
         ...     sop_id=123,
@@ -211,16 +210,16 @@ def improve_existing_sop(sop_id: int, feedback: str, language: str = 'es') -> Di
     """
     if not OPENAI_AVAILABLE:
         raise RuntimeError("OpenAI not configured")
-    
+
     from core.models import ActivityTemplate
-    
+
     try:
         sop = ActivityTemplate.objects.get(id=sop_id)
     except ActivityTemplate.DoesNotExist:
-        raise ValueError(f"SOP with ID {sop_id} not found")
-    
+        raise ValueError(f"SOP with ID {sop_id} not found") from None
+
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    
+
     prompts = {
         'es': f"""
 Tienes un SOP existente que necesita mejorarse basado en feedback real de trabajadores.
@@ -267,9 +266,9 @@ INSTRUCTIONS:
 Generate the improved SOP version in the same JSON format as before.
 """
     }
-    
+
     prompt = prompts.get(language, prompts['es'])
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-4",
@@ -277,9 +276,9 @@ Generate the improved SOP version in the same JSON format as before.
             response_format={"type": "json_object"},
             temperature=0.7
         )
-        
+
         improved_sop = json.loads(response.choices[0].message.content)
-        
+
         # Update SOP with improvements
         sop.steps = improved_sop.get('steps', sop.steps)
         sop.materials_list = improved_sop.get('materials_list', sop.materials_list)
@@ -288,26 +287,26 @@ Generate the improved SOP version in the same JSON format as before.
         sop.common_errors = improved_sop.get('common_errors', sop.common_errors)
         sop.time_estimate = improved_sop.get('time_estimate', sop.time_estimate)
         sop.save()
-        
+
         logger.info(f"Successfully improved SOP ID {sop_id} based on feedback")
         return improved_sop
-        
+
     except Exception as e:
         logger.error(f"Error improving SOP {sop_id}: {e}")
         raise
 
 
-def batch_generate_sops(task_descriptions: List[str], category: str = 'general') -> List[Dict]:
+def batch_generate_sops(task_descriptions: list[str], category: str = 'general') -> list[dict]:
     """
     Generate multiple SOPs in batch (useful for initial library setup)
-    
+
     Args:
         task_descriptions: List of task descriptions
         category: Category for all SOPs
-    
+
     Returns:
         list: List of generated SOP dicts
-        
+
     Example:
         >>> tasks = [
         ...     "Preparar superficie para pintura interior",
@@ -320,9 +319,9 @@ def batch_generate_sops(task_descriptions: List[str], category: str = 'general')
     """
     if not OPENAI_AVAILABLE:
         raise RuntimeError("OpenAI not configured")
-    
+
     results = []
-    
+
     for i, task_desc in enumerate(task_descriptions, 1):
         try:
             logger.info(f"Generating SOP {i}/{len(task_descriptions)}: {task_desc[:50]}...")
@@ -334,21 +333,21 @@ def batch_generate_sops(task_descriptions: List[str], category: str = 'general')
                 'error': str(e),
                 'task_description': task_desc
             })
-    
+
     return results
 
 
-def get_sop_suggestions(project_type: str, scope: str) -> List[str]:
+def get_sop_suggestions(project_type: str, scope: str) -> list[str]:
     """
     Get AI suggestions for which SOPs to create for a project type
-    
+
     Args:
         project_type: 'residential_interior', 'commercial', 'exterior', etc.
         scope: Brief scope description
-    
+
     Returns:
         list: Suggested SOP titles to create
-        
+
     Example:
         >>> suggestions = get_sop_suggestions(
         ...     project_type='residential_interior',
@@ -362,9 +361,9 @@ def get_sop_suggestions(project_type: str, scope: str) -> List[str]:
     """
     if not OPENAI_AVAILABLE:
         raise RuntimeError("OpenAI not configured")
-    
+
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    
+
     prompt = f"""
 Eres un construction project manager experto.
 Dado este tipo de proyecto, sugiere SOPs específicos que deberían crearse.
@@ -385,7 +384,7 @@ Responde en formato JSON:
 
 Sé específico al tipo de proyecto y alcance mencionado.
 """
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-4",
@@ -393,10 +392,10 @@ Sé específico al tipo de proyecto y alcance mencionado.
             response_format={"type": "json_object"},
             temperature=0.8
         )
-        
+
         data = json.loads(response.choices[0].message.content)
         return data.get('suggested_sops', [])
-        
+
     except Exception as e:
         logger.error(f"Error getting SOP suggestions: {e}")
         return []
@@ -425,13 +424,13 @@ DEFAULT_CONSTRUCTION_SOPS = [
 if __name__ == "__main__":
     # Test script
     print("Testing AI SOP Generator...")
-    
+
     if not OPENAI_AVAILABLE:
         print("❌ OpenAI not configured")
         print("Set OPENAI_API_KEY in your Django settings")
     else:
         print("✅ OpenAI configured")
-        
+
         # Test single SOP generation
         try:
             test_sop = generate_sop_with_ai(

@@ -1,7 +1,7 @@
 import csv
-import io
 from datetime import datetime
 from decimal import Decimal
+import io
 from urllib.parse import urlparse
 from urllib.request import urlopen
 

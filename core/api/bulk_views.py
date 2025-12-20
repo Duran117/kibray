@@ -1,13 +1,11 @@
-from typing import List, Dict
 
 from django.db import transaction
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.views import APIView
 
-from core.models import Task, Employee
+from core.models import Employee, Task
 
 STATUS_CHOICES = {"Pendiente", "En Progreso", "En Revisión", "Completada", "Cancelada"}
 PRIORITY_CHOICES = {"low", "medium", "high", "urgent"}
@@ -33,7 +31,7 @@ class BulkTaskUpdateAPIView(APIView):
 
     def post(self, request):
         data = request.data or {}
-        task_ids: List[int] = data.get("task_ids", [])
+        task_ids: list[int] = data.get("task_ids", [])
         action: str = data.get("action", "").strip()
         value = data.get("value")
 
@@ -48,8 +46,8 @@ class BulkTaskUpdateAPIView(APIView):
         found_ids = set(tasks.values_list("id", flat=True))
         missing = [tid for tid in task_ids if tid not in found_ids]
 
-        updated: List[int] = []
-        failed: List[Dict[str, str]] = []
+        updated: list[int] = []
+        failed: list[dict[str, str]] = []
 
         # Pre-fetch employee if needed
         employee_obj = None

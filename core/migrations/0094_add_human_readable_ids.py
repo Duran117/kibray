@@ -10,24 +10,24 @@ def backfill_project_codes(apps, schema_editor):
     Convert old format (PRJ-0001) to new format (PRJ-2024-001) based on created_at year.
     """
     Project = apps.get_model('core', 'Project')
-    
+
     # Group projects by year
     projects_by_year = {}
     for project in Project.objects.all().order_by('created_at', 'id'):
         # Determine year from created_at or use current year
         year = project.created_at.year if project.created_at else timezone.now().year
-        
+
         if year not in projects_by_year:
             projects_by_year[year] = []
         projects_by_year[year].append(project)
-    
+
     # Assign sequential codes per year
     for year, projects in projects_by_year.items():
         for idx, project in enumerate(projects, start=1):
             new_code = f"PRJ-{year}-{idx:03d}"
             project.project_code = new_code
             project.save(update_fields=['project_code'])
-    
+
     print(f"✅ Backfilled {Project.objects.count()} project codes")
 
 
@@ -37,13 +37,13 @@ def backfill_employee_keys(apps, schema_editor):
     Generate sequential EMP-001, EMP-002, etc.
     """
     Employee = apps.get_model('core', 'Employee')
-    
+
     employees = Employee.objects.all().order_by('id')
     for idx, employee in enumerate(employees, start=1):
         if not employee.employee_key:
             employee.employee_key = f"EMP-{idx:03d}"
             employee.save(update_fields=['employee_key'])
-    
+
     print(f"✅ Backfilled {employees.count()} employee keys")
 
 
@@ -53,7 +53,7 @@ def backfill_inventory_skus(apps, schema_editor):
     Generate category-based codes: MAT-001, TOO-005, etc.
     """
     InventoryItem = apps.get_model('core', 'InventoryItem')
-    
+
     # Category prefix mapping
     category_prefixes = {
         "MATERIAL": "MAT",
@@ -64,7 +64,7 @@ def backfill_inventory_skus(apps, schema_editor):
         "HERRAMIENTA": "TOO",
         "OTRO": "OTH",
     }
-    
+
     # Group items by category
     items_by_category = {}
     for item in InventoryItem.objects.filter(sku__isnull=True).order_by('category', 'id'):
@@ -72,17 +72,17 @@ def backfill_inventory_skus(apps, schema_editor):
         if category not in items_by_category:
             items_by_category[category] = []
         items_by_category[category].append(item)
-    
+
     # Assign sequential SKUs per category
     updated = 0
     for category, items in items_by_category.items():
         prefix = category_prefixes.get(category, "ITM")
-        
+
         # Find the highest existing number for this category
         existing_items = InventoryItem.objects.filter(
             sku__startswith=f"{prefix}-"
         ).exclude(sku__isnull=True)
-        
+
         max_num = 0
         for existing in existing_items:
             try:
@@ -90,13 +90,13 @@ def backfill_inventory_skus(apps, schema_editor):
                 max_num = max(max_num, num)
             except (ValueError, IndexError):
                 pass
-        
+
         # Assign new SKUs starting after the highest existing
         for idx, item in enumerate(items, start=max_num + 1):
             item.sku = f"{prefix}-{idx:03d}"
             item.save(update_fields=['sku'])
             updated += 1
-    
+
     print(f"✅ Backfilled {updated} inventory SKUs")
 
 

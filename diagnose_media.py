@@ -4,7 +4,6 @@ Production Media Diagnostic Script
 Run this in Railway to debug media file issues
 """
 import os
-import sys
 
 # Try production settings first, fall back to development
 try:
@@ -18,9 +17,11 @@ except (ValueError, ImportError) as e:
     import django
     django.setup()
 
-from django.conf import settings
-from core.models import FloorPlan
 import os.path
+
+from django.conf import settings
+
+from core.models import FloorPlan
 
 print("=" * 60)
 print("🔍 MEDIA CONFIGURATION DIAGNOSTIC")
@@ -94,12 +95,12 @@ for plan in floor_plans[:5]:
                 size = os.path.getsize(plan.image.path)
                 print(f"      File exists: YES ({size} bytes)")
                 if size < 1000:
-                    print(f"      ⚠️  WARNING: File is very small, may be corrupted")
+                    print("      ⚠️  WARNING: File is very small, may be corrupted")
             else:
-                print(f"      File exists: NO ❌")
+                print("      File exists: NO ❌")
                 print(f"      Expected path: {plan.image.path}")
     else:
-        print(f"      ⚠️  No image attached")
+        print("      ⚠️  No image attached")
 
 print("\n" + "=" * 60)
 print("✅ DIAGNOSTIC COMPLETE")

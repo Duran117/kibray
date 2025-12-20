@@ -1,5 +1,6 @@
-import pytest
 from unittest import mock
+
+import pytest
 
 # Auto-mark all tests with django_db so legacy tests without explicit marks can access the database.
 # This avoids RuntimeError from pytest-django enforcing DB access restrictions on unmarked tests.

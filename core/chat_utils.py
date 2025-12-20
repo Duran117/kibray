@@ -3,7 +3,7 @@ Utilities for Chat System - @mentions parsing and entity linking
 """
 
 import re
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth import get_user_model
 

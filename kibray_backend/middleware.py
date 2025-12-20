@@ -1,5 +1,6 @@
 from django.utils import translation
 
+
 class LanguageQueryMiddleware:
     """
     Allow overriding language via ?lang=xx for API and WebSocket handshake.

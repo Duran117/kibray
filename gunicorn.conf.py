@@ -53,7 +53,7 @@ def on_starting(server):
     """Called just before the master process is initialized."""
     import subprocess
     import sys
-    
+
     print("🔄 Running database migrations...")
     try:
         subprocess.check_call([sys.executable, "manage.py", "migrate", "--noinput"])
@@ -61,21 +61,21 @@ def on_starting(server):
     except subprocess.CalledProcessError as e:
         print(f"❌ Migration failed: {e}")
         sys.exit(1)
-    
+
     print("📦 Collecting static files...")
     try:
         subprocess.check_call([sys.executable, "manage.py", "collectstatic", "--noinput"])
         print("✅ Static files collected")
     except subprocess.CalledProcessError as e:
         print(f"⚠️  Static collection failed (non-fatal): {e}")
-    
+
     print("👤 Creating initial superuser...")
     try:
         subprocess.check_call([sys.executable, "manage.py", "create_initial_superuser", "--noinput"])
         print("✅ Superuser setup complete")
     except subprocess.CalledProcessError as e:
         print(f"⚠️  Superuser creation failed (non-fatal): {e}")
-    
+
     print("🚀 Gunicorn master starting")
 
 def when_ready(server):

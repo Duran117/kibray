@@ -5,7 +5,7 @@ Wrap JsonResponse "error" strings with gettext()
 import re
 
 # Read file
-with open('/Users/jesus/Documents/kibray/core/views.py', 'r', encoding='utf-8') as f:
+with open('/Users/jesus/Documents/kibray/core/views.py', encoding='utf-8') as f:
     content = f.read()
 
 # Pattern for simple error messages without f-strings

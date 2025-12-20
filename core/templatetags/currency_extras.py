@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation
+
 from django import template
 from django.utils import formats
 

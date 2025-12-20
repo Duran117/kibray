@@ -19,9 +19,9 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings")
 django_asgi_app = get_asgi_application()
 
 # Now import Channels components
-from channels.auth import AuthMiddlewareStack  # type: ignore
-from channels.routing import ProtocolTypeRouter, URLRouter  # type: ignore
-from channels.security.websocket import AllowedHostsOriginValidator  # type: ignore
+from channels.auth import AuthMiddlewareStack  # type: ignore  # noqa: E402
+from channels.routing import ProtocolTypeRouter, URLRouter  # type: ignore  # noqa: E402
+from channels.security.websocket import AllowedHostsOriginValidator  # type: ignore  # noqa: E402
 
 # Import WebSocket routing and compression middleware
 try:

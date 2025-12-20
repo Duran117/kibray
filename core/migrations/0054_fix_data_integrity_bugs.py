@@ -4,8 +4,8 @@
 # 2. Consolidates MaterialRequestItem redundant quantity fields
 # 3. Adds validation for negative values in Employee and Project budget fields
 
-from django.db import migrations, models
 import django.core.validators
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             name='budgetprogress',
             unique_together={('budget_line', 'date')},
         ),
-        
+
         # FIX 2: Employee - Add validators to prevent negative hourly_rate
         migrations.AlterField(
             model_name='employee',
@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 help_text="Hourly rate must be greater than zero"
             ),
         ),
-        
+
         # FIX 3: Project - Add validators to prevent negative budget values
         migrations.AlterField(
             model_name='project',
@@ -79,8 +79,8 @@ class Migration(migrations.Migration):
                 validators=[django.core.validators.MinValueValidator(0)]
             ),
         ),
-        
-        # FIX 4: MaterialRequestItem - Mark qty_requested as the primary field, 
+
+        # FIX 4: MaterialRequestItem - Mark qty_requested as the primary field,
         # quantity field will be deprecated in favor of qty_requested
         # Note: Keeping both fields for backward compatibility, but qty_requested is canonical
         migrations.AlterField(

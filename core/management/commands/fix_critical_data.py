@@ -14,11 +14,11 @@ Date: 2025-11-29
 """
 
 import re
+
+from django.apps import apps
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Q
-from django.apps import apps
-
 
 # ANSI Color Codes for Terminal Output
 GREEN = '\033[92m'
@@ -66,7 +66,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = options.get('dry_run', False)
-        
+
         self.stdout.write(f"\n{CYAN}{'='*80}{RESET}")
         self.stdout.write(f"{BOLD}{CYAN}DATABASE INTEGRITY FIX{RESET}")
         self.stdout.write(f"{CYAN}Critical Issues Resolution{RESET}")
@@ -174,7 +174,7 @@ class Command(BaseCommand):
                 # Check if field exists in model
                 if not hasattr(Model, field):
                     continue
-                
+
                 for keyword in garbage_keywords:
                     # Case-insensitive exact match or with boundaries
                     # Use __icontains for substrings but we'll be strict with keywords
@@ -190,13 +190,13 @@ class Command(BaseCommand):
 
             if count > 0:
                 self.stdout.write(f"\n{YELLOW}📦 {model_name}: Found {count} garbage record(s){RESET}")
-                
+
                 # Show sample records (first 3)
                 for record in garbage_records[:3]:
                     display_field = fields[0]
                     display_value = getattr(record, display_field, 'N/A')
                     self.stdout.write(f"   • #{record.pk}: {display_value[:60]}...")
-                
+
                 if count > 3:
                     self.stdout.write(f"   ... and {count - 3} more")
 
@@ -221,7 +221,6 @@ class Command(BaseCommand):
         self.stdout.write(f"{BOLD}ACTION 3: FIX CODE BREAKPOINT{RESET}\n")
         self.stdout.write(f"{BLUE}{'─'*80}{RESET}\n")
 
-        import os
         from pathlib import Path
 
         # Locate forensic_audit.py
@@ -236,21 +235,21 @@ class Command(BaseCommand):
 
         try:
             # Read file
-            with open(audit_file, 'r', encoding='utf-8') as f:
+            with open(audit_file, encoding='utf-8') as f:
                 original_content = f.read()
                 lines = original_content.split('\n')
 
             # Find actual breakpoint calls (not in strings or comments)
             breakpoint_lines = []
             cleaned_lines = []
-            
+
             for line_num, line in enumerate(lines, start=1):
                 # Skip if it's a comment line
                 stripped = line.strip()
                 if stripped.startswith('#'):
                     cleaned_lines.append(line)
                     continue
-                
+
                 # Check for actual breakpoint calls (not in strings)
                 # Match: pdb.set_trace() or breakpoint() as standalone statements
                 if re.search(r'^\s*(pdb\.set_trace\(\)|breakpoint\(\))\s*(?:#.*)?$', line):

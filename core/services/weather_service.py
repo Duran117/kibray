@@ -4,9 +4,9 @@ Module 30 skeleton: to be replaced by real API integration.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import random
 import time
-from dataclasses import dataclass
 from typing import Any
 
 

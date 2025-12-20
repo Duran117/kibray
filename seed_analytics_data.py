@@ -4,15 +4,17 @@ Script para poblar la base de datos con datos de prueba para analytics.
 Esto permitirá probar las APIs de ColorApproval y PMPerformance.
 """
 
-import os
-import django
 from datetime import datetime, timedelta
+import os
+
+import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray_backend.settings")
 django.setup()
 
 from django.contrib.auth.models import User
-from core.models import Project, ColorApproval, ProjectManagerAssignment
+
+from core.models import ColorApproval, Project, ProjectManagerAssignment
 
 
 def seed_data():

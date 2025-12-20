@@ -2,10 +2,11 @@
 # Module 16: Payroll enhancements
 # Modules 23-27: Dashboards, Reports, Automation basics
 
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-from decimal import Decimal
 
 
 class Migration(migrations.Migration):
@@ -19,7 +20,7 @@ class Migration(migrations.Migration):
         # ============================================
         # MODULE 16: PAYROLL ENHANCEMENTS
         # ============================================
-        
+
         # Q16.5: Overtime calculation support
         migrations.AddField(
             model_name='payrollrecord',
@@ -52,7 +53,7 @@ class Migration(migrations.Migration):
                 help_text='Overtime rate (typically 1.5x regular)'
             ),
         ),
-        
+
         # Q16.5: Bonuses and deductions
         migrations.AddField(
             model_name='payrollrecord',
@@ -82,7 +83,7 @@ class Migration(migrations.Migration):
                 help_text='Details of deductions'
             ),
         ),
-        
+
         # Q16.8: Tax calculation (future use)
         migrations.AddField(
             model_name='payrollrecord',
@@ -114,7 +115,7 @@ class Migration(migrations.Migration):
                 help_text='Net pay after deductions and taxes'
             ),
         ),
-        
+
         # Q16.10: Manual adjustment audit trail
         migrations.AddField(
             model_name='payrollrecord',
@@ -153,7 +154,7 @@ class Migration(migrations.Migration):
                 help_text='Q16.10: Why adjustment was made'
             ),
         ),
-        
+
         # Q16.15: Missing days detection
         migrations.AddField(
             model_name='payrollrecord',
@@ -164,7 +165,7 @@ class Migration(migrations.Migration):
                 help_text='Q16.15: List of dates with no time entries'
             ),
         ),
-        
+
         # Q16.16: Project breakdown for multi-project tracking
         migrations.AddField(
             model_name='payrollrecord',
@@ -175,7 +176,7 @@ class Migration(migrations.Migration):
                 help_text='Q16.16: Hours breakdown by project {project_id: hours}'
             ),
         ),
-        
+
         # Q16.6: Enhanced status workflow
         migrations.AlterField(
             model_name='payrollperiod',
@@ -192,7 +193,7 @@ class Migration(migrations.Migration):
                 help_text='Q16.6: Payroll period status'
             ),
         ),
-        
+
         # Q16.9: Validation tracking
         migrations.AddField(
             model_name='payrollperiod',
@@ -224,7 +225,7 @@ class Migration(migrations.Migration):
                 help_text='When period was approved'
             ),
         ),
-        
+
         # Q16.13: Link payroll to expenses
         migrations.AddField(
             model_name='payrollrecord',
@@ -238,7 +239,7 @@ class Migration(migrations.Migration):
                 help_text='Q16.13: Linked expense record for labor cost'
             ),
         ),
-        
+
         # Q16.11: Multiple rate types support
         migrations.AddField(
             model_name='employee',
@@ -258,11 +259,11 @@ class Migration(migrations.Migration):
                 help_text='Q16.11: True if employee has custom overtime rate'
             ),
         ),
-        
+
         # ============================================
         # INDEXES FOR PERFORMANCE
         # ============================================
-        
+
         migrations.AddIndex(
             model_name='payrollrecord',
             index=models.Index(fields=['week_start', 'week_end', 'employee'], name='payroll_week_emp_idx'),

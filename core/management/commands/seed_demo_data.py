@@ -1,7 +1,7 @@
-import random
-import uuid
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
+import random
+import uuid
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand

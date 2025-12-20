@@ -1,18 +1,15 @@
 from rest_framework import serializers
+
 from core.models import (
-    StrategicPlanningSession,
     StrategicDay,
-    StrategicItem,
-    StrategicTask,
-    StrategicSubtask,
-    StrategicMaterialRequirement,
     StrategicDependency,
-    Employee,
-    ActivityTemplate,
-    TaskTemplate,
-    MaterialCatalog,
-    InventoryItem
+    StrategicItem,
+    StrategicMaterialRequirement,
+    StrategicPlanningSession,
+    StrategicSubtask,
+    StrategicTask,
 )
+
 
 class StrategicSubtaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,12 +19,12 @@ class StrategicSubtaskSerializer(serializers.ModelSerializer):
 
 class StrategicTaskSerializer(serializers.ModelSerializer):
     subtasks = StrategicSubtaskSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = StrategicTask
         fields = [
-            'id', 'strategic_item', 'description', 'order', 'estimated_hours', 
-            'assigned_to', 'linked_task_template', 
+            'id', 'strategic_item', 'description', 'order', 'estimated_hours',
+            'assigned_to', 'linked_task_template',
             'subtasks', 'subtasks_count', 'exported_to_daily_plan'
         ]
         read_only_fields = ['exported_to_daily_plan']
@@ -45,7 +42,7 @@ class StrategicItemSerializer(serializers.ModelSerializer):
     tasks = StrategicTaskSerializer(many=True, read_only=True)
     material_requirements = StrategicMaterialRequirementSerializer(many=True, read_only=True)
     assigned_to_names = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = StrategicItem
         fields = [
@@ -62,7 +59,7 @@ class StrategicItemSerializer(serializers.ModelSerializer):
 
 class StrategicDaySerializer(serializers.ModelSerializer):
     items = StrategicItemSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = StrategicDay
         fields = [
@@ -74,7 +71,7 @@ class StrategicPlanningSessionSerializer(serializers.ModelSerializer):
     """Serializer for list view (no nested days)"""
     project_name = serializers.CharField(source='project.name', read_only=True)
     created_by_name = serializers.CharField(source='user.username', read_only=True)
-    
+
     class Meta:
         model = StrategicPlanningSession
         fields = [
@@ -88,7 +85,7 @@ class StrategicPlanningSessionSerializer(serializers.ModelSerializer):
 class StrategicPlanningSessionDetailSerializer(StrategicPlanningSessionSerializer):
     """Serializer for detail view (includes full nested structure)"""
     days = StrategicDaySerializer(many=True, read_only=True)
-    
+
     class Meta(StrategicPlanningSessionSerializer.Meta):
         fields = StrategicPlanningSessionSerializer.Meta.fields + ['days']
 

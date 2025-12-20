@@ -3,15 +3,17 @@
 Script para vincular usuario cesar123 con Employee y crear asignación
 Ejecutar: railway run python fix_cesar123.py
 """
+
 import os
+
 import django
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kibray.settings')
 django.setup()
 
-from django.contrib.auth.models import User
-from django.utils import timezone
-from core.models import Employee, Project, ResourceAssignment
+from core.models import Employee, Project, ResourceAssignment  # noqa: E402
 
 print("=" * 80)
 print("FIX: Vinculación cesar123 → Employee y asignación a proyecto")
@@ -33,23 +35,23 @@ if employee:
 else:
     print("\n❌ NO tiene Employee vinculado")
     print("\nBuscando Employees sin User asignado...")
-    
+
     # Buscar employees sin user
     unassigned_employees = Employee.objects.filter(user__isnull=True)
-    
+
     if unassigned_employees.exists():
         print(f"\nEmployees disponibles ({unassigned_employees.count()}):")
         for i, emp in enumerate(unassigned_employees, 1):
             print(f"  {i}. {emp.first_name} {emp.last_name} - {emp.email}")
-        
+
         print("\n¿Es cesar123 alguno de estos empleados?")
         print("Si SÍ: Vincúlalo manualmente en admin o con:")
-        print(f"  employee = Employee.objects.get(id=X)")
-        print(f"  employee.user = User.objects.get(username='cesar123')")
-        print(f"  employee.save()")
+        print("  employee = Employee.objects.get(id=X)")
+        print("  employee.user = User.objects.get(username='cesar123')")
+        print("  employee.save()")
     else:
         print("\nNo hay employees sin vincular. Creando nuevo Employee...")
-        
+
         # Crear nuevo Employee
         employee = Employee.objects.create(
             user=user,
@@ -68,7 +70,7 @@ if employee:
     print("\n" + "=" * 80)
     print("ASIGNACIÓN A PROYECTO")
     print("=" * 80)
-    
+
     # Verificar proyecto 308 Frisco
     try:
         project = Project.objects.get(id=308)
@@ -80,7 +82,7 @@ if employee:
         for p in projects:
             print(f"  - {p.id}: {p.name}")
         exit(1)
-    
+
     # Verificar asignación para hoy
     today = timezone.localdate()
     assignment = ResourceAssignment.objects.filter(
@@ -88,7 +90,7 @@ if employee:
         project=project,
         date=today
     ).first()
-    
+
     if assignment:
         print(f"✅ Ya tiene asignación para HOY ({today})")
         print(f"   - Turno: {assignment.shift}")
@@ -96,7 +98,7 @@ if employee:
     else:
         print(f"\n❌ NO tiene asignación para HOY ({today})")
         print("Creando asignación...")
-        
+
         assignment = ResourceAssignment.objects.create(
             employee=employee,
             project=project,
@@ -104,7 +106,7 @@ if employee:
             shift="MORNING",  # Puede ser MORNING, AFTERNOON, FULL_DAY
             notes="Asignación automática para testing"
         )
-        print(f"✅ Asignación creada:")
+        print("✅ Asignación creada:")
         print(f"   - Empleado: {employee}")
         print(f"   - Proyecto: {project.name}")
         print(f"   - Fecha: {today}")

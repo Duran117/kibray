@@ -2,9 +2,9 @@
 Locust Load Testing Script for Kibray API
 Run with: locust -f locustfile.py --host=https://yourdomain.com
 """
-from locust import HttpUser, task, between
 import random
-import json
+
+from locust import HttpUser, between, task
 
 
 class KibrayUser(HttpUser):
@@ -12,7 +12,7 @@ class KibrayUser(HttpUser):
     Simulates a typical Kibray user workflow
     """
     wait_time = between(1, 3)  # Wait 1-3 seconds between tasks
-    
+
     def on_start(self):
         """
         Called when a user starts - performs login
@@ -26,7 +26,7 @@ class KibrayUser(HttpUser):
             },
             catch_response=True,
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             self.token = data.get("access")
@@ -38,7 +38,7 @@ class KibrayUser(HttpUser):
         else:
             response.failure(f"Login failed with status {response.status_code}")
             self.headers = {}
-    
+
     @task(3)
     def view_dashboard(self):
         """
@@ -49,7 +49,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/dashboard/",
         )
-    
+
     @task(5)
     def list_projects(self):
         """
@@ -60,7 +60,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/projects/",
         )
-    
+
     @task(2)
     def view_project_detail(self):
         """
@@ -72,7 +72,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/projects/[id]/",
         )
-    
+
     @task(4)
     def list_tasks(self):
         """
@@ -83,7 +83,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/tasks/",
         )
-    
+
     @task(1)
     def create_task(self):
         """
@@ -101,7 +101,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/tasks/ [POST]",
         )
-    
+
     @task(2)
     def list_time_entries(self):
         """
@@ -112,7 +112,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/timeentries/",
         )
-    
+
     @task(1)
     def create_time_entry(self):
         """
@@ -129,7 +129,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/timeentries/ [POST]",
         )
-    
+
     @task(2)
     def view_schedule(self):
         """
@@ -140,7 +140,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/schedules/",
         )
-    
+
     @task(1)
     def search(self):
         """
@@ -153,7 +153,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/search/",
         )
-    
+
     @task(1)
     def view_analytics(self):
         """
@@ -164,7 +164,7 @@ class KibrayUser(HttpUser):
             headers=self.headers,
             name="/api/v1/bi/",
         )
-    
+
     @task(1)
     def health_check(self):
         """
@@ -182,7 +182,7 @@ class AdminUser(HttpUser):
     """
     wait_time = between(2, 5)
     weight = 1  # 1 admin for every 10 regular users
-    
+
     def on_start(self):
         """Login as admin"""
         response = self.client.post(
@@ -193,7 +193,7 @@ class AdminUser(HttpUser):
             },
             catch_response=True,
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             self.token = data.get("access")
@@ -203,9 +203,9 @@ class AdminUser(HttpUser):
             }
             response.success()
         else:
-            response.failure(f"Admin login failed")
+            response.failure("Admin login failed")
             self.headers = {}
-    
+
     @task(2)
     def view_admin_dashboard(self):
         """View admin dashboard"""
@@ -214,7 +214,7 @@ class AdminUser(HttpUser):
             headers=self.headers,
             name="/api/v1/admin-dashboard/",
         )
-    
+
     @task(1)
     def export_data(self):
         """Export large dataset (heavy operation)"""
@@ -223,7 +223,7 @@ class AdminUser(HttpUser):
             headers=self.headers,
             name="/api/v1/projects/export/",
         )
-    
+
     @task(1)
     def view_analytics_detailed(self):
         """View detailed analytics with date ranges"""
@@ -232,7 +232,7 @@ class AdminUser(HttpUser):
             headers=self.headers,
             name="/api/v1/bi/ [detailed]",
         )
-    
+
     @task(1)
     def bulk_operations(self):
         """Perform bulk updates"""
@@ -254,7 +254,7 @@ class APIOnlyUser(HttpUser):
     """
     wait_time = between(0.5, 2)
     weight = 2  # 2 API users for every 10 regular users
-    
+
     def on_start(self):
         """API authentication"""
         response = self.client.post(
@@ -264,7 +264,7 @@ class APIOnlyUser(HttpUser):
                 "password": "apipass123"
             },
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             self.token = data.get("access")
@@ -274,7 +274,7 @@ class APIOnlyUser(HttpUser):
             }
         else:
             self.headers = {}
-    
+
     @task(5)
     def sync_data(self):
         """Frequent data sync"""
@@ -283,7 +283,7 @@ class APIOnlyUser(HttpUser):
             headers=self.headers,
             name="/api/v1/projects/ [sync]",
         )
-    
+
     @task(3)
     def push_updates(self):
         """Push updates from mobile"""
@@ -293,7 +293,7 @@ class APIOnlyUser(HttpUser):
             headers=self.headers,
             name="/api/v1/tasks/[id]/ [PATCH]",
         )
-    
+
     @task(1)
     def upload_photo(self):
         """Upload photo (heavy operation)"""

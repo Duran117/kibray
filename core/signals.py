@@ -7,10 +7,16 @@ Responsabilidades:
  - Versionado de TaskImage: marcar anteriores como no actuales e incrementar versión
 """
 
+import contextlib
+
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.contrib.sessions.models import Session
+from django.core.cache import cache
 from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from core.models import Task, TaskImage, TaskStatusChange
 
@@ -30,7 +36,7 @@ def task_capture_old_status(sender, instance: Task, **kwargs):
 
 @receiver(post_save, sender=Task)
 def task_post_save(sender, instance: Task, created, **kwargs):
-    old_status = getattr(instance, "_old_status", None)
+    getattr(instance, "_old_status", None)
 
     # Nota: La creación de TaskStatusChange se maneja en el receiver con dispatch_uid
     # create_task_status_change más abajo, para evitar duplicados. Aquí solo
@@ -43,10 +49,8 @@ def task_post_save(sender, instance: Task, created, **kwargs):
 
     # Recalcular progreso del ScheduleItem si hay vínculo
     if instance.schedule_item:
-        try:
+        with contextlib.suppress(Exception):
             instance.schedule_item.recalculate_progress(save=True)
-        except Exception:
-            pass
 
 
 # --- TASK IMAGE VERSIONING ---
@@ -69,23 +73,6 @@ def task_image_versioning(sender, instance: TaskImage, created, **kwargs):
         instance.version = 1
         instance.is_current = True
         instance.save(update_fields=["version", "is_current"])
-
-
-# core/signals.py
-"""
-Señales para Task, TaskImage, TaskStatusChange.
-Implementa Q11.10 (notificaciones) y versionado automático de imágenes.
-"""
-
-from django.contrib.auth import get_user_model
-from django.contrib.auth.signals import user_logged_in, user_logged_out
-from django.contrib.sessions.models import Session
-from django.core.cache import cache
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
-from django.utils.translation import gettext_lazy as _
-
-User = get_user_model()
 
 
 # ============================================================================
@@ -115,19 +102,16 @@ def track_task_changes(sender, instance, **kwargs):
         # 1. TIME TRACKING AUTO-STATUS
         # ====================================
         # Si se acaba de iniciar tracking, cambiar status a 'En Progreso'
-        if not old_task.started_at and instance.started_at:
-            if instance.status != "En Progreso":
-                instance.status = "En Progreso"
+        if not old_task.started_at and instance.started_at and instance.status != "En Progreso":
+            instance.status = "En Progreso"
 
         # ====================================
         # 2. DETECT STATUS CHANGE
         # ====================================
         # Detectar si el status cambió (después de aplicar auto-status)
-        if old_task.status != instance.status:
-            # Solo marcar si no está ya marcado
-            if not hasattr(instance, "_status_changed") or not instance._status_changed:
-                instance._status_changed = True
-                instance._old_status = old_task.status
+        if old_task.status != instance.status and (not getattr(instance, "_status_changed", False)):
+            instance._status_changed = True
+            instance._old_status = old_task.status
 
     except Task.DoesNotExist:
         pass
@@ -219,10 +203,7 @@ def send_task_status_notification(task, old_status, new_status):
             continue
 
         # Determinar el tipo de notificación según el nuevo status
-        if new_status == "Completada":
-            notif_type = "task_completed"
-        else:
-            notif_type = "task_assigned"  # Usar el tipo más cercano disponible
+        notif_type = "task_completed" if new_status == "Completada" else "task_assigned"
 
         Notification.objects.create(
             user=user,
@@ -273,11 +254,9 @@ def _active_session_cache_key(user_id: int) -> str:
 def _revoke_session(session_key: str) -> None:
     if not session_key:
         return
-    try:
+    # If session backend is not DB-backed, ignore
+    with contextlib.suppress(Exception):
         Session.objects.filter(session_key=session_key).delete()
-    except Exception:
-        # If session backend is not DB-backed, ignore
-        pass
 
 
 def handle_user_logged_in(sender, request, user, **kwargs):

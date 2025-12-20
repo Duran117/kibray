@@ -4,6 +4,7 @@ Script de diagnóstico rápido para el usuario cesar123
 Ejecutar en Railway: railway run python diagnose_cesar123.py
 """
 import os
+
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kibray.settings')
@@ -11,6 +12,7 @@ django.setup()
 
 from django.contrib.auth.models import User
 from django.utils import timezone
+
 from core.models import Employee, Project, ResourceAssignment, TimeEntry
 
 print("=" * 80)
@@ -60,7 +62,7 @@ else:
     print("   Solución: Crear ResourceAssignment en admin para este empleado y hoy")
 
 # 4. Verificar proyectos disponibles (según lógica del view)
-print(f"\n🎯 Proyectos disponibles para clock-in:")
+print("\n🎯 Proyectos disponibles para clock-in:")
 if user.is_staff:
     available_projects = Project.objects.all()
     print(f"   Staff/Admin: TODOS los proyectos ({available_projects.count()})")
@@ -72,34 +74,34 @@ elif assignments_today.exists():
     for proj in my_projects:
         print(f"      ✅ {proj.name} (ID: {proj.id})")
 else:
-    print(f"   ❌ Empleado SIN asignaciones: 0 proyectos")
-    print(f"   Clock-in NO permitido (flujo de excepción)")
+    print("   ❌ Empleado SIN asignaciones: 0 proyectos")
+    print("   Clock-in NO permitido (flujo de excepción)")
 
 # 5. Verificar TimeEntry abierto
-print(f"\n⏰ Estado de TimeEntry:")
+print("\n⏰ Estado de TimeEntry:")
 open_entry = TimeEntry.objects.filter(
     employee=employee,
     end_time__isnull=True
 ).order_by('-date', '-start_time').first()
 
 if open_entry:
-    print(f"   ⚠️  Tiene entrada ABIERTA:")
+    print("   ⚠️  Tiene entrada ABIERTA:")
     print(f"      - Proyecto: {open_entry.project.name}")
     print(f"      - Fecha: {open_entry.date}")
     print(f"      - Inicio: {open_entry.start_time}")
-    print(f"   Debe hacer clock-out primero")
+    print("   Debe hacer clock-out primero")
 else:
-    print(f"   ✅ No tiene entradas abiertas - puede hacer clock-in")
+    print("   ✅ No tiene entradas abiertas - puede hacer clock-in")
 
 # 6. Historial reciente
-print(f"\n📊 Últimas 5 entradas:")
+print("\n📊 Últimas 5 entradas:")
 recent_entries = TimeEntry.objects.filter(employee=employee).order_by('-date', '-start_time')[:5]
 if recent_entries.exists():
     for entry in recent_entries:
         status = "ABIERTO" if entry.end_time is None else f"Cerrado ({entry.hours_worked}h)"
         print(f"   - {entry.date} | {entry.project.name} | {entry.start_time} | {status}")
 else:
-    print(f"   (No hay entradas previas)")
+    print("   (No hay entradas previas)")
 
 print("\n" + "=" * 80)
 print("FIN DEL DIAGNÓSTICO")

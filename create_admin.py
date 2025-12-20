@@ -4,6 +4,7 @@ Script to create Django superuser
 Run with: railway run python create_admin.py
 """
 import os
+
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kibray_backend.settings')
@@ -25,7 +26,7 @@ if User.objects.filter(username=username).exists():
     print(f'   Is staff: {user.is_staff}')
 else:
     user = User.objects.create_superuser(username, email, password)
-    print(f'✅ Superuser created successfully!')
+    print('✅ Superuser created successfully!')
     print(f'   Username: {username}')
     print(f'   Email: {email}')
     print(f'   Password: {password}')

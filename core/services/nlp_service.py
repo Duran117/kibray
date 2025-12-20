@@ -10,16 +10,12 @@ Features:
 - Command execution
 """
 
-import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+import re
 
 from django.db.models import Q
-from django.utils import timezone
 
-from core.models import ActivityTemplate, DailyPlan, Employee, PlannedActivity, Project
-
+from core.models import DailyPlan, Employee, PlannedActivity
 
 # ===== DATA STRUCTURES =====
 
@@ -31,15 +27,15 @@ class ParsedCommand:
     command_type: str  # 'add_activity', 'assign_employee', 'check_materials', 'create_plan'
     raw_text: str
     confidence: float  # 0-1
-    entities: Dict  # Extracted entities
-    validation_errors: List[str]
+    entities: dict  # Extracted entities
+    validation_errors: list[str]
     suggested_action: str
 
     @property
     def is_valid(self) -> bool:
         return len(self.validation_errors) == 0 and self.confidence > 0.5
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "command_type": self.command_type,
             "raw_text": self.raw_text,
@@ -57,10 +53,10 @@ class ActivityEntity:
 
     title: str
     description: str = ""
-    estimated_hours: Optional[float] = None
-    employees: List[str] = None  # Employee names
-    materials: List[str] = None  # Material descriptions
-    template_name: Optional[str] = None
+    estimated_hours: float | None = None
+    employees: list[str] = None  # Employee names
+    materials: list[str] = None  # Material descriptions
+    template_name: str | None = None
 
     def __post_init__(self):
         if self.employees is None:
@@ -165,7 +161,7 @@ class DailyPlanNLU:
         """Initialize NLU service"""
         pass
 
-    def parse_command(self, text: str, context: Optional[Dict] = None) -> ParsedCommand:
+    def parse_command(self, text: str, context: dict | None = None) -> ParsedCommand:
         """
         Parse natural language command
 
@@ -237,13 +233,13 @@ class DailyPlanNLU:
                 return "assign_employee"
 
         # Check for activity verbs
-        for verb in self.ACTIVITY_VERBS.keys():
+        for verb in self.ACTIVITY_VERBS:
             if verb in text_lower:
                 return "add_activity"
 
         return "unknown"
 
-    def _extract_activity_entities(self, text: str) -> Tuple[Dict, float]:
+    def _extract_activity_entities(self, text: str) -> tuple[dict, float]:
         """
         Extract activity-related entities from text
 
@@ -252,7 +248,7 @@ class DailyPlanNLU:
         """
         entities = {}
         confidence = 0.5
-        text_lower = text.lower()
+        text.lower()
 
         # Extract title
         title = self._extract_activity_title(text)
@@ -280,7 +276,7 @@ class DailyPlanNLU:
 
         return entities, confidence
 
-    def _extract_activity_title(self, text: str) -> Optional[str]:
+    def _extract_activity_title(self, text: str) -> str | None:
         """Extract activity title from text"""
         text_lower = text.lower()
 
@@ -313,7 +309,7 @@ class DailyPlanNLU:
 
         return None
 
-    def _extract_employees(self, text: str) -> List[str]:
+    def _extract_employees(self, text: str) -> list[str]:
         """Extract employee names from text"""
         employees = []
 
@@ -344,7 +340,7 @@ class DailyPlanNLU:
 
         return employees
 
-    def _extract_duration(self, text: str) -> Optional[float]:
+    def _extract_duration(self, text: str) -> float | None:
         """Extract duration in hours from text"""
         for pattern in self.PATTERNS["set_duration"]:
             match = re.search(pattern, text, re.IGNORECASE)
@@ -355,7 +351,7 @@ class DailyPlanNLU:
                     pass
         return None
 
-    def _extract_materials(self, text: str) -> List[str]:
+    def _extract_materials(self, text: str) -> list[str]:
         """Extract materials from text"""
         materials = []
 
@@ -369,7 +365,7 @@ class DailyPlanNLU:
 
         return materials
 
-    def _generate_suggestion(self, command_type: str, entities: Dict, errors: List[str]) -> str:
+    def _generate_suggestion(self, command_type: str, entities: dict, errors: list[str]) -> str:
         """Generate human-readable suggestion for user"""
         if errors:
             return f"⚠️ {', '.join(errors)}"
@@ -391,7 +387,7 @@ class DailyPlanNLU:
 
     def execute_command(
         self, parsed_command: ParsedCommand, daily_plan: DailyPlan, user
-    ) -> Tuple[bool, str, Optional[PlannedActivity]]:
+    ) -> tuple[bool, str, PlannedActivity | None]:
         """
         Execute a parsed command
 
@@ -413,7 +409,7 @@ class DailyPlanNLU:
 
     def _execute_add_activity(
         self, parsed_command: ParsedCommand, daily_plan: DailyPlan
-    ) -> Tuple[bool, str, Optional[PlannedActivity]]:
+    ) -> tuple[bool, str, PlannedActivity | None]:
         """Execute 'add_activity' command"""
         entities = parsed_command.entities
 

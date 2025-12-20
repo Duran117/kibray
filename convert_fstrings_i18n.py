@@ -5,7 +5,7 @@ Convert remaining f-strings in messages to gettext % formatting
 import re
 
 # Read the file
-with open('/Users/jesus/Documents/kibray/core/views.py', 'r', encoding='utf-8') as f:
+with open('/Users/jesus/Documents/kibray/core/views.py', encoding='utf-8') as f:
     content = f.read()
 
 # List of f-string patterns to convert

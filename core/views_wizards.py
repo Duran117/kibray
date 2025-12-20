@@ -1,12 +1,14 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.utils import timezone
-from django.conf import settings
-from .models import Project, ClientOrganization, ClientContact
 import json
 import logging
+
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+from .models import ClientOrganization, Project
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,7 @@ def project_launchpad_wizard(request):
     """
     # Fetch data for dropdowns
     clients = ClientOrganization.objects.all().order_by('name')
-    
+
     context = {
         'clients': clients,
         'openai_available': OPENAI_AVAILABLE
@@ -39,26 +41,26 @@ def project_launchpad_ai_suggest(request):
     """
     if not OPENAI_AVAILABLE:
         return JsonResponse({'success': False, 'error': 'AI not configured'})
-        
+
     try:
         data = json.loads(request.body)
         description = data.get('description', '')
         project_type = data.get('project_type', 'General')
-        
+
         client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        
+
         prompt = f"""
         Act as a Construction Project Manager assistant.
         Based on this project description: "{description}"
         Type: {project_type}
-        
+
         Suggest the following in JSON format:
         1. A professional project name.
         2. A refined description.
         3. Estimated duration in days.
         4. A list of 3-5 key phases (milestones).
         5. A list of 3 potential risks.
-        
+
         JSON Structure:
         {{
             "suggested_name": "...",
@@ -68,16 +70,16 @@ def project_launchpad_ai_suggest(request):
             "risks": ["Risk 1", "Risk 2"]
         }}
         """
-        
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )
-        
+
         result = json.loads(response.choices[0].message.content)
         return JsonResponse({'success': True, 'data': result})
-        
+
     except Exception as e:
         logger.error(f"AI Launchpad Error: {e}")
         return JsonResponse({'success': False, 'error': str(e)})
@@ -90,7 +92,7 @@ def project_launchpad_save(request):
     """
     try:
         data = json.loads(request.body)
-        
+
         # Basic fields
         name = data.get('name')
         client_id = data.get('client_id')
@@ -98,13 +100,13 @@ def project_launchpad_save(request):
         start_date_str = data.get('start_date')
         duration_days = int(data.get('duration_days', 30))
         description = data.get('description')
-        
+
         if not name or not start_date_str:
             return JsonResponse({'success': False, 'error': 'Missing required fields'})
-            
+
         start_date = timezone.datetime.strptime(start_date_str, '%Y-%m-%d').date()
         end_date = start_date + timezone.timedelta(days=duration_days)
-        
+
         # Create Project
         project = Project.objects.create(
             name=name,
@@ -114,11 +116,11 @@ def project_launchpad_save(request):
             description=description,
             billing_organization_id=client_id if client_id else None
         )
-        
+
         # TODO: Create Phases/Schedule items if provided in the wizard payload
-        
+
         return JsonResponse({'success': True, 'project_id': project.id, 'redirect_url': f"/projects/{project.id}/overview/"})
-        
+
     except Exception as e:
         logger.error(f"Launchpad Save Error: {e}")
         return JsonResponse({'success': False, 'error': str(e)})

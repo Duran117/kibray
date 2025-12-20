@@ -9,7 +9,7 @@ form without exposing internal IDs or requiring authentication.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 from django.core import signing
 from django.utils import timezone
@@ -24,10 +24,10 @@ class SignatureTokenPayload:
     ts: float  # Unix timestamp of issuance
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "SignatureTokenPayload":
+    def from_dict(cls, data: dict[str, Any]) -> SignatureTokenPayload:
         return cls(co=int(data["co"]), ts=float(data["ts"]))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"co": self.co, "ts": self.ts}
 
 

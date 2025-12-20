@@ -1,33 +1,33 @@
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
 from drf_spectacular.views import (
     SpectacularAPIView,
-    SpectacularSwaggerView,
     SpectacularRedocView,
+    SpectacularSwaggerView,
 )
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from .dashboard_extra import ClientDashboardView, ProjectDashboardView
-from . import sop_api
-from . import schedule_api
+# Strategic Future Planning (Phase A3 - Dec 2025)
+from core.views.strategic_planning_views import (
+    StrategicItemViewSet,
+    StrategicMaterialViewSet,
+    StrategicPlanningSessionViewSet,
+    StrategicSubtaskViewSet,
+    StrategicTaskViewSet,
+)
 
 # Health check endpoints
 from core.views_health import (
     health_check,
     health_check_detailed,
-    readiness_check,
     liveness_check,
+    readiness_check,
 )
 
-# Import Phase 5 viewsets from viewset_classes (new architecture)
-from .viewset_classes import (
-    ProjectViewSet as ProjectViewSetNew,
-    TaskViewSet as TaskViewSetNew,
-    UserViewSet as UserViewSetNew,
-    ChangeOrderViewSet as ChangeOrderViewSetNew,
-    AnalyticsViewSet as AnalyticsViewSetNew,
-)
-
+from . import schedule_api, sop_api
+from .bulk_views import BulkTaskUpdateAPIView
+from .dashboard_extra import ClientDashboardView, ProjectDashboardView
+from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet
 from .views import (
     AdminDashboardView,
     AISuggestionViewSet,  # AI Enhancement (Dec 2025)
@@ -35,7 +35,6 @@ from .views import (
     BIAnalyticsViewSet,
     BudgetLineViewSet,
     BudgetVarianceAnalysisAPIView,
-    MeetingMinuteViewSet,
     CashFlowProjectionAPIView,
     ChatChannelViewSet,
     ChatMessageViewSet,
@@ -43,21 +42,22 @@ from .views import (
     ClientInvoiceListAPIView,
     ClientRequestAttachmentViewSet,
     ClientRequestViewSet,
-    ColorSampleViewSet,
-    ColorApprovalViewSet,
     ColorApprovalAnalyticsDashboardView,
+    ColorApprovalViewSet,
+    ColorSampleViewSet,
     CostCodeViewSet,
     DailyLogPlanningViewSet,
+    DailyLogSanitizedViewSet,
     DailyPlanViewSet,
     DamageReportViewSet,
     ExpenseViewSet,
+    FieldMaterialsViewSet,
     FinancialDashboardView,
     FloorPlanViewSet,
     IncomeViewSet,
     InventoryItemViewSet,
     InventoryLocationViewSet,
     InventoryMovementViewSet,
-    FieldMaterialsViewSet,
     InventoryValuationReportView,
     InvoiceAgingReportAPIView,
     InvoiceDashboardView,
@@ -65,35 +65,33 @@ from .views import (
     InvoiceViewSet,
     LoginAttemptViewSet,
     MaterialCatalogViewSet,
-    DailyLogSanitizedViewSet,
     MaterialRequestViewSet,
     MaterialsDashboardView,
     MaterialsUsageAnalyticsView,
+    MeetingMinuteViewSet,
     NotificationViewSet,
-    PMPerformanceDashboardView,
-    ProjectFileViewSet,  # ⭐ Phase 4 File Manager
-    ProjectHealthDashboardView,
-    ProjectManagerAssignmentViewSet,
-    PushSubscriptionViewSet,  # ⭐ PWA Push Notifications
     PayrollDashboardView,
     PayrollPaymentViewSet,
     PayrollPeriodViewSet,
     PayrollRecordViewSet,
-    PayrollDashboardView,
     PermissionMatrixViewSet,
     PlannedActivityViewSet,
     PlanPinViewSet,
+    PMPerformanceDashboardView,
+    ProjectFileViewSet,  # ⭐ Phase 4 File Manager
+    ProjectHealthDashboardView,
     ProjectInventoryViewSet,
-    ProjectViewSet,
+    ProjectManagerAssignmentViewSet,
+    PushSubscriptionViewSet,  # ⭐ PWA Push Notifications
     ScheduleCategoryViewSet,
     ScheduleItemViewSet,
     SitePhotoViewSet,
     TaskDependencyViewSet,
     TaskGanttView,
-    TouchupAnalyticsDashboardView,
     TaskTemplateViewSet,
     TaskViewSet,
     TimeEntryViewSet,
+    TouchupAnalyticsDashboardView,
     TwoFactorTokenObtainPairView,
     TwoFactorViewSet,
     WeatherSnapshotViewSet,
@@ -102,14 +100,22 @@ from .views import (
     save_changeorder_photo_annotations,
     update_changeorder_photo_image,
 )
+from .viewset_classes import (
+    AnalyticsViewSet as AnalyticsViewSetNew,
+)
+from .viewset_classes import (
+    ChangeOrderViewSet as ChangeOrderViewSetNew,
+)
 
-# Strategic Future Planning (Phase A3 - Dec 2025)
-from core.views.strategic_planning_views import (
-    StrategicPlanningSessionViewSet,
-    StrategicItemViewSet,
-    StrategicTaskViewSet,
-    StrategicSubtaskViewSet,
-    StrategicMaterialViewSet
+# Import Phase 5 viewsets from viewset_classes (new architecture)
+from .viewset_classes import (
+    ProjectViewSet as ProjectViewSetNew,
+)
+from .viewset_classes import (
+    TaskViewSet as TaskViewSetNew,
+)
+from .viewset_classes import (
+    UserViewSet as UserViewSetNew,
 )
 
 router = DefaultRouter()
@@ -197,8 +203,6 @@ router.register(r"bi", BIAnalyticsViewSet, basename="bi-analytics")
 router.register(r"nav-analytics", AnalyticsViewSetNew, basename="nav-analytics")
 
 # Module 25: Executive Focus Workflow (Productivity)
-from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet
-from .bulk_views import BulkTaskUpdateAPIView
 router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-session")
 router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
 
@@ -218,10 +222,10 @@ urlpatterns = [
     # JWT Auth
     path("auth/login/", TwoFactorTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-        # API Documentation (Phase 5)
-        path("schema/", SpectacularAPIView.as_view(), name="api-schema"),
-        path("docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
-        path("redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
+    # API Documentation (Phase 5)
+    path("schema/", SpectacularAPIView.as_view(), name="api-schema"),
+    path("docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
+    path("redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
     # Global Search
     path("search/", global_search, name="global_search"),
     # ChangeOrder Photos
@@ -261,7 +265,7 @@ urlpatterns = [
     path("analytics/touchups/", TouchupAnalyticsDashboardView.as_view(), name="analytics-touchups"),
     path("analytics/color-approvals/", ColorApprovalAnalyticsDashboardView.as_view(), name="analytics-color-approvals"),
     path("analytics/pm-performance/", PMPerformanceDashboardView.as_view(), name="analytics-pm-performance"),
-    
+
     # SOP Express API
     path("sop/generate/", sop_api.generate_sop_with_ai, name="sop-generate-ai"),
     path("sop/save/", sop_api.save_sop, name="sop-save"),

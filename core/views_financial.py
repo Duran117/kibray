@@ -5,9 +5,9 @@ Purpose: Executive dashboards, aging reports, productivity metrics, export funct
 """
 
 import csv
-import json
 from datetime import datetime, timedelta
 from decimal import Decimal
+import json
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import ExpressionWrapper, F, FloatField, Q, Sum
@@ -16,7 +16,16 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .models import ChangeOrder, Employee, EmployeePerformanceMetric, Expense, Income, Invoice, Project, TimeEntry
+from .models import (
+    ChangeOrder,
+    Employee,
+    EmployeePerformanceMetric,
+    Expense,
+    Income,
+    Invoice,
+    Project,
+    TimeEntry,
+)
 
 # ===========================
 # FINANCIAL EXECUTIVE DASHBOARD
@@ -245,7 +254,7 @@ def invoice_aging_report(request):
         for bucket_name, total in totals.items():
             percentages[bucket_name] = float(total / grand_total * 100)
     else:
-        percentages = {k: 0.0 for k in totals.keys()}
+        percentages = dict.fromkeys(totals.keys(), 0.0)
 
     context = {
         "aging_buckets": aging_buckets,
@@ -292,10 +301,7 @@ def productivity_dashboard(request):
         total=Coalesce(Sum("hours_worked"), Decimal("0.00"))
     )["total"]
 
-    if total_hours > 0:
-        productivity_rate = float(billable_hours / total_hours * 100)
-    else:
-        productivity_rate = 0.0
+    productivity_rate = float(billable_hours / total_hours * 100) if total_hours > 0 else 0.0
 
     # ========== EMPLOYEE RANKINGS ==========
 

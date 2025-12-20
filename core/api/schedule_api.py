@@ -2,11 +2,11 @@
 Master Schedule Center API
 Provides unified data for Strategic Gantt (Projects timeline) and Tactical Calendar (Daily events).
 """
-from datetime import timedelta, date
+from datetime import date, timedelta
 from decimal import Decimal
-from django.db.models import Q, Sum, Count, F, Prefetch
+
+from django.db.models import Prefetch
 from django.utils import timezone
-from datetime import date
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -21,7 +21,13 @@ from core.api.serializer_classes.schedule_v2_serializers import (
     ScheduleTaskV2Serializer,
     ScheduleTaskV2WriteSerializer,
 )
-from core.models import Project, ScheduleDependencyV2, ScheduleItemV2, SchedulePhaseV2, ScheduleTaskV2
+from core.models import (
+    Project,
+    ScheduleDependencyV2,
+    ScheduleItemV2,
+    SchedulePhaseV2,
+    ScheduleTaskV2,
+)
 
 
 @api_view(["GET"])
@@ -36,25 +42,25 @@ def get_master_schedule_data(request):
     - metadata: counts and date range
     """
 
-    from core.models import ChangeOrder, Invoice, Project, ScheduleItem, ScheduleCategory
+    from core.models import ChangeOrder, Invoice, Project, ScheduleItem
 
     # Optional models (keep resilient)
     try:
-        from core.models import Task
+        from core.models import Task as task_model  # noqa: N813
     except Exception:
-        Task = None
+        task_model = None
     try:
-        from core.models import MeetingMinute
+        from core.models import MeetingMinute as meeting_minute_model  # noqa: N813
     except Exception:
-        MeetingMinute = None
+        meeting_minute_model = None
     try:
-        from core.models import ClientRequest
+        from core.models import ClientRequest as client_request_model  # noqa: N813
     except Exception:
-        ClientRequest = None
+        client_request_model = None
     try:
-        from core.models import MaterialRequest
+        from core.models import MaterialRequest as material_request_model  # noqa: N813
     except Exception:
-        MaterialRequest = None
+        material_request_model = None
 
     today = timezone.localdate()
     start_range = today - timedelta(days=30)
@@ -69,12 +75,21 @@ def get_master_schedule_data(request):
     )
 
     # Color palette for projects (cycle)
-    colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"]
+    colors = [
+        "#3b82f6",
+        "#10b981",
+        "#f59e0b",
+        "#ef4444",
+        "#8b5cf6",
+        "#ec4899",
+        "#06b6d4",
+        "#84cc16",
+    ]
 
     for idx, project in enumerate(active_projects):
         total_tasks = project.tasks.count()
         completed_tasks = project.tasks.filter(status="Completada").count()
-        progress_pct = int((completed_tasks / total_tasks * 100)) if total_tasks > 0 else 0
+        progress_pct = int(completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
         pm_name = "No PM assigned"
         client_name = project.client or "No Client"
@@ -86,7 +101,9 @@ def get_master_schedule_data(request):
                 "start_date": project.start_date.isoformat() if project.start_date else today.isoformat(),
                 "end_date": project.end_date.isoformat()
                 if project.end_date
-                else (project.start_date + timedelta(days=90)).isoformat() if project.start_date else (today + timedelta(days=90)).isoformat(),
+                else (project.start_date + timedelta(days=90)).isoformat()
+                if project.start_date
+                else (today + timedelta(days=90)).isoformat(),
                 "progress_pct": progress_pct,
                 "color": colors[idx % len(colors)],
                 "pm_name": pm_name,
@@ -106,8 +123,8 @@ def get_master_schedule_data(request):
     status_colors = {
         "NOT_STARTED": "#cbd5e1",  # slate-300
         "IN_PROGRESS": "#3b82f6",  # blue-500
-        "BLOCKED": "#ef4444",      # red-500
-        "DONE": "#10b981",         # emerald-500
+        "BLOCKED": "#ef4444",  # red-500
+        "DONE": "#10b981",  # emerald-500
     }
 
     for item in schedule_items_qs:
@@ -123,7 +140,6 @@ def get_master_schedule_data(request):
                 "percent_complete": item.percent_complete,
                 "status": item.status,
                 "is_milestone": item.is_milestone,
-                "category": item.category_id,
                 "category_name": item.category.name if item.category else None,
                 "color": status_colors.get(item.status, "#94a3b8"),
                 # Use existing Django route (singular) to avoid 404s when clicking details
@@ -198,9 +214,9 @@ def get_master_schedule_data(request):
         )
 
     # Tasks with due dates
-    if Task is not None:
+    if task_model is not None:
         tasks = (
-            Task.objects.filter(
+            task_model.objects.filter(
                 due_date__isnull=False,
                 due_date__gte=start_range,
                 due_date__lte=end_range,
@@ -224,8 +240,8 @@ def get_master_schedule_data(request):
             )
 
     # Meetings
-    if MeetingMinute is not None:
-        meetings = MeetingMinute.objects.filter(
+    if meeting_minute_model is not None:
+        meetings = meeting_minute_model.objects.filter(
             date__gte=start_range,
             date__lte=end_range,
         ).order_by("date")
@@ -243,8 +259,8 @@ def get_master_schedule_data(request):
             )
 
     # Client Requests
-    if ClientRequest is not None:
-        client_requests = ClientRequest.objects.filter(
+    if client_request_model is not None:
+        client_requests = client_request_model.objects.filter(
             created_at__date__gte=start_range,
             created_at__date__lte=end_range,
         ).order_by("created_at")
@@ -263,8 +279,8 @@ def get_master_schedule_data(request):
             )
 
     # Material Requests
-    if MaterialRequest is not None:
-        material_requests = MaterialRequest.objects.filter(
+    if material_request_model is not None:
+        material_requests = material_request_model.objects.filter(
             created_at__date__gte=start_range,
             created_at__date__lte=end_range,
         ).order_by("created_at")
@@ -339,9 +355,8 @@ def get_project_gantt_v2(request, project_id=None):
     )
 
     # Filtros: asignado y rango de fechas (intersección)
-    if assigned_param:
-        if assigned_param.lower() != "all":
-            items_qs = items_qs.filter(assigned_to_id=assigned_param)
+    if assigned_param and assigned_param.lower() != "all":
+        items_qs = items_qs.filter(assigned_to_id=assigned_param)
 
     if start_filter and end_filter:
         items_qs = items_qs.filter(start_date__lte=end_filter, end_date__gte=start_filter)

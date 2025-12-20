@@ -9,22 +9,22 @@ Vista de calendario personalizada para Project Managers que muestra:
 """
 
 from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Count, Case, When, IntegerField
-from django.http import JsonResponse, HttpResponseForbidden
-from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Count, Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .models import (
-    Project,
-    ProjectManagerAssignment,
-    PMBlockedDay,
-    ScheduleItem,
     Invoice,
-    Task,
+    PMBlockedDay,
     Profile,
+    Project,
+    ScheduleItem,
+    Task,
 )
 
 
@@ -35,23 +35,25 @@ def pm_calendar_view(request):
     Shows assigned projects, workload, blocked days, and upcoming deadlines.
     """
     user = request.user
-    
+
     # Check if user is a Project Manager
     try:
         profile = user.profile
-        if profile.role not in ['project_manager', 'admin']:
-            # Allow admin to view as well
-            if not user.is_staff and not user.is_superuser:
-                messages.error(request, "Vista solo disponible para Project Managers")
-                return redirect('dashboard')
+        if (
+            profile.role not in ['project_manager', 'admin']
+            and not user.is_staff
+            and not user.is_superuser
+        ):
+            messages.error(request, "Vista solo disponible para Project Managers")
+            return redirect('dashboard')
     except Profile.DoesNotExist:
         # If no profile, check if staff/superuser
         if not user.is_staff and not user.is_superuser:
             messages.error(request, "Vista solo disponible para Project Managers")
             return redirect('dashboard')
-    
+
     today = timezone.localdate()
-    
+
     # Get PM assigned projects (active)
     assigned_projects = Project.objects.filter(
         pm_assignments__pm=user,
@@ -63,7 +65,7 @@ def pm_calendar_view(request):
             filter=Q(tasks__status='Completada')
         )
     ).select_related().prefetch_related('pm_assignments').order_by('-start_date')
-    
+
     # Calculate progress for each project
     for project in assigned_projects:
         if project.task_count > 0:
@@ -78,7 +80,7 @@ def pm_calendar_view(request):
                 project.progress_pct = int(avg_pct)
             else:
                 project.progress_pct = 0
-        
+
         # Add status badge color
         if project.progress_pct >= 100:
             project.status_color = 'success'
@@ -88,27 +90,27 @@ def pm_calendar_view(request):
             project.status_color = 'warning'
         else:
             project.status_color = 'danger'
-    
+
     # Get pipeline projects (pending start)
     pipeline_projects = Project.objects.filter(
         pm_assignments__pm=user,
         is_archived=False,
         start_date__gt=today
     ).select_related().order_by('start_date')[:5]
-    
+
     # Get blocked days (past week to next 3 months)
     date_range_start = today - timedelta(days=7)
     date_range_end = today + timedelta(days=90)
-    
+
     blocked_days = PMBlockedDay.objects.filter(
         pm=user,
         date__gte=date_range_start,
         date__lte=date_range_end
     ).order_by('date')
-    
+
     # Get upcoming deadlines
     upcoming_deadlines = []
-    
+
     # Invoices due (next 30 days)
     invoices = Invoice.objects.filter(
         project__pm_assignments__pm=user,
@@ -116,11 +118,11 @@ def pm_calendar_view(request):
         due_date__lte=today + timedelta(days=30),
         status__in=['SENT', 'VIEWED', 'APPROVED', 'PARTIAL']
     ).select_related('project').order_by('due_date')[:10]
-    
+
     for invoice in invoices:
         days_until = (invoice.due_date - today).days
         urgency = 'danger' if days_until <= 3 else 'warning' if days_until <= 7 else 'info'
-        
+
         upcoming_deadlines.append({
             'date': invoice.due_date,
             'title': f"Invoice #{invoice.invoice_number}",
@@ -132,7 +134,7 @@ def pm_calendar_view(request):
                 'badge_class': 'bg-rose-100 text-rose-700' if urgency == 'danger' else 'bg-amber-100 text-amber-700' if urgency == 'warning' else 'bg-sky-100 text-sky-700',
             'days_until': days_until,
         })
-    
+
     # Schedule milestones (next 30 days)
     milestones = ScheduleItem.objects.filter(
         project__pm_assignments__pm=user,
@@ -141,11 +143,11 @@ def pm_calendar_view(request):
         planned_start__lte=today + timedelta(days=30),
         status__in=['NOT_STARTED', 'IN_PROGRESS']
     ).select_related('project', 'category').order_by('planned_start')[:10]
-    
+
     for milestone in milestones:
         days_until = (milestone.planned_start - today).days
         urgency = 'danger' if days_until <= 3 else 'warning' if days_until <= 7 else 'info'
-        
+
         upcoming_deadlines.append({
             'date': milestone.planned_start,
             'title': f"Milestone: {milestone.title}",
@@ -157,7 +159,7 @@ def pm_calendar_view(request):
                 'badge_class': 'bg-rose-100 text-rose-700' if urgency == 'danger' else 'bg-amber-100 text-amber-700' if urgency == 'warning' else 'bg-sky-100 text-sky-700',
             'days_until': days_until,
         })
-    
+
     # High priority tasks due soon
     urgent_tasks = Task.objects.filter(
         project__pm_assignments__pm=user,
@@ -167,11 +169,11 @@ def pm_calendar_view(request):
         due_date__gte=today,
         due_date__lte=today + timedelta(days=14)
     ).select_related('project').order_by('due_date')[:10]
-    
+
     for task in urgent_tasks:
         days_until = (task.due_date - today).days
         urgency = 'danger' if days_until <= 2 else 'warning' if days_until <= 5 else 'info'
-        
+
         upcoming_deadlines.append({
             'date': task.due_date,
             'title': f"Task: {task.title}",
@@ -184,10 +186,10 @@ def pm_calendar_view(request):
             'days_until': days_until,
             'priority': task.priority,
         })
-    
+
     # Sort all deadlines by date
     upcoming_deadlines.sort(key=lambda x: x['date'])
-    
+
     # Calculate workload score
     # Formula: (active projects * 20) + (urgent tasks * 5) + (milestones in next 7 days * 10)
     active_count = assigned_projects.count()
@@ -203,9 +205,9 @@ def pm_calendar_view(request):
         planned_start__lte=today + timedelta(days=7),
         status__in=['NOT_STARTED', 'IN_PROGRESS']
     ).count()
-    
+
     workload_score = min((active_count * 20) + (urgent_task_count * 5) + (upcoming_milestone_count * 10), 100)
-    
+
     if workload_score < 40:
         workload_level = 'Low'
         workload_color = 'success'
@@ -215,7 +217,7 @@ def pm_calendar_view(request):
     else:
         workload_level = 'High'
         workload_color = 'danger'
-    
+
     context = {
         'title': 'Mi Calendario - PM',
         'assigned_projects': assigned_projects,
@@ -230,7 +232,7 @@ def pm_calendar_view(request):
         'urgent_task_count': urgent_task_count,
         'upcoming_milestone_count': upcoming_milestone_count,
     }
-    
+
     return render(request, 'core/pm_calendar.html', context)
 
 
@@ -243,23 +245,26 @@ def pm_block_day(request):
     """
     try:
         profile = request.user.profile
-        if profile.role not in ['project_manager', 'admin']:
-            if not request.user.is_staff and not request.user.is_superuser:
-                return JsonResponse({'success': False, 'error': 'Permiso denegado'}, status=403)
+        if (
+            profile.role not in ['project_manager', 'admin']
+            and not request.user.is_staff
+            and not request.user.is_superuser
+        ):
+            return JsonResponse({'success': False, 'error': 'Permiso denegado'}, status=403)
     except Profile.DoesNotExist:
         if not request.user.is_staff and not request.user.is_superuser:
             return JsonResponse({'success': False, 'error': 'Permiso denegado'}, status=403)
-    
+
     date_str = request.POST.get('date')
     reason = request.POST.get('reason', 'vacation')
     notes = request.POST.get('notes', '')
     is_full_day = request.POST.get('is_full_day', 'true').lower() == 'true'
     start_time = request.POST.get('start_time') or None
     end_time = request.POST.get('end_time') or None
-    
+
     if not date_str:
         return JsonResponse({'success': False, 'error': 'Fecha requerida'}, status=400)
-    
+
     try:
         # Check if day already blocked
         existing = PMBlockedDay.objects.filter(pm=request.user, date=date_str).first()
@@ -268,7 +273,7 @@ def pm_block_day(request):
                 'success': False,
                 'error': f'El día {date_str} ya está bloqueado como {existing.get_reason_display()}'
             }, status=400)
-        
+
         blocked_day = PMBlockedDay.objects.create(
             pm=request.user,
             date=date_str,
@@ -278,7 +283,7 @@ def pm_block_day(request):
             start_time=start_time,
             end_time=end_time
         )
-        
+
         return JsonResponse({
             'success': True,
             'message': f'Día {date_str} bloqueado correctamente',
@@ -300,15 +305,14 @@ def pm_unblock_day(request, blocked_day_id):
     Remove a blocked day
     """
     blocked_day = get_object_or_404(PMBlockedDay, id=blocked_day_id)
-    
+
     # Verify ownership
-    if blocked_day.pm != request.user:
-        if not request.user.is_staff and not request.user.is_superuser:
-            return JsonResponse({'success': False, 'error': 'Permiso denegado'}, status=403)
-    
+    if blocked_day.pm != request.user and not request.user.is_staff and not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Permiso denegado'}, status=403)
+
     date_str = str(blocked_day.date)
     blocked_day.delete()
-    
+
     return JsonResponse({
         'success': True,
         'message': f'Día {date_str} desbloqueado correctamente'
@@ -323,20 +327,23 @@ def pm_calendar_api_data(request):
     """
     try:
         profile = request.user.profile
-        if profile.role not in ['project_manager', 'admin']:
-            if not request.user.is_staff and not request.user.is_superuser:
-                return JsonResponse({'error': 'Permiso denegado'}, status=403)
+        if (
+            profile.role not in ['project_manager', 'admin']
+            and not request.user.is_staff
+            and not request.user.is_superuser
+        ):
+            return JsonResponse({'error': 'Permiso denegado'}, status=403)
     except Profile.DoesNotExist:
         if not request.user.is_staff and not request.user.is_superuser:
             return JsonResponse({'error': 'Permiso denegado'}, status=403)
-    
+
     user = request.user
     today = timezone.localdate()
-    
+
     # Get date range from query params (for FullCalendar)
     start_str = request.GET.get('start')
     end_str = request.GET.get('end')
-    
+
     if start_str and end_str:
         try:
             from datetime import datetime
@@ -350,16 +357,16 @@ def pm_calendar_api_data(request):
     else:
         start_date = today - timedelta(days=30)
         end_date = today + timedelta(days=90)
-    
+
     events = []
-    
+
     # Blocked days
     blocked_days = PMBlockedDay.objects.filter(
         pm=user,
         date__gte=start_date,
         date__lte=end_date
     )
-    
+
     for blocked in blocked_days:
         events.append({
             'id': f'blocked-{blocked.id}',
@@ -377,7 +384,7 @@ def pm_calendar_api_data(request):
                 'blocked_day_id': blocked.id,
             }
         })
-    
+
     # Project milestones
     milestones = ScheduleItem.objects.filter(
         project__pm_assignments__pm=user,
@@ -385,10 +392,10 @@ def pm_calendar_api_data(request):
         planned_start__gte=start_date,
         planned_start__lte=end_date
     ).select_related('project')
-    
+
     for milestone in milestones:
         color = '#ffc107' if milestone.status == 'NOT_STARTED' else '#17a2b8' if milestone.status == 'IN_PROGRESS' else '#28a745'
-        
+
         events.append({
             'id': f'milestone-{milestone.id}',
             'title': f'🚧 {milestone.title}',
@@ -405,7 +412,7 @@ def pm_calendar_api_data(request):
                 'percent_complete': milestone.percent_complete,
             }
         })
-    
+
     # Invoices due
     invoices = Invoice.objects.filter(
         project__pm_assignments__pm=user,
@@ -413,11 +420,11 @@ def pm_calendar_api_data(request):
         due_date__lte=end_date,
         status__in=['SENT', 'VIEWED', 'APPROVED', 'PARTIAL']
     ).select_related('project')
-    
+
     for invoice in invoices:
         days_until = (invoice.due_date - today).days
         color = '#dc3545' if days_until <= 3 else '#ffc107' if days_until <= 7 else '#17a2b8'
-        
+
         events.append({
             'id': f'invoice-{invoice.id}',
             'title': f'💵 Invoice #{invoice.invoice_number}',
@@ -434,7 +441,7 @@ def pm_calendar_api_data(request):
                 'days_until': days_until,
             }
         })
-    
+
     # High priority tasks with due dates
     tasks = Task.objects.filter(
         project__pm_assignments__pm=user,
@@ -444,10 +451,10 @@ def pm_calendar_api_data(request):
         due_date__gte=start_date,
         due_date__lte=end_date
     ).select_related('project')
-    
+
     for task in tasks:
         color = '#dc3545' if task.priority == 'urgent' else '#fd7e14'
-        
+
         events.append({
             'id': f'task-{task.id}',
             'title': f'📋 {task.title}',
@@ -464,5 +471,5 @@ def pm_calendar_api_data(request):
                 'status': task.status,
             }
         })
-    
+
     return JsonResponse(events, safe=False)

@@ -10,18 +10,20 @@ from django.views.i18n import set_language as dj_set_language
 from django.views.static import serve as static_serve
 from rest_framework.routers import DefaultRouter
 
-from core import views
-from core import views_sop
-from core import views_wizards
-from core import views_user_wizard
-from core import views_calendar_wizard
+from core import (
+    views,
+    views_assignments,
+    views_calendar_wizard,
+    views_sop,
+    views_unassigned_hours,
+    views_user_wizard,
+    views_wizards,
+)
+from core import views_client_calendar as client_calendar_views
 from core import views_financial as fin_views
-from core import views_assignments
-from core import views_unassigned_hours
 from core import views_notifications as notif_views
 from core import views_planner as planner_views
 from core import views_pm_calendar as pm_calendar_views
-from core import views_client_calendar as client_calendar_views
 from core.api.views import tasks_gantt_alias
 from reports.api.views import ProjectCostSummaryView
 from signatures.api.views import SignatureViewSet
@@ -43,7 +45,7 @@ urlpatterns = [
     # Auth
     path("login/", auth_views.LoginView.as_view(template_name="core/login.html"), name="login"),
     path("logout/", CustomLogoutView.as_view(), name="logout"),
-    
+
     # Phase 4 React Navigation App (SPA routes)
     path("files/", views.navigation_app_view, name="navigation_files"),
     path("users/", views.navigation_app_view, name="navigation_users"),
@@ -52,7 +54,7 @@ urlpatterns = [
     path("reports/", views.navigation_app_view, name="navigation_reports"),
     path("notifications/", views.navigation_app_view, name="navigation_notifications"),
     path("search/", views.navigation_app_view, name="navigation_search"),
-    
+
     # Admin
     path("admin/", admin.site.urls),
     # Legacy custom admin panel (admin-panel/*) → redirect to Django admin (preserve extra path)
@@ -62,13 +64,13 @@ urlpatterns = [
     path("users/manage/new/", views_user_wizard.user_wizard_view, name="user_wizard_create"),
     path("users/manage/<int:user_id>/edit/", views_user_wizard.user_wizard_view, name="user_wizard_edit"),
     path("users/manage/api/action/", views_user_wizard.user_api_action, name="user_api_action"),
-    
+
     # Dashboard(s)
     path("dashboard/", views.dashboard_view, name="dashboard"),
     path("dashboard/admin/", views.dashboard_admin, name="dashboard_admin"),
     path("dashboard/bi/", views.executive_bi_dashboard, name="dashboard_bi"),
     path("schedule/master/", views.master_schedule_center, name="master_schedule_center"),
-    
+
     # PM Calendar - NEW
     path("pm-calendar/", pm_calendar_views.pm_calendar_view, name="pm_calendar"),
     path("pm-calendar/new/", views_calendar_wizard.calendar_wizard_view, name="calendar_wizard_new"),
@@ -76,7 +78,7 @@ urlpatterns = [
     path("pm-calendar/block/", pm_calendar_views.pm_block_day, name="pm_block_day"),
     path("pm-calendar/unblock/<int:blocked_day_id>/", pm_calendar_views.pm_unblock_day, name="pm_unblock_day"),
     path("pm-calendar/api/data/", pm_calendar_views.pm_calendar_api_data, name="pm_calendar_api_data"),
-    
+
     path("focus/", views.focus_wizard, name="focus_wizard"),
     path("planner/", planner_views.quick_planner_entry, name="quick_planner"),
     path("planner/strategic/", views.StrategicPlanningDashboardView.as_view(), name="strategic_planning_dashboard"),
@@ -133,18 +135,18 @@ urlpatterns = [
     ),
     # React Gantt Chart
     path("projects/<int:project_id>/schedule/gantt/", views.schedule_gantt_react_view, name="schedule_gantt_react"),
-    
+
     # Client Calendar - NEW
-    path("projects/<int:project_id>/calendar/client/", 
-         client_calendar_views.client_project_calendar_view, 
+    path("projects/<int:project_id>/calendar/client/",
+         client_calendar_views.client_project_calendar_view,
          name="client_project_calendar"),
-    path("projects/<int:project_id>/calendar/client/api/", 
-         client_calendar_views.client_calendar_api_data, 
+    path("projects/<int:project_id>/calendar/client/api/",
+         client_calendar_views.client_calendar_api_data,
          name="client_calendar_api_data"),
-    path("schedule/item/<int:item_id>/detail/", 
-         client_calendar_views.client_calendar_milestone_detail, 
+    path("schedule/item/<int:item_id>/detail/",
+         client_calendar_views.client_calendar_milestone_detail,
          name="client_calendar_milestone_detail"),
-    
+
     # Site photos
     path("projects/<int:project_id>/photos/", views.site_photo_list, name="site_photo_list"),
     path("projects/<int:project_id>/photos/new/", views.site_photo_create, name="site_photo_create"),
@@ -474,7 +476,7 @@ urlpatterns = [
     # All admin functionality available at /admin/ with better UX
     # Explicit Gantt mapping BEFORE including API to ensure resolution
     path("api/v1/tasks/gantt/", tasks_gantt_alias, name="api-tasks-gantt"),
-    
+
     # Strategic Planner API Endpoints
     path("api/v1/planner/habits/active/", planner_views.get_active_habits, name="planner-active-habits"),
     path("api/v1/planner/visions/random/", planner_views.get_random_vision, name="planner-random-vision"),
@@ -484,13 +486,13 @@ urlpatterns = [
     path("api/v1/planner/action/<int:action_id>/step/<int:step_index>/", planner_views.update_micro_step, name="planner-update-step"),
     path("api/v1/planner/stats/", planner_views.planner_stats, name="planner-stats"),
     path("api/v1/planner/feed/<str:user_token>.ics", planner_views.planner_calendar_feed, name="planner-calendar-feed"),
-    
+
     # AI-Assisted Planning Endpoints
     path("api/v1/planner/ai/process-dump/", planner_views.ai_process_brain_dump, name="planner-ai-process-dump"),
     path("api/v1/planner/ai/suggest-frog/", planner_views.ai_suggest_frog, name="planner-ai-suggest-frog"),
     path("api/v1/planner/ai/generate-steps/", planner_views.ai_generate_micro_steps, name="planner-ai-generate-steps"),
     path("api/v1/planner/ai/suggest-time/", planner_views.ai_suggest_time_blocks, name="planner-ai-suggest-time"),
-    
+
     # REST API v1 (mobile, integrations)
     path("api/v1/", include("core.api.urls")),
     path("api/v1/", include(signatures_router.urls)),

@@ -207,10 +207,7 @@ def is_likely_spanish(text):
             return True
 
     # Terminaciones típicas del español
-    if any(text_lower.endswith(suffix) for suffix in ["ción", "sión", "dad", "tad", "dor", "dora", "mente"]):
-        return True
-
-    return False
+    return bool(any(text_lower.endswith(suffix) for suffix in ["ción", "sión", "dad", "tad", "dor", "dora", "mente"]))
 
 
 def process_po_file_final(po_file_path):
@@ -232,7 +229,7 @@ def process_po_file_final(po_file_path):
         new_lines.append(line)
 
         # Buscar msgid seguido de msgstr vacío
-        if line.startswith('msgid "') and not line.strip() == 'msgid ""':
+        if line.startswith('msgid "') and line.strip() != 'msgid ""':
             msgid = line[7:-2]  # Extraer texto entre comillas
 
             # Verificar si la siguiente línea es msgstr ""
@@ -317,7 +314,6 @@ def get_basic_translation(text):
         "Cost": "Costo",
         "Price": "Precio",
         "Amount": "Monto",
-        "Total": "Total",
         "Subtotal": "Subtotal",
         "Tax": "Impuesto",
         "Discount": "Descuento",

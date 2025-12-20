@@ -1,5 +1,6 @@
 from django.db import migrations, models
 
+
 class Migration(migrations.Migration):
     dependencies = [
         ("core", "0101_profile_rejections_count_task_is_visible_to_client_and_more"),

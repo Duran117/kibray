@@ -1,8 +1,9 @@
 """
 Project filters for the Kibray API
 """
-import django_filters
 from django.db import models
+import django_filters
+
 from core.models import Project
 
 
@@ -17,16 +18,16 @@ class ProjectFilter(django_filters.FilterSet):
     end_date_to = django_filters.DateFilter(field_name='end_date', lookup_expr='lte')
     client = django_filters.CharFilter(lookup_expr='icontains')
     is_active = django_filters.BooleanFilter(method='filter_active')
-    
+
     class Meta:
         model = Project
         fields = ['name', 'billing_organization', 'project_lead', 'client']
-    
+
     def filter_active(self, queryset, name, value):
         """Filter active/inactive projects based on dates"""
         from django.utils import timezone
         today = timezone.now().date()
-        
+
         if value:
             # Active: start_date <= today AND (end_date is None OR end_date >= today)
             return queryset.filter(start_date__lte=today).filter(

@@ -2,12 +2,11 @@
 """
 Wrap remaining API error messages with gettext
 """
-import re
 
 filepath = '/Users/jesus/Documents/kibray/core/api/views.py'
 
 # Read the file
-with open(filepath, 'r', encoding='utf-8') as f:
+with open(filepath, encoding='utf-8') as f:
     content = f.read()
 
 # Remaining simple string patterns

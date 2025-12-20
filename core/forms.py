@@ -1,3 +1,4 @@
+import contextlib
 from decimal import Decimal
 
 from django import forms
@@ -579,15 +580,14 @@ class BudgetProgressForm(forms.ModelForm):
         if percent is not None:
             try:
                 p = Decimal(percent)
-            except Exception:
-                raise forms.ValidationError("Percent complete inválido.")
+            except Exception as e:
+                raise forms.ValidationError("Percent complete inválido.") from e
             if p < 0 or p > 100:
                 self.add_error("percent_complete", "Debe estar entre 0 y 100.")
 
-        if (percent is None or percent == 0) and bl and getattr(bl, "qty", None):
-            if bl.qty and bl.qty != 0:
-                auto = min(Decimal("100"), (Decimal(qty_completed) / Decimal(bl.qty)) * Decimal("100"))
-                cleaned["percent_complete"] = auto
+        if (percent is None or percent == 0) and bl and getattr(bl, "qty", None) and bl.qty and bl.qty != 0:
+            auto = min(Decimal("100"), (Decimal(qty_completed) / Decimal(bl.qty)) * Decimal("100"))
+            cleaned["percent_complete"] = auto
 
         if qty_completed is not None and Decimal(qty_completed) < 0:
             self.add_error("qty_completed", "No puede ser negativo.")
@@ -625,8 +625,8 @@ class BudgetProgressEditForm(forms.ModelForm):
 
 class ClockInForm(forms.Form):
     project = forms.ModelChoiceField(
-        queryset=Project.objects.all(), 
-        label="Proyecto", 
+        queryset=Project.objects.all(),
+        label="Proyecto",
         empty_label="-- Selecciona proyecto --"
     )
     change_order = forms.ModelChoiceField(
@@ -635,25 +635,25 @@ class ClockInForm(forms.Form):
         label="Change Order (opcional)"
     )
     cost_code = forms.ModelChoiceField(
-        queryset=CostCode.objects.filter(active=True), 
-        required=False, 
+        queryset=CostCode.objects.filter(active=True),
+        required=False,
         label="Cost Code"
     )
     notes = forms.CharField(
-        widget=forms.Textarea(attrs={"rows": 2}), 
-        required=False, 
+        widget=forms.Textarea(attrs={"rows": 2}),
+        required=False,
         label="Notas"
     )
-    
+
     def __init__(self, *args, **kwargs):
         # ✅ Permitir filtrar proyectos disponibles
         available_projects = kwargs.pop('available_projects', None)
         super().__init__(*args, **kwargs)
-        
+
         # POLÍTICA ESTRICTA: Respetar el queryset proporcionado por el view
         if available_projects is not None:
             self.fields['project'].queryset = available_projects
-            
+
             # Mensajes según cantidad de proyectos
             count = available_projects.count()
             if count == 0:
@@ -1139,10 +1139,9 @@ class DailyPlanForm(forms.ModelForm):
     def clean_completion_deadline(self):
         deadline = self.cleaned_data.get("completion_deadline")
         plan_date = self.cleaned_data.get("plan_date") or (self.instance.plan_date if self.instance else None)
-        if deadline and plan_date:
+        if deadline and plan_date and deadline.date() >= plan_date:
             # Deadline debe ser antes de plan_date
-            if deadline.date() >= plan_date:
-                raise ValidationError(_("Deadline debe ser antes del día planificado."))
+            raise ValidationError(_("Deadline debe ser antes del día planificado."))
         return deadline
 
     def clean(self):
@@ -1163,10 +1162,8 @@ class DailyPlanForm(forms.ModelForm):
             inst.save()
             # Actualizar clima si se solicitó
             if self.cleaned_data.get("fetch_weather"):
-                try:
+                with contextlib.suppress(Exception):
                     inst.fetch_weather()
-                except Exception:
-                    pass
         return inst
 
 
@@ -1249,17 +1246,15 @@ class PlannedActivityForm(forms.ModelForm):
         # Convert materials_text -> materials_needed list
         txt = self.cleaned_data.get("materials_text")
         if txt is not None:
-            lines = [l.strip() for l in txt.splitlines() if l.strip()]
+            lines = [line.strip() for line in txt.splitlines() if line.strip()]
             inst.materials_needed = lines
         if commit:
             inst.save()
             self.save_m2m()
             # Si se marcó materials_checked, ejecutar verificación (solo si no se ha corrido)
             if self.cleaned_data.get("materials_checked") and not inst.materials_checked:
-                try:
+                with contextlib.suppress(Exception):
                     inst.check_materials()
-                except Exception:
-                    pass
         return inst
 
 
@@ -1270,8 +1265,8 @@ PlannedActivityFormSet = inlineformset_factory(
 
 def make_planned_activity_formset(daily_plan, data=None, files=None, **kwargs):
     """Helper para crear un formset con contexto del daily_plan (filtrado de queryset)."""
-    FormSet = PlannedActivityFormSet
-    fs = FormSet(data=data, files=files, instance=daily_plan, **kwargs)
+    formset_class = PlannedActivityFormSet
+    fs = formset_class(data=data, files=files, instance=daily_plan, **kwargs)
     for form in fs.forms:
         if hasattr(form, "fields"):
             # Reinyectar daily_plan en cada form para filtrado
@@ -1619,10 +1614,9 @@ class ClientEditForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
+        if self.instance and self.instance.pk and hasattr(self.instance, "profile"):
             # Cargar datos del perfil si existe
-            if hasattr(self.instance, "profile"):
-                self.fields["language"].initial = self.instance.profile.language
+            self.fields["language"].initial = self.instance.profile.language
 
 
 class ClientPasswordResetForm(forms.Form):
@@ -1815,14 +1809,14 @@ class ProposalEmailForm(forms.Form):
 # ========================================================================================
 class ActivationWizardForm(forms.Form):
     """Formulario para activar proyecto desde estimado aprobado.
-    
+
     Permite configurar:
     - Fecha de inicio
     - Qué entidades crear (cronograma, presupuesto, tareas)
     - Porcentaje de anticipo para factura inicial
     - Selección de líneas específicas del estimado para cronograma
     """
-    
+
     start_date = forms.DateField(
         label="Fecha de inicio del proyecto",
         widget=forms.DateInput(
@@ -1834,7 +1828,7 @@ class ActivationWizardForm(forms.Form):
         ),
         help_text="Fecha en que inicia la obra/proyecto",
     )
-    
+
     create_schedule = forms.BooleanField(
         label="Crear cronograma",
         required=False,
@@ -1842,7 +1836,7 @@ class ActivationWizardForm(forms.Form):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
         help_text="Genera ScheduleItems para visualizar en Gantt",
     )
-    
+
     create_budget = forms.BooleanField(
         label="Generar Presupuesto Base",
         required=False,
@@ -1850,7 +1844,7 @@ class ActivationWizardForm(forms.Form):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
         help_text="Genera BudgetLines para control financiero",
     )
-    
+
     create_tasks = forms.BooleanField(
         label="Crear tareas operativas",
         required=False,
@@ -1858,7 +1852,7 @@ class ActivationWizardForm(forms.Form):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
         help_text="Genera Tasks diarias basadas en el cronograma",
     )
-    
+
     deposit_percent = forms.IntegerField(
         label="% Anticipo (0 = No facturar)",
         required=False,
@@ -1875,7 +1869,7 @@ class ActivationWizardForm(forms.Form):
         ),
         help_text="Porcentaje del total para factura de anticipo (0 = sin anticipo)",
     )
-    
+
     items_to_schedule = forms.ModelMultipleChoiceField(
         label="Líneas del estimado a incluir en cronograma",
         queryset=EstimateLine.objects.none(),
@@ -1888,11 +1882,11 @@ class ActivationWizardForm(forms.Form):
         """Initialize form with estimate context."""
         estimate = kwargs.pop('estimate', None)
         super().__init__(*args, **kwargs)
-        
+
         if estimate:
             # Set queryset for items_to_schedule
             self.fields['items_to_schedule'].queryset = estimate.lines.all()
-            
+
             # Pre-select all lines by default
             if not self.is_bound:
                 self.initial['items_to_schedule'] = estimate.lines.all()
@@ -1909,16 +1903,16 @@ class ActivationWizardForm(forms.Form):
     def clean(self):
         """Validate form data."""
         cleaned_data = super().clean()
-        
+
         create_schedule = cleaned_data.get('create_schedule')
         create_tasks = cleaned_data.get('create_tasks')
-        
+
         # Tasks require schedule
         if create_tasks and not create_schedule:
             raise ValidationError(
                 "Para crear tareas operativas, primero debes crear el cronograma"
             )
-        
+
         # At least one action must be selected
         if not any([
             cleaned_data.get('create_schedule'),
@@ -1928,5 +1922,5 @@ class ActivationWizardForm(forms.Form):
             raise ValidationError(
                 "Debes seleccionar al menos una acción (cronograma, presupuesto o anticipo)"
             )
-        
+
         return cleaned_data

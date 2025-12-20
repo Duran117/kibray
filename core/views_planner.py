@@ -2,24 +2,30 @@
 Strategic Planner Views
 Module 25 Part B: Executive Planning & Productivity System
 """
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_http_methods
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _, gettext
-from django.db import transaction
-from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
-from icalendar import Calendar, Event as ICalEvent
-import uuid
 import json
 
-from .models import (
-    LifeVision, ExecutiveHabit, DailyRitualSession, 
-    PowerAction, HabitCompletion, DailyFocusSession, FocusTask
-)
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
+from django.utils.translation import gettext
+from django.views.decorators.http import require_http_methods
+from icalendar import Calendar
+from icalendar import Event as ICalEvent
+
+from .models import (
+    DailyFocusSession,
+    DailyRitualSession,
+    ExecutiveHabit,
+    FocusTask,
+    HabitCompletion,
+    LifeVision,
+    PowerAction,
+)
 from .services.planner_ai import PlannerAI
 
 User = get_user_model()
@@ -35,7 +41,7 @@ def quick_planner_entry(request):
         return JsonResponse({
             'error': gettext('This feature is only available for Admin/PM users.')
         }, status=403)
-    
+
     return render(request, 'core/quick_planner.html')
 
 
@@ -50,19 +56,19 @@ def strategic_ritual_wizard(request):
         return JsonResponse({
             'error': gettext('This feature is only available for Admin/PM users.')
         }, status=403)
-    
+
     # Check if ritual already exists for today
     today = timezone.now().date()
     existing_ritual = DailyRitualSession.objects.filter(
         user=request.user,
         date=today
     ).first()
-    
+
     context = {
         'existing_ritual': existing_ritual,
         'has_ritual_today': existing_ritual is not None
     }
-    
+
     return render(request, 'core/strategic_ritual.html', context)
 
 
@@ -77,7 +83,7 @@ def get_active_habits(request):
         user=request.user,
         is_active=True
     ).values('id', 'title', 'frequency')
-    
+
     return JsonResponse(list(habits), safe=False)
 
 
@@ -91,7 +97,7 @@ def get_random_vision(request):
     vision = LifeVision.objects.filter(
         user=request.user
     ).order_by('?').first()
-    
+
     if vision:
         return JsonResponse({
             'id': vision.id,
@@ -113,11 +119,11 @@ def complete_ritual(request):
     Called when user finishes Step 7 (Battle Plan).
     """
     import json
-    
+
     try:
         data = json.loads(request.body)
         today = timezone.now().date()
-        
+
         # Create or update ritual session
         ritual, created = DailyRitualSession.objects.update_or_create(
             user=request.user,
@@ -131,21 +137,21 @@ def complete_ritual(request):
                 'completed_at': timezone.now()
             }
         )
-        
+
         # Create PowerActions from impact items
         frog_id = data.get('frog_id')
         impact_items = data.get('impact_items', [])
         micro_steps = data.get('micro_steps', [])
         frog_start = data.get('frog_start')
         frog_end = data.get('frog_end')
-        
+
         # Delete existing power actions for this session
         ritual.power_actions.all().delete()
-        
+
         # Create power actions
         for idx, item in enumerate(impact_items):
             is_frog = (item['id'] == frog_id)
-            
+
             # Parse time blocking for frog
             scheduled_start = None
             scheduled_end = None
@@ -159,8 +165,8 @@ def complete_ritual(request):
                     )
                 except (ValueError, TypeError):
                     pass
-            
-            power_action = PowerAction.objects.create(
+
+            PowerAction.objects.create(
                 session=ritual,
                 title=item['text'],
                 is_80_20=True,  # All items in impact column are 80/20
@@ -172,7 +178,7 @@ def complete_ritual(request):
                 status='SCHEDULED' if scheduled_start else 'DRAFT',
                 order=idx
             )
-        
+
         # Create habit completions
         habit_ids = data.get('habits', [])
         for habit_id in habit_ids:
@@ -185,13 +191,13 @@ def complete_ritual(request):
                 )
             except ExecutiveHabit.DoesNotExist:
                 continue
-        
+
         return JsonResponse({
             'success': True,
             'ritual_id': ritual.id,
             'message': gettext('Ritual completed successfully!')
         })
-        
+
     except ValidationError as e:
         return JsonResponse({
             'success': False,
@@ -210,7 +216,7 @@ def planner_calendar_feed(request, user_token):
     """
     Generate iCal feed for PowerActions.
     URL: /api/planner/feed/<user_token>.ics
-    
+
     This allows external calendar apps to subscribe to PowerActions.
     """
     # Verify user token (in production, implement proper token validation)
@@ -222,18 +228,18 @@ def planner_calendar_feed(request, user_token):
         user = User.objects.get(id=user_id)
     except (ValueError, User.DoesNotExist):
         return HttpResponse('Invalid token', status=404)
-    
+
     # Create calendar
     cal = Calendar()
     cal.add('prodid', '-//Kibray Strategic Planner//EN')
     cal.add('version', '2.0')
     cal.add('x-wr-calname', f'{user.get_full_name()} - Strategic Actions')
     cal.add('x-wr-caldesc', 'High-impact PowerActions from Strategic Planner')
-    
+
     # Get PowerActions from last 30 days and next 30 days
     start_date = timezone.now() - timedelta(days=30)
     end_date = timezone.now() + timedelta(days=30)
-    
+
     power_actions = PowerAction.objects.filter(
         session__user=user,
         session__date__gte=start_date.date(),
@@ -241,7 +247,7 @@ def planner_calendar_feed(request, user_token):
         scheduled_start__isnull=False,
         scheduled_end__isnull=False
     ).select_related('session', 'linked_vision')
-    
+
     # Add each PowerAction as an event
     for action in power_actions:
         event = ICalEvent()
@@ -251,13 +257,13 @@ def planner_calendar_feed(request, user_token):
         event.add('dtstart', action.scheduled_start)
         event.add('dtend', action.scheduled_end)
         event.add('dtstamp', action.created_at)
-        
+
         # Add status
         if action.status == 'DONE':
             event.add('status', 'COMPLETED')
         else:
             event.add('status', 'CONFIRMED')
-        
+
         # Add categories
         categories = ['Strategic Planning']
         if action.is_frog:
@@ -265,9 +271,9 @@ def planner_calendar_feed(request, user_token):
         if action.is_80_20:
             categories.append('⚡ High Impact')
         event.add('categories', categories)
-        
+
         cal.add_component(event)
-    
+
     # Return as iCalendar file
     response = HttpResponse(cal.to_ical(), content_type='text/calendar; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="{user.username}_strategic_planner.ics"'
@@ -283,13 +289,13 @@ def today_ritual_summary(request):
     Supports both DailyRitualSession (Strategic Planner) and DailyFocusSession (Focus Wizard).
     """
     today = timezone.now().date()
-    
+
     # 1. Try Strategic Ritual (DailyRitualSession)
     ritual = DailyRitualSession.objects.filter(
         user=request.user,
         date=today
     ).first()
-    
+
     if ritual:
         frog = ritual.frog_action
         if not frog:
@@ -298,7 +304,7 @@ def today_ritual_summary(request):
                 'has_frog': False,
                 'message': 'Ritual completed but no Frog selected'
             })
-        
+
         return JsonResponse({
             'has_ritual': True,
             'has_frog': True,
@@ -336,7 +342,7 @@ def today_ritual_summary(request):
                 'has_frog': False,
                 'message': 'Focus session completed but no Frog selected'
             })
-        
+
         # Map FocusTask to same structure as PowerAction for frontend compatibility
         return JsonResponse({
             'has_ritual': True,
@@ -419,7 +425,7 @@ def update_micro_step(request, action_id, step_index):
         action = PowerAction.objects.get(id=action_id, session__user=request.user)
         if step_index < 0 or step_index >= len(action.micro_steps):
             return JsonResponse({'success': False, 'error': 'Invalid step index'}, status=400)
-        
+
         action.micro_steps[step_index]['done'] = not action.micro_steps[step_index].get('done', False)
         action.save()
         return JsonResponse({
@@ -435,10 +441,10 @@ def update_micro_step(request, action_id, step_index):
         task = FocusTask.objects.get(id=action_id, session__user=request.user)
         if not task.checklist or step_index < 0 or step_index >= len(task.checklist):
             return JsonResponse({'success': False, 'error': 'Invalid step index'}, status=400)
-        
+
         task.checklist[step_index]['done'] = not task.checklist[step_index].get('done', False)
         task.save()
-        
+
         # Calculate progress manually for FocusTask
         total = len(task.checklist)
         done = sum(1 for item in task.checklist if item.get('done'))
@@ -470,7 +476,7 @@ def planner_stats(request):
         date__in=last_7_days,
         completed_at__isnull=False
     ).count()
-    
+
     # Frog completion rate (last 30 days)
     last_30_days = timezone.now().date() - timedelta(days=30)
     total_frogs = PowerAction.objects.filter(
@@ -478,43 +484,43 @@ def planner_stats(request):
         session__date__gte=last_30_days,
         is_frog=True
     ).count()
-    
+
     completed_frogs = PowerAction.objects.filter(
         session__user=request.user,
         session__date__gte=last_30_days,
         is_frog=True,
         status='DONE'
     ).count()
-    
+
     frog_completion_rate = (completed_frogs / total_frogs * 100) if total_frogs > 0 else 0
-    
+
     # Vision progress
     visions = LifeVision.objects.filter(user=request.user).values('title', 'progress_pct', 'scope')
-    
+
     # Habit streaks (simplified - consecutive days)
     habits = ExecutiveHabit.objects.filter(user=request.user, is_active=True)
     habit_stats = []
-    
+
     for habit in habits:
         # Get last completion
         last_completion = HabitCompletion.objects.filter(
             habit=habit
         ).order_by('-completed_date').first()
-        
+
         # Count completions this month
         this_month_start = timezone.now().date().replace(day=1)
         completions_this_month = HabitCompletion.objects.filter(
             habit=habit,
             completed_date__gte=this_month_start
         ).count()
-        
+
         habit_stats.append({
             'title': habit.title,
             'frequency': habit.frequency,
             'last_completion': last_completion.completed_date.isoformat() if last_completion else None,
             'completions_this_month': completions_this_month
         })
-    
+
     return JsonResponse({
         'rituals_this_week': rituals_completed,
         'frog_completion_rate': round(frog_completion_rate, 1),
@@ -534,13 +540,13 @@ def planner_stats(request):
 def ai_process_brain_dump(request):
     """
     AI endpoint: Process brain dump text and categorize tasks.
-    
+
     POST /api/v1/planner/ai/process-dump/
     Body: {
         "text": "Brain dump text...",
         "energy_level": 7
     }
-    
+
     Returns: {
         "high_impact": [...],
         "noise": [...],
@@ -550,28 +556,28 @@ def ai_process_brain_dump(request):
     try:
         data = json.loads(request.body)
         text = data.get('text', '')
-        
+
         if not text or not text.strip():
             return JsonResponse({
                 'error': 'Brain dump text is required'
             }, status=400)
-        
+
         # Get user context
         visions = list(
             LifeVision.objects.filter(user=request.user)
             .values_list('title', flat=True)[:5]
         )
-        
+
         user_context = {
             'visions': visions,
             'energy_level': data.get('energy_level', 5)
         }
-        
+
         # Process with AI
         result = PlannerAI.process_brain_dump(text, user_context)
-        
+
         return JsonResponse(result)
-        
+
     except Exception as e:
         return JsonResponse({
             'error': f'Error processing brain dump: {str(e)}'
@@ -583,13 +589,13 @@ def ai_process_brain_dump(request):
 def ai_suggest_frog(request):
     """
     AI endpoint: Suggest which task should be "The Frog".
-    
+
     POST /api/v1/planner/ai/suggest-frog/
     Body: {
         "high_impact_items": [{text: "...", reason: "..."}],
         "energy_level": 7
     }
-    
+
     Returns: {
         "recommended_index": 0,
         "reasoning": "...",
@@ -599,21 +605,21 @@ def ai_suggest_frog(request):
     try:
         data = json.loads(request.body)
         items = data.get('high_impact_items', [])
-        
+
         if not items:
             return JsonResponse({
                 'error': 'No high-impact items provided'
             }, status=400)
-        
+
         user_context = {
             'energy_level': data.get('energy_level', 5)
         }
-        
+
         # Get AI suggestion
         result = PlannerAI.suggest_frog(items, user_context)
-        
+
         return JsonResponse(result)
-        
+
     except Exception as e:
         return JsonResponse({
             'error': f'Error suggesting frog: {str(e)}'
@@ -625,13 +631,13 @@ def ai_suggest_frog(request):
 def ai_generate_micro_steps(request):
     """
     AI endpoint: Generate micro-steps for a task.
-    
+
     POST /api/v1/planner/ai/generate-steps/
     Body: {
         "frog_title": "Task title",
         "context": "Optional context"
     }
-    
+
     Returns: {
         "micro_steps": [
             {text: "Step 1", done: false},
@@ -642,21 +648,21 @@ def ai_generate_micro_steps(request):
     try:
         data = json.loads(request.body)
         frog_title = data.get('frog_title', '')
-        
+
         if not frog_title or not frog_title.strip():
             return JsonResponse({
                 'error': 'Frog title is required'
             }, status=400)
-        
+
         context = data.get('context', '')
-        
+
         # Generate steps with AI
         micro_steps = PlannerAI.generate_micro_steps(frog_title, context)
-        
+
         return JsonResponse({
             'micro_steps': micro_steps
         })
-        
+
     except Exception as e:
         return JsonResponse({
             'error': f'Error generating micro-steps: {str(e)}'
@@ -668,14 +674,14 @@ def ai_generate_micro_steps(request):
 def ai_suggest_time_blocks(request):
     """
     AI endpoint: Suggest optimal time blocks.
-    
+
     POST /api/v1/planner/ai/suggest-time/
     Body: {
         "frog_title": "Task title",
         "energy_level": 7,
         "micro_steps": [...]
     }
-    
+
     Returns: {
         "suggested_start": "09:00",
         "suggested_end": "11:00",
@@ -687,17 +693,17 @@ def ai_suggest_time_blocks(request):
         frog_title = data.get('frog_title', '')
         energy_level = data.get('energy_level', 5)
         micro_steps = data.get('micro_steps', [])
-        
+
         if not frog_title:
             return JsonResponse({
                 'error': 'Frog title is required'
             }, status=400)
-        
+
         # Get AI suggestion
         result = PlannerAI.suggest_time_blocks(frog_title, energy_level, micro_steps)
-        
+
         return JsonResponse(result)
-        
+
     except Exception as e:
         return JsonResponse({
             'error': f'Error suggesting time blocks: {str(e)}'

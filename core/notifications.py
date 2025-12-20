@@ -113,7 +113,7 @@ def notify_damage_reported(damage_report, reporter):
     link = reverse("damage_report_detail", args=[damage_report.id])
     pms = User.objects.filter(profile__role="project_manager", is_active=True)
     staff = User.objects.filter(is_staff=True, is_active=True)
-    for u in set(list(pms) | set(list(staff))):
+    for u in set(list(pms) | set(staff)):
         Notification.objects.create(
             user=u,
             notification_type="damage_reported",

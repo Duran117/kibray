@@ -5,8 +5,8 @@ Verifica función por función si está implementada al 100%
 """
 
 import os
-import re
 from pathlib import Path
+import re
 
 # Estructura esperada para cada función
 VALIDATION_CHECKLIST = {

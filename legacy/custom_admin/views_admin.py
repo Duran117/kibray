@@ -16,8 +16,18 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from core.models import ChangeOrder, Expense, FloorPlan, Income, Profile, Project, Schedule, Task, TimeEntry
 from core import views as core_views
+from core.models import (
+    ChangeOrder,
+    Expense,
+    FloorPlan,
+    Income,
+    Profile,
+    Project,
+    Schedule,
+    Task,
+    TimeEntry,
+)
 
 
 def admin_required(view_func):

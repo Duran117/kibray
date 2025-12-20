@@ -12,6 +12,7 @@ from core.models import (
     PlannedActivity,
     Project,
     ProjectInventory,
+    ResourceAssignment,
 )
 
 
@@ -88,7 +89,7 @@ def test_material_check_shortage():
 def test_employee_dashboard_filters_projects_by_daily_plan_assignment():
     """
     Phase 1: Employee dashboard should only show projects where employee
-    is assigned via PlannedActivity for today's date.
+    is assigned via ResourceAssignment for today's date.
     """
     from django.test import Client
     
@@ -118,7 +119,7 @@ def test_employee_dashboard_filters_projects_by_daily_plan_assignment():
     project_a = Project.objects.create(name="Proyecto A", start_date=date.today())
     project_b = Project.objects.create(name="Proyecto B", start_date=date.today())
     
-    # Create today's daily plan for Project A with César assigned
+    # Create today's daily plan for Project A with César assigned (planning only)
     today = date.today()
     plan_a = DailyPlan.objects.create(
         project=project_a,
@@ -134,9 +135,9 @@ def test_employee_dashboard_filters_projects_by_daily_plan_assignment():
         order=1,
         estimated_hours=8
     )
-    activity_a.assigned_employees.add(cesar)  # César assigned to Project A today
+    activity_a.assigned_employees.add(cesar)
     
-    # Create today's daily plan for Project B WITHOUT Cándido
+    # Create today's daily plan for Project B (planning only)
     plan_b = DailyPlan.objects.create(
         project=project_b,
         plan_date=today,
@@ -151,7 +152,12 @@ def test_employee_dashboard_filters_projects_by_daily_plan_assignment():
         order=1,
         estimated_hours=6
     )
-    activity_b.assigned_employees.add(cesar)  # Only César, not Cándido
+    activity_b.assigned_employees.add(cesar)
+
+    # Source of truth: ResourceAssignment
+    # Dos proyectos en el mismo día requieren turnos (Mañana/Tarde) según validación del modelo
+    ResourceAssignment.objects.create(employee=cesar, project=project_a, date=today, shift="MORNING")
+    ResourceAssignment.objects.create(employee=cesar, project=project_b, date=today, shift="AFTERNOON")
     
     # Test César can see both projects (he's assigned to both)
     client = Client()
@@ -180,7 +186,7 @@ def test_employee_dashboard_filters_projects_by_daily_plan_assignment():
 def test_employee_cannot_checkin_to_unassigned_project():
     """
     Phase 1: Employee should NOT be able to check-in to a project
-    where they're not assigned via PlannedActivity for today.
+    where they're not assigned via ResourceAssignment for today.
     """
     from django.test import Client
     from core.models import TimeEntry, CostCode
@@ -202,7 +208,7 @@ def test_employee_cannot_checkin_to_unassigned_project():
     
     cost_code = CostCode.objects.create(code="LABOR", name="General Labor")
     
-    # José assigned only to Project A today
+    # José assigned only to Project A today (source of truth: ResourceAssignment)
     today = date.today()
     plan_a = DailyPlan.objects.create(
         project=project_a,
@@ -218,6 +224,8 @@ def test_employee_cannot_checkin_to_unassigned_project():
         order=1
     )
     activity.assigned_employees.add(jose)
+
+    ResourceAssignment.objects.create(employee=jose, project=project_a, date=today)
     
     client = Client()
     client.login(username="jose", password="pass")

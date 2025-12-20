@@ -1,16 +1,29 @@
+from dataclasses import dataclass
+from datetime import timedelta
 from decimal import Decimal
-from typing import Dict, Any
+from typing import Any
 
-from django.db.models import Sum
+from django.conf import settings
+from django.core.cache import cache
+from django.db.models import F, Q, Sum
+from django.utils import timezone
 
-from core.models import ChangeOrder
+from core.models import (
+    ChangeOrder,
+    Expense,
+    Invoice,
+    PayrollRecord,
+    Project,
+    ProjectInventory,
+    TimeEntry,
+)
 
 
 class ChangeOrderService:
     """Financial helper for Change Orders including Time & Materials billing calculations."""
 
     @staticmethod
-    def get_billable_amount(change_order: ChangeOrder) -> Dict[str, Any]:
+    def get_billable_amount(change_order: ChangeOrder) -> dict[str, Any]:
         """
         Return billable amount or detailed breakdown depending on pricing type.
         FIXED: returns {'type': 'FIXED', 'total': amount}
@@ -54,26 +67,6 @@ class ChangeOrderService:
         }
 
 
-# ============================================================================
-# Module 21: Business Intelligence Financial Analytics Service
-# ============================================================================
-
-from dataclasses import dataclass
-from datetime import timedelta
-from django.utils import timezone
-from django.db.models import F, Q
-from django.core.cache import cache
-from django.conf import settings
-from core.models import (
-    Project,
-    Invoice,
-    Expense,
-    TimeEntry,
-    PayrollRecord,
-    ProjectInventory,
-)
-
-
 @dataclass
 class CashFlowProjectionRow:
     label: str
@@ -101,7 +94,7 @@ class FinancialAnalyticsService:
         self.as_of = as_of or timezone.localdate()
 
     # Cash Flow Projection -------------------------------------------------
-    def get_cash_flow_projection(self, days: int = 30) -> Dict[str, Any]:
+    def get_cash_flow_projection(self, days: int = 30) -> dict[str, Any]:
         cache_key = f"fa:cashflow:{self.as_of.isoformat()}:{days}"
         cached = cache.get(cache_key)
         if cached:
@@ -116,7 +109,7 @@ class FinancialAnalyticsService:
             .values("due_date")
             .annotate(amount=Sum("total_amount"))
         )
-        income_by_week: Dict[str, Decimal] = {}
+        income_by_week: dict[str, Decimal] = {}
         for inv in invoices:
             due = inv["due_date"]
             wk = f"W{due.isocalendar().week}"
@@ -154,12 +147,12 @@ class FinancialAnalyticsService:
         return payload
 
     # Project Margins ------------------------------------------------------
-    def get_project_margins(self) -> list[Dict[str, Any]]:
+    def get_project_margins(self) -> list[dict[str, Any]]:
         cache_key = "fa:project_margins"
         cached = cache.get(cache_key)
         if cached:
             return cached
-        data: list[Dict[str, Any]] = []
+        data: list[dict[str, Any]] = []
         for p in Project.objects.filter(is_archived=False).order_by("name"):
             invoiced = p.invoices.aggregate(t=Sum("total_amount"))["t"] or Decimal("0")
             labor_cost = (
@@ -187,7 +180,7 @@ class FinancialAnalyticsService:
         return data
 
     # Company Health KPIs --------------------------------------------------
-    def get_company_health_kpis(self) -> Dict[str, Any]:
+    def get_company_health_kpis(self) -> dict[str, Any]:
         cache_key = f"fa:kpis:{self.as_of.isoformat()}"
         cached = cache.get(cache_key)
         if cached:
@@ -196,7 +189,7 @@ class FinancialAnalyticsService:
         expense_sum = Project.objects.aggregate(t=Sum("total_expenses"))["t"] or Decimal("0")
         net_profit = income_sum - expense_sum
         # Refined receivables: optimized with DB expression (balance > 0)
-        from django.db.models import Case, When, Value, DecimalField
+        from django.db.models import Case, DecimalField, Value, When
         receivables_qs = Invoice.objects.filter(status__in=self.COLLECTIBLE_INVOICE_STATUSES).aggregate(
             remaining=Sum(
                 Case(
@@ -224,12 +217,12 @@ class FinancialAnalyticsService:
         return data
 
     # Inventory Risk -------------------------------------------------------
-    def get_inventory_risk_items(self) -> list[Dict[str, Any]]:
+    def get_inventory_risk_items(self) -> list[dict[str, Any]]:
         cache_key = "fa:inventory_risk"
         cached = cache.get(cache_key)
         if cached:
             return cached
-        items: list[Dict[str, Any]] = []
+        items: list[dict[str, Any]] = []
         for s in ProjectInventory.objects.select_related("item", "location", "location__project").all():
             threshold = s.threshold() or s.item.get_effective_threshold()
             if threshold and s.quantity < threshold:
@@ -249,7 +242,7 @@ class FinancialAnalyticsService:
         return items
 
     # Top Performing Employees --------------------------------------------
-    def get_top_performing_employees(self, limit: int = 5) -> list[Dict[str, Any]]:
+    def get_top_performing_employees(self, limit: int = 5) -> list[dict[str, Any]]:
         start = self.as_of.replace(day=1)
         end = self.as_of
         entries = (
