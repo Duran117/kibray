@@ -374,8 +374,9 @@ PRESET_PRODUCTS = [
 def dashboard_admin(request):
     """Dashboard completo para Admin con todas las métricas, alertas y aprobaciones"""
     if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, _("Acceso solo para Admin/Staff."))
-        return redirect("dashboard")
+        # Never render/redirect into a view that could show privileged data.
+        # Return 403 immediately to avoid any transient exposure.
+        return HttpResponseForbidden("Forbidden")
 
     today = timezone.localdate()
     now = timezone.localtime()
