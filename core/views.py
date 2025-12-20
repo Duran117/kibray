@@ -5475,10 +5475,8 @@ def dashboard_employee(request):
         "form_errors": form.errors if request.method == "POST" else None,
     }
 
-    # Use clean template by default, legacy with ?legacy=true
-    use_legacy = request.GET.get("legacy")
-    template_name = "core/dashboard_employee.html" if use_legacy else "core/dashboard_employee_clean.html"
-    return render(request, template_name, context)
+    # Use legacy template only (clean version removed)
+    return render(request, "core/dashboard_employee.html", context)
 
 
 # --- DASHBOARD PM ---
