@@ -122,11 +122,14 @@ class ProjectAdmin(admin.ModelAdmin):
 
 
 @admin.register(ResourceAssignment)
+@admin.register(ResourceAssignment)
 class ResourceAssignmentAdmin(admin.ModelAdmin):
-    list_display = ("date", "employee", "project", "shift")
+    list_display = ("date", "employee", "project", "shift", "role")
     search_fields = ("employee__first_name", "employee__last_name", "project__name")
-    list_filter = ("date", "shift")
+    list_filter = ("date", "shift", "project")
     autocomplete_fields = ("employee", "project")
+    date_hierarchy = "date"
+    ordering = ("-date",)
 
 
 # Registro de Horas
