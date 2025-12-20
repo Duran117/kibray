@@ -878,6 +878,10 @@ def dashboard_view(request):
     profile = getattr(user, "profile", None)
     role = getattr(profile, "role", None)
 
+    # Check if user has an Employee record (priority for employee redirect)
+    from core.models import Employee
+    has_employee = Employee.objects.filter(user=user).exists()
+
     # Redirect based on role
     if user.is_superuser or (profile and role == "admin"):
         return redirect("dashboard_admin")
@@ -891,6 +895,9 @@ def dashboard_view(request):
     elif profile and role == "designer":
         return redirect("dashboard_designer")
     # Rol superintendente ya cubierto arriba por cliente/builder unificado
+    # PRIORITY FIX: If user has Employee record, always go to employee dashboard
+    elif has_employee:
+        return redirect("dashboard_employee")
     else:
         # Default: check if user is staff -> PM dashboard, otherwise employee
         if user.is_staff:
