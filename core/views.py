@@ -5444,12 +5444,14 @@ def dashboard_employee(request):
         "available_projects_count": available_projects_count,
         "available_projects_preview": available_projects_preview,
         "clock_in_mode": clock_in_mode,  # ← Nuevo: indica el modo de clock-in
+        "allow_all_projects": allow_override,
         "disable_notification_center": True,  # Desactivar React NotificationCenter en esta página
         "form_errors": form.errors if request.method == "POST" else None,
     }
 
-    # Use legacy template only (clean version removed)
-    return render(request, "core/dashboard_employee.html", context)
+    # Always use the modern (clean) employee dashboard.
+    # The legacy template is intentionally not used.
+    return render(request, "core/dashboard_employee_clean.html", context)
 
 
 # --- DASHBOARD PM ---
