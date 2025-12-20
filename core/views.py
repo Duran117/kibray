@@ -5217,26 +5217,51 @@ def dashboard_employee(request):
         .select_related("project")
         .order_by("date")[:5]
     )
-    my_projects_today = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
+    
+    # Proyectos asignados específicamente para hoy
+    projects_from_assignments = Project.objects.filter(resource_assignments__in=assignments_today).distinct()
+    
+    # Proyectos activos donde el empleado ha trabajado recientemente (últimos 30 días)
+    recent_cutoff = today - timedelta(days=30)
+    projects_from_recent_work = Project.objects.filter(
+        timeentry__employee=employee,
+        timeentry__date__gte=recent_cutoff,
+        is_archived=False
+    ).distinct()
+    
+    # Proyectos activos sin fecha de fin (considerados en curso)
+    active_projects = Project.objects.filter(
+        end_date__isnull=True,
+        is_archived=False
+    ).distinct()
+    
+    # Combinar todas las fuentes de proyectos válidos
+    my_projects_combined = (projects_from_assignments | projects_from_recent_work | active_projects).distinct()
+    
     has_assignments_today = assignments_today.exists()
+    has_any_valid_projects = my_projects_combined.exists()
 
-    # === VALIDACIÓN 3: Proyectos permitidos para clock-in (RESTRICCIÓN ESTRICTA) ===
+    # === VALIDACIÓN 3: Proyectos permitidos para clock-in (POLÍTICA MEJORADA) ===
     # Override solo para staff/admin (no para empleados regulares)
     allow_override = (request.GET.get("all_projects") == "1" or request.POST.get("all_projects") == "1") and request.user.is_staff
     
-    # Determinar proyectos disponibles según política estricta
+    # Determinar proyectos disponibles según política mejorada
     if allow_override:
         # Staff/Admin puede ver todos los proyectos
-        available_projects = Project.objects.all()
+        available_projects = Project.objects.filter(is_archived=False)
         clock_in_mode = "override_admin"
     elif has_assignments_today:
-        # Empleado con asignaciones: SOLO proyectos asignados hoy
-        available_projects = my_projects_today
-        clock_in_mode = "assigned"
+        # Empleado con asignaciones HOY: priorizar esos proyectos
+        available_projects = projects_from_assignments
+        clock_in_mode = "assigned_today"
+    elif has_any_valid_projects:
+        # Empleado sin asignación hoy pero con proyectos válidos: permitir trabajar en ellos
+        available_projects = my_projects_combined
+        clock_in_mode = "recent_or_active"
     else:
-        # Empleado SIN asignaciones: lista vacía (flujo de excepción)
-        available_projects = Project.objects.none()
-        clock_in_mode = "no_assignments"
+        # Empleado SIN proyectos válidos: permitir proyectos activos como fallback
+        available_projects = active_projects
+        clock_in_mode = "fallback_active"
     
     available_projects_count = available_projects.count()
     available_projects_preview = list(available_projects[:5])
@@ -5307,17 +5332,16 @@ def dashboard_employee(request):
                 # Recalcular proyectos permitidos (no confiar solo en UI)
                 if request.user.is_staff:
                     # Staff puede clock-in en cualquier proyecto
+                    logger.info(f"[Clock-in] ALLOWED: Staff user")
                     pass
-                elif has_assignments_today:
-                    # Empleado debe estar asignado HOY a este proyecto
-                    if selected_project not in my_projects_today:
-                        messages.error(request, f"❌ No estás asignado al proyecto '{selected_project.name}' hoy. Contacta a tu supervisor.")
-                        logger.warning(f"Clock-in denied: employee={employee.id} tried project={selected_project.id} without assignment")
-                        return redirect("dashboard_employee")
+                elif selected_project in available_projects:
+                    # Empleado seleccionó un proyecto de la lista permitida
+                    logger.info(f"[Clock-in] ALLOWED: Project in available list (mode={clock_in_mode})")
+                    pass
                 else:
-                    # Sin asignaciones: no permitir clock-in normal (requiere flujo de excepción)
-                    messages.error(request, "❌ No tienes asignaciones para hoy. Contacta a tu supervisor para que te asigne a un proyecto.")
-                    logger.warning(f"Clock-in denied: employee={employee.id} has no assignments today")
+                    # Proyecto no permitido
+                    messages.error(request, f"❌ No tienes permiso para trabajar en el proyecto '{selected_project.name}'. Contacta a tu supervisor.")
+                    logger.warning(f"Clock-in denied: employee={employee.id} tried project={selected_project.id} not in available list")
                     return redirect("dashboard_employee")
                 
                 # Si pasa validación, crear TimeEntry

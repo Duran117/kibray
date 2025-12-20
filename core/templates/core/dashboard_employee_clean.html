@@ -34,42 +34,83 @@
 </div>
 {% else %}
 
-<!-- Today's Assignments (visibility/debug) -->
-{% if assignments_today %}
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+<!-- Today's Assignments & Available Projects -->
+{% if clock_in_mode == "assigned_today" %}
+<div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
     <div class="flex items-center gap-3">
-        <i class="bi bi-people text-blue-600 text-2xl"></i>
+        <i class="bi bi-check-circle-fill text-green-600 text-2xl"></i>
         <div>
-            <h5 class="text-blue-900 font-semibold">{% trans "Today's Assignments" %}</h5>
-            <p class="text-blue-800 text-sm mt-1">{% trans "Projects assigned for today" %}</p>
+            <h5 class="text-green-900 font-semibold">✅ {% trans "You have project assignments for today" %}</h5>
+            <p class="text-green-800 text-sm mt-1">
+                {% blocktrans count counter=available_projects_count %}
+                You can clock in to {{ counter }} assigned project.
+                {% plural %}
+                You can clock in to {{ counter }} assigned projects.
+                {% endblocktrans %}
+            </p>
         </div>
     </div>
+    {% if assignments_today %}
     <div class="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
         {% for a in assignments_today %}
-        <div class="p-3 rounded-lg bg-white border border-blue-100">
+        <div class="p-3 rounded-lg bg-white border border-green-100">
             <div class="font-semibold text-slate-900">{{ a.project.name }}</div>
-            <div class="text-sm text-slate-600">{{ a.date }} · {{ a.get_shift_display }}</div>
+            <div class="text-sm text-slate-600">{{ a.get_shift_display }}</div>
         </div>
         {% endfor %}
     </div>
+    {% endif %}
 </div>
-{% else %}
-<div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+
+{% elif clock_in_mode == "recent_or_active" %}
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
     <div class="flex items-center gap-3">
-        <i class="bi bi-info-circle text-amber-600 text-2xl"></i>
+        <i class="bi bi-info-circle text-blue-600 text-2xl"></i>
         <div>
-            <h5 class="text-amber-900 font-semibold">{% trans "No assignments for today" %}</h5>
-            <p class="text-amber-800 text-sm mt-1">{% trans "Contact your supervisor to be assigned to a project" %}</p>
+            <h5 class="text-blue-900 font-semibold">ℹ️ {% trans "No specific assignment for today" %}</h5>
+            <p class="text-blue-800 text-sm mt-1">
+                {% blocktrans count counter=available_projects_count %}
+                You can clock in to {{ counter }} project based on your recent work or active projects.
+                {% plural %}
+                You can clock in to {{ counter }} projects based on your recent work or active projects.
+                {% endblocktrans %}
+            </p>
             {% if upcoming_assignments %}
-            <p class="text-amber-800 text-sm mt-2">
-                {% trans "Upcoming assignments" %}:
-                <ul class="list-disc list-inside text-amber-900">
-                {% for a in upcoming_assignments %}
-                    <li>{{ a.date }} · {{ a.project.name }} ({{ a.get_shift_display }})</li>
+            <p class="text-blue-800 text-sm mt-2">
+                <strong>{% trans "Upcoming assignments" %}:</strong>
+                {% for a in upcoming_assignments|slice:":3" %}
+                    {{ a.date|date:"M d" }} · {{ a.project.name }}{% if not forloop.last %}, {% endif %}
                 {% endfor %}
-                </ul>
             </p>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+{% elif clock_in_mode == "fallback_active" %}
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle text-amber-600 text-2xl"></i>
+        <div>
+            <h5 class="text-amber-900 font-semibold">⚠️ {% trans "No recent work found" %}</h5>
+            <p class="text-amber-800 text-sm mt-1">
+                {% blocktrans count counter=available_projects_count %}
+                You can clock in to {{ counter }} active project. If this is incorrect, contact your supervisor.
+                {% plural %}
+                You can clock in to {{ counter }} active projects. If this is incorrect, contact your supervisor.
+                {% endblocktrans %}
+            </p>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-x-circle text-red-600 text-2xl"></i>
+        <div>
+            <h5 class="text-red-900 font-semibold">❌ {% trans "No projects available" %}</h5>
+            <p class="text-red-800 text-sm mt-1">{% trans "Contact your supervisor to be assigned to a project" %}</p>
         </div>
     </div>
 </div>
@@ -95,24 +136,24 @@
         <h4 class="text-2xl font-bold text-slate-900 mb-6">{% trans "Clock In" %}</h4>
 
         <!-- Estado según modo de clock-in -->
-        {% if clock_in_mode == "no_assignments" %}
-        <!-- SIN ASIGNACIONES: Flujo de excepción -->
-        <div class="bg-amber-50 border border-amber-300 rounded-lg p-6 mb-4">
+        {% if available_projects_count == 0 %}
+        <!-- SIN PROYECTOS DISPONIBLES -->
+        <div class="bg-red-50 border border-red-300 rounded-lg p-6 mb-4">
             <div class="flex items-start gap-3 mb-4">
-                <i class="bi bi-exclamation-triangle text-amber-600 text-3xl"></i>
+                <i class="bi bi-x-circle text-red-600 text-3xl"></i>
                 <div>
-                    <h5 class="text-lg font-bold text-amber-900 mb-2">No tienes asignaciones para hoy</h5>
-                    <p class="text-amber-800 text-sm">
-                        No puedes hacer clock-in sin una asignación de proyecto. 
-                        <strong>Contacta a tu supervisor</strong> para que te asigne a un proyecto antes de comenzar a trabajar.
+                    <h5 class="text-lg font-bold text-red-900 mb-2">{% trans "No projects available" %}</h5>
+                    <p class="text-red-800 text-sm">
+                        {% trans "You cannot clock in without a project assignment." %}
+                        <strong>{% trans "Contact your supervisor" %}</strong> {% trans "to be assigned to a project before starting work." %}
                     </p>
                 </div>
             </div>
             
             {% if upcoming_assignments %}
-            <div class="mt-4 pt-4 border-t border-amber-200">
-                <p class="text-sm font-semibold text-amber-900 mb-2">📅 Tus próximas asignaciones:</p>
-                <ul class="text-sm text-amber-800 space-y-1">
+            <div class="mt-4 pt-4 border-t border-red-200">
+                <p class="text-sm font-semibold text-red-900 mb-2">📅 {% trans "Your upcoming assignments" %}:</p>
+                <ul class="text-sm text-red-800 space-y-1">
                 {% for a in upcoming_assignments %}
                     <li>• {{ a.date|date:"D, M d" }} - {{ a.project.name }} ({{ a.get_shift_display }})</li>
                 {% endfor %}
@@ -121,12 +162,30 @@
             {% endif %}
         </div>
         
-        {% elif clock_in_mode == "assigned" %}
-        <!-- CON ASIGNACIONES: Mostrar proyectos asignados -->
+        {% elif clock_in_mode == "assigned_today" %}
+        <!-- CON ASIGNACIONES HOY: Mostrar proyectos asignados -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-900">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-check-circle-fill text-green-600 text-lg"></i>
+                <span>{% trans "Showing your assigned projects for today" %} ({{ available_projects_count }}).</span>
+            </div>
+        </div>
+
+        {% elif clock_in_mode == "recent_or_active" %}
+        <!-- PROYECTOS RECIENTES O ACTIVOS -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-900">
             <div class="flex items-center gap-2">
-                <i class="bi bi-shield-check text-blue-600 text-lg"></i>
-                <span>Mostrando tus proyectos asignados para hoy ({{ available_projects_count }}).</span>
+                <i class="bi bi-info-circle text-blue-600 text-lg"></i>
+                <span>{% trans "Showing projects based on your recent work" %} ({{ available_projects_count }}).</span>
+            </div>
+        </div>
+
+        {% elif clock_in_mode == "fallback_active" %}
+        <!-- FALLBACK: PROYECTOS ACTIVOS -->
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-sm text-amber-900">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-exclamation-triangle text-amber-600 text-lg"></i>
+                <span>{% trans "Showing active projects. Contact your supervisor if this is incorrect" %} ({{ available_projects_count }}).</span>
             </div>
         </div>
 
@@ -135,26 +194,13 @@
         <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 text-sm text-purple-900">
             <div class="flex items-center gap-2">
                 <i class="bi bi-shield-fill-exclamation text-purple-600 text-lg"></i>
-                <span><strong>Modo Admin:</strong> Puedes ver todos los proyectos ({{ available_projects_count }}).</span>
+                <span><strong>{% trans "Admin Mode" %}:</strong> {% trans "You can see all projects" %} ({{ available_projects_count }}).</span>
             </div>
         </div>
         {% endif %}
 
         <!-- Formulario solo si hay proyectos disponibles -->
-        {% if available_projects_count == 0 %}
-        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
-            <strong>⚠️ No hay proyectos disponibles para clock-in.</strong>
-        </div>
-        {% else %}
-        <div class="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-3 mb-4 text-xs text-slate-600">
-            <strong>Debug:</strong> Proyectos disponibles (máx 5):
-            <ul class="list-disc list-inside">
-                {% for p in available_projects_preview %}
-                <li>{{ p.id }} · {{ p.name }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
+        {% if available_projects_count > 0 %}
 
         {% if form.errors %}
         <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
