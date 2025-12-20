@@ -5183,8 +5183,8 @@ def dashboard_employee(request):
     employee = Employee.objects.filter(user=request.user).first()
     if not employee:
         messages.error(request, "Tu usuario no está vinculado a un empleado.")
-        template_name = "core/dashboard_employee.html" if force_legacy else "core/dashboard_employee_clean.html"
-        return render(request, template_name, {"employee": None, "badges": {"unread_notifications_count": 0}})
+        # NOTE: keep legacy template only (clean template was removed)
+        return render(request, "core/dashboard_employee.html", {"employee": None, "badges": {"unread_notifications_count": 0}})
 
     today = timezone.localdate()
     now = timezone.localtime()
@@ -5238,12 +5238,20 @@ def dashboard_employee(request):
             if form.is_valid():
                 project = form.cleaned_data["project"]
                 
-                # ✅ VALIDACIÓN: ¿Está asignado a este proyecto HOY?
-                is_assigned_today = PlannedActivity.objects.filter(
-                    daily_plan__plan_date=today,
-                    daily_plan__project=project,
-                    assigned_employees=employee
-                ).exists()
+                # ✅ VALIDACIÓN (Regla A): solo si está asignado HOY.
+                # Acepta asignación por Daily Plan o por ResourceAssignment.
+                is_assigned_today = (
+                    PlannedActivity.objects.filter(
+                        daily_plan__plan_date=today,
+                        daily_plan__project=project,
+                        assigned_employees=employee,
+                    ).exists()
+                    or ResourceAssignment.objects.filter(
+                        employee=employee,
+                        project=project,
+                        date=today,
+                    ).exists()
+                )
                 
                 if not is_assigned_today:
                     messages.error(
@@ -5277,27 +5285,21 @@ def dashboard_employee(request):
             )
             return redirect("dashboard_employee")
 
-    # ✅ Obtener proyectos donde está asignado HOY (TODAS las fuentes)
+    # ✅ Obtener proyectos donde está asignado HOY (Regla A: solo asignados hoy)
     # Fuente 1: ResourceAssignment directo
     projects_from_assignments = Project.objects.filter(
         resource_assignments__employee=employee,
-        resource_assignments__date=today
+        resource_assignments__date=today,
     )
-    
+
     # Fuente 2: DailyPlan activities
     projects_from_daily_plan = Project.objects.filter(
         daily_plans__plan_date=today,
-        daily_plans__activities__assigned_employees=employee
+        daily_plans__activities__assigned_employees=employee,
     )
-    
-    # Fuente 3: Trabajo reciente (últimos 7 días) como fallback
-    projects_from_recent_work = Project.objects.filter(
-        timeentry__employee=employee,
-        timeentry__date__gte=today - timedelta(days=7)
-    )
-    
-    # Combinar todas las fuentes (unión)
-    my_projects_today = (projects_from_assignments | projects_from_daily_plan | projects_from_recent_work).distinct()
+
+    # Combinar ambas fuentes (unión)
+    my_projects_today = (projects_from_assignments | projects_from_daily_plan).distinct()
 
     # GET o POST inválido - crear form con proyectos filtrados
     form = ClockInForm(available_projects=my_projects_today)

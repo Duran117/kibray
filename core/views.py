@@ -11,6 +11,7 @@ from django.contrib import messages
 import logging
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core import signing
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
