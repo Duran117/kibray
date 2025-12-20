@@ -5281,13 +5281,6 @@ def dashboard_employee(request):
         daily_plans__plan_date=today,
         daily_plans__activities__assigned_employees=employee
     ).distinct()
-    
-    # 🐛 DEBUG: Log projects for troubleshooting
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.info(f"🔍 EMPLOYEE DEBUG | User: {request.user.username} | Employee: {employee}")
-    logger.info(f"🔍 Projects from daily_plans: {list(my_projects_today.values_list('name', flat=True))}")
-    logger.info(f"🔍 Projects count: {my_projects_today.count()}")
 
     # GET o POST inválido - crear form con proyectos filtrados
     form = ClockInForm(available_projects=my_projects_today)
@@ -5350,36 +5343,6 @@ def dashboard_employee(request):
     
     # Mensaje si no tiene asignaciones hoy
     has_assignments_today = my_projects_today.exists()
-    
-    # ✅ Calcular clock_in_mode para template limpio
-    available_projects_count = my_projects_today.count()
-    
-    # Obtener asignaciones de hoy para mostrar
-    assignments_today = ResourceAssignment.objects.filter(
-        employee=employee,
-        date=today
-    ).select_related('project')
-    
-    # Determinar modo de clock-in
-    if assignments_today.exists():
-        clock_in_mode = "assigned_today"
-    elif recent.exists():
-        # Tiene trabajo reciente pero no asignaciones hoy
-        clock_in_mode = "fallback_recent"
-        # Obtener proyectos de trabajo reciente (últimos 7 días)
-        recent_projects = Project.objects.filter(
-            timeentry__employee=employee,
-            timeentry__date__gte=today - timedelta(days=7)
-        ).distinct()
-        available_projects_count = recent_projects.count()
-    elif Project.objects.filter(is_active=True).exists():
-        # Fallback: proyectos activos
-        clock_in_mode = "fallback_active"
-        active_projects = Project.objects.filter(is_active=True)
-        available_projects_count = active_projects.count()
-    else:
-        clock_in_mode = "no_projects"
-        available_projects_count = 0
 
     context = {
         "employee": employee,
@@ -5394,18 +5357,13 @@ def dashboard_employee(request):
         "my_touchups": my_touchups,
         "morning_briefing": morning_briefing,
         "active_filter": active_filter,
-        "badges": {"unread_notifications_count": 0},  # Placeholder
-        "my_projects_today": my_projects_today,  # ✅ NUEVO
-        "has_assignments_today": has_assignments_today,  # ✅ NUEVO
-        # Variables para template limpio
-        "clock_in_mode": clock_in_mode,
-        "available_projects_count": available_projects_count,
-        "assignments_today": assignments_today,
+        "badges": {"unread_notifications_count": 0},
+        "my_projects_today": my_projects_today,
+        "has_assignments_today": has_assignments_today,
     }
 
-    # TEMPORARY FIX: Use legacy template until clean template cache is cleared
-    # The clean template has a cached compilation error in Railway
-    template_name = "core/dashboard_employee_clean.html"  # Try clean template again with debug
+    # Use legacy template (stable version)
+    template_name = "core/dashboard_employee.html"
     return render(request, template_name, context)
 
 
