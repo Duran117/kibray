@@ -9,9 +9,17 @@ from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# HOTFIX: Disable template caching temporarily to force recompile
+# This ensures the fixed template syntax is loaded immediately
+TEMPLATES[0]['OPTIONS']['loaders'] = [
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+]
+
 # Add startup logging
 print("=" * 60)
 print("🚀 STARTING KIBRAY IN PRODUCTION MODE")
+print("⚠️  TEMPLATE CACHING DISABLED (temporary hotfix)")
 print("=" * 60)
 
 # SECRET_KEY must be set in environment variables
