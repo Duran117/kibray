@@ -5239,19 +5239,12 @@ def dashboard_employee(request):
                 project = form.cleaned_data["project"]
                 
                 # ✅ VALIDACIÓN (Regla A): solo si está asignado HOY.
-                # Acepta asignación por Daily Plan o por ResourceAssignment.
-                is_assigned_today = (
-                    PlannedActivity.objects.filter(
-                        daily_plan__plan_date=today,
-                        daily_plan__project=project,
-                        assigned_employees=employee,
-                    ).exists()
-                    or ResourceAssignment.objects.filter(
-                        employee=employee,
-                        project=project,
-                        date=today,
-                    ).exists()
-                )
+                # SOURCE OF TRUTH: ResourceAssignment.
+                is_assigned_today = ResourceAssignment.objects.filter(
+                    employee=employee,
+                    project=project,
+                    date=today,
+                ).exists()
                 
                 if not is_assigned_today:
                     messages.error(
@@ -5285,21 +5278,12 @@ def dashboard_employee(request):
             )
             return redirect("dashboard_employee")
 
-    # ✅ Obtener proyectos donde está asignado HOY (Regla A: solo asignados hoy)
-    # Fuente 1: ResourceAssignment directo
-    projects_from_assignments = Project.objects.filter(
+    # ✅ Obtener proyectos donde está asignado HOY (SOURCE OF TRUTH: ResourceAssignment)
+    # Nota: DailyPlan NO define asignación de proyectos; solo planificación.
+    my_projects_today = Project.objects.filter(
         resource_assignments__employee=employee,
         resource_assignments__date=today,
-    )
-
-    # Fuente 2: DailyPlan activities
-    projects_from_daily_plan = Project.objects.filter(
-        daily_plans__plan_date=today,
-        daily_plans__activities__assigned_employees=employee,
-    )
-
-    # Combinar ambas fuentes (unión)
-    my_projects_today = (projects_from_assignments | projects_from_daily_plan).distinct()
+    ).distinct()
 
     # GET o POST inválido - crear form con proyectos filtrados
     form = ClockInForm(available_projects=my_projects_today)
