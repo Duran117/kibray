@@ -1,0 +1,667 @@
+{# Employee Dashboard - Fixed template syntax issue Dec 19 2025 #}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Employee Dashboard" %} - Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-person-workspace text-2xl"></i>
+        </div>
+        <div>
+            {% if employee %}
+            <h1 class="text-3xl font-bold text-slate-900">{% trans "Hello" %}, {{ employee.first_name }}!</h1>
+            {% else %}
+            <h1 class="text-3xl font-bold text-slate-900">{% trans "Employee Dashboard" %}</h1>
+            {% endif %}
+            <p class="text-slate-600 mt-1">{{ today|date:"l, F d, Y" }} · {{ now|date:"g:i A" }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if not employee %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-red-600 text-2xl"></i>
+        <div>
+            <h5 class="text-red-900 font-semibold">{% trans "Not Linked to Employee" %}</h5>
+            <p class="text-red-700 text-sm mt-1">{% trans "Please ask your admin to assign you to an employee profile" %}</p>
+        </div>
+    </div>
+</div>
+{% else %}
+
+<!-- Today's Assignments & Available Projects -->
+{% if clock_in_mode == "assigned_today" %}
+<div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-check-circle-fill text-green-600 text-2xl"></i>
+        <div>
+            <h5 class="text-green-900 font-semibold">✅ {% trans "You have project assignments for today" %}</h5>
+            <p class="text-green-800 text-sm mt-1">
+                {% blocktrans count counter=available_projects_count %}
+                You can clock in to {{ counter }} assigned project.
+                {% plural %}
+                You can clock in to {{ counter }} assigned projects.
+                {% endblocktrans %}
+            </p>
+        </div>
+    </div>
+    {% if assignments_today %}
+    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        {% for a in assignments_today %}
+        <div class="p-3 rounded-lg bg-white border border-green-100">
+            <div class="font-semibold text-slate-900">{{ a.project.name }}</div>
+            <div class="text-sm text-slate-600">{{ a.get_shift_display }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% elif clock_in_mode == "recent_or_active" %}
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-info-circle text-blue-600 text-2xl"></i>
+        <div>
+            <h5 class="text-blue-900 font-semibold">ℹ️ {% trans "No specific assignment for today" %}</h5>
+            <p class="text-blue-800 text-sm mt-1">
+                {% blocktrans count counter=available_projects_count %}
+                You can clock in to {{ counter }} project based on your recent work or active projects.
+                {% plural %}
+                You can clock in to {{ counter }} projects based on your recent work or active projects.
+                {% endblocktrans %}
+            </p>
+            {% if upcoming_assignments %}
+            <p class="text-blue-800 text-sm mt-2">
+                <strong>{% trans "Upcoming assignments" %}:</strong>
+                {% for a in upcoming_assignments|slice:":3" %}
+                    {{ a.date|date:"M d" }} · {{ a.project.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% elif clock_in_mode == "fallback_active" %}
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle text-amber-600 text-2xl"></i>
+        <div>
+            <h5 class="text-amber-900 font-semibold">⚠️ {% trans "No recent work found" %}</h5>
+            <p class="text-amber-800 text-sm mt-1">
+                {% blocktrans count counter=available_projects_count %}
+                You can clock in to {{ counter }} active project. If this is incorrect, contact your supervisor.
+                {% plural %}
+                You can clock in to {{ counter }} active projects. If this is incorrect, contact your supervisor.
+                {% endblocktrans %}
+            </p>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-x-circle text-red-600 text-2xl"></i>
+        <div>
+            <h5 class="text-red-900 font-semibold">❌ {% trans "No projects available" %}</h5>
+            <p class="text-red-800 text-sm mt-1">{% trans "Contact your supervisor to be assigned to a project" %}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Clock In/Out Card -->
+{% include "core/components/card.html" %}
+    <div class="text-center py-6">
+        {% if open_entry %}
+        <i class="bi bi-clock-fill text-green-500 text-6xl mb-4"></i>
+        <h4 class="text-2xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
+        <p class="text-slate-600 mb-6">{% trans "Clock in" %}: {{ open_entry.start_time|date:"g:i A" }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_out">
+            <button type="submit" class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition">
+                <i class="bi bi-box-arrow-right mr-2"></i>
+                {% trans "Clock Out" %}
+            </button>
+        </form>
+        {% else %}
+        <i class="bi bi-clock text-indigo-500 text-6xl mb-4"></i>
+        <h4 class="text-2xl font-bold text-slate-900 mb-6">{% trans "Clock In" %}</h4>
+
+        <!-- Estado según modo de clock-in -->
+        {% if available_projects_count == 0 %}
+        <!-- SIN PROYECTOS DISPONIBLES -->
+        <div class="bg-red-50 border border-red-300 rounded-lg p-6 mb-4">
+            <div class="flex items-start gap-3 mb-4">
+                <i class="bi bi-x-circle text-red-600 text-3xl"></i>
+                <div>
+                    <h5 class="text-lg font-bold text-red-900 mb-2">{% trans "No projects available" %}</h5>
+                    <p class="text-red-800 text-sm">
+                        {% trans "You cannot clock in without a project assignment." %}
+                        <strong>{% trans "Contact your supervisor" %}</strong> {% trans "to be assigned to a project before starting work." %}
+                    </p>
+                </div>
+            </div>
+            
+            {% if upcoming_assignments %}
+            <div class="mt-4 pt-4 border-t border-red-200">
+                <p class="text-sm font-semibold text-red-900 mb-2">📅 {% trans "Your upcoming assignments" %}:</p>
+                <ul class="text-sm text-red-800 space-y-1">
+                {% for a in upcoming_assignments %}
+                    <li>• {{ a.date|date:"D, M d" }} - {{ a.project.name }} ({{ a.get_shift_display }})</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% elif clock_in_mode == "assigned_today" %}
+        <!-- CON ASIGNACIONES HOY: Mostrar proyectos asignados -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-900">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-check-circle-fill text-green-600 text-lg"></i>
+                <span>{% trans "Showing your assigned projects for today" %} ({{ available_projects_count }}).</span>
+            </div>
+        </div>
+
+        {% elif clock_in_mode == "recent_or_active" %}
+        <!-- PROYECTOS RECIENTES O ACTIVOS -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-900">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-info-circle text-blue-600 text-lg"></i>
+                <span>{% trans "Showing projects based on your recent work" %} ({{ available_projects_count }}).</span>
+            </div>
+        </div>
+
+        {% elif clock_in_mode == "fallback_active" %}
+        <!-- FALLBACK: PROYECTOS ACTIVOS -->
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-sm text-amber-900">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-exclamation-triangle text-amber-600 text-lg"></i>
+                <span>{% trans "Showing active projects. Contact your supervisor if this is incorrect" %} ({{ available_projects_count }}).</span>
+            </div>
+        </div>
+
+        {% elif clock_in_mode == "override_admin" %}
+        <!-- ADMIN OVERRIDE: Mostrar aviso -->
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 text-sm text-purple-900">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-shield-fill-exclamation text-purple-600 text-lg"></i>
+                <span><strong>{% trans "Admin Mode" %}:</strong> {% trans "You can see all projects" %} ({{ available_projects_count }}).</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Formulario solo si hay proyectos disponibles -->
+        {% if available_projects_count > 0 %}
+
+        {% if form.errors %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
+            <strong>⚠️ Errores de validación:</strong>
+            <ul class="list-disc list-inside mt-1">
+            {% for field, errs in form.errors.items %}
+                <li><strong>{{ field }}:</strong> {{ errs|join:", " }}</li>
+            {% endfor %}
+            </ul>
+            {% if form.non_field_errors %}
+            <div class="mt-2 p-2 bg-red-100 rounded">
+                <strong>Errores generales:</strong> {{ form.non_field_errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="max-w-2xl mx-auto" id="clockInForm" action="{% url 'dashboard_employee' %}" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_in">
+            {% if allow_all_projects %}
+            <input type="hidden" name="all_projects" value="1">
+            {% endif %}
+            
+            <!-- Debug: mostrar estado del formulario -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-xs text-blue-900">
+                <strong>🔍 Debug del formulario:</strong>
+                <ul class="mt-2 space-y-1">
+                    <li><strong>Proyectos en queryset:</strong> {{ form.project.field.queryset.count }}</li>
+                    <li><strong>Empty label:</strong> "{{ form.project.field.empty_label }}"</li>
+                    <li><strong>Required:</strong> {{ form.project.field.required }}</li>
+                    <li><strong>Lista completa de proyectos en selector:</strong>
+                        <ul class="ml-4 mt-1 list-disc list-inside">
+                        {% for proj in form.project.field.queryset %}
+                            <li>ID: {{ proj.id }} - {{ proj.name }}</li>
+                        {% empty %}
+                            <li class="text-red-600">❌ El queryset está vacío!</li>
+                        {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        {% trans "Project" %}: <span class="text-red-600">*</span>
+                    </label>
+                    
+                    <!-- Renderizar select manualmente para más control -->
+                    <select name="project" id="id_project" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">{{ form.project.field.empty_label }}</option>
+                        {% for proj in form.project.field.queryset %}
+                        <option value="{{ proj.id }}">{{ proj.name }} (ID: {{ proj.id }})</option>
+                        {% endfor %}
+                    </select>
+                    
+                    {% if form.project.errors %}
+                    <p class="text-red-600 text-xs mt-1">{{ form.project.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">CO (T&M / Fijo):</label>
+                    {{ form.change_order }}
+                    {% if form.change_order.errors %}
+                    <p class="text-red-600 text-xs mt-1">{{ form.change_order.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Cost Code:</label>
+                    {{ form.cost_code }}
+                </div>
+            </div>
+            <div class="mb-6 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Notes" %} ({% trans "optional" %}):</label>
+                {{ form.notes }}
+            </div>
+            
+            <!-- Test: Mostrar valor seleccionado -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-900">
+                <strong>⚠️ Prueba esto ANTES de hacer Clock In:</strong>
+                <button type="button" onclick="testProjectSelection()" class="ml-2 px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700">
+                    Verificar proyecto seleccionado
+                </button>
+                <div id="testResult" class="mt-2 hidden"></div>
+            </div>
+            
+            <button type="submit" class="w-full md:w-auto px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition">
+                <i class="bi bi-box-arrow-in-right mr-2"></i>
+                {% trans "Clock In" %}
+            </button>
+            
+            <!-- JavaScript mejorado para validar y debugging -->
+            <script>
+            // Proteger contra errores de React
+            (function() {
+                'use strict';
+                
+                function testProjectSelection() {
+                    const projectSelect = document.getElementById('id_project');
+                    const resultDiv = document.getElementById('testResult');
+                    const selectedValue = projectSelect.value;
+                    const selectedText = projectSelect.options[projectSelect.selectedIndex].text;
+                    
+                    resultDiv.classList.remove('hidden');
+                    
+                    if (!selectedValue || selectedValue === '') {
+                        resultDiv.innerHTML = '❌ <strong>ERROR:</strong> No has seleccionado ningún proyecto. Por favor selecciona uno de la lista.';
+                        resultDiv.className = 'mt-2 p-2 bg-red-100 border border-red-300 rounded text-red-800';
+                    } else {
+                        resultDiv.innerHTML = '✅ <strong>CORRECTO:</strong> Has seleccionado el proyecto ID: ' + selectedValue + ' - ' + selectedText;
+                        resultDiv.className = 'mt-2 p-2 bg-green-100 border border-green-300 rounded text-green-800';
+                    }
+                }
+                
+                // Exponer globalmente
+                window.testProjectSelection = testProjectSelection;
+                
+                // Validación del formulario con protección contra errores
+                const form = document.getElementById('clockInForm');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        try {
+                            const projectSelect = document.getElementById('id_project');
+                            const selectedValue = projectSelect ? projectSelect.value : '';
+                            
+                            console.log('[Clock-In] Form submit - Project value:', selectedValue);
+                            
+                            if (!selectedValue || selectedValue === '') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                                
+                                alert('❌ DEBES SELECCIONAR UN PROYECTO\n\nPor favor, abre el menú desplegable de "Project" y selecciona uno de los 4 proyectos disponibles antes de hacer Clock In.');
+                                if (projectSelect) {
+                                    projectSelect.focus();
+                                    projectSelect.style.border = '2px solid red';
+                                }
+                                return false;
+                            }
+                            
+                            // Log para debugging
+                            console.log('[Clock-In] Form data being submitted:', {
+                                project: selectedValue,
+                                action: 'clock_in',
+                                formAction: form.action,
+                                formMethod: form.method
+                            });
+                            
+                            return true;
+                        } catch (error) {
+                            console.error('[Clock-In] Error in form validation:', error);
+                            // Si hay error, permitir el submit de todas formas
+                            return true;
+                        }
+                    }, true); // useCapture = true para ejecutar antes que React
+                }
+            })();
+            </script>
+        </form>
+        {% endif %}
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+
+<!-- My Touch-Ups -->
+{% if my_touchups %}
+{% include "core/components/card.html" %}
+    <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+        <h5 class="text-lg font-semibold text-purple-900 flex items-center gap-2">
+            <i class="bi bi-brush"></i>
+            {% trans "My Assigned Touch-Ups" %}
+        </h5>
+    </div>
+    <div class="space-y-3">
+        {% for task in my_touchups %}
+        <div class="flex justify-between items-start p-3 bg-slate-50 rounded-lg">
+            <div class="flex-1">
+                <h6 class="font-semibold text-slate-900 mb-1">{{ task.title }}</h6>
+                <p class="text-sm text-slate-600">{{ task.project.name }}</p>
+                {% if task.description %}
+                <p class="text-sm text-slate-600 mt-2">{{ task.description|truncatewords:15 }}</p>
+                {% endif %}
+            </div>
+            <div class="flex flex-col items-end gap-2">
+                <span class="px-2 py-0.5 rounded text-xs font-medium {% if task.status == 'Pendiente' %}bg-slate-100 text-slate-800{% elif task.status == 'En Progreso' %}bg-indigo-100 text-indigo-800{% else %}bg-green-100 text-green-800{% endif %}">
+                    {{ task.status }}
+                </span>
+                <a href="{% url 'task_detail' task.id %}" 
+                   class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition">
+                    {% trans "View" %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+{% endif %}
+
+<!-- Hours Summary -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-xl shadow-lg p-6 text-center">
+        <i class="bi bi-calendar-week text-5xl opacity-50 mb-3"></i>
+        <h3 class="text-4xl font-bold mb-2">{{ week_hours|floatformat:1 }}h</h3>
+        <p class="text-white/80">{% trans "This Week" %}</p>
+    </div>
+    <div class="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6 text-center">
+        <i class="bi bi-list-check text-5xl opacity-50 mb-3"></i>
+        <h3 class="text-4xl font-bold mb-2">{{ my_activities|length }}</h3>
+        <p class="text-white/80">{% trans "Tasks Pending Today" %}</p>
+    </div>
+</div>
+
+<!-- What to Do Today -->
+{% if my_activities %}
+{% include "core/components/card.html" %}
+    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+        <h5 class="text-lg font-semibold text-green-900 flex items-center gap-2">
+            <i class="bi bi-list-task"></i>
+            {% trans "What to Do Today" %}
+        </h5>
+    </div>
+    <div class="space-y-3">
+        {% for item in my_activities %}
+        <div class="flex justify-between items-start p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+            <div class="flex-1">
+                <h6 class="font-semibold text-slate-900 mb-1">{{ item.activity.title }}</h6>
+                <p class="text-sm text-slate-600">{{ item.project.name }}</p>
+                {% if item.activity.description %}
+                <p class="text-sm text-slate-600 mt-2">{{ item.activity.description }}</p>
+                {% endif %}
+            </div>
+            <a href="{% url 'activity_complete' item.activity.id %}" 
+               class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition flex items-center gap-1">
+                <i class="bi bi-check-circle"></i>
+                {% trans "Complete" %}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+{% endif %}
+
+<!-- My Schedule Today -->
+{% if my_schedule %}
+{% include "core/components/card.html" %}
+    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-4">
+        <h5 class="text-lg font-semibold text-indigo-900 flex items-center gap-2">
+            <i class="bi bi-calendar-event"></i>
+            {% trans "My Schedule Today" %}
+        </h5>
+    </div>
+    <div class="space-y-3">
+        {% for sched in my_schedule %}
+        <div class="p-3 bg-slate-50 rounded-lg">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <h6 class="font-semibold text-slate-900">{{ sched.title }}</h6>
+                    <p class="text-sm text-slate-600">{{ sched.project.name }}</p>
+                </div>
+                <span class="px-2 py-1 bg-cyan-100 text-cyan-800 rounded text-sm font-medium">
+                    {{ sched.start_datetime|date:"g:i A" }}
+                </span>
+            </div>
+            {% if sched.description %}
+            <p class="text-sm text-slate-600 mt-2">{{ sched.description }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+{% endif %}
+
+<!-- Quick Actions -->
+{% include "core/components/card.html" with title=_("Quick Actions") icon="lightning" %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <a href="{% url 'employee_morning_dashboard' %}" 
+           class="flex items-center justify-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+            <i class="bi bi-sun text-3xl text-yellow-600"></i>
+            <span class="font-medium text-slate-900">{% trans "Morning Plan" %}</span>
+        </a>
+        <a href="{% url 'notifications_list' %}" 
+           class="flex items-center justify-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition relative">
+            <i class="bi bi-bell text-3xl text-indigo-600"></i>
+            <span class="font-medium text-slate-900">{% trans "Notifications" %}</span>
+            {% if badges.unread_notifications_count > 0 %}
+            <span class="absolute top-2 right-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                {{ badges.unread_notifications_count }}
+            </span>
+            {% endif %}
+        </a>
+        <a href="{% url 'task_list_all' %}" 
+           class="flex items-center justify-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+            <i class="bi bi-list-check text-3xl text-green-600"></i>
+            <span class="font-medium text-slate-900">{% trans "My Tasks" %}</span>
+        </a>
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+
+<!-- Materials: Usage & Quick Request (Module 15) -->
+{% include "core/components/card.html" with title=_("Materials") icon="box-seam" %}
+    <div id="materials-card" data-project-id="{% if open_entry and open_entry.project %}{{ open_entry.project.id }}{% endif %}" class="space-y-6">
+        {% if not open_entry %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+            {% trans "Clock in to a project to enable material usage tracking" %}
+        </div>
+        {% endif %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Report Usage -->
+            <div class="p-4 rounded-lg bg-slate-50">
+                <h5 class="font-semibold text-slate-900 mb-3 flex items-center gap-2"><i class="bi bi-droplet-half text-indigo-600"></i> {% trans "Report Usage" %}</h5>
+                <form id="report-usage-form" class="space-y-3">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Item" %}</label>
+                        <select name="item_id" id="usage-item-select" class="w-full rounded border-slate-300">
+                            <option value="" disabled selected>{% trans "Select item" %}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Quantity" %}</label>
+                        <input type="number" step="0.01" min="0" name="quantity" class="w-full rounded border-slate-300" required />
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-semibold">
+                        <i class="bi bi-check2-circle mr-1"></i> {% trans "Submit Usage" %}
+                    </button>
+                </form>
+            </div>
+            <!-- Quick Request -->
+            <div class="p-4 rounded-lg bg-slate-50">
+                <h5 class="font-semibold text-slate-900 mb-3 flex items-center gap-2"><i class="bi bi-cart-plus text-green-600"></i> {% trans "Quick Material Request" %}</h5>
+                <form id="quick-request-form" class="space-y-3">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Item Name" %}</label>
+                        <input type="text" name="item_name" class="w-full rounded border-slate-300" required />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Quantity" %}</label>
+                        <input type="number" step="0.01" min="0" name="quantity" class="w-full rounded border-slate-300" required />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="urgency" id="urgency" class="rounded border-slate-300" />
+                        <label for="urgency" class="text-sm text-slate-700">{% trans "Urgent (needed now)" %}</label>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Notes" %}</label>
+                        <textarea name="notes" rows="2" class="w-full rounded border-slate-300"></textarea>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-semibold">
+                        <i class="bi bi-send mr-1"></i> {% trans "Send Request" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+        <p class="text-xs text-slate-500">{% trans "Usage reduces project stock immediately and notifies PMs." %}</p>
+    </div>
+    <script>
+    (function(){
+        const card = document.getElementById('materials-card');
+        if(!card) return;
+        const projectId = card.dataset.projectId;
+        async function loadStock(){
+            if(!projectId) return;
+            try {
+                const r = await fetch(`/api/v1/field-materials/project-stock/?project_id=${projectId}`);
+                if(!r.ok) return;
+                const data = await r.json();
+                const sel = document.getElementById('usage-item-select');
+                data.forEach(it => {
+                    const opt = document.createElement('option');
+                    opt.value = it.item_id;
+                    opt.textContent = `${it.item_name} (${it.quantity})`;
+                    sel.appendChild(opt);
+                });
+            } catch(e) { console.warn('Stock load failed', e); }
+        }
+        loadStock();
+        const usageForm = document.getElementById('report-usage-form');
+        usageForm && usageForm.addEventListener('submit', async (ev)=>{
+            ev.preventDefault();
+            const fd = new FormData(usageForm);
+            const payload = {
+                item_id: fd.get('item_id'),
+                quantity: fd.get('quantity'),
+                project_id: projectId
+            };
+            try {
+                const resp = await fetch('/api/v1/field-materials/report-usage/', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const out = await resp.json();
+                alert(out.message || out.error || (resp.ok ? 'OK' : 'Error'));
+                if(resp.ok){ usageForm.reset(); document.getElementById('usage-item-select').innerHTML='<option disabled selected>--</option>'; loadStock(); }
+            } catch(e){ alert('Error'); }
+        });
+        const reqForm = document.getElementById('quick-request-form');
+        reqForm && reqForm.addEventListener('submit', async (ev)=>{
+            ev.preventDefault();
+            const fd = new FormData(reqForm);
+            const payload = {
+                item_name: fd.get('item_name'),
+                quantity: fd.get('quantity'),
+                urgency: fd.get('urgency') ? true : false,
+                notes: fd.get('notes'),
+                project_id: projectId
+            };
+            try {
+                const resp = await fetch('/api/v1/field-materials/quick-request/', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const out = await resp.json();
+                alert(out.success ? 'Solicitud enviada' : (out.error || 'Error'));
+                if(resp.ok){ reqForm.reset(); }
+            } catch(e){ alert('Error'); }
+        });
+    })();
+    </script>
+{% include "core/components/card.html" with close_card=True only %}
+
+<!-- Recent Entries -->
+{% include "core/components/card.html" with title=_("Recent Entries") icon="clock-history" %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Date" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Project" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Start" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "End" %}</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">{% trans "Hours" %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                {% for r in recent %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3 text-slate-900">{{ r.date|date:"M d" }}</td>
+                    <td class="px-4 py-3 text-slate-900">{% if r.project %}{{ r.project.name }}{% else %}—{% endif %}</td>
+                    <td class="px-4 py-3 text-slate-900">{{ r.start_time|date:"g:i A" }}</td>
+                    <td class="px-4 py-3 text-slate-900">{{ r.end_time|date:"g:i A"|default:"—" }}</td>
+                    <td class="px-4 py-3 text-right">
+                        {% if r.hours_worked %}
+                        <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-sm font-semibold">
+                            {{ r.hours_worked|floatformat:1 }}h
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-slate-600">{% trans "No recent records" %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% include "core/components/card.html" with close_card=True only %}
+
+{% endif %}  {# Cierre del {% if not employee %} ... {% else %} #}
+{% endblock %}
