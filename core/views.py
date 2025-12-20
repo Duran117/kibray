@@ -5201,7 +5201,7 @@ def dashboard_employee(request):
     employee = Employee.objects.filter(user=request.user).first()
     if not employee:
         messages.error(request, "Tu usuario no está vinculado a un empleado.")
-        return render(request, "core/dashboard_employee.html", {"employee": None})
+        return render(request, "core/dashboard_employee_clean.html", {"employee": None})
 
     today = timezone.localdate()
     now = timezone.localtime()
