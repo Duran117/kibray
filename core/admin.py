@@ -122,7 +122,6 @@ class ProjectAdmin(admin.ModelAdmin):
 
 
 @admin.register(ResourceAssignment)
-@admin.register(ResourceAssignment)
 class ResourceAssignmentAdmin(admin.ModelAdmin):
     list_display = ("date", "employee", "project", "shift", "role")
     search_fields = ("employee__first_name", "employee__last_name", "project__name")
