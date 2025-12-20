@@ -11,6 +11,7 @@ DEBUG = False
 
 # HOTFIX: Disable template caching temporarily to force recompile
 # This ensures the fixed template syntax is loaded immediately
+TEMPLATES[0]['APP_DIRS'] = False  # Must be False when loaders is defined
 TEMPLATES[0]['OPTIONS']['loaders'] = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
