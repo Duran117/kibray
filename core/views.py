@@ -5300,10 +5300,14 @@ def dashboard_employee(request):
                 return redirect("dashboard_employee")
             
             # Debug: ver qué datos se están enviando
-            logger.info(f"Clock-in attempt - POST data: project={request.POST.get('project')}, available_projects_count={available_projects.count()}")
+            project_id = request.POST.get('project')
+            logger.info(f"[Clock-in] Attempt by employee={employee.id} user={request.user.username}")
+            logger.info(f"[Clock-in] POST data: project={project_id}, available_projects_count={available_projects.count()}")
+            logger.info(f"[Clock-in] Available project IDs: {list(available_projects.values_list('id', flat=True))}")
             
             form = ClockInForm(request.POST, available_projects=available_projects)
             if form.is_valid():
+                logger.info(f"[Clock-in] Form is VALID")
                 # === VALIDACIÓN BACKEND: Verificar que el proyecto sea permitido ===
                 selected_project = form.cleaned_data["project"]
                 
@@ -5346,8 +5350,13 @@ def dashboard_employee(request):
                 return redirect("dashboard_employee")
             else:
                 # Mostrar errores de validación detallados
+                logger.error(f"[Clock-in] Form is INVALID for employee={employee.id}")
+                logger.error(f"[Clock-in] Form errors: {form.errors.as_json()}")
+                logger.error(f"[Clock-in] Non-field errors: {form.non_field_errors()}")
+                
                 error_details = []
                 for field, err_list in form.errors.items():
+                    logger.error(f"[Clock-in] Field '{field}' errors: {err_list}")
                     if field == "__all__":
                         error_details.append(f"Error general: {', '.join(err_list)}")
                     elif field == "project":
@@ -5357,7 +5366,7 @@ def dashboard_employee(request):
                 
                 error_message = " | ".join(error_details) if error_details else "Revisa los campos del formulario"
                 messages.error(request, f"No se pudo registrar la entrada. {error_message}")
-                logger.warning(f"Clock-in validation failed for employee={employee.id}: {form.errors.as_json()}")
+                logger.warning(f"[Clock-in] Validation failed summary: {error_message}")
 
         elif action == "clock_out":
             if not open_entry:
