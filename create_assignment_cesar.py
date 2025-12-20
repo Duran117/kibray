@@ -14,7 +14,7 @@ assignment, created = ResourceAssignment.objects.get_or_create(
     employee=employee,
     project=project,
     date=today,
-    defaults={'shift': 'morning', 'role': 'laborer'}
+    defaults={'shift': 'MORNING', 'notes': 'Asignación automática para testing'}
 )
 
 print(f"{'✅ Creado' if created else '✅ Ya existe'}: {employee} → {project.name} ({today})")

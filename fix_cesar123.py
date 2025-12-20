@@ -92,7 +92,7 @@ if employee:
     if assignment:
         print(f"✅ Ya tiene asignación para HOY ({today})")
         print(f"   - Turno: {assignment.shift}")
-        print(f"   - Rol: {assignment.role}")
+        print(f"   - Notas: {assignment.notes}")
     else:
         print(f"\n❌ NO tiene asignación para HOY ({today})")
         print("Creando asignación...")
@@ -101,8 +101,8 @@ if employee:
             employee=employee,
             project=project,
             date=today,
-            shift="morning",  # Puede ser morning, afternoon, evening
-            role="laborer"    # Puede ser laborer, supervisor, etc
+            shift="MORNING",  # Puede ser MORNING, AFTERNOON, FULL_DAY
+            notes="Asignación automática para testing"
         )
         print(f"✅ Asignación creada:")
         print(f"   - Empleado: {employee}")
