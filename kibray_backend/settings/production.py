@@ -6,9 +6,8 @@ import os
 import dj_database_url
 from .base import *
 
-# TEMPORARY FIX: Enable DEBUG to bypass cached template loader
-# REVERT THIS AFTER CONFIRMING TEMPLATE IS FIXED
-DEBUG = True  # TODO: Set back to False after template cache cleared
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
 
 # HOTFIX: Disable template caching temporarily to force recompile
 # This ensures the fixed template syntax is loaded immediately
