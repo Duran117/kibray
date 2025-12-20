@@ -650,24 +650,22 @@ class ClockInForm(forms.Form):
         available_projects = kwargs.pop('available_projects', None)
         super().__init__(*args, **kwargs)
         
-        # SIMPLIFICADO: Siempre asegurar que haya proyectos disponibles
+        # POLÍTICA ESTRICTA: Respetar el queryset proporcionado por el view
         if available_projects is not None:
-            # Si el queryset de asignaciones está vacío, mostrar todos los proyectos
-            if available_projects.exists():
-                self.fields['project'].queryset = available_projects
-                self.fields['project'].empty_label = "-- Selecciona proyecto asignado --"
+            self.fields['project'].queryset = available_projects
+            
+            # Mensajes según cantidad de proyectos
+            count = available_projects.count()
+            if count == 0:
+                self.fields['project'].empty_label = "⚠️ No tienes proyectos asignados hoy"
+            elif count == 1:
+                self.fields['project'].empty_label = None  # Auto-select único proyecto
             else:
-                # No hay asignaciones hoy: mostrar todos los proyectos
-                self.fields['project'].queryset = Project.objects.all()
-                self.fields['project'].empty_label = "-- Selecciona cualquier proyecto --"
+                self.fields['project'].empty_label = "-- Selecciona proyecto asignado --"
         else:
-            # Fallback: todos los proyectos
+            # Fallback si no se proporciona queryset (no debería ocurrir)
             self.fields['project'].queryset = Project.objects.all()
             self.fields['project'].empty_label = "-- Selecciona proyecto --"
-
-        # Validar que haya al menos un proyecto
-        if not self.fields['project'].queryset.exists():
-            self.fields['project'].empty_label = "⚠️ No hay proyectos en el sistema"
 
         # Filtrar COs por proyecto enviado para evitar combinaciones inválidas
         project_id = None
