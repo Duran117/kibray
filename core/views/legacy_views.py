@@ -5362,8 +5362,9 @@ def dashboard_employee(request):
         "has_assignments_today": has_assignments_today,  # ✅ NUEVO
     }
 
-    # Use clean template by default; honor ?legacy=true explicitly
-    template_name = "core/dashboard_employee.html" if force_legacy else "core/dashboard_employee_clean.html"
+    # TEMPORARY FIX: Use legacy template until clean template cache is cleared
+    # The clean template has a cached compilation error in Railway
+    template_name = "core/dashboard_employee.html"  # Force legacy for now
     return render(request, template_name, context)
 
 
