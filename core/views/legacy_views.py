@@ -5285,7 +5285,7 @@ def dashboard_employee(request):
     # 🐛 DEBUG: Log projects for troubleshooting
     import logging
     logger = logging.getLogger(__name__)
-    logger.info(f"🔍 EMPLOYEE DEBUG | User: {request.user.username} | Employee: {employee.name if employee else 'None'}")
+    logger.info(f"🔍 EMPLOYEE DEBUG | User: {request.user.username} | Employee: {employee}")
     logger.info(f"🔍 Projects from daily_plans: {list(my_projects_today.values_list('name', flat=True))}")
     logger.info(f"🔍 Projects count: {my_projects_today.count()}")
 
