@@ -5276,11 +5276,27 @@ def dashboard_employee(request):
             )
             return redirect("dashboard_employee")
 
-    # ✅ Obtener proyectos donde está asignado HOY (antes de crear form)
-    my_projects_today = Project.objects.filter(
+    # ✅ Obtener proyectos donde está asignado HOY (TODAS las fuentes)
+    # Fuente 1: ResourceAssignment directo
+    projects_from_assignments = Project.objects.filter(
+        resource_assignments__employee=employee,
+        resource_assignments__date=today
+    )
+    
+    # Fuente 2: DailyPlan activities
+    projects_from_daily_plan = Project.objects.filter(
         daily_plans__plan_date=today,
         daily_plans__activities__assigned_employees=employee
-    ).distinct()
+    )
+    
+    # Fuente 3: Trabajo reciente (últimos 7 días) como fallback
+    projects_from_recent_work = Project.objects.filter(
+        timeentry__employee=employee,
+        timeentry__date__gte=today - timedelta(days=7)
+    )
+    
+    # Combinar todas las fuentes (unión)
+    my_projects_today = (projects_from_assignments | projects_from_daily_plan | projects_from_recent_work).distinct()
 
     # GET o POST inválido - crear form con proyectos filtrados
     form = ClockInForm(available_projects=my_projects_today)
@@ -5343,6 +5359,15 @@ def dashboard_employee(request):
     
     # Mensaje si no tiene asignaciones hoy
     has_assignments_today = my_projects_today.exists()
+    
+    # Variables para el template legacy
+    assignments_today = ResourceAssignment.objects.filter(
+        employee=employee,
+        date=today
+    ).select_related('project')
+    
+    available_projects_count = my_projects_today.count()
+    available_projects_preview = list(my_projects_today[:5])
 
     context = {
         "employee": employee,
@@ -5360,6 +5385,9 @@ def dashboard_employee(request):
         "badges": {"unread_notifications_count": 0},
         "my_projects_today": my_projects_today,
         "has_assignments_today": has_assignments_today,
+        "assignments_today": assignments_today,
+        "available_projects_count": available_projects_count,
+        "available_projects_preview": available_projects_preview,
     }
 
     # Use legacy template (stable version)
