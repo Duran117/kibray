@@ -100,6 +100,7 @@ from core.models import (
     Profile,
     Project,
     ProjectInventory,
+    ResourceAssignment,
     Risk,
     Schedule,
     ScheduleCategory,
