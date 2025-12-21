@@ -2,6 +2,7 @@
 Health Check Views
 Endpoints for monitoring application health and status
 """
+
 import os
 
 from django.core.cache import cache
@@ -18,11 +19,13 @@ def health_check(request):
     Basic health check endpoint
     Returns 200 if application is running
     """
-    return JsonResponse({
-        "status": "healthy",
-        "service": "kibray",
-        "environment": os.getenv("DJANGO_ENV", "unknown"),
-    })
+    return JsonResponse(
+        {
+            "status": "healthy",
+            "service": "kibray",
+            "environment": os.getenv("DJANGO_ENV", "unknown"),
+        }
+    )
 
 
 @csrf_exempt
@@ -36,7 +39,7 @@ def health_check_detailed(request):
         "status": "healthy",
         "service": "kibray",
         "environment": os.getenv("DJANGO_ENV", "unknown"),
-        "checks": {}
+        "checks": {},
     }
 
     # Check database
@@ -62,7 +65,8 @@ def health_check_detailed(request):
 
     # Check static files
     from django.conf import settings
-    if hasattr(settings, 'STATIC_ROOT'):
+
+    if hasattr(settings, "STATIC_ROOT"):
         if os.path.exists(settings.STATIC_ROOT):
             health["checks"]["static_files"] = "healthy"
         else:

@@ -2,6 +2,7 @@
 Django Settings - Base Configuration
 Common settings for all environments (dev, staging, prod)
 """
+
 from datetime import timedelta
 import os
 from pathlib import Path
@@ -66,6 +67,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.company",
                 "core.context_processors.notification_badges",
+                "core.context_processors.legacy_shell",
             ],
         },
     },

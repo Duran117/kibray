@@ -109,9 +109,7 @@ class MessageCompressionMiddleware(BaseMiddleware):
                 if text_data and len(text_data) > self.COMPRESSION_THRESHOLD:
                     # Get compression settings from scope
                     compression_enabled = (
-                        scope.get("websocket", {})
-                        .get("compression", {})
-                        .get("enabled", False)
+                        scope.get("websocket", {}).get("compression", {}).get("enabled", False)
                     )
 
                     if compression_enabled:

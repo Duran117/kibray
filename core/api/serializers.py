@@ -46,6 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Employee serializer with human-readable key"""
+
     full_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -102,7 +103,9 @@ class PermissionMatrixSerializer(serializers.ModelSerializer):
     user_display = serializers.CharField(source="user.get_full_name", read_only=True)
     role_display = serializers.CharField(source="get_role_display", read_only=True)
     entity_type_display = serializers.CharField(source="get_entity_type_display", read_only=True)
-    project_name = serializers.CharField(source="scope_project.name", read_only=True, allow_null=True)
+    project_name = serializers.CharField(
+        source="scope_project.name", read_only=True, allow_null=True
+    )
     is_active = serializers.SerializerMethodField()
 
     class Meta:
@@ -212,7 +215,9 @@ class ChatMessageSerializerSimple(serializers.ModelSerializer):
     channel_name = serializers.CharField(source="channel.name", read_only=True)
     project_id = serializers.IntegerField(source="channel.project_id", read_only=True)
     user_username = serializers.CharField(source="user.username", read_only=True, allow_null=True)
-    user_full_name = serializers.CharField(source="user.get_full_name", read_only=True, allow_null=True)
+    user_full_name = serializers.CharField(
+        source="user.get_full_name", read_only=True, allow_null=True
+    )
     mentions = serializers.SerializerMethodField(read_only=True)
     content = serializers.CharField(write_only=True, required=False, allow_blank=True)
     message_display = serializers.SerializerMethodField()
@@ -241,14 +246,21 @@ class ChatMessageSerializerSimple(serializers.ModelSerializer):
             "deleted_at",
             "created_at",
         ]
-        read_only_fields = ["user", "message", "mentions", "is_deleted", "deleted_by", "deleted_at", "created_at"]
+        read_only_fields = [
+            "user",
+            "message",
+            "mentions",
+            "is_deleted",
+            "deleted_by",
+            "deleted_at",
+            "created_at",
+        ]
 
     def validate(self, attrs):
         content = attrs.pop("content", None)
         if content is not None and not attrs.get("message"):
             attrs["message"] = content
         return super().validate(attrs)
-
 
     def create(self, validated_data):
         req = self.context.get("request")
@@ -308,8 +320,12 @@ class SitePhotoSerializer(serializers.ModelSerializer):
     # Use FileField to avoid strict image validation during API upload tests
     image = serializers.FileField()
     project_name = serializers.CharField(source="project.name", read_only=True)
-    uploader_name = serializers.CharField(source="created_by.get_full_name", read_only=True, allow_null=True)
-    damage_report_title = serializers.CharField(source="damage_report.title", read_only=True, allow_null=True)
+    uploader_name = serializers.CharField(
+        source="created_by.get_full_name", read_only=True, allow_null=True
+    )
+    damage_report_title = serializers.CharField(
+        source="damage_report.title", read_only=True, allow_null=True
+    )
 
     class Meta:
         from core.models import SitePhoto
@@ -346,7 +362,9 @@ class SitePhotoSerializer(serializers.ModelSerializer):
         # Attempt EXIF GPS extraction if not provided
         try:
             img = validated_data.get("image")
-            if img and (not validated_data.get("location_lat") or not validated_data.get("location_lng")):
+            if img and (
+                not validated_data.get("location_lat") or not validated_data.get("location_lng")
+            ):
                 from PIL import Image
                 from PIL.ExifTags import GPSTAGS, TAGS
 
@@ -392,7 +410,9 @@ class SitePhotoSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    assigned_to_name = serializers.CharField(source="assigned_to.get_full_name", read_only=True, allow_null=True)
+    assigned_to_name = serializers.CharField(
+        source="assigned_to.get_full_name", read_only=True, allow_null=True
+    )
     project_name = serializers.CharField(source="project.name", read_only=True)
     schedule_item = serializers.PrimaryKeyRelatedField(
         queryset=ScheduleItem.objects.all(), required=False, allow_null=True
@@ -462,7 +482,9 @@ class TaskSerializer(serializers.ModelSerializer):
             from core.models import Task as TaskModel
 
             if str(instance.id) in [str(d) for d in deps]:
-                raise serializers.ValidationError({"dependencies": _("Task cannot depend on itself")})
+                raise serializers.ValidationError(
+                    {"dependencies": _("Task cannot depend on itself")}
+                )
             dep_qs = TaskModel.objects.filter(id__in=deps)
             task.dependencies.set(dep_qs)
             task.full_clean()
@@ -478,7 +500,16 @@ class TaskDependencySerializer(serializers.ModelSerializer):
         from core.models import TaskDependency
 
         model = TaskDependency
-        fields = ["id", "task", "task_title", "predecessor", "predecessor_title", "type", "lag_minutes", "created_at"]
+        fields = [
+            "id",
+            "task",
+            "task_title",
+            "predecessor",
+            "predecessor_title",
+            "type",
+            "lag_minutes",
+            "created_at",
+        ]
         read_only_fields = ["created_at"]
 
     def create(self, validated_data):
@@ -500,8 +531,12 @@ class ProjectManagerAssignmentSerializer(serializers.ModelSerializer):
 
 class ColorApprovalSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source="project.name", read_only=True)
-    requested_by_username = serializers.CharField(source="requested_by.username", read_only=True, allow_null=True)
-    approved_by_username = serializers.CharField(source="approved_by.username", read_only=True, allow_null=True)
+    requested_by_username = serializers.CharField(
+        source="requested_by.username", read_only=True, allow_null=True
+    )
+    approved_by_username = serializers.CharField(
+        source="approved_by.username", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = ColorApproval
@@ -542,18 +577,33 @@ class ChangeOrderSerializer(serializers.ModelSerializer):
         from core.models import ChangeOrder
 
         model = ChangeOrder
-        fields = ["id", "project", "description", "amount", "status", "reference_code", "date_created", "title"]
+        fields = [
+            "id",
+            "project",
+            "description",
+            "amount",
+            "status",
+            "reference_code",
+            "date_created",
+            "title",
+        ]
         read_only_fields = ["date_created", "title"]
 
 
 class DamageReportSerializer(serializers.ModelSerializer):
-    reported_by_name = serializers.CharField(source="reported_by.get_full_name", read_only=True, allow_null=True)
-    assigned_to_name = serializers.CharField(source="assigned_to.get_full_name", read_only=True, allow_null=True)
+    reported_by_name = serializers.CharField(
+        source="reported_by.get_full_name", read_only=True, allow_null=True
+    )
+    assigned_to_name = serializers.CharField(
+        source="assigned_to.get_full_name", read_only=True, allow_null=True
+    )
     project_name = serializers.CharField(source="project.name", read_only=True)
     plan_name = serializers.CharField(source="plan.name", read_only=True, allow_null=True)
     auto_task_id = serializers.IntegerField(source="auto_task.id", read_only=True, allow_null=True)
     linked_co_id = serializers.IntegerField(source="linked_co.id", read_only=True, allow_null=True)
-    linked_touchup_id = serializers.IntegerField(source="linked_touchup.id", read_only=True, allow_null=True)
+    linked_touchup_id = serializers.IntegerField(
+        source="linked_touchup.id", read_only=True, allow_null=True
+    )
     photo_count = serializers.SerializerMethodField()
     photos = DamagePhotoSerializer(many=True, read_only=True)
 
@@ -603,12 +653,18 @@ class DamageReportSerializer(serializers.ModelSerializer):
 
 class ColorSampleSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source="project.name", read_only=True)
-    approver_name = serializers.CharField(source="approved_by.get_full_name", read_only=True, allow_null=True)
-    rejecter_name = serializers.CharField(source="rejected_by.get_full_name", read_only=True, allow_null=True)
+    approver_name = serializers.CharField(
+        source="approved_by.get_full_name", read_only=True, allow_null=True
+    )
+    rejecter_name = serializers.CharField(
+        source="rejected_by.get_full_name", read_only=True, allow_null=True
+    )
     status_changed_by_name = serializers.CharField(
         source="status_changed_by.get_full_name", read_only=True, allow_null=True
     )
-    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True, allow_null=True)
+    created_by_name = serializers.CharField(
+        source="created_by.get_full_name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = ColorSample
@@ -678,10 +734,18 @@ class ColorSampleRejectSerializer(serializers.Serializer):
 
 
 class PlanPinSerializer(serializers.ModelSerializer):
-    color_sample_name = serializers.CharField(source="color_sample.name", read_only=True, allow_null=True)
-    linked_task_title = serializers.CharField(source="linked_task.title", read_only=True, allow_null=True)
-    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True, allow_null=True)
-    migrated_to_id = serializers.IntegerField(source="migrated_to.id", read_only=True, allow_null=True)
+    color_sample_name = serializers.CharField(
+        source="color_sample.name", read_only=True, allow_null=True
+    )
+    linked_task_title = serializers.CharField(
+        source="linked_task.title", read_only=True, allow_null=True
+    )
+    created_by_name = serializers.CharField(
+        source="created_by.get_full_name", read_only=True, allow_null=True
+    )
+    migrated_to_id = serializers.IntegerField(
+        source="migrated_to.id", read_only=True, allow_null=True
+    )
     plan_name = serializers.CharField(source="plan.name", read_only=True)
 
     class Meta:
@@ -709,15 +773,25 @@ class PlanPinSerializer(serializers.ModelSerializer):
             "created_by_name",
             "created_at",
         ]
-        read_only_fields = ["created_at", "pin_color", "migrated_to_id", "created_by", "created_by_name"]
+        read_only_fields = [
+            "created_at",
+            "pin_color",
+            "migrated_to_id",
+            "created_by",
+            "created_by_name",
+        ]
 
 
 class FloorPlanSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source="project.name", read_only=True)
     pins = PlanPinSerializer(many=True, read_only=True)
     pin_count = serializers.SerializerMethodField()
-    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True, allow_null=True)
-    replaced_by_id = serializers.IntegerField(source="replaced_by.id", read_only=True, allow_null=True)
+    created_by_name = serializers.CharField(
+        source="created_by.get_full_name", read_only=True, allow_null=True
+    )
+    replaced_by_id = serializers.IntegerField(
+        source="replaced_by.id", read_only=True, allow_null=True
+    )
     pending_migration_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -742,7 +816,14 @@ class FloorPlanSerializer(serializers.ModelSerializer):
             "pending_migration_count",
         ]
 
-    read_only_fields = ["created_at", "version", "is_current", "replaced_by_id", "created_by", "created_by_name"]
+    read_only_fields = [
+        "created_at",
+        "version",
+        "is_current",
+        "replaced_by_id",
+        "created_by",
+        "created_by_name",
+    ]
 
     def get_pin_count(self, obj):
         """Count active pins only"""
@@ -813,9 +894,9 @@ class ScheduleItemSerializer(serializers.ModelSerializer):
         ]
         # Enable partial updates for PATCH requests
         extra_kwargs = {
-            'project': {'required': False},
-            'planned_start': {'required': False},
-            'planned_end': {'required': False},
+            "project": {"required": False},
+            "planned_start": {"required": False},
+            "planned_end": {"required": False},
         }
 
     # dependencies removed (not present on model); could be reintroduced later
@@ -863,7 +944,14 @@ class ProjectSerializer(serializers.ModelSerializer):
             "income_count",
             "expense_count",
         ]
-        read_only_fields = ["project_code", "created_at", "total_income", "total_expenses", "profit", "budget_remaining"]
+        read_only_fields = [
+            "project_code",
+            "created_at",
+            "total_income",
+            "total_expenses",
+            "profit",
+            "budget_remaining",
+        ]
 
     def get_income_count(self, obj):
         return obj.incomes.count()
@@ -877,7 +965,9 @@ class IncomeSerializer(serializers.ModelSerializer):
 
     project_name = serializers.CharField(source="project.name", read_only=True)
     project_client = serializers.CharField(source="project.client", read_only=True)
-    project_code = serializers.CharField(source="project.project_code", read_only=True)  # ⭐ Human-readable ID
+    project_code = serializers.CharField(
+        source="project.project_code", read_only=True
+    )  # ⭐ Human-readable ID
 
     class Meta:
         model = Income
@@ -917,9 +1007,13 @@ class ExpenseSerializer(serializers.ModelSerializer):
     """Expense serializer with project and cost code details"""
 
     project_name = serializers.CharField(source="project.name", read_only=True)
-    project_code = serializers.CharField(source="project.project_code", read_only=True)  # ⭐ Human-readable ID
+    project_code = serializers.CharField(
+        source="project.project_code", read_only=True
+    )  # ⭐ Human-readable ID
     cost_code_name = serializers.CharField(source="cost_code.name", read_only=True, allow_null=True)
-    change_order_number = serializers.CharField(source="change_order.number", read_only=True, allow_null=True)
+    change_order_number = serializers.CharField(
+        source="change_order.number", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = Expense
@@ -992,7 +1086,9 @@ class InvoiceLineAPISerializer(serializers.ModelSerializer):
 
 
 class InvoicePaymentAPISerializer(serializers.ModelSerializer):
-    recorded_by_name = serializers.CharField(source="recorded_by.get_full_name", read_only=True, allow_null=True)
+    recorded_by_name = serializers.CharField(
+        source="recorded_by.get_full_name", read_only=True, allow_null=True
+    )
 
     class Meta:
         from core.models import InvoicePayment
@@ -1094,7 +1190,9 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 class ClientRequestSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source="project.name", read_only=True)
-    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True, allow_null=True)
+    created_by_name = serializers.CharField(
+        source="created_by.get_full_name", read_only=True, allow_null=True
+    )
     attachments = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -1148,7 +1246,16 @@ class ClientRequestAttachmentSerializer(serializers.ModelSerializer):
         from core.models import ClientRequestAttachment
 
         model = ClientRequestAttachment
-        fields = ["id", "request", "file", "filename", "content_type", "size_bytes", "uploaded_by", "uploaded_at"]
+        fields = [
+            "id",
+            "request",
+            "file",
+            "filename",
+            "content_type",
+            "size_bytes",
+            "uploaded_by",
+            "uploaded_at",
+        ]
         read_only_fields = ["uploaded_by", "size_bytes", "uploaded_at"]
 
 
@@ -1156,7 +1263,9 @@ class ChatChannelSerializer(serializers.ModelSerializer):
     """Chat channel with participant info"""
 
     project_name = serializers.CharField(source="project.name", read_only=True)
-    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True, allow_null=True)
+    created_by_name = serializers.CharField(
+        source="created_by.get_full_name", read_only=True, allow_null=True
+    )
     participant_count = serializers.SerializerMethodField()
     participant_usernames = serializers.SerializerMethodField()
 
@@ -1190,7 +1299,9 @@ class ChatChannelSerializer(serializers.ModelSerializer):
 class ChatMentionSerializer(serializers.ModelSerializer):
     """Serializer for chat mentions"""
 
-    mentioned_username = serializers.CharField(source="mentioned_user.username", read_only=True, allow_null=True)
+    mentioned_username = serializers.CharField(
+        source="mentioned_user.username", read_only=True, allow_null=True
+    )
 
     class Meta:
         from core.models import ChatMention
@@ -1225,7 +1336,9 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     channel_name = serializers.CharField(source="channel.name", read_only=True)
     project_id = serializers.IntegerField(source="channel.project_id", read_only=True)
     user_username = serializers.CharField(source="user.username", read_only=True, allow_null=True)
-    user_full_name = serializers.CharField(source="user.get_full_name", read_only=True, allow_null=True)
+    user_full_name = serializers.CharField(
+        source="user.get_full_name", read_only=True, allow_null=True
+    )
     mentions = ChatMentionSerializer(many=True, read_only=True)
     content = serializers.CharField(write_only=True, required=False, allow_blank=True)
     message_display = serializers.SerializerMethodField()
@@ -1257,7 +1370,14 @@ class ChatMessageSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         # Allow 'message' direct writes (tests post 'message'); keep 'content' as optional alias
-        read_only_fields = ["user", "mentions", "is_deleted", "deleted_by", "deleted_at", "created_at"]
+        read_only_fields = [
+            "user",
+            "mentions",
+            "is_deleted",
+            "deleted_by",
+            "deleted_at",
+            "created_at",
+        ]
 
     def validate(self, attrs):
         content = attrs.pop("content", None)
@@ -1431,10 +1551,14 @@ class DailyLogPlanningSerializer(serializers.ModelSerializer):
 
 class TimeEntrySerializer(serializers.ModelSerializer):
     employee_name = serializers.SerializerMethodField(read_only=True)
-    employee_key = serializers.CharField(source="employee.employee_key", read_only=True)  # ⭐ Human-readable ID
+    employee_key = serializers.CharField(
+        source="employee.employee_key", read_only=True
+    )  # ⭐ Human-readable ID
     task_title = serializers.CharField(source="task.title", read_only=True)
     project_name = serializers.CharField(source="project.name", read_only=True)
-    project_code = serializers.CharField(source="project.project_code", read_only=True)  # ⭐ Human-readable ID
+    project_code = serializers.CharField(
+        source="project.project_code", read_only=True
+    )  # ⭐ Human-readable ID
 
     class Meta:
         from core.models import TimeEntry
@@ -1495,10 +1619,16 @@ class EmployeeMiniSerializer(serializers.ModelSerializer):
 
 
 class PlannedActivitySerializer(serializers.ModelSerializer):
-    assigned_employee_ids = serializers.ListField(child=serializers.IntegerField(), required=False, write_only=True)
+    assigned_employee_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, write_only=True
+    )
     assigned_employee_names = serializers.SerializerMethodField()
-    schedule_item_title = serializers.CharField(source="schedule_item.title", read_only=True, allow_null=True)
-    activity_template_name = serializers.CharField(source="activity_template.name", read_only=True, allow_null=True)
+    schedule_item_title = serializers.CharField(
+        source="schedule_item.title", read_only=True, allow_null=True
+    )
+    activity_template_name = serializers.CharField(
+        source="activity_template.name", read_only=True, allow_null=True
+    )
     converted_task_id = serializers.IntegerField(source="converted_task.id", read_only=True)
 
     class Meta:
@@ -1597,7 +1727,13 @@ class DailyPlanSerializer(serializers.ModelSerializer):
             "updated_at",
             "productivity_score",
         ]
-        read_only_fields = ["weather_fetched_at", "created_at", "updated_at", "is_overdue", "productivity_score"]
+        read_only_fields = [
+            "weather_fetched_at",
+            "created_at",
+            "updated_at",
+            "is_overdue",
+            "productivity_score",
+        ]
 
     def get_is_overdue(self, obj):
         return obj.is_overdue()
@@ -1616,7 +1752,9 @@ class AISuggestionSerializer(serializers.ModelSerializer):
 
     daily_plan_date = serializers.DateField(source="daily_plan.plan_date", read_only=True)
     project_name = serializers.CharField(source="daily_plan.project.name", read_only=True)
-    resolved_by_name = serializers.CharField(source="resolved_by.get_full_name", read_only=True, allow_null=True)
+    resolved_by_name = serializers.CharField(
+        source="resolved_by.get_full_name", read_only=True, allow_null=True
+    )
 
     class Meta:
         from core.models import AISuggestion
@@ -1639,7 +1777,13 @@ class AISuggestionSerializer(serializers.ModelSerializer):
             "resolved_by",
             "resolved_by_name",
         ]
-        read_only_fields = ["created_at", "resolved_at", "daily_plan_date", "project_name", "resolved_by_name"]
+        read_only_fields = [
+            "created_at",
+            "resolved_at",
+            "daily_plan_date",
+            "project_name",
+            "resolved_by_name",
+        ]
 
 
 # ============================================================================
@@ -1649,7 +1793,6 @@ class AISuggestionSerializer(serializers.ModelSerializer):
 
 class InventoryItemSerializer(serializers.ModelSerializer):
     class Meta:
-
         model = InventoryItem
         fields = [
             "id",
@@ -1669,7 +1812,13 @@ class InventoryItemSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["sku", "average_cost", "last_purchase_cost", "created_at", "updated_at"]  # ⭐ SKU is read-only
+        read_only_fields = [
+            "sku",
+            "average_cost",
+            "last_purchase_cost",
+            "created_at",
+            "updated_at",
+        ]  # ⭐ SKU is read-only
 
 
 class InventoryLocationSerializer(serializers.ModelSerializer):
@@ -1699,7 +1848,9 @@ class InventoryMovementSerializer(serializers.ModelSerializer):
     item_name = serializers.CharField(source="item.name", read_only=True)
     from_location_name = serializers.CharField(source="from_location.__str__", read_only=True)
     to_location_name = serializers.CharField(source="to_location.__str__", read_only=True)
-    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True, allow_null=True)
+    created_by_name = serializers.CharField(
+        source="created_by.get_full_name", read_only=True, allow_null=True
+    )
 
     class Meta:
         from core.models import InventoryMovement
@@ -1801,7 +1952,9 @@ class MaterialRequestItemSerializer(serializers.ModelSerializer):
 
 
 class MaterialRequestSerializer(serializers.ModelSerializer):
-    requested_by_name = serializers.CharField(source="requested_by.get_full_name", read_only=True, allow_null=True)
+    requested_by_name = serializers.CharField(
+        source="requested_by.get_full_name", read_only=True, allow_null=True
+    )
     project_name = serializers.CharField(source="project.name", read_only=True)
     items = MaterialRequestItemSerializer(many=True)
     # Campo adicional para detectar si se usó mapping legacy
@@ -1830,7 +1983,13 @@ class MaterialRequestSerializer(serializers.ModelSerializer):
             "updated_at",
             "items",
         ]
-        read_only_fields = ["requested_by", "approved_by", "approved_at", "created_at", "updated_at"]
+        read_only_fields = [
+            "requested_by",
+            "approved_by",
+            "approved_at",
+            "created_at",
+            "updated_at",
+        ]
 
     def get_legacy_status_used(self, obj):
         """Indica si el status actual fue mapeado desde un valor legacy."""
@@ -1910,8 +2069,10 @@ class MaterialCatalogSerializer(serializers.ModelSerializer):
 # nested items). These are intentionally minimal and read-only.
 # ---------------------------------------------------------------------------
 
+
 class ProjectStockSerializer(serializers.Serializer):
     """Lightweight representation of project inventory for employee dashboard."""
+
     item_id = serializers.IntegerField()
     item_name = serializers.CharField()
     sku = serializers.CharField()
@@ -1924,22 +2085,30 @@ class ReportUsageResultSerializer(serializers.Serializer):
     """Serializer for usage reporting response payload.
     Not tied to a model; provides a consistent structure for frontend.
     """
+
     success = serializers.BooleanField()
     movement_id = serializers.IntegerField(required=False, allow_null=True)
     item_id = serializers.IntegerField(required=False, allow_null=True)
     item_name = serializers.CharField(required=False, allow_blank=True)
-    consumed_quantity = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
-    remaining_quantity = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    consumed_quantity = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False, allow_null=True
+    )
+    remaining_quantity = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False, allow_null=True
+    )
     message = serializers.CharField(required=False, allow_blank=True)
     error = serializers.CharField(required=False, allow_blank=True)
 
 
 class QuickMaterialRequestSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source="project.name", read_only=True)
-    requested_by_name = serializers.CharField(source="requested_by.get_full_name", read_only=True, allow_null=True)
+    requested_by_name = serializers.CharField(
+        source="requested_by.get_full_name", read_only=True, allow_null=True
+    )
 
     class Meta:
         from core.models import MaterialRequest
+
         model = MaterialRequest
         fields = [
             "id",
@@ -1961,7 +2130,9 @@ class QuickMaterialRequestSerializer(serializers.ModelSerializer):
 
 
 class PayrollPaymentSerializer(serializers.ModelSerializer):
-    recorded_by_name = serializers.CharField(source="recorded_by.get_full_name", read_only=True, allow_null=True)
+    recorded_by_name = serializers.CharField(
+        source="recorded_by.get_full_name", read_only=True, allow_null=True
+    )
 
     class Meta:
         from core.models import PayrollPayment
@@ -2023,7 +2194,14 @@ class PayrollRecordSerializer(serializers.ModelSerializer):
             "amount_paid",
             "balance_due",
         ]
-        read_only_fields = ["adjusted_by", "adjusted_at", "gross_pay", "net_pay", "amount_paid", "balance_due"]
+        read_only_fields = [
+            "adjusted_by",
+            "adjusted_at",
+            "gross_pay",
+            "net_pay",
+            "amount_paid",
+            "balance_due",
+        ]
 
     def get_employee_name(self, obj):
         try:
@@ -2136,7 +2314,9 @@ class TwoFactorTokenObtainPairSerializer(TokenObtainPairSerializer):  # type: ig
             if prof and prof.enabled:
                 otp = self.initial_data.get("otp")
                 if not otp or not prof.verify_otp(otp):
-                    raise serializers.ValidationError({"otp": _("Invalid or missing OTP for 2FA-enabled account")})
+                    raise serializers.ValidationError(
+                        {"otp": _("Invalid or missing OTP for 2FA-enabled account")}
+                    )
         except Exception as e:
             # If any unexpected error, deny for safety
             raise serializers.ValidationError({"otp": _("2FA validation failed")}) from e
@@ -2147,40 +2327,41 @@ class TwoFactorTokenObtainPairSerializer(TokenObtainPairSerializer):  # type: ig
 # PHASE 4: FILE MANAGER SERIALIZER
 # ============================================================================
 
+
 class ProjectFileSerializer(serializers.ModelSerializer):
     """Serializer for ProjectFile model - Phase 4 File Manager feature"""
 
-    uploaded_by_name = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
+    uploaded_by_name = serializers.CharField(source="uploaded_by.get_full_name", read_only=True)
+    category_name = serializers.CharField(source="category.name", read_only=True)
     file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = ProjectFile
         fields = [
-            'id',
-            'project',
-            'category',
-            'category_name',
-            'file',
-            'file_url',
-            'name',
-            'description',
-            'file_type',
-            'file_size',
-            'uploaded_by',
-            'uploaded_by_name',
-            'uploaded_at',
-            'updated_at',
-            'tags',
-            'is_public',
-            'version',
+            "id",
+            "project",
+            "category",
+            "category_name",
+            "file",
+            "file_url",
+            "name",
+            "description",
+            "file_type",
+            "file_size",
+            "uploaded_by",
+            "uploaded_by_name",
+            "uploaded_at",
+            "updated_at",
+            "tags",
+            "is_public",
+            "version",
         ]
-        read_only_fields = ['id', 'uploaded_at', 'updated_at', 'file_size', 'file_type']
+        read_only_fields = ["id", "uploaded_at", "updated_at", "file_size", "file_type"]
 
     def get_file_url(self, obj):
         """Return full URL for file download"""
         if obj.file:
-            request = self.context.get('request')
+            request = self.context.get("request")
             if request:
                 return request.build_absolute_uri(obj.file.url)
             return obj.file.url
@@ -2195,17 +2376,16 @@ class PushSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PushSubscription
-        fields = ['id', 'endpoint', 'p256dh', 'auth', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ["id", "endpoint", "p256dh", "auth", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
     def create(self, validated_data):
         # Automatically assign current user
-        validated_data['user'] = self.context['request'].user
+        validated_data["user"] = self.context["request"].user
 
         # Remove existing subscription with same endpoint (update scenario)
         PushSubscription.objects.filter(
-            user=validated_data['user'],
-            endpoint=validated_data['endpoint']
+            user=validated_data["user"], endpoint=validated_data["endpoint"]
         ).delete()
 
         return super().create(validated_data)
@@ -2215,44 +2395,47 @@ class PushSubscriptionSerializer(serializers.ModelSerializer):
 # EXECUTIVE FOCUS WORKFLOW SERIALIZERS (Module 25)
 # =============================================================================
 
+
 class FocusTaskSerializer(serializers.ModelSerializer):
     """Serializer for FocusTask model"""
+
     checklist_progress = serializers.SerializerMethodField()
 
     class Meta:
         model = FocusTask
         fields = [
-            'id',
-            'session',
-            'title',
-            'description',
-            'is_high_impact',
-            'impact_reason',
-            'is_frog',
-            'checklist',
-            'checklist_progress',
-            'scheduled_start',
-            'scheduled_end',
-            'is_completed',
-            'completed_at',
-            'order',
+            "id",
+            "session",
+            "title",
+            "description",
+            "is_high_impact",
+            "impact_reason",
+            "is_frog",
+            "checklist",
+            "checklist_progress",
+            "scheduled_start",
+            "scheduled_end",
+            "is_completed",
+            "completed_at",
+            "order",
         ]
-        read_only_fields = ['id', 'completed_at', 'checklist_progress']
+        read_only_fields = ["id", "completed_at", "checklist_progress"]
 
     def get_checklist_progress(self, obj):
         """Calculate checklist completion progress"""
         if not obj.checklist:
-            return {'total': 0, 'done': 0, 'percent': 0}
+            return {"total": 0, "done": 0, "percent": 0}
 
         total = len(obj.checklist)
-        done = sum(1 for item in obj.checklist if item.get('done', False))
+        done = sum(1 for item in obj.checklist if item.get("done", False))
         percent = int((done / total) * 100) if total > 0 else 0
 
-        return {'total': total, 'done': done, 'percent': percent}
+        return {"total": total, "done": done, "percent": percent}
 
 
 class DailyFocusSessionSerializer(serializers.ModelSerializer):
     """Full serializer for DailyFocusSession with nested tasks"""
+
     focus_tasks = FocusTaskSerializer(many=True, read_only=True)
     total_tasks = serializers.ReadOnlyField()
     completed_tasks = serializers.ReadOnlyField()
@@ -2262,20 +2445,20 @@ class DailyFocusSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = DailyFocusSession
         fields = [
-            'id',
-            'user',
-            'date',
-            'energy_level',
-            'notes',
-            'focus_tasks',
-            'total_tasks',
-            'completed_tasks',
-            'high_impact_tasks',
-            'frog_task_title',
-            'created_at',
-            'updated_at',
+            "id",
+            "user",
+            "date",
+            "energy_level",
+            "notes",
+            "focus_tasks",
+            "total_tasks",
+            "completed_tasks",
+            "high_impact_tasks",
+            "frog_task_title",
+            "created_at",
+            "updated_at",
         ]
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+        read_only_fields = ["id", "user", "created_at", "updated_at"]
 
     def get_frog_task_title(self, obj):
         """Return the frog task title if exists"""
@@ -2285,9 +2468,10 @@ class DailyFocusSessionSerializer(serializers.ModelSerializer):
 
 class FocusSessionCreateSerializer(serializers.Serializer):
     """Serializer for creating a DailyFocusSession with tasks in one request"""
+
     date = serializers.DateField()
     energy_level = serializers.IntegerField(min_value=1, max_value=10, default=5)
-    notes = serializers.CharField(required=False, allow_blank=True, default='')
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
     tasks = serializers.ListField(child=serializers.DictField())
 
     def validate_tasks(self, value):
@@ -2296,7 +2480,7 @@ class FocusSessionCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError("At least one task is required")
 
         # Ensure at most one frog
-        frog_count = sum(1 for task in value if task.get('is_frog', False))
+        frog_count = sum(1 for task in value if task.get("is_frog", False))
         if frog_count > 1:
             raise serializers.ValidationError("Only one task can be marked as Frog")
 
@@ -2304,26 +2488,26 @@ class FocusSessionCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """Create session and associated tasks"""
-        user = self.context['request'].user
-        tasks_data = validated_data.pop('tasks', [])
+        user = self.context["request"].user
+        tasks_data = validated_data.pop("tasks", [])
 
         # Create or update session for this date
         session, _ = DailyFocusSession.objects.update_or_create(
             user=user,
-            date=validated_data['date'],
+            date=validated_data["date"],
             defaults={
-                'energy_level': validated_data.get('energy_level', 5),
-                'notes': validated_data.get('notes', ''),
-            }
+                "energy_level": validated_data.get("energy_level", 5),
+                "notes": validated_data.get("notes", ""),
+            },
         )
 
         # Clear existing tasks and create new ones
         session.focus_tasks.all().delete()
 
         for order, task_data in enumerate(tasks_data):
-            is_frog = task_data.get('is_frog', False)
-            is_high_impact = task_data.get('is_high_impact', False)
-            impact_reason = task_data.get('impact_reason', '')
+            is_frog = task_data.get("is_frog", False)
+            is_high_impact = task_data.get("is_high_impact", False)
+            impact_reason = task_data.get("impact_reason", "")
 
             # Auto-fix: If frog, must be high impact
             if is_frog:
@@ -2334,33 +2518,35 @@ class FocusSessionCreateSerializer(serializers.Serializer):
                 impact_reason = "High priority task"
 
             # Parse datetime strings if needed
-            scheduled_start = task_data.get('scheduled_start')
-            scheduled_end = task_data.get('scheduled_end')
+            scheduled_start = task_data.get("scheduled_start")
+            scheduled_end = task_data.get("scheduled_end")
 
             # Handle datetime-local format from HTML input
             if scheduled_start and isinstance(scheduled_start, str):
                 try:
                     from django.utils.dateparse import parse_datetime
-                    scheduled_start = parse_datetime(scheduled_start.replace('T', ' '))
+
+                    scheduled_start = parse_datetime(scheduled_start.replace("T", " "))
                 except (ValueError, TypeError):
                     scheduled_start = None
 
             if scheduled_end and isinstance(scheduled_end, str):
                 try:
                     from django.utils.dateparse import parse_datetime
-                    scheduled_end = parse_datetime(scheduled_end.replace('T', ' '))
+
+                    scheduled_end = parse_datetime(scheduled_end.replace("T", " "))
                 except (ValueError, TypeError):
                     scheduled_end = None
 
             # Create task without calling full_clean (skip model validation)
             task = FocusTask(
                 session=session,
-                title=task_data.get('title', ''),
-                description=task_data.get('description', ''),
+                title=task_data.get("title", ""),
+                description=task_data.get("description", ""),
                 is_high_impact=is_high_impact,
                 impact_reason=impact_reason,
                 is_frog=is_frog,
-                checklist=task_data.get('checklist', []),
+                checklist=task_data.get("checklist", []),
                 scheduled_start=scheduled_start,
                 scheduled_end=scheduled_end,
                 order=order,
@@ -2369,5 +2555,3 @@ class FocusSessionCreateSerializer(serializers.Serializer):
             task.save(update_fields=None)
 
         return session
-
-

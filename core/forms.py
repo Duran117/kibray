@@ -176,7 +176,9 @@ class ResourceAssignmentForm(forms.ModelForm):
         widgets = {
             "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "shift": forms.Select(attrs={"class": "form-select"}),
-            "notes": forms.TextInput(attrs={"class": "form-control", "placeholder": "Notas (opcional)"}),
+            "notes": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Notas (opcional)"}
+            ),
             "employee": forms.Select(attrs={"class": "form-select"}),
             "project": forms.Select(attrs={"class": "form-select"}),
         }
@@ -206,7 +208,9 @@ class InvoiceForm(forms.ModelForm):
         elif self.instance and self.instance.pk:
             project_id = self.instance.project_id
         if project_id:
-            self.fields["change_orders"].queryset = ChangeOrder.objects.filter(project_id=project_id).order_by("id")
+            self.fields["change_orders"].queryset = ChangeOrder.objects.filter(
+                project_id=project_id
+            ).order_by("id")
         else:
             self.fields["change_orders"].queryset = ChangeOrder.objects.none()
 
@@ -216,12 +220,18 @@ class InvoiceLineForm(forms.ModelForm):
         model = InvoiceLine
         fields = ["description", "amount"]
         widgets = {
-            "description": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Descripción")}),
-            "amount": forms.NumberInput(attrs={"step": "0.01", "class": "form-control", "placeholder": _("Monto")}),
+            "description": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("Descripción")}
+            ),
+            "amount": forms.NumberInput(
+                attrs={"step": "0.01", "class": "form-control", "placeholder": _("Monto")}
+            ),
         }
 
 
-InvoiceLineFormSet = inlineformset_factory(Invoice, InvoiceLine, form=InvoiceLineForm, extra=1, can_delete=True)
+InvoiceLineFormSet = inlineformset_factory(
+    Invoice, InvoiceLine, form=InvoiceLineForm, extra=1, can_delete=True
+)
 
 
 class CostCodeForm(forms.ModelForm):
@@ -250,7 +260,15 @@ class BudgetLineForm(forms.ModelForm):
 EstimateLineFormSet = inlineformset_factory(
     Estimate,
     EstimateLine,
-    fields=["cost_code", "description", "qty", "unit", "labor_unit_cost", "material_unit_cost", "other_unit_cost"],
+    fields=[
+        "cost_code",
+        "description",
+        "qty",
+        "unit",
+        "labor_unit_cost",
+        "material_unit_cost",
+        "other_unit_cost",
+    ],
     extra=1,
     can_delete=True,
 )
@@ -286,7 +304,9 @@ class DailyLogForm(forms.ModelForm):
         ]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "weather": forms.TextInput(attrs={"class": "form-control", "placeholder": _("ej: Soleado, 75°F")}),
+            "weather": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("ej: Soleado, 75°F")}
+            ),
             "crew_count": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
             "schedule_item": forms.Select(attrs={"class": "form-select"}),
             "schedule_progress_percent": forms.NumberInput(
@@ -300,10 +320,18 @@ class DailyLogForm(forms.ModelForm):
                 attrs={"class": "form-control", "rows": 3, "placeholder": _("Notas generales...")}
             ),
             "safety_incidents": forms.Textarea(
-                attrs={"class": "form-control", "rows": 2, "placeholder": _("Incidentes de seguridad...")}
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": _("Incidentes de seguridad..."),
+                }
             ),
             "delays": forms.Textarea(
-                attrs={"class": "form-control", "rows": 2, "placeholder": _("Retrasos o problemas...")}
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": _("Retrasos o problemas..."),
+                }
             ),
             "next_day_plan": forms.Textarea(
                 attrs={"class": "form-control", "rows": 3, "placeholder": _("Plan para mañana...")}
@@ -323,11 +351,15 @@ class DailyLogForm(forms.ModelForm):
 
         if project:
             # Filtrar schedule items del proyecto
-            self.fields["schedule_item"].queryset = Schedule.objects.filter(project=project).order_by("start_datetime")
+            self.fields["schedule_item"].queryset = Schedule.objects.filter(
+                project=project
+            ).order_by("start_datetime")
 
             # Filtrar tareas del proyecto
             self.fields["completed_tasks"].queryset = (
-                Task.objects.filter(project=project).select_related("assigned_to").order_by("-created_at")
+                Task.objects.filter(project=project)
+                .select_related("assigned_to")
+                .order_by("-created_at")
             )
 
 
@@ -339,7 +371,9 @@ class DailyLogPhotoForm(forms.ModelForm):
         fields = ["image", "caption"]
         widgets = {
             "image": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
-            "caption": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Descripción de la foto...")}),
+            "caption": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("Descripción de la foto...")}
+            ),
         }
 
 
@@ -364,7 +398,10 @@ class DamageReportForm(forms.ModelForm):
         ]
         widgets = {
             "title": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("Ej: Grieta en pared del baño principal")}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Ej: Grieta en pared del baño principal"),
+                }
             ),
             "description": forms.Textarea(
                 attrs={
@@ -382,7 +419,9 @@ class DamageReportForm(forms.ModelForm):
             "location_detail": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": _("Ej: Cocina - Pared Norte")}
             ),
-            "root_cause": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Causa raíz (opcional)")}),
+            "root_cause": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("Causa raíz (opcional)")}
+            ),
             "plan": forms.Select(attrs={"class": "form-select"}),
             "pin": forms.Select(attrs={"class": "form-select"}),
             "linked_touchup": forms.Select(attrs={"class": "form-select"}),
@@ -396,7 +435,9 @@ class DamageReportForm(forms.ModelForm):
         if project:
             self.fields["plan"].queryset = FloorPlan.objects.filter(project=project)
             self.fields["pin"].queryset = PlanPin.objects.filter(plan__project=project)
-            self.fields["linked_touchup"].queryset = TouchUpPin.objects.filter(plan__project=project)
+            self.fields["linked_touchup"].queryset = TouchUpPin.objects.filter(
+                plan__project=project
+            )
             self.fields["linked_co"].queryset = ChangeOrder.objects.filter(project=project)
         else:
             self.fields["plan"].queryset = FloorPlan.objects.none()
@@ -501,9 +542,9 @@ class TaskForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filter dependencies to same project and exclude self
         if self.instance and self.instance.pk:
-            self.fields["dependencies"].queryset = Task.objects.filter(project=self.instance.project).exclude(
-                pk=self.instance.pk
-            )
+            self.fields["dependencies"].queryset = Task.objects.filter(
+                project=self.instance.project
+            ).exclude(pk=self.instance.pk)
         elif "initial" in kwargs and "project" in kwargs["initial"]:
             project_id = kwargs["initial"]["project"]
             self.fields["dependencies"].queryset = Task.objects.filter(project_id=project_id)
@@ -524,9 +565,7 @@ class TaskForm(forms.ModelForm):
 class ChangeOrderForm(forms.ModelForm):
     class Meta:
         model = ChangeOrder
-        fields = [
-            "project", "description", "amount", "status", "notes", "color", "reference_code"
-        ]
+        fields = ["project", "description", "amount", "status", "notes", "color", "reference_code"]
         widgets = {
             "project": forms.Select(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
@@ -546,7 +585,9 @@ class ChangeOrderPhotoForm(forms.ModelForm):
         fields = ["image", "description", "order"]
         widgets = {
             "image": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
-            "description": forms.TextInput(attrs={"class": "form-control", "placeholder": "Descripción de la foto"}),
+            "description": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Descripción de la foto"}
+            ),
             "order": forms.NumberInput(attrs={"class": "form-control", "value": 0}),
         }
 
@@ -562,7 +603,9 @@ class ChangeOrderStatusForm(forms.ModelForm):
 
 
 class BudgetProgressForm(forms.ModelForm):
-    date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), input_formats=["%Y-%m-%d", "%m/%d/%Y"])
+    date = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}), input_formats=["%Y-%m-%d", "%m/%d/%Y"]
+    )
 
     class Meta:
         model = BudgetProgress
@@ -585,7 +628,13 @@ class BudgetProgressForm(forms.ModelForm):
             if p < 0 or p > 100:
                 self.add_error("percent_complete", "Debe estar entre 0 y 100.")
 
-        if (percent is None or percent == 0) and bl and getattr(bl, "qty", None) and bl.qty and bl.qty != 0:
+        if (
+            (percent is None or percent == 0)
+            and bl
+            and getattr(bl, "qty", None)
+            and bl.qty
+            and bl.qty != 0
+        ):
             auto = min(Decimal("100"), (Decimal(qty_completed) / Decimal(bl.qty)) * Decimal("100"))
             cleaned["percent_complete"] = auto
 
@@ -625,47 +674,41 @@ class BudgetProgressEditForm(forms.ModelForm):
 
 class ClockInForm(forms.Form):
     project = forms.ModelChoiceField(
-        queryset=Project.objects.all(),
-        label="Proyecto",
-        empty_label="-- Selecciona proyecto --"
+        queryset=Project.objects.all(), label="Proyecto", empty_label="-- Selecciona proyecto --"
     )
     change_order = forms.ModelChoiceField(
-        queryset=ChangeOrder.objects.filter(status__in=["approved", "sent"]).exclude(status__in=["billed", "paid"]),
+        queryset=ChangeOrder.objects.filter(status__in=["approved", "sent"]).exclude(
+            status__in=["billed", "paid"]
+        ),
         required=False,
-        label="Change Order (opcional)"
+        label="Change Order (opcional)",
     )
     cost_code = forms.ModelChoiceField(
-        queryset=CostCode.objects.filter(active=True),
-        required=False,
-        label="Cost Code"
+        queryset=CostCode.objects.filter(active=True), required=False, label="Cost Code"
     )
-    notes = forms.CharField(
-        widget=forms.Textarea(attrs={"rows": 2}),
-        required=False,
-        label="Notas"
-    )
+    notes = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Notas")
 
     def __init__(self, *args, **kwargs):
         # ✅ Permitir filtrar proyectos disponibles
-        available_projects = kwargs.pop('available_projects', None)
+        available_projects = kwargs.pop("available_projects", None)
         super().__init__(*args, **kwargs)
 
         # POLÍTICA ESTRICTA: Respetar el queryset proporcionado por el view
         if available_projects is not None:
-            self.fields['project'].queryset = available_projects
+            self.fields["project"].queryset = available_projects
 
             # Mensajes según cantidad de proyectos
             count = available_projects.count()
             if count == 0:
-                self.fields['project'].empty_label = "⚠️ No tienes proyectos asignados hoy"
+                self.fields["project"].empty_label = "⚠️ No tienes proyectos asignados hoy"
             elif count == 1:
-                self.fields['project'].empty_label = None  # Auto-select único proyecto
+                self.fields["project"].empty_label = None  # Auto-select único proyecto
             else:
-                self.fields['project'].empty_label = "-- Selecciona proyecto asignado --"
+                self.fields["project"].empty_label = "-- Selecciona proyecto asignado --"
         else:
             # Fallback si no se proporciona queryset (no debería ocurrir)
-            self.fields['project'].queryset = Project.objects.all()
-            self.fields['project'].empty_label = "-- Selecciona proyecto --"
+            self.fields["project"].queryset = Project.objects.all()
+            self.fields["project"].empty_label = "-- Selecciona proyecto --"
 
         # Filtrar COs por proyecto enviado para evitar combinaciones inválidas
         project_id = None
@@ -718,14 +761,20 @@ class MaterialsRequestForm(forms.Form):
     color_code = forms.CharField(required=False, label="Código")
     finish = forms.CharField(required=False, label="Acabado")
     gloss = forms.CharField(required=False, label="Brillo (si aplica)")
-    formula = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Fórmula (si aplica)")
+    formula = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Fórmula (si aplica)"
+    )
     reference_image = forms.FileField(required=False, label="Imagen / muestra")
 
     quantity = forms.DecimalField(min_value=0.01, max_digits=8, decimal_places=2, label="Cantidad")
     unit = forms.ChoiceField(choices=MaterialRequestItem.UNIT_CHOICES, label="Unidad")
-    comments = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Comentarios/Notas")
+    comments = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Comentarios/Notas"
+    )
 
-    needed_when = forms.ChoiceField(choices=MaterialRequest.NEEDED_WHEN_CHOICES, label="Cuándo se ocupa")
+    needed_when = forms.ChoiceField(
+        choices=MaterialRequest.NEEDED_WHEN_CHOICES, label="Cuándo se ocupa"
+    )
     needed_date = forms.DateField(
         required=False, widget=forms.DateInput(attrs={"type": "date"}), label="Fecha requerida"
     )
@@ -763,7 +812,9 @@ class MaterialsRequestForm(forms.Form):
         preset_choices = [("", "— Seleccionar —")]
         if presets:
             for i, p in enumerate(presets):
-                preset_choices.append((str(i), f"{p['brand_label']} · {p['product_name']} ({p['category_label']})"))
+                preset_choices.append(
+                    (str(i), f"{p['brand_label']} · {p['product_name']} ({p['category_label']})")
+                )
         self.fields["product_preset"].choices = preset_choices
 
 
@@ -803,7 +854,9 @@ class SitePhotoForm(forms.ModelForm):
             "notes": forms.Textarea(attrs={"rows": 3}),
             "photo_type": forms.Select(attrs={"class": "form-select"}),
             "visibility": forms.Select(attrs={"class": "form-select"}),
-            "caption": forms.TextInput(attrs={"class": "form-control", "placeholder": "Caption/title"}),
+            "caption": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Caption/title"}
+            ),
         }
 
     def __init__(self, *args, project=None, **kwargs):
@@ -829,7 +882,9 @@ class SitePhotoForm(forms.ModelForm):
                 choices.append((str(c.id), label or f"Color {c.id}"))
         except Exception:
             pass
-        self.fields["approved_color"] = forms.ChoiceField(choices=choices, required=False, label="Color aprobado")
+        self.fields["approved_color"] = forms.ChoiceField(
+            choices=choices, required=False, label="Color aprobado"
+        )
 
     def save(self, commit=True):
         inst: SitePhoto = super().save(commit=False)
@@ -893,7 +948,9 @@ class ColorSampleForm(forms.ModelForm):
             "room_location": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Ej: Cocina, Dormitorio Principal"}
             ),
-            "room_group": forms.TextInput(attrs={"class": "form-control", "placeholder": "Grupo de habitación"}),
+            "room_group": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Grupo de habitación"}
+            ),
         }
 
 
@@ -921,11 +978,19 @@ class FloorPlanForm(forms.ModelForm):
         widgets = {
             "project": forms.Select(attrs={"class": "form-control"}),
             "name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: Planta Baja, Primer Piso, Ático..."}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Planta Baja, Primer Piso, Ático...",
+                }
             ),
-            "level": forms.NumberInput(attrs={"class": "form-control", "min": "-5", "max": "50", "placeholder": "0"}),
+            "level": forms.NumberInput(
+                attrs={"class": "form-control", "min": "-5", "max": "50", "placeholder": "0"}
+            ),
             "level_identifier": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: Level 0, Ground Floor, Basement..."}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Level 0, Ground Floor, Basement...",
+                }
             ),
             "image": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
         }
@@ -936,7 +1001,9 @@ class FloorPlanForm(forms.ModelForm):
 
 
 class PlanPinForm(forms.ModelForm):
-    create_task = forms.BooleanField(required=False, initial=False, label="Crear tarea touch-up a partir del pin")
+    create_task = forms.BooleanField(
+        required=False, initial=False, label="Crear tarea touch-up a partir del pin"
+    )
 
     class Meta:
         model = PlanPin
@@ -955,7 +1022,9 @@ class ScheduleCategoryForm(forms.ModelForm):
         model = ScheduleCategory
         fields = ["name", "parent", "order", "cost_code"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Preparación"}),
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: Preparación"}
+            ),
             "parent": forms.Select(attrs={"class": "form-control"}),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
             "cost_code": forms.Select(attrs={"class": "form-control"}),
@@ -992,13 +1061,17 @@ class ScheduleItemForm(forms.ModelForm):
         ]
         widgets = {
             "category": forms.Select(attrs={"class": "form-control"}),
-            "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Enmascarar ventanas"}),
+            "title": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: Enmascarar ventanas"}
+            ),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
             "planned_start": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "planned_end": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
-            "percent_complete": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "100"}),
+            "percent_complete": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0", "max": "100"}
+            ),
             "budget_line": forms.Select(attrs={"class": "form-control"}),
             "estimate_line": forms.Select(attrs={"class": "form-control"}),
             "cost_code": forms.Select(attrs={"class": "form-control"}),
@@ -1012,7 +1085,9 @@ class ScheduleItemForm(forms.ModelForm):
         if project:
             self.fields["category"].queryset = ScheduleCategory.objects.filter(project=project)
             self.fields["budget_line"].queryset = BudgetLine.objects.filter(project=project)
-            self.fields["estimate_line"].queryset = EstimateLine.objects.filter(estimate__project=project)
+            self.fields["estimate_line"].queryset = EstimateLine.objects.filter(
+                estimate__project=project
+            )
             self.fields["cost_code"].queryset = CostCode.objects.filter(active=True)
         else:
             self.fields["category"].queryset = ScheduleCategory.objects.none()
@@ -1070,10 +1145,16 @@ class DailyPlanForm(forms.ModelForm):
             "project": forms.Select(attrs={"class": "form-control"}),
             "plan_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
-            "completion_deadline": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
+            "completion_deadline": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"}
+            ),
             "no_planning_reason": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
-            "actual_hours_worked": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
-            "estimated_hours_total": forms.NumberInput(attrs={"step": "0.01", "class": "form-control"}),
+            "actual_hours_worked": forms.NumberInput(
+                attrs={"step": "0.01", "class": "form-control"}
+            ),
+            "estimated_hours_total": forms.NumberInput(
+                attrs={"step": "0.01", "class": "form-control"}
+            ),
         }
         help_texts = {
             "estimated_hours_total": _("Suma manual (se recalcula al guardar si hay actividades)."),
@@ -1138,7 +1219,9 @@ class DailyPlanForm(forms.ModelForm):
 
     def clean_completion_deadline(self):
         deadline = self.cleaned_data.get("completion_deadline")
-        plan_date = self.cleaned_data.get("plan_date") or (self.instance.plan_date if self.instance else None)
+        plan_date = self.cleaned_data.get("plan_date") or (
+            self.instance.plan_date if self.instance else None
+        )
         if deadline and plan_date and deadline.date() >= plan_date:
             # Deadline debe ser antes de plan_date
             raise ValidationError(_("Deadline debe ser antes del día planificado."))
@@ -1156,7 +1239,9 @@ class DailyPlanForm(forms.ModelForm):
         inst: DailyPlan = super().save(commit=False)
         # Recalcular estimated_hours_total basado en actividades si existen
         if inst.pk:
-            total = inst.activities.aggregate(Sum("estimated_hours")).get("estimated_hours__sum") or Decimal("0")
+            total = inst.activities.aggregate(Sum("estimated_hours")).get(
+                "estimated_hours__sum"
+            ) or Decimal("0")
             inst.estimated_hours_total = total
         if commit:
             inst.save()
@@ -1176,9 +1261,15 @@ class PlannedActivityForm(forms.ModelForm):
     materials_text = forms.CharField(
         required=False,
         widget=forms.Textarea(
-            attrs={"class": "form-control", "rows": 3, "placeholder": _("Ej: Paint:Sherwin-Williams:2gal\nTape:3roll")}
+            attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": _("Ej: Paint:Sherwin-Williams:2gal\nTape:3roll"),
+            }
         ),
-        help_text=_("Una línea por material. Formato opcional cantidad al final (ej: Paint:Brand:2gal)."),
+        help_text=_(
+            "Una línea por material. Formato opcional cantidad al final (ej: Paint:Brand:2gal)."
+        ),
     )
 
     class Meta:
@@ -1190,14 +1281,20 @@ class PlannedActivityForm(forms.ModelForm):
             "title": forms.TextInput(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
-            "assigned_employees": forms.SelectMultiple(attrs={"class": "form-control", "size": "5"}),
+            "assigned_employees": forms.SelectMultiple(
+                attrs={"class": "form-control", "size": "5"}
+            ),
             "is_group_activity": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "estimated_hours": forms.NumberInput(attrs={"step": "0.25", "class": "form-control"}),
             "actual_hours": forms.NumberInput(attrs={"step": "0.25", "class": "form-control"}),
             "materials_checked": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "material_shortage": forms.CheckboxInput(attrs={"class": "form-check-input", "disabled": "disabled"}),
+            "material_shortage": forms.CheckboxInput(
+                attrs={"class": "form-check-input", "disabled": "disabled"}
+            ),
             "status": forms.Select(attrs={"class": "form-control"}),
-            "progress_percentage": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "100"}),
+            "progress_percentage": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0", "max": "100"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1205,16 +1302,18 @@ class PlannedActivityForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if daily_plan:
             # Limitar schedule items del mismo proyecto
-            self.fields["schedule_item"].queryset = ScheduleItem.objects.filter(project=daily_plan.project).order_by(
-                "order"
-            )
+            self.fields["schedule_item"].queryset = ScheduleItem.objects.filter(
+                project=daily_plan.project
+            ).order_by("order")
             # Limitar activity templates activos
             self.fields["activity_template"].queryset = ActivityTemplate.objects.filter(
                 is_active=True, is_latest_version=True
             )
             # Limitar empleados (a través de Employee) – si existe relación de proyecto filtrar; de momento todos activos
             self.fields["assigned_employees"].queryset = (
-                apps.get_model("core", "Employee").objects.filter(is_active=True).order_by("first_name")
+                apps.get_model("core", "Employee")
+                .objects.filter(is_active=True)
+                .order_by("first_name")
             )
 
         # Pre-cargar materials_text desde JSON lista
@@ -1270,7 +1369,11 @@ def make_planned_activity_formset(daily_plan, data=None, files=None, **kwargs):
     for form in fs.forms:
         if hasattr(form, "fields"):
             # Reinyectar daily_plan en cada form para filtrado
-            form.__init__(data=form.data if form.is_bound else None, daily_plan=daily_plan, instance=form.instance)
+            form.__init__(
+                data=form.data if form.is_bound else None,
+                daily_plan=daily_plan,
+                instance=form.instance,
+            )
     return fs
 
 
@@ -1286,10 +1389,16 @@ class FileCategoryForm(forms.ModelForm):
         model = FileCategory
         fields = ["name", "category_type", "description", "icon", "color", "order"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Contratos, Planos, Fotos..."}),
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: Contratos, Planos, Fotos..."}
+            ),
             "category_type": forms.Select(attrs={"class": "form-select"}),
             "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Descripción de esta categoría..."}
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Descripción de esta categoría...",
+                }
             ),
             "icon": forms.TextInput(attrs={"class": "form-control", "placeholder": "bi-folder"}),
             "color": forms.Select(
@@ -1315,16 +1424,23 @@ class ProjectFileForm(forms.ModelForm):
         model = ProjectFile
         fields = ["name", "description", "file", "tags", "is_public", "version"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del archivo..."}),
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre del archivo..."}
+            ),
             "description": forms.Textarea(
                 attrs={"class": "form-control", "rows": 3, "placeholder": "Descripción opcional..."}
             ),
             "file": forms.FileInput(attrs={"class": "form-control"}),
             "tags": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "contrato, firmado, importante (separados por coma)"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "contrato, firmado, importante (separados por coma)",
+                }
             ),
             "is_public": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "version": forms.TextInput(attrs={"class": "form-control", "placeholder": "v1.0, Rev A, etc."}),
+            "version": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "v1.0, Rev A, etc."}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1366,14 +1482,24 @@ class TouchUpPinForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "Ej: Pintura techo sala principal"}
             ),
             "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Descripción detallada del touch-up..."}
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Descripción detallada del touch-up...",
+                }
             ),
             "approved_color": forms.Select(attrs={"class": "form-select"}),
             "custom_color_name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Nombre del color (si no usa color aprobado)"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Nombre del color (si no usa color aprobado)",
+                }
             ),
             "sheen": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: Matte, Satin, Semi-gloss, Gloss"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Matte, Satin, Semi-gloss, Gloss",
+                }
             ),
             "details": forms.Textarea(
                 attrs={
@@ -1402,12 +1528,16 @@ class TouchUpPinForm(forms.ModelForm):
 
         # Filter color samples by project
         if project:
-            self.fields["approved_color"].queryset = ColorSample.objects.filter(project=project).order_by("name")
+            self.fields["approved_color"].queryset = ColorSample.objects.filter(
+                project=project
+            ).order_by("name")
 
         # Filter assigned_to by project employees
         if project:
             # Get users with employee profiles in this project
-            employee_profiles = Profile.objects.filter(role__in=["employee", "painter", "project_manager"])
+            employee_profiles = Profile.objects.filter(
+                role__in=["employee", "painter", "project_manager"]
+            )
             employee_ids = [p.user_id for p in employee_profiles if p.user]
             self.fields["assigned_to"].queryset = User.objects.filter(id__in=employee_ids).order_by(
                 "first_name", "last_name"
@@ -1455,7 +1585,9 @@ class ClientCreationForm(forms.ModelForm):
 
     email = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "correo@ejemplo.com"}),
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "correo@ejemplo.com"}
+        ),
         label="Correo Electrónico",
     )
     first_name = forms.CharField(
@@ -1479,12 +1611,16 @@ class ClientCreationForm(forms.ModelForm):
     company = forms.CharField(
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre de la empresa"}),
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Nombre de la empresa"}
+        ),
         label="Empresa",
     )
     address = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "Dirección completa"}),
+        widget=forms.Textarea(
+            attrs={"class": "form-control", "rows": 2, "placeholder": "Dirección completa"}
+        ),
         label="Dirección",
     )
     language = forms.ChoiceField(
@@ -1526,7 +1662,12 @@ class ClientCreationForm(forms.ModelForm):
             raise ValidationError("Ya existe un usuario con este correo electrónico.")
 
         # Validación adicional: rechazar emails desechables comunes
-        disposable_domains = ["tempmail.com", "guerrillamail.com", "10minutemail.com", "mailinator.com"]
+        disposable_domains = [
+            "tempmail.com",
+            "guerrillamail.com",
+            "10minutemail.com",
+            "mailinator.com",
+        ]
         domain = email.split("@")[1]
         if domain in disposable_domains:
             raise ValidationError("No se permiten correos electrónicos desechables.")
@@ -1561,7 +1702,8 @@ class ClientCreationForm(forms.ModelForm):
             from core.models import Profile
 
             profile, created = Profile.objects.get_or_create(
-                user=user, defaults={"role": "client", "language": self.cleaned_data.get("language", "en")}
+                user=user,
+                defaults={"role": "client", "language": self.cleaned_data.get("language", "en")},
             )
             if not created:
                 profile.role = "client"
@@ -1586,12 +1728,16 @@ class ClientEditForm(forms.ModelForm):
     company = forms.CharField(
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre de la empresa"}),
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Nombre de la empresa"}
+        ),
         label="Empresa",
     )
     address = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "Dirección completa"}),
+        widget=forms.Textarea(
+            attrs={"class": "form-control", "rows": 2, "placeholder": "Dirección completa"}
+        ),
         label="Dirección",
     )
     language = forms.ChoiceField(
@@ -1600,7 +1746,9 @@ class ClientEditForm(forms.ModelForm):
         label="Idioma Preferido",
     )
     is_active = forms.BooleanField(
-        required=False, widget=forms.CheckboxInput(attrs={"class": "form-check-input"}), label="Usuario Activo"
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label="Usuario Activo",
     )
 
     class Meta:
@@ -1623,12 +1771,16 @@ class ClientPasswordResetForm(forms.Form):
     """Formulario para resetear la contraseña de un cliente"""
 
     new_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Nueva contraseña"}),
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "placeholder": "Nueva contraseña"}
+        ),
         label="Nueva Contraseña",
         min_length=8,
     )
     confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirmar contraseña"}),
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "placeholder": "Confirmar contraseña"}
+        ),
         label="Confirmar Contraseña",
     )
 
@@ -1666,15 +1818,23 @@ class ProjectCreateForm(forms.ModelForm):
             "number_of_rooms_or_areas",
         ]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del proyecto"}),
-            "client": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del cliente"}),
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre del proyecto"}
+            ),
+            "client": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre del cliente"}
+            ),
             "address": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Dirección completa del proyecto"}
             ),
             "start_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "end_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Descripción del proyecto"}
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Descripción del proyecto",
+                }
             ),
             "budget_total": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.01", "min": "0", "placeholder": "0.00"}
@@ -1696,10 +1856,18 @@ class ProjectCreateForm(forms.ModelForm):
                 }
             ),
             "paint_codes": forms.Textarea(
-                attrs={"class": "form-control", "rows": 2, "placeholder": "Códigos de pintura específicos"}
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": "Códigos de pintura específicos",
+                }
             ),
             "stains_or_finishes": forms.Textarea(
-                attrs={"class": "form-control", "rows": 2, "placeholder": "Ej: Milesi Butternut 072 - 2 coats"}
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": "Ej: Milesi Butternut 072 - 2 coats",
+                }
             ),
             "number_of_rooms_or_areas": forms.NumberInput(
                 attrs={"class": "form-control", "min": "0", "placeholder": "0"}
@@ -1724,7 +1892,9 @@ class ProjectCreateForm(forms.ModelForm):
         end_date = cleaned_data.get("end_date")
 
         if start_date and end_date and end_date < start_date:
-            raise ValidationError("La fecha de finalización no puede ser anterior a la fecha de inicio.")
+            raise ValidationError(
+                "La fecha de finalización no puede ser anterior a la fecha de inicio."
+            )
 
         # Validar presupuestos
         budget_total = cleaned_data.get("budget_total", Decimal("0"))
@@ -1776,7 +1946,9 @@ class ProposalEmailForm(forms.Form):
     )
     recipient = forms.EmailField(
         label="Para",
-        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "cliente@correo.com"}),
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "cliente@correo.com"}
+        ),
     )
     message = forms.CharField(
         label="Mensaje",
@@ -1823,7 +1995,7 @@ class ActivationWizardForm(forms.Form):
             attrs={
                 "class": "form-control",
                 "type": "date",
-                "placeholder": "Selecciona fecha de inicio"
+                "placeholder": "Selecciona fecha de inicio",
             }
         ),
         help_text="Fecha en que inicia la obra/proyecto",
@@ -1860,12 +2032,7 @@ class ActivationWizardForm(forms.Form):
         min_value=0,
         max_value=100,
         widget=forms.NumberInput(
-            attrs={
-                "class": "form-control",
-                "placeholder": "0-100",
-                "min": "0",
-                "max": "100"
-            }
+            attrs={"class": "form-control", "placeholder": "0-100", "min": "0", "max": "100"}
         ),
         help_text="Porcentaje del total para factura de anticipo (0 = sin anticipo)",
     )
@@ -1880,20 +2047,20 @@ class ActivationWizardForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         """Initialize form with estimate context."""
-        estimate = kwargs.pop('estimate', None)
+        estimate = kwargs.pop("estimate", None)
         super().__init__(*args, **kwargs)
 
         if estimate:
             # Set queryset for items_to_schedule
-            self.fields['items_to_schedule'].queryset = estimate.lines.all()
+            self.fields["items_to_schedule"].queryset = estimate.lines.all()
 
             # Pre-select all lines by default
             if not self.is_bound:
-                self.initial['items_to_schedule'] = estimate.lines.all()
+                self.initial["items_to_schedule"] = estimate.lines.all()
 
     def clean_deposit_percent(self):
         """Validate deposit percentage."""
-        percent = self.cleaned_data.get('deposit_percent')
+        percent = self.cleaned_data.get("deposit_percent")
         if percent is None:
             return 0
         if percent < 0 or percent > 100:
@@ -1904,21 +2071,21 @@ class ActivationWizardForm(forms.Form):
         """Validate form data."""
         cleaned_data = super().clean()
 
-        create_schedule = cleaned_data.get('create_schedule')
-        create_tasks = cleaned_data.get('create_tasks')
+        create_schedule = cleaned_data.get("create_schedule")
+        create_tasks = cleaned_data.get("create_tasks")
 
         # Tasks require schedule
         if create_tasks and not create_schedule:
-            raise ValidationError(
-                "Para crear tareas operativas, primero debes crear el cronograma"
-            )
+            raise ValidationError("Para crear tareas operativas, primero debes crear el cronograma")
 
         # At least one action must be selected
-        if not any([
-            cleaned_data.get('create_schedule'),
-            cleaned_data.get('create_budget'),
-            cleaned_data.get('deposit_percent', 0) > 0
-        ]):
+        if not any(
+            [
+                cleaned_data.get("create_schedule"),
+                cleaned_data.get("create_budget"),
+                cleaned_data.get("deposit_percent", 0) > 0,
+            ]
+        ):
             raise ValidationError(
                 "Debes seleccionar al menos una acción (cronograma, presupuesto o anticipo)"
             )

@@ -11,7 +11,9 @@ class Signature(models.Model):
     and an integrity hash to verify content.
     """
 
-    signer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="signatures")
+    signer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="signatures"
+    )
     title = models.CharField(max_length=255, help_text="Short label for the signed item")
     signed_at = models.DateTimeField(auto_now_add=True)
     hash_alg = models.CharField(max_length=32, default="sha256")

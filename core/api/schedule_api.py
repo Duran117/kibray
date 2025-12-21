@@ -2,6 +2,7 @@
 Master Schedule Center API
 Provides unified data for Strategic Gantt (Projects timeline) and Tactical Calendar (Daily events).
 """
+
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -98,7 +99,9 @@ def get_master_schedule_data(request):
             {
                 "id": project.id,
                 "name": project.name,
-                "start_date": project.start_date.isoformat() if project.start_date else today.isoformat(),
+                "start_date": project.start_date.isoformat()
+                if project.start_date
+                else today.isoformat(),
                 "end_date": project.end_date.isoformat()
                 if project.end_date
                 else (project.start_date + timedelta(days=90)).isoformat()
@@ -226,7 +229,13 @@ def get_master_schedule_data(request):
             .order_by("due_date")
         )
         for task in tasks:
-            color = "#ef4444" if task.priority == "urgent" else "#fb923c" if task.priority == "high" else "#3b82f6"
+            color = (
+                "#ef4444"
+                if task.priority == "urgent"
+                else "#fb923c"
+                if task.priority == "high"
+                else "#3b82f6"
+            )
             events_data.append(
                 {
                     "title": f"📋 {task.title}",
@@ -383,13 +392,17 @@ def get_project_gantt_v2(request, project_id=None):
             filtered_item_ids.add(it.id)
 
     dependencies = (
-        ScheduleDependencyV2.objects.filter(source_item__project=project, target_item__project=project)
+        ScheduleDependencyV2.objects.filter(
+            source_item__project=project, target_item__project=project
+        )
         .select_related("source_item", "target_item")
         .order_by("source_item_id", "target_item_id")
     )
 
     if filtered_item_ids:
-        dependencies = dependencies.filter(source_item_id__in=filtered_item_ids, target_item_id__in=filtered_item_ids)
+        dependencies = dependencies.filter(
+            source_item_id__in=filtered_item_ids, target_item_id__in=filtered_item_ids
+        )
 
     phases_data = SchedulePhaseV2Serializer(phases, many=True).data
     deps_data = ScheduleDependencyV2Serializer(dependencies, many=True).data

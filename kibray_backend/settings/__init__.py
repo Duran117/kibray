@@ -2,6 +2,7 @@
 Django Settings Package
 Auto-loads the correct settings module based on DJANGO_SETTINGS_MODULE environment variable
 """
+
 import os
 
 # Default to development settings

@@ -25,8 +25,9 @@ LOGGING["loggers"]["core"]["level"] = "DEBUG"  # noqa: F405
 # Sentry - Use staging environment tag
 if SENTRY_DSN:  # noqa: F405
     import sentry_sdk
+
     sentry_sdk.init(
-    dsn=SENTRY_DSN,  # noqa: F405
+        dsn=SENTRY_DSN,  # noqa: F405
         environment="staging",
         traces_sample_rate=0.5,  # Sample more transactions in staging
     )

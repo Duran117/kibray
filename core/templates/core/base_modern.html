@@ -61,18 +61,27 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-900 antialiased overflow-x-hidden">
+        {# Optional legacy React navigation shell. Used only in tests / transitional pages. #}
+        {% if enable_react_nav|default:False %}
+            <script id="user-data" type="application/json">
+                {"id":{{ user.id|default:0 }},"username":"{{ user.username|default:'' }}","first_name":"{{ user.first_name|default:'' }}","last_name":"{{ user.last_name|default:'' }}","role":"{{ user.profile.role|default:'pm' }}"}
+            </script>
+            <div id="react-navigation-root"></div>
+            <script src="{% static 'js/kibray-navigation.js' %}"></script>
+        {% endif %}
+
     {# Header/Navbar #}
     {% include "core/components/header.html" %}
     
     {# Main Layout #}
     <div class="flex min-h-[calc(100vh-64px)] w-full min-w-0" data-layout-root>
-        {# Sidebar (on by default, can be hidden via show_sidebar=False) #}
-        {% if show_sidebar|default:True %}
+    {# Sidebar (on by default, can be hidden via show_sidebar=False or legacy_shell=True) #}
+    {% if show_sidebar|default:True and not legacy_shell|default:False %}
         {% include "core/components/sidebar.html" %}
         {% endif %}
         
         {# Main Content #}
-        <main class="flex-1 w-full min-w-0 transition-all duration-300 {% if show_sidebar|default:True %}lg:pl-64{% endif %}" id="main-content" tabindex="-1">
+        <main class="flex-1 w-full min-w-0 transition-all duration-300 {% if show_sidebar|default:True and not legacy_shell|default:False %}lg:pl-64{% endif %}" id="main-content" tabindex="-1">
             <div class="w-full px-4 sm:px-6 lg:px-8 py-6 fade-in min-w-0">
                 {# Page Header (optional breadcrumbs, title, actions) #}
                 {% block page_header %}{% endblock %}
@@ -83,8 +92,10 @@
         </main>
     </div>
     
-    {# Mobile overlay backdrop for sidebar #}
+    {# Mobile overlay backdrop for sidebar (omit in legacy shell mode) #}
+    {% if not legacy_shell|default:False %}
     <div id="kb-sidebar-backdrop" class="fixed inset-0 bg-black/40 opacity-0 pointer-events-none transition-opacity duration-200 z-30"></div>
+    {% endif %}
     
     {# Toast/Alert Container #}
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
@@ -99,6 +110,7 @@
     {# Page-specific JavaScript #}
     {% block extra_js %}{% endblock %}
     
+    {% if not legacy_shell|default:False %}
     <script>
     // Accessible sidebar toggle (mobile overlay)
     (function(){
@@ -149,5 +161,6 @@
         });
     })();
     </script>
+    {% endif %}
 </body>
 </html>

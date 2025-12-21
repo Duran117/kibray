@@ -235,7 +235,13 @@ class DailyPlanAIAssistant:
         safety_issues.extend(safe_issues)
 
         # Calculate overall score
-        total_checks = len(passed_checks) + len(material_issues) + len(employee_issues) + len(schedule_issues) + len(safety_issues)
+        total_checks = (
+            len(passed_checks)
+            + len(material_issues)
+            + len(employee_issues)
+            + len(schedule_issues)
+            + len(safety_issues)
+        )
         score = int(len(passed_checks) / total_checks * 100) if total_checks > 0 else 100
 
         # Penalize for critical issues
@@ -276,8 +282,16 @@ class DailyPlanAIAssistant:
                     if len(parts) >= 2:
                         material_name = parts[0].strip()
                         try:
-                            quantity = float(parts[-1].replace("gal", "").replace("lb", "").replace("pcs", "").strip())
-                            materials_needed[material_name] = materials_needed.get(material_name, 0) + quantity
+                            quantity = float(
+                                parts[-1]
+                                .replace("gal", "")
+                                .replace("lb", "")
+                                .replace("pcs", "")
+                                .strip()
+                            )
+                            materials_needed[material_name] = (
+                                materials_needed.get(material_name, 0) + quantity
+                            )
                         except ValueError:
                             continue
 
@@ -288,7 +302,9 @@ class DailyPlanAIAssistant:
         # Check inventory
         for material_name, required_qty in materials_needed.items():
             # Find in inventory
-            inventory_items = InventoryItem.objects.filter(name__icontains=material_name, project=project)
+            inventory_items = InventoryItem.objects.filter(
+                name__icontains=material_name, project=project
+            )
 
             if not inventory_items.exists():
                 issues.append(
@@ -367,7 +383,9 @@ class DailyPlanAIAssistant:
                             description=f"Scheduled for {total_hours:.1f} hours (exceeds 8-hour limit)",
                             severity="warning",
                             suggestion="Reduce workload or split tasks among multiple employees",
-                            affected_activities=[a.id for a in activities if employee in a.assigned_employees.all()],
+                            affected_activities=[
+                                a.id for a in activities if employee in a.assigned_employees.all()
+                            ],
                         )
                     )
                 except Employee.DoesNotExist:
@@ -376,7 +394,9 @@ class DailyPlanAIAssistant:
                 if emp_id not in [issue.employee_name for issue in issues]:
                     try:
                         employee = Employee.objects.get(id=emp_id)
-                        passed.append(f"Employee {employee.first_name} {employee.last_name} workload is reasonable")
+                        passed.append(
+                            f"Employee {employee.first_name} {employee.last_name} workload is reasonable"
+                        )
                     except Employee.DoesNotExist:
                         pass
 
@@ -384,7 +404,9 @@ class DailyPlanAIAssistant:
 
         return passed, issues
 
-    def _check_schedule(self, activities: list[PlannedActivity]) -> tuple[list[str], list[ScheduleIssue]]:
+    def _check_schedule(
+        self, activities: list[PlannedActivity]
+    ) -> tuple[list[str], list[ScheduleIssue]]:
         """Check schedule coherence and dependencies"""
         passed = []
         issues = []
@@ -405,7 +427,9 @@ class DailyPlanAIAssistant:
             passed.append("All activities linked to schedule")
 
         # Check time estimates
-        activities_without_time = [a for a in activities if not a.estimated_hours or a.estimated_hours <= 0]
+        activities_without_time = [
+            a for a in activities if not a.estimated_hours or a.estimated_hours <= 0
+        ]
         if activities_without_time:
             issues.append(
                 ScheduleIssue(
@@ -434,7 +458,9 @@ class DailyPlanAIAssistant:
 
         return passed, issues
 
-    def _check_safety(self, activities: list[PlannedActivity], daily_plan: DailyPlan) -> tuple[list[str], list[SafetyIssue]]:
+    def _check_safety(
+        self, activities: list[PlannedActivity], daily_plan: DailyPlan
+    ) -> tuple[list[str], list[SafetyIssue]]:
         """Check safety and compliance requirements"""
         passed = []
         issues = []

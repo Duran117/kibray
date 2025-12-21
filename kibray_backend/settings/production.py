@@ -2,6 +2,7 @@
 Django Settings - Production Environment
 Secure settings for production deployment
 """
+
 import os
 
 import dj_database_url
@@ -15,8 +16,8 @@ DEBUG = False
 # This ensures the fixed template syntax is loaded immediately
 TEMPLATES[0]["APP_DIRS"] = False  # noqa: F405
 TEMPLATES[0]["OPTIONS"]["loaders"] = [  # noqa: F405
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
+    "django.template.loaders.filesystem.Loader",
+    "django.template.loaders.app_directories.Loader",
 ]
 
 # Add startup logging
@@ -251,7 +252,10 @@ LOGGING = {
 
 # DRF Spectacular - Production server URL
 SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
-    {"url": os.getenv("API_BASE_URL", "https://api.kibray.com"), "description": "Production server"},
+    {
+        "url": os.getenv("API_BASE_URL", "https://api.kibray.com"),
+        "description": "Production server",
+    },
 ]
 
 # Sentry Integration (if configured)

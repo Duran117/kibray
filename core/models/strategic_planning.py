@@ -4,6 +4,7 @@ Integrates Psychology (Tony Robbins' Triad), Strategy (Goals), and Execution (Pa
 
 CRITICAL: These models are for EXECUTIVE MANAGEMENT ONLY, not for construction project tasks.
 """
+
 import uuid
 
 from django.conf import settings
@@ -17,42 +18,33 @@ class LifeVision(models.Model):
     The North Star - High-level life/business goals that drive everything.
     Example: "Achieve Financial Freedom", "Become Market Leader in Construction"
     """
+
     SCOPE_CHOICES = [
-        ('PERSONAL', 'Personal Life'),
-        ('BUSINESS', 'Business/Career'),
+        ("PERSONAL", "Personal Life"),
+        ("BUSINESS", "Business/Career"),
     ]
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='life_visions'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="life_visions"
     )
     title = models.CharField(
-        max_length=255,
-        help_text="The goal/vision (e.g., 'Financial Freedom', 'Market Leadership')"
+        max_length=255, help_text="The goal/vision (e.g., 'Financial Freedom', 'Market Leadership')"
     )
     scope = models.CharField(
-        max_length=20,
-        choices=SCOPE_CHOICES,
-        help_text="Is this a personal or business goal?"
+        max_length=20, choices=SCOPE_CHOICES, help_text="Is this a personal or business goal?"
     )
     deep_why = models.TextField(
         help_text="The EMOTIONAL anchor - WHY does this matter? What will it give you?"
     )
     deadline = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Target completion date (if applicable)"
+        null=True, blank=True, help_text="Target completion date (if applicable)"
     )
-    progress_pct = models.IntegerField(
-        default=0,
-        help_text="Estimated progress (0-100)"
-    )
+    progress_pct = models.IntegerField(default=0, help_text="Estimated progress (0-100)")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         verbose_name = "Life Vision"
         verbose_name_plural = "Life Visions"
 
@@ -62,14 +54,12 @@ class LifeVision(models.Model):
     def clean(self):
         """Validate fields"""
         if not self.deep_why or not self.deep_why.strip():
-            raise ValidationError({
-                'deep_why': 'You MUST articulate WHY this vision matters emotionally.'
-            })
+            raise ValidationError(
+                {"deep_why": "You MUST articulate WHY this vision matters emotionally."}
+            )
 
         if self.progress_pct < 0 or self.progress_pct > 100:
-            raise ValidationError({
-                'progress_pct': 'Progress must be between 0 and 100.'
-            })
+            raise ValidationError({"progress_pct": "Progress must be between 0 and 100."})
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -81,35 +71,32 @@ class ExecutiveHabit(models.Model):
     Routine Maintenance - Personal/Professional habits separate from daily work tasks.
     Example: "Morning Gym", "Read 30 minutes", "Strategic Thinking Time"
     """
+
     FREQUENCY_CHOICES = [
-        ('DAILY', 'Daily'),
-        ('WEEKLY', 'Weekly'),
-        ('MONTHLY', 'Monthly'),
+        ("DAILY", "Daily"),
+        ("WEEKLY", "Weekly"),
+        ("MONTHLY", "Monthly"),
     ]
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='executive_habits'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="executive_habits"
     )
     title = models.CharField(
-        max_length=255,
-        help_text="Habit name (e.g., 'Morning Gym', 'Read 30 minutes')"
+        max_length=255, help_text="Habit name (e.g., 'Morning Gym', 'Read 30 minutes')"
     )
     frequency = models.CharField(
         max_length=20,
         choices=FREQUENCY_CHOICES,
-        default='DAILY',
-        help_text="How often should this be done?"
+        default="DAILY",
+        help_text="How often should this be done?",
     )
     is_active = models.BooleanField(
-        default=True,
-        help_text="Is this habit currently being tracked?"
+        default=True, help_text="Is this habit currently being tracked?"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['frequency', 'title']
+        ordering = ["frequency", "title"]
         verbose_name = "Executive Habit"
         verbose_name_plural = "Executive Habits"
 
@@ -122,55 +109,43 @@ class DailyRitualSession(models.Model):
     The Container - Captures the daily executive planning session.
     Includes mindset work (physiology, gratitude, intention).
     """
+
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='ritual_sessions'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ritual_sessions"
     )
-    date = models.DateField(
-        help_text="The day this ritual is for"
-    )
+    date = models.DateField(help_text="The day this ritual is for")
 
     # PHASE 1: STATE & FOUNDATION (Tony Robbins' Triad)
     physiology_check = models.BooleanField(
-        default=False,
-        help_text="Did you do the priming exercise? (Stand up, breathe, move)"
+        default=False, help_text="Did you do the priming exercise? (Stand up, breathe, move)"
     )
     gratitude_entries = models.JSONField(
         default=list,
         blank=True,
-        help_text="List of 3 things you're grateful for. Format: ['Item 1', 'Item 2', 'Item 3']"
+        help_text="List of 3 things you're grateful for. Format: ['Item 1', 'Item 2', 'Item 3']",
     )
-    daily_intention = models.TextField(
-        blank=True,
-        help_text="Your main focus/intention for today"
-    )
+    daily_intention = models.TextField(blank=True, help_text="Your main focus/intention for today")
 
     # Energy tracking (from Focus Workflow)
-    energy_level = models.IntegerField(
-        default=5,
-        help_text="Self-reported energy level (1-10)"
-    )
+    energy_level = models.IntegerField(default=5, help_text="Self-reported energy level (1-10)")
 
     # Habit tracking for today
     habits_checked = models.JSONField(
         default=list,
         blank=True,
-        help_text="List of habit IDs checked/committed to today. Format: [1, 2, 3]"
+        help_text="List of habit IDs checked/committed to today. Format: [1, 2, 3]",
     )
 
     # Metadata
     completed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When the ritual was completed"
+        null=True, blank=True, help_text="When the ritual was completed"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-date']
-        unique_together = ['user', 'date']
+        ordering = ["-date"]
+        unique_together = ["user", "date"]
         verbose_name = "Daily Ritual Session"
         verbose_name_plural = "Daily Ritual Sessions"
 
@@ -180,9 +155,7 @@ class DailyRitualSession(models.Model):
     def clean(self):
         """Validate energy level"""
         if self.energy_level < 1 or self.energy_level > 10:
-            raise ValidationError({
-                'energy_level': 'Energy level must be between 1 and 10.'
-            })
+            raise ValidationError({"energy_level": "Energy level must be between 1 and 10."})
 
     @property
     def is_completed(self):
@@ -197,7 +170,7 @@ class DailyRitualSession(models.Model):
     @property
     def completed_power_actions(self):
         """Count of completed power actions"""
-        return self.power_actions.filter(status='DONE').count()
+        return self.power_actions.filter(status="DONE").count()
 
     @property
     def high_impact_actions(self):
@@ -213,7 +186,7 @@ class DailyRitualSession(models.Model):
         """Mark ritual as completed"""
         if not self.completed_at:
             self.completed_at = timezone.now()
-            self.save(update_fields=['completed_at'])
+            self.save(update_fields=["completed_at"])
 
 
 class PowerAction(models.Model):
@@ -223,40 +196,30 @@ class PowerAction(models.Model):
 
     CRITICAL: This is NOT for operational project work. This is for executive strategy.
     """
+
     STATUS_CHOICES = [
-        ('DRAFT', 'Draft/Inbox'),
-        ('SCHEDULED', 'Scheduled'),
-        ('DONE', 'Completed'),
+        ("DRAFT", "Draft/Inbox"),
+        ("SCHEDULED", "Scheduled"),
+        ("DONE", "Completed"),
     ]
 
     session = models.ForeignKey(
-        DailyRitualSession,
-        on_delete=models.CASCADE,
-        related_name='power_actions'
+        DailyRitualSession, on_delete=models.CASCADE, related_name="power_actions"
     )
-    title = models.CharField(
-        max_length=255,
-        help_text="Strategic action title"
-    )
-    description = models.TextField(
-        blank=True,
-        help_text="Detailed description"
-    )
+    title = models.CharField(max_length=255, help_text="Strategic action title")
+    description = models.TextField(blank=True, help_text="Detailed description")
 
     # PARETO PRINCIPLE (80/20 Rule)
     is_80_20 = models.BooleanField(
-        default=False,
-        help_text="Is this a HIGH IMPACT action (top 20%)?"
+        default=False, help_text="Is this a HIGH IMPACT action (top 20%)?"
     )
     impact_reason = models.TextField(
-        blank=True,
-        help_text="WHY is this high impact? What will it advance?"
+        blank=True, help_text="WHY is this high impact? What will it advance?"
     )
 
     # EAT THE FROG
     is_frog = models.BooleanField(
-        default=False,
-        help_text="Is this THE #1 most important action today?"
+        default=False, help_text="Is this THE #1 most important action today?"
     )
 
     # VISION ALIGNMENT
@@ -265,60 +228,43 @@ class PowerAction(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='power_actions',
-        help_text="Which Life Vision does this advance?"
+        related_name="power_actions",
+        help_text="Which Life Vision does this advance?",
     )
 
     # EXECUTION PLAN
     micro_steps = models.JSONField(
         default=list,
         blank=True,
-        help_text="Checklist of micro-actions. Format: [{'text': 'Step 1', 'done': false}, ...]"
+        help_text="Checklist of micro-actions. Format: [{'text': 'Step 1', 'done': false}, ...]",
     )
 
     # TIME BLOCKING
     scheduled_start = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When to start (time blocking)"
+        null=True, blank=True, help_text="When to start (time blocking)"
     )
     scheduled_end = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When to end (time blocking)"
+        null=True, blank=True, help_text="When to end (time blocking)"
     )
 
     # CALENDAR INTEGRATION
     ical_uid = models.UUIDField(
-        default=uuid.uuid4,
-        editable=False,
-        unique=True,
-        help_text="Unique identifier for iCal sync"
+        default=uuid.uuid4, editable=False, unique=True, help_text="Unique identifier for iCal sync"
     )
 
     # STATUS
     status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='DRAFT',
-        help_text="Current status"
+        max_length=20, choices=STATUS_CHOICES, default="DRAFT", help_text="Current status"
     )
-    completed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When completed"
-    )
+    completed_at = models.DateTimeField(null=True, blank=True, help_text="When completed")
 
     # METADATA
-    order = models.IntegerField(
-        default=0,
-        help_text="Display order"
-    )
+    order = models.IntegerField(default=0, help_text="Display order")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['order', '-is_frog', '-is_80_20', 'created_at']
+        ordering = ["order", "-is_frog", "-is_80_20", "created_at"]
         verbose_name = "Power Action"
         verbose_name_plural = "Power Actions"
 
@@ -332,25 +278,34 @@ class PowerAction(models.Model):
 
         # Only one Frog per session
         if self.is_frog:
-            existing_frog = PowerAction.objects.filter(
-                session=self.session,
-                is_frog=True
-            ).exclude(pk=self.pk).first()
+            existing_frog = (
+                PowerAction.objects.filter(session=self.session, is_frog=True)
+                .exclude(pk=self.pk)
+                .first()
+            )
 
             if existing_frog:
-                errors['is_frog'] = f"Only ONE Frog allowed per session. Current: '{existing_frog.title}'"
+                errors["is_frog"] = (
+                    f"Only ONE Frog allowed per session. Current: '{existing_frog.title}'"
+                )
 
         # Frog must be high impact
         if self.is_frog and not self.is_80_20:
-            errors['is_80_20'] = "The Frog MUST be a High Impact (80/20) action."
+            errors["is_80_20"] = "The Frog MUST be a High Impact (80/20) action."
 
         # High impact requires reason
         if self.is_80_20 and not self.impact_reason.strip():
-            errors['impact_reason'] = "High Impact actions require an explanation of WHY they matter."
+            errors["impact_reason"] = (
+                "High Impact actions require an explanation of WHY they matter."
+            )
 
         # Validate time blocking
-        if self.scheduled_start and self.scheduled_end and self.scheduled_end <= self.scheduled_start:
-            errors['scheduled_end'] = "End time must be after start time."
+        if (
+            self.scheduled_start
+            and self.scheduled_end
+            and self.scheduled_end <= self.scheduled_start
+        ):
+            errors["scheduled_end"] = "End time must be after start time."
 
         if errors:
             raise ValidationError(errors)
@@ -358,9 +313,9 @@ class PowerAction(models.Model):
     def save(self, *args, **kwargs):
         """Auto-update status and timestamps"""
         # Auto-set completed_at
-        if self.status == 'DONE' and not self.completed_at:
+        if self.status == "DONE" and not self.completed_at:
             self.completed_at = timezone.now()
-        elif self.status != 'DONE':
+        elif self.status != "DONE":
             self.completed_at = None
 
         # Validate if session exists
@@ -383,7 +338,7 @@ class PowerAction(models.Model):
         if not self.micro_steps or len(self.micro_steps) == 0:
             return 0
 
-        completed = sum(1 for item in self.micro_steps if item.get('done', False))
+        completed = sum(1 for item in self.micro_steps if item.get("done", False))
         return int((completed / len(self.micro_steps)) * 100)
 
     @property
@@ -391,7 +346,7 @@ class PowerAction(models.Model):
         """Count of completed micro steps"""
         if not self.micro_steps:
             return 0
-        return sum(1 for item in self.micro_steps if item.get('done', False))
+        return sum(1 for item in self.micro_steps if item.get("done", False))
 
     @property
     def micro_steps_total(self):
@@ -427,7 +382,7 @@ class PowerAction(models.Model):
         if self.micro_steps:
             parts.append("\n\n📋 Battle Plan:")
             for idx, step in enumerate(self.micro_steps, 1):
-                status = "✅" if step.get('done') else "⬜"
+                status = "✅" if step.get("done") else "⬜"
                 parts.append(f"{status} {idx}. {step.get('text', '')}")
 
         return "\n".join(parts)
@@ -438,28 +393,22 @@ class HabitCompletion(models.Model):
     Track when habits are completed.
     Separate from PowerActions to keep operational data clean.
     """
-    habit = models.ForeignKey(
-        ExecutiveHabit,
-        on_delete=models.CASCADE,
-        related_name='completions'
-    )
+
+    habit = models.ForeignKey(ExecutiveHabit, on_delete=models.CASCADE, related_name="completions")
     session = models.ForeignKey(
         DailyRitualSession,
         on_delete=models.CASCADE,
-        related_name='habit_completions',
+        related_name="habit_completions",
         null=True,
-        blank=True
+        blank=True,
     )
     completed_date = models.DateField()
-    notes = models.TextField(
-        blank=True,
-        help_text="Optional notes about completion"
-    )
+    notes = models.TextField(blank=True, help_text="Optional notes about completion")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-completed_date']
-        unique_together = ['habit', 'completed_date']
+        ordering = ["-completed_date"]
+        unique_together = ["habit", "completed_date"]
         verbose_name = "Habit Completion"
         verbose_name_plural = "Habit Completions"
 

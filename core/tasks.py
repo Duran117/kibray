@@ -50,12 +50,19 @@ def check_inventory_shortages():
             continue
 
         # Get total quantity across all locations
-        total_qty = ProjectInventory.objects.filter(item=item).aggregate(total=Sum("quantity"))["total"] or Decimal("0")
+        total_qty = ProjectInventory.objects.filter(item=item).aggregate(total=Sum("quantity"))[
+            "total"
+        ] or Decimal("0")
 
         if total_qty < threshold:
             shortage = threshold - total_qty
             low_stock_items.append(
-                {"item": item, "current_qty": total_qty, "threshold": threshold, "shortage": shortage}
+                {
+                    "item": item,
+                    "current_qty": total_qty,
+                    "threshold": threshold,
+                    "shortage": shortage,
+                }
             )
 
     # Send notifications to admins and managers
@@ -86,7 +93,11 @@ def check_inventory_shortages():
 
     logger.info(f"Inventory check: {len(low_stock_items)} items below threshold")
 
-    return {"date": str(today), "low_stock_count": len(low_stock_items), "items_checked": items.count()}
+    return {
+        "date": str(today),
+        "low_stock_count": len(low_stock_items),
+        "items_checked": items.count(),
+    }
 
 
 @shared_task(name="core.tasks.check_overdue_invoices")
@@ -108,7 +119,9 @@ def check_overdue_invoices():
     today = local_today
 
     # Find invoices that are past due date and not yet marked overdue
-    overdue_invoices = Invoice.objects.filter(due_date__lt=today, status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"])
+    overdue_invoices = Invoice.objects.filter(
+        due_date__lt=today, status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"]
+    )
 
     count = 0
     for invoice in overdue_invoices:
@@ -149,9 +162,9 @@ def alert_incomplete_daily_plans():
     now = timezone.now()
 
     # Find overdue draft plans
-    overdue_plans = DailyPlan.objects.filter(status="DRAFT", completion_deadline__lt=now).select_related(
-        "project", "created_by"
-    )
+    overdue_plans = DailyPlan.objects.filter(
+        status="DRAFT", completion_deadline__lt=now
+    ).select_related("project", "created_by")
 
     count = 0
     for plan in overdue_plans:
@@ -218,7 +231,9 @@ def generate_weekly_payroll():
 
     for employee in employees:
         # Aggregate time entries
-        time_entries = TimeEntry.objects.filter(employee=employee, date__range=(last_monday, last_sunday))
+        time_entries = TimeEntry.objects.filter(
+            employee=employee, date__range=(last_monday, last_sunday)
+        )
 
         total_hours = sum(entry.hours_worked or 0 for entry in time_entries)
 
@@ -237,7 +252,11 @@ def generate_weekly_payroll():
         records_created += 1
 
     logger.info(f"Created payroll period {period.id} with {records_created} records")
-    return {"period_id": period.id, "week": f"{last_monday} - {last_sunday}", "records": records_created}
+    return {
+        "period_id": period.id,
+        "week": f"{last_monday} - {last_sunday}",
+        "records": records_created,
+    }
 
 
 @shared_task(name="core.tasks.update_daily_weather_snapshots")
@@ -394,7 +413,9 @@ def update_daily_weather_snapshots():
         logger.warning(f"Weather fetch errors: {len(errors)} projects failed")
 
     # Return summary with convenience snapshot id
-    latest_snapshot = WeatherSnapshot.objects.filter(date=today).order_by("-fetched_at", "-id").first()
+    latest_snapshot = (
+        WeatherSnapshot.objects.filter(date=today).order_by("-fetched_at", "-id").first()
+    )
     return {
         "date": str(today),
         "created": snapshots_created,
@@ -434,47 +455,51 @@ def alert_high_priority_touchups():
     for project in active_projects:
         # Count high-priority open touch-ups
         high_priority_touchups = project.tasks.filter(
-            is_touchup=True, priority__in=["high", "urgent"], status__in=["Pendiente", "En Progreso"]
+            is_touchup=True,
+            priority__in=["high", "urgent"],
+            status__in=["Pendiente", "En Progreso"],
         )
 
         touchup_count = high_priority_touchups.count()
 
     if touchup_count >= threshold:
-            # Get project managers and admins
-            recipients = []
+        # Get project managers and admins
+        recipients = []
 
-            # Find users with PM role who have access to this project
-            try:
-                from core.models import ClientProjectAccess
+        # Find users with PM role who have access to this project
+        try:
+            from core.models import ClientProjectAccess
 
-                pm_accesses = ClientProjectAccess.objects.filter(project=project, role="external_pm").select_related(
-                    "user"
-                )
-                recipients.extend([access.user for access in pm_accesses])
-            except Exception:
-                pass
+            pm_accesses = ClientProjectAccess.objects.filter(
+                project=project, role="external_pm"
+            ).select_related("user")
+            recipients.extend([access.user for access in pm_accesses])
+        except Exception:
+            pass
 
-            # Add admin users
-            admins = user_model.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
-            recipients.extend(admins)
+        # Add admin users
+        admins = user_model.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+        recipients.extend(admins)
 
-            # Remove duplicates
-            recipients = list(set(recipients))
+        # Remove duplicates
+        recipients = list(set(recipients))
 
-            # Create notifications
-            for user in recipients:
-                Notification.objects.create(
-                    user=user,
-                    notification_type="task_alert",
-                    title=f"High-Priority Touch-ups Alert: {project.name}",
-                    message=f"{touchup_count} high-priority touch-up tasks require attention.",
-                    link_url=f"/projects/{project.id}/touchups/",
-                    related_object_type="project",
-                    related_object_id=project.id,
-                )
+        # Create notifications
+        for user in recipients:
+            Notification.objects.create(
+                user=user,
+                notification_type="task_alert",
+                title=f"High-Priority Touch-ups Alert: {project.name}",
+                message=f"{touchup_count} high-priority touch-up tasks require attention.",
+                link_url=f"/projects/{project.id}/touchups/",
+                related_object_type="project",
+                related_object_id=project.id,
+            )
 
-            alerts_sent += len(recipients)
-            logger.info(f"Sent {len(recipients)} alerts for {touchup_count} touchups in project {project.id}")
+        alerts_sent += len(recipients)
+        logger.info(
+            f"Sent {len(recipients)} alerts for {touchup_count} touchups in project {project.id}"
+        )
 
     return {"date": str(today), "alerts_sent": alerts_sent, "threshold": threshold}
 
@@ -487,7 +512,11 @@ def update_daily_weather_snapshots_legacy():
 
     svc = get_weather_service()
     now = timezone.now()
-    projects = Project.objects.filter(is_active=True) if hasattr(Project, "is_active") else Project.objects.all()
+    projects = (
+        Project.objects.filter(is_active=True)
+        if hasattr(Project, "is_active")
+        else Project.objects.all()
+    )
     count = 0
     for project in projects:
         # Placeholder: using project.name as location key
@@ -504,6 +533,8 @@ def update_daily_weather_snapshots_legacy():
         count += 1
     logger.info(f"Weather snapshots generated for {count} projects at {now}")
     return {"snapshots": count, "timestamp": str(now)}
+
+
 @shared_task(name="core.tasks.send_pending_notifications")
 def send_pending_notifications():
     """
@@ -557,7 +588,9 @@ def update_invoice_statuses():
     updated = 0
 
     # Mark as OVERDUE if past due and still active
-    invoices = Invoice.objects.filter(due_date__lt=today, status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"])
+    invoices = Invoice.objects.filter(
+        due_date__lt=today, status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"]
+    )
 
     for invoice in invoices:
         invoice.status = "OVERDUE"
@@ -667,7 +700,9 @@ def update_daily_plans_weather():
         try:
             plan.fetch_weather()
             updated += 1
-            logger.info(f"Updated weather for DailyPlan {plan.id} ({plan.project.name}, {plan.plan_date})")
+            logger.info(
+                f"Updated weather for DailyPlan {plan.id} ({plan.project.name}, {plan.plan_date})"
+            )
         except Exception as e:
             errors += 1
             logger.error(f"Failed to fetch weather for DailyPlan {plan.id}: {e}")
@@ -811,8 +846,8 @@ def send_websocket_notification(user_id, title, message, category="info", url=""
                         "category": category,
                         "url": url,
                         "created_at": notification.created_at.isoformat(),
-                    }
-                }
+                    },
+                },
             )
             notification.mark_as_delivered()
             logger.info(f"WebSocket notification sent to user {user_id}: {title}")
@@ -823,7 +858,9 @@ def send_websocket_notification(user_id, title, message, category="info", url=""
                 "delivered_via_websocket": True,
             }
         except Exception as ws_error:
-            logger.warning(f"WebSocket send failed for user {user_id}, stored in DB only: {ws_error}")
+            logger.warning(
+                f"WebSocket send failed for user {user_id}, stored in DB only: {ws_error}"
+            )
             return {
                 "status": "partial",
                 "user_id": user_id,
@@ -852,6 +889,7 @@ def send_websocket_notification(user_id, title, message, category="info", url=""
 # WEBSOCKET METRICS TASKS (Phase 6 - Improvement #17)
 # ============================================================================
 
+
 @shared_task(name="core.tasks.collect_websocket_metrics")
 def collect_websocket_metrics():
     """
@@ -877,15 +915,15 @@ def collect_websocket_metrics():
         cache.set(cache_key, metrics, timeout=86400)
 
         # Also update the latest summary
-        cache.set('ws_metrics_summary', metrics, timeout=3600)
+        cache.set("ws_metrics_summary", metrics, timeout=3600)
 
         logger.info(f"WebSocket metrics collected and stored: {cache_key}")
 
         return {
             "status": "success",
             "timestamp": timestamp.isoformat(),
-            "connections": metrics['connections']['total'],
-            "message_rate": metrics['messages']['rate_1m'],
+            "connections": metrics["connections"]["total"],
+            "message_rate": metrics["messages"]["rate_1m"],
         }
 
     except Exception as e:
@@ -919,11 +957,9 @@ def cleanup_old_websocket_metrics():
             # Check each 5-minute interval
             for hour in range(24):
                 for minute in range(0, 60, 5):
-                    timestamp_str = check_date.replace(
-                        hour=hour,
-                        minute=minute,
-                        second=0
-                    ).strftime('%Y%m%d%H%M')
+                    timestamp_str = check_date.replace(hour=hour, minute=minute, second=0).strftime(
+                        "%Y%m%d%H%M"
+                    )
                     cache_key = f"ws_metrics_{timestamp_str}"
 
                     if cache.get(cache_key):

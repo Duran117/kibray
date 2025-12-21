@@ -1,6 +1,7 @@
 """
 SOP Express API - AI-powered SOP generation and management
 """
+
 import base64
 import json
 import logging
@@ -22,13 +23,14 @@ logger = logging.getLogger(__name__)
 # Check OpenAI availability
 try:
     from openai import OpenAI
-    OPENAI_AVAILABLE = hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY
+
+    OPENAI_AVAILABLE = hasattr(settings, "OPENAI_API_KEY") and settings.OPENAI_API_KEY
 except ImportError:
     OPENAI_AVAILABLE = False
     logger.warning("OpenAI package not installed. Run: pip install openai")
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def generate_sop_with_ai(request):
     """
@@ -42,27 +44,27 @@ def generate_sop_with_ai(request):
     }
     """
     if not OPENAI_AVAILABLE:
-        return Response({
-            'success': False,
-            'error': _('AI no disponible. Configure OPENAI_API_KEY.')
-        }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response(
+            {"success": False, "error": _("AI no disponible. Configure OPENAI_API_KEY.")},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
 
-    task_description = request.data.get('task_description', '').strip()
-    category = request.data.get('category', 'OTHER')
-    language = request.data.get('language', 'es')
+    task_description = request.data.get("task_description", "").strip()
+    category = request.data.get("category", "OTHER")
+    language = request.data.get("language", "es")
 
     if not task_description:
-        return Response({
-            'success': False,
-            'error': _('La descripción de la tarea es requerida')
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"success": False, "error": _("La descripción de la tarea es requerida")},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        model = getattr(settings, 'OPENAI_MODEL', 'gpt-4o-mini')
+        model = getattr(settings, "OPENAI_MODEL", "gpt-4o-mini")
 
         # Build prompt based on language
-        if language == 'es':
+        if language == "es":
             prompt = f"""Eres un experto en construcción y acabados profesionales.
 Genera un SOP (Procedimiento Operativo Estándar) completo para la siguiente tarea:
 
@@ -115,48 +117,43 @@ Include between 5-10 detailed steps.
             model=model,
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
-            temperature=0.7
+            temperature=0.7,
         )
 
         sop_data = json.loads(response.choices[0].message.content)
 
         # Validate required fields
-        required_fields = ['name', 'steps']
+        required_fields = ["name", "steps"]
         for field in required_fields:
             if field not in sop_data:
                 raise ValueError(f"AI response missing required field: {field}")
 
         # Ensure lists are lists
-        for field in ['steps', 'materials_list', 'tools_list']:
+        for field in ["steps", "materials_list", "tools_list"]:
             if field in sop_data and not isinstance(sop_data[field], list):
                 sop_data[field] = [sop_data[field]] if sop_data[field] else []
 
         # Add category
-        sop_data['category'] = category
+        sop_data["category"] = category
 
         logger.info(f"AI generated SOP: {sop_data.get('name')} for user {request.user.id}")
 
-        return Response({
-            'success': True,
-            'sop': sop_data,
-            'ai_generated': True
-        })
+        return Response({"success": True, "sop": sop_data, "ai_generated": True})
 
     except json.JSONDecodeError as e:
         logger.error(f"AI response JSON parse error: {e}")
-        return Response({
-            'success': False,
-            'error': _('Error procesando respuesta de AI')
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"success": False, "error": _("Error procesando respuesta de AI")},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
     except Exception as e:
         logger.error(f"AI SOP generation error: {e}")
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_popular_templates(request):
     """
@@ -164,8 +161,8 @@ def get_popular_templates(request):
 
     GET /api/v1/sop/templates/popular/
     """
-    category = request.query_params.get('category', None)
-    limit = int(request.query_params.get('limit', 6))
+    category = request.query_params.get("category", None)
+    limit = int(request.query_params.get("limit", 6))
 
     queryset = ActivityTemplate.objects.filter(is_active=True)
 
@@ -173,29 +170,30 @@ def get_popular_templates(request):
         queryset = queryset.filter(category=category)
 
     # Order by usage (you could add a usage_count field later)
-    templates = queryset.order_by('-created_at')[:limit]
+    templates = queryset.order_by("-created_at")[:limit]
 
     data = []
     for t in templates:
-        data.append({
-            'id': t.id,
-            'name': t.name,
-            'category': t.category,
-            'category_display': t.get_category_display(),
-            'description': t.description[:100] + '...' if len(t.description) > 100 else t.description,
-            'steps_count': len(t.steps) if t.steps else 0,
-            'difficulty_level': t.difficulty_level,
-            'time_estimate': float(t.time_estimate) if t.time_estimate else None,
-            'completion_points': t.completion_points,
-        })
+        data.append(
+            {
+                "id": t.id,
+                "name": t.name,
+                "category": t.category,
+                "category_display": t.get_category_display(),
+                "description": t.description[:100] + "..."
+                if len(t.description) > 100
+                else t.description,
+                "steps_count": len(t.steps) if t.steps else 0,
+                "difficulty_level": t.difficulty_level,
+                "time_estimate": float(t.time_estimate) if t.time_estimate else None,
+                "completion_points": t.completion_points,
+            }
+        )
 
-    return Response({
-        'success': True,
-        'templates': data
-    })
+    return Response({"success": True, "templates": data})
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_template_detail(request, template_id):
     """
@@ -206,35 +204,39 @@ def get_template_detail(request, template_id):
     try:
         template = ActivityTemplate.objects.get(pk=template_id, is_active=True)
 
-        return Response({
-            'success': True,
-            'template': {
-                'id': template.id,
-                'name': template.name,
-                'category': template.category,
-                'category_display': template.get_category_display(),
-                'description': template.description,
-                'steps': template.steps or [],
-                'materials_list': template.materials_list or [],
-                'tools_list': template.tools_list or [],
-                'tips': template.tips,
-                'common_errors': template.common_errors,
-                'safety_warnings': template.safety_warnings,
-                'time_estimate': float(template.time_estimate) if template.time_estimate else None,
-                'difficulty_level': template.difficulty_level,
-                'completion_points': template.completion_points,
-                'video_url': template.video_url,
-                'reference_photos': template.reference_photos or [],
+        return Response(
+            {
+                "success": True,
+                "template": {
+                    "id": template.id,
+                    "name": template.name,
+                    "category": template.category,
+                    "category_display": template.get_category_display(),
+                    "description": template.description,
+                    "steps": template.steps or [],
+                    "materials_list": template.materials_list or [],
+                    "tools_list": template.tools_list or [],
+                    "tips": template.tips,
+                    "common_errors": template.common_errors,
+                    "safety_warnings": template.safety_warnings,
+                    "time_estimate": float(template.time_estimate)
+                    if template.time_estimate
+                    else None,
+                    "difficulty_level": template.difficulty_level,
+                    "completion_points": template.completion_points,
+                    "video_url": template.video_url,
+                    "reference_photos": template.reference_photos or [],
+                },
             }
-        })
+        )
     except ActivityTemplate.DoesNotExist:
-        return Response({
-            'success': False,
-            'error': _('Template no encontrado')
-        }, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"success": False, "error": _("Template no encontrado")},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def save_sop(request):
     """
@@ -244,56 +246,54 @@ def save_sop(request):
     """
     data = request.data
 
-    required_fields = ['name', 'category']
+    required_fields = ["name", "category"]
     for field in required_fields:
         if not data.get(field):
-            return Response({
-                'success': False,
-                'error': f'{field} es requerido'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": False, "error": f"{field} es requerido"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     try:
         # Parse time estimate
-        time_hours = float(data.get('time_hours', 0) or 0)
-        time_minutes = float(data.get('time_minutes', 0) or 0)
+        time_hours = float(data.get("time_hours", 0) or 0)
+        time_minutes = float(data.get("time_minutes", 0) or 0)
         time_estimate = time_hours + (time_minutes / 60.0)
 
         # Create SOP
         sop = ActivityTemplate.objects.create(
-            name=data['name'],
-            category=data['category'],
-            description=data.get('description', ''),
-            steps=data.get('steps', []),
-            materials_list=data.get('materials_list', []),
-            tools_list=data.get('tools_list', []),
-            tips=data.get('tips', ''),
-            common_errors=data.get('common_errors', ''),
-            safety_warnings=data.get('safety_warnings', ''),
-            video_url=data.get('video_url', ''),
+            name=data["name"],
+            category=data["category"],
+            description=data.get("description", ""),
+            steps=data.get("steps", []),
+            materials_list=data.get("materials_list", []),
+            tools_list=data.get("tools_list", []),
+            tips=data.get("tips", ""),
+            common_errors=data.get("common_errors", ""),
+            safety_warnings=data.get("safety_warnings", ""),
+            video_url=data.get("video_url", ""),
             time_estimate=time_estimate if time_estimate > 0 else None,
-            difficulty_level=data.get('difficulty_level', 'beginner'),
-            completion_points=data.get('completion_points', 10),
+            difficulty_level=data.get("difficulty_level", "beginner"),
+            completion_points=data.get("completion_points", 10),
             created_by=request.user,
-            is_active=data.get('is_active', True),
+            is_active=data.get("is_active", True),
         )
 
         logger.info(f"SOP created: {sop.name} (ID: {sop.id}) by user {request.user.id}")
 
-        return Response({
-            'success': True,
-            'sop_id': sop.id,
-            'message': _('¡SOP creado exitosamente!')
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {"success": True, "sop_id": sop.id, "message": _("¡SOP creado exitosamente!")},
+            status=status.HTTP_201_CREATED,
+        )
 
     except Exception as e:
         logger.error(f"Error saving SOP: {e}")
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_categories(request):
     """
@@ -304,74 +304,89 @@ def get_categories(request):
     categories = []
     for code, name in ActivityTemplate.CATEGORY_CHOICES:
         count = ActivityTemplate.objects.filter(category=code, is_active=True).count()
-        categories.append({
-            'code': code,
-            'name': name,
-            'count': count,
-            'icon': CATEGORY_ICONS.get(code, '📋')
-        })
+        categories.append(
+            {"code": code, "name": name, "count": count, "icon": CATEGORY_ICONS.get(code, "📋")}
+        )
 
-    return Response({
-        'success': True,
-        'categories': categories
-    })
+    return Response({"success": True, "categories": categories})
 
 
 # Category icons mapping
 CATEGORY_ICONS = {
-    'PREP': '🔧',
-    'COVER': '🛡️',
-    'SAND': '🪨',
-    'STAIN': '🎨',
-    'SEAL': '💧',
-    'PAINT': '🖌️',
-    'CAULK': '🔩',
-    'CLEANUP': '🧹',
-    'OTHER': '📋',
+    "PREP": "🔧",
+    "COVER": "🛡️",
+    "SAND": "🪨",
+    "STAIN": "🎨",
+    "SEAL": "💧",
+    "PAINT": "🖌️",
+    "CAULK": "🔩",
+    "CLEANUP": "🧹",
+    "OTHER": "📋",
 }
 
 # Material/Tool suggestions by category
 CATEGORY_SUGGESTIONS = {
-    'PREP': {
-        'materials': ['Drywall sheets', 'Joint compound', 'Drywall screws', 'Mesh tape', 'Corner bead'],
-        'tools': ['Power drill', 'Utility knife', 'T-square', 'Level', 'Drywall saw', 'Taping knife']
+    "PREP": {
+        "materials": [
+            "Drywall sheets",
+            "Joint compound",
+            "Drywall screws",
+            "Mesh tape",
+            "Corner bead",
+        ],
+        "tools": [
+            "Power drill",
+            "Utility knife",
+            "T-square",
+            "Level",
+            "Drywall saw",
+            "Taping knife",
+        ],
     },
-    'PAINT': {
-        'materials': ['Paint (color specified)', 'Primer', 'Painter\'s tape', 'Drop cloths', 'Sandpaper'],
-        'tools': ['Brushes (various sizes)', 'Rollers', 'Paint tray', 'Extension pole', 'Ladder']
+    "PAINT": {
+        "materials": [
+            "Paint (color specified)",
+            "Primer",
+            "Painter's tape",
+            "Drop cloths",
+            "Sandpaper",
+        ],
+        "tools": ["Brushes (various sizes)", "Rollers", "Paint tray", "Extension pole", "Ladder"],
     },
-    'SAND': {
-        'materials': ['Sandpaper (80, 120, 220 grit)', 'Sanding sponges', 'Tack cloth', 'Dust masks'],
-        'tools': ['Orbital sander', 'Sanding block', 'Shop vacuum', 'Safety goggles']
+    "SAND": {
+        "materials": [
+            "Sandpaper (80, 120, 220 grit)",
+            "Sanding sponges",
+            "Tack cloth",
+            "Dust masks",
+        ],
+        "tools": ["Orbital sander", "Sanding block", "Shop vacuum", "Safety goggles"],
     },
-    'STAIN': {
-        'materials': ['Wood stain', 'Pre-stain conditioner', 'Clean rags', 'Mineral spirits'],
-        'tools': ['Stain brushes', 'Foam applicators', 'Gloves', 'Respirator']
+    "STAIN": {
+        "materials": ["Wood stain", "Pre-stain conditioner", "Clean rags", "Mineral spirits"],
+        "tools": ["Stain brushes", "Foam applicators", "Gloves", "Respirator"],
     },
-    'SEAL': {
-        'materials': ['Polyurethane/Sealer', 'Tack cloth', 'Fine sandpaper (320 grit)'],
-        'tools': ['Natural bristle brush', 'Foam brush', 'Clean lint-free cloths']
+    "SEAL": {
+        "materials": ["Polyurethane/Sealer", "Tack cloth", "Fine sandpaper (320 grit)"],
+        "tools": ["Natural bristle brush", "Foam brush", "Clean lint-free cloths"],
     },
-    'CAULK': {
-        'materials': ['Caulk (silicone/acrylic)', 'Painter\'s tape', 'Denatured alcohol'],
-        'tools': ['Caulk gun', 'Caulk finishing tool', 'Utility knife', 'Clean rags']
+    "CAULK": {
+        "materials": ["Caulk (silicone/acrylic)", "Painter's tape", "Denatured alcohol"],
+        "tools": ["Caulk gun", "Caulk finishing tool", "Utility knife", "Clean rags"],
     },
-    'CLEANUP': {
-        'materials': ['Trash bags', 'Cleaning solution', 'Paper towels'],
-        'tools': ['Broom', 'Dustpan', 'Shop vacuum', 'Mop']
+    "CLEANUP": {
+        "materials": ["Trash bags", "Cleaning solution", "Paper towels"],
+        "tools": ["Broom", "Dustpan", "Shop vacuum", "Mop"],
     },
-    'COVER': {
-        'materials': ['Plastic sheeting', 'Painter\'s tape', 'Drop cloths', 'Masking paper'],
-        'tools': ['Tape dispenser', 'Scissors', 'Utility knife']
+    "COVER": {
+        "materials": ["Plastic sheeting", "Painter's tape", "Drop cloths", "Masking paper"],
+        "tools": ["Tape dispenser", "Scissors", "Utility knife"],
     },
-    'OTHER': {
-        'materials': [],
-        'tools': []
-    }
+    "OTHER": {"materials": [], "tools": []},
 }
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_suggestions(request):
     """
@@ -379,17 +394,19 @@ def get_suggestions(request):
 
     GET /api/v1/sop/suggestions/?category=PAINT
     """
-    category = request.query_params.get('category', 'OTHER')
-    suggestions = CATEGORY_SUGGESTIONS.get(category, CATEGORY_SUGGESTIONS['OTHER'])
+    category = request.query_params.get("category", "OTHER")
+    suggestions = CATEGORY_SUGGESTIONS.get(category, CATEGORY_SUGGESTIONS["OTHER"])
 
-    return Response({
-        'success': True,
-        'materials': suggestions.get('materials', []),
-        'tools': suggestions.get('tools', [])
-    })
+    return Response(
+        {
+            "success": True,
+            "materials": suggestions.get("materials", []),
+            "tools": suggestions.get("tools", []),
+        }
+    )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def save_sop_express_creator(request):
     """
@@ -397,20 +414,20 @@ def save_sop_express_creator(request):
     """
     try:
         data = request.data
-        title = data.get('title')
-        goal = data.get('goal')
-        steps = data.get('steps', [])
-        image_data = data.get('image_data')
+        title = data.get("title")
+        goal = data.get("goal")
+        steps = data.get("steps", [])
+        image_data = data.get("image_data")
 
         if not title:
-            return Response({'status': 'error', 'message': 'Title is required'}, status=400)
+            return Response({"status": "error", "message": "Title is required"}, status=400)
 
         # Handle Image Upload
         reference_photos = []
-        if image_data and ';base64,' in image_data:
+        if image_data and ";base64," in image_data:
             try:
-                format, imgstr = image_data.split(';base64,')
-                ext = format.split('/')[-1]
+                format, imgstr = image_data.split(";base64,")
+                ext = format.split("/")[-1]
                 filename = f"sop_images/{uuid.uuid4()}.{ext}"
                 file_data = ContentFile(base64.b64decode(imgstr), name=filename)
                 file_path = default_storage.save(filename, file_data)
@@ -426,16 +443,16 @@ def save_sop_express_creator(request):
             steps=steps,
             reference_photos=reference_photos,
             # Default values
-            category='OTHER',
-            difficulty_level='beginner',
-            is_active=True
+            category="OTHER",
+            difficulty_level="beginner",
+            is_active=True,
         )
 
-        return Response({'status': 'success', 'id': sop.id})
+        return Response({"status": "success", "id": sop.id})
 
     except Exception as e:
         logger.error(f"Error saving SOP: {str(e)}")
-        return Response({'status': 'error', 'message': str(e)}, status=500)
+        return Response({"status": "error", "message": str(e)}, status=500)
 
 
 # Backwards-compatible alias to avoid breaking any older imports.

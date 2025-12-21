@@ -1,6 +1,7 @@
 """
 Gunicorn configuration file for Kibray production deployment
 """
+
 import multiprocessing
 import os
 
@@ -48,6 +49,7 @@ tmp_upload_dir = None
 # Preload app to save RAM resources
 preload_app = True
 
+
 # Hooks
 def on_starting(server):
     """Called just before the master process is initialized."""
@@ -71,36 +73,45 @@ def on_starting(server):
 
     print("👤 Creating initial superuser...")
     try:
-        subprocess.check_call([sys.executable, "manage.py", "create_initial_superuser", "--noinput"])
+        subprocess.check_call(
+            [sys.executable, "manage.py", "create_initial_superuser", "--noinput"]
+        )
         print("✅ Superuser setup complete")
     except subprocess.CalledProcessError as e:
         print(f"⚠️  Superuser creation failed (non-fatal): {e}")
 
     print("🚀 Gunicorn master starting")
 
+
 def when_ready(server):
     """Called just after the server is started."""
     print(f"✅ Gunicorn ready - {workers} workers on {bind}")
+
 
 def on_exit(server):
     """Called just before exiting Gunicorn."""
     print("👋 Gunicorn shutting down")
 
+
 def worker_int(worker):
     """Called just after a worker exited on SIGINT or SIGQUIT."""
     print(f"⚠️  Worker {worker.pid} interrupted")
+
 
 def pre_fork(server, worker):
     """Called just before a worker is forked."""
     pass
 
+
 def post_fork(server, worker):
     """Called just after a worker has been forked."""
     print(f"🔧 Worker {worker.pid} spawned")
 
+
 def pre_exec(server):
     """Called just before a new master process is forked."""
     print("🔄 Gunicorn restarting")
+
 
 def worker_abort(worker):
     """Called when a worker received the SIGABRT signal."""

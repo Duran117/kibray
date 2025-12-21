@@ -1,6 +1,7 @@
 """
 Custom permissions for Kibray API
 """
+
 from .changeorder_permissions import (
     CanApproveChangeOrder,
     CanSubmitChangeOrder,
@@ -18,13 +19,13 @@ from .task_permissions import (
 )
 
 __all__ = [
-    'IsProjectMember',
-    'IsProjectLeadOrReadOnly',
-    'IsBillingOrganizationMember',
-    'CanManageProject',
-    'IsTaskAssigneeOrProjectMember',
-    'CanUpdateTaskStatus',
-    'CanDeleteTask',
-    'CanApproveChangeOrder',
-    'CanSubmitChangeOrder',
+    "IsProjectMember",
+    "IsProjectLeadOrReadOnly",
+    "IsBillingOrganizationMember",
+    "CanManageProject",
+    "IsTaskAssigneeOrProjectMember",
+    "CanUpdateTaskStatus",
+    "CanDeleteTask",
+    "CanApproveChangeOrder",
+    "CanSubmitChangeOrder",
 ]

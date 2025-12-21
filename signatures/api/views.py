@@ -44,7 +44,9 @@ class SignatureViewSet(viewsets.ModelViewSet):
         try:
             h = hashlib.new(alg)
         except ValueError:
-            return Response({"error": gettext("Unsupported algorithm: %(alg)s") % {"alg": alg}}, status=400)
+            return Response(
+                {"error": gettext("Unsupported algorithm: %(alg)s") % {"alg": alg}}, status=400
+            )
         content_bytes = content.encode("utf-8") if isinstance(content, str) else content or b""
         h.update(content_bytes)
         actual = h.hexdigest()

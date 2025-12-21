@@ -143,7 +143,11 @@ router.register(r"color-approvals", ColorApprovalViewSet, basename="color-approv
 
 # Projects
 router.register(r"projects", ProjectViewSetNew, basename="project")
-router.register(r"project-manager-assignments", ProjectManagerAssignmentViewSet, basename="project-manager-assignment")
+router.register(
+    r"project-manager-assignments",
+    ProjectManagerAssignmentViewSet,
+    basename="project-manager-assignment",
+)
 
 # Phase 4: File Manager
 router.register(r"files", ProjectFileViewSet, basename="file")
@@ -169,14 +173,20 @@ router.register(r"task-templates", TaskTemplateViewSet, basename="task-template"
 router.register(r"weather-snapshots", WeatherSnapshotViewSet, basename="weather-snapshot")
 router.register(r"daily-plans", DailyPlanViewSet, basename="daily-plan")
 router.register(r"planned-activities", PlannedActivityViewSet, basename="planned-activity")
-router.register(r"ai-suggestions", AISuggestionViewSet, basename="ai-suggestion")  # AI Enhancement (Dec 2025)
+router.register(
+    r"ai-suggestions", AISuggestionViewSet, basename="ai-suggestion"
+)  # AI Enhancement (Dec 2025)
 router.register(r"time-entries", TimeEntryViewSet, basename="time-entry")
 
 # Module 14: Materials & Inventory
 router.register(r"material-requests", MaterialRequestViewSet, basename="material-request")
 router.register(r"material-catalog", MaterialCatalogViewSet, basename="material-catalog")
 router.register(r"client-requests", ClientRequestViewSet, basename="client-request")
-router.register(r"client-request-attachments", ClientRequestAttachmentViewSet, basename="client-request-attachment")
+router.register(
+    r"client-request-attachments",
+    ClientRequestAttachmentViewSet,
+    basename="client-request-attachment",
+)
 router.register(r"site-photos", SitePhotoViewSet, basename="site-photo")
 router.register(r"inventory/items", InventoryItemViewSet, basename="inventory-item")
 router.register(r"inventory/locations", InventoryLocationViewSet, basename="inventory-location")
@@ -207,7 +217,9 @@ router.register(r"focus/sessions", DailyFocusSessionViewSet, basename="focus-ses
 router.register(r"focus/tasks", FocusTaskViewSet, basename="focus-task")
 
 # Strategic Future Planning (Phase A3 - Dec 2025)
-router.register(r"strategic/sessions", StrategicPlanningSessionViewSet, basename="strategic-session")
+router.register(
+    r"strategic/sessions", StrategicPlanningSessionViewSet, basename="strategic-session"
+)
 router.register(r"strategic/items", StrategicItemViewSet, basename="strategic-item")
 router.register(r"strategic/tasks", StrategicTaskViewSet, basename="strategic-task")
 router.register(r"strategic/subtasks", StrategicSubtaskViewSet, basename="strategic-subtask")
@@ -236,7 +248,9 @@ urlpatterns = [
     ),
     path("changeorder-photo/<int:photo_id>/delete/", delete_changeorder_photo, name="delete_photo"),
     path(
-        "changeorder-photo/<int:photo_id>/annotated-image/", update_changeorder_photo_image, name="update_photo_image"
+        "changeorder-photo/<int:photo_id>/annotated-image/",
+        update_changeorder_photo_image,
+        name="update_photo_image",
     ),
     # API routes
     path("tasks/bulk-update/", BulkTaskUpdateAPIView.as_view(), name="tasks-bulk-update"),
@@ -246,16 +260,25 @@ urlpatterns = [
     path("tasks/gantt/", TaskGanttView.as_view(), name="tasks-gantt"),
     path("tasks/gantt/", TaskViewSet.as_view({"get": "gantt"}), name="tasks-gantt-router"),
     # Dashboards (UI)
-    path("dashboards/projects/<int:project_id>/", ProjectDashboardView.as_view(), name="dashboard-project"),
+    path(
+        "dashboards/projects/<int:project_id>/",
+        ProjectDashboardView.as_view(),
+        name="dashboard-project",
+    ),
     path("dashboards/client/", ClientDashboardView.as_view(), name="dashboard-client"),
     path("dashboards/admin/", AdminDashboardView.as_view(), name="dashboard-admin"),
     path("dashboards/payroll/", PayrollDashboardView.as_view(), name="dashboard-payroll"),
     path("dashboards/invoices/", InvoiceDashboardView.as_view(), name="dashboard-invoices"),
-    path("dashboards/invoices/trends/", InvoiceTrendsView.as_view(), name="dashboard-invoice-trends"),
+    path(
+        "dashboards/invoices/trends/", InvoiceTrendsView.as_view(), name="dashboard-invoice-trends"
+    ),
     path("dashboards/materials/", MaterialsDashboardView.as_view(), name="dashboard-materials"),
-    path("dashboards/materials/usage/", MaterialsUsageAnalyticsView.as_view(), name="dashboard-materials-usage"),
+    path(
+        "dashboards/materials/usage/",
+        MaterialsUsageAnalyticsView.as_view(),
+        name="dashboard-materials-usage",
+    ),
     path("dashboards/financial/", FinancialDashboardView.as_view(), name="financial-dashboard"),
-
     # Analytics API endpoints (used by tests)
     path(
         "analytics/project-health/<int:project_id>/",
@@ -263,25 +286,46 @@ urlpatterns = [
         name="analytics-project-health",
     ),
     path("analytics/touchups/", TouchupAnalyticsDashboardView.as_view(), name="analytics-touchups"),
-    path("analytics/color-approvals/", ColorApprovalAnalyticsDashboardView.as_view(), name="analytics-color-approvals"),
-    path("analytics/pm-performance/", PMPerformanceDashboardView.as_view(), name="analytics-pm-performance"),
-
+    path(
+        "analytics/color-approvals/",
+        ColorApprovalAnalyticsDashboardView.as_view(),
+        name="analytics-color-approvals",
+    ),
+    path(
+        "analytics/pm-performance/",
+        PMPerformanceDashboardView.as_view(),
+        name="analytics-pm-performance",
+    ),
     # SOP Express API
     path("sop/generate/", sop_api.generate_sop_with_ai, name="sop-generate-ai"),
     path("sop/save/", sop_api.save_sop, name="sop-save"),
-
     # Gap D/E/F: Financial reporting & client portal
-    path("financial/aging-report/", InvoiceAgingReportAPIView.as_view(), name="financial-aging-report"),
-    path("financial/cash-flow-projection/", CashFlowProjectionAPIView.as_view(), name="financial-cash-flow-projection"),
-    path("financial/budget-variance/", BudgetVarianceAnalysisAPIView.as_view(), name="financial-budget-variance"),
-    path("inventory/valuation-report/", InventoryValuationReportView.as_view(), name="inventory-valuation-report"),
+    path(
+        "financial/aging-report/",
+        InvoiceAgingReportAPIView.as_view(),
+        name="financial-aging-report",
+    ),
+    path(
+        "financial/cash-flow-projection/",
+        CashFlowProjectionAPIView.as_view(),
+        name="financial-cash-flow-projection",
+    ),
+    path(
+        "financial/budget-variance/",
+        BudgetVarianceAnalysisAPIView.as_view(),
+        name="financial-budget-variance",
+    ),
+    path(
+        "inventory/valuation-report/",
+        InventoryValuationReportView.as_view(),
+        name="inventory-valuation-report",
+    ),
     path("client/invoices/", ClientInvoiceListAPIView.as_view(), name="client-invoice-list"),
     path(
         "client/invoices/<int:invoice_id>/approve/",
         ClientInvoiceApprovalAPIView.as_view(),
         name="client-invoice-approval",
     ),
-
     # Master Schedule API
     path("schedule/master/", schedule_api.get_master_schedule_data, name="api-schedule-master"),
     # Gantt v2 per project (React Modern Gantt feed)
@@ -291,9 +335,17 @@ urlpatterns = [
         name="api-gantt-v2-project",
     ),
     path("gantt/v2/items/", schedule_api.create_schedule_item_v2, name="api-gantt-v2-item-create"),
-    path("gantt/v2/items/<int:item_id>/", schedule_api.update_schedule_item_v2, name="api-gantt-v2-item-update"),
+    path(
+        "gantt/v2/items/<int:item_id>/",
+        schedule_api.update_schedule_item_v2,
+        name="api-gantt-v2-item-update",
+    ),
     path("gantt/v2/tasks/", schedule_api.create_schedule_task_v2, name="api-gantt-v2-task-create"),
-    path("gantt/v2/tasks/<int:task_id>/", schedule_api.update_schedule_task_v2, name="api-gantt-v2-task-update"),
+    path(
+        "gantt/v2/tasks/<int:task_id>/",
+        schedule_api.update_schedule_task_v2,
+        name="api-gantt-v2-task-update",
+    ),
     path(
         "gantt/v2/dependencies/",
         schedule_api.create_schedule_dependency_v2,
@@ -304,9 +356,6 @@ urlpatterns = [
         schedule_api.delete_schedule_dependency_v2,
         name="api-gantt-v2-dependency-delete",
     ),
-
     # Include router URLs
     path("", include(router.urls)),
 ]
-
-

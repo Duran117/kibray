@@ -24,11 +24,12 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing Strategic Planning Sessions.
     """
+
     permission_classes = [permissions.IsAuthenticated]
     queryset = StrategicPlanningSession.objects.all()
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action == "retrieve":
             return StrategicPlanningSessionDetailSerializer
         return StrategicPlanningSessionSerializer
 
@@ -46,10 +47,10 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
         try:
             session = StrategicPlanningService.create_session(
                 user=request.user,
-                project=serializer.validated_data['project'],
-                start_date=serializer.validated_data['date_range_start'],
-                end_date=serializer.validated_data['date_range_end'],
-                notes=serializer.validated_data.get('notes', '')
+                project=serializer.validated_data["project"],
+                start_date=serializer.validated_data["date_range_start"],
+                end_date=serializer.validated_data["date_range_end"],
+                notes=serializer.validated_data.get("notes", ""),
             )
 
             # Return the created session using the detail serializer
@@ -58,73 +59,69 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             import traceback
+
             traceback.print_exc()
             print(f"ERROR creating session: {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def update_status(self, request, pk=None):
         """Update session status"""
         session = self.get_object()
-        new_status = request.data.get('status')
+        new_status = request.data.get("status")
         if not new_status:
-             return Response({'error': 'Status is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Status is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             StrategicPlanningService.update_status(session, new_status, request.user)
-            return Response({'status': new_status})
+            return Response({"status": new_status})
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         """Approve the session"""
         session = self.get_object()
         try:
-            StrategicPlanningService.update_status(session, 'APPROVED', request.user)
-            return Response({'status': 'approved'})
+            StrategicPlanningService.update_status(session, "APPROVED", request.user)
+            return Response({"status": "approved"})
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def export(self, request, pk=None):
         """Export to Daily Plan"""
         session = self.get_object()
         try:
             count = StrategicPlanningService.export_to_daily_plan(session.id, request.user)
-            return Response({
-                'status': 'exported',
-                'activities_created': count
-            })
+            return Response({"status": "exported", "activities_created": count})
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def calculate_totals(self, request, pk=None):
         """Recalculate totals"""
         try:
             totals = StrategicPlanningService.calculate_session_totals(pk)
             return Response(totals)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def validate(self, request, pk=None):
         """Validate dependencies"""
         try:
             errors = StrategicPlanningService.validate_dependencies(pk)
-            return Response({
-                'is_valid': len(errors) == 0,
-                'errors': errors
-            })
+            return Response({"is_valid": len(errors) == 0, "errors": errors})
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StrategicItemViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing Strategic Items directly.
     """
+
     permission_classes = [permissions.IsAuthenticated]
     queryset = StrategicItem.objects.all()
     serializer_class = StrategicItemSerializer
@@ -135,27 +132,28 @@ class StrategicItemViewSet(viewsets.ModelViewSet):
         super().perform_create(serializer)
         # Trigger recalculation?
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def add_task(self, request, pk=None):
         """Add a task to this item"""
         item = self.get_object()
-        description = request.data.get('description')
-        hours = request.data.get('estimated_hours', 0)
+        description = request.data.get("description")
+        hours = request.data.get("estimated_hours", 0)
 
         if not description:
-            return Response({'error': 'Description required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Description required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             task = StrategicPlanningService.add_task_to_item(item.id, description, hours)
             return Response(StrategicTaskSerializer(task).data, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StrategicTaskViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing Strategic Tasks.
     """
+
     permission_classes = [permissions.IsAuthenticated]
     queryset = StrategicTask.objects.all()
     serializer_class = StrategicTaskSerializer
@@ -165,6 +163,7 @@ class StrategicSubtaskViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing Strategic Subtasks.
     """
+
     permission_classes = [permissions.IsAuthenticated]
     queryset = StrategicSubtask.objects.all()
     serializer_class = StrategicSubtaskSerializer
@@ -174,6 +173,7 @@ class StrategicMaterialViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing Strategic Material Requirements.
     """
+
     permission_classes = [permissions.IsAuthenticated]
     queryset = StrategicMaterialRequirement.objects.all()
     serializer_class = StrategicMaterialRequirementSerializer

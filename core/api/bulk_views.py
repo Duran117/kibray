@@ -1,4 +1,3 @@
-
 from django.db import transaction
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +10,7 @@ STATUS_CHOICES = {"Pendiente", "En Progreso", "En Revisión", "Completada", "Can
 PRIORITY_CHOICES = {"low", "medium", "high", "urgent"}
 # Accept alias used in template prompt
 PRIORITY_ALIASES = {"normal": "medium"}
+
 
 class BulkTaskUpdateAPIView(APIView):
     """Bulk update Tasks (assign/status/priority).
@@ -27,6 +27,7 @@ class BulkTaskUpdateAPIView(APIView):
     - Returns list of updated task IDs and failures with reasons.
     - Supports 'normal' priority alias mapping to 'medium'.
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -36,7 +37,9 @@ class BulkTaskUpdateAPIView(APIView):
         value = data.get("value")
 
         if not isinstance(task_ids, list) or len(task_ids) == 0:
-            return Response({"error": "task_ids must be a non-empty list"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "task_ids must be a non-empty list"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if action not in {"assign", "status", "priority"}:
             return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         if value in (None, ""):
@@ -56,15 +59,22 @@ class BulkTaskUpdateAPIView(APIView):
                 employee_obj = Employee.objects.get(pk=value)
             except Exception:
                 failed.append({"value": str(value), "reason": "Employee not found"})
-                return Response({"updated": [], "failed": failed, "missing": missing, "action": action}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"updated": [], "failed": failed, "missing": missing, "action": action},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         if action == "status" and value not in STATUS_CHOICES:
-            return Response({"error": f"Invalid status '{value}'"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"Invalid status '{value}'"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         if action == "priority":
             mapped = PRIORITY_ALIASES.get(str(value).lower(), str(value).lower())
             if mapped not in PRIORITY_CHOICES:
-                return Response({"error": f"Invalid priority '{value}'"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": f"Invalid priority '{value}'"}, status=status.HTTP_400_BAD_REQUEST
+                )
             value = mapped
 
         # Iterate & apply

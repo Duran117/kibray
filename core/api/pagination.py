@@ -136,7 +136,10 @@ class ChatMessageCursorPagination(CursorPagination):
                     ("next", self.get_previous_link()),  # Swapped: newer messages
                     ("previous", self.get_next_link()),  # Swapped: older messages
                     ("has_more", self.get_next_link() is not None),  # Can scroll up (older)
-                    ("has_previous", self.get_previous_link() is not None),  # Can scroll down (newer)
+                    (
+                        "has_previous",
+                        self.get_previous_link() is not None,
+                    ),  # Can scroll down (newer)
                     ("results", data),
                 ]
             )
@@ -169,4 +172,3 @@ class NotificationCursorPagination(CursorPagination):
                 ]
             )
         )
-

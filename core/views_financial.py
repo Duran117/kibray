@@ -60,9 +60,9 @@ def financial_dashboard(request):
         profit_margin = 0.0
 
     # Outstanding AR (Accounts Receivable)
-    outstanding_ar = Invoice.objects.filter(status__in=["sent", "viewed", "approved", "partial"]).aggregate(
-        total=Coalesce(Sum("total_amount"), Decimal("0.00"))
-    )["total"]
+    outstanding_ar = Invoice.objects.filter(
+        status__in=["sent", "viewed", "approved", "partial"]
+    ).aggregate(total=Coalesce(Sum("total_amount"), Decimal("0.00")))["total"]
 
     # Cash Flow this month
     month_start = today.replace(day=1)
@@ -97,7 +97,9 @@ def financial_dashboard(request):
     active_projects = (
         Project.objects.filter(end_date__isnull=True)
         .annotate(
-            calc_revenue=Coalesce(Sum("invoices__total_amount", filter=Q(invoices__status="paid")), Decimal("0.00")),
+            calc_revenue=Coalesce(
+                Sum("invoices__total_amount", filter=Q(invoices__status="paid")), Decimal("0.00")
+            ),
             calc_expenses=Coalesce(Sum("expenses__amount"), Decimal("0.00")),
             calc_profit=F("calc_revenue") - F("calc_expenses"),
         )
@@ -156,7 +158,9 @@ def financial_dashboard(request):
                         "budget": project.budget_total,
                         "actual": total_expenses,
                         "variance": variance,
-                        "percentage": (variance / project.budget_total * 100) if project.budget_total > 0 else 0,
+                        "percentage": (variance / project.budget_total * 100)
+                        if project.budget_total > 0
+                        else 0,
                     }
                 )
 
@@ -295,7 +299,9 @@ def productivity_dashboard(request):
     # Total hours vs billable hours
     time_entries = TimeEntry.objects.filter(date__gte=start_date, date__lte=end_date)
 
-    total_hours = time_entries.aggregate(total=Coalesce(Sum("hours_worked"), Decimal("0.00")))["total"]
+    total_hours = time_entries.aggregate(total=Coalesce(Sum("hours_worked"), Decimal("0.00")))[
+        "total"
+    ]
 
     billable_hours = time_entries.filter(change_order__isnull=False).aggregate(  # Assigned to a CO
         total=Coalesce(Sum("hours_worked"), Decimal("0.00"))
@@ -310,7 +316,8 @@ def productivity_dashboard(request):
         .annotate(
             total_hours=Coalesce(
                 Sum(
-                    "timeentry__hours_worked", filter=Q(timeentry__date__gte=start_date, timeentry__date__lte=end_date)
+                    "timeentry__hours_worked",
+                    filter=Q(timeentry__date__gte=start_date, timeentry__date__lte=end_date),
                 ),
                 Decimal("0.00"),
             ),
@@ -327,7 +334,9 @@ def productivity_dashboard(request):
             ),
         )
         .annotate(
-            productivity=ExpressionWrapper(F("billable_hours") / F("total_hours") * 100, output_field=FloatField())
+            productivity=ExpressionWrapper(
+                F("billable_hours") / F("total_hours") * 100, output_field=FloatField()
+            )
         )
         .filter(total_hours__gt=0)
         .order_by("-productivity")
@@ -342,7 +351,10 @@ def productivity_dashboard(request):
     productivity_by_week = (
         time_entries.extra(select={"week": 'strftime("%%W", date)'})
         .values("week")
-        .annotate(total=Sum("hours_worked"), billable=Sum("hours_worked", filter=Q(change_order__isnull=False)))
+        .annotate(
+            total=Sum("hours_worked"),
+            billable=Sum("hours_worked", filter=Q(change_order__isnull=False)),
+        )
         .order_by("week")
     )
 
@@ -394,11 +406,15 @@ def export_financial_data(request):
     response = HttpResponse(content_type="text/csv")
 
     if export_type == "expenses":
-        response["Content-Disposition"] = f'attachment; filename="expenses_{start_date}_{end_date}.csv"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="expenses_{start_date}_{end_date}.csv"'
+        )
         writer = csv.writer(response)
 
         # Header
-        writer.writerow(["Date", "Project", "Category", "Description", "Amount", "Vendor", "Receipt"])
+        writer.writerow(
+            ["Date", "Project", "Category", "Description", "Amount", "Vendor", "Receipt"]
+        )
 
         # Data
         expenses = Expense.objects.filter(date__gte=start_date, date__lte=end_date).order_by("date")
@@ -417,11 +433,15 @@ def export_financial_data(request):
             )
 
     elif export_type == "income":
-        response["Content-Disposition"] = f'attachment; filename="income_{start_date}_{end_date}.csv"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="income_{start_date}_{end_date}.csv"'
+        )
         writer = csv.writer(response)
 
         # Header
-        writer.writerow(["Date", "Project", "Amount", "Payment Method", "Reference", "Invoice Number"])
+        writer.writerow(
+            ["Date", "Project", "Amount", "Payment Method", "Reference", "Invoice Number"]
+        )
 
         # Data
         incomes = Income.objects.filter(date__gte=start_date, date__lte=end_date).order_by("date")
@@ -439,7 +459,9 @@ def export_financial_data(request):
             )
 
     elif export_type == "invoices":
-        response["Content-Disposition"] = f'attachment; filename="invoices_{start_date}_{end_date}.csv"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="invoices_{start_date}_{end_date}.csv"'
+        )
         writer = csv.writer(response)
 
         # Header
@@ -458,12 +480,14 @@ def export_financial_data(request):
         )
 
         # Data
-        invoices = Invoice.objects.filter(date_issued__gte=start_date, date_issued__lte=end_date).order_by(
-            "date_issued"
-        )
+        invoices = Invoice.objects.filter(
+            date_issued__gte=start_date, date_issued__lte=end_date
+        ).order_by("date_issued")
 
         for invoice in invoices:
-            amount_paid = invoice.payments.aggregate(Sum("amount"))["amount__sum"] or Decimal("0.00")
+            amount_paid = invoice.payments.aggregate(Sum("amount"))["amount__sum"] or Decimal(
+                "0.00"
+            )
             balance = invoice.total_amount - amount_paid
 
             writer.writerow(
@@ -561,11 +585,13 @@ def _update_employee_metrics(metric, year):
     time_entries = TimeEntry.objects.filter(employee=metric.employee, date__year=year)
 
     # Hours
-    metric.total_hours_worked = time_entries.aggregate(Sum("hours_worked"))["hours_worked__sum"] or Decimal("0.00")
-
-    metric.billable_hours = time_entries.filter(change_order__isnull=False).aggregate(Sum("hours_worked"))[
+    metric.total_hours_worked = time_entries.aggregate(Sum("hours_worked"))[
         "hours_worked__sum"
     ] or Decimal("0.00")
+
+    metric.billable_hours = time_entries.filter(change_order__isnull=False).aggregate(
+        Sum("hours_worked")
+    )["hours_worked__sum"] or Decimal("0.00")
 
     if metric.total_hours_worked > 0:
         metric.productivity_rate = metric.billable_hours / metric.total_hours_worked * 100

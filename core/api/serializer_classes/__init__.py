@@ -1,6 +1,7 @@
 """
 Serializers for Kibray API
 """
+
 # Re-export budget summary serializer used by viewsets/tests
 from core.api.serializers import ProjectBudgetSummarySerializer
 
@@ -42,34 +43,34 @@ from .user_serializers import (
 
 __all__ = [
     # User serializers
-    'UserListSerializer',
-    'UserDetailSerializer',
-    'UserCreateSerializer',
-    'UserUpdateSerializer',
-    'CurrentUserSerializer',
-    'UserMinimalSerializer',
-    'UserProfileSerializer',
+    "UserListSerializer",
+    "UserDetailSerializer",
+    "UserCreateSerializer",
+    "UserUpdateSerializer",
+    "CurrentUserSerializer",
+    "UserMinimalSerializer",
+    "UserProfileSerializer",
     # Project serializers
-    'ProjectListSerializer',
-    'ProjectDetailSerializer',
-    'ProjectCreateUpdateSerializer',
-    'ProjectStatsSerializer',
-    'ClientOrganizationMinimalSerializer',
-    'ClientContactMinimalSerializer',
+    "ProjectListSerializer",
+    "ProjectDetailSerializer",
+    "ProjectCreateUpdateSerializer",
+    "ProjectStatsSerializer",
+    "ClientOrganizationMinimalSerializer",
+    "ClientContactMinimalSerializer",
     # Task serializers
-    'TaskListSerializer',
-    'TaskDetailSerializer',
-    'TaskCreateUpdateSerializer',
-    'TaskStatsSerializer',
+    "TaskListSerializer",
+    "TaskDetailSerializer",
+    "TaskCreateUpdateSerializer",
+    "TaskStatsSerializer",
     # ChangeOrder serializers
-    'ChangeOrderListSerializer',
-    'ChangeOrderDetailSerializer',
-    'ChangeOrderCreateUpdateSerializer',
-    'ChangeOrderApprovalSerializer',
+    "ChangeOrderListSerializer",
+    "ChangeOrderDetailSerializer",
+    "ChangeOrderCreateUpdateSerializer",
+    "ChangeOrderApprovalSerializer",
     # Analytics serializers
-    'AnalyticsResponseSerializer',
-    'ProjectAnalyticsSerializer',
-    'KPISerializer',
-    'ChartDataSerializer',
-    'ProjectBudgetSummarySerializer',
+    "AnalyticsResponseSerializer",
+    "ProjectAnalyticsSerializer",
+    "KPISerializer",
+    "ChartDataSerializer",
+    "ProjectBudgetSummarySerializer",
 ]

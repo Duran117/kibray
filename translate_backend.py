@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-filepath = '/Users/jesus/Documents/kibray/locale/es/LC_MESSAGES/django.po'
+filepath = "/Users/jesus/Documents/kibray/locale/es/LC_MESSAGES/django.po"
 
 translations = {
     "entity_type and action required": "tipo de entidad y acción requeridos",
@@ -39,7 +39,7 @@ translations = {
     "Due date cannot be in the past": "La fecha de vencimiento no puede estar en el pasado",
 }
 
-with open(filepath, encoding='utf-8') as f:
+with open(filepath, encoding="utf-8") as f:
     lines = f.readlines()
 
 result = []
@@ -53,7 +53,11 @@ while i < len(lines):
     if line.startswith('msgid "') and not line.startswith('msgid ""'):
         msgid_text = line[7:-2]
 
-        if i + 1 < len(lines) and lines[i + 1].strip() == 'msgstr ""' and msgid_text in translations:
+        if (
+            i + 1 < len(lines)
+            and lines[i + 1].strip() == 'msgstr ""'
+            and msgid_text in translations
+        ):
             result.append(f'msgstr "{translations[msgid_text]}"\n')
             translated_count += 1
             i += 2
@@ -61,7 +65,7 @@ while i < len(lines):
 
     i += 1
 
-with open(filepath, 'w', encoding='utf-8') as f:
+with open(filepath, "w", encoding="utf-8") as f:
     f.writelines(result)
 
 print(f"Translated {translated_count} strings")

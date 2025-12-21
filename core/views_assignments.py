@@ -19,7 +19,9 @@ def _employee_is_designer(employee: Employee) -> bool:
     position = (employee.position or "").lower()
     if "designer" in position or "diseñ" in position:
         return True
-    profile_role = getattr(getattr(employee.user, "profile", None), "role", "") if employee.user else ""
+    profile_role = (
+        getattr(getattr(employee.user, "profile", None), "role", "") if employee.user else ""
+    )
     return bool(profile_role and "designer" in profile_role)
 
 
@@ -61,7 +63,11 @@ def assignment_hub(request):
         elif form.is_valid():
             assignment: ResourceAssignment = form.save(commit=False)
             assignment.created_by = request.user
-            if _employee_is_designer(assignment.employee) and not request.user.is_staff and not request.user.is_superuser:
+            if (
+                _employee_is_designer(assignment.employee)
+                and not request.user.is_staff
+                and not request.user.is_superuser
+            ):
                 messages.error(request, _("Solo Admin puede asignar diseñadores."))
             else:
                 assignment.save()
@@ -109,7 +115,11 @@ def assignment_edit(request, pk: int):
         form = ResourceAssignmentForm(request.POST, instance=assignment)
         if form.is_valid():
             updated = form.save(commit=False)
-            if _employee_is_designer(updated.employee) and not request.user.is_staff and not request.user.is_superuser:
+            if (
+                _employee_is_designer(updated.employee)
+                and not request.user.is_staff
+                and not request.user.is_superuser
+            ):
                 messages.error(request, _("Solo Admin puede asignar diseñadores."))
             else:
                 updated.created_by = assignment.created_by or request.user

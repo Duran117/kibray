@@ -1,11 +1,13 @@
 """
 Analytics-related serializers for the Kibray API
 """
+
 from rest_framework import serializers
 
 
 class KPISerializer(serializers.Serializer):
     """Serializer for KPI metrics"""
+
     total_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
     total_projects = serializers.IntegerField()
     active_projects = serializers.IntegerField()
@@ -19,6 +21,7 @@ class KPISerializer(serializers.Serializer):
 
 class ChartDatasetSerializer(serializers.Serializer):
     """Serializer for chart dataset"""
+
     label = serializers.CharField()
     data = serializers.ListField(child=serializers.FloatField())
     border_color = serializers.CharField(required=False, source="borderColor")
@@ -27,12 +30,14 @@ class ChartDatasetSerializer(serializers.Serializer):
 
 class ChartDataSerializer(serializers.Serializer):
     """Serializer for chart data"""
+
     labels = serializers.ListField(child=serializers.CharField())
     datasets = ChartDatasetSerializer(many=True)
 
 
 class AnalyticsResponseSerializer(serializers.Serializer):
     """Complete analytics response"""
+
     kpis = KPISerializer()
     budget_chart = ChartDataSerializer(source="budgetChart")
     project_progress = ChartDataSerializer(source="projectProgress")
@@ -44,6 +49,7 @@ class AnalyticsResponseSerializer(serializers.Serializer):
 
 class ProjectAnalyticsSerializer(serializers.Serializer):
     """Analytics for a single project"""
+
     project_id = serializers.IntegerField()
     project_name = serializers.CharField()
     total_budget = serializers.DecimalField(max_digits=12, decimal_places=2)

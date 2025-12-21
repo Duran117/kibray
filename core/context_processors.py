@@ -1,6 +1,17 @@
 from django.conf import settings
 
 
+def legacy_shell(request):
+    """Expose a global `legacy_shell` flag to templates.
+
+    This is used as a transitional mechanism: when `?legacy=true` is present,
+    pages can render without the modern sidebar (`kb-sidebar`) while we
+    incrementally migrate/retire legacy shells.
+    """
+
+    return {"legacy_shell": bool(request.GET.get("legacy"))}
+
+
 def company(request):
     """Injects company branding info into all templates."""
     return {
@@ -51,7 +62,9 @@ def notification_badges(request):
         )
 
         # Notificaciones no leídas (prioridad)
-        badges["unread_notifications_count"] = Notification.objects.filter(user=request.user, is_read=False).count()
+        badges["unread_notifications_count"] = Notification.objects.filter(
+            user=request.user, is_read=False
+        ).count()
 
         # Unassigned time entries (no project assigned)
         badges["unassigned_time_count"] = TimeEntry.objects.filter(project__isnull=True).count()
@@ -60,17 +73,23 @@ def notification_badges(request):
         badges["pending_materials_count"] = MaterialRequest.objects.filter(status="pending").count()
 
         # Open issues
-        badges["open_issues_count"] = Issue.objects.filter(status__in=["open", "in_progress"]).count()
+        badges["open_issues_count"] = Issue.objects.filter(
+            status__in=["open", "in_progress"]
+        ).count()
 
         # Pending change order approvals (if user is admin/staff)
         if request.user.is_staff:
-            badges["pending_approvals_count"] = ChangeOrder.objects.filter(approval_status="pending").count()
+            badges["pending_approvals_count"] = ChangeOrder.objects.filter(
+                approval_status="pending"
+            ).count()
             # Nuevas tareas creadas por clientes en estado Pendiente
             badges["new_client_tasks_count"] = Task.objects.filter(
                 status="Pendiente", created_by__profile__role="client"
             ).count()
             # Muestras de color en revisión para aprobación
-            badges["color_samples_review_count"] = ColorSample.objects.filter(status__in=["proposed", "review"]).count()
+            badges["color_samples_review_count"] = ColorSample.objects.filter(
+                status__in=["proposed", "review"]
+            ).count()
         else:
             # Para usuarios cliente: tareas completadas recientemente (últimos 3 días)
             if hasattr(request.user, "profile") and request.user.profile.role == "client":
@@ -78,7 +97,9 @@ def notification_badges(request):
 
                 recent_cutoff = timezone.now() - timezone.timedelta(days=3)
                 badges["completed_tasks_client_count"] = Task.objects.filter(
-                    project__client=request.user.username, status="Completada", completed_at__gte=recent_cutoff
+                    project__client=request.user.username,
+                    status="Completada",
+                    completed_at__gte=recent_cutoff,
                 ).count()
     except Exception:
         # If models don't exist or error occurs, silently ignore

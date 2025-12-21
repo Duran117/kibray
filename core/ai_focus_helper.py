@@ -16,17 +16,17 @@ logger = logging.getLogger(__name__)
 # Check OpenAI availability
 try:
     from openai import OpenAI
-    OPENAI_AVAILABLE = hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY
+
+    OPENAI_AVAILABLE = hasattr(settings, "OPENAI_API_KEY") and settings.OPENAI_API_KEY
 except ImportError:
     OPENAI_AVAILABLE = False
-    logger.warning("OpenAI package not installed. AI features will use fallback. Run: pip install openai")
+    logger.warning(
+        "OpenAI package not installed. AI features will use fallback. Run: pip install openai"
+    )
 
 
 def calculate_task_impact_ai(
-    task_title: str,
-    task_description: str,
-    user_role: str,
-    session_context: dict
+    task_title: str, task_description: str, user_role: str, session_context: dict
 ) -> dict:
     """
     Calculate task impact score (1-10) using AI analysis
@@ -50,9 +50,9 @@ def calculate_task_impact_ai(
         ...     "Follow up ABC Corp $120K proposal",
         ...     "Call client to discuss timeline",
         ...     "owner",
-        ...     {'energy_level': 8}
+        ...     {"energy_level": 8},
         ... )
-        >>> print(score['score'])  # 9
+        >>> print(score["score"])  # 9
     """
     if not OPENAI_AVAILABLE:
         logger.info("OpenAI unavailable, using fallback scoring")
@@ -62,14 +62,14 @@ def calculate_task_impact_ai(
 
     # Role-specific priorities
     role_priorities = {
-        'admin': 'Strategic decisions, sales, high-value client relationships, business growth',
-        'owner': 'Business growth, major contracts ($50K+), key relationships, strategic planning',
-        'pm': 'Project execution, quality control, team coordination, problem-solving',
-        'superintendent': 'On-site management, crew coordination, safety, quality inspection',
-        'employee': 'Task execution, quality work, skill development, efficiency'
+        "admin": "Strategic decisions, sales, high-value client relationships, business growth",
+        "owner": "Business growth, major contracts ($50K+), key relationships, strategic planning",
+        "pm": "Project execution, quality control, team coordination, problem-solving",
+        "superintendent": "On-site management, crew coordination, safety, quality inspection",
+        "employee": "Task execution, quality work, skill development, efficiency",
     }
 
-    priority_desc = role_priorities.get(user_role, 'General productivity and task completion')
+    priority_desc = role_priorities.get(user_role, "General productivity and task completion")
 
     prompt = f"""
 You are an executive productivity coach for a construction business.
@@ -82,7 +82,7 @@ Description: {task_description}
 USER CONTEXT:
 - Role: {user_role}
 - Key Priorities: {priority_desc}
-- Energy Level Today: {session_context.get('energy_level', 5)}/10
+- Energy Level Today: {session_context.get("energy_level", 5)}/10
 
 SCORING CRITERIA (1-10):
 - 9-10: Critical revenue/strategic impact (major contracts, VIP clients)
@@ -112,23 +112,23 @@ Be HONEST. Low scores are OK for admin work. High scores only for truly impactfu
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a productivity expert for construction executives. Be direct, honest, and concise."
+                    "content": "You are a productivity expert for construction executives. Be direct, honest, and concise.",
                 },
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             response_format={"type": "json_object"},
             temperature=0.7,
-            max_tokens=300
+            max_tokens=300,
         )
 
         result = json.loads(response.choices[0].message.content)
 
         # Validate and clamp score
-        score = result.get('score', 5)
+        score = result.get("score", 5)
         if not isinstance(score, (int, float)):
             score = 5
         score = max(1, min(10, int(score)))
-        result['score'] = score
+        result["score"] = score
 
         logger.info(f"AI scored '{task_title[:40]}...' as {score}/10")
         return result
@@ -165,34 +165,36 @@ def recommend_one_thing_ai(tasks: list[dict], user_context: dict) -> dict | None
 
     Example:
         >>> tasks = [
-        ...     {'id': 1, 'title': 'Follow up proposal', 'ai_impact_score': 9},
-        ...     {'id': 2, 'title': 'Review invoices', 'ai_impact_score': 4}
+        ...     {"id": 1, "title": "Follow up proposal", "ai_impact_score": 9},
+        ...     {"id": 2, "title": "Review invoices", "ai_impact_score": 4},
         ... ]
-        >>> rec = recommend_one_thing_ai(tasks, {'role': 'owner', 'energy_level': 8})
-        >>> print(rec['recommended_task_id'])  # 1
+        >>> rec = recommend_one_thing_ai(tasks, {"role": "owner", "energy_level": 8})
+        >>> print(rec["recommended_task_id"])  # 1
     """
     if not tasks:
         return None
 
     if not OPENAI_AVAILABLE:
         # Fallback: return highest impact score
-        highest = max(tasks, key=lambda t: t.get('ai_impact_score', 0))
+        highest = max(tasks, key=lambda t: t.get("ai_impact_score", 0))
         return {
-            'recommended_task_id': highest['id'],
-            'confidence': 0.7,
-            'reasoning': 'Highest impact score (AI unavailable, using fallback)'
+            "recommended_task_id": highest["id"],
+            "confidence": 0.7,
+            "reasoning": "Highest impact score (AI unavailable, using fallback)",
         }
 
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
     # Format tasks for AI
-    tasks_summary = "\n".join([
-        f"{i+1}. {t['title']} (Impact: {t.get('ai_impact_score', '?')}/10)\n   {t.get('description', 'No description')[:100]}"
-        for i, t in enumerate(tasks)
-    ])
+    tasks_summary = "\n".join(
+        [
+            f"{i + 1}. {t['title']} (Impact: {t.get('ai_impact_score', '?')}/10)\n   {t.get('description', 'No description')[:100]}"
+            for i, t in enumerate(tasks)
+        ]
+    )
 
     prompt = f"""
-You are advising a construction {user_context.get('role', 'executive')} on their ONE THING today.
+You are advising a construction {user_context.get("role", "executive")} on their ONE THING today.
 
 Apply "Eat That Frog" principle:
 - Choose THE MOST IMPORTANT task
@@ -203,9 +205,9 @@ TODAY'S TASKS:
 {tasks_summary}
 
 USER CONTEXT:
-- Role: {user_context.get('role', 'unknown')}
-- Energy Level: {user_context.get('energy_level', 5)}/10
-- Date: {user_context.get('date', 'today')}
+- Role: {user_context.get("role", "unknown")}
+- Energy Level: {user_context.get("energy_level", 5)}/10
+- Date: {user_context.get("date", "today")}
 
 Which ONE task should be their Frog?
 Consider: Impact score, urgency, energy required, role-appropriateness.
@@ -227,36 +229,38 @@ Be decisive. Pick ONE.
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
             temperature=0.6,
-            max_tokens=200
+            max_tokens=200,
         )
 
         result = json.loads(response.choices[0].message.content)
 
         # Convert task number to task ID
-        task_num = result.get('recommended_task_number', 1) - 1
+        task_num = result.get("recommended_task_number", 1) - 1
         if 0 <= task_num < len(tasks):
-            result['recommended_task_id'] = tasks[task_num]['id']
-            logger.info(f"AI recommended task #{task_num+1} as Frog: {tasks[task_num]['title'][:40]}...")
+            result["recommended_task_id"] = tasks[task_num]["id"]
+            logger.info(
+                f"AI recommended task #{task_num + 1} as Frog: {tasks[task_num]['title'][:40]}..."
+            )
             return result
         else:
-            logger.warning(f"AI returned invalid task number: {task_num+1}")
+            logger.warning(f"AI returned invalid task number: {task_num + 1}")
             # Fallback to highest score
-            highest = max(tasks, key=lambda t: t.get('ai_impact_score', 0))
+            highest = max(tasks, key=lambda t: t.get("ai_impact_score", 0))
             return {
-                'recommended_task_id': highest['id'],
-                'confidence': 0.6,
-                'reasoning': 'Highest impact score (AI recommendation invalid)'
+                "recommended_task_id": highest["id"],
+                "confidence": 0.6,
+                "reasoning": "Highest impact score (AI recommendation invalid)",
             }
 
     except Exception as e:
         logger.error(f"AI Frog recommendation failed: {e}")
         # Fallback
         if tasks:
-            highest = max(tasks, key=lambda t: t.get('ai_impact_score', 0))
+            highest = max(tasks, key=lambda t: t.get("ai_impact_score", 0))
             return {
-                'recommended_task_id': highest['id'],
-                'confidence': 0.5,
-                'reasoning': 'Highest impact score (AI error fallback)'
+                "recommended_task_id": highest["id"],
+                "confidence": 0.5,
+                "reasoning": "Highest impact score (AI error fallback)",
             }
         return None
 
@@ -330,12 +334,12 @@ Be concise. No generic platitudes. Make it PERSONAL to their task.
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a high-performance coach. Write powerful but brief priming scripts."
+                    "content": "You are a high-performance coach. Write powerful but brief priming scripts.",
                 },
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             temperature=0.8,
-            max_tokens=250
+            max_tokens=250,
         )
 
         script = response.choices[0].message.content.strip()
@@ -348,7 +352,7 @@ Be concise. No generic platitudes. Make it PERSONAL to their task.
         return generate_priming_script_ai.__doc__
 
 
-def analyze_delegation_batch(tasks: list[dict], user_role: str = 'owner') -> list[dict]:
+def analyze_delegation_batch(tasks: list[dict], user_role: str = "owner") -> list[dict]:
     """
     Batch analyze which tasks are delegable
 
@@ -374,31 +378,35 @@ def analyze_delegation_batch(tasks: list[dict], user_role: str = 'owner') -> lis
 
     Example:
         >>> tasks = [
-        ...     {'id': 1, 'title': 'Review invoices', 'ai_impact_score': 3},
-        ...     {'id': 2, 'title': 'Close $200K deal', 'ai_impact_score': 10}
+        ...     {"id": 1, "title": "Review invoices", "ai_impact_score": 3},
+        ...     {"id": 2, "title": "Close $200K deal", "ai_impact_score": 10},
         ... ]
-        >>> delegable = analyze_delegation_batch(tasks, 'owner')
+        >>> delegable = analyze_delegation_batch(tasks, "owner")
         >>> len(delegable)  # 1 (invoices delegable)
     """
     if not tasks or not OPENAI_AVAILABLE:
         # Fallback: mark low-score tasks as delegable
         delegable = []
         for task in tasks:
-            if task.get('ai_impact_score', 5) < 5:
-                delegable.append({
-                    'task_id': task['id'],
-                    'delegable': True,
-                    'delegate_to': 'Team member',
-                    'reasoning': 'Low impact score suggests delegable (AI unavailable)'
-                })
+            if task.get("ai_impact_score", 5) < 5:
+                delegable.append(
+                    {
+                        "task_id": task["id"],
+                        "delegable": True,
+                        "delegate_to": "Team member",
+                        "reasoning": "Low impact score suggests delegable (AI unavailable)",
+                    }
+                )
         return delegable
 
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-    tasks_list = "\n".join([
-        f"{i+1}. (ID: {t['id']}) {t['title']} - Score: {t.get('ai_impact_score', '?')}/10\n   {t.get('description', '')[:80]}"
-        for i, t in enumerate(tasks)
-    ])
+    tasks_list = "\n".join(
+        [
+            f"{i + 1}. (ID: {t['id']}) {t['title']} - Score: {t.get('ai_impact_score', '?')}/10\n   {t.get('description', '')[:80]}"
+            for i, t in enumerate(tasks)
+        ]
+    )
 
     prompt = f"""
 Review these tasks for a construction {user_role} and identify which are DELEGABLE.
@@ -431,11 +439,11 @@ Return ONLY delegable tasks (skip non-delegable ones).
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
             temperature=0.6,
-            max_tokens=500
+            max_tokens=500,
         )
 
         result = json.loads(response.choices[0].message.content)
-        delegable_tasks = result.get('delegable_tasks', [])
+        delegable_tasks = result.get("delegable_tasks", [])
 
         logger.info(f"AI identified {len(delegable_tasks)} delegable tasks out of {len(tasks)}")
         return delegable_tasks
@@ -455,14 +463,31 @@ def _fallback_scoring(title: str, description: str, role: str) -> dict:
 
     # High-value keywords (boost score)
     high_value_keywords = [
-        'sale', 'sales', 'client', 'contract', 'proposal', 'meeting',
-        'revenue', 'deal', 'close', 'vip', 'major', 'strategic'
+        "sale",
+        "sales",
+        "client",
+        "contract",
+        "proposal",
+        "meeting",
+        "revenue",
+        "deal",
+        "close",
+        "vip",
+        "major",
+        "strategic",
     ]
 
     # Low-value keywords (reduce score)
     low_value_keywords = [
-        'email', 'admin', 'file', 'organize', 'sort', 'schedule',
-        'routine', 'minor', 'paperwork'
+        "email",
+        "admin",
+        "file",
+        "organize",
+        "sort",
+        "schedule",
+        "routine",
+        "minor",
+        "paperwork",
     ]
 
     # Combine title and description
@@ -475,7 +500,7 @@ def _fallback_scoring(title: str, description: str, role: str) -> dict:
         score -= 2
 
     # Role-specific adjustments
-    if role in ['admin', 'owner'] and ('client' in text_lower or 'contract' in text_lower):
+    if role in ["admin", "owner"] and ("client" in text_lower or "contract" in text_lower):
         score += 2
 
     # Clamp to 1-10
@@ -485,10 +510,12 @@ def _fallback_scoring(title: str, description: str, role: str) -> dict:
     is_delegable = score < 6  # Low scores usually delegable
 
     return {
-        'score': score,
-        'reason': 'Heuristic scoring based on keywords (AI unavailable)',
-        'is_delegable': is_delegable,
-        'delegation_reason': 'Routine task, appears delegable' if is_delegable else 'Requires direct attention'
+        "score": score,
+        "reason": "Heuristic scoring based on keywords (AI unavailable)",
+        "is_delegable": is_delegable,
+        "delegation_reason": "Routine task, appears delegable"
+        if is_delegable
+        else "Requires direct attention",
     }
 
 
@@ -504,26 +531,41 @@ if __name__ == "__main__":
             task_title="Follow up on ABC Corp $120K proposal",
             task_description="Call client to discuss timeline and finalize contract terms",
             user_role="owner",
-            session_context={'energy_level': 8}
+            session_context={"energy_level": 8},
         )
         print(f"Score: {test_score['score']}/10")
         print(f"Reason: {test_score['reason']}")
         print(f"Delegable: {test_score['is_delegable']}")
-        if test_score['delegation_reason']:
+        if test_score["delegation_reason"]:
             print(f"Delegation: {test_score['delegation_reason']}")
         print()
 
         print("Test 2: ONE THING Recommendation")
         print("-" * 50)
         test_tasks = [
-            {'id': 1, 'title': 'Follow up $120K proposal', 'ai_impact_score': 9, 'description': 'Close deal'},
-            {'id': 2, 'title': 'Review invoices', 'ai_impact_score': 3, 'description': 'Check payments'},
-            {'id': 3, 'title': 'Site visit', 'ai_impact_score': 7, 'description': 'Inspect quality'}
+            {
+                "id": 1,
+                "title": "Follow up $120K proposal",
+                "ai_impact_score": 9,
+                "description": "Close deal",
+            },
+            {
+                "id": 2,
+                "title": "Review invoices",
+                "ai_impact_score": 3,
+                "description": "Check payments",
+            },
+            {
+                "id": 3,
+                "title": "Site visit",
+                "ai_impact_score": 7,
+                "description": "Inspect quality",
+            },
         ]
-        rec = recommend_one_thing_ai(test_tasks, {'role': 'owner', 'energy_level': 8})
+        rec = recommend_one_thing_ai(test_tasks, {"role": "owner", "energy_level": 8})
         if rec:
             print(f"Recommended Task ID: {rec['recommended_task_id']}")
-            print(f"Confidence: {rec['confidence']*100:.0f}%")
+            print(f"Confidence: {rec['confidence'] * 100:.0f}%")
             print(f"Reasoning: {rec['reasoning']}")
         print()
 
@@ -534,10 +576,7 @@ if __name__ == "__main__":
         print("\nTesting fallback scoring...")
 
         test_score = calculate_task_impact_ai(
-            "Follow up proposal",
-            "Call client about contract",
-            "owner",
-            {'energy_level': 8}
+            "Follow up proposal", "Call client about contract", "owner", {"energy_level": 8}
         )
         print(f"Fallback Score: {test_score['score']}/10")
         print(f"Reason: {test_score['reason']}")

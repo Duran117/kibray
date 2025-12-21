@@ -8,7 +8,7 @@ from .project_filters import ProjectFilter
 from .task_filters import TaskFilter
 
 __all__ = [
-    'ProjectFilter',
-    'TaskFilter',
-    'ChangeOrderFilter',
+    "ProjectFilter",
+    "TaskFilter",
+    "ChangeOrderFilter",
 ]

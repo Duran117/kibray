@@ -82,7 +82,9 @@ class IncomeFilter(django_filters.FilterSet):
     """
 
     project = django_filters.NumberFilter(field_name="project__id")
-    payment_method = django_filters.ChoiceFilter(choices=Income._meta.get_field("payment_method").choices)
+    payment_method = django_filters.ChoiceFilter(
+        choices=Income._meta.get_field("payment_method").choices
+    )
     date__gte = django_filters.DateFilter(field_name="date", lookup_expr="gte")
     date__lte = django_filters.DateFilter(field_name="date", lookup_expr="lte")
 

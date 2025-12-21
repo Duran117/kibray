@@ -93,7 +93,11 @@ def log_user_login(sender, request, user, **kwargs):
 
     # Log login attempt
     LoginAttempt.log_attempt(
-        username=user.username, ip_address=ip, success=True, user_agent=user_agent, session_id=session_id
+        username=user.username,
+        ip_address=ip,
+        success=True,
+        user_agent=user_agent,
+        session_id=session_id,
     )
 
     # Log audit trail
@@ -143,7 +147,11 @@ def log_login_failure(sender, credentials, request, **kwargs):
         failure_reason = "rate_limited"
 
     LoginAttempt.log_attempt(
-        username=username, ip_address=ip, success=False, failure_reason=failure_reason, user_agent=user_agent
+        username=username,
+        ip_address=ip,
+        success=False,
+        failure_reason=failure_reason,
+        user_agent=user_agent,
     )
 
 
@@ -262,29 +270,31 @@ class AuditLogMiddleware:
             and hasattr(request, "user")
             and request.user.is_authenticated
         ):
-                # Extract entity info from path if possible
-                # e.g., /api/v1/projects/5/ -> entity_type=project, entity_id=5
-                path_parts = request.path.strip("/").split("/")
-                if len(path_parts) >= 3:
-                    entity_type = path_parts[2].rstrip("s")  # Remove trailing 's'
-                    entity_id = path_parts[3] if len(path_parts) > 3 and path_parts[3].isdigit() else None
+            # Extract entity info from path if possible
+            # e.g., /api/v1/projects/5/ -> entity_type=project, entity_id=5
+            path_parts = request.path.strip("/").split("/")
+            if len(path_parts) >= 3:
+                entity_type = path_parts[2].rstrip("s")  # Remove trailing 's'
+                entity_id = (
+                    path_parts[3] if len(path_parts) > 3 and path_parts[3].isdigit() else None
+                )
 
-                    action_map = {
-                        "POST": "create",
-                        "PUT": "update",
-                        "PATCH": "update",
-                        "DELETE": "delete",
-                    }
+                action_map = {
+                    "POST": "create",
+                    "PUT": "update",
+                    "PATCH": "update",
+                    "DELETE": "delete",
+                }
 
-                    log_audit_action(
-                        user=request.user,
-                        action=action_map.get(request.method, "update"),
-                        entity_type=entity_type,
-                        entity_id=int(entity_id) if entity_id else None,
-                        entity_repr="",
-                        request=request,
-                        notes=f"API {request.method} request",
-                        success=(200 <= response.status_code < 400),
-                    )
+                log_audit_action(
+                    user=request.user,
+                    action=action_map.get(request.method, "update"),
+                    entity_type=entity_type,
+                    entity_id=int(entity_id) if entity_id else None,
+                    entity_repr="",
+                    request=request,
+                    notes=f"API {request.method} request",
+                    success=(200 <= response.status_code < 400),
+                )
 
         return response

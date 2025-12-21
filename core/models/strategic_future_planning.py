@@ -42,52 +42,47 @@ class StrategicPlanningSession(models.Model):
     """
 
     STATUS_CHOICES = [
-        ('DRAFT', _('Draft')),
-        ('IN_REVIEW', _('In Review')),
-        ('APPROVED', _('Approved')),
-        ('REQUIRES_CHANGES', _('Requires Changes')),
+        ("DRAFT", _("Draft")),
+        ("IN_REVIEW", _("In Review")),
+        ("APPROVED", _("Approved")),
+        ("REQUIRES_CHANGES", _("Requires Changes")),
     ]
 
     # Ownership & Project
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='strategic_planning_sessions',
-        verbose_name=_('Created By'),
-        help_text=_('PM or admin who created this planning session')
+        related_name="strategic_planning_sessions",
+        verbose_name=_("Created By"),
+        help_text=_("PM or admin who created this planning session"),
     )
 
     project = models.ForeignKey(
-        'Project',
+        "Project",
         on_delete=models.CASCADE,
-        related_name='strategic_planning_sessions',
-        verbose_name=_('Project'),
-        help_text=_('Which project this planning is for')
+        related_name="strategic_planning_sessions",
+        verbose_name=_("Project"),
+        help_text=_("Which project this planning is for"),
     )
 
     # Date Range
     date_range_start = models.DateField(
-        verbose_name=_('Start Date'),
-        help_text=_('First day being planned (e.g., Dec 16)')
+        verbose_name=_("Start Date"), help_text=_("First day being planned (e.g., Dec 16)")
     )
 
     date_range_end = models.DateField(
-        verbose_name=_('End Date'),
-        help_text=_('Last day being planned (e.g., Dec 20)')
+        verbose_name=_("End Date"), help_text=_("Last day being planned (e.g., Dec 20)")
     )
 
     # Status & Approval
     status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='DRAFT',
-        verbose_name=_('Status')
+        max_length=20, choices=STATUS_CHOICES, default="DRAFT", verbose_name=_("Status")
     )
 
     notes = models.TextField(
         blank=True,
-        verbose_name=_('Planning Notes'),
-        help_text=_('General notes about this planning session')
+        verbose_name=_("Planning Notes"),
+        help_text=_("General notes about this planning session"),
     )
 
     # Approval Tracking
@@ -96,48 +91,34 @@ class StrategicPlanningSession(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='approved_strategic_plans',
-        verbose_name=_('Approved By')
+        related_name="approved_strategic_plans",
+        verbose_name=_("Approved By"),
     )
 
-    approved_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name=_('Approval Date')
-    )
+    approved_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Approval Date"))
 
     # Export Tracking
     exported_to_daily_plan = models.BooleanField(
         default=False,
-        verbose_name=_('Exported to Daily Plan'),
-        help_text=_('Has this plan been exported to Daily Plan system?')
+        verbose_name=_("Exported to Daily Plan"),
+        help_text=_("Has this plan been exported to Daily Plan system?"),
     )
 
-    exported_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name=_('Export Date')
-    )
+    exported_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Export Date"))
 
     # Timestamps
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_('Created At')
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name=_('Updated At')
-    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
     class Meta:
-        ordering = ['-created_at']
-        verbose_name = _('Strategic Planning Session')
-        verbose_name_plural = _('Strategic Planning Sessions')
+        ordering = ["-created_at"]
+        verbose_name = _("Strategic Planning Session")
+        verbose_name_plural = _("Strategic Planning Sessions")
         indexes = [
-            models.Index(fields=['project', 'date_range_start']),
-            models.Index(fields=['status']),
-            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=["project", "date_range_start"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["user", "-created_at"]),
         ]
 
     def __str__(self):
@@ -149,7 +130,7 @@ class StrategicPlanningSession(models.Model):
 
         if self.date_range_start and self.date_range_end:
             if self.date_range_end < self.date_range_start:
-                errors['date_range_end'] = _('End date must be after or equal to start date.')
+                errors["date_range_end"] = _("End date must be after or equal to start date.")
 
             # Warn if planning too far in advance (more than 90 days)
             if self.date_range_start:
@@ -175,7 +156,7 @@ class StrategicPlanningSession(models.Model):
     @property
     def is_approved(self):
         """Check if plan is approved"""
-        return self.status == 'APPROVED'
+        return self.status == "APPROVED"
 
     @property
     def can_export(self):
@@ -197,21 +178,18 @@ class StrategicDay(models.Model):
     session = models.ForeignKey(
         StrategicPlanningSession,
         on_delete=models.CASCADE,
-        related_name='days',
-        verbose_name=_('Planning Session')
+        related_name="days",
+        verbose_name=_("Planning Session"),
     )
 
     # The Day Being Planned
     target_date = models.DateField(
-        verbose_name=_('Target Date'),
-        help_text=_('The specific day this plan is for')
+        verbose_name=_("Target Date"), help_text=_("The specific day this plan is for")
     )
 
     # Day Notes
     notes = models.TextField(
-        blank=True,
-        verbose_name=_('Day Notes'),
-        help_text=_('Specific notes about this day\'s work')
+        blank=True, verbose_name=_("Day Notes"), help_text=_("Specific notes about this day's work")
     )
 
     # Estimated Total Hours
@@ -220,28 +198,30 @@ class StrategicDay(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name=_('Estimated Total Hours'),
-        help_text=_('Total estimated hours for all work on this day')
+        verbose_name=_("Estimated Total Hours"),
+        help_text=_("Total estimated hours for all work on this day"),
     )
 
     # Link to Existing Calendar Item (Optional)
     linked_schedule_item = models.ForeignKey(
-        'ScheduleItem',
+        "ScheduleItem",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='strategic_days',
-        verbose_name=_('Linked Schedule Item'),
-        help_text=_('Optional: Link to existing calendar item (e.g., "Exterior Painting - 15 days")')
+        related_name="strategic_days",
+        verbose_name=_("Linked Schedule Item"),
+        help_text=_(
+            'Optional: Link to existing calendar item (e.g., "Exterior Painting - 15 days")'
+        ),
     )
 
     class Meta:
-        unique_together = ['session', 'target_date']
-        ordering = ['target_date']
-        verbose_name = _('Strategic Day')
-        verbose_name_plural = _('Strategic Days')
+        unique_together = ["session", "target_date"]
+        ordering = ["target_date"]
+        verbose_name = _("Strategic Day")
+        verbose_name_plural = _("Strategic Days")
         indexes = [
-            models.Index(fields=['session', 'target_date']),
+            models.Index(fields=["session", "target_date"]),
         ]
 
     def __str__(self):
@@ -253,15 +233,15 @@ class StrategicDay(models.Model):
 
         if self.session and self.target_date:
             if self.target_date < self.session.date_range_start:
-                errors['target_date'] = _(
-                    f'Target date must be within session range '
-                    f'({self.session.date_range_start} to {self.session.date_range_end})'
+                errors["target_date"] = _(
+                    f"Target date must be within session range "
+                    f"({self.session.date_range_start} to {self.session.date_range_end})"
                 )
 
             if self.target_date > self.session.date_range_end:
-                errors['target_date'] = _(
-                    f'Target date must be within session range '
-                    f'({self.session.date_range_start} to {self.session.date_range_end})'
+                errors["target_date"] = _(
+                    f"Target date must be within session range "
+                    f"({self.session.date_range_start} to {self.session.date_range_end})"
                 )
 
         if errors:
@@ -274,7 +254,7 @@ class StrategicDay(models.Model):
     @property
     def day_name(self):
         """Get day of week name (e.g., 'Monday')"""
-        return self.target_date.strftime('%A')
+        return self.target_date.strftime("%A")
 
     @property
     def items_count(self):
@@ -297,45 +277,40 @@ class StrategicItem(models.Model):
     """
 
     PRIORITY_CHOICES = [
-        ('CRITICAL', _('Critical - Must Complete')),
-        ('HIGH', _('High Priority')),
-        ('MEDIUM', _('Medium Priority')),
-        ('LOW', _('Low Priority')),
+        ("CRITICAL", _("Critical - Must Complete")),
+        ("HIGH", _("High Priority")),
+        ("MEDIUM", _("Medium Priority")),
+        ("LOW", _("Low Priority")),
     ]
 
     # Parent Day
     strategic_day = models.ForeignKey(
         StrategicDay,
         on_delete=models.CASCADE,
-        related_name='items',
-        verbose_name=_('Strategic Day')
+        related_name="items",
+        verbose_name=_("Strategic Day"),
     )
 
     # Item Details
     title = models.CharField(
         max_length=255,
-        verbose_name=_('Item Title'),
-        help_text=_('What work needs to be done? (e.g., "Install kitchen cabinets")')
+        verbose_name=_("Item Title"),
+        help_text=_('What work needs to be done? (e.g., "Install kitchen cabinets")'),
     )
 
     description = models.TextField(
         blank=True,
-        verbose_name=_('Description'),
-        help_text=_('Detailed description of this work item')
+        verbose_name=_("Description"),
+        help_text=_("Detailed description of this work item"),
     )
 
     # Order & Priority
     order = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_('Order'),
-        help_text=_('Display order within the day (0, 1, 2...)')
+        default=0, verbose_name=_("Order"), help_text=_("Display order within the day (0, 1, 2...)")
     )
 
     priority = models.CharField(
-        max_length=20,
-        choices=PRIORITY_CHOICES,
-        default='MEDIUM',
-        verbose_name=_('Priority')
+        max_length=20, choices=PRIORITY_CHOICES, default="MEDIUM", verbose_name=_("Priority")
     )
 
     # Time Estimation
@@ -344,70 +319,63 @@ class StrategicItem(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name=_('Estimated Hours'),
-        help_text=_('Total estimated hours for this item (sum of all tasks)')
+        verbose_name=_("Estimated Hours"),
+        help_text=_("Total estimated hours for this item (sum of all tasks)"),
     )
 
     # Duration for Gantt View
     duration_days = models.PositiveIntegerField(
         default=1,
-        verbose_name=_('Duration (Days)'),
-        help_text=_('How many days will this item take? Used for Gantt view.')
+        verbose_name=_("Duration (Days)"),
+        help_text=_("How many days will this item take? Used for Gantt view."),
     )
 
     # Assignments
     assigned_to = models.ManyToManyField(
-        'Employee',
+        "Employee",
         blank=True,
-        related_name='strategic_items',
-        verbose_name=_('Assigned To'),
-        help_text=_('Which employees will work on this item?')
+        related_name="strategic_items",
+        verbose_name=_("Assigned To"),
+        help_text=_("Which employees will work on this item?"),
     )
 
     # Location/Area
     location_area = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name=_('Location/Area'),
-        help_text=_('Where will this work happen? (e.g., "Kitchen", "Living Room", "Exterior")')
+        verbose_name=_("Location/Area"),
+        help_text=_('Where will this work happen? (e.g., "Kitchen", "Living Room", "Exterior")'),
     )
 
     # Link to existing catalog/templates
     linked_activity_template = models.ForeignKey(
-        'ActivityTemplate',
+        "ActivityTemplate",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='strategic_items',
-        verbose_name=_('Linked Activity Template'),
-        help_text=_('Optional: Use existing activity template as reference')
+        related_name="strategic_items",
+        verbose_name=_("Linked Activity Template"),
+        help_text=_("Optional: Use existing activity template as reference"),
     )
 
     # Completion Tracking (for export to Daily Plan)
     exported_to_daily_plan = models.BooleanField(
-        default=False,
-        verbose_name=_('Exported to Daily Plan')
+        default=False, verbose_name=_("Exported to Daily Plan")
     )
 
     # Timestamps
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_('Created At')
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name=_('Updated At')
-    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
     class Meta:
-        ordering = ['strategic_day', 'order', 'priority']
-        verbose_name = _('Strategic Item')
-        verbose_name_plural = _('Strategic Items')
+        ordering = ["strategic_day", "order", "priority"]
+        verbose_name = _("Strategic Item")
+        verbose_name_plural = _("Strategic Items")
         indexes = [
-            models.Index(fields=['strategic_day', 'order']),
-            models.Index(fields=['priority']),
-            models.Index(fields=['-created_at']),
+            models.Index(fields=["strategic_day", "order"]),
+            models.Index(fields=["priority"]),
+            models.Index(fields=["-created_at"]),
         ]
 
     def __str__(self):
@@ -419,11 +387,11 @@ class StrategicItem(models.Model):
 
         # Ensure estimated_hours is positive
         if self.estimated_hours is not None and self.estimated_hours < 0:
-            errors['estimated_hours'] = _('Estimated hours cannot be negative.')
+            errors["estimated_hours"] = _("Estimated hours cannot be negative.")
 
         # Ensure order is non-negative
         if self.order < 0:
-            errors['order'] = _('Order must be 0 or greater.')
+            errors["order"] = _("Order must be 0 or greater.")
 
         if errors:
             raise ValidationError(errors)
@@ -455,16 +423,14 @@ class StrategicItem(models.Model):
     @property
     def is_critical(self):
         """Check if this is a critical priority item"""
-        return self.priority == 'CRITICAL'
+        return self.priority == "CRITICAL"
 
     def calculate_total_estimated_hours(self):
         """
         Calculate total estimated hours from all child tasks.
         This should be called when tasks are updated.
         """
-        total = self.tasks.aggregate(
-            total=models.Sum('estimated_hours')
-        )['total'] or 0
+        total = self.tasks.aggregate(total=models.Sum("estimated_hours"))["total"] or 0
         return total
 
     def sync_estimated_hours_from_tasks(self):
@@ -473,7 +439,7 @@ class StrategicItem(models.Model):
         Call this after tasks are created/updated.
         """
         self.estimated_hours = self.calculate_total_estimated_hours()
-        self.save(update_fields=['estimated_hours'])
+        self.save(update_fields=["estimated_hours"])
 
 
 class StrategicTask(models.Model):
@@ -493,21 +459,19 @@ class StrategicTask(models.Model):
     strategic_item = models.ForeignKey(
         StrategicItem,
         on_delete=models.CASCADE,
-        related_name='tasks',
-        verbose_name=_('Strategic Item')
+        related_name="tasks",
+        verbose_name=_("Strategic Item"),
     )
 
     # Task Details
     description = models.CharField(
         max_length=255,
-        verbose_name=_('Task Description'),
-        help_text=_('Actionable task description (e.g., "Install upper cabinets")')
+        verbose_name=_("Task Description"),
+        help_text=_('Actionable task description (e.g., "Install upper cabinets")'),
     )
 
     order = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_('Order'),
-        help_text=_('Execution order within the item')
+        default=0, verbose_name=_("Order"), help_text=_("Execution order within the item")
     )
 
     # Time Estimation
@@ -515,52 +479,45 @@ class StrategicTask(models.Model):
         max_digits=5,
         decimal_places=2,
         default=0.00,
-        verbose_name=_('Estimated Hours'),
-        help_text=_('Estimated time to complete this specific task')
+        verbose_name=_("Estimated Hours"),
+        help_text=_("Estimated time to complete this specific task"),
     )
 
     # Assignment Override (Optional)
     assigned_to = models.ManyToManyField(
-        'Employee',
+        "Employee",
         blank=True,
-        related_name='strategic_tasks',
-        verbose_name=_('Assigned To (Override)'),
-        help_text=_('Override item assignment for this specific task (optional)')
+        related_name="strategic_tasks",
+        verbose_name=_("Assigned To (Override)"),
+        help_text=_("Override item assignment for this specific task (optional)"),
     )
 
     # Link to existing template task
     linked_task_template = models.ForeignKey(
-        'TaskTemplate',
+        "TaskTemplate",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='strategic_tasks',
-        verbose_name=_('Linked Task Template')
+        related_name="strategic_tasks",
+        verbose_name=_("Linked Task Template"),
     )
 
     # Completion Tracking (for export)
     exported_to_daily_plan = models.BooleanField(
-        default=False,
-        verbose_name=_('Exported to Daily Plan')
+        default=False, verbose_name=_("Exported to Daily Plan")
     )
 
     # Timestamps
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_('Created At')
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name=_('Updated At')
-    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
     class Meta:
-        ordering = ['strategic_item', 'order']
-        verbose_name = _('Strategic Task')
-        verbose_name_plural = _('Strategic Tasks')
+        ordering = ["strategic_item", "order"]
+        verbose_name = _("Strategic Task")
+        verbose_name_plural = _("Strategic Tasks")
         indexes = [
-            models.Index(fields=['strategic_item', 'order']),
+            models.Index(fields=["strategic_item", "order"]),
         ]
 
     def __str__(self):
@@ -569,10 +526,10 @@ class StrategicTask(models.Model):
     def clean(self):
         """Validate task data"""
         if self.estimated_hours < 0:
-            raise ValidationError({'estimated_hours': _('Estimated hours cannot be negative.')})
+            raise ValidationError({"estimated_hours": _("Estimated hours cannot be negative.")})
 
         if self.order < 0:
-            raise ValidationError({'order': _('Order must be 0 or greater.')})
+            raise ValidationError({"order": _("Order must be 0 or greater.")})
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -606,46 +563,37 @@ class StrategicSubtask(models.Model):
     strategic_task = models.ForeignKey(
         StrategicTask,
         on_delete=models.CASCADE,
-        related_name='subtasks',
-        verbose_name=_('Strategic Task')
+        related_name="subtasks",
+        verbose_name=_("Strategic Task"),
     )
 
     # Subtask Details
     description = models.CharField(
         max_length=255,
-        verbose_name=_('Description'),
-        help_text=_('Micro-step description (e.g., "Locate studs")')
+        verbose_name=_("Description"),
+        help_text=_('Micro-step description (e.g., "Locate studs")'),
     )
 
     order = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_('Order'),
-        help_text=_('Checklist order')
+        default=0, verbose_name=_("Order"), help_text=_("Checklist order")
     )
 
     # Completion Tracking (for export)
     exported_to_daily_plan = models.BooleanField(
-        default=False,
-        verbose_name=_('Exported to Daily Plan')
+        default=False, verbose_name=_("Exported to Daily Plan")
     )
 
     # Timestamps
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_('Created At')
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name=_('Updated At')
-    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
     class Meta:
-        ordering = ['strategic_task', 'order']
-        verbose_name = _('Strategic Subtask')
-        verbose_name_plural = _('Strategic Subtasks')
+        ordering = ["strategic_task", "order"]
+        verbose_name = _("Strategic Subtask")
+        verbose_name_plural = _("Strategic Subtasks")
         indexes = [
-            models.Index(fields=['strategic_task', 'order']),
+            models.Index(fields=["strategic_task", "order"]),
         ]
 
     def __str__(self):
@@ -654,7 +602,7 @@ class StrategicSubtask(models.Model):
     def clean(self):
         """Validate subtask data"""
         if self.order < 0:
-            raise ValidationError({'order': _('Order must be 0 or greater.')})
+            raise ValidationError({"order": _("Order must be 0 or greater.")})
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -678,79 +626,71 @@ class StrategicMaterialRequirement(models.Model):
     strategic_item = models.ForeignKey(
         StrategicItem,
         on_delete=models.CASCADE,
-        related_name='material_requirements',
-        verbose_name=_('Strategic Item')
+        related_name="material_requirements",
+        verbose_name=_("Strategic Item"),
     )
 
     # Material Details
     name = models.CharField(
         max_length=255,
-        verbose_name=_('Material Name'),
-        help_text=_('Name of material needed (e.g., "2x4 Lumber")')
+        verbose_name=_("Material Name"),
+        help_text=_('Name of material needed (e.g., "2x4 Lumber")'),
     )
 
     quantity = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name=_('Quantity'),
-        help_text=_('How much is needed?')
+        verbose_name=_("Quantity"),
+        help_text=_("How much is needed?"),
     )
 
     unit = models.CharField(
         max_length=50,
-        verbose_name=_('Unit'),
-        help_text=_('Unit of measure (e.g., "Each", "Box", "Gallon")')
+        verbose_name=_("Unit"),
+        help_text=_('Unit of measure (e.g., "Each", "Box", "Gallon")'),
     )
 
     notes = models.TextField(
-        blank=True,
-        verbose_name=_('Notes'),
-        help_text=_('Specific details (brand, color, size)')
+        blank=True, verbose_name=_("Notes"), help_text=_("Specific details (brand, color, size)")
     )
 
     # Inventory Links (Optional)
     linked_catalog_item = models.ForeignKey(
-        'MaterialCatalog',
+        "MaterialCatalog",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='strategic_requirements',
-        verbose_name=_('Catalog Item')
+        related_name="strategic_requirements",
+        verbose_name=_("Catalog Item"),
     )
 
     linked_inventory_item = models.ForeignKey(
-        'InventoryItem',
+        "InventoryItem",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='strategic_requirements',
-        verbose_name=_('Inventory Item')
+        related_name="strategic_requirements",
+        verbose_name=_("Inventory Item"),
     )
 
     # Status
     is_on_hand = models.BooleanField(
         default=False,
-        verbose_name=_('Is On Hand?'),
-        help_text=_('Do we already have this material available?')
+        verbose_name=_("Is On Hand?"),
+        help_text=_("Do we already have this material available?"),
     )
 
     # Timestamps
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_('Created At')
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name=_('Updated At')
-    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
     class Meta:
-        verbose_name = _('Strategic Material Requirement')
-        verbose_name_plural = _('Strategic Material Requirements')
+        verbose_name = _("Strategic Material Requirement")
+        verbose_name_plural = _("Strategic Material Requirements")
         indexes = [
-            models.Index(fields=['strategic_item']),
-            models.Index(fields=['is_on_hand']),
+            models.Index(fields=["strategic_item"]),
+            models.Index(fields=["is_on_hand"]),
         ]
 
     def __str__(self):
@@ -759,7 +699,7 @@ class StrategicMaterialRequirement(models.Model):
     def clean(self):
         """Validate material data"""
         if self.quantity < 0:
-            raise ValidationError({'quantity': _('Quantity cannot be negative.')})
+            raise ValidationError({"quantity": _("Quantity cannot be negative.")})
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -775,52 +715,49 @@ class StrategicDependency(models.Model):
     """
 
     DEPENDENCY_TYPES = [
-        ('FS', _('Finish to Start')),  # Most common: A must finish before B starts
-        ('SS', _('Start to Start')),   # A must start before B starts
-        ('FF', _('Finish to Finish')), # A must finish before B finishes
-        ('SF', _('Start to Finish')),  # A must start before B finishes
+        ("FS", _("Finish to Start")),  # Most common: A must finish before B starts
+        ("SS", _("Start to Start")),  # A must start before B starts
+        ("FF", _("Finish to Finish")),  # A must finish before B finishes
+        ("SF", _("Start to Finish")),  # A must start before B finishes
     ]
 
     # The item that must happen FIRST
     predecessor = models.ForeignKey(
         StrategicItem,
         on_delete=models.CASCADE,
-        related_name='successors',
-        verbose_name=_('Predecessor Item'),
-        help_text=_('The item that must be completed first')
+        related_name="successors",
+        verbose_name=_("Predecessor Item"),
+        help_text=_("The item that must be completed first"),
     )
 
     # The item that happens SECOND (depends on the first)
     successor = models.ForeignKey(
         StrategicItem,
         on_delete=models.CASCADE,
-        related_name='predecessors',
-        verbose_name=_('Successor Item'),
-        help_text=_('The item that is waiting for the predecessor')
+        related_name="predecessors",
+        verbose_name=_("Successor Item"),
+        help_text=_("The item that is waiting for the predecessor"),
     )
 
     dependency_type = models.CharField(
-        max_length=2,
-        choices=DEPENDENCY_TYPES,
-        default='FS',
-        verbose_name=_('Dependency Type')
+        max_length=2, choices=DEPENDENCY_TYPES, default="FS", verbose_name=_("Dependency Type")
     )
 
     lag_days = models.IntegerField(
         default=0,
-        verbose_name=_('Lag (Days)'),
-        help_text=_('Optional delay between items (e.g., 1 day for drying)')
+        verbose_name=_("Lag (Days)"),
+        help_text=_("Optional delay between items (e.g., 1 day for drying)"),
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['predecessor', 'successor']
-        verbose_name = _('Strategic Dependency')
-        verbose_name_plural = _('Strategic Dependencies')
+        unique_together = ["predecessor", "successor"]
+        verbose_name = _("Strategic Dependency")
+        verbose_name_plural = _("Strategic Dependencies")
         indexes = [
-            models.Index(fields=['predecessor']),
-            models.Index(fields=['successor']),
+            models.Index(fields=["predecessor"]),
+            models.Index(fields=["successor"]),
         ]
 
     def __str__(self):
@@ -829,15 +766,14 @@ class StrategicDependency(models.Model):
     def clean(self):
         """Validate dependency"""
         if self.predecessor_id == self.successor_id:
-            raise ValidationError(_('An item cannot depend on itself.'))
+            raise ValidationError(_("An item cannot depend on itself."))
 
         # Basic circular check (direct loop only)
         # Full circular check would require graph traversal, usually done in view/service
         if StrategicDependency.objects.filter(
-            predecessor=self.successor,
-            successor=self.predecessor
+            predecessor=self.successor, successor=self.predecessor
         ).exists():
-            raise ValidationError(_('Circular dependency detected.'))
+            raise ValidationError(_("Circular dependency detected."))
 
     def save(self, *args, **kwargs):
         self.full_clean()

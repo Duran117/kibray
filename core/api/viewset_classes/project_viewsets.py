@@ -1,6 +1,7 @@
 """
 Project-related viewsets for the Kibray API
 """
+
 from decimal import Decimal
 
 from django.db import models
@@ -26,14 +27,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
     """
     ViewSet for projects with full CRUD operations
     """
+
     queryset = Project.objects.select_related(
-        'billing_organization', 'project_lead'
-    ).prefetch_related('observers')
+        "billing_organization", "project_lead"
+    ).prefetch_related("observers")
     permission_classes = [IsAuthenticated]
     filterset_class = ProjectFilter
-    search_fields = ['name', 'address', 'description', 'client']
-    ordering_fields = ['name', 'start_date', 'end_date', 'created_at']
-    ordering = ['name']
+    search_fields = ["name", "address", "description", "client"]
+    ordering_fields = ["name", "start_date", "end_date", "created_at"]
+    ordering = ["name"]
 
     def get_queryset(self):
         """Filter queryset based on user permissions"""
@@ -46,32 +48,32 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         # Filter to projects where user is lead or observer
         # Note: This uses ClientContact, which may have a link to User
-        return queryset.filter(
-            Q(project_lead__user=user) | Q(observers__user=user)
-        ).distinct()
+        return queryset.filter(Q(project_lead__user=user) | Q(observers__user=user)).distinct()
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return ProjectListSerializer
-        elif self.action == 'retrieve':
+        elif self.action == "retrieve":
             return ProjectDetailSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
+        elif self.action in ["create", "update", "partial_update"]:
             return ProjectCreateUpdateSerializer
         return ProjectDetailSerializer
 
     def get_permissions(self):
         """Add project-specific permissions for certain actions"""
-        if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+        if self.action in ["retrieve", "update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsProjectMember()]
         return super().get_permissions()
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def assigned_projects(self, request):
         """Get projects where user is assigned"""
         user = request.user
-        queryset = Project.objects.filter(
-            Q(project_lead__user=user) | Q(observers__user=user)
-        ).distinct().order_by('name')
+        queryset = (
+            Project.objects.filter(Q(project_lead__user=user) | Q(observers__user=user))
+            .distinct()
+            .order_by("name")
+        )
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -81,7 +83,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer = ProjectListSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def stats(self, request, pk=None):
         """Get detailed statistics for a project"""
         project = self.get_object()
@@ -89,8 +91,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         # Calculate statistics
         tasks = project.tasks.all()
         total_tasks = tasks.count()
-        completed_tasks = tasks.filter(status='Completada').count()
-        in_progress_tasks = tasks.filter(status='En Progreso').count()
+        completed_tasks = tasks.filter(status="Completada").count()
+        in_progress_tasks = tasks.filter(status="En Progreso").count()
 
         # Budget calculations
         total_budget = float(project.budget_total or 0)
@@ -98,29 +100,32 @@ class ProjectViewSet(viewsets.ModelViewSet):
         budget_variance = total_budget - spent_budget
 
         data = {
-            'project_id': project.id,
-            'project_name': project.name,
-            'total_tasks': total_tasks,
-            'completed_tasks': completed_tasks,
-            'in_progress_tasks': in_progress_tasks,
-            'total_budget': total_budget,
-            'spent_budget': spent_budget,
-            'budget_variance': budget_variance,
+            "project_id": project.id,
+            "project_name": project.name,
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "in_progress_tasks": in_progress_tasks,
+            "total_budget": total_budget,
+            "spent_budget": spent_budget,
+            "budget_variance": budget_variance,
         }
 
         serializer = ProjectStatsSerializer(data)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def budget_overview(self, request):
         """Budget overview for all projects (lightweight aggregation)."""
         projects = self.get_queryset().annotate(
-            expense_total=models.functions.Coalesce(models.Sum('expenses__amount'), Decimal('0.00'))
+            expense_total=models.functions.Coalesce(models.Sum("expenses__amount"), Decimal("0.00"))
         )
         summaries = []
         for project in projects:
             percent_spent = round(
-                (project.expense_total / project.budget_total * 100) if project.budget_total > 0 else 0, 2
+                (project.expense_total / project.budget_total * 100)
+                if project.budget_total > 0
+                else 0,
+                2,
             )
             summaries.append(
                 {

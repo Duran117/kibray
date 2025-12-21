@@ -10,7 +10,7 @@ import django
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kibray.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kibray.settings")
 django.setup()
 
 from core.models import Employee, Project, ResourceAssignment  # noqa: E402
@@ -21,7 +21,7 @@ print("=" * 80)
 
 # 1. Verificar usuario
 try:
-    user = User.objects.get(username='cesar123')
+    user = User.objects.get(username="cesar123")
     print(f"✅ Usuario encontrado: {user.username} (ID: {user.id})")
 except User.DoesNotExist:
     print("❌ Usuario 'cesar123' NO EXISTE")
@@ -31,7 +31,9 @@ except User.DoesNotExist:
 employee = Employee.objects.filter(user=user).first()
 
 if employee:
-    print(f"✅ Ya tiene Employee vinculado: {employee.first_name} {employee.last_name} (ID: {employee.id})")
+    print(
+        f"✅ Ya tiene Employee vinculado: {employee.first_name} {employee.last_name} (ID: {employee.id})"
+    )
 else:
     print("\n❌ NO tiene Employee vinculado")
     print("\nBuscando Employees sin User asignado...")
@@ -61,7 +63,7 @@ else:
             phone="",
             hire_date=timezone.now().date(),
             is_active=True,
-            hourly_rate=25.00  # Rate por defecto
+            hourly_rate=25.00,  # Rate por defecto
         )
         print(f"✅ Employee creado: {employee.first_name} {employee.last_name} (ID: {employee.id})")
 
@@ -86,9 +88,7 @@ if employee:
     # Verificar asignación para hoy
     today = timezone.localdate()
     assignment = ResourceAssignment.objects.filter(
-        employee=employee,
-        project=project,
-        date=today
+        employee=employee, project=project, date=today
     ).first()
 
     if assignment:
@@ -104,7 +104,7 @@ if employee:
             project=project,
             date=today,
             shift="MORNING",  # Puede ser MORNING, AFTERNOON, FULL_DAY
-            notes="Asignación automática para testing"
+            notes="Asignación automática para testing",
         )
         print("✅ Asignación creada:")
         print(f"   - Empleado: {employee}")

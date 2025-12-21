@@ -21,7 +21,9 @@ def _style_timeentry_form(form):
     for _name, field in form.fields.items():
         input_type = getattr(field.widget, "input_type", "") or ""
         base_class = "form-control"
-        if input_type.lower() == "select" or field.widget.__class__.__name__.lower().startswith("select"):
+        if input_type.lower() == "select" or field.widget.__class__.__name__.lower().startswith(
+            "select"
+        ):
             base_class = "form-select"
 
         existing = field.widget.attrs.get("class", "")
@@ -42,9 +44,9 @@ def unassigned_hours_hub(request):
     change_orders = ChangeOrder.objects.select_related("project").order_by("project__name", "id")
     cost_codes = CostCode.objects.filter(active=True).order_by("code")
 
-    base_qs = TimeEntry.objects.select_related("employee__user", "project", "change_order", "cost_code").filter(
-        project__isnull=True
-    )
+    base_qs = TimeEntry.objects.select_related(
+        "employee__user", "project", "change_order", "cost_code"
+    ).filter(project__isnull=True)
 
     date_from = request.GET.get("from")
     date_to = request.GET.get("to")
@@ -53,7 +55,11 @@ def unassigned_hours_hub(request):
     cost_code_filter = request.GET.get("cost_code")
     selected_day = request.GET.get("week")
     try:
-        selected_date = timezone.datetime.fromisoformat(selected_day).date() if selected_day else timezone.localdate()
+        selected_date = (
+            timezone.datetime.fromisoformat(selected_day).date()
+            if selected_day
+            else timezone.localdate()
+        )
     except Exception:
         selected_date = timezone.localdate()
 
@@ -170,10 +176,12 @@ def unassigned_hours_hub(request):
     for emp in employee_rows:
         day_cells = []
         for day in week_days:
-            day_cells.append({
-                "date": day,
-                "entries": entries_map.get((emp.id, day), []),
-            })
+            day_cells.append(
+                {
+                    "date": day,
+                    "entries": entries_map.get((emp.id, day), []),
+                }
+            )
         weekly_rows.append({"employee": emp, "days": day_cells})
 
     return render(

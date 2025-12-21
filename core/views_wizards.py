@@ -15,9 +15,11 @@ logger = logging.getLogger(__name__)
 # Check OpenAI availability
 try:
     from openai import OpenAI
-    OPENAI_AVAILABLE = hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY
+
+    OPENAI_AVAILABLE = hasattr(settings, "OPENAI_API_KEY") and settings.OPENAI_API_KEY
 except ImportError:
     OPENAI_AVAILABLE = False
+
 
 @login_required
 def project_launchpad_wizard(request):
@@ -25,13 +27,11 @@ def project_launchpad_wizard(request):
     Render the Project Launchpad Wizard (Step-by-step project creation).
     """
     # Fetch data for dropdowns
-    clients = ClientOrganization.objects.all().order_by('name')
+    clients = ClientOrganization.objects.all().order_by("name")
 
-    context = {
-        'clients': clients,
-        'openai_available': OPENAI_AVAILABLE
-    }
+    context = {"clients": clients, "openai_available": OPENAI_AVAILABLE}
     return render(request, "core/wizards/project_launchpad.html", context)
+
 
 @login_required
 @require_POST
@@ -40,12 +40,12 @@ def project_launchpad_ai_suggest(request):
     AI Endpoint to suggest project details based on description.
     """
     if not OPENAI_AVAILABLE:
-        return JsonResponse({'success': False, 'error': 'AI not configured'})
+        return JsonResponse({"success": False, "error": "AI not configured"})
 
     try:
         data = json.loads(request.body)
-        description = data.get('description', '')
-        project_type = data.get('project_type', 'General')
+        description = data.get("description", "")
+        project_type = data.get("project_type", "General")
 
         client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -74,15 +74,16 @@ def project_launchpad_ai_suggest(request):
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
         )
 
         result = json.loads(response.choices[0].message.content)
-        return JsonResponse({'success': True, 'data': result})
+        return JsonResponse({"success": True, "data": result})
 
     except Exception as e:
         logger.error(f"AI Launchpad Error: {e}")
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({"success": False, "error": str(e)})
+
 
 @login_required
 @require_POST
@@ -94,17 +95,17 @@ def project_launchpad_save(request):
         data = json.loads(request.body)
 
         # Basic fields
-        name = data.get('name')
-        client_id = data.get('client_id')
-        address = data.get('address')
-        start_date_str = data.get('start_date')
-        duration_days = int(data.get('duration_days', 30))
-        description = data.get('description')
+        name = data.get("name")
+        client_id = data.get("client_id")
+        address = data.get("address")
+        start_date_str = data.get("start_date")
+        duration_days = int(data.get("duration_days", 30))
+        description = data.get("description")
 
         if not name or not start_date_str:
-            return JsonResponse({'success': False, 'error': 'Missing required fields'})
+            return JsonResponse({"success": False, "error": "Missing required fields"})
 
-        start_date = timezone.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        start_date = timezone.datetime.strptime(start_date_str, "%Y-%m-%d").date()
         end_date = start_date + timezone.timedelta(days=duration_days)
 
         # Create Project
@@ -114,13 +115,19 @@ def project_launchpad_save(request):
             start_date=start_date,
             end_date=end_date,
             description=description,
-            billing_organization_id=client_id if client_id else None
+            billing_organization_id=client_id if client_id else None,
         )
 
         # TODO: Create Phases/Schedule items if provided in the wizard payload
 
-        return JsonResponse({'success': True, 'project_id': project.id, 'redirect_url': f"/projects/{project.id}/overview/"})
+        return JsonResponse(
+            {
+                "success": True,
+                "project_id": project.id,
+                "redirect_url": f"/projects/{project.id}/overview/",
+            }
+        )
 
     except Exception as e:
         logger.error(f"Launchpad Save Error: {e}")
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({"success": False, "error": str(e)})

@@ -54,7 +54,9 @@ class PushNotificationService:
         }
 
         try:
-            response = requests.post(PushNotificationService.BASE_URL, json=payload, headers=headers, timeout=10)
+            response = requests.post(
+                PushNotificationService.BASE_URL, json=payload, headers=headers, timeout=10
+            )
             response.raise_for_status()
             logger.info(f"Push notification sent to {len(user_ids)} users: {heading}")
             return response.json()
@@ -90,7 +92,9 @@ class PushNotificationService:
         }
 
         try:
-            response = requests.post(PushNotificationService.BASE_URL, json=payload, headers=headers, timeout=10)
+            response = requests.post(
+                PushNotificationService.BASE_URL, json=payload, headers=headers, timeout=10
+            )
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -252,7 +256,9 @@ def notify_daily_plan_created(daily_plan):
         from core.models import TimeEntry
 
         employees = (
-            TimeEntry.objects.filter(project=daily_plan.project).values_list("employee_id", flat=True).distinct()
+            TimeEntry.objects.filter(project=daily_plan.project)
+            .values_list("employee_id", flat=True)
+            .distinct()
         )
 
         if employees:

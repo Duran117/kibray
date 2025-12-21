@@ -126,10 +126,14 @@ class OpenWeatherMapProvider(WeatherProvider):
             }
 
         except requests.exceptions.Timeout:
-            logger.error(f"OpenWeatherMap API timeout for lat={latitude}, lon={longitude}. Using fallback.")
+            logger.error(
+                f"OpenWeatherMap API timeout for lat={latitude}, lon={longitude}. Using fallback."
+            )
             return mock_fallback
         except requests.exceptions.HTTPError as e:
-            logger.error(f"OpenWeatherMap HTTP error {e.response.status_code}: {e}. Using fallback.")
+            logger.error(
+                f"OpenWeatherMap HTTP error {e.response.status_code}: {e}. Using fallback."
+            )
             return mock_fallback
         except requests.exceptions.RequestException as e:
             logger.error(f"OpenWeatherMap request failed: {e}. Using fallback.")
@@ -186,7 +190,7 @@ class WeatherService:
     # Internals
     # -----------------
     def _cache_key(self, lat: float, lon: float) -> str:
-        return f"{round(lat,3)}:{round(lon,3)}"
+        return f"{round(lat, 3)}:{round(lon, 3)}"
 
     def _is_stale(self, payload: dict[str, Any]) -> bool:
         fetched_at_str = payload.get("fetched_at")
@@ -212,7 +216,9 @@ class WeatherService:
         if self._circuit_opened_at is None:
             return False
         # Si cooldown ya pasó, cerrar circuito
-        if (timezone.now() - self._circuit_opened_at).total_seconds() > self.CIRCUIT_COOLDOWN_SECONDS:
+        if (
+            timezone.now() - self._circuit_opened_at
+        ).total_seconds() > self.CIRCUIT_COOLDOWN_SECONDS:
             self._circuit_opened_at = None
             self._failure_count = 0
             return False
@@ -236,7 +242,10 @@ class WeatherService:
             or raw.get("temperature_c")
             or raw.get("temperature")
             or 0.0,
-            "condition": raw.get("condition") or raw.get("weather") or raw.get("description") or "Unknown",
+            "condition": raw.get("condition")
+            or raw.get("weather")
+            or raw.get("description")
+            or "Unknown",
             "humidity": raw.get("humidity", 0),
             "wind_speed": raw.get("wind_speed", raw.get("wind_kph", 0.0)),
             "description": raw.get("description") or raw.get("condition") or "N/A",
@@ -251,7 +260,11 @@ class WeatherService:
     # Public API
     # -----------------
     def get_weather(
-        self, latitude: float, longitude: float, date: datetime | None = None, force_refresh: bool = False
+        self,
+        latitude: float,
+        longitude: float,
+        date: datetime | None = None,
+        force_refresh: bool = False,
     ) -> dict[str, Any]:
         if not self._provider:
             raise RuntimeError("Weather provider not configured")
@@ -271,7 +284,12 @@ class WeatherService:
         # Rate limit
         if not self._rate_limit_allow():
             if cached:
-                return {**cached, "stale": self._is_stale(cached), "fallback": True, "rate_limited": True}
+                return {
+                    **cached,
+                    "stale": self._is_stale(cached),
+                    "fallback": True,
+                    "rate_limited": True,
+                }
             raise RuntimeError("Weather rate limit excedido y sin cache")
 
         # Llamar proveedor
@@ -284,7 +302,12 @@ class WeatherService:
         except Exception as e:
             self._record_failure()
             if cached:
-                return {**cached, "stale": self._is_stale(cached), "fallback": True, "error": str(e)}
+                return {
+                    **cached,
+                    "stale": self._is_stale(cached),
+                    "fallback": True,
+                    "error": str(e),
+                }
             raise
 
     @classmethod
@@ -335,21 +358,31 @@ def get_or_create_snapshot(
     """Obtiene o crea un WeatherSnapshot para (project, date). Usa provider configurado.
     Refresca si snapshot está obsoleto (>6h) según lógica `is_stale()`."""
     target_date = (date or timezone.now()).date()
-    snap = WeatherSnapshot.objects.filter(project=project, date=target_date, source="openweathermap").first()
+    snap = WeatherSnapshot.objects.filter(
+        project=project, date=target_date, source="openweathermap"
+    ).first()
     if snap and not snap.is_stale():
         return snap
     # Fallback: if there is a very recent snapshot (within TTL), reuse it even if date differs
-    recent = WeatherSnapshot.objects.filter(project=project, source="openweathermap").order_by("-fetched_at").first()
+    recent = (
+        WeatherSnapshot.objects.filter(project=project, source="openweathermap")
+        .order_by("-fetched_at")
+        .first()
+    )
     if recent and not recent.is_stale():
         return recent
 
     data = weather_service.get_weather(latitude=latitude, longitude=longitude, date=date)
     if snap is None:
         snap = WeatherSnapshot(
-            project=project, date=target_date, source=_safe_get(data, "provider", "openweathermap", caster=str)
+            project=project,
+            date=target_date,
+            source=_safe_get(data, "provider", "openweathermap", caster=str),
         )
     # Coerce values to primitives to avoid MagicMock insertions
-    snap.temperature_max = _safe_get(data, "temperature", None, caster=lambda v: float(v) if v is not None else None)
+    snap.temperature_max = _safe_get(
+        data, "temperature", None, caster=lambda v: float(v) if v is not None else None
+    )
     snap.temperature_min = _safe_get(
         data, "temperature", None, caster=lambda v: float(v) if v is not None else None
     )  # hasta tener rango real
@@ -358,8 +391,12 @@ def get_or_create_snapshot(
     if not desc:
         desc = _safe_get(data, "condition", "", caster=str)
     snap.conditions_text = desc or ""
-    snap.humidity_percent = _safe_get(data, "humidity", None, caster=lambda v: int(v) if v is not None else None)
-    snap.wind_kph = _safe_get(data, "wind_speed", None, caster=lambda v: float(v) if v is not None else None)
+    snap.humidity_percent = _safe_get(
+        data, "humidity", None, caster=lambda v: int(v) if v is not None else None
+    )
+    snap.wind_kph = _safe_get(
+        data, "wind_speed", None, caster=lambda v: float(v) if v is not None else None
+    )
     # raw_json must be JSON-serializable (dict)
     snap.raw_json = data if isinstance(data, dict) else {"value": str(data)}
     snap.provider_url = "https://api.openweathermap.org/data/2.5"

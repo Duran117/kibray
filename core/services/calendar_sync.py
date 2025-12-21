@@ -44,7 +44,7 @@ def generate_ical_for_project(project):
             event.add("dtstart", item.planned_start)
             event.add("dtend", item.planned_end + timedelta(days=1))
 
-            description = f'{item.description or ""}\n\n'
+            description = f"{item.description or ''}\n\n"
             description += f"Categoría: {item.category.name}\n"
             description += f"Estado: {item.get_status_display()}\n"
             description += f"Progreso: {item.percent_complete}%\n"
@@ -83,9 +83,9 @@ def generate_google_calendar_link(project):
     Genera un enlace directo para añadir al Google Calendar.
     Usa el formato de URL de Google Calendar.
     """
-    items = project.schedule_items.filter(planned_start__isnull=False, planned_end__isnull=False).order_by(
-        "planned_start"
-    )
+    items = project.schedule_items.filter(
+        planned_start__isnull=False, planned_end__isnull=False
+    ).order_by("planned_start")
 
     if not items.exists():
         return None
@@ -99,7 +99,7 @@ def generate_google_calendar_link(project):
         "action": "TEMPLATE",
         "text": f"{project.name} - {first_item.title}",
         "dates": f"{first_item.planned_start.strftime('%Y%m%d')}/{(first_item.planned_end + timedelta(days=1)).strftime('%Y%m%d')}",
-        "details": f'{first_item.description or ""}\n\nEstado: {first_item.get_status_display()}\nProgreso: {first_item.percent_complete}%',
+        "details": f"{first_item.description or ''}\n\nEstado: {first_item.get_status_display()}\nProgreso: {first_item.percent_complete}%",
         "location": project.address or "",
     }
 

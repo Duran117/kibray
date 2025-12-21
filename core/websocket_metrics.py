@@ -50,7 +50,7 @@ class WebSocketMetrics:
 
         # Message tracking
         self.message_timestamps = deque(maxlen=10000)  # Last 10k messages
-        self.message_latencies = deque(maxlen=1000)    # Last 1k latencies
+        self.message_latencies = deque(maxlen=1000)  # Last 1k latencies
 
         # Error tracking
         self.error_count = 0
@@ -82,28 +82,28 @@ class WebSocketMetrics:
 
         # Store connection metadata
         cache.set(
-            f'ws_conn:{connection_id}',
+            f"ws_conn:{connection_id}",
             {
-                'user_id': user_id,
-                'channel_id': channel_id,
-                'opened_at': time.time(),
+                "user_id": user_id,
+                "channel_id": channel_id,
+                "opened_at": time.time(),
             },
-            timeout=86400  # 24 hours
+            timeout=86400,  # 24 hours
         )
 
     def connection_closed(self, connection_id: str):
         """Record connection closure"""
         # Get connection metadata
-        conn_data = cache.get(f'ws_conn:{connection_id}')
+        conn_data = cache.get(f"ws_conn:{connection_id}")
 
         if conn_data:
             # Calculate duration
-            duration = time.time() - conn_data['opened_at']
+            duration = time.time() - conn_data["opened_at"]
             self.connection_durations.append(duration)
 
             # Remove from tracking
-            user_id = conn_data['user_id']
-            channel_id = conn_data.get('channel_id')
+            user_id = conn_data["user_id"]
+            channel_id = conn_data.get("channel_id")
 
             self.connections_by_user[user_id].discard(connection_id)
             if channel_id:
@@ -113,24 +113,24 @@ class WebSocketMetrics:
         self.connections_closed += 1
 
         # Clean up cache
-        cache.delete(f'ws_conn:{connection_id}')
+        cache.delete(f"ws_conn:{connection_id}")
 
     def get_connection_count(self) -> dict:
         """Get current connection counts"""
         return {
-            'total': len(self.active_connections),
-            'by_user': {
+            "total": len(self.active_connections),
+            "by_user": {
                 user_id: len(conn_ids)
                 for user_id, conn_ids in self.connections_by_user.items()
                 if conn_ids
             },
-            'by_channel': {
+            "by_channel": {
                 channel_id: len(conn_ids)
                 for channel_id, conn_ids in self.connections_by_channel.items()
                 if conn_ids
             },
-            'created': self.connections_created,
-            'closed': self.connections_closed,
+            "created": self.connections_created,
+            "closed": self.connections_closed,
         }
 
     # ============================================================================
@@ -158,10 +158,7 @@ class WebSocketMetrics:
             return 0.0
 
         cutoff_time = time.time() - window_seconds
-        recent_messages = [
-            ts for ts in self.message_timestamps
-            if ts > cutoff_time
-        ]
+        recent_messages = [ts for ts in self.message_timestamps if ts > cutoff_time]
 
         if not recent_messages:
             return 0.0
@@ -172,26 +169,26 @@ class WebSocketMetrics:
         """Get latency statistics"""
         if not self.message_latencies:
             return {
-                'p50': 0,
-                'p95': 0,
-                'p99': 0,
-                'avg': 0,
-                'min': 0,
-                'max': 0,
-                'count': 0,
+                "p50": 0,
+                "p95": 0,
+                "p99": 0,
+                "avg": 0,
+                "min": 0,
+                "max": 0,
+                "count": 0,
             }
 
         sorted_latencies = sorted(self.message_latencies)
         count = len(sorted_latencies)
 
         return {
-            'p50': sorted_latencies[int(count * 0.5)] if count > 0 else 0,
-            'p95': sorted_latencies[int(count * 0.95)] if count > 0 else 0,
-            'p99': sorted_latencies[int(count * 0.99)] if count > 0 else 0,
-            'avg': sum(sorted_latencies) / count if count > 0 else 0,
-            'min': sorted_latencies[0] if count > 0 else 0,
-            'max': sorted_latencies[-1] if count > 0 else 0,
-            'count': count,
+            "p50": sorted_latencies[int(count * 0.5)] if count > 0 else 0,
+            "p95": sorted_latencies[int(count * 0.95)] if count > 0 else 0,
+            "p99": sorted_latencies[int(count * 0.99)] if count > 0 else 0,
+            "avg": sum(sorted_latencies) / count if count > 0 else 0,
+            "min": sorted_latencies[0] if count > 0 else 0,
+            "max": sorted_latencies[-1] if count > 0 else 0,
+            "count": count,
         }
 
     # ============================================================================
@@ -202,19 +199,21 @@ class WebSocketMetrics:
         """Record error"""
         self.error_count += 1
         self.errors_by_type[error_type] += 1
-        self.last_errors.append({
-            'type': error_type,
-            'message': error_message,
-            'timestamp': timezone.now().isoformat(),
-        })
+        self.last_errors.append(
+            {
+                "type": error_type,
+                "message": error_message,
+                "timestamp": timezone.now().isoformat(),
+            }
+        )
 
     def get_error_stats(self) -> dict:
         """Get error statistics"""
         return {
-            'total': self.error_count,
-            'by_type': dict(self.errors_by_type),
-            'recent': list(self.last_errors),
-            'rate': self._calculate_error_rate(),
+            "total": self.error_count,
+            "by_type": dict(self.errors_by_type),
+            "recent": list(self.last_errors),
+            "rate": self._calculate_error_rate(),
         }
 
     def _calculate_error_rate(self) -> float:
@@ -225,8 +224,9 @@ class WebSocketMetrics:
         # Count errors in last minute
         one_minute_ago = timezone.now() - timedelta(minutes=1)
         recent_errors = [
-            err for err in self.last_errors
-            if datetime.fromisoformat(err['timestamp']) > one_minute_ago
+            err
+            for err in self.last_errors
+            if datetime.fromisoformat(err["timestamp"]) > one_minute_ago
         ]
 
         return len(recent_errors)
@@ -239,22 +239,22 @@ class WebSocketMetrics:
         """Get connection duration statistics"""
         if not self.connection_durations:
             return {
-                'avg': 0,
-                'min': 0,
-                'max': 0,
-                'median': 0,
-                'count': 0,
+                "avg": 0,
+                "min": 0,
+                "max": 0,
+                "median": 0,
+                "count": 0,
             }
 
         sorted_durations = sorted(self.connection_durations)
         count = len(sorted_durations)
 
         return {
-            'avg': sum(sorted_durations) / count if count > 0 else 0,
-            'min': sorted_durations[0] if count > 0 else 0,
-            'max': sorted_durations[-1] if count > 0 else 0,
-            'median': sorted_durations[count // 2] if count > 0 else 0,
-            'count': count,
+            "avg": sum(sorted_durations) / count if count > 0 else 0,
+            "min": sorted_durations[0] if count > 0 else 0,
+            "max": sorted_durations[-1] if count > 0 else 0,
+            "median": sorted_durations[count // 2] if count > 0 else 0,
+            "count": count,
         }
 
     # ============================================================================
@@ -266,17 +266,17 @@ class WebSocketMetrics:
         uptime = time.time() - self.start_time
 
         return {
-            'timestamp': timezone.now().isoformat(),
-            'uptime_seconds': uptime,
-            'connections': self.get_connection_count(),
-            'messages': {
-                'rate_1m': self.get_message_rate(60),
-                'rate_5m': self.get_message_rate(300),
-                'rate_15m': self.get_message_rate(900),
-                'latency': self.get_latency_stats(),
+            "timestamp": timezone.now().isoformat(),
+            "uptime_seconds": uptime,
+            "connections": self.get_connection_count(),
+            "messages": {
+                "rate_1m": self.get_message_rate(60),
+                "rate_5m": self.get_message_rate(300),
+                "rate_15m": self.get_message_rate(900),
+                "latency": self.get_latency_stats(),
             },
-            'errors': self.get_error_stats(),
-            'connection_duration': self.get_connection_duration_stats(),
+            "errors": self.get_error_stats(),
+            "connection_duration": self.get_connection_duration_stats(),
         }
 
     def reset(self):
@@ -286,7 +286,7 @@ class WebSocketMetrics:
     def export_to_cache(self):
         """Export metrics to cache for persistence"""
         summary = self.get_summary()
-        cache.set('ws_metrics_summary', summary, timeout=3600)
+        cache.set("ws_metrics_summary", summary, timeout=3600)
         return summary
 
 
@@ -297,6 +297,7 @@ metrics = WebSocketMetrics()
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
+
 
 def track_connection_opened(connection_id: str, user_id: int, channel_id: int | None = None):
     """Helper to track connection opened"""

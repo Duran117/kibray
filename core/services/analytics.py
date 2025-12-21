@@ -37,7 +37,9 @@ def get_project_health_metrics(project_id: int) -> dict[str, Any]:
     in_progress = tasks.filter(status="En Progreso").count()
     pending = tasks.filter(status="Pendiente").count()
     cancelled = tasks.filter(status="Cancelada").count()
-    overdue = tasks.filter(Q(status__in=["Pendiente", "En Progreso"]) & Q(due_date__lt=timezone.now().date())).count()
+    overdue = tasks.filter(
+        Q(status__in=["Pendiente", "En Progreso"]) & Q(due_date__lt=timezone.now().date())
+    ).count()
 
     completion_pct = (completed / total_tasks * 100) if total_tasks > 0 else 0
 
@@ -250,7 +252,9 @@ def get_pm_performance_analytics() -> dict[str, Any]:
         projects = pm_item["projects_count"]
 
         # Tasks in PM's projects
-        pm_projects = ProjectManagerAssignment.objects.filter(pm_id=pm_id).values_list("project_id", flat=True)
+        pm_projects = ProjectManagerAssignment.objects.filter(pm_id=pm_id).values_list(
+            "project_id", flat=True
+        )
         tasks = Task.objects.filter(project_id__in=pm_projects)
         tasks_assigned = tasks.count()
         tasks_completed = tasks.filter(status="Completada").count()

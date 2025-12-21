@@ -35,7 +35,7 @@ class RateLimitMixin:
 
     def get_rate_limit_key(self):
         """Generate cache key for rate limiting"""
-        user_id = getattr(self.user, 'id', 'anonymous')  # type: ignore[attr-defined]
+        user_id = getattr(self.user, "id", "anonymous")  # type: ignore[attr-defined]
         return f"websocket_rate_limit:{user_id}:{self.__class__.__name__}"
 
     async def check_rate_limit(self):
@@ -54,12 +54,15 @@ class RateLimitMixin:
                 f"in {self.__class__.__name__}: {count}/{self.rate_limit_messages} messages"
             )
             await self.send(  # type: ignore[attr-defined]
-                text_data=json.dumps({
-                    "type": "error",
-                    "error": "rate_limit_exceeded",
-                    "message": _("Rate limit exceeded. Maximum %(limit)s messages per minute.") % {"limit": self.rate_limit_messages},
-                    "retry_after": self.rate_limit_window,
-                })
+                text_data=json.dumps(
+                    {
+                        "type": "error",
+                        "error": "rate_limit_exceeded",
+                        "message": _("Rate limit exceeded. Maximum %(limit)s messages per minute.")
+                        % {"limit": self.rate_limit_messages},
+                        "retry_after": self.rate_limit_window,
+                    }
+                )
             )
             return False
 
@@ -90,7 +93,7 @@ class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
         # Activate language from querystring
         try:
             query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
-            lang = (query.get("lang", [None])[0] or "").split('-')[0]
+            lang = (query.get("lang", [None])[0] or "").split("-")[0]
             if lang:
                 translation.activate(lang)
                 self.lang = lang
@@ -101,7 +104,9 @@ class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
         self.user = self.scope["user"]  # type: ignore[typeddict-item]
 
         # Basic auth guard for tests: reject unauthenticated/inactive users
-        if not getattr(self.user, "is_authenticated", False) or not getattr(self.user, "is_active", True):  # type: ignore[union-attr]
+        if not getattr(self.user, "is_authenticated", False) or not getattr(
+            self.user, "is_active", True
+        ):  # type: ignore[union-attr]
             await self.close()
             return
 
@@ -164,7 +169,9 @@ class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
             try:
                 from core.websocket_security import WebSocketSecurityValidator
 
-                sanitized_message = WebSocketSecurityValidator.sanitize_message(data.get("message", ""))
+                sanitized_message = WebSocketSecurityValidator.sanitize_message(
+                    data.get("message", "")
+                )
             except Exception:
                 sanitized_message = data.get("message", "")
 
@@ -298,7 +305,9 @@ class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
         project = Project.objects.get(id=project_id)
 
         # Get or create project channel
-        channel, _ = ChatChannel.objects.get_or_create(project=project, defaults={"name": f"Project: {project.name}"})
+        channel, _ = ChatChannel.objects.get_or_create(
+            project=project, defaults={"name": f"Project: {project.name}"}
+        )
 
         # Create message
         message = ChatMessage.objects.create(
@@ -335,7 +344,7 @@ class DirectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
         """Accept WebSocket connection for direct chat"""
         try:
             query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
-            lang = (query.get("lang", [None])[0] or "").split('-')[0]
+            lang = (query.get("lang", [None])[0] or "").split("-")[0]
             if lang:
                 translation.activate(lang)
                 self.lang = lang
@@ -444,7 +453,7 @@ class NotificationConsumer(RateLimitMixin, AsyncWebsocketConsumer):
         """Connect to user's notification channel"""
         try:
             query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
-            lang = (query.get("lang", [None])[0] or "").split('-')[0]
+            lang = (query.get("lang", [None])[0] or "").split("-")[0]
             if lang:
                 translation.activate(lang)
                 self.lang = lang
@@ -700,7 +709,7 @@ class TaskConsumer(RateLimitMixin, AsyncWebsocketConsumer):
         """Accept connection and join project task group"""
         try:
             query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
-            lang = (query.get("lang", [None])[0] or "").split('-')[0]
+            lang = (query.get("lang", [None])[0] or "").split("-")[0]
             if lang:
                 translation.activate(lang)
                 self.lang = lang
@@ -754,9 +763,7 @@ class TaskConsumer(RateLimitMixin, AsyncWebsocketConsumer):
                 )
         except json.JSONDecodeError:
             await self.send(
-                text_data=json.dumps(
-                    {"type": "error", "message": "Invalid JSON format"}
-                )
+                text_data=json.dumps({"type": "error", "message": "Invalid JSON format"})
             )
 
     async def task_created(self, event):

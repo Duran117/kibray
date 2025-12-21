@@ -2,6 +2,7 @@
 
 Supports flat and tiered tax profiles.
 """
+
 from decimal import Decimal
 
 from core.models import TaxProfile
@@ -38,4 +39,4 @@ def preview_tiered(profile: TaxProfile, gross: Decimal) -> dict:
             last_limit = limit
         if remaining <= 0:
             break
-    return {"method": "tiered", "tax": str(tax.quantize(Decimal('0.01'))), "parts": parts}
+    return {"method": "tiered", "tax": str(tax.quantize(Decimal("0.01"))), "parts": parts}

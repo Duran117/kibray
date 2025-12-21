@@ -26,9 +26,15 @@ websocket_urlpatterns = [
     # Global admin dashboard
     re_path(r"ws/dashboard/admin/$", consumers.AdminDashboardConsumer.as_asgi()),  # type: ignore[arg-type]
     # Daily plan updates for employees
-    re_path(r"ws/daily-plan/(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})/$", consumers.DailyPlanConsumer.as_asgi()),  # type: ignore[arg-type]
+    re_path(
+        r"ws/daily-plan/(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})/$",
+        consumers.DailyPlanConsumer.as_asgi(),
+    ),  # type: ignore[arg-type]
     # Quality inspection live updates
-    re_path(r"ws/quality/inspection/(?P<inspection_id>\d+)/$", consumers.QualityInspectionConsumer.as_asgi()),  # type: ignore[arg-type]
+    re_path(
+        r"ws/quality/inspection/(?P<inspection_id>\d+)/$",
+        consumers.QualityInspectionConsumer.as_asgi(),
+    ),  # type: ignore[arg-type]
     # Task updates for projects
     re_path(r"ws/tasks/(?P<project_id>\d+)/$", consumers.TaskConsumer.as_asgi()),  # type: ignore[arg-type]
     # User online/offline status

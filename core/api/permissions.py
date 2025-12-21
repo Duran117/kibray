@@ -83,7 +83,9 @@ class CanAccessProject(permissions.BasePermission):
 
             # Client: Check ClientProjectAccess
             if profile.role == "client":
-                return ClientProjectAccess.objects.filter(user=user, project=project, is_active=True).exists()
+                return ClientProjectAccess.objects.filter(
+                    user=user, project=project, is_active=True
+                ).exists()
 
             # Employee: Has time entries or tasks on this project
             if profile.role == "employee":

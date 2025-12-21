@@ -5,6 +5,7 @@ from django.utils import formats
 
 register = template.Library()
 
+
 @register.filter
 def currency_es(value, places=2):
     """Formato monetario local con símbolo $ y separadores según L10N.
@@ -23,5 +24,6 @@ def currency_es(value, places=2):
     except Exception:
         localized = q_places
     return f"${localized}"
+
 
 __all__ = ["currency_es"]

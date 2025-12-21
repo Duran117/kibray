@@ -120,7 +120,9 @@ class AISuggestion(models.Model):
         ("auto_fixed", "Auto Fixed"),
     ]
 
-    daily_plan = models.ForeignKey(DailyPlan, on_delete=models.CASCADE, related_name="ai_suggestions")
+    daily_plan = models.ForeignKey(
+        DailyPlan, on_delete=models.CASCADE, related_name="ai_suggestions"
+    )
     suggestion_type = models.CharField(max_length=50, choices=SUGGESTION_TYPES)
     severity = models.CharField(max_length=20, choices=SEVERITY_LEVELS, default="info")
 
@@ -133,7 +135,9 @@ class AISuggestion(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
-    resolved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    resolved_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
 
     class Meta:
         db_table = "ai_suggestions"

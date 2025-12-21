@@ -39,18 +39,12 @@ except ImportError:
 # 4. URLRouter - Route to appropriate consumer
 if WebSocketCompressionMiddleware:
     websocket_app = WebSocketCompressionMiddleware(
-        AllowedHostsOriginValidator(
-            AuthMiddlewareStack(
-                URLRouter(websocket_urlpatterns)
-            )
-        )
+        AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns)))
     )
 else:
     # Fallback without compression
     websocket_app = AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
-            URLRouter(websocket_urlpatterns)
-        )
+        AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
     )
 
 application = ProtocolTypeRouter(

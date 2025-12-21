@@ -16,16 +16,15 @@ logger = logging.getLogger(__name__)
 # Placeholder for OpenAI client - will be initialized when API key is configured
 try:
     from openai import OpenAI
-    OPENAI_AVAILABLE = hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY
+
+    OPENAI_AVAILABLE = hasattr(settings, "OPENAI_API_KEY") and settings.OPENAI_API_KEY
 except ImportError:
     OPENAI_AVAILABLE = False
     logger.warning("OpenAI package not installed. Run: pip install openai")
 
 
 def generate_sop_with_ai(
-    task_description: str,
-    category: str = 'general',
-    language: str = 'es'
+    task_description: str, category: str = "general", language: str = "es"
 ) -> dict:
     """
     Generate a complete SOP using GPT-4 based on task description
@@ -40,11 +39,9 @@ def generate_sop_with_ai(
 
     Example:
         >>> sop = generate_sop_with_ai(
-        ...     "Instalar drywall en sala de 12x15 pies",
-        ...     category="PREP",
-        ...     language="es"
+        ...     "Instalar drywall en sala de 12x15 pies", category="PREP", language="es"
         ... )
-        >>> print(sop['name'])
+        >>> print(sop["name"])
         'Instalación de Drywall - Sala Estándar'
     """
     if not OPENAI_AVAILABLE:
@@ -56,7 +53,7 @@ def generate_sop_with_ai(
 
     # Language-specific prompts
     prompts = {
-        'es': f"""
+        "es": f"""
 Eres un experto en construcción y pintura con 20 años de experiencia en Estados Unidos.
 Genera un Standard Operating Procedure (SOP) profesional y detallado para:
 
@@ -99,7 +96,7 @@ IMPORTANTE:
 - Tiempo realista considerando setup completo y cleanup
 - Safety warnings críticos para proteger al trabajador
 """,
-        'en': f"""
+        "en": f"""
 You are a construction and painting expert with 20 years of experience in the US.
 Generate a professional, detailed Standard Operating Procedure (SOP) for:
 
@@ -141,10 +138,10 @@ IMPORTANT:
 - Common errors that save time/money when avoided
 - Realistic time including full setup and cleanup
 - Critical safety warnings to protect workers
-"""
+""",
     }
 
-    prompt = prompts.get(language, prompts['es'])
+    prompt = prompts.get(language, prompts["es"])
 
     try:
         response = client.chat.completions.create(
@@ -152,32 +149,32 @@ IMPORTANT:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a construction expert generating professional SOPs in JSON format."
+                    "content": "You are a construction expert generating professional SOPs in JSON format.",
                 },
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             response_format={"type": "json_object"},
             temperature=0.7,
-            max_tokens=2000
+            max_tokens=2000,
         )
 
         sop_data = json.loads(response.choices[0].message.content)
 
         # Validate required fields
-        required_fields = ['name', 'description', 'steps', 'materials_list', 'tools_list']
+        required_fields = ["name", "description", "steps", "materials_list", "tools_list"]
         missing_fields = [f for f in required_fields if f not in sop_data]
 
         if missing_fields:
             raise ValueError(f"AI response missing required fields: {missing_fields}")
 
         # Ensure steps is a list
-        if isinstance(sop_data['steps'], str):
-            sop_data['steps'] = [s.strip() for s in sop_data['steps'].split('\n') if s.strip()]
+        if isinstance(sop_data["steps"], str):
+            sop_data["steps"] = [s.strip() for s in sop_data["steps"].split("\n") if s.strip()]
 
         # Add metadata
-        sop_data['ai_generated'] = True
-        sop_data['ai_model'] = 'gpt-4'
-        sop_data['original_prompt'] = task_description
+        sop_data["ai_generated"] = True
+        sop_data["ai_model"] = "gpt-4"
+        sop_data["original_prompt"] = task_description
 
         logger.info(f"Successfully generated SOP: {sop_data['name']}")
         return sop_data
@@ -190,7 +187,7 @@ IMPORTANT:
         raise
 
 
-def improve_existing_sop(sop_id: int, feedback: str, language: str = 'es') -> dict:
+def improve_existing_sop(sop_id: int, feedback: str, language: str = "es") -> dict:
     """
     Improve an existing SOP based on field feedback
 
@@ -204,8 +201,7 @@ def improve_existing_sop(sop_id: int, feedback: str, language: str = 'es') -> di
 
     Example:
         >>> improved = improve_existing_sop(
-        ...     sop_id=123,
-        ...     feedback="Paso 3 muy confuso, falta espátula 6 pulgadas"
+        ...     sop_id=123, feedback="Paso 3 muy confuso, falta espátula 6 pulgadas"
         ... )
     """
     if not OPENAI_AVAILABLE:
@@ -221,7 +217,7 @@ def improve_existing_sop(sop_id: int, feedback: str, language: str = 'es') -> di
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
     prompts = {
-        'es': f"""
+        "es": f"""
 Tienes un SOP existente que necesita mejorarse basado en feedback real de trabajadores.
 
 SOP ACTUAL:
@@ -243,7 +239,7 @@ INSTRUCCIONES:
 
 Genera la versión mejorada del SOP en el mismo formato JSON que antes.
 """,
-        'en': f"""
+        "en": f"""
 You have an existing SOP that needs improvement based on real worker feedback.
 
 CURRENT SOP:
@@ -264,28 +260,28 @@ INSTRUCTIONS:
 5. Keep the same JSON structure
 
 Generate the improved SOP version in the same JSON format as before.
-"""
+""",
     }
 
-    prompt = prompts.get(language, prompts['es'])
+    prompt = prompts.get(language, prompts["es"])
 
     try:
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
-            temperature=0.7
+            temperature=0.7,
         )
 
         improved_sop = json.loads(response.choices[0].message.content)
 
         # Update SOP with improvements
-        sop.steps = improved_sop.get('steps', sop.steps)
-        sop.materials_list = improved_sop.get('materials_list', sop.materials_list)
-        sop.tools_list = improved_sop.get('tools_list', sop.tools_list)
-        sop.tips = improved_sop.get('tips', sop.tips)
-        sop.common_errors = improved_sop.get('common_errors', sop.common_errors)
-        sop.time_estimate = improved_sop.get('time_estimate', sop.time_estimate)
+        sop.steps = improved_sop.get("steps", sop.steps)
+        sop.materials_list = improved_sop.get("materials_list", sop.materials_list)
+        sop.tools_list = improved_sop.get("tools_list", sop.tools_list)
+        sop.tips = improved_sop.get("tips", sop.tips)
+        sop.common_errors = improved_sop.get("common_errors", sop.common_errors)
+        sop.time_estimate = improved_sop.get("time_estimate", sop.time_estimate)
         sop.save()
 
         logger.info(f"Successfully improved SOP ID {sop_id} based on feedback")
@@ -296,7 +292,7 @@ Generate the improved SOP version in the same JSON format as before.
         raise
 
 
-def batch_generate_sops(task_descriptions: list[str], category: str = 'general') -> list[dict]:
+def batch_generate_sops(task_descriptions: list[str], category: str = "general") -> list[dict]:
     """
     Generate multiple SOPs in batch (useful for initial library setup)
 
@@ -311,7 +307,7 @@ def batch_generate_sops(task_descriptions: list[str], category: str = 'general')
         >>> tasks = [
         ...     "Preparar superficie para pintura interior",
         ...     "Aplicar primera capa de pintura latex",
-        ...     "Calafatear ventanas y puertas"
+        ...     "Calafatear ventanas y puertas",
         ... ]
         >>> sops = batch_generate_sops(tasks, category="PREP")
         >>> len(sops)
@@ -329,10 +325,7 @@ def batch_generate_sops(task_descriptions: list[str], category: str = 'general')
             results.append(sop)
         except Exception as e:
             logger.error(f"Failed to generate SOP for '{task_desc}': {e}")
-            results.append({
-                'error': str(e),
-                'task_description': task_desc
-            })
+            results.append({"error": str(e), "task_description": task_desc})
 
     return results
 
@@ -350,8 +343,8 @@ def get_sop_suggestions(project_type: str, scope: str) -> list[str]:
 
     Example:
         >>> suggestions = get_sop_suggestions(
-        ...     project_type='residential_interior',
-        ...     scope='3 bedroom house, full interior paint + drywall repairs'
+        ...     project_type="residential_interior",
+        ...     scope="3 bedroom house, full interior paint + drywall repairs",
         ... )
         >>> suggestions
         ['Reparación de Drywall - Huecos Pequeños',
@@ -390,11 +383,11 @@ Sé específico al tipo de proyecto y alcance mencionado.
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
-            temperature=0.8
+            temperature=0.8,
         )
 
         data = json.loads(response.choices[0].message.content)
-        return data.get('suggested_sops', [])
+        return data.get("suggested_sops", [])
 
     except Exception as e:
         logger.error(f"Error getting SOP suggestions: {e}")
@@ -434,8 +427,7 @@ if __name__ == "__main__":
         # Test single SOP generation
         try:
             test_sop = generate_sop_with_ai(
-                "Instalar drywall en sala de 12x15 pies con techo de 9 pies",
-                category="PREP"
+                "Instalar drywall en sala de 12x15 pies con techo de 9 pies", category="PREP"
             )
             print(f"\n✅ Generated test SOP: {test_sop['name']}")
             print(f"   Steps: {len(test_sop['steps'])}")

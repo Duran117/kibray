@@ -2,6 +2,7 @@
 Locust Load Testing Script for Kibray API
 Run with: locust -f locustfile.py --host=https://yourdomain.com
 """
+
 import random
 
 from locust import HttpUser, between, task
@@ -11,6 +12,7 @@ class KibrayUser(HttpUser):
     """
     Simulates a typical Kibray user workflow
     """
+
     wait_time = between(1, 3)  # Wait 1-3 seconds between tasks
 
     def on_start(self):
@@ -20,10 +22,7 @@ class KibrayUser(HttpUser):
         # Login and get JWT token
         response = self.client.post(
             "/api/v1/auth/login/",
-            json={
-                "username": "testuser",
-                "password": "testpass123"
-            },
+            json={"username": "testuser", "password": "testpass123"},
             catch_response=True,
         )
 
@@ -180,6 +179,7 @@ class AdminUser(HttpUser):
     """
     Simulates admin user with heavier operations
     """
+
     wait_time = between(2, 5)
     weight = 1  # 1 admin for every 10 regular users
 
@@ -187,10 +187,7 @@ class AdminUser(HttpUser):
         """Login as admin"""
         response = self.client.post(
             "/api/v1/auth/login/",
-            json={
-                "username": "admin",
-                "password": "adminpass123"
-            },
+            json={"username": "admin", "password": "adminpass123"},
             catch_response=True,
         )
 
@@ -252,6 +249,7 @@ class APIOnlyUser(HttpUser):
     """
     Simulates API-only client (mobile app, integrations)
     """
+
     wait_time = between(0.5, 2)
     weight = 2  # 2 API users for every 10 regular users
 
@@ -259,10 +257,7 @@ class APIOnlyUser(HttpUser):
         """API authentication"""
         response = self.client.post(
             "/api/v1/auth/login/",
-            json={
-                "username": "apiuser",
-                "password": "apipass123"
-            },
+            json={"username": "apiuser", "password": "apipass123"},
         )
 
         if response.status_code == 200:
@@ -298,9 +293,7 @@ class APIOnlyUser(HttpUser):
     def upload_photo(self):
         """Upload photo (heavy operation)"""
         # Simulate file upload
-        files = {
-            'photo': ('test.jpg', b'fake_image_data' * 100, 'image/jpeg')
-        }
+        files = {"photo": ("test.jpg", b"fake_image_data" * 100, "image/jpeg")}
         self.client.post(
             "/api/v1/photos/",
             files=files,

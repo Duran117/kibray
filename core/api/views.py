@@ -194,7 +194,9 @@ class ProjectManagerAssignmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return ProjectManagerAssignment.objects.select_related("project", "pm").order_by("-created_at")
+        return ProjectManagerAssignment.objects.select_related("project", "pm").order_by(
+            "-created_at"
+        )
 
     @action(detail=False, methods=["post"], url_path="assign")
     def assign(self, request: Request):
@@ -213,7 +215,9 @@ class ColorApprovalViewSet(viewsets.ModelViewSet):
     search_fields = ["color_name", "color_code", "brand", "location"]
 
     def get_queryset(self):
-        return ColorApproval.objects.select_related("project", "requested_by", "approved_by").order_by("-created_at")
+        return ColorApproval.objects.select_related(
+            "project", "requested_by", "approved_by"
+        ).order_by("-created_at")
 
     @action(detail=True, methods=["post"], parser_classes=[MultiPartParser, FormParser, JSONParser])
     def approve(self, request: Request, pk=None):
@@ -324,7 +328,12 @@ class PermissionMatrixViewSet(viewsets.ModelViewSet):
         has_permission = any(getattr(perm, f"can_{action}", False) for perm in active_perms)
 
         return Response(
-            {"has_permission": has_permission, "entity_type": entity_type, "action": action, "project_id": project_id}
+            {
+                "has_permission": has_permission,
+                "entity_type": entity_type,
+                "action": action,
+                "project_id": project_id,
+            }
         )
 
 
@@ -356,7 +365,9 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
         from django.utils import timezone
 
         cutoff = timezone.now() - timedelta(hours=24)
-        logs = AuditLog.objects.filter(user=request.user, timestamp__gte=cutoff).order_by("-timestamp")[:50]
+        logs = AuditLog.objects.filter(user=request.user, timestamp__gte=cutoff).order_by(
+            "-timestamp"
+        )[:50]
 
         serializer = self.get_serializer(logs, many=True)
         return Response({"count": logs.count(), "logs": serializer.data})
@@ -373,14 +384,18 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
         if not entity_type or not entity_id:
             return Response({"error": gettext("entity_type and entity_id required")}, status=400)
 
-        logs = AuditLog.objects.filter(entity_type=entity_type, entity_id=entity_id).order_by("-timestamp")
+        logs = AuditLog.objects.filter(entity_type=entity_type, entity_id=entity_id).order_by(
+            "-timestamp"
+        )
 
         # Permission check: admins see all, others need ownership
         if not (request.user.is_staff or request.user.is_superuser):
             logs = logs.filter(user=request.user)
 
         serializer = self.get_serializer(logs, many=True)
-        return Response({"entity_type": entity_type, "entity_id": entity_id, "history": serializer.data})
+        return Response(
+            {"entity_type": entity_type, "entity_id": entity_id, "history": serializer.data}
+        )
 
 
 class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
@@ -411,7 +426,9 @@ class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
         from django.utils import timezone
 
         cutoff = timezone.now() - timedelta(days=7)
-        attempts = LoginAttempt.objects.filter(success=False, timestamp__gte=cutoff).order_by("-timestamp")
+        attempts = LoginAttempt.objects.filter(success=False, timestamp__gte=cutoff).order_by(
+            "-timestamp"
+        )
 
         # Non-admins see only their own
         if not (request.user.is_staff or request.user.is_superuser):
@@ -442,7 +459,9 @@ class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-failure_count")
         )
 
-        return Response({"window": "1 hour", "threshold": 5, "suspicious_ips": list(suspicious_ips)})
+        return Response(
+            {"window": "1 hour", "threshold": 5, "suspicious_ips": list(suspicious_ips)}
+        )
 
 
 # Chat
@@ -466,7 +485,9 @@ class ChatChannelViewSetReadOnly(viewsets.ReadOnlyModelViewSet):
             qs = qs.exclude(channel_type__in=["general_client"])
         elif "Project Manager Trainee" in groups:
             # PM Trainee: solo lectura en general_client; aquí limitamos listado
-            qs = qs.filter(channel_type__in=["general_client", "internal_team", "design", "field_supervision"])
+            qs = qs.filter(
+                channel_type__in=["general_client", "internal_team", "design", "field_supervision"]
+            )
             # Nota: las acciones de escritura deberían validarse por permisos en endpoints de mensajes
         return qs
 
@@ -517,7 +538,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             invoice.approved_date = timezone.now()
             invoice.save(update_fields=["status", "approved_date"])
             return Response({"status": invoice.status, "approved_date": invoice.approved_date})
-        return Response({"detail": f"Invoice status not eligible for approval: {invoice.status}"}, status=400)
+        return Response(
+            {"detail": f"Invoice status not eligible for approval: {invoice.status}"}, status=400
+        )
 
     @action(detail=True, methods=["post"])
     def record_payment(self, request, pk=None):
@@ -598,7 +621,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         }
         """
         # Base queryset - touch-ups only
-        qs = Task.objects.filter(is_touchup=True).select_related("project", "assigned_to", "created_by")
+        qs = Task.objects.filter(is_touchup=True).select_related(
+            "project", "assigned_to", "created_by"
+        )
 
         # Filters
         project_id = request.query_params.get("project")
@@ -678,12 +703,18 @@ class TaskViewSet(viewsets.ModelViewSet):
             "in_progress": len(in_progress_tasks),
             "completed": len(completed_tasks),
             "high_priority": qs.filter(priority__in=["high", "urgent"]).count(),
-            "overdue": qs.filter(due_date__lt=today, status__in=["Pendiente", "En Progreso"]).count(),
+            "overdue": qs.filter(
+                due_date__lt=today, status__in=["Pendiente", "En Progreso"]
+            ).count(),
         }
 
         return Response(
             {
-                "columns": {"pending": pending_tasks, "in_progress": in_progress_tasks, "completed": completed_tasks},
+                "columns": {
+                    "pending": pending_tasks,
+                    "in_progress": in_progress_tasks,
+                    "completed": completed_tasks,
+                },
                 "stats": stats,
             }
         )
@@ -698,12 +729,20 @@ class TaskViewSet(viewsets.ModelViewSet):
         new_status = request.data.get("status")
 
         if not new_status:
-            return Response({"error": gettext("status required")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": gettext("status required")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Validate status
         valid_statuses = ["Pendiente", "En Progreso", "Completada", "Cancelada"]
         if new_status not in valid_statuses:
-            return Response({"error": gettext("Invalid status. Valid: %(statuses)s") % {"statuses": valid_statuses}}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "error": gettext("Invalid status. Valid: %(statuses)s")
+                    % {"statuses": valid_statuses}
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Touch-up completion validation
         if task.is_touchup and new_status == "Completada" and not task.images.exists():
@@ -723,7 +762,14 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         task.save()
 
-        return Response({"status": "updated", "old_status": old_status, "new_status": new_status, "task_id": task.id})
+        return Response(
+            {
+                "status": "updated",
+                "old_status": old_status,
+                "new_status": new_status,
+                "task_id": task.id,
+            }
+        )
 
     @action(detail=True, methods=["post"])
     def update_status(self, request, pk=None):
@@ -764,7 +810,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         except Exception as e:
             task.dependencies.remove(dependency)
             return Response({"error": gettext("%(error)s") % {"error": str(e)}}, status=400)
-        return Response({"status": "ok", "dependencies": list(task.dependencies.values_list("id", flat=True))})
+        return Response(
+            {"status": "ok", "dependencies": list(task.dependencies.values_list("id", flat=True))}
+        )
 
     @action(detail=True, methods=["post"])
     def remove_dependency(self, request, pk=None):
@@ -776,7 +824,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         if not dependency:
             return Response({"error": gettext("Dependency task not found")}, status=404)
         task.dependencies.remove(dependency)
-        return Response({"status": "ok", "dependencies": list(task.dependencies.values_list("id", flat=True))})
+        return Response(
+            {"status": "ok", "dependencies": list(task.dependencies.values_list("id", flat=True))}
+        )
 
     @action(detail=True, methods=["post"])
     def reopen(self, request, pk=None):
@@ -786,7 +836,13 @@ class TaskViewSet(viewsets.ModelViewSet):
         success = task.reopen(user=request.user, notes=notes)
         if not success:
             return Response({"error": gettext("Task not in Completada state")}, status=400)
-        return Response({"status": "ok", "new_status": task.status, "reopen_events_count": task.reopen_events_count})
+        return Response(
+            {
+                "status": "ok",
+                "new_status": task.status,
+                "reopen_events_count": task.reopen_events_count,
+            }
+        )
 
     @action(detail=True, methods=["post"])
     def start_tracking(self, request, pk=None):
@@ -804,7 +860,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         elapsed = task.stop_tracking()
         if elapsed is None:
             return Response({"error": gettext("Not tracking")}, status=400)
-        return Response({"status": "ok", "elapsed_seconds": elapsed, "total_hours": task.total_hours})
+        return Response(
+            {"status": "ok", "elapsed_seconds": elapsed, "total_hours": task.total_hours}
+        )
 
     @action(detail=True, methods=["get"])
     def time_summary(self, request, pk=None):
@@ -831,7 +889,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         # Breakdown por empleado
         # Use non-conflicting key names to avoid collision with TimeEntry.employee_id field
         employee_breakdown = (
-            time_entries.values(emp_id=F("employee__id"), employee_name=F("employee__user__first_name"))
+            time_entries.values(
+                emp_id=F("employee__id"), employee_name=F("employee__user__first_name")
+            )
             .annotate(hours=Sum("hours_worked"))
             .order_by("-hours")
         )
@@ -903,13 +963,17 @@ class TaskViewSet(viewsets.ModelViewSet):
             qs = qs.filter(project_id=project_id)
         # status filter (accept multiple via comma or repeated param)
         status_param = request.query_params.getlist("status") or (
-            request.query_params.get("status", "").split(",") if request.query_params.get("status") else []
+            request.query_params.get("status", "").split(",")
+            if request.query_params.get("status")
+            else []
         )
         if status_param:
             qs = qs.filter(status__in=[s for s in status_param if s])
         # priority filter
         priority_param = request.query_params.getlist("priority") or (
-            request.query_params.get("priority", "").split(",") if request.query_params.get("priority") else []
+            request.query_params.get("priority", "").split(",")
+            if request.query_params.get("priority")
+            else []
         )
         if priority_param:
             qs = qs.filter(priority__in=[p for p in priority_param if p])
@@ -984,7 +1048,14 @@ class DamageReportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return (
             DamageReport.objects.select_related(
-                "project", "reported_by", "assigned_to", "plan", "pin", "linked_touchup", "linked_co", "auto_task"
+                "project",
+                "reported_by",
+                "assigned_to",
+                "plan",
+                "pin",
+                "linked_touchup",
+                "linked_co",
+                "auto_task",
             )
             .prefetch_related("photos")
             .order_by("-reported_at")
@@ -1239,7 +1310,9 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
     ordering_fields = ["week_start", "week_end", "created_at"]
 
     def get_queryset(self):
-        return PayrollPeriod.objects.select_related("created_by", "approved_by").order_by("-week_start")
+        return PayrollPeriod.objects.select_related("created_by", "approved_by").order_by(
+            "-week_start"
+        )
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -1317,18 +1390,31 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
         if format_type == "csv":
             output = StringIO()
             writer = csv.writer(output)
-            writer.writerow(["Employee", "Total Hours", "Regular", "Overtime", "Gross", "Tax", "Net", "Total Pay"])
+            writer.writerow(
+                [
+                    "Employee",
+                    "Total Hours",
+                    "Regular",
+                    "Overtime",
+                    "Gross",
+                    "Tax",
+                    "Net",
+                    "Total Pay",
+                ]
+            )
             for r in records:
-                writer.writerow([
-                    f"{r.employee.first_name} {r.employee.last_name}",
-                    r.total_hours,
-                    getattr(r, "regular_hours", 0),
-                    getattr(r, "overtime_hours", 0),
-                    r.gross_pay,
-                    getattr(r, "tax_withheld", 0),
-                    r.net_pay,
-                    r.total_pay,
-                ])
+                writer.writerow(
+                    [
+                        f"{r.employee.first_name} {r.employee.last_name}",
+                        r.total_hours,
+                        getattr(r, "regular_hours", 0),
+                        getattr(r, "overtime_hours", 0),
+                        r.gross_pay,
+                        getattr(r, "tax_withheld", 0),
+                        r.net_pay,
+                        r.total_pay,
+                    ]
+                )
             response = HttpResponse(output.getvalue(), content_type="text/csv")
             response["Content-Disposition"] = f'attachment; filename="payroll_{period.id}.csv"'
             return response
@@ -1344,7 +1430,9 @@ class PayrollRecordViewSet(viewsets.ModelViewSet):
     ordering_fields = ["week_start", "employee__last_name"]
 
     def get_queryset(self):
-        return PayrollRecord.objects.select_related("employee", "period", "adjusted_by").order_by("-week_start")
+        return PayrollRecord.objects.select_related("employee", "period", "adjusted_by").order_by(
+            "-week_start"
+        )
 
     @action(detail=True, methods=["post"])
     def manual_adjust(self, request, pk=None):
@@ -1366,6 +1454,7 @@ class PayrollRecordViewSet(viewsets.ModelViewSet):
     def audit(self, request, pk=None):
         """Gap B: Retrieve audit trail for this payroll record."""
         from core.api.serializers import PayrollRecordAuditSerializer
+
         record = self.get_object()
         audits = record.audits.all()
         serializer = PayrollRecordAuditSerializer(audits, many=True)
@@ -1380,7 +1469,9 @@ class PayrollPaymentViewSet(viewsets.ModelViewSet):
     ordering_fields = ["payment_date", "amount"]
 
     def get_queryset(self):
-        return PayrollPayment.objects.select_related("payroll_record", "recorded_by").order_by("-payment_date")
+        return PayrollPayment.objects.select_related("payroll_record", "recorded_by").order_by(
+            "-payment_date"
+        )
 
     def perform_create(self, serializer):
         payment = serializer.save(recorded_by=self.request.user)
@@ -1486,7 +1577,9 @@ class FloorPlanViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = (
-            FloorPlan.objects.prefetch_related("pins__color_sample", "pins__linked_task", "pins__created_by")
+            FloorPlan.objects.prefetch_related(
+                "pins__color_sample", "pins__linked_task", "pins__created_by"
+            )
             .select_related("project", "created_by", "replaced_by")
             .order_by("level", "name")
         )
@@ -1496,7 +1589,9 @@ class FloorPlanViewSet(viewsets.ModelViewSet):
         if not user.is_staff:
             from core.models import ClientProjectAccess
 
-            accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+            accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list(
+                "project_id", flat=True
+            )
             qs = qs.filter(project_id__in=accessible_projects)
 
         return qs
@@ -1545,7 +1640,9 @@ class FloorPlanViewSet(viewsets.ModelViewSet):
         # Mark all active pins on old plan as pending migration
         PlanPin.objects.filter(plan=old_plan, status="active").update(status="pending_migration")
 
-        return Response(FloorPlanSerializer(new_plan, context={"request": request}).data, status=201)
+        return Response(
+            FloorPlanSerializer(new_plan, context={"request": request}).data, status=201
+        )
 
     @action(detail=True, methods=["post"], url_path="migrate-pins")
     def migrate_pins(self, request, pk=None):
@@ -1567,7 +1664,9 @@ class FloorPlanViewSet(viewsets.ModelViewSet):
         new_plan = self.get_object()
         pin_mappings = request.data.get("pin_mappings", [])
         if not pin_mappings:
-            return Response({"error": "pin_mappings array is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "pin_mappings array is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         migrated_pins = []
         from core.models import PlanPin
@@ -1593,7 +1692,9 @@ class FloorPlanViewSet(viewsets.ModelViewSet):
         return Response(
             {
                 "migrated_count": len(migrated_pins),
-                "pins": PlanPinSerializer(migrated_pins, many=True, context={"request": request}).data,
+                "pins": PlanPinSerializer(
+                    migrated_pins, many=True, context={"request": request}
+                ).data,
             }
         )
 
@@ -1611,14 +1712,18 @@ class FloorPlanViewSet(viewsets.ModelViewSet):
         # If this plan replaced another, gather pins from that plan
         old_plan = FloorPlanModel.objects.filter(replaced_by=plan).first()
         if old_plan:
-            migratable_pins = list(PlanPin.objects.filter(plan=old_plan, status="pending_migration"))
+            migratable_pins = list(
+                PlanPin.objects.filter(plan=old_plan, status="pending_migration")
+            )
 
         from core.api.serializers import PlanPinSerializer
 
         return Response(
             {
                 "count": len(migratable_pins),
-                "pins": PlanPinSerializer(migratable_pins, many=True, context={"request": request}).data,
+                "pins": PlanPinSerializer(
+                    migratable_pins, many=True, context={"request": request}
+                ).data,
             }
         )
 
@@ -1635,7 +1740,9 @@ class TaskDependencyViewSet(viewsets.ModelViewSet):
     filterset_fields = ["task", "predecessor", "type"]
 
     def get_queryset(self):
-        return TaskDependency.objects.select_related("task", "predecessor").order_by("task_id", "predecessor_id")
+        return TaskDependency.objects.select_related("task", "predecessor").order_by(
+            "task_id", "predecessor_id"
+        )
 
     def create(self, request, *args, **kwargs):
         task_id = request.data.get("task")
@@ -1657,7 +1764,9 @@ class TaskGanttView(APIView):
         tasks = Task.objects.all().order_by("id")
         if project_id:
             tasks = tasks.filter(project_id=project_id)
-        deps = TaskDependency.objects.filter(task__in=tasks).values("task_id", "predecessor_id", "type", "lag_minutes")
+        deps = TaskDependency.objects.filter(task__in=tasks).values(
+            "task_id", "predecessor_id", "type", "lag_minutes"
+        )
         data_tasks = [
             {
                 "id": t.id,
@@ -1679,7 +1788,9 @@ def tasks_gantt_alias(request):
     tasks = Task.objects.all().order_by("id")
     if project_id:
         tasks = tasks.filter(project_id=project_id)
-    deps = TaskDependency.objects.filter(task__in=tasks).values("task_id", "predecessor_id", "type", "lag_minutes")
+    deps = TaskDependency.objects.filter(task__in=tasks).values(
+        "task_id", "predecessor_id", "type", "lag_minutes"
+    )
     data_tasks = [
         {
             "id": t.id,
@@ -1712,7 +1823,9 @@ def tasks_gantt_alias(request):
         pin_mappings = request.data.get("pin_mappings", [])
 
         if not pin_mappings:
-            return Response({"error": "pin_mappings array is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "pin_mappings array is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         migrated_pins = []
         for mapping in pin_mappings:
@@ -1743,7 +1856,9 @@ def tasks_gantt_alias(request):
         return Response(
             {
                 "migrated_count": len(migrated_pins),
-                "pins": PlanPinSerializer(migrated_pins, many=True, context={"request": request}).data,
+                "pins": PlanPinSerializer(
+                    migrated_pins, many=True, context={"request": request}
+                ).data,
             }
         )
 
@@ -1775,7 +1890,9 @@ def tasks_gantt_alias(request):
         return Response(
             {
                 "count": len(migratable_pins),
-                "pins": PlanPinSerializer(migratable_pins, many=True, context={"request": request}).data,
+                "pins": PlanPinSerializer(
+                    migratable_pins, many=True, context={"request": request}
+                ).data,
             }
         )
 
@@ -1825,7 +1942,9 @@ class PlanPinViewSet(viewsets.ModelViewSet):
         if not user.is_staff:
             from core.models import ClientProjectAccess
 
-            accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+            accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list(
+                "project_id", flat=True
+            )
             qs = qs.filter(plan__project_id__in=accessible_projects)
 
         return qs
@@ -1894,7 +2013,9 @@ class PlanPinViewSet(viewsets.ModelViewSet):
         annotations = request.data.get("annotations", {})
 
         if not attachment_id:
-            return Response({"error": "attachment_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "attachment_id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             from core.models import PlanPinAttachment
@@ -1956,7 +2077,9 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
         if not user.is_staff:
             from core.models import ClientProjectAccess
 
-            accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+            accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list(
+                "project_id", flat=True
+            )
             qs = qs.filter(project_id__in=accessible_projects)
 
         return qs
@@ -1988,7 +2111,9 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
 
         # Check if already approved
         if sample.status == "approved":
-            return Response({"error": "Sample is already approved"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Sample is already approved"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         ser = ColorSampleApproveSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
@@ -2018,7 +2143,9 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
 
         # Check if already rejected
         if sample.status == "rejected":
-            return Response({"error": "Sample is already rejected"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Sample is already rejected"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         ser = ColorSampleRejectSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
@@ -2027,7 +2154,10 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
         try:
             sample.reject(request.user, reason)
         except ValueError as e:
-            return Response({"error": gettext("%(error)s") % {"error": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": gettext("%(error)s") % {"error": str(e)}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(ColorSampleSerializer(sample, context={"request": request}).data)
 
@@ -2054,9 +2184,7 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
         notes = request.data.get("notes")
         if notes:
             if sample.client_notes:
-                sample.client_notes += (
-                    f"\n\n[{timezone.now().strftime('%Y-%m-%d %H:%M')}] {request.user.username}: {notes}"
-                )
+                sample.client_notes += f"\n\n[{timezone.now().strftime('%Y-%m-%d %H:%M')}] {request.user.username}: {notes}"
             else:
                 sample.client_notes = f"[{timezone.now().strftime('%Y-%m-%d %H:%M')}] {request.user.username}: {notes}"
 
@@ -2108,10 +2236,10 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Ensure a category exists even if frontend omits it.
 
-        Frontend initial Gantt create flow currently sends: project, name(title), planned_start, planned_end, status,
-    percent_complete, is_milestone, description - but may omit 'category'. The model requires a non-null category.
-        To keep UX simple, we auto-provision or reuse a default category named 'General' for the given project when
-        none is supplied. This prevents 400 validation errors while allowing later explicit categorization.
+            Frontend initial Gantt create flow currently sends: project, name(title), planned_start, planned_end, status,
+        percent_complete, is_milestone, description - but may omit 'category'. The model requires a non-null category.
+            To keep UX simple, we auto-provision or reuse a default category named 'General' for the given project when
+            none is supplied. This prevents 400 validation errors while allowing later explicit categorization.
         """
         data = serializer.validated_data
         category = data.get("category")
@@ -2176,7 +2304,13 @@ def global_search(request):
         return Response(
             {
                 "query": query,
-                "results": {"projects": [], "change_orders": [], "invoices": [], "employees": [], "tasks": []},
+                "results": {
+                    "projects": [],
+                    "change_orders": [],
+                    "invoices": [],
+                    "employees": [],
+                    "tasks": [],
+                },
                 "total_count": 0,
             }
         )
@@ -2205,7 +2339,9 @@ def global_search(request):
 
     # Search Change Orders
     change_orders = ChangeOrder.objects.filter(
-        Q(co_number__icontains=query) | Q(description__icontains=query) | Q(project__name__icontains=query)
+        Q(co_number__icontains=query)
+        | Q(description__icontains=query)
+        | Q(project__name__icontains=query)
     ).select_related("project")[:10]
 
     co_results = [
@@ -2265,7 +2401,9 @@ def global_search(request):
 
     # Search Tasks
     tasks = Task.objects.filter(
-        Q(title__icontains=query) | Q(description__icontains=query) | Q(project__name__icontains=query)
+        Q(title__icontains=query)
+        | Q(description__icontains=query)
+        | Q(project__name__icontains=query)
     ).select_related("project", "assigned_to")[:10]
 
     task_results = [
@@ -2282,7 +2420,11 @@ def global_search(request):
     ]
 
     total_count = (
-        len(project_results) + len(co_results) + len(invoice_results) + len(employee_results) + len(task_results)
+        len(project_results)
+        + len(co_results)
+        + len(invoice_results)
+        + len(employee_results)
+        + len(task_results)
     )
 
     return Response(
@@ -2434,7 +2576,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProjectFilter
     search_fields = ["name", "client", "address"]
-    ordering_fields = ["name", "client", "start_date", "end_date", "created_at", "total_income", "total_expenses"]
+    ordering_fields = [
+        "name",
+        "client",
+        "start_date",
+        "end_date",
+        "created_at",
+        "total_income",
+        "total_expenses",
+    ]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -2451,10 +2601,16 @@ class ProjectViewSet(viewsets.ModelViewSet):
         expense_total = project.expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
 
         # Expense breakdown by category
-        expense_by_category = project.expenses.values("category").annotate(total=Sum("amount")).order_by("-total")
+        expense_by_category = (
+            project.expenses.values("category").annotate(total=Sum("amount")).order_by("-total")
+        )
 
         # Income by payment method
-        income_by_method = project.incomes.values("payment_method").annotate(total=Sum("amount")).order_by("-total")
+        income_by_method = (
+            project.incomes.values("payment_method")
+            .annotate(total=Sum("amount"))
+            .order_by("-total")
+        )
 
         summary = {
             "project_id": project.id,
@@ -2464,7 +2620,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
             "profit": income_total - expense_total,
             "budget_total": project.budget_total,
             "budget_remaining": project.budget_total - expense_total,
-            "percent_spent": round((expense_total / project.budget_total * 100) if project.budget_total > 0 else 0, 2),
+            "percent_spent": round(
+                (expense_total / project.budget_total * 100) if project.budget_total > 0 else 0, 2
+            ),
             "is_over_budget": expense_total > project.budget_total,
             "expense_by_category": list(expense_by_category),
             "income_by_method": list(income_by_method),
@@ -2477,13 +2635,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """Get budget overview for all projects"""
         # Optimization: annotate expenses total at query level to avoid N+1
         projects = self.get_queryset().annotate(
-            expense_total=Coalesce(Sum("expenses__amount"), Decimal("0.00"), output_field=DecimalField())
+            expense_total=Coalesce(
+                Sum("expenses__amount"), Decimal("0.00"), output_field=DecimalField()
+            )
         )
 
         summaries = []
         for project in projects:
             percent_spent = round(
-                (project.expense_total / project.budget_total * 100) if project.budget_total > 0 else 0, 2
+                (project.expense_total / project.budget_total * 100)
+                if project.budget_total > 0
+                else 0,
+                2,
             )
 
             summaries.append(
@@ -2534,21 +2697,27 @@ class IncomeViewSet(viewsets.ModelViewSet):
         """Update project total_income when creating income"""
         income = serializer.save()
         project = income.project
-        project.total_income = project.incomes.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        project.total_income = project.incomes.aggregate(total=Sum("amount"))["total"] or Decimal(
+            "0.00"
+        )
         project.save(update_fields=["total_income"])
 
     def perform_update(self, serializer):
         """Update project total_income when updating income"""
         income = serializer.save()
         project = income.project
-        project.total_income = project.incomes.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        project.total_income = project.incomes.aggregate(total=Sum("amount"))["total"] or Decimal(
+            "0.00"
+        )
         project.save(update_fields=["total_income"])
 
     def perform_destroy(self, instance):
         """Update project total_income when deleting income"""
         project = instance.project
         instance.delete()
-        project.total_income = project.incomes.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        project.total_income = project.incomes.aggregate(total=Sum("amount"))["total"] or Decimal(
+            "0.00"
+        )
         project.save(update_fields=["total_income"])
 
     @action(detail=False, methods=["get"])
@@ -2557,8 +2726,12 @@ class IncomeViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         total = queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
-        by_method = queryset.values("payment_method").annotate(total=Sum("amount")).order_by("-total")
-        by_project = queryset.values("project__name").annotate(total=Sum("amount")).order_by("-total")[:10]
+        by_method = (
+            queryset.values("payment_method").annotate(total=Sum("amount")).order_by("-total")
+        )
+        by_project = (
+            queryset.values("project__name").annotate(total=Sum("amount")).order_by("-total")[:10]
+        )
 
         return Response(
             {
@@ -2587,7 +2760,11 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     - date, amount, category, created_at
     """
 
-    queryset = Expense.objects.select_related("project", "cost_code", "change_order").all().order_by("-date")
+    queryset = (
+        Expense.objects.select_related("project", "cost_code", "change_order")
+        .all()
+        .order_by("-date")
+    )
     serializer_class = ExpenseSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
@@ -2601,21 +2778,27 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         """Update project total_expenses when creating expense"""
         expense = serializer.save()
         project = expense.project
-        project.total_expenses = project.expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        project.total_expenses = project.expenses.aggregate(total=Sum("amount"))[
+            "total"
+        ] or Decimal("0.00")
         project.save(update_fields=["total_expenses"])
 
     def perform_update(self, serializer):
         """Update project total_expenses when updating expense"""
         expense = serializer.save()
         project = expense.project
-        project.total_expenses = project.expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        project.total_expenses = project.expenses.aggregate(total=Sum("amount"))[
+            "total"
+        ] or Decimal("0.00")
         project.save(update_fields=["total_expenses"])
 
     def perform_destroy(self, instance):
         """Update project total_expenses when deleting expense"""
         project = instance.project
         instance.delete()
-        project.total_expenses = project.expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        project.total_expenses = project.expenses.aggregate(total=Sum("amount"))[
+            "total"
+        ] or Decimal("0.00")
         project.save(update_fields=["total_expenses"])
 
     @action(detail=False, methods=["get"])
@@ -2625,7 +2808,9 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
         total = queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
         by_category = queryset.values("category").annotate(total=Sum("amount")).order_by("-total")
-        by_project = queryset.values("project__name").annotate(total=Sum("amount")).order_by("-total")[:10]
+        by_project = (
+            queryset.values("project__name").annotate(total=Sum("amount")).order_by("-total")[:10]
+        )
         by_cost_code = (
             queryset.filter(cost_code__isnull=False)
             .values("cost_code__code", "cost_code__name")
@@ -2717,7 +2902,9 @@ class BudgetLineViewSet(viewsets.ModelViewSet):
 
         queryset = self.get_queryset().filter(project_id=project_id)
 
-        total_baseline = queryset.aggregate(total=Sum("baseline_amount"))["total"] or Decimal("0.00")
+        total_baseline = queryset.aggregate(total=Sum("baseline_amount"))["total"] or Decimal(
+            "0.00"
+        )
         total_revised = queryset.aggregate(total=Sum("revised_amount"))["total"] or Decimal("0.00")
 
         by_cost_code = (
@@ -2746,7 +2933,9 @@ class BudgetLineViewSet(viewsets.ModelViewSet):
 class DailyLogPlanningViewSet(viewsets.ModelViewSet):
     """ViewSet for DailyLog with planning capabilities"""
 
-    queryset = DailyLog.objects.all().prefetch_related("planned_templates", "planned_tasks", "project")
+    queryset = DailyLog.objects.all().prefetch_related(
+        "planned_templates", "planned_tasks", "project"
+    )
     serializer_class = DailyLogPlanningSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
@@ -2766,7 +2955,9 @@ class DailyLogPlanningViewSet(viewsets.ModelViewSet):
         if assigned_to_id:
             assigned_to = get_object_or_404(Employee, pk=assigned_to_id)
 
-        created_tasks = daily_log.instantiate_planned_templates(created_by=request.user, assigned_to=assigned_to)
+        created_tasks = daily_log.instantiate_planned_templates(
+            created_by=request.user, assigned_to=assigned_to
+        )
 
         return Response(
             {
@@ -2800,12 +2991,17 @@ class DailyLogPlanningViewSet(viewsets.ModelViewSet):
         daily_log = self.get_object()
 
         # Try to get existing snapshot
-        snapshot = WeatherSnapshot.objects.filter(project=daily_log.project, date=daily_log.date).first()
+        snapshot = WeatherSnapshot.objects.filter(
+            project=daily_log.project, date=daily_log.date
+        ).first()
 
         if snapshot:
             return Response(WeatherSnapshotSerializer(snapshot).data)
         else:
-            return Response({"message": "No weather data available for this date"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"message": "No weather data available for this date"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 class TaskTemplateViewSet(viewsets.ModelViewSet):
@@ -2878,7 +3074,9 @@ class TaskTemplateViewSet(viewsets.ModelViewSet):
         limit = int(request.query_params.get("limit", 20))
 
         if not query or len(query) < 2:
-            return Response({"error": "Query must be at least 2 characters"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Query must be at least 2 characters"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         results = TaskTemplate.fuzzy_search(query, limit=limit)
         serializer = self.get_serializer(results, many=True)
@@ -2914,11 +3112,15 @@ class TaskTemplateViewSet(viewsets.ModelViewSet):
         if data_format == "json":
             templates_data = request.data.get("templates", [])
             if not isinstance(templates_data, list):
-                return Response({"error": "templates must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "templates must be a list"}, status=status.HTTP_400_BAD_REQUEST
+                )
         elif data_format == "csv":
             csv_file = request.FILES.get("file")
             if not csv_file:
-                return Response({"error": "file is required for CSV import"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "file is required for CSV import"}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Parse CSV
             decoded_file = csv_file.read().decode("utf-8")
@@ -2931,14 +3133,20 @@ class TaskTemplateViewSet(viewsets.ModelViewSet):
                     "description": row.get("description", "").strip(),
                     "category": row.get("category", "other").strip(),
                     "default_priority": row.get("default_priority", "Medium").strip(),
-                    "estimated_hours": float(row.get("estimated_hours", 0)) if row.get("estimated_hours") else None,
+                    "estimated_hours": float(row.get("estimated_hours", 0))
+                    if row.get("estimated_hours")
+                    else None,
                     "tags": [t.strip() for t in row.get("tags", "").split(",") if t.strip()],
-                    "checklist": [c.strip() for c in row.get("checklist", "").split(",") if c.strip()],
+                    "checklist": [
+                        c.strip() for c in row.get("checklist", "").split(",") if c.strip()
+                    ],
                     "sop_reference": row.get("sop_reference", "").strip(),
                 }
                 templates_data.append(template)
         else:
-            return Response({"error": "format must be json or csv"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "format must be json or csv"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Validate and create
         created = []
@@ -2953,7 +3161,12 @@ class TaskTemplateViewSet(viewsets.ModelViewSet):
                 errors.append({"index": idx, "data": template_data, "errors": serializer.errors})
 
         return Response(
-            {"created": len(created), "failed": len(errors), "created_templates": created, "errors": errors},
+            {
+                "created": len(created),
+                "failed": len(errors),
+                "created_templates": created,
+                "errors": errors,
+            },
             status=status.HTTP_201_CREATED if created else status.HTTP_400_BAD_REQUEST,
         )
 
@@ -2980,7 +3193,9 @@ class TaskTemplateViewSet(viewsets.ModelViewSet):
         if assigned_to_id:
             assigned_to = get_object_or_404(Employee, pk=assigned_to_id)
 
-        task = template.create_task(project=project, created_by=request.user, assigned_to=assigned_to)
+        task = template.create_task(
+            project=project, created_by=request.user, assigned_to=assigned_to
+        )
 
         return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
 
@@ -2993,7 +3208,11 @@ class TaskTemplateViewSet(viewsets.ModelViewSet):
 class DailyPlanViewSet(viewsets.ModelViewSet):
     """ViewSet for DailyPlan (Module 12)"""
 
-    queryset = DailyPlan.objects.all().select_related("project", "created_by").prefetch_related("activities")
+    queryset = (
+        DailyPlan.objects.all()
+        .select_related("project", "created_by")
+        .prefetch_related("activities")
+    )
     serializer_class = DailyPlanSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -3011,7 +3230,9 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
         plan = self.get_object()
         data = plan.fetch_weather()
         if data is None:
-            return Response({"message": "Weather not available"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Weather not available"}, status=status.HTTP_400_BAD_REQUEST
+            )
         return Response({"weather": data, "weather_fetched_at": plan.weather_fetched_at})
 
     @action(detail=True, methods=["post"])
@@ -3019,7 +3240,9 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
         """Convert planned activities to real project tasks"""
         plan = self.get_object()
         tasks = plan.convert_activities_to_tasks(user=request.user)
-        return Response({"created_count": len(tasks), "tasks": TaskSerializer(tasks, many=True).data})
+        return Response(
+            {"created_count": len(tasks), "tasks": TaskSerializer(tasks, many=True).data}
+        )
 
     @action(detail=True, methods=["get"])
     def productivity(self, request, pk=None):
@@ -3042,13 +3265,21 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
 
         plan = self.get_object()
         task_ids = list(
-            plan.activities.exclude(converted_task__isnull=True).values_list("converted_task_id", flat=True)
+            plan.activities.exclude(converted_task__isnull=True).values_list(
+                "converted_task_id", flat=True
+            )
         )
-        total = TimeEntry.objects.filter(task_id__in=task_ids).aggregate(s=Sum("hours_worked"))["s"] or 0
+        total = (
+            TimeEntry.objects.filter(task_id__in=task_ids).aggregate(s=Sum("hours_worked"))["s"]
+            or 0
+        )
         plan.actual_hours_worked = total
         plan.save(update_fields=["actual_hours_worked"])
         return Response(
-            {"actual_hours_worked": float(total) if total is not None else 0.0, "task_count": len(task_ids)}
+            {
+                "actual_hours_worked": float(total) if total is not None else 0.0,
+                "task_count": len(task_ids),
+            }
         )
 
     # ===== AI ENHANCEMENT ENDPOINTS (Dec 2025) =====
@@ -3108,19 +3339,26 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
         audio_file = request.FILES.get("audio")
 
         if not transcription and not audio_file:
-            return Response({"error": "Either transcription or audio file required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Either transcription or audio file required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # If audio file provided, transcribe it
         if audio_file and not transcription:
             # TODO: Implement speech-to-text with Whisper or cloud service
             # For now, return error
             return Response(
-                {"error": "Audio transcription not yet implemented. Please provide text transcription."},
+                {
+                    "error": "Audio transcription not yet implemented. Please provide text transcription."
+                },
                 status=status.HTTP_501_NOT_IMPLEMENTED,
             )
 
         # Parse command
-        parsed = nlp_service.parse_command(transcription, context={"daily_plan": plan, "project": plan.project})
+        parsed = nlp_service.parse_command(
+            transcription, context={"daily_plan": plan, "project": plan.project}
+        )
 
         # Store voice command
         voice_cmd = VoiceCommand.objects.create(
@@ -3162,7 +3400,9 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
             return Response({"error": "Text input required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Parse command
-        parsed = nlp_service.parse_command(text, context={"daily_plan": plan, "project": plan.project})
+        parsed = nlp_service.parse_command(
+            text, context={"daily_plan": plan, "project": plan.project}
+        )
 
         return Response(
             {
@@ -3191,7 +3431,9 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
             return Response({"error": "Command data required"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not confirmed:
-            return Response({"error": "User confirmation required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "User confirmation required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Reconstruct parsed command
         parsed = ParsedCommand(
@@ -3216,7 +3458,9 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_201_CREATED,
             )
         else:
-            return Response({"success": False, "message": message}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": False, "message": message}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(detail=False, methods=["get"])
     def timeline(self, request):
@@ -3233,13 +3477,17 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
         project_id = request.query_params.get("project")
 
         if not start_date_str or not end_date_str:
-            return Response({"error": "start_date and end_date required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "start_date and end_date required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
             end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
         except ValueError:
-            return Response({"error": "Invalid date format. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid date format. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Query plans
         queryset = DailyPlan.objects.filter(plan_date__range=[start_date, end_date])
@@ -3307,7 +3555,10 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
         allowed_fields = ["status", "no_planning_reason", "admin_approved"]
 
         if field not in allowed_fields:
-            return Response({"error": f"Field '{field}' not allowed for inline update"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"Field '{field}' not allowed for inline update"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Update field
         setattr(plan, field, value)
@@ -3361,7 +3612,9 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
         activity = self.get_object()
         actual = activity.actual_hours
         if actual is None and activity.converted_task_id:
-            actual = TimeEntry.objects.filter(task_id=activity.converted_task_id).aggregate(s=Sum("hours_worked"))["s"]
+            actual = TimeEntry.objects.filter(task_id=activity.converted_task_id).aggregate(
+                s=Sum("hours_worked")
+            )["s"]
         if activity.estimated_hours and actual is not None:
             try:
                 est = float(activity.estimated_hours)
@@ -3377,7 +3630,9 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
                 )
             except Exception:
                 pass
-        return Response({"detail": "Insufficient data for variance"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": "Insufficient data for variance"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(detail=True, methods=["post"])
     def move(self, request, pk=None):
@@ -3399,7 +3654,8 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
                 # Check permission (same project or user has access)
                 if new_plan.project != activity.daily_plan.project:
                     return Response(
-                        {"error": "Cannot move activity to different project"}, status=status.HTTP_400_BAD_REQUEST
+                        {"error": "Cannot move activity to different project"},
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
 
                 activity.daily_plan = new_plan
@@ -3407,7 +3663,9 @@ class PlannedActivityViewSet(viewsets.ModelViewSet):
                 activity.save()
 
             except DailyPlan.DoesNotExist:
-                return Response({"error": "Target daily plan not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "Target daily plan not found"}, status=status.HTTP_404_NOT_FOUND
+                )
 
         # Reorder within same day
         if new_order is not None:
@@ -3441,14 +3699,18 @@ class WeatherSnapshotViewSet(viewsets.ReadOnlyModelViewSet):
         date = request.query_params.get("date")
 
         if not project_id or not date:
-            return Response({"error": "project_id and date are required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "project_id and date are required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         snapshot = WeatherSnapshot.objects.filter(project_id=project_id, date=date).first()
 
         if snapshot:
             return Response(WeatherSnapshotSerializer(snapshot).data)
         else:
-            return Response({"message": "No weather data available"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"message": "No weather data available"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 # ============================================================================
@@ -3548,7 +3810,13 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["employee", "project", "date"]
-    search_fields = ["notes", "task__title", "project__name", "employee__first_name", "employee__last_name"]
+    search_fields = [
+        "notes",
+        "task__title",
+        "project__name",
+        "employee__first_name",
+        "employee__last_name",
+    ]
     ordering_fields = ["date", "start_time", "end_time", "hours_worked"]
     ordering = ["-date", "-start_time"]
 
@@ -3566,7 +3834,9 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
                 fmt = "%H:%M:%S" if len(end_time.split(":")) == 3 else "%H:%M"
                 entry.end_time = datetime.strptime(end_time, fmt).time()
             except Exception:
-                return Response({"detail": "Invalid end_time format"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"detail": "Invalid end_time format"}, status=status.HTTP_400_BAD_REQUEST
+                )
         else:
             entry.end_time = timezone.localtime().time()
         entry.save()
@@ -3581,11 +3851,15 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
         group = request.query_params.get("group", "employee")
         qs = self.filter_queryset(self.get_queryset())
         if group == "project":
-            data = qs.values("project").annotate(total_hours=Sum("hours_worked")).order_by("project")
+            data = (
+                qs.values("project").annotate(total_hours=Sum("hours_worked")).order_by("project")
+            )
         elif group == "task":
             data = qs.values("task").annotate(total_hours=Sum("hours_worked")).order_by("task")
         else:
-            data = qs.values("employee").annotate(total_hours=Sum("hours_worked")).order_by("employee")
+            data = (
+                qs.values("employee").annotate(total_hours=Sum("hours_worked")).order_by("employee")
+            )
         normalized = []
         for row in data:
             row = dict(row)
@@ -3624,41 +3898,43 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
         avg_cost = item.average_cost * total_qty if item.average_cost else Decimal("0")
 
         # Get purchase history for analysis
-        purchases = item.movements.filter(
-            movement_type="RECEIVE",
-            applied=True,
-            unit_cost__isnull=False
-        ).order_by("-created_at").values(
-            "quantity", "unit_cost", "created_at", "reason"
-        )[:10]
+        purchases = (
+            item.movements.filter(movement_type="RECEIVE", applied=True, unit_cost__isnull=False)
+            .order_by("-created_at")
+            .values("quantity", "unit_cost", "created_at", "reason")[:10]
+        )
 
         # Calculate inventory value by active method
         current_value = item.get_cost_for_quantity(total_qty)
 
-        return Response({
-            "item_id": item.id,
-            "item_name": item.name,
-            "sku": item.sku,
-            "valuation_method": item.valuation_method,
-            "total_quantity": str(total_qty),
-            "current_value": str(current_value),
-            "cost_breakdown": {
-                "fifo": str(fifo_cost),
-                "lifo": str(lifo_cost),
-                "avg": str(avg_cost)
-            },
-            "average_cost": str(item.average_cost),
-            "last_purchase_cost": str(item.last_purchase_cost) if item.last_purchase_cost else None,
-            "recent_purchases": [
-                {
-                    "quantity": str(p["quantity"]),
-                    "unit_cost": str(p["unit_cost"]),
-                    "date": p["created_at"].isoformat() if p["created_at"] else None,
-                    "reason": p["reason"]
-                }
-                for p in purchases
-            ]
-        })
+        return Response(
+            {
+                "item_id": item.id,
+                "item_name": item.name,
+                "sku": item.sku,
+                "valuation_method": item.valuation_method,
+                "total_quantity": str(total_qty),
+                "current_value": str(current_value),
+                "cost_breakdown": {
+                    "fifo": str(fifo_cost),
+                    "lifo": str(lifo_cost),
+                    "avg": str(avg_cost),
+                },
+                "average_cost": str(item.average_cost),
+                "last_purchase_cost": str(item.last_purchase_cost)
+                if item.last_purchase_cost
+                else None,
+                "recent_purchases": [
+                    {
+                        "quantity": str(p["quantity"]),
+                        "unit_cost": str(p["unit_cost"]),
+                        "date": p["created_at"].isoformat() if p["created_at"] else None,
+                        "reason": p["reason"],
+                    }
+                    for p in purchases
+                ],
+            }
+        )
 
     @action(detail=True, methods=["post"])
     def calculate_cogs(self, request, pk=None):
@@ -3670,33 +3946,35 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
             quantity = Decimal(str(request.data.get("quantity", "0")))
         except (ValueError, TypeError, InvalidOperation):
             return Response(
-                {"error": "Invalid quantity format"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid quantity format"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         if quantity <= 0:
             return Response(
-                {"error": "Quantity must be greater than zero"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Quantity must be greater than zero"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Calculate COGS based on valuation method
         cogs = item.get_cost_for_quantity(quantity)
         unit_cogs = cogs / quantity if quantity > 0 else Decimal("0")
 
-        return Response({
-            "item_id": item.id,
-            "item_name": item.name,
-            "quantity": str(quantity),
-            "valuation_method": item.valuation_method,
-            "total_cogs": str(cogs),
-            "unit_cogs": str(unit_cogs),
-            "average_cost": str(item.average_cost)
-        })
+        return Response(
+            {
+                "item_id": item.id,
+                "item_name": item.name,
+                "quantity": str(quantity),
+                "valuation_method": item.valuation_method,
+                "total_cogs": str(cogs),
+                "unit_cogs": str(unit_cogs),
+                "average_cost": str(item.average_cost),
+            }
+        )
 
 
 class InventoryLocationViewSet(viewsets.ModelViewSet):
-    queryset = InventoryLocation.objects.select_related("project").all().order_by("-is_storage", "name")
+    queryset = (
+        InventoryLocation.objects.select_related("project").all().order_by("-is_storage", "name")
+    )
     serializer_class = InventoryLocationSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -3750,7 +4028,9 @@ class InventoryMovementViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at"]
 
     def get_queryset(self):
-        return InventoryMovement.objects.select_related("item", "from_location", "to_location").order_by("-created_at")
+        return InventoryMovement.objects.select_related(
+            "item", "from_location", "to_location"
+        ).order_by("-created_at")
 
     def perform_create(self, serializer):
         movement = serializer.save(created_by=self.request.user)
@@ -3856,33 +4136,38 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
 
     def _get_project_location(self, project_id):
         from core.models import InventoryLocation
-        return InventoryLocation.objects.filter(project_id=project_id).order_by('id').first()
+
+        return InventoryLocation.objects.filter(project_id=project_id).order_by("id").first()
 
     @action(detail=False, methods=["get"], url_path="project-stock")
     def project_stock(self, request):
         from core.models import ProjectInventory
-        project_id = request.query_params.get('project_id') or request.query_params.get('project')
+
+        project_id = request.query_params.get("project_id") or request.query_params.get("project")
         if not project_id:
             return Response({"success": False, "error": "project_id requerido"}, status=400)
         location = self._get_project_location(project_id)
         if not location:
-            return Response({"success": False, "error": "Proyecto sin ubicación de inventario"}, status=404)
+            return Response(
+                {"success": False, "error": "Proyecto sin ubicación de inventario"}, status=404
+            )
         stocks = (
-            ProjectInventory.objects
-            .select_related('item')
+            ProjectInventory.objects.select_related("item")
             .filter(location=location, quantity__gt=0)
-            .order_by('item__name')
+            .order_by("item__name")
         )
         data = []
         for s in stocks:
-            data.append({
-                'item_id': s.item.id,
-                'item_name': s.item.name,
-                'sku': s.item.sku,
-                'quantity': s.quantity,
-                'available_quantity': s.available_quantity,
-                'is_below': s.is_below,
-            })
+            data.append(
+                {
+                    "item_id": s.item.id,
+                    "item_name": s.item.name,
+                    "sku": s.item.sku,
+                    "quantity": s.quantity,
+                    "available_quantity": s.available_quantity,
+                    "is_below": s.is_below,
+                }
+            )
         return Response(ProjectStockSerializer(data, many=True).data)
 
     @action(detail=False, methods=["post"], url_path="report-usage")
@@ -3900,12 +4185,15 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             ProjectManagerAssignment,
         )
 
-        item_id = request.data.get('item_id')
-        project_id = request.data.get('project_id') or request.data.get('project')
-        task_id = request.data.get('task_id')
-        qty_raw = request.data.get('quantity')
+        item_id = request.data.get("item_id")
+        project_id = request.data.get("project_id") or request.data.get("project")
+        task_id = request.data.get("task_id")
+        qty_raw = request.data.get("quantity")
         if not all([item_id, project_id, qty_raw]):
-            return Response({"success": False, "error": "item_id, project_id y quantity son requeridos"}, status=400)
+            return Response(
+                {"success": False, "error": "item_id, project_id y quantity son requeridos"},
+                status=400,
+            )
         try:
             quantity = Decimal(str(qty_raw))
         except (InvalidOperation, TypeError, ValueError):
@@ -3918,18 +4206,20 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             return Response({"success": False, "error": "Item no encontrado"}, status=404)
         location = self._get_project_location(project_id)
         if not location:
-            return Response({"success": False, "error": "Proyecto sin ubicación de inventario"}, status=404)
+            return Response(
+                {"success": False, "error": "Proyecto sin ubicación de inventario"}, status=404
+            )
         movement_kwargs = {
-            'item': item,
-            'movement_type': 'CONSUME',
-            'from_location': location,
-            'quantity': quantity,
-            'related_project_id': project_id,
-            'created_by': request.user,
-            'reason': f'Consumo en campo reportado por {request.user.username}',
+            "item": item,
+            "movement_type": "CONSUME",
+            "from_location": location,
+            "quantity": quantity,
+            "related_project_id": project_id,
+            "created_by": request.user,
+            "reason": f"Consumo en campo reportado por {request.user.username}",
         }
         if task_id:
-            movement_kwargs['related_task_id'] = task_id
+            movement_kwargs["related_task_id"] = task_id
         try:
             with transaction.atomic():
                 movement = InventoryMovement.objects.create(**movement_kwargs)
@@ -3943,7 +4233,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             return Response({"success": False, "error": str(e)}, status=400)
 
         # Notifications to PMs
-        pms = ProjectManagerAssignment.objects.filter(project_id=project_id).select_related('pm')
+        pms = ProjectManagerAssignment.objects.filter(project_id=project_id).select_related("pm")
         for assign in pms:
             Notification.objects.create(
                 user=assign.pm,
@@ -3965,13 +4255,13 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             )
 
         payload = {
-            'success': True,
-            'movement_id': movement.id,
-            'item_id': item.id,
-            'item_name': item.name,
-            'consumed_quantity': quantity,
-            'remaining_quantity': remaining,
-            'message': 'Consumo registrado correctamente'
+            "success": True,
+            "movement_id": movement.id,
+            "item_id": item.id,
+            "item_name": item.name,
+            "consumed_quantity": quantity,
+            "remaining_quantity": remaining,
+            "message": "Consumo registrado correctamente",
         }
         return Response(ReportUsageResultSerializer(payload).data, status=201)
 
@@ -3985,39 +4275,45 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             Notification,
             ProjectManagerAssignment,
         )
-        project_id = request.data.get('project_id') or request.data.get('project')
-        item_name = request.data.get('item_name') or request.data.get('name')
-        qty_raw = request.data.get('quantity')
-        urgency = request.data.get('urgency')  # boolean-like
-        notes = request.data.get('notes', '')
+
+        project_id = request.data.get("project_id") or request.data.get("project")
+        item_name = request.data.get("item_name") or request.data.get("name")
+        qty_raw = request.data.get("quantity")
+        urgency = request.data.get("urgency")  # boolean-like
+        notes = request.data.get("notes", "")
         if not all([project_id, item_name, qty_raw]):
-            return Response({"success": False, "error": "project_id, item_name y quantity son requeridos"}, status=400)
+            return Response(
+                {"success": False, "error": "project_id, item_name y quantity son requeridos"},
+                status=400,
+            )
         try:
             quantity = Decimal(str(qty_raw))
         except (InvalidOperation, TypeError, ValueError):
             return Response({"success": False, "error": "Cantidad inválida"}, status=400)
         if quantity <= 0:
             return Response({"success": False, "error": "La cantidad debe ser > 0"}, status=400)
-        needed_when = 'now' if str(urgency).lower() in ['1', 'true', 'yes', 'urgent'] else 'tomorrow'
+        needed_when = (
+            "now" if str(urgency).lower() in ["1", "true", "yes", "urgent"] else "tomorrow"
+        )
         req = MaterialRequest.objects.create(
             project_id=project_id,
             requested_by=request.user,
             needed_when=needed_when,
             notes=notes,
-            status='pending'
+            status="pending",
         )
         # Create a single item entry (category 'other' as generic)
         MaterialRequestItem.objects.create(
             request=req,
-            category='other',
+            category="other",
             product_name=item_name,
             quantity=quantity,
-            unit='unit',
-            comments='Quick request',
+            unit="unit",
+            comments="Quick request",
             qty_requested=quantity,
         )
         # Notify PMs
-        pms = ProjectManagerAssignment.objects.filter(project_id=project_id).select_related('pm')
+        pms = ProjectManagerAssignment.objects.filter(project_id=project_id).select_related("pm")
         for assign in pms:
             Notification.objects.create(
                 user=assign.pm,
@@ -4028,7 +4324,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
                 related_object_id=req.id,
             )
         payload = QuickMaterialRequestSerializer(req).data
-        payload['success'] = True
+        payload["success"] = True
         return Response(payload, status=201)
 
 
@@ -4072,7 +4368,9 @@ class ClientRequestViewSet(viewsets.ModelViewSet):
         # Restrict to projects the user has access to
         from core.models import ClientProjectAccess
 
-        project_ids = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+        project_ids = ClientProjectAccess.objects.filter(user=user).values_list(
+            "project_id", flat=True
+        )
         return qs.filter(project_id__in=list(project_ids))
 
     @action(detail=True, methods=["post"])
@@ -4150,7 +4448,9 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
         # Non-staff: filter by ClientProjectAccess
         from core.models import ClientProjectAccess
 
-        project_ids = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+        project_ids = ClientProjectAccess.objects.filter(user=user).values_list(
+            "project_id", flat=True
+        )
         return qs.filter(project_id__in=list(project_ids))
 
     @action(detail=True, methods=["post"])
@@ -4189,7 +4489,9 @@ class ChatChannelViewSet(viewsets.ModelViewSet):
         try:
             user = user_model.objects.get(id=user_id)
             channel.participants.remove(user)
-            return Response({"success": True, "message": f"User {user.username} removed from channel"})
+            return Response(
+                {"success": True, "message": f"User {user.username} removed from channel"}
+            )
         except user_model.DoesNotExist:
             return Response({"error": gettext("User not found")}, status=404)
 
@@ -4276,7 +4578,9 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
         from core.models import ClientProjectAccess
 
-        project_ids = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+        project_ids = ClientProjectAccess.objects.filter(user=user).values_list(
+            "project_id", flat=True
+        )
         return qs.filter(Q(channel__project_id__in=list(project_ids)) | Q(user=user))
 
     @action(detail=True, methods=["post"])
@@ -4309,9 +4613,9 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         # Find ChatMentions for this user
         from core.models import ChatMention
 
-        mention_ids = ChatMention.objects.filter(mentioned_user=user, entity_type="user").values_list(
-            "message_id", flat=True
-        )
+        mention_ids = ChatMention.objects.filter(
+            mentioned_user=user, entity_type="user"
+        ).values_list("message_id", flat=True)
 
         # Get messages
         qs = self.get_queryset().filter(id__in=list(mention_ids))
@@ -4333,24 +4637,28 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         # Validate required channel parameter
         channel_id = request.query_params.get("channel")
         if not channel_id:
-            return Response(
-                {"error": "channel parameter is required"},
-                status=400
-            )
+            return Response({"error": "channel parameter is required"}, status=400)
 
         # Filter queryset by channel and ensure ordering
         # Use base queryset (select_related already applied) and filter by channel
         from core.models import ChatMessage
-        qs = ChatMessage.objects.select_related("channel__project", "user", "deleted_by").prefetch_related("mentions").filter(
-            channel_id=channel_id
-        ).order_by('-created_at')
+
+        qs = (
+            ChatMessage.objects.select_related("channel__project", "user", "deleted_by")
+            .prefetch_related("mentions")
+            .filter(channel_id=channel_id)
+            .order_by("-created_at")
+        )
 
         # Apply permission filtering: staff sees all, non-staff sees messages they authored or from accessible projects
         if not request.user.is_staff:
             from django.db.models import Q
 
             from core.models import ClientProjectAccess
-            project_ids = ClientProjectAccess.objects.filter(user=request.user).values_list("project_id", flat=True)
+
+            project_ids = ClientProjectAccess.objects.filter(user=request.user).values_list(
+                "project_id", flat=True
+            )
             # Allow if: (1) message author is current user OR (2) project is in user's accessible projects
             qs = qs.filter(Q(user=request.user) | Q(channel__project_id__in=list(project_ids)))
 
@@ -4389,7 +4697,9 @@ class DailyLogSanitizedViewSet(viewsets.ReadOnlyModelViewSet):
         # Restrict to projects user has ClientProjectAccess
         from core.models import ClientProjectAccess
 
-        project_ids = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+        project_ids = ClientProjectAccess.objects.filter(user=user).values_list(
+            "project_id", flat=True
+        )
         return qs.filter(project_id__in=list(project_ids))
 
     def update(self, request, *args, **kwargs):
@@ -4426,7 +4736,11 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
     # - end=YYYY-MM-DD - Filter photos until this date
     # - visibility=public|internal - Filter by visibility (staff only)
 
-    queryset = SitePhoto.objects.select_related("project", "damage_report", "created_by").all().order_by("-created_at")
+    queryset = (
+        SitePhoto.objects.select_related("project", "damage_report", "created_by")
+        .all()
+        .order_by("-created_at")
+    )
     serializer_class = SitePhotoSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
@@ -4445,7 +4759,9 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
         if not user.is_staff:
             from core.models import ClientProjectAccess
 
-            accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list("project_id", flat=True)
+            accessible_projects = ClientProjectAccess.objects.filter(user=user).values_list(
+                "project_id", flat=True
+            )
             qs = qs.filter(project_id__in=accessible_projects)
 
             # Keep a copy before date filtering for fallback widening.
@@ -4499,7 +4815,9 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
                         if timezone.is_naive(end_dt):
                             end_dt = timezone.make_aware(end_dt)
 
-                        qs = qs_without_date.filter(created_at__gte=start_dt, created_at__lte=end_dt)
+                        qs = qs_without_date.filter(
+                            created_at__gte=start_dt, created_at__lte=end_dt
+                        )
             except Exception:
                 pass
 
@@ -4568,12 +4886,16 @@ class InvoiceDashboardView(APIView):
         qs = Invoice.objects.all()
         total_invoices = qs.count()
         total_amount = qs.aggregate(total=Sum("total_amount"))["total"] or Decimal("0.00")
-        paid_amount = qs.filter(status="PAID").aggregate(total=Sum("total_amount"))["total"] or Decimal("0.00")
+        paid_amount = qs.filter(status="PAID").aggregate(total=Sum("total_amount"))[
+            "total"
+        ] or Decimal("0.00")
         overdue_count = qs.filter(status="OVERDUE").count()
         outstanding = total_amount - paid_amount
         # Top clients by invoiced amount (by project.client)
         top_clients = list(
-            qs.values("project__client").annotate(total=Sum("total_amount"), count=Count("id")).order_by("-total")[:5]
+            qs.values("project__client")
+            .annotate(total=Sum("total_amount"), count=Count("id"))
+            .order_by("-total")[:5]
         )
         return Response(
             {
@@ -4609,13 +4931,15 @@ class InvoiceTrendsView(APIView):
             month_end = month_start + relativedelta(months=1) - timedelta(days=1)
 
             month_invoices = Invoice.objects.filter(date_issued__range=[month_start, month_end])
-            total_invoiced = month_invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0.00")
-            total_paid = month_invoices.filter(status="PAID").aggregate(total=Sum("total_amount"))["total"] or Decimal(
-                "0.00"
-            )
-            total_overdue = month_invoices.filter(status="OVERDUE").aggregate(total=Sum("total_amount"))[
+            total_invoiced = month_invoices.aggregate(total=Sum("total_amount"))[
                 "total"
             ] or Decimal("0.00")
+            total_paid = month_invoices.filter(status="PAID").aggregate(total=Sum("total_amount"))[
+                "total"
+            ] or Decimal("0.00")
+            total_overdue = month_invoices.filter(status="OVERDUE").aggregate(
+                total=Sum("total_amount")
+            )["total"] or Decimal("0.00")
 
             monthly_trends.append(
                 {
@@ -4631,7 +4955,9 @@ class InvoiceTrendsView(APIView):
         monthly_trends.reverse()  # Oldest first
 
         # Aging report (outstanding invoices by days overdue)
-        outstanding = Invoice.objects.filter(status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL", "OVERDUE"])
+        outstanding = Invoice.objects.filter(
+            status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL", "OVERDUE"]
+        )
         aging_buckets = {
             "0-30": Decimal("0.00"),
             "31-60": Decimal("0.00"),
@@ -4688,7 +5014,9 @@ class MaterialsDashboardView(APIView):
         # Recent movements
         recent_movements = InventoryMovement.objects.count()
         # Items by category
-        by_category = list(InventoryItem.objects.values("category").annotate(count=Count("id")).order_by("-count"))
+        by_category = list(
+            InventoryItem.objects.values("category").annotate(count=Count("id")).order_by("-count")
+        )
         return Response(
             {
                 "total_items": total_items,
@@ -4714,7 +5042,9 @@ class MaterialsUsageAnalyticsView(APIView):
         from core.models import InventoryItem, InventoryMovement, ProjectInventory
 
         # Top consumed items (ISSUE and CONSUME movements)
-        consumption_movements = InventoryMovement.objects.filter(movement_type__in=["ISSUE", "CONSUME"])
+        consumption_movements = InventoryMovement.objects.filter(
+            movement_type__in=["ISSUE", "CONSUME"]
+        )
         top_consumed = list(
             consumption_movements.values("item__name", "item__id")
             .annotate(total_consumed=Sum("quantity"))
@@ -4735,9 +5065,13 @@ class MaterialsUsageAnalyticsView(APIView):
 
         turnover_items = []
         for item in InventoryItem.objects.filter(active=True):
-            consumed = recent_consumption.filter(item=item).aggregate(total=Sum("quantity"))["total"] or Decimal("0")
+            consumed = recent_consumption.filter(item=item).aggregate(total=Sum("quantity"))[
+                "total"
+            ] or Decimal("0")
             # Average stock across all locations
-            avg_stock = ProjectInventory.objects.filter(item=item).aggregate(avg=Sum("quantity"))["avg"] or Decimal("0")
+            avg_stock = ProjectInventory.objects.filter(item=item).aggregate(avg=Sum("quantity"))[
+                "avg"
+            ] or Decimal("0")
 
             if avg_stock > 0:
                 turnover_rate = (consumed / avg_stock) if avg_stock != 0 else Decimal("0")
@@ -4761,13 +5095,15 @@ class MaterialsUsageAnalyticsView(APIView):
             if stock.is_below:
                 # Calculate consumption rate (last 30 days)
                 location_filter = Q(from_location=stock.location) | Q(to_location=stock.location)
-                consumed = recent_consumption.filter(location_filter, item=stock.item).aggregate(total=Sum("quantity"))[
-                    "total"
-                ] or Decimal("0")
+                consumed = recent_consumption.filter(location_filter, item=stock.item).aggregate(
+                    total=Sum("quantity")
+                )["total"] or Decimal("0")
 
                 consumption_rate = consumed / 30 if consumed > 0 else Decimal("0")
                 # Days until depleted
-                days_until_depleted = (stock.quantity / consumption_rate) if consumption_rate > 0 else None
+                days_until_depleted = (
+                    (stock.quantity / consumption_rate) if consumption_rate > 0 else None
+                )
 
                 threshold = stock.threshold()
                 reorder_suggestions.append(
@@ -4779,12 +5115,16 @@ class MaterialsUsageAnalyticsView(APIView):
                         "threshold": threshold,
                         "consumption_rate_per_day": consumption_rate,
                         "days_until_depleted": days_until_depleted,
-                        "suggested_order_qty": max(threshold * 2, consumed) if consumed > 0 else threshold * 2,
+                        "suggested_order_qty": max(threshold * 2, consumed)
+                        if consumed > 0
+                        else threshold * 2,
                     }
                 )
 
         # Sort by urgency (days until depleted)
-        reorder_suggestions.sort(key=lambda x: x["days_until_depleted"] if x["days_until_depleted"] else 9999)
+        reorder_suggestions.sort(
+            key=lambda x: x["days_until_depleted"] if x["days_until_depleted"] else 9999
+        )
 
         return Response(
             {
@@ -4837,12 +5177,16 @@ class FinancialDashboardView(APIView):
 
         projects_data = []
         for proj in qs:
-            income_total = proj.incomes.filter(income_filter).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
-            expense_total = proj.expenses.filter(expense_filter).aggregate(total=Sum("amount"))["total"] or Decimal(
-                "0.00"
-            )
+            income_total = proj.incomes.filter(income_filter).aggregate(total=Sum("amount"))[
+                "total"
+            ] or Decimal("0.00")
+            expense_total = proj.expenses.filter(expense_filter).aggregate(total=Sum("amount"))[
+                "total"
+            ] or Decimal("0.00")
             profit = income_total - expense_total
-            budget_used_pct = round((expense_total / proj.budget_total * 100) if proj.budget_total > 0 else 0, 2)
+            budget_used_pct = round(
+                (expense_total / proj.budget_total * 100) if proj.budget_total > 0 else 0, 2
+            )
 
             # EV metrics (if available)
             ev_summary = None
@@ -4891,9 +5235,9 @@ class PayrollDashboardView(APIView):
             records = period.records.all()
             period_total = records.aggregate(total=Sum("total_pay"))["total"] or Decimal("0.00")
             # Payments are linked to PayrollRecord, not PayrollPeriod
-            paid_total = PayrollPayment.objects.filter(payroll_record__period=period).aggregate(total=Sum("amount"))[
-                "total"
-            ] or Decimal("0.00")
+            paid_total = PayrollPayment.objects.filter(payroll_record__period=period).aggregate(
+                total=Sum("amount")
+            )["total"] or Decimal("0.00")
             outstanding = period_total - paid_total
 
             periods_data.append(
@@ -4961,14 +5305,16 @@ class AdminDashboardView(APIView):
         total_employees = Employee.objects.count()
 
         # Financial summary
-        total_income = Income.objects.aggregate(total=Sum("amount"))['total'] or Decimal("0.00")
-        total_expenses = Expense.objects.aggregate(total=Sum("amount"))['total'] or Decimal("0.00")
+        total_income = Income.objects.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        total_expenses = Expense.objects.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
         net_profit = total_income - total_expenses
         profit_margin = (net_profit / total_income * 100) if total_income > 0 else Decimal("0.00")
 
         # Invoice summary
-        total_invoiced = Invoice.objects.aggregate(total=Sum("total_amount"))['total'] or Decimal("0.00")
-        total_paid = Invoice.objects.aggregate(total=Sum("amount_paid"))['total'] or Decimal("0.00")
+        total_invoiced = Invoice.objects.aggregate(total=Sum("total_amount"))["total"] or Decimal(
+            "0.00"
+        )
+        total_paid = Invoice.objects.aggregate(total=Sum("amount_paid"))["total"] or Decimal("0.00")
         outstanding_invoices = total_invoiced - total_paid
         overdue_invoices = Invoice.objects.filter(status="OVERDUE").count()
 
@@ -5029,12 +5375,16 @@ class AdminDashboardView(APIView):
 
         # Financial health score (0-100)
         # Based on: profit margin, invoice collection rate, budget adherence
-        collection_rate = (total_paid / total_invoiced * 100) if total_invoiced > 0 else Decimal("100")
+        collection_rate = (
+            (total_paid / total_invoiced * 100) if total_invoiced > 0 else Decimal("100")
+        )
 
         # Weighted health score
         health_score = Decimal("0")
         health_score += max(min(profit_margin, 50), 0)  # Max 50 points for profit margin (0-50%)
-        health_score += collection_rate * Decimal("0.5")  # Max 50 points for collection (100% = 50 pts)
+        health_score += collection_rate * Decimal(
+            "0.5"
+        )  # Max 50 points for collection (100% = 50 pts)
         health_score = min(health_score, Decimal("100"))
 
         return Response(
@@ -5151,9 +5501,11 @@ class InventoryValuationReportView(APIView):
         from django.db.models import Sum
 
         # Get all active inventory items with their quantities
-        items = InventoryItem.objects.filter(active=True).annotate(
-            total_quantity=Sum("projectinventory__quantity")
-        ).filter(total_quantity__gt=0)
+        items = (
+            InventoryItem.objects.filter(active=True)
+            .annotate(total_quantity=Sum("projectinventory__quantity"))
+            .filter(total_quantity__gt=0)
+        )
 
         # Calculate total value and breakdown by category
         total_value = Decimal("0")
@@ -5162,7 +5514,7 @@ class InventoryValuationReportView(APIView):
             "0-30_days": {"count": 0, "value": Decimal("0")},
             "31-60_days": {"count": 0, "value": Decimal("0")},
             "61-90_days": {"count": 0, "value": Decimal("0")},
-            "over_90_days": {"count": 0, "value": Decimal("0")}
+            "over_90_days": {"count": 0, "value": Decimal("0")},
         }
 
         items_detail = []
@@ -5180,13 +5532,15 @@ class InventoryValuationReportView(APIView):
             category_breakdown[category]["value"] += value
 
             # Aging analysis (based on last purchase date)
-            last_purchase = item.movements.filter(
-                movement_type="RECEIVE",
-                applied=True
-            ).order_by("-created_at").first()
+            last_purchase = (
+                item.movements.filter(movement_type="RECEIVE", applied=True)
+                .order_by("-created_at")
+                .first()
+            )
 
             if last_purchase and last_purchase.created_at:
                 from django.utils import timezone
+
                 days_old = (timezone.now() - last_purchase.created_at).days
 
                 if days_old <= 30:
@@ -5202,36 +5556,39 @@ class InventoryValuationReportView(APIView):
                     aging_analysis["over_90_days"]["count"] += 1
                     aging_analysis["over_90_days"]["value"] += value
 
-            items_detail.append({
-                "id": item.id,
-                "name": item.name,
-                "sku": item.sku,
-                "category": category,
-                "valuation_method": item.valuation_method,
-                "quantity": str(quantity),
-                "average_cost": str(item.average_cost),
-                "total_value": str(value),
-                "last_purchase_date": last_purchase.created_at.isoformat() if last_purchase and last_purchase.created_at else None,
-                "days_old": days_old if last_purchase and last_purchase.created_at else None
-            })
+            items_detail.append(
+                {
+                    "id": item.id,
+                    "name": item.name,
+                    "sku": item.sku,
+                    "category": category,
+                    "valuation_method": item.valuation_method,
+                    "quantity": str(quantity),
+                    "average_cost": str(item.average_cost),
+                    "total_value": str(value),
+                    "last_purchase_date": last_purchase.created_at.isoformat()
+                    if last_purchase and last_purchase.created_at
+                    else None,
+                    "days_old": days_old if last_purchase and last_purchase.created_at else None,
+                }
+            )
 
         # Format response
-        return Response({
-            "report_date": datetime.now().isoformat(),
-            "summary": {
-                "total_items": len(items_detail),
-                "total_value": str(total_value)
-            },
-            "by_category": {
-                cat: {"count": data["count"], "value": str(data["value"])}
-                for cat, data in category_breakdown.items()
-            },
-            "aging_analysis": {
-                bucket: {"count": data["count"], "value": str(data["value"])}
-                for bucket, data in aging_analysis.items()
-            },
-            "items": items_detail
-        })
+        return Response(
+            {
+                "report_date": datetime.now().isoformat(),
+                "summary": {"total_items": len(items_detail), "total_value": str(total_value)},
+                "by_category": {
+                    cat: {"count": data["count"], "value": str(data["value"])}
+                    for cat, data in category_breakdown.items()
+                },
+                "aging_analysis": {
+                    bucket: {"count": data["count"], "value": str(data["value"])}
+                    for bucket, data in aging_analysis.items()
+                },
+                "items": items_detail,
+            }
+        )
 
 
 # =============================================================================
@@ -5254,7 +5611,7 @@ class InvoiceAgingReportAPIView(APIView):
             "current": [],  # 0-30 days
             "30_60": [],
             "60_90": [],
-            "over_90": []
+            "over_90": [],
         }
 
         unpaid_invoices = Invoice.objects.filter(
@@ -5275,7 +5632,7 @@ class InvoiceAgingReportAPIView(APIView):
                 "amount_paid": str(invoice.amount_paid),
                 "balance": str(balance),
                 "days_outstanding": days_outstanding,
-                "status": invoice.status
+                "status": invoice.status,
             }
 
             if days_outstanding <= 30:
@@ -5300,20 +5657,22 @@ class InvoiceAgingReportAPIView(APIView):
             for bucket, total in totals.items()
         }
 
-        return Response({
-            "report_date": today.isoformat(),
-            "aging_buckets": aging_buckets,
-            "totals": {k: str(v) for k, v in totals.items()},
-            "grand_total": str(grand_total),
-            "percentages": percentages,
-            "summary": {
-                "total_invoices": len(unpaid_invoices),
-                "current_count": len(aging_buckets["current"]),
-                "30_60_count": len(aging_buckets["30_60"]),
-                "60_90_count": len(aging_buckets["60_90"]),
-                "over_90_count": len(aging_buckets["over_90"])
+        return Response(
+            {
+                "report_date": today.isoformat(),
+                "aging_buckets": aging_buckets,
+                "totals": {k: str(v) for k, v in totals.items()},
+                "grand_total": str(grand_total),
+                "percentages": percentages,
+                "summary": {
+                    "total_invoices": len(unpaid_invoices),
+                    "current_count": len(aging_buckets["current"]),
+                    "30_60_count": len(aging_buckets["30_60"]),
+                    "60_90_count": len(aging_buckets["60_90"]),
+                    "over_90_count": len(aging_buckets["over_90"]),
+                },
             }
-        })
+        )
 
 
 class CashFlowProjectionAPIView(APIView):
@@ -5332,7 +5691,7 @@ class CashFlowProjectionAPIView(APIView):
         expected_inflows = Invoice.objects.filter(
             status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"],
             due_date__isnull=False,
-            due_date__lte=next_90_days
+            due_date__lte=next_90_days,
         ).order_by("due_date")
 
         inflows_by_week = {}
@@ -5350,15 +5709,17 @@ class CashFlowProjectionAPIView(APIView):
                 inflows_by_week[week_key] = {
                     "week_start": week_key,
                     "invoices": [],
-                    "total": Decimal("0")
+                    "total": Decimal("0"),
                 }
 
-            inflows_by_week[week_key]["invoices"].append({
-                "invoice_number": invoice.invoice_number,
-                "project": invoice.project.name if invoice.project else None,
-                "due_date": invoice.due_date.isoformat(),
-                "balance": str(balance)
-            })
+            inflows_by_week[week_key]["invoices"].append(
+                {
+                    "invoice_number": invoice.invoice_number,
+                    "project": invoice.project.name if invoice.project else None,
+                    "due_date": invoice.due_date.isoformat(),
+                    "balance": str(balance),
+                }
+            )
             inflows_by_week[week_key]["total"] += balance
 
         # Outflows: Active projects' projected expenses
@@ -5380,40 +5741,48 @@ class CashFlowProjectionAPIView(APIView):
                 total_spent += spent
                 projected_remaining += remaining
 
-                projects_detail.append({
-                    "project": project.name,
-                    "budget": str(budget),
-                    "spent": str(spent),
-                    "remaining": str(remaining),
-                    "completion_percentage": float(spent / budget * 100) if budget > 0 else 0.0
-                })
+                projects_detail.append(
+                    {
+                        "project": project.name,
+                        "budget": str(budget),
+                        "spent": str(spent),
+                        "remaining": str(remaining),
+                        "completion_percentage": float(spent / budget * 100) if budget > 0 else 0.0,
+                    }
+                )
 
         # Net cash flow projection
         net_projection = total_expected_inflow - projected_remaining
 
-        return Response({
-            "projection_date": today.isoformat(),
-            "projection_period": f"{today.isoformat()} to {next_90_days.isoformat()}",
-            "inflows": {
-                "total_expected": str(total_expected_inflow),
-                "by_week": [
-                    {
-                        "week_start": data["week_start"],
-                        "total": str(data["total"]),
-                        "invoices": data["invoices"]
-                    }
-                    for data in sorted(inflows_by_week.values(), key=lambda x: x["week_start"])
-                ],
-                "invoice_count": len(expected_inflows)
-            },
-            "outflows": {
-                "projected_expenses": str(projected_remaining),
-                "projects": projects_detail,
-                "project_count": len(projects_detail)
-            },
-            "net_projection": str(net_projection),
-            "health_indicator": "positive" if net_projection > 0 else "negative" if net_projection < 0 else "neutral"
-        })
+        return Response(
+            {
+                "projection_date": today.isoformat(),
+                "projection_period": f"{today.isoformat()} to {next_90_days.isoformat()}",
+                "inflows": {
+                    "total_expected": str(total_expected_inflow),
+                    "by_week": [
+                        {
+                            "week_start": data["week_start"],
+                            "total": str(data["total"]),
+                            "invoices": data["invoices"],
+                        }
+                        for data in sorted(inflows_by_week.values(), key=lambda x: x["week_start"])
+                    ],
+                    "invoice_count": len(expected_inflows),
+                },
+                "outflows": {
+                    "projected_expenses": str(projected_remaining),
+                    "projects": projects_detail,
+                    "project_count": len(projects_detail),
+                },
+                "net_projection": str(net_projection),
+                "health_indicator": "positive"
+                if net_projection > 0
+                else "negative"
+                if net_projection < 0
+                else "neutral",
+            }
+        )
 
 
 class BudgetVarianceAnalysisAPIView(APIView):
@@ -5472,45 +5841,55 @@ class BudgetVarianceAnalysisAPIView(APIView):
             total_budget += budget_total
             total_actual += actual_total
 
-            projects_analysis.append({
-                "project_id": project.id,
-                "project_name": project.name,
-                "budget": {
-                    "total": str(budget_total),
-                    "labor": str(budget_labor),
-                    "materials": str(budget_materials),
-                    "other": str(budget_other)
-                },
-                "actual": {
-                    "total": str(actual_total),
-                    "labor": str(actual_labor),
-                    "materials": str(actual_materials),
-                    "other": str(actual_other)
-                },
-                "variance": {
-                    "total": str(variance_total),
-                    "labor": str(budget_labor - actual_labor),
-                    "materials": str(budget_materials - actual_materials),
-                    "other": str(budget_other - actual_other),
-                    "percentage": variance_pct
-                },
-                "status": "over_budget" if actual_total > budget_total else "under_budget" if variance_total > 0 else "on_budget"
-            })
+            projects_analysis.append(
+                {
+                    "project_id": project.id,
+                    "project_name": project.name,
+                    "budget": {
+                        "total": str(budget_total),
+                        "labor": str(budget_labor),
+                        "materials": str(budget_materials),
+                        "other": str(budget_other),
+                    },
+                    "actual": {
+                        "total": str(actual_total),
+                        "labor": str(actual_labor),
+                        "materials": str(actual_materials),
+                        "other": str(actual_other),
+                    },
+                    "variance": {
+                        "total": str(variance_total),
+                        "labor": str(budget_labor - actual_labor),
+                        "materials": str(budget_materials - actual_materials),
+                        "other": str(budget_other - actual_other),
+                        "percentage": variance_pct,
+                    },
+                    "status": "over_budget"
+                    if actual_total > budget_total
+                    else "under_budget"
+                    if variance_total > 0
+                    else "on_budget",
+                }
+            )
 
         overall_variance = total_budget - total_actual
 
-        return Response({
-            "report_date": datetime.now().isoformat(),
-            "summary": {
-                "total_projects": len(projects_analysis),
-                "total_budget": str(total_budget),
-                "total_actual": str(total_actual),
-                "overall_variance": str(overall_variance),
-                "overall_variance_pct": float(overall_variance / total_budget * 100) if total_budget > 0 else 0.0,
-                "over_budget_count": over_budget_count
-            },
-            "projects": projects_analysis
-        })
+        return Response(
+            {
+                "report_date": datetime.now().isoformat(),
+                "summary": {
+                    "total_projects": len(projects_analysis),
+                    "total_budget": str(total_budget),
+                    "total_actual": str(total_actual),
+                    "overall_variance": str(overall_variance),
+                    "overall_variance_pct": float(overall_variance / total_budget * 100)
+                    if total_budget > 0
+                    else 0.0,
+                    "over_budget_count": over_budget_count,
+                },
+                "projects": projects_analysis,
+            }
+        )
 
 
 # =============================================================================
@@ -5530,16 +5909,16 @@ class ClientInvoiceListAPIView(APIView):
         user = request.user
 
         # Get projects client has access to
-        client_access = ClientProjectAccess.objects.filter(
-            user=user
-        ).select_related("project")
+        client_access = ClientProjectAccess.objects.filter(user=user).select_related("project")
 
         accessible_project_ids = [access.project_id for access in client_access]
 
         # Get invoices for those projects
-        invoices = Invoice.objects.filter(
-            project_id__in=accessible_project_ids
-        ).select_related("project").order_by("-date_issued")
+        invoices = (
+            Invoice.objects.filter(project_id__in=accessible_project_ids)
+            .select_related("project")
+            .order_by("-date_issued")
+        )
 
         # Apply status filter if provided
         status_filter = request.query_params.get("status")
@@ -5550,30 +5929,34 @@ class ClientInvoiceListAPIView(APIView):
         for invoice in invoices:
             balance = invoice.balance_due
 
-            invoices_data.append({
-                "id": invoice.id,
-                "invoice_number": invoice.invoice_number,
-                "project": invoice.project.name if invoice.project else None,
-                "date_issued": invoice.date_issued.isoformat(),
-                "date_due": invoice.due_date.isoformat() if invoice.due_date else None,
-                "total_amount": str(invoice.total_amount),
-                "amount_paid": str(invoice.amount_paid),
-                "balance_due": str(balance),
-                "status": invoice.status,
-                "status_display": invoice.get_status_display(),
-                "is_overdue": invoice.status == "OVERDUE",
-                "can_approve": invoice.status in ["SENT", "VIEWED"] and balance > 0,
-                "payment_progress": invoice.payment_progress
-            })
+            invoices_data.append(
+                {
+                    "id": invoice.id,
+                    "invoice_number": invoice.invoice_number,
+                    "project": invoice.project.name if invoice.project else None,
+                    "date_issued": invoice.date_issued.isoformat(),
+                    "date_due": invoice.due_date.isoformat() if invoice.due_date else None,
+                    "total_amount": str(invoice.total_amount),
+                    "amount_paid": str(invoice.amount_paid),
+                    "balance_due": str(balance),
+                    "status": invoice.status,
+                    "status_display": invoice.get_status_display(),
+                    "is_overdue": invoice.status == "OVERDUE",
+                    "can_approve": invoice.status in ["SENT", "VIEWED"] and balance > 0,
+                    "payment_progress": invoice.payment_progress,
+                }
+            )
 
-        return Response({
-            "invoices": invoices_data,
-            "total_count": len(invoices_data),
-            "accessible_projects": [
-                {"id": access.project.id, "name": access.project.name}
-                for access in client_access
-            ]
-        })
+        return Response(
+            {
+                "invoices": invoices_data,
+                "total_count": len(invoices_data),
+                "accessible_projects": [
+                    {"id": access.project.id, "name": access.project.name}
+                    for access in client_access
+                ],
+            }
+        )
 
 
 class ClientInvoiceApprovalAPIView(APIView):
@@ -5590,50 +5973,50 @@ class ClientInvoiceApprovalAPIView(APIView):
         try:
             invoice = Invoice.objects.select_related("project").get(id=invoice_id)
         except Invoice.DoesNotExist:
-            return Response(
-                {"error": "Invoice not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Check if user has access to this project
-        has_access = ClientProjectAccess.objects.filter(
-            user=user,
-            project=invoice.project
-        ).exists()
+        has_access = ClientProjectAccess.objects.filter(user=user, project=invoice.project).exists()
 
         if not has_access:
             return Response(
                 {"error": "You do not have access to this invoice"},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         # Check if invoice can be approved
         if invoice.status not in ["SENT", "VIEWED"]:
             return Response(
                 {"error": f"Invoice cannot be approved (current status: {invoice.status})"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Mark as approved
         from django.utils import timezone
+
         invoice.status = "APPROVED"
         invoice.approved_date = timezone.now()
         invoice.save()
 
-        return Response({
-            "message": "Invoice approved successfully",
-            "invoice": {
-                "id": invoice.id,
-                "invoice_number": invoice.invoice_number,
-                "status": invoice.status,
-                "approved_date": invoice.approved_date.isoformat() if invoice.approved_date else None
+        return Response(
+            {
+                "message": "Invoice approved successfully",
+                "invoice": {
+                    "id": invoice.id,
+                    "invoice_number": invoice.invoice_number,
+                    "status": invoice.status,
+                    "approved_date": invoice.approved_date.isoformat()
+                    if invoice.approved_date
+                    else None,
+                },
             }
-        })
+        )
 
 
 # ============================================================================
 # Module 21: Business Intelligence Analytics API Endpoints
 # ============================================================================
+
 
 class BIAnalyticsViewSet(viewsets.ViewSet):
     # API endpoints for Business Intelligence metrics and analytics.
@@ -5657,7 +6040,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
             except ValueError:
                 return Response(
                     {"error": "Invalid date format. Use YYYY-MM-DD."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             as_of = timezone.localdate()
@@ -5684,7 +6067,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
             except ValueError:
                 return Response(
                     {"error": "Invalid date format. Use YYYY-MM-DD."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             as_of = timezone.localdate()
@@ -5695,7 +6078,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
         except ValueError:
             return Response(
                 {"error": "Invalid days parameter. Must be integer."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         service = FinancialAnalyticsService(as_of=as_of)
@@ -5712,10 +6095,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
             for row in data["rows"]
         ]
 
-        return Response({
-            "rows": serialized_rows,
-            "chart": data["chart"]
-        })
+        return Response({"rows": serialized_rows, "chart": data["chart"]})
 
     @action(detail=False, methods=["get"], url_path="margins")
     def project_margins(self, request):
@@ -5756,7 +6136,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
             except ValueError:
                 return Response(
                     {"error": "Invalid date format. Use YYYY-MM-DD."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             as_of = timezone.localdate()
@@ -5767,7 +6147,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
         except ValueError:
             return Response(
                 {"error": "Invalid limit parameter. Must be integer."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         service = FinancialAnalyticsService(as_of=as_of)
@@ -5779,6 +6159,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
 # ============================================================================
 # PHASE 4: FILE MANAGER API
 # ============================================================================
+
 
 class ProjectFileViewSet(viewsets.ModelViewSet):
     # ViewSet for managing project files.
@@ -5793,14 +6174,14 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
     # - category: Filter by category ID
     # - ordering: Sort by field (default: -uploaded_at)
 
-    queryset = ProjectFile.objects.select_related('project', 'category', 'uploaded_by').all()
+    queryset = ProjectFile.objects.select_related("project", "category", "uploaded_by").all()
     serializer_class = ProjectFileSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    filterset_fields = ['project', 'category', 'file_type', 'is_public']
-    search_fields = ['name', 'description', 'tags']
-    ordering_fields = ['uploaded_at', 'name', 'file_size']
-    ordering = ['-uploaded_at']
+    filterset_fields = ["project", "category", "file_type", "is_public"]
+    search_fields = ["name", "description", "tags"]
+    ordering_fields = ["uploaded_at", "name", "file_size"]
+    ordering = ["-uploaded_at"]
 
     def perform_create(self, serializer):
         # Auto-set uploaded_by to current user
@@ -5813,15 +6194,15 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
         # Check permissions - only uploader, project PM, or admin can delete
         user = request.user
         can_delete = (
-            instance.uploaded_by == user or
-            user.is_staff or
-            (hasattr(user, 'pm_projects') and instance.project in user.pm_projects.all())
+            instance.uploaded_by == user
+            or user.is_staff
+            or (hasattr(user, "pm_projects") and instance.project in user.pm_projects.all())
         )
 
         if not can_delete:
             return Response(
                 {"detail": "You do not have permission to delete this file."},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         # Delete the physical file
@@ -5838,6 +6219,7 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
 # PUSH NOTIFICATIONS API
 # ============================================================================
 
+
 class PushNotificationPreferencesView(APIView):
     # API endpoint for managing user push notification preferences
     # GET: Retrieve current preferences
@@ -5851,23 +6233,25 @@ class PushNotificationPreferencesView(APIView):
         preference, created = NotificationPreference.objects.get_or_create(
             user=request.user,
             defaults={
-                'push_enabled': False,
-                'email_enabled': True,
-                'preferences': {
-                    'chat': True,
-                    'mention': True,
-                    'task': True,
-                    'system': True,
-                }
-            }
+                "push_enabled": False,
+                "email_enabled": True,
+                "preferences": {
+                    "chat": True,
+                    "mention": True,
+                    "task": True,
+                    "system": True,
+                },
+            },
         )
 
-        return Response({
-            'push_enabled': preference.push_enabled,
-            'email_enabled': preference.email_enabled,
-            'preferences': preference.preferences,
-            'updated_at': preference.updated_at,
-        })
+        return Response(
+            {
+                "push_enabled": preference.push_enabled,
+                "email_enabled": preference.email_enabled,
+                "preferences": preference.preferences,
+                "updated_at": preference.updated_at,
+            }
+        )
 
     def patch(self, request):
         # Update user's notification preferences
@@ -5875,35 +6259,33 @@ class PushNotificationPreferencesView(APIView):
 
         preference, created = NotificationPreference.objects.get_or_create(
             user=request.user,
-            defaults={
-                'push_enabled': False,
-                'email_enabled': True,
-                'preferences': {}
-            }
+            defaults={"push_enabled": False, "email_enabled": True, "preferences": {}},
         )
 
         # Update fields
-        if 'push_enabled' in request.data:
-            preference.push_enabled = request.data['push_enabled']
+        if "push_enabled" in request.data:
+            preference.push_enabled = request.data["push_enabled"]
 
-        if 'email_enabled' in request.data:
-            preference.email_enabled = request.data['email_enabled']
+        if "email_enabled" in request.data:
+            preference.email_enabled = request.data["email_enabled"]
 
-        if 'preferences' in request.data:
+        if "preferences" in request.data:
             # Merge preferences instead of replacing
             current_prefs = preference.preferences or {}
-            new_prefs = request.data['preferences']
+            new_prefs = request.data["preferences"]
             current_prefs.update(new_prefs)
             preference.preferences = current_prefs
 
         preference.save()
 
-        return Response({
-            'push_enabled': preference.push_enabled,
-            'email_enabled': preference.email_enabled,
-            'preferences': preference.preferences,
-            'updated_at': preference.updated_at,
-        })
+        return Response(
+            {
+                "push_enabled": preference.push_enabled,
+                "email_enabled": preference.email_enabled,
+                "preferences": preference.preferences,
+                "updated_at": preference.updated_at,
+            }
+        )
 
 
 class DeviceTokenViewSet(viewsets.ModelViewSet):
@@ -5912,55 +6294,52 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
     # create: Register a new device token
     # destroy: Unregister a device token
     permission_classes = [IsAuthenticated]
-    serializer_class = 'DeviceTokenSerializer'  # Will be imported
+    serializer_class = "DeviceTokenSerializer"  # Will be imported
 
     def get_queryset(self):
         # Return only current user's active tokens
         from core.models import DeviceToken
-        return DeviceToken.objects.filter(
-            user=self.request.user,
-            is_active=True
-        ).order_by('-last_used')
+
+        return DeviceToken.objects.filter(user=self.request.user, is_active=True).order_by(
+            "-last_used"
+        )
 
     def create(self, request):
         # Register a new device token
         from core.push_notifications import PushNotificationService
 
-        token = request.data.get('token')
-        device_type = request.data.get('device_type', 'web')
-        device_name = request.data.get('device_name', '')
+        token = request.data.get("token")
+        device_type = request.data.get("device_type", "web")
+        device_name = request.data.get("device_name", "")
 
         if not token:
-            return Response(
-                {'error': 'Token is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate device type
-        valid_types = ['web', 'ios', 'android']
+        valid_types = ["web", "ios", "android"]
         if device_type not in valid_types:
             return Response(
-                {'error': f'Device type must be one of: {", ".join(valid_types)}'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": f"Device type must be one of: {', '.join(valid_types)}"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Register token using service
         push_service = PushNotificationService()
         device_token = push_service.register_device_token(
-            user=request.user,
-            token=token,
-            device_type=device_type,
-            device_name=device_name
+            user=request.user, token=token, device_type=device_type, device_name=device_name
         )
 
-        return Response({
-            'id': device_token.id,
-            'token': device_token.token,
-            'device_type': device_token.device_type,
-            'device_name': device_token.device_name,
-            'created_at': device_token.created_at,
-            'last_used': device_token.last_used,
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "id": device_token.id,
+                "token": device_token.token,
+                "device_type": device_token.device_type,
+                "device_name": device_token.device_name,
+                "created_at": device_token.created_at,
+                "last_used": device_token.last_used,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def destroy(self, request, pk=None):
         # Unregister a device token
@@ -5968,16 +6347,9 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
         from core.push_notifications import PushNotificationService
 
         try:
-            device_token = DeviceToken.objects.get(
-                id=pk,
-                user=request.user,
-                is_active=True
-            )
+            device_token = DeviceToken.objects.get(id=pk, user=request.user, is_active=True)
         except DeviceToken.DoesNotExist:
-            return Response(
-                {'error': 'Device token not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Device token not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Unregister token using service
         push_service = PushNotificationService()
@@ -5985,7 +6357,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=["post"])
     def test_notification(self, request):
         # Send a test push notification to all user's devices
         from core.push_notifications import PushNotificationService
@@ -5993,26 +6365,27 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
         push_service = PushNotificationService()
         success = push_service.send_notification(
             user=request.user,
-            title='Test Notification',
-            body='This is a test notification from Kibray',
+            title="Test Notification",
+            body="This is a test notification from Kibray",
             data={
-                'type': 'test',
-                'timestamp': datetime.now().isoformat(),
-            }
+                "type": "test",
+                "timestamp": datetime.now().isoformat(),
+            },
         )
 
         if success:
-            return Response({'message': 'Test notification sent successfully'})
+            return Response({"message": "Test notification sent successfully"})
         else:
             return Response(
-                {'error': 'Failed to send test notification'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Failed to send test notification"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
 # ============================================================================
 # WEBSOCKET METRICS DASHBOARD
 # ============================================================================
+
 
 class WebSocketMetricsView(APIView):
     # API endpoint for WebSocket metrics
@@ -6026,8 +6399,7 @@ class WebSocketMetricsView(APIView):
         # Check if user is staff
         if not request.user.is_staff:
             return Response(
-                {'error': 'Only staff can view metrics'},
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "Only staff can view metrics"}, status=status.HTTP_403_FORBIDDEN
             )
 
         summary = get_metrics_summary()
@@ -6046,33 +6418,35 @@ class WebSocketMetricsHistoryView(APIView):
         # Check if user is staff
         if not request.user.is_staff:
             return Response(
-                {'error': 'Only staff can view metrics'},
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "Only staff can view metrics"}, status=status.HTTP_403_FORBIDDEN
             )
 
         # Get time range from query params
-        hours = int(request.GET.get('hours', 24))
+        hours = int(request.GET.get("hours", 24))
         hours = min(hours, 168)  # Max 7 days
 
         # Get metrics from cache
         history = []
         for i in range(hours * 12):  # 5-minute intervals
-            timestamp_key = f'ws_metrics_{i}'
+            timestamp_key = f"ws_metrics_{i}"
             data = cache.get(timestamp_key)
             if data:
                 history.append(data)
 
-        return Response({
-            'hours': hours,
-            'interval_minutes': 5,
-            'data_points': len(history),
-            'data': history,
-        })
+        return Response(
+            {
+                "hours": hours,
+                "interval_minutes": 5,
+                "data_points": len(history),
+                "data": history,
+            }
+        )
 
 
 # ============================================================================
 # MESSAGE SEARCH
 # ============================================================================
+
 
 class ChatMessageSearchView(APIView):
     # Full-text search for chat messages
@@ -6093,17 +6467,14 @@ class ChatMessageSearchView(APIView):
         from core.models import ChatMessage
 
         # Get search query
-        search_query = request.GET.get('q', '').strip()
+        search_query = request.GET.get("q", "").strip()
         if not search_query:
             return Response(
-                {'error': 'Search query is required'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Search query is required"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Base queryset (exclude deleted messages)
-        queryset = ChatMessage.objects.filter(
-            is_deleted=False
-        ).select_related('user', 'channel')
+        queryset = ChatMessage.objects.filter(is_deleted=False).select_related("user", "channel")
 
         # Check user has access to channels
         # Users can only search in channels they're members of
@@ -6111,37 +6482,41 @@ class ChatMessageSearchView(APIView):
         queryset = queryset.filter(channel__in=accessible_channels)
 
         # Apply filters
-        channel_id = request.GET.get('channel')
+        channel_id = request.GET.get("channel")
         if channel_id:
             queryset = queryset.filter(channel_id=channel_id)
 
-        user_id = request.GET.get('user')
+        user_id = request.GET.get("user")
         if user_id:
             queryset = queryset.filter(user_id=user_id)
 
         # Full-text search
-        search = SearchQuery(search_query, config='english')
-        queryset = queryset.filter(search_vector=search).annotate(
-            rank=SearchRank('search_vector', search)
-        ).order_by('-rank', '-created_at')
+        search = SearchQuery(search_query, config="english")
+        queryset = (
+            queryset.filter(search_vector=search)
+            .annotate(rank=SearchRank("search_vector", search))
+            .order_by("-rank", "-created_at")
+        )
 
         # Pagination
-        limit = min(int(request.GET.get('limit', 20)), 100)
-        offset = int(request.GET.get('offset', 0))
+        limit = min(int(request.GET.get("limit", 20)), 100)
+        offset = int(request.GET.get("offset", 0))
 
         total_count = queryset.count()
-        messages = queryset[offset:offset + limit]
+        messages = queryset[offset : offset + limit]
 
         # Serialize results
         serializer = ChatMessageSerializer(messages, many=True)
 
-        return Response({
-            'count': total_count,
-            'limit': limit,
-            'offset': offset,
-            'next': offset + limit < total_count,
-            'results': serializer.data,
-        })
+        return Response(
+            {
+                "count": total_count,
+                "limit": limit,
+                "offset": offset,
+                "next": offset + limit < total_count,
+                "results": serializer.data,
+            }
+        )
 
 
 # ====================================================================
@@ -6151,7 +6526,7 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
     # API endpoint for managing PWA push notification subscriptions
     serializer_class = PushSubscriptionSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ["get", "post", "delete"]
 
     def get_queryset(self):
         # Users can only see their own subscriptions
@@ -6165,35 +6540,25 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
 
         return Response(
             {
-                'message': 'Successfully subscribed to push notifications',
-                'subscription': serializer.data,
+                "message": "Successfully subscribed to push notifications",
+                "subscription": serializer.data,
             },
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
 
-    @action(detail=False, methods=['post'], url_path='unsubscribe')
+    @action(detail=False, methods=["post"], url_path="unsubscribe")
     def unsubscribe(self, request):
         # Unsubscribe from push notifications by endpoint
-        endpoint = request.data.get('endpoint')
+        endpoint = request.data.get("endpoint")
 
         if not endpoint:
-            return Response(
-                {'error': 'Endpoint is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Endpoint is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         deleted_count, _ = PushSubscription.objects.filter(
-            user=request.user,
-            endpoint=endpoint
+            user=request.user, endpoint=endpoint
         ).delete()
 
         if deleted_count > 0:
-            return Response(
-                {'message': 'Successfully unsubscribed'},
-                status=status.HTTP_200_OK
-            )
+            return Response({"message": "Successfully unsubscribed"}, status=status.HTTP_200_OK)
         else:
-            return Response(
-                {'error': 'Subscription not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Subscription not found"}, status=status.HTTP_404_NOT_FOUND)

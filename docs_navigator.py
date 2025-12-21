@@ -11,23 +11,32 @@ import sys
 
 class Colors:
     """ANSI color codes for terminal output"""
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 def print_header():
     """Print the application header"""
-    print(f"\n{Colors.HEADER}{Colors.BOLD}╔══════════════════════════════════════════════════════════╗{Colors.ENDC}")
-    print(f"{Colors.HEADER}{Colors.BOLD}║     📖 KIBRAY - Documentation Navigator                  ║{Colors.ENDC}")
-    print(f"{Colors.HEADER}{Colors.BOLD}║     Quick access to project documentation               ║{Colors.ENDC}")
-    print(f"{Colors.HEADER}{Colors.BOLD}╚══════════════════════════════════════════════════════════╝{Colors.ENDC}\n")
+    print(
+        f"\n{Colors.HEADER}{Colors.BOLD}╔══════════════════════════════════════════════════════════╗{Colors.ENDC}"
+    )
+    print(
+        f"{Colors.HEADER}{Colors.BOLD}║     📖 KIBRAY - Documentation Navigator                  ║{Colors.ENDC}"
+    )
+    print(
+        f"{Colors.HEADER}{Colors.BOLD}║     Quick access to project documentation               ║{Colors.ENDC}"
+    )
+    print(
+        f"{Colors.HEADER}{Colors.BOLD}╚══════════════════════════════════════════════════════════╝{Colors.ENDC}\n"
+    )
 
 
 def get_project_root():
@@ -47,8 +56,18 @@ def print_menu():
         ("4", "⚡ Quick Start Guide", "QUICK_START.md", Colors.OKCYAN),
         ("", "", "", ""),  # Spacer
         ("5", "📋 Documentation Index", "docs/00_DOCUMENTATION_INDEX.md", Colors.OKBLUE),
-        ("6", "✅ Gaps A-C (Digital Signatures, Payroll, Invoices)", "docs/GAPS_COMPLETION_SUMMARY.md", Colors.OKBLUE),
-        ("7", "✅ Gaps D-F (Inventory, Financial, Client Portal)", "docs/GAPS_D_E_F_COMPLETION.md", Colors.OKBLUE),
+        (
+            "6",
+            "✅ Gaps A-C (Digital Signatures, Payroll, Invoices)",
+            "docs/GAPS_COMPLETION_SUMMARY.md",
+            Colors.OKBLUE,
+        ),
+        (
+            "7",
+            "✅ Gaps D-F (Inventory, Financial, Client Portal)",
+            "docs/GAPS_D_E_F_COMPLETION.md",
+            Colors.OKBLUE,
+        ),
         ("", "", "", ""),  # Spacer
         ("8", "📦 Modules Documentation", "list_modules", Colors.WARNING),
         ("9", "🗃️  View Archived Docs", "docs/archive/", Colors.WARNING),
@@ -86,10 +105,12 @@ def list_module_docs():
         print(f"  {status} {i}. {title}")
         print(f"     {Colors.OKCYAN}{filename}{Colors.ENDC}")
 
-    print(f"\n{Colors.WARNING}Enter module number to open, or 'b' to go back:{Colors.ENDC} ", end="")
+    print(
+        f"\n{Colors.WARNING}Enter module number to open, or 'b' to go back:{Colors.ENDC} ", end=""
+    )
     choice = input().strip().lower()
 
-    if choice == 'b':
+    if choice == "b":
         return
 
     try:
@@ -111,11 +132,11 @@ def open_file(filepath):
     print(f"\n{Colors.OKGREEN}📖 Opening: {filepath.name}{Colors.ENDC}")
 
     # Try different commands based on OS
-    if sys.platform == 'darwin':  # macOS
+    if sys.platform == "darwin":  # macOS
         os.system(f'open "{filepath}"')
-    elif sys.platform == 'linux':
+    elif sys.platform == "linux":
         os.system(f'xdg-open "{filepath}"')
-    elif sys.platform == 'win32':
+    elif sys.platform == "win32":
         os.system(f'start "" "{filepath}"')
     else:
         print(f"{Colors.WARNING}⚠️  Please open manually: {filepath}{Colors.ENDC}")
@@ -175,7 +196,9 @@ def main():
         elif choice == "9":
             archive_path = project_root / "docs" / "archive"
             if archive_path.exists():
-                print(f"\n{Colors.WARNING}⚠️  These documents are OBSOLETE. View for historical reference only.{Colors.ENDC}")
+                print(
+                    f"\n{Colors.WARNING}⚠️  These documents are OBSOLETE. View for historical reference only.{Colors.ENDC}"
+                )
                 open_file(archive_path / "README.md")
             else:
                 print(f"{Colors.FAIL}Archive directory not found!{Colors.ENDC}")

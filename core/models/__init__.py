@@ -30,7 +30,9 @@ class Project(models.Model):
         max_length=16,
         unique=True,
         blank=True,
-        help_text=_("Código amigable del proyecto (PRJ-0001, PRJ-0002...). Se genera automáticamente."),
+        help_text=_(
+            "Código amigable del proyecto (PRJ-0001, PRJ-0002...). Se genera automáticamente."
+        ),
     )
     client = models.CharField(max_length=100, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
@@ -38,11 +40,15 @@ class Project(models.Model):
     start_date = models.DateField(default=date.today)
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    paint_colors = models.TextField(blank=True, help_text=_("Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black"))
+    paint_colors = models.TextField(
+        blank=True, help_text=_("Ejemplo: SW 7008 Alabaster, SW 6258 Tricorn Black")
+    )
     paint_codes = models.TextField(
         blank=True, help_text=_("Códigos de pintura si son diferentes de los colores comunes")
     )
-    stains_or_finishes = models.TextField(blank=True, help_text=_("Ejemplo: Milesi Butternut 072 - 2 coats"))
+    stains_or_finishes = models.TextField(
+        blank=True, help_text=_("Ejemplo: Milesi Butternut 072 - 2 coats")
+    )
     number_of_rooms_or_areas = models.IntegerField(blank=True, null=True)
     number_of_paint_defects = models.IntegerField(
         blank=True, null=True, help_text=_("Número de manchas o imperfecciones detectadas")
@@ -50,18 +56,28 @@ class Project(models.Model):
     total_income = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     reflection_notes = models.TextField(
-        blank=True, help_text=_("Notas sobre aprendizajes, errores o mejoras para próximos proyectos")
+        blank=True,
+        help_text=_("Notas sobre aprendizajes, errores o mejoras para próximos proyectos"),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     # Presupuesto
     budget_total = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text=_("Presupuesto total asignado al proyecto")
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text=_("Presupuesto total asignado al proyecto"),
     )
     budget_labor = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text=_("Presupuesto para mano de obra")
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text=_("Presupuesto para mano de obra"),
     )
     budget_materials = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text=_("Presupuesto para materiales")
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text=_("Presupuesto para materiales"),
     )
     budget_other = models.DecimalField(
         max_digits=10,
@@ -128,10 +144,14 @@ class Project(models.Model):
         super().save(*args, **kwargs)
         # Asignar project_code después de tener PK con formato PRJ-YYYY-XXX
         if creating and not self.project_code:
-            year = (self.created_at.year if self.created_at else timezone.now().year)
+            year = self.created_at.year if self.created_at else timezone.now().year
             # Buscar último código del mismo año y calcular siguiente secuencia
             prefix = f"PRJ-{year}-"
-            last = Project.objects.filter(project_code__startswith=prefix).order_by("-project_code").first()
+            last = (
+                Project.objects.filter(project_code__startswith=prefix)
+                .order_by("-project_code")
+                .first()
+            )
             next_seq = 1
             if last and last.project_code:
                 try:
@@ -237,15 +257,21 @@ class ColorApproval(models.Model):
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="color_approvals")
-    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests")
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done")
+    requested_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_requests"
+    )
+    approved_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_approvals_done"
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     color_name = models.CharField(max_length=100)
     color_code = models.CharField(max_length=50, blank=True)
     brand = models.CharField(max_length=100, blank=True)
     location = models.CharField(max_length=200, blank=True, help_text=_("Ubicación de aplicación"))
     notes = models.TextField(blank=True)
-    client_signature = models.FileField(upload_to="color_approvals/signatures/", blank=True, null=True)
+    client_signature = models.FileField(
+        upload_to="color_approvals/signatures/", blank=True, null=True
+    )
     signed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -267,6 +293,7 @@ class ColorApproval(models.Model):
         self.save(update_fields=["status", "approved_by", "client_signature", "signed_at"])
         # Notificar PMs y cliente
         from core.models import Notification
+
         pms = User.objects.filter(profile__role="project_manager", is_active=True)
         for pm in pms:
             Notification.objects.create(
@@ -293,7 +320,9 @@ class ColorApproval(models.Model):
 class Income(models.Model):
     project = models.ForeignKey(Project, related_name="incomes", on_delete=models.CASCADE)
     project_name = models.CharField(max_length=255, verbose_name=_("Nombre del proyecto o factura"))
-    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("Cantidad recibida"))
+    amount = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name=_("Cantidad recibida")
+    )
     date = models.DateField(verbose_name=_("Fecha de ingreso"))
     payment_method = models.CharField(
         max_length=50,
@@ -306,9 +335,13 @@ class Income(models.Model):
         ],
         verbose_name=_("Método de pago"),
     )
-    category = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Categoría (opcional)"))
+    category = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name=_("Categoría (opcional)")
+    )
     description = models.TextField(blank=True, null=True, verbose_name=_("Descripción (opcional)"))
-    invoice = models.FileField(upload_to="incomes/", blank=True, null=True, verbose_name=_("Factura o comprobante"))
+    invoice = models.FileField(
+        upload_to="incomes/", blank=True, null=True, verbose_name=_("Factura o comprobante")
+    )
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notas (opcional)"))
 
     def __str__(self):
@@ -341,10 +374,16 @@ class Expense(models.Model):
     change_order = models.ForeignKey(
         "ChangeOrder", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses"
     )
-    cost_code = models.ForeignKey("CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses")
+    cost_code = models.ForeignKey(
+        "CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses"
+    )
     # Compatibilidad legacy: vínculo opcional a línea de factura
     invoice_line = models.ForeignKey(
-        "InvoiceLine", on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses_linked"
+        "InvoiceLine",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="expenses_linked",
     )
 
     def __str__(self):
@@ -369,7 +408,9 @@ class Employee(models.Model):
         editable=False,
         help_text="Código único del empleado (EMP-001, EMP-002...). Se genera automáticamente.",
     )
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="employee_profile")
+    user = models.OneToOneField(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="employee_profile"
+    )
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     social_security_number = models.CharField(max_length=20, unique=True)
@@ -424,13 +465,21 @@ class ResourceAssignment(models.Model):
         ("FULL_DAY", _("Día completo")),
     ]
 
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="resource_assignments")
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="resource_assignments")
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name="resource_assignments"
+    )
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="resource_assignments"
+    )
     date = models.DateField()
     shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, default="FULL_DAY")
     notes = models.CharField(max_length=255, blank=True)
     created_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_resource_assignments"
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_resource_assignments",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -451,11 +500,15 @@ class ResourceAssignment(models.Model):
             errors["date"] = _("Fecha requerida")
 
         if self.employee_id and self.date:
-            existing = ResourceAssignment.objects.filter(employee_id=self.employee_id, date=self.date).exclude(pk=self.pk)
+            existing = ResourceAssignment.objects.filter(
+                employee_id=self.employee_id, date=self.date
+            ).exclude(pk=self.pk)
 
             # Si ya hay un día completo, no permitir más asignaciones
             if any(a.shift == "FULL_DAY" for a in existing):
-                errors["shift"] = _("Este empleado ya tiene un turno de día completo en esta fecha.")
+                errors["shift"] = _(
+                    "Este empleado ya tiene un turno de día completo en esta fecha."
+                )
 
             if self.shift == "FULL_DAY" and existing.exists():
                 errors["shift"] = _("No se puede asignar día completo: ya tiene turnos asignados.")
@@ -524,12 +577,16 @@ class TimeEntry(models.Model):
     def __init__(self, *args, **kwargs):
         """Map test alias invoice_line -> invoiceline and handle reverse FK setup."""
         # Extract invoice_line if present (will be set after save)
-        self._invoice_line_to_set = kwargs.pop('invoice_line', None)
+        self._invoice_line_to_set = kwargs.pop("invoice_line", None)
         super().__init__(*args, **kwargs)
 
     @property
     def labor_cost(self):
-        if self.hours_worked is not None and self.employee and self.employee.hourly_rate is not None:
+        if (
+            self.hours_worked is not None
+            and self.employee
+            and self.employee.hourly_rate is not None
+        ):
             return (Decimal(self.hours_worked) * Decimal(self.employee.hourly_rate)).quantize(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
@@ -569,24 +626,24 @@ class TimeEntry(models.Model):
             if self.change_order:
                 if self.change_order.labor_rate_override:
                     self.billable_rate_snapshot = self.change_order.labor_rate_override
-                elif self.project and hasattr(self.project, 'default_co_labor_rate'):
+                elif self.project and hasattr(self.project, "default_co_labor_rate"):
                     self.billable_rate_snapshot = self.project.default_co_labor_rate
-            elif self.project and hasattr(self.project, 'default_co_labor_rate'):
+            elif self.project and hasattr(self.project, "default_co_labor_rate"):
                 self.billable_rate_snapshot = self.project.default_co_labor_rate
 
             # Ensure snapshots are never null for downstream calculations
             if self.cost_rate_snapshot is None:
-                self.cost_rate_snapshot = Decimal('0.00')
+                self.cost_rate_snapshot = Decimal("0.00")
             if self.billable_rate_snapshot is None:
-                self.billable_rate_snapshot = Decimal('0.00')
+                self.billable_rate_snapshot = Decimal("0.00")
 
         super().save(*args, **kwargs)
 
         # Handle invoice_line reverse FK assignment (if passed via __init__)
-        if hasattr(self, '_invoice_line_to_set') and self._invoice_line_to_set:
+        if hasattr(self, "_invoice_line_to_set") and self._invoice_line_to_set:
             self._invoice_line_to_set.time_entry = self
             self._invoice_line_to_set.save()
-            delattr(self, '_invoice_line_to_set')
+            delattr(self, "_invoice_line_to_set")
 
     def __str__(self):
         return f"{self.employee.first_name} | {self.date} | {self.project.name if self.project else 'No Project'}"
@@ -646,15 +703,24 @@ class ScheduleCategory(models.Model):
         items: "RelatedManager[ScheduleItem]"
         children: "RelatedManager[ScheduleCategory]"
 
-    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="schedule_categories")
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="schedule_categories"
+    )
     name = models.CharField(max_length=200)
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = models.ForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
     order = models.IntegerField(default=0)
     is_phase = models.BooleanField(
-        default=False, help_text="Marcar si esta categoría representa una fase agregada del cronograma"
+        default=False,
+        help_text="Marcar si esta categoría representa una fase agregada del cronograma",
     )
     cost_code = models.ForeignKey(
-        "CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="schedule_categories"
+        "CostCode",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="schedule_categories",
     )
 
     class Meta:
@@ -704,14 +770,24 @@ class ScheduleItem(models.Model):
     planned_end = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="NOT_STARTED")
     percent_complete = models.IntegerField(default=0)
-    is_milestone = models.BooleanField(default=False, help_text="Si es un hito se mostrará como diamante en el Gantt")
+    is_milestone = models.BooleanField(
+        default=False, help_text="Si es un hito se mostrará como diamante en el Gantt"
+    )
 
     # Vínculos contables/estimación (opcionales)
     budget_line = models.ForeignKey(
-        "BudgetLine", on_delete=models.SET_NULL, null=True, blank=True, related_name="schedule_items"
+        "BudgetLine",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="schedule_items",
     )
     estimate_line = models.ForeignKey(
-        "EstimateLine", on_delete=models.SET_NULL, null=True, blank=True, related_name="schedule_items"
+        "EstimateLine",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="schedule_items",
     )
     cost_code = models.ForeignKey(
         "CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="schedule_items"
@@ -759,7 +835,8 @@ class SchedulePhaseV2(models.Model):
     color = models.CharField(max_length=32, default="#4F46E5")
     order = models.IntegerField(default=0)
     allow_sunday = models.BooleanField(
-        default=False, help_text=_("Permitir trabajo en domingo para esta fase (por defecto se bloquea)")
+        default=False,
+        help_text=_("Permitir trabajo en domingo para esta fase (por defecto se bloquea)"),
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -791,15 +868,21 @@ class ScheduleItemV2(models.Model):
     description = models.TextField(blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="gantt_items")
+    assigned_to = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="gantt_items"
+    )
     color = models.CharField(max_length=32, default="#22D3EE")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="planned")
     progress = models.PositiveIntegerField(default=0, help_text="0-100")
     order = models.IntegerField(default=0)
-    is_milestone = models.BooleanField(default=False, help_text=_("Si es hito, start=end y se muestra como diamante"))
+    is_milestone = models.BooleanField(
+        default=False, help_text=_("Si es hito, start=end y se muestra como diamante")
+    )
     allow_sunday_override = models.BooleanField(
         default=False,
-        help_text=_("Permitir trabajo en domingo solo para este item (override de la fase/proyecto)"),
+        help_text=_(
+            "Permitir trabajo en domingo solo para este item (override de la fase/proyecto)"
+        ),
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -890,7 +973,11 @@ class ScheduleDependencyV2(models.Model):
 
     def clean(self):
         errors = {}
-        if self.source_item_id and self.target_item_id and self.source_item_id == self.target_item_id:
+        if (
+            self.source_item_id
+            and self.target_item_id
+            and self.source_item_id == self.target_item_id
+        ):
             errors["target_item"] = _("Un item no puede depender de sí mismo")
         # Validar mismo proyecto para evitar cross-project links
         if (
@@ -933,7 +1020,9 @@ class PMBlockedDay(models.Model):
     )
     notes = models.TextField(blank=True, help_text=_("Notas adicionales"))
     is_full_day = models.BooleanField(default=True, help_text=_("Día completo o parcial"))
-    start_time = models.TimeField(null=True, blank=True, help_text=_("Hora de inicio si es parcial"))
+    start_time = models.TimeField(
+        null=True, blank=True, help_text=_("Hora de inicio si es parcial")
+    )
     end_time = models.TimeField(null=True, blank=True, help_text=_("Hora de fin si es parcial"))
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -962,9 +1051,7 @@ class PMBlockedDay(models.Model):
                     _("Para días parciales, debe especificar hora de inicio y fin")
                 )
             if self.start_time >= self.end_time:
-                raise ValidationError(
-                    _("La hora de inicio debe ser anterior a la hora de fin")
-                )
+                raise ValidationError(_("La hora de inicio debe ser anterior a la hora de fin"))
 
 
 # ---------------------
@@ -1009,7 +1096,10 @@ class Task(models.Model):
 
     # Q11.6: Priorización
     priority = models.CharField(
-        max_length=20, choices=PRIORITY_CHOICES, default="medium", help_text=_("Prioridad de la tarea")
+        max_length=20,
+        choices=PRIORITY_CHOICES,
+        default="medium",
+        help_text=_("Prioridad de la tarea"),
     )
 
     created_by = models.ForeignKey(
@@ -1030,7 +1120,9 @@ class Task(models.Model):
     )
 
     # Q11.1: Due date opcional
-    due_date = models.DateField(null=True, blank=True, help_text="Fecha límite opcional para completar la tarea")
+    due_date = models.DateField(
+        null=True, blank=True, help_text="Fecha límite opcional para completar la tarea"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -1038,9 +1130,15 @@ class Task(models.Model):
     progress_percent = models.IntegerField(default=0, help_text="Porcentaje de progreso (0-100)")
     is_touchup = models.BooleanField(default=False, help_text="Marcar si esta tarea es un touch-up")
     # Q17.7 / Q17.9: Client request flags (added via migration 0069, missing in model definition)
-    is_client_request = models.BooleanField(default=False, help_text="Q17.7: Task created by client as request")
-    client_cancelled = models.BooleanField(default=False, help_text="Q17.9: Client cancelled their own request")
-    cancellation_reason = models.TextField(blank=True, help_text="Motivo de cancelación proporcionado por el cliente")
+    is_client_request = models.BooleanField(
+        default=False, help_text="Q17.7: Task created by client as request"
+    )
+    client_cancelled = models.BooleanField(
+        default=False, help_text="Q17.9: Client cancelled their own request"
+    )
+    cancellation_reason = models.TextField(
+        blank=True, help_text="Motivo de cancelación proporcionado por el cliente"
+    )
 
     # Q11.13: Time tracking integrado (botón inicio/fin)
     started_at = models.DateTimeField(
@@ -1052,7 +1150,9 @@ class Task(models.Model):
 
     # Para touch-ups: permitir adjuntar imagen directamente a la tarea
     # NOTA: Q11.8 - Para versionado usar TaskImage model (ver abajo)
-    image = models.ImageField(upload_to="tasks/", blank=True, null=True, help_text="Foto del touch-up (principal)")
+    image = models.ImageField(
+        upload_to="tasks/", blank=True, null=True, help_text="Foto del touch-up (principal)"
+    )
 
     # Enlace opcional a item del cronograma jerárquico
     schedule_item = models.ForeignKey(
@@ -1093,7 +1193,9 @@ class Task(models.Model):
             return False
 
         if self.pk and has_circular_dependency(self):
-            errors["dependencies"] = _("Dependencia circular detectada. Las tareas no pueden formar ciclos.")
+            errors["dependencies"] = _(
+                "Dependencia circular detectada. Las tareas no pueden formar ciclos."
+            )
         if errors:
             raise ValidationError(errors)
 
@@ -1148,7 +1250,9 @@ class Task(models.Model):
         self._change_notes = reason or "Rechazada por PM"
         self.save(skip_validation=True)
         if user and hasattr(user, "profile"):
-            Profile.objects.filter(pk=user.profile.pk).update(rejections_count=F("rejections_count") + 1)
+            Profile.objects.filter(pk=user.profile.pk).update(
+                rejections_count=F("rejections_count") + 1
+            )
             user.profile.refresh_from_db()
 
     def get_time_tracked_hours(self):
@@ -1171,7 +1275,11 @@ class Task(models.Model):
     @property
     def reopen_events_count(self):
         """Número de veces que la tarea fue reabierta."""
-        return self.status_changes.filter(old_status="Completada").exclude(new_status="Completada").count()
+        return (
+            self.status_changes.filter(old_status="Completada")
+            .exclude(new_status="Completada")
+            .count()
+        )
 
     def add_image(self, image_file, uploaded_by=None, caption=""):
         """Agregar nueva imagen versionada para touch-ups."""
@@ -1242,11 +1350,15 @@ class Task(models.Model):
         link = reverse("task_detail", args=[self.id])
         changed_by = getattr(self, "_current_user", None)
         changed_by_name = changed_by.username if changed_by else "Sistema"
-        assigned_user = self.assigned_to.user if self.assigned_to and self.assigned_to.user else None
+        assigned_user = (
+            self.assigned_to.user if self.assigned_to and self.assigned_to.user else None
+        )
         if assigned_user and assigned_user != changed_by:
             Notification.objects.create(
                 user=assigned_user,
-                notification_type="task_completed" if self.status == "Completada" else "task_created",
+                notification_type="task_completed"
+                if self.status == "Completada"
+                else "task_created",
                 title=f"Tarea actualizada: {self.title}",
                 message=f'{changed_by_name} cambió el estado de "{self.title}" de {old_status} a {self.status}',
                 related_object_type="task",
@@ -1275,7 +1387,9 @@ class Task(models.Model):
         link = reverse("task_detail", args=[self.id])
         assigned_by = getattr(self, "_current_user", None)
         assigned_by_name = assigned_by.username if assigned_by else "Sistema"
-        assigned_user = self.assigned_to.user if self.assigned_to and self.assigned_to.user else None
+        assigned_user = (
+            self.assigned_to.user if self.assigned_to and self.assigned_to.user else None
+        )
         if assigned_user:
             Notification.objects.create(
                 user=assigned_user,
@@ -1318,7 +1432,9 @@ class TaskDependency(models.Model):
         ("SF", "Start-to-Finish"),
     ]
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="incoming_dependencies")
-    predecessor = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="outgoing_dependencies")
+    predecessor = models.ForeignKey(
+        Task, on_delete=models.CASCADE, related_name="outgoing_dependencies"
+    )
     type = models.CharField(max_length=2, choices=DEP_TYPES, default="FS")
     lag_minutes = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1375,7 +1491,9 @@ class TaskDependency(models.Model):
             and self.predecessor_id
             and TaskDependency.would_create_cycle(self.task_id, self.predecessor_id)
         ):
-            errors["predecessor"] = _("Dependencia circular detectada. Las tareas no pueden formar ciclos.")
+            errors["predecessor"] = _(
+                "Dependencia circular detectada. Las tareas no pueden formar ciclos."
+            )
         if errors:
             raise ValidationError(errors)
 
@@ -1467,17 +1585,30 @@ class TaskTemplate(models.Model):
     title = models.CharField(max_length=200, db_index=True)
     description = models.TextField(blank=True)
     category = models.CharField(
-        max_length=50, choices=CATEGORY_CHOICES, default="other", help_text="Categoría para organizar plantillas"
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        default="other",
+        help_text="Categoría para organizar plantillas",
     )
     default_priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="medium")
     estimated_hours = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    tags = models.JSONField(default=list, blank=True, help_text="List of keyword tags for fuzzy search")
-    checklist = models.JSONField(default=list, blank=True, help_text="Ordered checklist items strings")
+    tags = models.JSONField(
+        default=list, blank=True, help_text="List of keyword tags for fuzzy search"
+    )
+    checklist = models.JSONField(
+        default=list, blank=True, help_text="Ordered checklist items strings"
+    )
 
     # Module 29 enhancements
-    sop_reference = models.URLField(blank=True, help_text="Link to Standard Operating Procedure document")
-    usage_count = models.IntegerField(default=0, help_text="Times this template has been used (analytics)")
-    last_used = models.DateTimeField(null=True, blank=True, help_text="Last time this template was instantiated")
+    sop_reference = models.URLField(
+        blank=True, help_text="Link to Standard Operating Procedure document"
+    )
+    usage_count = models.IntegerField(
+        default=0, help_text="Times this template has been used (analytics)"
+    )
+    last_used = models.DateTimeField(
+        null=True, blank=True, help_text="Last time this template was instantiated"
+    )
 
     is_active = models.BooleanField(default=True)
     is_favorite = models.BooleanField(default=False, help_text="Mark as favorite for quick access")
@@ -1653,7 +1784,10 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     language = models.CharField(
-        max_length=5, choices=[("en", "English"), ("es", "Español")], default="en", help_text="Preferred UI language"
+        max_length=5,
+        choices=[("en", "English"), ("es", "Español")],
+        default="en",
+        help_text="Preferred UI language",
     )
     rejections_count = models.IntegerField(default=0)
 
@@ -1752,22 +1886,26 @@ class ChangeOrder(models.Model):
         default="draft",
     )
     notes = models.TextField(blank=True)
-    color = models.CharField(max_length=7, blank=True, null=True, help_text="Color hex (ej: #FF5733)")
-    reference_code = models.CharField(max_length=50, blank=True, null=True, help_text="Código de referencia o color")
+    color = models.CharField(
+        max_length=7, blank=True, null=True, help_text="Color hex (ej: #FF5733)"
+    )
+    reference_code = models.CharField(
+        max_length=50, blank=True, null=True, help_text="Código de referencia o color"
+    )
     # Compatibilidad: PDF firmado generado por flujo de firmas
     signed_pdf = models.FileField(upload_to="changeorders/signed_pdfs/", null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         """Map test aliases to actual field names."""
         # Map billing_hourly_rate -> labor_rate_override (only if not zero or if labor_rate_override not set)
-        if 'billing_hourly_rate' in kwargs:
-            bhr = kwargs.pop('billing_hourly_rate')
+        if "billing_hourly_rate" in kwargs:
+            bhr = kwargs.pop("billing_hourly_rate")
             # Only set labor_rate_override if billing_hourly_rate is non-zero OR labor_rate_override not provided
-            if bhr or 'labor_rate_override' not in kwargs:
-                kwargs['labor_rate_override'] = bhr
+            if bhr or "labor_rate_override" not in kwargs:
+                kwargs["labor_rate_override"] = bhr
         # Map material_markup_pct -> material_markup_percent
-        if 'material_markup_pct' in kwargs:
-            kwargs['material_markup_percent'] = kwargs.pop('material_markup_pct')
+        if "material_markup_pct" in kwargs:
+            kwargs["material_markup_percent"] = kwargs.pop("material_markup_pct")
         super().__init__(*args, **kwargs)
 
     def __str__(self):
@@ -1776,9 +1914,12 @@ class ChangeOrder(models.Model):
     def clean(self):
         """Validate T&M change orders have amount=0."""
         from django.core.exceptions import ValidationError
+
         errors = {}
-        if self.pricing_type == 'T_AND_M' and self.amount != Decimal('0.00'):
-            errors['amount'] = "Los Change Orders de Tiempo y Materiales deben tener amount=0. El total se calcula dinámicamente."
+        if self.pricing_type == "T_AND_M" and self.amount != Decimal("0.00"):
+            errors["amount"] = (
+                "Los Change Orders de Tiempo y Materiales deben tener amount=0. El total se calcula dinámicamente."
+            )
         if errors:
             raise ValidationError(errors)
 
@@ -1789,9 +1930,13 @@ class ChangeOrder(models.Model):
         """
         if self.labor_rate_override:
             return self.labor_rate_override
-        if self.project and hasattr(self.project, 'default_co_labor_rate') and self.project.default_co_labor_rate:
+        if (
+            self.project
+            and hasattr(self.project, "default_co_labor_rate")
+            and self.project.default_co_labor_rate
+        ):
             return self.project.default_co_labor_rate
-        return Decimal('50.00')  # Fallback default
+        return Decimal("50.00")  # Fallback default
 
     # Alias expected by tests
     def get_effective_labor_rate(self) -> Decimal:
@@ -1832,7 +1977,9 @@ class ChangeOrderPhoto(models.Model):
     annotations = models.TextField(blank=True, help_text="JSON con anotaciones dibujadas")
     uploaded_at = models.DateTimeField(auto_now_add=True)
     order = models.IntegerField(default=0)
-    updated_at = models.DateTimeField(auto_now=True, help_text="Se actualiza al reemplazar la imagen anotada")
+    updated_at = models.DateTimeField(
+        auto_now=True, help_text="Se actualiza al reemplazar la imagen anotada"
+    )
     original_image = models.ImageField(
         upload_to="changeorders/photos/original/",
         blank=True,
@@ -1863,7 +2010,9 @@ class ChangeOrderPhoto(models.Model):
             # Duplicar sin leer todo a memoria? self.image.read() aseguramos stream.
             orig_bytes = self.image.read()
             ext = self.image.name.rsplit(".", 1)[-1]
-            self.original_image.save(f"original_{self.id}_{ts}.{ext}", ContentFile(orig_bytes), save=False)
+            self.original_image.save(
+                f"original_{self.id}_{ts}.{ext}", ContentFile(orig_bytes), save=False
+            )
         filename = f"annotated_{self.id}_{ts}.{extension}"
         self.image.save(filename, ContentFile(annotated_content), save=False)
         self.save()
@@ -1894,7 +2043,9 @@ class PayrollPeriod(models.Model):
     )
     notes = models.TextField(blank=True)
     # Q16.9 validation errors tracking
-    validation_errors = models.JSONField(default=list, blank=True, help_text="Q16.9: Validation errors for this period")
+    validation_errors = models.JSONField(
+        default=list, blank=True, help_text="Q16.9: Validation errors for this period"
+    )
     # Q16.6 approval audit trail
     approved_by = models.ForeignKey(
         User,
@@ -1904,7 +2055,9 @@ class PayrollPeriod(models.Model):
         related_name="approved_payroll_periods",
         help_text="Admin who approved this period",
     )
-    approved_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when period was approved")
+    approved_at = models.DateTimeField(
+        null=True, blank=True, help_text="Timestamp when period was approved"
+    )
 
     class Meta:
         ordering = ["-week_start"]
@@ -1919,7 +2072,9 @@ class PayrollPeriod(models.Model):
 
     def total_paid(self):
         """Calcula cuánto se ha pagado de esta nómina"""
-        return sum(payment.amount for record in self.records.all() for payment in record.payments.all())
+        return sum(
+            payment.amount for record in self.records.all() for payment in record.payments.all()
+        )
 
     def balance_due(self):
         """Calcula cuánto falta por pagar"""
@@ -1990,7 +2145,9 @@ class PayrollPeriod(models.Model):
 class PayrollRecord(models.Model):
     """Registro individual de nómina por empleado por semana"""
 
-    period = models.ForeignKey(PayrollPeriod, related_name="records", on_delete=models.CASCADE, null=True, blank=True)
+    period = models.ForeignKey(
+        PayrollPeriod, related_name="records", on_delete=models.CASCADE, null=True, blank=True
+    )
     if TYPE_CHECKING:
         payments: "RelatedManager[PayrollPayment]"
 
@@ -2002,7 +2159,11 @@ class PayrollRecord(models.Model):
     total_hours = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal("0"))
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2)
     adjusted_rate = models.DecimalField(
-        max_digits=8, decimal_places=2, null=True, blank=True, help_text="Tasa ajustada para esta semana (override)"
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Tasa ajustada para esta semana (override)",
     )
     total_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     # Q16.5 overtime & regular hours breakdown
@@ -2016,20 +2177,28 @@ class PayrollRecord(models.Model):
         max_digits=8, decimal_places=2, null=True, blank=True, help_text="Overtime rate override"
     )
     # Q16.5 bonuses & deductions
-    bonus = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Bonus amount")
+    bonus = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Bonus amount"
+    )
     deductions = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Total deductions"
     )
     deduction_notes = models.TextField(blank=True, help_text="Details of deductions")
     # Q16.8 tax & gross/net pay tracking
     gross_pay = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Gross pay before deductions"
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text="Gross pay before deductions",
     )
     tax_withheld = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Tax withholding"
     )
     net_pay = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Net pay after deductions & tax"
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text="Net pay after deductions & tax",
     )
     # Q16.10 manual adjustment audit
     manually_adjusted = models.BooleanField(default=False, help_text="True if manually adjusted")
@@ -2044,7 +2213,9 @@ class PayrollRecord(models.Model):
     adjusted_at = models.DateTimeField(null=True, blank=True, help_text="When adjustment occurred")
     adjustment_reason = models.TextField(blank=True, help_text="Reason for manual adjustment")
     # Q16.15 missing days
-    missing_days = models.JSONField(default=list, blank=True, help_text="Dates with no time entries")
+    missing_days = models.JSONField(
+        default=list, blank=True, help_text="Dates with no time entries"
+    )
     # Q16.16 project breakdown
     project_hours = models.JSONField(default=dict, blank=True, help_text="Hours by project id")
     # Q16.13 linked expense
@@ -2093,7 +2264,9 @@ class PayrollRecord(models.Model):
 
         # Net pay (gross - deductions - taxes)
         self.net_pay = (
-            self.gross_pay - getattr(self, "deductions", Decimal("0")) - getattr(self, "tax_withheld", Decimal("0"))
+            self.gross_pay
+            - getattr(self, "deductions", Decimal("0"))
+            - getattr(self, "tax_withheld", Decimal("0"))
         )
 
         # Total pay is net pay
@@ -2120,7 +2293,9 @@ class PayrollRecord(models.Model):
         while current_date <= self.week_end:
             # Skip weekends (optional - can be configured)
             if current_date.weekday() < 5:  # Monday=0, Friday=4
-                entries = TimeEntry.objects.filter(employee=self.employee, date=current_date).exists()
+                entries = TimeEntry.objects.filter(
+                    employee=self.employee, date=current_date
+                ).exists()
 
                 if not entries:
                     missing.append(current_date.isoformat())
@@ -2181,7 +2356,7 @@ class PayrollRecord(models.Model):
             description=(
                 f"Labor cost for {self.employee.first_name} {self.employee.last_name}\n"
                 f"Week: {self.week_start} to {self.week_end}\n"
-                f"Hours: {self.total_hours} ({getattr(self,'regular_hours',0)} regular + {getattr(self,'overtime_hours',0)} OT)"
+                f"Hours: {self.total_hours} ({getattr(self, 'regular_hours', 0)} regular + {getattr(self, 'overtime_hours', 0)} OT)"
             ),
         )
 
@@ -2201,7 +2376,9 @@ class PayrollRecord(models.Model):
 class PayrollPayment(models.Model):
     """Registro de pagos parciales o completos de nómina"""
 
-    payroll_record = models.ForeignKey(PayrollRecord, related_name="payments", on_delete=models.CASCADE)
+    payroll_record = models.ForeignKey(
+        PayrollRecord, related_name="payments", on_delete=models.CASCADE
+    )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField()
     payment_method = models.CharField(
@@ -2256,7 +2433,9 @@ class TwoFactorProfile(models.Model):
         return b32
 
     @staticmethod
-    def _totp(secret_b32: str, for_time: int | None = None, period: int = 30, digits: int = 6) -> str:
+    def _totp(
+        secret_b32: str, for_time: int | None = None, period: int = 30, digits: int = 6
+    ) -> str:
         if for_time is None:
             for_time = int(time.time())
         counter = int(for_time // period)
@@ -2364,7 +2543,9 @@ class Invoice(models.Model):
     viewed_date = models.DateTimeField(null=True, blank=True)
     approved_date = models.DateTimeField(null=True, blank=True)
     paid_date = models.DateTimeField(null=True, blank=True)
-    sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="invoices_sent")
+    sent_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="invoices_sent"
+    )
 
     # Payment tracking (NEW)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
@@ -2372,7 +2553,11 @@ class Invoice(models.Model):
     # Restored fields for compatibility with legacy flows/tests
     invoice_type = models.CharField(
         max_length=20,
-        choices=[("standard", "Por Items"), ("deposit", "Anticipo/Porcentaje"), ("final", "Cierre")],
+        choices=[
+            ("standard", "Por Items"),
+            ("deposit", "Anticipo/Porcentaje"),
+            ("final", "Cierre"),
+        ],
         default="standard",
         help_text="Tipo de factura: Items, Anticipo o Cierre final",
     )
@@ -2389,7 +2574,8 @@ class Invoice(models.Model):
     # Legacy field (DEPRECATED): mantener temporalmente para reportes antiguos.
     # Será removido en futura migración; usar amount_paid >= total_amount para determinar pago completo.
     is_paid = models.BooleanField(
-        default=False, help_text="DEPRECATED: usar amount_paid y total_amount; se eliminará tras migración de reportes."
+        default=False,
+        help_text="DEPRECATED: usar amount_paid y total_amount; se eliminará tras migración de reportes.",
     )
     pdf = models.FileField(upload_to="invoices/", blank=True, null=True)
     notes = models.TextField(blank=True)
@@ -2457,7 +2643,9 @@ class Invoice(models.Model):
         if not self.invoice_number:
             # Si existe una Estimate aprobada más reciente, usar su código como prefijo
             approved_estimate = getattr(
-                self.project.estimates.filter(approved=True).order_by("-created_at").first(), "code", None
+                self.project.estimates.filter(approved=True).order_by("-created_at").first(),
+                "code",
+                None,
             )
             if approved_estimate:
                 seq = Invoice.objects.filter(project=self.project).count() + 1
@@ -2496,7 +2684,9 @@ class Invoice(models.Model):
         )
         available = project_total - existing
         if self.total_amount and self.total_amount > available:
-            raise ValidationError({"total_amount": f"El total excede el presupuesto disponible (${available:.2f})."})
+            raise ValidationError(
+                {"total_amount": f"El total excede el presupuesto disponible (${available:.2f})."}
+            )
 
     def __str__(self):
         return f"{self.invoice_number} - {self.project.name}"
@@ -2536,7 +2726,9 @@ class InvoicePayment(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField()
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default="CHECK")
+    payment_method = models.CharField(
+        max_length=20, choices=PAYMENT_METHOD_CHOICES, default="CHECK"
+    )
     reference = models.CharField(max_length=100, blank=True, help_text="Check #, Transfer ID, etc.")
     notes = models.TextField(blank=True)
     recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -2591,13 +2783,21 @@ class InvoiceLineEstimate(models.Model):
     Ensures the sum of percentage_billed per estimate_line never exceeds 100%.
     """
 
-    invoice_line = models.ForeignKey(InvoiceLine, on_delete=models.CASCADE, related_name="estimate_billings")
-    estimate_line = models.ForeignKey("EstimateLine", on_delete=models.PROTECT, related_name="invoice_billings")
+    invoice_line = models.ForeignKey(
+        InvoiceLine, on_delete=models.CASCADE, related_name="estimate_billings"
+    )
+    estimate_line = models.ForeignKey(
+        "EstimateLine", on_delete=models.PROTECT, related_name="invoice_billings"
+    )
     percentage_billed = models.DecimalField(
-        max_digits=5, decimal_places=2, help_text="Percentage of this estimate line being billed (0.00-100.00)"
+        max_digits=5,
+        decimal_places=2,
+        help_text="Percentage of this estimate line being billed (0.00-100.00)",
     )
     amount = models.DecimalField(
-        max_digits=10, decimal_places=2, help_text="Amount = estimate_line.total * (percentage_billed/100)"
+        max_digits=10,
+        decimal_places=2,
+        help_text="Amount = estimate_line.total * (percentage_billed/100)",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -2686,7 +2886,9 @@ class BudgetLine(models.Model):
         if self.planned_start and self.planned_finish and self.planned_finish < self.planned_start:
             raise ValidationError("Planned finish must be on/after planned start.")
         # weight_override entre 0 y 1
-        if self.weight_override is not None and (self.weight_override < 0 or self.weight_override > 1):
+        if self.weight_override is not None and (
+            self.weight_override < 0 or self.weight_override > 1
+        ):
             raise ValidationError("Weight override must be between 0 and 1.")
 
 
@@ -2701,9 +2903,14 @@ class Estimate(models.Model):
     approved = models.BooleanField(default=False)
     # Business-facing code: KP + client abbreviation + sequence starting at 1000
     code = models.CharField(
-        max_length=40, unique=True, blank=True, help_text="KP + siglas del cliente + secuencia (desde 1000)"
+        max_length=40,
+        unique=True,
+        blank=True,
+        help_text="KP + siglas del cliente + secuencia (desde 1000)",
     )
-    takeoff_link = models.URLField(blank=True, help_text="Link a Dropbox/Drive con el takeoff o soporte")
+    takeoff_link = models.URLField(
+        blank=True, help_text="Link a Dropbox/Drive con el takeoff o soporte"
+    )
     markup_material = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))  # %
     markup_labor = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))
     overhead_pct = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))
@@ -2765,7 +2972,9 @@ class EstimateLine(models.Model):
     other_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
 
     def direct_cost(self):
-        return (self.qty or 0) * (self.labor_unit_cost + self.material_unit_cost + self.other_unit_cost)
+        return (self.qty or 0) * (
+            self.labor_unit_cost + self.material_unit_cost + self.other_unit_cost
+        )
 
     def __str__(self):
         return f"{self.estimate} | {self.cost_code.code}"
@@ -2831,12 +3040,17 @@ class DailyLog(models.Model):
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="daily_logs")
     date = models.DateField()
-    weather = models.CharField(max_length=120, blank=True, help_text="Condiciones climáticas del día")
+    weather = models.CharField(
+        max_length=120, blank=True, help_text="Condiciones climáticas del día"
+    )
     crew_count = models.PositiveIntegerField(default=0, help_text="Número de personas trabajando")
 
     # Tareas completadas ese día (muchos a muchos)
     completed_tasks = models.ManyToManyField(
-        "Task", blank=True, related_name="daily_logs", help_text="Tareas completadas o con progreso este día"
+        "Task",
+        blank=True,
+        related_name="daily_logs",
+        help_text="Tareas completadas o con progreso este día",
     )
 
     # Notas y detalles
@@ -2856,7 +3070,10 @@ class DailyLog(models.Model):
         help_text="Actividad principal del schedule (ej: Cubrir y Preparar)",
     )
     schedule_progress_percent = models.DecimalField(
-        max_digits=5, decimal_places=2, default=0, help_text="Progreso de la actividad principal (%)"
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text="Progreso de la actividad principal (%)",
     )
 
     # Fotos del día
@@ -2875,11 +3092,16 @@ class DailyLog(models.Model):
         help_text="Plantillas previstas para instanciar tareas del día",
     )
     planned_tasks = models.ManyToManyField(
-        "Task", blank=True, related_name="planned_in_logs", help_text="Tareas creadas desde plantillas para este día"
+        "Task",
+        blank=True,
+        related_name="planned_in_logs",
+        help_text="Tareas creadas desde plantillas para este día",
     )
     is_complete = models.BooleanField(default=False, help_text="Plan diario marcado como completo")
     incomplete_reason = models.TextField(blank=True, help_text="Motivo si el plan quedó incompleto")
-    auto_weather = models.BooleanField(default=True, help_text="Si se auto‑rellena el clima (Módulo 30)")
+    auto_weather = models.BooleanField(
+        default=True, help_text="Si se auto‑rellena el clima (Módulo 30)"
+    )
 
     class Meta:
         unique_together = ("project", "date")
@@ -2924,7 +3146,9 @@ class DailyLog(models.Model):
         else:
             done = self.planned_tasks.filter(status="Completada").count()
             self.is_complete = done == total
-            self.incomplete_reason = "" if self.is_complete else f"Faltan {total - done} tareas por completar"
+            self.incomplete_reason = (
+                "" if self.is_complete else f"Faltan {total - done} tareas por completar"
+            )
         self.save(update_fields=["is_complete", "incomplete_reason"])
         return self.is_complete
 
@@ -2947,7 +3171,9 @@ class RFI(models.Model):
     question = models.TextField()
     answer = models.TextField(blank=True)
     status = models.CharField(
-        max_length=20, choices=[("open", "Open"), ("answered", "Answered"), ("closed", "Closed")], default="open"
+        max_length=20,
+        choices=[("open", "Open"), ("answered", "Answered"), ("closed", "Closed")],
+        default="open",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     answered_at = models.DateTimeField(null=True, blank=True)
@@ -2965,7 +3191,9 @@ class Issue(models.Model):
     title = models.CharField(max_length=150)
     description = models.TextField(blank=True)
     severity = models.CharField(
-        max_length=20, choices=[("low", "Low"), ("medium", "Medium"), ("high", "High")], default="medium"
+        max_length=20,
+        choices=[("low", "Low"), ("medium", "Medium"), ("high", "High")],
+        default="medium",
     )
     status = models.CharField(
         max_length=20,
@@ -3005,10 +3233,14 @@ class Risk(models.Model):
 
 
 class BudgetProgress(models.Model):
-    budget_line = models.ForeignKey(BudgetLine, on_delete=models.CASCADE, related_name="progress_points")
+    budget_line = models.ForeignKey(
+        BudgetLine, on_delete=models.CASCADE, related_name="progress_points"
+    )
     date = models.DateField()
     qty_completed = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
-    percent_complete = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))  # 0–100
+    percent_complete = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0")
+    )  # 0–100
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:
@@ -3032,7 +3264,9 @@ class BudgetProgress(models.Model):
 
     def clean(self):
         super().clean()
-        if self.percent_complete is not None and (self.percent_complete < 0 or self.percent_complete > 100):
+        if self.percent_complete is not None and (
+            self.percent_complete < 0 or self.percent_complete > 100
+        ):
             raise ValidationError("Percent complete must be between 0 and 100.")
         if self.qty_completed is not None and self.qty_completed < 0:
             raise ValidationError("Qty completed cannot be negative.")
@@ -3077,7 +3311,9 @@ class MaterialRequest(models.Model):
         id: int
         get_status_display: Callable[[], str]
 
-    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="material_requests")
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="material_requests"
+    )
     requested_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -3102,7 +3338,9 @@ class MaterialRequest(models.Model):
 
     # ACTIVITY 2: Q14.10 - Partial receipt tracking
     expected_delivery_date = models.DateField(null=True, blank=True)
-    partial_receipt_notes = models.TextField(blank=True, help_text="Notas sobre recepciones parciales")
+    partial_receipt_notes = models.TextField(
+        blank=True, help_text="Notas sobre recepciones parciales"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -3127,7 +3365,9 @@ class MaterialRequest(models.Model):
             mapped = self.STATUS_COMPAT_MAP[self.status]
             if performing_full_clean:
                 # Bloquear en la ruta automática de save() para evitar uso deprecado directo
-                raise ValidationError({"status": f"El estado '{self.status}' está deprecado. Usa '{mapped}'"})
+                raise ValidationError(
+                    {"status": f"El estado '{self.status}' está deprecado. Usa '{mapped}'"}
+                )
             # Ruta manual (tests de compat): aplicar mapeo silencioso
             self.status = mapped
             # Marcar que se aplicó compatibilidad
@@ -3247,7 +3487,8 @@ class MaterialRequest(models.Model):
 
         # Get or create inventory item
         inv_item, _ = InventoryItem.objects.get_or_create(
-            name=f"{item.brand_text} {item.product_name}", defaults={"category": "MATERIAL", "unit": item.unit or "pcs"}
+            name=f"{item.brand_text} {item.product_name}",
+            defaults={"category": "MATERIAL", "unit": item.unit or "pcs"},
         )
 
         # Get project location (or create default)
@@ -3283,7 +3524,7 @@ class MaterialRequest(models.Model):
                 user=admin,
                 notification_type="task_created",  # Reuse existing type
                 title=f"Nueva solicitud de materiales MR#{self.id}",
-                message=f'{self.requested_by.username if self.requested_by else "Usuario"} solicita materiales para {self.project.name}',
+                message=f"{self.requested_by.username if self.requested_by else 'Usuario'} solicita materiales para {self.project.name}",
                 related_object_type="material_request",
                 related_object_id=self.id,
                 link_url=link,
@@ -3397,11 +3638,17 @@ class ClientRequest(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES, default="info")
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     change_order = models.ForeignKey(
-        "ChangeOrder", on_delete=models.SET_NULL, null=True, blank=True, related_name="origin_requests"
+        "ChangeOrder",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="origin_requests",
     )
 
     def __str__(self):
@@ -3416,7 +3663,9 @@ class ClientRequestAttachment(models.Model):
     filename = models.CharField(max_length=255)
     content_type = models.CharField(max_length=100, blank=True)
     size_bytes = models.IntegerField(default=0)
-    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -3509,7 +3758,9 @@ class MaterialRequestItem(models.Model):
     brand_text = models.CharField(
         max_length=100, blank=True, help_text="Nombre de marca en texto libre"
     )  # ACTIVITY 2: Q14.8
-    product_name = models.CharField(max_length=200, blank=True)  # Emerald Interior, Hand-Masker, etc.
+    product_name = models.CharField(
+        max_length=200, blank=True
+    )  # Emerald Interior, Hand-Masker, etc.
     color_name = models.CharField(max_length=200, blank=True)  # Snowbound
     color_code = models.CharField(max_length=100, blank=True)  # SW-xxxx
     finish = models.CharField(max_length=100, blank=True)  # Flat/Satin/Semi-Gloss
@@ -3520,7 +3771,9 @@ class MaterialRequestItem(models.Model):
     unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default="gal")
     comments = models.CharField(max_length=255, blank=True)
 
-    inventory_item = models.ForeignKey("core.InventoryItem", null=True, blank=True, on_delete=models.SET_NULL)
+    inventory_item = models.ForeignKey(
+        "core.InventoryItem", null=True, blank=True, on_delete=models.SET_NULL
+    )
     qty_requested = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     qty_ordered = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     qty_received = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
@@ -3529,7 +3782,10 @@ class MaterialRequestItem(models.Model):
 
     # ACTIVITY 2: Q14.10 - Partial receipt tracking
     received_quantity = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Cantidad total recibida (acumulada)"
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text="Cantidad total recibida (acumulada)",
     )
 
     item_status = models.CharField(
@@ -3584,7 +3840,9 @@ class MaterialCatalog(models.Model):
     default_unit = models.CharField(max_length=50, blank=True)
     reference_image = models.FileField(upload_to="materials/catalog/", null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -3599,7 +3857,9 @@ class MaterialCatalog(models.Model):
 
 
 class SitePhoto(models.Model):
-    project = models.ForeignKey("core.Project", on_delete=models.CASCADE, related_name="site_photos")
+    project = models.ForeignKey(
+        "core.Project", on_delete=models.CASCADE, related_name="site_photos"
+    )
     room = models.CharField(max_length=120, blank=True)
     wall_ref = models.CharField(max_length=120, blank=True, help_text="Pared o ubicación")
     image = models.ImageField(upload_to="site_photos/")
@@ -3636,15 +3896,29 @@ class SitePhoto(models.Model):
         help_text="Type of photo for better organization",
     )
     paired_with = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.SET_NULL, help_text="Link before/after photos together"
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="Link before/after photos together",
     )
-    ai_defects_detected = models.JSONField(default=list, blank=True, help_text="AI-detected defects in this photo")
+    ai_defects_detected = models.JSONField(
+        default=list, blank=True, help_text="AI-detected defects in this photo"
+    )
     # Q18.2: GPS location
     location_lat = models.DecimalField(
-        max_digits=9, decimal_places=6, null=True, blank=True, help_text="Latitude from project location"
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Latitude from project location",
     )
     location_lng = models.DecimalField(
-        max_digits=9, decimal_places=6, null=True, blank=True, help_text="Longitude from project location"
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Longitude from project location",
     )
     location_accuracy_m = models.DecimalField(
         max_digits=6, decimal_places=2, null=True, blank=True, help_text="GPS accuracy in meters"
@@ -3661,7 +3935,9 @@ class SitePhoto(models.Model):
     )
     # Q18.6: Versioning
     version = models.IntegerField(default=1, help_text="Version number if photo is replaced")
-    is_current_version = models.BooleanField(default=True, help_text="True if this is the current version")
+    is_current_version = models.BooleanField(
+        default=True, help_text="True if this is the current version"
+    )
     replaced_by = models.ForeignKey(
         "self",
         null=True,
@@ -3671,13 +3947,20 @@ class SitePhoto(models.Model):
         help_text="Newer version that replaces this photo",
     )
     # Q18.10: Caption
-    caption = models.CharField(max_length=255, blank=True, help_text="Photo caption/title for search")
+    caption = models.CharField(
+        max_length=255, blank=True, help_text="Photo caption/title for search"
+    )
     # Q18.12: Thumbnail
     thumbnail = models.ImageField(
-        upload_to="site_photos/thumbnails/", null=True, blank=True, help_text="Auto-generated thumbnail"
+        upload_to="site_photos/thumbnails/",
+        null=True,
+        blank=True,
+        help_text="Auto-generated thumbnail",
     )
 
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -3763,7 +4046,9 @@ class ColorSample(models.Model):
     brand = models.CharField(max_length=120, blank=True)
     finish = models.CharField(max_length=120, blank=True)
     gloss = models.CharField(max_length=50, blank=True)
-    version = models.PositiveIntegerField(default=1, help_text="Incrementa cuando se sube una variante")
+    version = models.PositiveIntegerField(
+        default=1, help_text="Incrementa cuando se sube una variante"
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="proposed")
     sample_image = models.ImageField(upload_to="color_samples/", null=True, blank=True)
     reference_photo = models.ImageField(upload_to="color_samples/ref/", null=True, blank=True)
@@ -3776,14 +4061,20 @@ class ColorSample(models.Model):
     room_location = models.CharField(
         max_length=200, blank=True, help_text='Room or location (e.g., "Kitchen", "Master Bedroom")'
     )
-    room_group = models.CharField(max_length=100, blank=True, help_text="Group multiple samples by room")
+    room_group = models.CharField(
+        max_length=100, blank=True, help_text="Group multiple samples by room"
+    )
     # Q19.4 Sequential number
     sample_number = models.CharField(
         max_length=50, blank=True, null=True, help_text="Unique sample number (e.g., KPISM10001)"
     )
     # Base actors
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="color_samples_created"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="color_samples_created",
     )
     approved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -3802,8 +4093,12 @@ class ColorSample(models.Model):
         related_name="color_samples_rejected",
         help_text="User who rejected the sample",
     )
-    rejected_at = models.DateTimeField(null=True, blank=True, help_text="When the sample was rejected")
-    rejection_reason = models.TextField(blank=True, help_text="Q19.12: Required reason for rejection")
+    rejected_at = models.DateTimeField(
+        null=True, blank=True, help_text="When the sample was rejected"
+    )
+    rejection_reason = models.TextField(
+        blank=True, help_text="Q19.12: Required reason for rejection"
+    )
     # Q19.6 Status audit
     status_changed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -3813,9 +4108,13 @@ class ColorSample(models.Model):
         related_name="color_sample_status_changes",
         help_text="Last user who changed status",
     )
-    status_changed_at = models.DateTimeField(null=True, blank=True, help_text="When status was last changed")
+    status_changed_at = models.DateTimeField(
+        null=True, blank=True, help_text="When status was last changed"
+    )
     # Q19.13 Digital signature
-    approval_signature = models.TextField(blank=True, help_text="Cryptographic signature hash for approval")
+    approval_signature = models.TextField(
+        blank=True, help_text="Cryptographic signature hash for approval"
+    )
     approval_ip = models.GenericIPAddressField(
         null=True, blank=True, help_text="IP address of approver for legal purposes"
     )
@@ -3825,7 +4124,9 @@ class ColorSample(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    parent_sample = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="variants")
+    parent_sample = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="variants"
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -3859,7 +4160,9 @@ class ColorSample(models.Model):
         # Approved timestamp & signature
         if self.status == "approved" and not self.approved_at:
             self.approved_at = timezone.now()
-            signature_data = f"{self.project_id}|{self.code}|{self.name}|{self.approved_at.isoformat()}"
+            signature_data = (
+                f"{self.project_id}|{self.code}|{self.name}|{self.approved_at.isoformat()}"
+            )
             self.approval_signature = hashlib.sha256(signature_data.encode()).hexdigest()
         super().save(*args, **kwargs)
 
@@ -3967,19 +4270,27 @@ class ColorSample(models.Model):
 # ---------------------
 class FloorPlan(models.Model):
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="floor_plans")
-    name = models.CharField(max_length=120, help_text="Nivel o descripción: Planta Baja, Nivel 2, etc.")
+    name = models.CharField(
+        max_length=120, help_text="Nivel o descripción: Planta Baja, Nivel 2, etc."
+    )
     level = models.IntegerField(
         default=0, help_text="Nivel numérico: 0=Planta Baja, 1=Nivel 1, 2=Nivel 2, -1=Sótano, etc."
     )
     level_identifier = models.CharField(
-        max_length=50, blank=True, help_text='Identificador adicional: "Level 0", "Ground Floor", "Basement", etc.'
+        max_length=50,
+        blank=True,
+        help_text='Identificador adicional: "Level 0", "Ground Floor", "Basement", etc.',
     )
     image = models.ImageField(upload_to="floor_plans/")
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     # Q20.1: Versioning fields (added in migration 0069 but missing in model class)
     version = models.IntegerField(default=1, help_text="Version number when plan is replaced")
-    is_current = models.BooleanField(default=True, help_text="True if this is the current active version")
+    is_current = models.BooleanField(
+        default=True, help_text="True if this is the current active version"
+    )
     replaced_by = models.ForeignKey(
         "self",
         null=True,
@@ -4065,7 +4376,9 @@ class PlanPin(models.Model):
     color_sample = models.ForeignKey(
         "ColorSample", null=True, blank=True, on_delete=models.SET_NULL, related_name="pins"
     )
-    linked_task = models.ForeignKey("Task", null=True, blank=True, on_delete=models.SET_NULL, related_name="pins")
+    linked_task = models.ForeignKey(
+        "Task", null=True, blank=True, on_delete=models.SET_NULL, related_name="pins"
+    )
     # Trayectoria multipunto (opcional): JSON array de {x,y,label}
     path_points = models.JSONField(
         default=list, blank=True, help_text='Lista de puntos conectados: [{x:0.1,y:0.2,label:"A"}]'
@@ -4073,7 +4386,9 @@ class PlanPin(models.Model):
     is_multipoint = models.BooleanField(default=False, help_text="Pin con trayectoria multipunto")
     # Color personalizado para diferenciación visual
     pin_color = models.CharField(max_length=7, default="#0d6efd", help_text="Color hex para el pin")
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     # Q20.2: Migration status & linkage to new pins
     status = models.CharField(
@@ -4096,7 +4411,9 @@ class PlanPin(models.Model):
         help_text="New pin in updated plan version",
     )
     # Q20.10: Client commenting on pins
-    client_comments = models.JSONField(default=list, blank=True, help_text="Array of client comments with timestamps")
+    client_comments = models.JSONField(
+        default=list, blank=True, help_text="Array of client comments with timestamps"
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -4141,10 +4458,12 @@ class PlanPin(models.Model):
                     user=pm,
                     notification_type="pin_issue",
                     title=f"New {self.pin_type.title()} Pin: {self.title}",
-                    message=f'{self.created_by.username if self.created_by else "Someone"} created {self.pin_type} on {self.plan.name}',
+                    message=f"{self.created_by.username if self.created_by else 'Someone'} created {self.pin_type} on {self.plan.name}",
                     related_object_type="plan_pin",
                     related_object_id=self.id,
-                    link_url=reverse("floor_plan_detail", args=[self.plan.id]) if hasattr(self, "id") else None,
+                    link_url=reverse("floor_plan_detail", args=[self.plan.id])
+                    if hasattr(self, "id")
+                    else None,
                 )
 
     def migrate_to_plan(self, new_plan, new_x, new_y):
@@ -4239,8 +4558,12 @@ class DamageReport(models.Model):
         ("resolved", "Resuelto"),
     ]
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="damage_reports")
-    plan = models.ForeignKey(FloorPlan, on_delete=models.SET_NULL, null=True, blank=True, related_name="damage_reports")
-    pin = models.OneToOneField(PlanPin, on_delete=models.SET_NULL, null=True, blank=True, related_name="damage_report")
+    plan = models.ForeignKey(
+        FloorPlan, on_delete=models.SET_NULL, null=True, blank=True, related_name="damage_reports"
+    )
+    pin = models.OneToOneField(
+        PlanPin, on_delete=models.SET_NULL, null=True, blank=True, related_name="damage_report"
+    )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     category = models.CharField(
@@ -4249,7 +4572,11 @@ class DamageReport(models.Model):
     severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default="medium")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open")
     estimated_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True, help_text="Costo estimado de reparación"
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Costo estimado de reparación",
     )
     linked_touchup = models.ForeignKey(
         "TouchUpPin",
@@ -4267,7 +4594,9 @@ class DamageReport(models.Model):
         related_name="damage_reports",
         help_text="Change Order vinculado si aplica",
     )
-    reported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    reported_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     reported_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True, help_text="Fecha de resolución")
     # Q21.2: Assignee for resolution
@@ -4289,9 +4618,13 @@ class DamageReport(models.Model):
         help_text="Automatically created repair task",
     )
     # Q21.9: Time tracking fields
-    in_progress_at = models.DateTimeField(null=True, blank=True, help_text="When work started on this damage")
+    in_progress_at = models.DateTimeField(
+        null=True, blank=True, help_text="When work started on this damage"
+    )
     # Q21.7: Severity change audit
-    severity_changed_at = models.DateTimeField(null=True, blank=True, help_text="Last time severity was changed")
+    severity_changed_at = models.DateTimeField(
+        null=True, blank=True, help_text="Last time severity was changed"
+    )
     severity_changed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -4304,7 +4637,9 @@ class DamageReport(models.Model):
     location_detail = models.CharField(
         max_length=200, blank=True, help_text='Specific location (e.g., "Kitchen - North Wall")'
     )
-    root_cause = models.CharField(max_length=200, blank=True, help_text="Root cause for pattern analysis")
+    root_cause = models.CharField(
+        max_length=200, blank=True, help_text="Root cause for pattern analysis"
+    )
 
     class Meta:
         ordering = ["-reported_at"]
@@ -4406,7 +4741,9 @@ class DesignChatMessage(models.Model):
         project_id: int
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="design_messages")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     message = models.TextField()
     image = models.ImageField(upload_to="design_chat/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -4416,7 +4753,7 @@ class DesignChatMessage(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"DesignMsg {self.project_id} by {getattr(self.user,'username','?')}"
+        return f"DesignMsg {self.project_id} by {getattr(self.user, 'username', '?')}"
 
 
 # ---------------------
@@ -4430,8 +4767,12 @@ class ChatChannel(models.Model):
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="chat_channels")
     name = models.CharField(max_length=120)
     channel_type = models.CharField(max_length=10, choices=CHANNEL_TYPES, default="group")
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="chat_channels", blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    participants = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="chat_channels", blank=True
+    )
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -4449,7 +4790,9 @@ class ChatMessage(models.Model):
         channel_id: int
 
     channel = models.ForeignKey(ChatChannel, on_delete=models.CASCADE, related_name="messages")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     message = models.TextField(blank=True)
     image = models.ImageField(upload_to="project_chat/", null=True, blank=True)
     attachment = models.FileField(upload_to="project_chat/", null=True, blank=True)
@@ -4459,14 +4802,18 @@ class ChatMessage(models.Model):
     # Soft delete fields (admin only)
     is_deleted = models.BooleanField(default=False)
     deleted_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="deleted_chat_messages"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deleted_chat_messages",
     )
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     # Phase 6: Read receipts for real-time messaging
     read_by = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='read_chat_messages',
+        related_name="read_chat_messages",
         blank=True,
         verbose_name="Read By",
     )
@@ -4474,11 +4821,11 @@ class ChatMessage(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['channel', '-created_at']),
+            models.Index(fields=["channel", "-created_at"]),
         ]
 
     def __str__(self):
-        return f"ChatMsg ch={self.channel_id} by {getattr(self.user,'username','?')}"
+        return f"ChatMsg ch={self.channel_id} by {getattr(self.user, 'username', '?')}"
 
     def mark_as_read(self, user):
         """Mark this message as read by a user"""
@@ -4528,9 +4875,13 @@ class ChatMention(models.Model):
         default="user",
         help_text="Type of entity referenced (task, damage, etc.)",
     )
-    entity_id = models.IntegerField(null=True, blank=True, help_text="ID of referenced entity (optional)")
+    entity_id = models.IntegerField(
+        null=True, blank=True, help_text="ID of referenced entity (optional)"
+    )
     entity_label = models.CharField(
-        max_length=200, blank=True, help_text='Display text for entity link (e.g., "Task #45: Paint walls")'
+        max_length=200,
+        blank=True,
+        help_text='Display text for entity link (e.g., "Task #45: Paint walls")',
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -4563,14 +4914,18 @@ class Notification(models.Model):
         ("comment_added", "Comentario agregado"),
         ("estimate_approved", "Estimación aprobada"),
     ]
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
+    )
     notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
     title = models.CharField(max_length=200)
     message = models.TextField(blank=True)
     # Relación genérica opcional (project, task, color_sample, etc.)
     related_object_type = models.CharField(max_length=50, blank=True)
     related_object_id = models.IntegerField(null=True, blank=True)
-    link_url = models.CharField(max_length=255, blank=True, help_text="URL para redirigir al hacer clic")
+    link_url = models.CharField(
+        max_length=255, blank=True, help_text="URL para redirigir al hacer clic"
+    )
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -4618,7 +4973,9 @@ class PermissionMatrix(models.Model):
         ("document", "Documento"),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="permission_matrix")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="permission_matrix"
+    )
     role = models.CharField(max_length=30, choices=ROLE_CHOICES)
     entity_type = models.CharField(max_length=30, choices=ENTITY_TYPE_CHOICES)
 
@@ -4630,8 +4987,12 @@ class PermissionMatrix(models.Model):
     can_approve = models.BooleanField(default=False)
 
     # Temporal access control
-    effective_from = models.DateField(null=True, blank=True, help_text="Fecha de inicio de permisos temporales")
-    effective_until = models.DateField(null=True, blank=True, help_text="Fecha de expiración de permisos temporales")
+    effective_from = models.DateField(
+        null=True, blank=True, help_text="Fecha de inicio de permisos temporales"
+    )
+    effective_until = models.DateField(
+        null=True, blank=True, help_text="Fecha de expiración de permisos temporales"
+    )
 
     # Scope limitation (optional: restrict to specific projects)
     scope_project = models.ForeignKey(
@@ -4703,18 +5064,26 @@ class AuditLog(models.Model):
     ]
 
     # Who performed the action
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="audit_logs")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="audit_logs"
+    )
     username = models.CharField(max_length=150, help_text="Cached username in case user is deleted")
 
     # What action was performed
     action = models.CharField(max_length=30, choices=ACTION_CHOICES)
     entity_type = models.CharField(max_length=30, choices=ENTITY_TYPE_CHOICES)
     entity_id = models.IntegerField(null=True, blank=True)
-    entity_repr = models.CharField(max_length=255, blank=True, help_text="String representation of entity")
+    entity_repr = models.CharField(
+        max_length=255, blank=True, help_text="String representation of entity"
+    )
 
     # Change tracking (JSON fields for before/after values)
-    old_values = models.JSONField(null=True, blank=True, help_text="Estado anterior (para updates/deletes)")
-    new_values = models.JSONField(null=True, blank=True, help_text="Estado nuevo (para creates/updates)")
+    old_values = models.JSONField(
+        null=True, blank=True, help_text="Estado anterior (para updates/deletes)"
+    )
+    new_values = models.JSONField(
+        null=True, blank=True, help_text="Estado nuevo (para creates/updates)"
+    )
 
     # Context information
     ip_address = models.GenericIPAddressField(null=True, blank=True)
@@ -4755,7 +5124,9 @@ class LoginAttempt(models.Model):
 
     success = models.BooleanField(default=False)
     failure_reason = models.CharField(
-        max_length=100, blank=True, help_text="Razón del fallo: invalid_password, user_not_found, account_locked, etc."
+        max_length=100,
+        blank=True,
+        help_text="Razón del fallo: invalid_password, user_not_found, account_locked, etc.",
     )
 
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -4837,22 +5208,40 @@ class InventoryItem(models.Model):
 
     # ACTIVITY 2: Q15.5 - Per-item threshold (moved from default_threshold)
     low_stock_threshold = models.DecimalField(
-        max_digits=8, decimal_places=2, null=True, blank=True, help_text="Q15.5: Umbral personalizado por item"
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Q15.5: Umbral personalizado por item",
     )
-    default_threshold = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)  # Legacy
+    default_threshold = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )  # Legacy
 
     # ACTIVITY 2: Q15.7 - SKU for tracking
-    sku = models.CharField(max_length=100, unique=True, null=True, blank=True, help_text="Q14.2: SKU único global")
+    sku = models.CharField(
+        max_length=100, unique=True, null=True, blank=True, help_text="Q14.2: SKU único global"
+    )
 
     # ACTIVITY 2: Q15.8 - Cost tracking
     valuation_method = models.CharField(
-        max_length=10, choices=VALUATION_CHOICES, default="AVG", help_text="Q15.8: Método de valuación de inventario"
+        max_length=10,
+        choices=VALUATION_CHOICES,
+        default="AVG",
+        help_text="Q15.8: Método de valuación de inventario",
     )
     average_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0"), help_text="Q15.8: Costo promedio calculado"
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text="Q15.8: Costo promedio calculado",
     )
     last_purchase_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True, help_text="Q15.8: Último costo de compra"
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Q15.8: Último costo de compra",
     )
 
     active = models.BooleanField(default=True)
@@ -4891,7 +5280,9 @@ class InventoryItem(models.Model):
             }
             prefix = prefix_map.get(self.category, "ITM")
             # Find last sequence for this category prefix
-            last = InventoryItem.objects.filter(sku__startswith=f"{prefix}-").order_by("-sku").first()
+            last = (
+                InventoryItem.objects.filter(sku__startswith=f"{prefix}-").order_by("-sku").first()
+            )
             next_seq = 1
             if last and last.sku:
                 try:
@@ -4929,9 +5320,9 @@ class InventoryItem(models.Model):
             return self.average_cost * quantity_needed, Decimal("0")
 
         # Get movements in chronological order (oldest first)
-        purchases = self.movements.filter(movement_type="RECEIVE", applied=True, unit_cost__isnull=False).order_by(
-            "created_at"
-        )
+        purchases = self.movements.filter(
+            movement_type="RECEIVE", applied=True, unit_cost__isnull=False
+        ).order_by("created_at")
 
         total_cost = Decimal("0")
         remaining = quantity_needed
@@ -4959,9 +5350,9 @@ class InventoryItem(models.Model):
             return self.average_cost * quantity_needed, Decimal("0")
 
         # Get movements in reverse chronological order (newest first)
-        purchases = self.movements.filter(movement_type="RECEIVE", applied=True, unit_cost__isnull=False).order_by(
-            "-created_at"
-        )
+        purchases = self.movements.filter(
+            movement_type="RECEIVE", applied=True, unit_cost__isnull=False
+        ).order_by("-created_at")
 
         total_cost = Decimal("0")
         remaining = quantity_needed
@@ -4996,9 +5387,9 @@ class InventoryItem(models.Model):
 
     def total_quantity_all_locations(self):
         """Return total quantity across all locations."""
-        return ProjectInventory.objects.filter(item=self).aggregate(total=models.Sum("quantity"))["total"] or Decimal(
-            "0"
-        )
+        return ProjectInventory.objects.filter(item=self).aggregate(total=models.Sum("quantity"))[
+            "total"
+        ] or Decimal("0")
 
     def check_reorder_point(self):
         """
@@ -5025,7 +5416,11 @@ class InventoryLocation(models.Model):
     # project null => storage central
     name = models.CharField(max_length=120)
     project = models.ForeignKey(
-        "core.Project", null=True, blank=True, on_delete=models.CASCADE, related_name="inventory_locations"
+        "core.Project",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="inventory_locations",
     )
     is_storage = models.BooleanField(default=False)
 
@@ -5075,7 +5470,11 @@ class InventoryMovement(models.Model):
     ]
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name="movements")
     from_location = models.ForeignKey(
-        InventoryLocation, null=True, blank=True, related_name="moves_out", on_delete=models.SET_NULL
+        InventoryLocation,
+        null=True,
+        blank=True,
+        related_name="moves_out",
+        on_delete=models.SET_NULL,
     )
     to_location = models.ForeignKey(
         InventoryLocation, null=True, blank=True, related_name="moves_in", on_delete=models.SET_NULL
@@ -5112,19 +5511,31 @@ class InventoryMovement(models.Model):
         null=True,
         help_text="Q15.11: Usuario que realizó el movimiento",
     )
-    created_at = models.DateTimeField(auto_now_add=True, help_text="Q15.11: Timestamp del movimiento")
+    created_at = models.DateTimeField(
+        auto_now_add=True, help_text="Q15.11: Timestamp del movimiento"
+    )
 
     # ACTIVITY 2: Cost tracking
     unit_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True, help_text="Costo unitario en el momento del movimiento"
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Costo unitario en el momento del movimiento",
     )
 
     expense = models.ForeignKey(
-        "core.Expense", null=True, blank=True, on_delete=models.SET_NULL, related_name="inventory_movements"
+        "core.Expense",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="inventory_movements",
     )
 
     # ACTIVITY 2: Apply tracking
-    applied = models.BooleanField(default=False, help_text="Indica si el movimiento ya fue aplicado al inventario")
+    applied = models.BooleanField(
+        default=False, help_text="Indica si el movimiento ya fue aplicado al inventario"
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -5144,7 +5555,9 @@ class InventoryMovement(models.Model):
 
         if self.movement_type in ("RECEIVE", "RETURN"):
             if self.to_location:
-                stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
+                stock, _ = ProjectInventory.objects.get_or_create(
+                    item=self.item, location=self.to_location
+                )
                 stock.quantity += self.quantity
                 stock.save()
 
@@ -5154,7 +5567,9 @@ class InventoryMovement(models.Model):
 
         elif self.movement_type in ("ISSUE", "CONSUME"):
             if self.from_location:
-                stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.from_location)
+                stock, _ = ProjectInventory.objects.get_or_create(
+                    item=self.item, location=self.from_location
+                )
 
                 # Q15.10: Prevent negative inventory
                 if stock.quantity < self.quantity:
@@ -5172,7 +5587,9 @@ class InventoryMovement(models.Model):
 
         elif self.movement_type == "TRANSFER":
             if self.from_location:
-                s_from, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.from_location)
+                s_from, _ = ProjectInventory.objects.get_or_create(
+                    item=self.item, location=self.from_location
+                )
 
                 # Q15.10: Prevent negative inventory
                 if s_from.quantity < self.quantity:
@@ -5186,12 +5603,16 @@ class InventoryMovement(models.Model):
                 s_from.save()
 
             if self.to_location:
-                s_to, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
+                s_to, _ = ProjectInventory.objects.get_or_create(
+                    item=self.item, location=self.to_location
+                )
                 s_to.quantity += self.quantity
                 s_to.save()
 
         elif self.movement_type == "ADJUST" and self.to_location:
-            stock, _ = ProjectInventory.objects.get_or_create(item=self.item, location=self.to_location)
+            stock, _ = ProjectInventory.objects.get_or_create(
+                item=self.item, location=self.to_location
+            )
             stock.quantity += self.quantity
 
             # Q15.10: Prevent negative after adjustment
@@ -5262,9 +5683,15 @@ class ActivityTemplate(models.Model):
 
     # SOP Details
     time_estimate = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True, help_text="Estimated hours to complete"
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Estimated hours to complete",
     )
-    steps = models.JSONField(default=list, help_text="Checklist steps as JSON array. Example: ['Step 1', 'Step 2']")
+    steps = models.JSONField(
+        default=list, help_text="Checklist steps as JSON array. Example: ['Step 1', 'Step 2']"
+    )
     materials_list = models.JSONField(default=list, help_text="Required materials as JSON array")
     tools_list = models.JSONField(default=list, help_text="Required tools as JSON array")
     tips = models.TextField(blank=True, help_text="Best practices and tips")
@@ -5285,13 +5712,21 @@ class ActivityTemplate(models.Model):
         default="beginner",
         help_text="Skill level required",
     )
-    completion_points = models.IntegerField(default=10, help_text="Points awarded for completing this SOP")
-    badge_awarded = models.CharField(max_length=50, blank=True, help_text="Badge name if special achievement")
-    required_tools = models.JSONField(default=list, help_text="Specific tools needed (for checklist)")
+    completion_points = models.IntegerField(
+        default=10, help_text="Points awarded for completing this SOP"
+    )
+    badge_awarded = models.CharField(
+        max_length=50, blank=True, help_text="Badge name if special achievement"
+    )
+    required_tools = models.JSONField(
+        default=list, help_text="Specific tools needed (for checklist)"
+    )
     safety_warnings = models.TextField(blank=True, help_text="Important safety information")
 
     # Metadata
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="created_templates")
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="created_templates"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True, help_text="Hide inactive templates")
@@ -5306,7 +5741,9 @@ class ActivityTemplate(models.Model):
         related_name="versions",
         help_text="Original template if this is a versioned copy",
     )
-    is_latest_version = models.BooleanField(default=True, help_text="Is this the most recent version?")
+    is_latest_version = models.BooleanField(
+        default=True, help_text="Is this the most recent version?"
+    )
     version_notes = models.TextField(blank=True, help_text="Changes in this version")
 
     class Meta:
@@ -5409,18 +5846,26 @@ class ActivityTemplate(models.Model):
             description=self.description,
             time_estimate=self.time_estimate,
             steps=self.steps.copy() if isinstance(self.steps, list) else self.steps,
-            materials_list=self.materials_list.copy() if isinstance(self.materials_list, list) else self.materials_list,
-            tools_list=self.tools_list.copy() if isinstance(self.tools_list, list) else self.tools_list,
+            materials_list=self.materials_list.copy()
+            if isinstance(self.materials_list, list)
+            else self.materials_list,
+            tools_list=self.tools_list.copy()
+            if isinstance(self.tools_list, list)
+            else self.tools_list,
             tips=self.tips,
             common_errors=self.common_errors,
             reference_photos=(
-                self.reference_photos.copy() if isinstance(self.reference_photos, list) else self.reference_photos
+                self.reference_photos.copy()
+                if isinstance(self.reference_photos, list)
+                else self.reference_photos
             ),
             video_url=self.video_url,
             difficulty_level=self.difficulty_level,
             completion_points=self.completion_points,
             badge_awarded=self.badge_awarded,
-            required_tools=self.required_tools.copy() if isinstance(self.required_tools, list) else self.required_tools,
+            required_tools=self.required_tools.copy()
+            if isinstance(self.required_tools, list)
+            else self.required_tools,
             safety_warnings=self.safety_warnings,
             created_by=updated_by,
             is_active=self.is_active,
@@ -5481,18 +5926,26 @@ class DailyPlan(models.Model):
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="daily_plans")
-    plan_date = models.DateField(verbose_name="Date for this plan", help_text="The work day this plan is for")
+    plan_date = models.DateField(
+        verbose_name="Date for this plan", help_text="The work day this plan is for"
+    )
 
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="created_plans")
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="created_plans"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="DRAFT")
-    completion_deadline = models.DateTimeField(help_text="Deadline to submit plan (usually 5pm day before)")
+    completion_deadline = models.DateTimeField(
+        help_text="Deadline to submit plan (usually 5pm day before)"
+    )
 
     # Q12.8: Clima automático
     weather_data = models.JSONField(
-        null=True, blank=True, help_text="Weather data: {temp, condition, humidity, wind, etc.} fetched from API"
+        null=True,
+        blank=True,
+        help_text="Weather data: {temp, condition, humidity, wind, etc.} fetched from API",
     )
     weather_fetched_at = models.DateTimeField(
         null=True, blank=True, help_text="Timestamp when weather was last fetched"
@@ -5512,10 +5965,18 @@ class DailyPlan(models.Model):
 
     # Q12.5: Histórico de productividad
     actual_hours_worked = models.DecimalField(
-        max_digits=6, decimal_places=2, null=True, blank=True, help_text="Total real hours worked (from time tracking)"
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Total real hours worked (from time tracking)",
     )
     estimated_hours_total = models.DecimalField(
-        max_digits=6, decimal_places=2, null=True, blank=True, help_text="Sum of estimated hours from all activities"
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Sum of estimated hours from all activities",
     )
 
     class Meta:
@@ -5551,7 +6012,9 @@ class DailyPlan(models.Model):
             from datetime import date as _date
             from datetime import datetime, time
 
-            if isinstance(self.completion_deadline, _date) and not hasattr(self.completion_deadline, "utcoffset"):
+            if isinstance(self.completion_deadline, _date) and not hasattr(
+                self.completion_deadline, "utcoffset"
+            ):
                 self.completion_deadline = datetime.combine(self.completion_deadline, time(17, 0))
             if timezone.is_naive(self.completion_deadline):
                 self.completion_deadline = timezone.make_aware(
@@ -5769,7 +6232,11 @@ class PlannedActivity(models.Model):
 
     # Optional link to Activity Template (SOP)
     activity_template = models.ForeignKey(
-        ActivityTemplate, on_delete=models.SET_NULL, null=True, blank=True, help_text="SOP template for this activity"
+        ActivityTemplate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="SOP template for this activity",
     )
 
     # Q12.2: Link to converted Task
@@ -5801,10 +6268,13 @@ class PlannedActivity(models.Model):
 
     # Assignment
     assigned_employees = models.ManyToManyField(
-        Employee, related_name="assigned_activities", help_text="Employees assigned to this activity"
+        Employee,
+        related_name="assigned_activities",
+        help_text="Employees assigned to this activity",
     )
     is_group_activity = models.BooleanField(
-        default=True, help_text="True if all employees work together, False if divided into sub-tasks"
+        default=True,
+        help_text="True if all employees work together, False if divided into sub-tasks",
     )
 
     # Planning details
@@ -5819,9 +6289,15 @@ class PlannedActivity(models.Model):
         help_text="Actual hours worked (from time tracking or manual entry)",
     )
 
-    materials_needed = models.JSONField(default=list, help_text="List of materials needed with quantities")
-    materials_checked = models.BooleanField(default=False, help_text="True if material availability has been verified")
-    material_shortage = models.BooleanField(default=False, help_text="True if materials are insufficient")
+    materials_needed = models.JSONField(
+        default=list, help_text="List of materials needed with quantities"
+    )
+    materials_checked = models.BooleanField(
+        default=False, help_text="True if material availability has been verified"
+    )
+    material_shortage = models.BooleanField(
+        default=False, help_text="True if materials are insufficient"
+    )
 
     # Progress
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
@@ -5894,7 +6370,9 @@ class PlannedActivity(models.Model):
             for raw in self.materials_needed:
                 try:
                     if not isinstance(raw, str):
-                        logger.warning(f"PlannedActivity {self.id}: Non-string material entry: {raw}")
+                        logger.warning(
+                            f"PlannedActivity {self.id}: Non-string material entry: {raw}"
+                        )
                         continue
 
                     if not raw.strip():
@@ -5913,7 +6391,9 @@ class PlannedActivity(models.Model):
                         # detect leading digits in qty_token with improved regex
                         import re
 
-                        m = re.match(r"^(?P<num>\d+(?:\.\d+)?)(?P<unit>[a-zA-Z_]*)$", qty_token.strip())
+                        m = re.match(
+                            r"^(?P<num>\d+(?:\.\d+)?)(?P<unit>[a-zA-Z_]*)$", qty_token.strip()
+                        )
 
                         if m:
                             try:
@@ -5942,18 +6422,26 @@ class PlannedActivity(models.Model):
             InventoryLocation = apps.get_model("core", "InventoryLocation")
 
             # Prefer project-specific locations first; fallback to any storage location
-            project_locations = InventoryLocation.objects.filter(Q(project=project) | Q(project__isnull=True))
+            project_locations = InventoryLocation.objects.filter(
+                Q(project=project) | Q(project__isnull=True)
+            )
             location_ids = list(project_locations.values_list("id", flat=True))
-            stocks = ProjectInventory.objects.filter(location_id__in=location_ids).select_related("item", "location")
+            stocks = ProjectInventory.objects.filter(location_id__in=location_ids).select_related(
+                "item", "location"
+            )
 
             # Aggregate available quantities per lowercase item name
             available_map = {}
             for s in stocks:
                 try:
                     key = s.item.name.lower()  # type: ignore[attr-defined]
-                    available_map[key] = available_map.get(key, Decimal("0")) + (s.quantity or Decimal("0"))  # type: ignore[attr-defined]
+                    available_map[key] = available_map.get(key, Decimal("0")) + (
+                        s.quantity or Decimal("0")
+                    )  # type: ignore[attr-defined]
                 except Exception as e:
-                    logger.warning(f"PlannedActivity {self.id}: Error processing stock item {s.id}: {e}")  # type: ignore[attr-defined]
+                    logger.warning(
+                        f"PlannedActivity {self.id}: Error processing stock item {s.id}: {e}"
+                    )  # type: ignore[attr-defined]
                     continue
 
             for key, required in parsed_items:
@@ -5970,10 +6458,16 @@ class PlannedActivity(models.Model):
 
                     if qty_available is None or qty_available < required:
                         shortages.append(
-                            {"material": key, "required": str(required), "available": str(qty_available or 0)}
+                            {
+                                "material": key,
+                                "required": str(required),
+                                "available": str(qty_available or 0),
+                            }
                         )
                 except Exception as e:
-                    logger.error(f"PlannedActivity {self.id}: Error checking availability for '{key}': {e}")
+                    logger.error(
+                        f"PlannedActivity {self.id}: Error checking availability for '{key}': {e}"
+                    )
                     continue
 
             self.materials_checked = True
@@ -5984,7 +6478,9 @@ class PlannedActivity(models.Model):
                 import json
 
                 try:
-                    shortage_text = "\n[MATERIAL SHORTAGE]\n" + json.dumps(shortages, ensure_ascii=False, indent=2)
+                    shortage_text = "\n[MATERIAL SHORTAGE]\n" + json.dumps(
+                        shortages, ensure_ascii=False, indent=2
+                    )
                     if shortage_text not in (self.description or ""):
                         self.description = (self.description or "") + shortage_text
                 except Exception as e:
@@ -5998,7 +6494,10 @@ class PlannedActivity(models.Model):
 
         except Exception as e:
             # Catch-all to prevent complete failure
-            logger.error(f"PlannedActivity {self.id}: Critical error in check_materials(): {e}", exc_info=True)
+            logger.error(
+                f"PlannedActivity {self.id}: Critical error in check_materials(): {e}",
+                exc_info=True,
+            )
             self.materials_checked = False
             self.material_shortage = False
             self.save(update_fields=["materials_checked", "material_shortage"])
@@ -6010,7 +6509,9 @@ class ActivityCompletion(models.Model):
     Used for client reports and progress tracking
     """
 
-    planned_activity = models.OneToOneField(PlannedActivity, on_delete=models.CASCADE, related_name="completion")
+    planned_activity = models.OneToOneField(
+        PlannedActivity, on_delete=models.CASCADE, related_name="completion"
+    )
 
     completed_by = models.ForeignKey(
         Employee, on_delete=models.SET_NULL, null=True, related_name="completed_activities"
@@ -6018,7 +6519,9 @@ class ActivityCompletion(models.Model):
     completion_datetime = models.DateTimeField(auto_now_add=True)
 
     # Photos (stored as JSON array of file paths/URLs)
-    completion_photos = models.JSONField(default=list, help_text="Array of photo URLs/paths showing completed work")
+    completion_photos = models.JSONField(
+        default=list, help_text="Array of photo URLs/paths showing completed work"
+    )
 
     # Notes (internal, Spanish)
     employee_notes = models.TextField(
@@ -6026,7 +6529,9 @@ class ActivityCompletion(models.Model):
     )
 
     # Progress indicator
-    progress_percentage = models.IntegerField(default=100, help_text="Completion percentage at time of marking done")
+    progress_percentage = models.IntegerField(
+        default=100, help_text="Completion percentage at time of marking done"
+    )
 
     # Verification
     verified_by = models.ForeignKey(
@@ -6058,7 +6563,9 @@ class SOPReferenceFile(models.Model):
     Reference files (photos, PDFs, etc.) attached to Activity Templates (SOPs)
     """
 
-    sop = models.ForeignKey(ActivityTemplate, on_delete=models.CASCADE, related_name="reference_files")
+    sop = models.ForeignKey(
+        ActivityTemplate, on_delete=models.CASCADE, related_name="reference_files"
+    )
     file = models.FileField(upload_to="sop_references/%Y/%m/%d/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
@@ -6106,18 +6613,26 @@ class ProjectMinute(models.Model):
     description = models.TextField(blank=True, help_text="Detalles completos")
 
     # Quién y cuándo
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="minutes_created")
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="minutes_created"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    event_date = models.DateTimeField(help_text="Fecha/hora del evento real (puede ser diferente de created_at)")
+    event_date = models.DateTimeField(
+        help_text="Fecha/hora del evento real (puede ser diferente de created_at)"
+    )
 
     # Participantes (opcional)
-    participants = models.TextField(blank=True, help_text="Nombres de participantes en llamada/reunión")
+    participants = models.TextField(
+        blank=True, help_text="Nombres de participantes en llamada/reunión"
+    )
 
     # Archivos adjuntos
     attachment = models.FileField(upload_to="minutes/%Y/%m/", blank=True, null=True)
 
     # Visibilidad
-    visible_to_client = models.BooleanField(default=True, help_text="¿El cliente puede ver esta minuta?")
+    visible_to_client = models.BooleanField(
+        default=True, help_text="¿El cliente puede ver esta minuta?"
+    )
 
     class Meta:
         ordering = ["-event_date"]
@@ -6149,26 +6664,42 @@ class EVSnapshot(models.Model):
     earned_value = models.DecimalField(
         max_digits=12, decimal_places=2, help_text="EV - Budgeted cost of work performed"
     )
-    actual_cost = models.DecimalField(max_digits=12, decimal_places=2, help_text="AC - Actual cost of work performed")
+    actual_cost = models.DecimalField(
+        max_digits=12, decimal_places=2, help_text="AC - Actual cost of work performed"
+    )
 
     # Performance indices
-    spi = models.DecimalField(max_digits=5, decimal_places=3, help_text="Schedule Performance Index (EV/PV)")
-    cpi = models.DecimalField(max_digits=5, decimal_places=3, help_text="Cost Performance Index (EV/AC)")
+    spi = models.DecimalField(
+        max_digits=5, decimal_places=3, help_text="Schedule Performance Index (EV/PV)"
+    )
+    cpi = models.DecimalField(
+        max_digits=5, decimal_places=3, help_text="Cost Performance Index (EV/AC)"
+    )
 
     # Variances
-    schedule_variance = models.DecimalField(max_digits=12, decimal_places=2, help_text="SV = EV - PV")
+    schedule_variance = models.DecimalField(
+        max_digits=12, decimal_places=2, help_text="SV = EV - PV"
+    )
     cost_variance = models.DecimalField(max_digits=12, decimal_places=2, help_text="CV = EV - AC")
 
     # Forecasts
     estimate_at_completion = models.DecimalField(
         max_digits=12, decimal_places=2, help_text="EAC - Forecasted final cost"
     )
-    estimate_to_complete = models.DecimalField(max_digits=12, decimal_places=2, help_text="ETC - Remaining cost")
-    variance_at_completion = models.DecimalField(max_digits=12, decimal_places=2, help_text="VAC = BAC - EAC")
+    estimate_to_complete = models.DecimalField(
+        max_digits=12, decimal_places=2, help_text="ETC - Remaining cost"
+    )
+    variance_at_completion = models.DecimalField(
+        max_digits=12, decimal_places=2, help_text="VAC = BAC - EAC"
+    )
 
     # Completion estimates
-    percent_complete = models.DecimalField(max_digits=5, decimal_places=2, help_text="% of project complete")
-    percent_spent = models.DecimalField(max_digits=5, decimal_places=2, help_text="% of budget spent")
+    percent_complete = models.DecimalField(
+        max_digits=5, decimal_places=2, help_text="% of project complete"
+    )
+    percent_spent = models.DecimalField(
+        max_digits=5, decimal_places=2, help_text="% of budget spent"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -6214,12 +6745,16 @@ class QualityInspection(models.Model):
     if TYPE_CHECKING:
         get_inspection_type_display: Callable[[], str]
 
-    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="quality_inspections")
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="quality_inspections"
+    )
     inspection_type = models.CharField(max_length=20, choices=INSPECTION_TYPE_CHOICES)
     scheduled_date = models.DateField()
     completed_date = models.DateField(null=True, blank=True)
 
-    inspector = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="inspections_performed")
+    inspector = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="inspections_performed"
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="scheduled")
 
     # AI-assisted scoring
@@ -6228,7 +6763,9 @@ class QualityInspection(models.Model):
     manual_defect_count = models.IntegerField(default=0, help_text="Defects found manually")
 
     notes = models.TextField(blank=True)
-    checklist_data = models.JSONField(default=dict, blank=True, help_text="Inspection checklist results")
+    checklist_data = models.JSONField(
+        default=dict, blank=True, help_text="Inspection checklist results"
+    )
 
     # Warranty tracking
     warranty_expiration = models.DateField(null=True, blank=True)
@@ -6261,11 +6798,15 @@ class QualityDefect(models.Model):
     if TYPE_CHECKING:
         get_severity_display: Callable[[], str]
 
-    inspection = models.ForeignKey(QualityInspection, on_delete=models.CASCADE, related_name="defects")
+    inspection = models.ForeignKey(
+        QualityInspection, on_delete=models.CASCADE, related_name="defects"
+    )
     detected_by_ai = models.BooleanField(default=False)
 
     severity = models.CharField(max_length=20, choices=SEVERITY_CHOICES)
-    category = models.CharField(max_length=100, help_text="e.g., Paint finish, Trim alignment, etc.")
+    category = models.CharField(
+        max_length=100, help_text="e.g., Paint finish, Trim alignment, etc."
+    )
     description = models.TextField()
     location = models.CharField(max_length=200, help_text="Room/area where defect was found")
 
@@ -6273,7 +6814,9 @@ class QualityDefect(models.Model):
     ai_confidence = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True, help_text="AI confidence % (0-100)"
     )
-    ai_pattern_match = models.CharField(max_length=100, blank=True, help_text="Pattern matched by AI")
+    ai_pattern_match = models.CharField(
+        max_length=100, blank=True, help_text="Pattern matched by AI"
+    )
 
     # Resolution
     resolved = models.BooleanField(default=False)
@@ -6285,7 +6828,9 @@ class QualityDefect(models.Model):
 
     # Photos
     photo = models.ImageField(upload_to="quality/defects/%Y/%m/", null=True, blank=True)
-    resolution_photo = models.ImageField(upload_to="quality/resolutions/%Y/%m/", null=True, blank=True)
+    resolution_photo = models.ImageField(
+        upload_to="quality/resolutions/%Y/%m/", null=True, blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -6329,16 +6874,24 @@ class RecurringTask(models.Model):
     end_date = models.DateField(null=True, blank=True, help_text="When to stop (null = no end)")
 
     assigned_to = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="recurring_tasks_assigned"
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recurring_tasks_assigned",
     )
     cost_code = models.ForeignKey("CostCode", on_delete=models.SET_NULL, null=True, blank=True)
 
     # Template data
-    checklist = models.JSONField(default=list, blank=True, help_text="Checklist items for auto-generated tasks")
+    checklist = models.JSONField(
+        default=list, blank=True, help_text="Checklist items for auto-generated tasks"
+    )
     estimated_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     active = models.BooleanField(default=True)
-    last_generated = models.DateField(null=True, blank=True, help_text="Last date a task was generated")
+    last_generated = models.DateField(
+        null=True, blank=True, help_text="Last date a task was generated"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -6369,7 +6922,9 @@ class GPSCheckIn(models.Model):
     check_in_time = models.DateTimeField()
     check_in_latitude = models.DecimalField(max_digits=9, decimal_places=6)
     check_in_longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    check_in_accuracy = models.DecimalField(max_digits=5, decimal_places=2, help_text="GPS accuracy in meters")
+    check_in_accuracy = models.DecimalField(
+        max_digits=5, decimal_places=2, help_text="GPS accuracy in meters"
+    )
 
     check_out_time = models.DateTimeField(null=True, blank=True)
     check_out_latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -6377,8 +6932,12 @@ class GPSCheckIn(models.Model):
     check_out_accuracy = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     # Validation
-    within_geofence = models.BooleanField(default=True, help_text="Was check-in within project geofence?")
-    distance_from_project = models.DecimalField(max_digits=8, decimal_places=2, help_text="Distance in meters")
+    within_geofence = models.BooleanField(
+        default=True, help_text="Was check-in within project geofence?"
+    )
+    distance_from_project = models.DecimalField(
+        max_digits=8, decimal_places=2, help_text="Distance in meters"
+    )
     flagged_for_review = models.BooleanField(default=False)
     review_notes = models.TextField(blank=True)
 
@@ -6414,16 +6973,24 @@ class ExpenseOCRData(models.Model):
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     # Line items
-    line_items = models.JSONField(default=list, blank=True, help_text="Extracted line items from receipt")
+    line_items = models.JSONField(
+        default=list, blank=True, help_text="Extracted line items from receipt"
+    )
 
     # OCR metadata
-    ocr_confidence = models.DecimalField(max_digits=5, decimal_places=2, help_text="OCR confidence % (0-100)")
+    ocr_confidence = models.DecimalField(
+        max_digits=5, decimal_places=2, help_text="OCR confidence % (0-100)"
+    )
     raw_text = models.TextField(blank=True, help_text="Full raw OCR text")
 
     # Auto-categorization
     suggested_category = models.CharField(max_length=100, blank=True)
-    suggested_cost_code = models.ForeignKey("CostCode", on_delete=models.SET_NULL, null=True, blank=True)
-    ai_suggestion_confidence = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    suggested_cost_code = models.ForeignKey(
+        "CostCode", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    ai_suggestion_confidence = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
 
     # Review
     verified = models.BooleanField(default=False)
@@ -6465,20 +7032,30 @@ class InvoiceAutomation(models.Model):
         blank=True,
     )
     next_recurrence_date = models.DateField(null=True, blank=True)
-    recurrence_end_date = models.DateField(null=True, blank=True, help_text="When to stop auto-generating")
+    recurrence_end_date = models.DateField(
+        null=True, blank=True, help_text="When to stop auto-generating"
+    )
 
     # Email automation
     auto_send_on_creation = models.BooleanField(default=False)
-    auto_remind_before_due = models.IntegerField(default=3, help_text="Days before due date to send reminder")
-    auto_remind_after_due = models.BooleanField(default=True, help_text="Send reminders for overdue invoices")
-    reminder_frequency_days = models.IntegerField(default=7, help_text="How often to remind after due")
+    auto_remind_before_due = models.IntegerField(
+        default=3, help_text="Days before due date to send reminder"
+    )
+    auto_remind_after_due = models.BooleanField(
+        default=True, help_text="Send reminders for overdue invoices"
+    )
+    reminder_frequency_days = models.IntegerField(
+        default=7, help_text="How often to remind after due"
+    )
 
     # Late fees
     apply_late_fees = models.BooleanField(default=False)
     late_fee_percentage = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("1.5"), help_text="% per month"
     )
-    late_fee_grace_days = models.IntegerField(default=5, help_text="Days after due before applying fee")
+    late_fee_grace_days = models.IntegerField(
+        default=5, help_text="Days after due before applying fee"
+    )
 
     # Payment gateway
     stripe_payment_intent_id = models.CharField(max_length=200, blank=True)
@@ -6525,7 +7102,9 @@ class InventoryBarcode(models.Model):
     reorder_point = models.DecimalField(
         max_digits=10, decimal_places=2, help_text="Trigger reorder when stock below this"
     )
-    reorder_quantity = models.DecimalField(max_digits=10, decimal_places=2, help_text="How much to reorder")
+    reorder_quantity = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="How much to reorder"
+    )
     preferred_vendor = models.CharField(max_length=200, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -6582,14 +7161,24 @@ class PunchListItem(models.Model):
         default="paint",
     )
     assigned_to = models.ForeignKey(
-        "Employee", on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_punchlist_items"
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_punchlist_items",
     )
     photo = models.ImageField(upload_to="punchlist/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="created_punchlist_items")
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="created_punchlist_items"
+    )
     completed_at = models.DateTimeField(null=True, blank=True)
     verified_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="verified_punchlist_items"
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="verified_punchlist_items",
     )
     verified_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
@@ -6647,7 +7236,9 @@ class Subcontractor(models.Model):
         get_specialty_display: Callable[[], str]
 
     hourly_rate = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    rating = models.DecimalField(max_digits=3, decimal_places=2, default=Decimal("5.0"), help_text="0-5 stars")
+    rating = models.DecimalField(
+        max_digits=3, decimal_places=2, default=Decimal("5.0"), help_text="0-5 stars"
+    )
 
     # Compliance
     insurance_verified = models.BooleanField(default=False)
@@ -6674,8 +7265,12 @@ class SubcontractorAssignment(models.Model):
     Track scope, timeline, and payments.
     """
 
-    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="subcontractor_assignments")
-    subcontractor = models.ForeignKey("Subcontractor", on_delete=models.CASCADE, related_name="assignments")
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="subcontractor_assignments"
+    )
+    subcontractor = models.ForeignKey(
+        "Subcontractor", on_delete=models.CASCADE, related_name="assignments"
+    )
 
     scope_of_work = models.TextField()
     start_date = models.DateField()
@@ -6721,21 +7316,27 @@ class EmployeePerformanceMetric(models.Model):
     Used for annual bonus evaluation.
     """
 
-    employee = models.ForeignKey("Employee", on_delete=models.CASCADE, related_name="performance_metrics")
+    employee = models.ForeignKey(
+        "Employee", on_delete=models.CASCADE, related_name="performance_metrics"
+    )
 
     # Period
     year = models.IntegerField()
     month = models.IntegerField(null=True, blank=True, help_text="Leave blank for annual metrics")
 
     # Auto-calculated metrics
-    total_hours_worked = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    total_hours_worked = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
     billable_hours = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     productivity_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), help_text="% billable hours"
     )
 
     # Quality metrics
-    defects_created = models.IntegerField(default=0, help_text="Touch-ups/rework assigned to this employee")
+    defects_created = models.IntegerField(
+        default=0, help_text="Touch-ups/rework assigned to this employee"
+    )
     tasks_completed = models.IntegerField(default=0)
     tasks_on_time = models.IntegerField(default=0)
 
@@ -6788,7 +7389,9 @@ class EmployeePerformanceMetric(models.Model):
 
         # Attendance (20%)
         if self.days_worked > 0:
-            attendance_score = ((self.days_worked - self.days_late - self.days_absent) / self.days_worked * 100) * 0.2
+            attendance_score = (
+                (self.days_worked - self.days_late - self.days_absent) / self.days_worked * 100
+            ) * 0.2
             scores.append(attendance_score)
 
         return sum(scores) if scores else 0
@@ -6803,7 +7406,9 @@ class EmployeeCertification(models.Model):
     Supports internal training programs and gamification.
     """
 
-    employee = models.ForeignKey("Employee", on_delete=models.CASCADE, related_name="certifications")
+    employee = models.ForeignKey(
+        "Employee", on_delete=models.CASCADE, related_name="certifications"
+    )
     certification_name = models.CharField(max_length=100)
 
     skill_category = models.CharField(
@@ -6878,8 +7483,12 @@ class SOPCompletion(models.Model):
     Award points and badges.
     """
 
-    employee = models.ForeignKey("Employee", on_delete=models.CASCADE, related_name="sop_completions")
-    sop = models.ForeignKey("ActivityTemplate", on_delete=models.CASCADE, related_name="completions")
+    employee = models.ForeignKey(
+        "Employee", on_delete=models.CASCADE, related_name="sop_completions"
+    )
+    sop = models.ForeignKey(
+        "ActivityTemplate", on_delete=models.CASCADE, related_name="completions"
+    )
 
     completed_at = models.DateTimeField(auto_now_add=True)
     time_taken = models.DurationField(null=True, blank=True)
@@ -6915,7 +7524,9 @@ class PaintLeftover(models.Model):
         "ColorSample", on_delete=models.SET_NULL, null=True, blank=True, related_name="leftovers"
     )
     brand = models.CharField(max_length=100, help_text="Marca de pintura (ej: Sherwin Williams)")
-    color_name = models.CharField(max_length=200, help_text="Nombre del color (ej: SW 7008 Alabaster)")
+    color_name = models.CharField(
+        max_length=200, help_text="Nombre del color (ej: SW 7008 Alabaster)"
+    )
     color_code = models.CharField(max_length=100, blank=True, help_text="Código del color")
     finish = models.CharField(
         max_length=50,
@@ -6929,7 +7540,9 @@ class PaintLeftover(models.Model):
         ],
         default="flat",
     )
-    quantity_gallons = models.DecimalField(max_digits=6, decimal_places=2, help_text="Cantidad en galones")
+    quantity_gallons = models.DecimalField(
+        max_digits=6, decimal_places=2, help_text="Cantidad en galones"
+    )
     container_type = models.CharField(
         max_length=50,
         choices=[
@@ -6942,9 +7555,15 @@ class PaintLeftover(models.Model):
     )
     num_containers = models.IntegerField(default=1, help_text="Número de contenedores")
     location = models.ForeignKey(
-        "InventoryLocation", on_delete=models.SET_NULL, null=True, blank=True, help_text="Ubicación donde se almacena"
+        "InventoryLocation",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Ubicación donde se almacena",
     )
-    location_notes = models.CharField(max_length=255, blank=True, help_text="Notas de ubicación específica")
+    location_notes = models.CharField(
+        max_length=255, blank=True, help_text="Notas de ubicación específica"
+    )
     condition = models.CharField(
         max_length=50,
         choices=[
@@ -6958,7 +7577,9 @@ class PaintLeftover(models.Model):
     date_stored = models.DateField(auto_now_add=True)
     expiration_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="paint_leftovers_created")
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="paint_leftovers_created"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -7006,14 +7627,20 @@ class FileCategory(models.Model):
     category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES, default="other")
     description = models.TextField(blank=True)
     icon = models.CharField(
-        max_length=50, default="bi-folder", help_text="Bootstrap icon class (e.g., bi-folder, bi-file-earmark)"
+        max_length=50,
+        default="bi-folder",
+        help_text="Bootstrap icon class (e.g., bi-folder, bi-file-earmark)",
     )
     color = models.CharField(
-        max_length=20, default="primary", help_text="Bootstrap color (primary, success, danger, etc.)"
+        max_length=20,
+        default="primary",
+        help_text="Bootstrap color (primary, success, danger, etc.)",
     )
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     class Meta:
         ordering = ["order", "name"]
@@ -7056,7 +7683,10 @@ class ProjectFile(models.Model):
     file_type = models.CharField(max_length=20, choices=FILE_TYPES, default="other")
     file_size = models.BigIntegerField(default=0, help_text="Size in bytes")
     uploaded_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="uploaded_files"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="uploaded_files",
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -7064,7 +7694,9 @@ class ProjectFile(models.Model):
     # Optional metadata
     tags = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags")
     is_public = models.BooleanField(default=False, help_text="Visible to clients")
-    version = models.CharField(max_length=20, blank=True, help_text="Document version (e.g., v1.0, Rev A)")
+    version = models.CharField(
+        max_length=20, blank=True, help_text="Document version (e.g., v1.0, Rev A)"
+    )
 
     class Meta:
         ordering = ["-uploaded_at"]
@@ -7153,8 +7785,12 @@ class TouchUpPin(models.Model):
 
     # Location
     plan = models.ForeignKey(FloorPlan, on_delete=models.CASCADE, related_name="touchup_pins")
-    x = models.DecimalField(max_digits=6, decimal_places=4, help_text="Normalized X coordinate (0..1)")
-    y = models.DecimalField(max_digits=6, decimal_places=4, help_text="Normalized Y coordinate (0..1)")
+    x = models.DecimalField(
+        max_digits=6, decimal_places=4, help_text="Normalized X coordinate (0..1)"
+    )
+    y = models.DecimalField(
+        max_digits=6, decimal_places=4, help_text="Normalized Y coordinate (0..1)"
+    )
 
     # Task info
     task_name = models.CharField(max_length=200)
@@ -7164,16 +7800,27 @@ class TouchUpPin(models.Model):
     approved_color = models.ForeignKey(
         "ColorSample", on_delete=models.SET_NULL, null=True, blank=True, related_name="touchup_pins"
     )
-    custom_color_name = models.CharField(max_length=100, blank=True, help_text="If not using approved color")
-    sheen = models.CharField(max_length=50, blank=True, help_text="Brillo: Matte, Satin, Semi-gloss, Gloss")
+    custom_color_name = models.CharField(
+        max_length=100, blank=True, help_text="If not using approved color"
+    )
+    sheen = models.CharField(
+        max_length=50, blank=True, help_text="Brillo: Matte, Satin, Semi-gloss, Gloss"
+    )
     details = models.TextField(blank=True, help_text="Additional details about the touch-up")
 
     # Assignment
     assigned_to = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_touchups"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_touchups",
     )
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_touchups"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_touchups",
     )
 
     # Status tracking
@@ -7198,11 +7845,17 @@ class TouchUpPin(models.Model):
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     closed_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="closed_touchups"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="closed_touchups",
     )
 
     # Visual
-    pin_color = models.CharField(max_length=7, default="#dc3545", help_text="Red for touch-ups by default")
+    pin_color = models.CharField(
+        max_length=7, default="#dc3545", help_text="Red for touch-ups by default"
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -7218,7 +7871,9 @@ class TouchUpPin(models.Model):
         """PM/Admin/Client/Designer/Owner can edit"""
         profile = getattr(user, "profile", None)
         return user.is_staff or (
-            profile and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+            profile
+            and profile.role
+            in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
         )
 
     def can_close(self, user):
@@ -7242,9 +7897,13 @@ class TouchUpCompletionPhoto(models.Model):
         id: int
         touchup_id: int
 
-    touchup = models.ForeignKey(TouchUpPin, on_delete=models.CASCADE, related_name="completion_photos")
+    touchup = models.ForeignKey(
+        TouchUpPin, on_delete=models.CASCADE, related_name="completion_photos"
+    )
     image = models.ImageField(upload_to="touchups/completion/")
-    annotations = models.JSONField(default=dict, blank=True, help_text="Canvas annotations if photo was edited")
+    annotations = models.JSONField(
+        default=dict, blank=True, help_text="Canvas annotations if photo was edited"
+    )
     notes = models.CharField(max_length=255, blank=True)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -7377,9 +8036,7 @@ class ClientOrganization(models.Model):
         from django.db.models import Q
 
         today = timezone.now().date()
-        return self.projects.filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=today)
-        ).count()
+        return self.projects.filter(Q(end_date__isnull=True) | Q(end_date__gte=today)).count()
 
     @property
     def total_contract_value(self):
@@ -7397,12 +8054,9 @@ class ClientOrganization(models.Model):
 
         # Use aggregation to avoid N+1 queries
         # balance_due = total_amount - amount_paid
-        result = (
-            self.projects.prefetch_related("invoices")
-            .aggregate(
-                total_billed=Coalesce(Sum("invoices__total_amount"), Decimal("0.00")),
-                total_paid=Coalesce(Sum("invoices__amount_paid"), Decimal("0.00")),
-            )
+        result = self.projects.prefetch_related("invoices").aggregate(
+            total_billed=Coalesce(Sum("invoices__total_amount"), Decimal("0.00")),
+            total_paid=Coalesce(Sum("invoices__amount_paid"), Decimal("0.00")),
         )
         billed = result.get("total_billed") or Decimal("0.00")
         paid = result.get("total_paid") or Decimal("0.00")
@@ -7539,9 +8193,7 @@ class ClientContact(models.Model):
         """All projects this contact has access to (lead + observer + org projects)."""
         from django.db.models import Q
 
-        qs = Project.objects.filter(
-            Q(project_lead=self) | Q(observers=self)
-        )
+        qs = Project.objects.filter(Q(project_lead=self) | Q(observers=self))
         if self.organization:
             qs = qs | Project.objects.filter(billing_organization=self.organization)
         return qs.distinct()
@@ -7569,10 +8221,11 @@ class UserStatus(models.Model):
     Track user online/offline presence and last activity.
     Used for real-time status indicators and "last seen" timestamps.
     """
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='status',
+        related_name="status",
         verbose_name="User",
     )
     is_online = models.BooleanField(
@@ -7594,9 +8247,9 @@ class UserStatus(models.Model):
         max_length=20,
         blank=True,
         choices=[
-            ('desktop', 'Desktop'),
-            ('mobile', 'Mobile'),
-            ('tablet', 'Tablet'),
+            ("desktop", "Desktop"),
+            ("mobile", "Mobile"),
+            ("tablet", "Tablet"),
         ],
         verbose_name="Device Type",
     )
@@ -7610,7 +8263,7 @@ class UserStatus(models.Model):
         verbose_name = "User Status"
         verbose_name_plural = "User Statuses"
         indexes = [
-            models.Index(fields=['is_online', '-last_seen']),
+            models.Index(fields=["is_online", "-last_seen"]),
         ]
 
     def __str__(self):
@@ -7620,23 +8273,25 @@ class UserStatus(models.Model):
     def mark_online(self):
         """Mark user as online and update heartbeat"""
         from django.utils import timezone
+
         self.is_online = True
         self.last_heartbeat = timezone.now()
         self.connection_count += 1
-        self.save(update_fields=['is_online', 'last_heartbeat', 'last_seen', 'connection_count'])
+        self.save(update_fields=["is_online", "last_heartbeat", "last_seen", "connection_count"])
 
     def mark_offline(self):
         """Mark user as offline"""
         self.connection_count = max(0, self.connection_count - 1)
         if self.connection_count == 0:
             self.is_online = False
-        self.save(update_fields=['is_online', 'last_seen', 'connection_count'])
+        self.save(update_fields=["is_online", "last_seen", "connection_count"])
 
     def update_heartbeat(self):
         """Update heartbeat timestamp"""
         from django.utils import timezone
+
         self.last_heartbeat = timezone.now()
-        self.save(update_fields=['last_heartbeat', 'last_seen'])
+        self.save(update_fields=["last_heartbeat", "last_seen"])
 
     @property
     def last_seen_ago(self):
@@ -7666,7 +8321,7 @@ class UserStatus(models.Model):
     @classmethod
     def get_online_users(cls):
         """Get all currently online users"""
-        return cls.objects.filter(is_online=True).select_related('user')
+        return cls.objects.filter(is_online=True).select_related("user")
 
     @classmethod
     def cleanup_stale_online_status(cls, threshold_minutes=5):
@@ -7679,10 +8334,7 @@ class UserStatus(models.Model):
         from django.utils import timezone
 
         threshold = timezone.now() - timedelta(minutes=threshold_minutes)
-        stale = cls.objects.filter(
-            is_online=True,
-            last_heartbeat__lt=threshold
-        )
+        stale = cls.objects.filter(is_online=True, last_heartbeat__lt=threshold)
         count = stale.update(is_online=False, connection_count=0)
         return count
 
@@ -7692,10 +8344,11 @@ class NotificationLog(models.Model):
     Log of all notifications sent via WebSocket.
     Complements existing Notification model with delivery tracking.
     """
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='notification_logs',
+        related_name="notification_logs",
         verbose_name="User",
     )
     title = models.CharField(
@@ -7708,14 +8361,14 @@ class NotificationLog(models.Model):
     category = models.CharField(
         max_length=20,
         choices=[
-            ('info', 'Info'),
-            ('success', 'Success'),
-            ('warning', 'Warning'),
-            ('error', 'Error'),
-            ('task', 'Task'),
-            ('chat', 'Chat'),
+            ("info", "Info"),
+            ("success", "Success"),
+            ("warning", "Warning"),
+            ("error", "Error"),
+            ("task", "Task"),
+            ("chat", "Chat"),
         ],
-        default='info',
+        default="info",
         verbose_name="Category",
     )
     url = models.CharField(
@@ -7750,10 +8403,10 @@ class NotificationLog(models.Model):
     )
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['user', '-created_at']),
-            models.Index(fields=['user', 'read', '-created_at']),
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["user", "read", "-created_at"]),
         ]
         verbose_name = "Notification Log"
         verbose_name_plural = "Notification Logs"
@@ -7768,7 +8421,7 @@ class NotificationLog(models.Model):
         if not self.read:
             self.read = True
             self.read_at = timezone.now()
-            self.save(update_fields=['read', 'read_at'])
+            self.save(update_fields=["read", "read_at"])
 
     def mark_as_delivered(self):
         """Mark notification as delivered via WebSocket"""
@@ -7777,7 +8430,7 @@ class NotificationLog(models.Model):
         if not self.delivered_via_websocket:
             self.delivered_via_websocket = True
             self.delivered_at = timezone.now()
-            self.save(update_fields=['delivered_via_websocket', 'delivered_at'])
+            self.save(update_fields=["delivered_via_websocket", "delivered_at"])
 
 
 # ---------------------
@@ -7811,9 +8464,15 @@ class CalendarEvent(models.Model):
     visibility_level = models.CharField(max_length=16, choices=VISIBILITY_CHOICES, default="team")
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="calendar_events")
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_events")
-    assigned_to = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="assigned_events", blank=True)
-    dependencies = models.ManyToManyField("self", symmetrical=False, related_name="dependents", blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_events"
+    )
+    assigned_to = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="assigned_events", blank=True
+    )
+    dependencies = models.ManyToManyField(
+        "self", symmetrical=False, related_name="dependents", blank=True
+    )
 
     ai_conflicts = models.JSONField(default=list, blank=True)
     ai_recommendations = models.JSONField(default=list, blank=True)
@@ -7835,7 +8494,9 @@ class CalendarEvent(models.Model):
         if self.dependencies.exists():
             pending = self.dependencies.filter(status__in=["planned", "in_progress"])
             if pending.exists():
-                conflicts.append({"type": "dependency", "description": "Dependencies not completed"})
+                conflicts.append(
+                    {"type": "dependency", "description": "Dependencies not completed"}
+                )
         self.ai_conflicts = conflicts
         self.ai_risk_level = "low" if conflicts else "none"
         self.ai_recommendations = [] if not conflicts else ["Review dependency schedule"]
@@ -7864,7 +8525,9 @@ class MeetingMinute(models.Model):
     content = models.TextField(help_text="Contenido enriquecido / markdown")
     created_at = models.DateTimeField(auto_now_add=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="meeting_minutes")
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     class Meta:
         ordering = ["-date", "-id"]
@@ -7923,11 +8586,23 @@ from .strategic_planning import (
 )
 
 __all__ = [
-    'PushSubscription',
-    'DailyFocusSession', 'FocusTask',
-    'LifeVision', 'ExecutiveHabit', 'DailyRitualSession',
-    'PowerAction', 'HabitCompletion',
-    'StrategicPlanningSession', 'StrategicDay', 'StrategicItem', 'StrategicTask',
-    'StrategicSubtask', 'StrategicMaterialRequirement', 'StrategicDependency',
-    'TimelineView', 'AIAnalysisLog', 'AISuggestion', 'VoiceCommand'
+    "PushSubscription",
+    "DailyFocusSession",
+    "FocusTask",
+    "LifeVision",
+    "ExecutiveHabit",
+    "DailyRitualSession",
+    "PowerAction",
+    "HabitCompletion",
+    "StrategicPlanningSession",
+    "StrategicDay",
+    "StrategicItem",
+    "StrategicTask",
+    "StrategicSubtask",
+    "StrategicMaterialRequirement",
+    "StrategicDependency",
+    "TimelineView",
+    "AIAnalysisLog",
+    "AISuggestion",
+    "VoiceCommand",
 ]

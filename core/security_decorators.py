@@ -127,7 +127,9 @@ def require_project_access(param_name="project_id"):
 
             # Clients need explicit access
             if role == "client":
-                has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
+                has_access = ClientProjectAccess.objects.filter(
+                    user=request.user, project=project
+                ).exists()
                 legacy_access = project.client == request.user.username
 
                 if has_access or legacy_access:
@@ -175,7 +177,8 @@ def rate_limit(key_prefix="rl", max_requests=10, window_seconds=60):
             if current_requests >= max_requests:
                 if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                     return JsonResponse(
-                        {"error": f"Rate limit exceeded. Try again in {window_seconds} seconds."}, status=429
+                        {"error": f"Rate limit exceeded. Try again in {window_seconds} seconds."},
+                        status=429,
                     )
                 return HttpResponseForbidden(
                     f"Rate limit exceeded. Maximum {max_requests} requests per {window_seconds} seconds."

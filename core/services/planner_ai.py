@@ -2,8 +2,10 @@
 AI Services for Strategic Planner
 Provides intelligent assistance for task prioritization and planning
 """
+
 try:
     import openai
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -15,7 +17,7 @@ from django.conf import settings
 
 # Configure OpenAI
 if OPENAI_AVAILABLE and openai:
-    openai.api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    openai.api_key = getattr(settings, "OPENAI_API_KEY", None)
 
 
 class PlannerAI:
@@ -38,16 +40,12 @@ class PlannerAI:
             }
         """
         if not OPENAI_AVAILABLE or not openai or not openai.api_key:
-            return {
-                'high_impact': [],
-                'noise': [],
-                'summary': 'OpenAI API key not configured'
-            }
+            return {"high_impact": [], "noise": [], "summary": "OpenAI API key not configured"}
 
         # Build context prompt
         context_info = ""
         if user_context:
-            visions = user_context.get('visions', [])
+            visions = user_context.get("visions", [])
             if visions:
                 context_info = "\n\nUser's Life Visions:\n" + "\n".join([f"- {v}" for v in visions])
 
@@ -83,20 +81,23 @@ RULES:
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are an expert in executive productivity and the Pareto Principle."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert in executive productivity and the Pareto Principle.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
-                max_tokens=1000
+                max_tokens=1000,
             )
 
             result_text = response.choices[0].message.content.strip()
 
             # Parse JSON response
             # Handle markdown code blocks if present
-            if result_text.startswith('```'):
-                result_text = result_text.split('```')[1]
-                if result_text.startswith('json'):
+            if result_text.startswith("```"):
+                result_text = result_text.split("```")[1]
+                if result_text.startswith("json"):
                     result_text = result_text[4:]
 
             result = json.loads(result_text)
@@ -104,11 +105,7 @@ RULES:
 
         except Exception as e:
             print(f"AI Brain Dump Error: {e}")
-            return {
-                'high_impact': [],
-                'noise': [],
-                'summary': f'Error processing: {str(e)}'
-            }
+            return {"high_impact": [], "noise": [], "summary": f"Error processing: {str(e)}"}
 
     @staticmethod
     def suggest_frog(high_impact_items: list[dict], user_context: dict | None = None) -> dict:
@@ -128,19 +125,21 @@ RULES:
         """
         if not OPENAI_AVAILABLE or not openai or not openai.api_key or not high_impact_items:
             return {
-                'recommended_index': 0,
-                'reasoning': 'No AI available or no items to analyze',
-                'alternative': ''
+                "recommended_index": 0,
+                "reasoning": "No AI available or no items to analyze",
+                "alternative": "",
             }
 
         # Build context
         context_info = ""
         if user_context:
-            energy = user_context.get('energy_level')
+            energy = user_context.get("energy_level")
             if energy:
                 context_info += f"\nUser's current energy level: {energy}/10"
 
-        items_list = "\n".join([f"{i+1}. {item['text']}" for i, item in enumerate(high_impact_items)])
+        items_list = "\n".join(
+            [f"{i + 1}. {item['text']}" for i, item in enumerate(high_impact_items)]
+        )
 
         prompt = f"""You are Brian Tracy, author of "Eat That Frog". Help choose THE ONE most important task.
 
@@ -167,19 +166,22 @@ Return JSON:
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are Brian Tracy, expert in time management and productivity."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are Brian Tracy, expert in time management and productivity.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
-                max_tokens=300
+                max_tokens=300,
             )
 
             result_text = response.choices[0].message.content.strip()
 
             # Parse JSON
-            if result_text.startswith('```'):
-                result_text = result_text.split('```')[1]
-                if result_text.startswith('json'):
+            if result_text.startswith("```"):
+                result_text = result_text.split("```")[1]
+                if result_text.startswith("json"):
                     result_text = result_text[4:]
 
             result = json.loads(result_text)
@@ -187,11 +189,7 @@ Return JSON:
 
         except Exception as e:
             print(f"AI Frog Suggestion Error: {e}")
-            return {
-                'recommended_index': 0,
-                'reasoning': f'Error: {str(e)}',
-                'alternative': ''
-            }
+            return {"recommended_index": 0, "reasoning": f"Error: {str(e)}", "alternative": ""}
 
     @staticmethod
     def generate_micro_steps(frog_title: str, context: str | None = None) -> list[dict]:
@@ -211,9 +209,9 @@ Return JSON:
         """
         if not OPENAI_AVAILABLE or not openai or not openai.api_key:
             return [
-                {'text': 'Define the first action', 'done': False},
-                {'text': 'Complete the main work', 'done': False},
-                {'text': 'Review and finalize', 'done': False}
+                {"text": "Define the first action", "done": False},
+                {"text": "Complete the main work", "done": False},
+                {"text": "Review and finalize", "done": False},
             ]
 
         context_text = f"\nContext: {context}" if context else ""
@@ -241,32 +239,35 @@ Return JSON array:
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a GTD (Getting Things Done) expert specializing in breaking down complex tasks."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are a GTD (Getting Things Done) expert specializing in breaking down complex tasks.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
-                max_tokens=400
+                max_tokens=400,
             )
 
             result_text = response.choices[0].message.content.strip()
 
             # Parse JSON
-            if result_text.startswith('```'):
-                result_text = result_text.split('```')[1]
-                if result_text.startswith('json'):
+            if result_text.startswith("```"):
+                result_text = result_text.split("```")[1]
+                if result_text.startswith("json"):
                     result_text = result_text[4:]
 
             steps = json.loads(result_text)
 
             # Ensure proper format
-            return [{'text': step.get('text', step), 'done': False} for step in steps]
+            return [{"text": step.get("text", step), "done": False} for step in steps]
 
         except Exception as e:
             print(f"AI Micro-Steps Error: {e}")
             return [
-                {'text': 'Start the task', 'done': False},
-                {'text': 'Complete the main work', 'done': False},
-                {'text': 'Finalize and review', 'done': False}
+                {"text": "Start the task", "done": False},
+                {"text": "Complete the main work", "done": False},
+                {"text": "Finalize and review", "done": False},
             ]
 
     @staticmethod
@@ -290,15 +291,15 @@ Return JSON array:
             # Default smart suggestion
             if energy_level >= 7:
                 return {
-                    'suggested_start': '09:00',
-                    'suggested_end': '11:00',
-                    'reasoning': 'High energy - tackle during peak morning hours'
+                    "suggested_start": "09:00",
+                    "suggested_end": "11:00",
+                    "reasoning": "High energy - tackle during peak morning hours",
                 }
             else:
                 return {
-                    'suggested_start': '10:00',
-                    'suggested_end': '12:00',
-                    'reasoning': 'Start after warm-up period'
+                    "suggested_start": "10:00",
+                    "suggested_end": "12:00",
+                    "reasoning": "Start after warm-up period",
                 }
 
         num_steps = len(micro_steps)
@@ -327,17 +328,17 @@ Consider:
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a time management expert."},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
-                max_tokens=150
+                max_tokens=150,
             )
 
             result_text = response.choices[0].message.content.strip()
 
-            if result_text.startswith('```'):
-                result_text = result_text.split('```')[1]
-                if result_text.startswith('json'):
+            if result_text.startswith("```"):
+                result_text = result_text.split("```")[1]
+                if result_text.startswith("json"):
                     result_text = result_text[4:]
 
             return json.loads(result_text)
@@ -345,7 +346,7 @@ Consider:
         except Exception as e:
             print(f"AI Time Block Error: {e}")
             return {
-                'suggested_start': '09:00',
-                'suggested_end': '11:00',
-                'reasoning': f'Default suggestion (Error: {str(e)})'
+                "suggested_start": "09:00",
+                "suggested_end": "11:00",
+                "reasoning": f"Default suggestion (Error: {str(e)})",
             }

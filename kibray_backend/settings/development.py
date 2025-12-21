@@ -2,6 +2,7 @@
 Django Settings - Development Environment
 Settings for local development
 """
+
 import os
 import sys
 
@@ -16,7 +17,7 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver", "*"]
 DATABASES = {
     "default": {  # noqa: F405
         "ENGINE": "django.db.backends.sqlite3",
-    "NAME": BASE_DIR / "db.sqlite3",  # noqa: F405
+        "NAME": BASE_DIR / "db.sqlite3",  # noqa: F405
     }
 }
 
@@ -60,9 +61,7 @@ USE_IN_MEMORY_LAYERS = (
 )
 
 if USE_IN_MEMORY_LAYERS:
-    CHANNEL_LAYERS = {
-        "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
-    }
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",

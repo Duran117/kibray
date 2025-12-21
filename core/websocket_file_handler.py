@@ -34,17 +34,17 @@ class FileAttachmentHandler:
 
     # Maximum file sizes (bytes)
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-    MAX_IMAGE_SIZE = 5 * 1024 * 1024   # 5MB
+    MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
     MAX_DOCUMENT_SIZE = 10 * 1024 * 1024  # 10MB
 
     # Allowed file types
-    ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"]
     ALLOWED_DOCUMENT_TYPES = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ]
     ALLOWED_TYPES = ALLOWED_IMAGE_TYPES + ALLOWED_DOCUMENT_TYPES
 
@@ -82,7 +82,7 @@ class FileAttachmentHandler:
             return False, "Invalid filename"
 
         # Check for dangerous extensions
-        dangerous_extensions = ['.exe', '.bat', '.sh', '.cmd', '.scr', '.com']
+        dangerous_extensions = [".exe", ".bat", ".sh", ".cmd", ".scr", ".com"]
         if any(filename.lower().endswith(ext) for ext in dangerous_extensions):
             return False, "Executable files not allowed"
 
@@ -101,9 +101,7 @@ class FileAttachmentHandler:
         """
         # Validate metadata
         is_valid, error = self.validate_file_metadata(
-            metadata.get('filename'),
-            metadata.get('file_type'),
-            metadata.get('file_size', 0)
+            metadata.get("filename"), metadata.get("file_type"), metadata.get("file_size", 0)
         )
 
         if not is_valid:
@@ -111,10 +109,10 @@ class FileAttachmentHandler:
 
         # Create session
         self.upload_sessions[session_id] = {
-            'chunks': [],
-            'metadata': metadata,
-            'started_at': datetime.now(),
-            'bytes_received': 0,
+            "chunks": [],
+            "metadata": metadata,
+            "started_at": datetime.now(),
+            "bytes_received": 0,
         }
 
         return True, None
@@ -138,22 +136,25 @@ class FileAttachmentHandler:
 
         # Decode chunk
         import base64
+
         try:
             chunk_bytes = base64.b64decode(chunk_data)
         except Exception as e:
             return False, f"Invalid chunk data: {e}"
 
         # Store chunk
-        session['chunks'].append({
-            'index': chunk_index,
-            'data': chunk_bytes,
-        })
+        session["chunks"].append(
+            {
+                "index": chunk_index,
+                "data": chunk_bytes,
+            }
+        )
 
-        session['bytes_received'] += len(chunk_bytes)
+        session["bytes_received"] += len(chunk_bytes)
 
         # Calculate progress
-        total_size = session['metadata']['file_size']
-        progress = (session['bytes_received'] / total_size) * 100 if total_size > 0 else 0
+        total_size = session["metadata"]["file_size"]
+        progress = (session["bytes_received"] / total_size) * 100 if total_size > 0 else 0
 
         return True, round(progress, 2)
 
@@ -175,18 +176,18 @@ class FileAttachmentHandler:
         session = self.upload_sessions[session_id]
 
         # Combine chunks
-        chunks = sorted(session['chunks'], key=lambda x: x['index'])
-        file_data = b''.join(chunk['data'] for chunk in chunks)
+        chunks = sorted(session["chunks"], key=lambda x: x["index"])
+        file_data = b"".join(chunk["data"] for chunk in chunks)
 
         # Verify size
-        expected_size = session['metadata']['file_size']
+        expected_size = session["metadata"]["file_size"]
         if len(file_data) != expected_size:
             return None, f"Size mismatch: expected {expected_size}, got {len(file_data)}"
 
         # Generate filename
-        original_filename = session['metadata']['filename']
+        original_filename = session["metadata"]["filename"]
         file_hash = hashlib.sha256(file_data).hexdigest()[:12]
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_filename = f"{timestamp}_{file_hash}_{original_filename}"
 
         # Save file
@@ -195,7 +196,7 @@ class FileAttachmentHandler:
 
         # Generate thumbnail for images
         thumbnail_url = None
-        if session['metadata']['file_type'] in self.ALLOWED_IMAGE_TYPES:
+        if session["metadata"]["file_type"] in self.ALLOWED_IMAGE_TYPES:
             thumbnail_url = self._generate_thumbnail(file_data, file_path)
 
         # Create database record
@@ -204,7 +205,7 @@ class FileAttachmentHandler:
             channel_id=channel_id,
             filename=original_filename,
             file_path=file_url,
-            file_type=session['metadata']['file_type'],
+            file_type=session["metadata"]["file_type"],
             file_size=len(file_data),
             thumbnail_path=thumbnail_url,
         )
@@ -230,15 +231,15 @@ class FileAttachmentHandler:
             image = Image.open(io.BytesIO(image_data))
 
             # Convert RGBA to RGB if needed
-            if image.mode == 'RGBA':
-                image = image.convert('RGB')
+            if image.mode == "RGBA":
+                image = image.convert("RGB")
 
             # Create thumbnail
             image.thumbnail(self.THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
 
             # Save thumbnail
             thumbnail_io = io.BytesIO()
-            image.save(thumbnail_io, format='JPEG', quality=85)
+            image.save(thumbnail_io, format="JPEG", quality=85)
             thumbnail_data = thumbnail_io.getvalue()
 
             # Generate thumbnail path
@@ -246,22 +247,21 @@ class FileAttachmentHandler:
             thumbnail_path = f"{base_path}_thumb.jpg"
 
             # Save to storage
-            thumbnail_url = default_storage.save(
-                thumbnail_path,
-                ContentFile(thumbnail_data)
-            )
+            thumbnail_url = default_storage.save(thumbnail_path, ContentFile(thumbnail_data))
 
             return thumbnail_url
 
         except Exception as e:
             import logging
-            logger = logging.getLogger('websocket')
+
+            logger = logging.getLogger("websocket")
             logger.error(f"Failed to generate thumbnail: {e}")
             return None
 
     @database_sync_to_async
-    def _create_attachment_record(self, user, channel_id, filename, file_path,
-                                   file_type, file_size, thumbnail_path):
+    def _create_attachment_record(
+        self, user, channel_id, filename, file_path, file_type, file_size, thumbnail_path
+    ):
         """
         Create FileAttachment database record.
 
@@ -311,16 +311,16 @@ class FileAttachmentHandler:
             return None
 
         session = self.upload_sessions[session_id]
-        total_size = session['metadata']['file_size']
-        bytes_received = session['bytes_received']
+        total_size = session["metadata"]["file_size"]
+        bytes_received = session["bytes_received"]
 
         return {
-            'session_id': session_id,
-            'filename': session['metadata']['filename'],
-            'total_size': total_size,
-            'bytes_received': bytes_received,
-            'progress': (bytes_received / total_size * 100) if total_size > 0 else 0,
-            'chunks_received': len(session['chunks']),
+            "session_id": session_id,
+            "filename": session["metadata"]["filename"],
+            "total_size": total_size,
+            "bytes_received": bytes_received,
+            "progress": (bytes_received / total_size * 100) if total_size > 0 else 0,
+            "chunks_received": len(session["chunks"]),
         }
 
 
@@ -344,59 +344,73 @@ async def handle_file_upload_message(consumer, data):
     """
     import json
 
-    action = data.get('action')
+    action = data.get("action")
 
-    if action == 'start_upload':
+    if action == "start_upload":
         # Start new upload session
-        session_id = data.get('session_id')
-        metadata = data.get('metadata', {})
+        session_id = data.get("session_id")
+        metadata = data.get("metadata", {})
 
         success, error = file_handler.start_upload_session(session_id, metadata)
 
         if success:
-            await consumer.send(text_data=json.dumps({
-                'type': 'upload_started',
-                'session_id': session_id,
-                'message': 'Upload session started',
-            }))
+            await consumer.send(
+                text_data=json.dumps(
+                    {
+                        "type": "upload_started",
+                        "session_id": session_id,
+                        "message": "Upload session started",
+                    }
+                )
+            )
         else:
-            await consumer.send(text_data=json.dumps({
-                'type': 'upload_error',
-                'session_id': session_id,
-                'error': error,
-            }))
+            await consumer.send(
+                text_data=json.dumps(
+                    {
+                        "type": "upload_error",
+                        "session_id": session_id,
+                        "error": error,
+                    }
+                )
+            )
 
-    elif action == 'upload_chunk':
+    elif action == "upload_chunk":
         # Receive file chunk
-        session_id = data.get('session_id')
-        chunk_data = data.get('chunk_data')
-        chunk_index = data.get('chunk_index')
+        session_id = data.get("session_id")
+        chunk_data = data.get("chunk_data")
+        chunk_index = data.get("chunk_index")
 
         success, result = file_handler.add_chunk(session_id, chunk_data, chunk_index)
 
         if success:
-            await consumer.send(text_data=json.dumps({
-                'type': 'upload_progress',
-                'session_id': session_id,
-                'progress': result,
-                'chunk_index': chunk_index,
-            }))
+            await consumer.send(
+                text_data=json.dumps(
+                    {
+                        "type": "upload_progress",
+                        "session_id": session_id,
+                        "progress": result,
+                        "chunk_index": chunk_index,
+                    }
+                )
+            )
         else:
-            await consumer.send(text_data=json.dumps({
-                'type': 'upload_error',
-                'session_id': session_id,
-                'error': result,
-            }))
+            await consumer.send(
+                text_data=json.dumps(
+                    {
+                        "type": "upload_error",
+                        "session_id": session_id,
+                        "error": result,
+                    }
+                )
+            )
 
-    elif action == 'complete_upload':
+    elif action == "complete_upload":
         # Complete upload
-        session_id = data.get('session_id')
-        channel_id = data.get('channel_id')
+        session_id = data.get("session_id")
+        channel_id = data.get("channel_id")
 
         attachment_id, file_url, thumbnail_url = file_handler.complete_upload(
-            session_id,
-            consumer.user,
-            channel_id
+            session_id, consumer.user, channel_id
         )
 
         if attachment_id:
@@ -404,39 +418,51 @@ async def handle_file_upload_message(consumer, data):
             await consumer.channel_layer.group_send(
                 consumer.room_group_name,
                 {
-                    'type': 'file_attachment',
-                    'attachment_id': attachment_id,
-                    'filename': data.get('metadata', {}).get('filename'),
-                    'file_url': file_url,
-                    'thumbnail_url': thumbnail_url,
-                    'user_id': consumer.user.id,
-                    'username': consumer.user.username,
-                    'timestamp': datetime.now().isoformat(),
-                }
+                    "type": "file_attachment",
+                    "attachment_id": attachment_id,
+                    "filename": data.get("metadata", {}).get("filename"),
+                    "file_url": file_url,
+                    "thumbnail_url": thumbnail_url,
+                    "user_id": consumer.user.id,
+                    "username": consumer.user.username,
+                    "timestamp": datetime.now().isoformat(),
+                },
             )
 
-            await consumer.send(text_data=json.dumps({
-                'type': 'upload_complete',
-                'session_id': session_id,
-                'attachment_id': attachment_id,
-                'file_url': file_url,
-                'thumbnail_url': thumbnail_url,
-            }))
+            await consumer.send(
+                text_data=json.dumps(
+                    {
+                        "type": "upload_complete",
+                        "session_id": session_id,
+                        "attachment_id": attachment_id,
+                        "file_url": file_url,
+                        "thumbnail_url": thumbnail_url,
+                    }
+                )
+            )
         else:
-            await consumer.send(text_data=json.dumps({
-                'type': 'upload_error',
-                'session_id': session_id,
-                'error': file_url,  # Error message
-            }))
+            await consumer.send(
+                text_data=json.dumps(
+                    {
+                        "type": "upload_error",
+                        "session_id": session_id,
+                        "error": file_url,  # Error message
+                    }
+                )
+            )
 
-    elif action == 'cancel_upload':
+    elif action == "cancel_upload":
         # Cancel upload
-        session_id = data.get('session_id')
+        session_id = data.get("session_id")
 
         success = file_handler.cancel_upload(session_id)
 
-        await consumer.send(text_data=json.dumps({
-            'type': 'upload_cancelled',
-            'session_id': session_id,
-            'success': success,
-        }))
+        await consumer.send(
+            text_data=json.dumps(
+                {
+                    "type": "upload_cancelled",
+                    "session_id": session_id,
+                    "success": success,
+                }
+            )
+        )

@@ -71,7 +71,9 @@ class ProjectDashboardView(APIView):
         profit_margin = (profit / total_income * 100) if total_income > 0 else Decimal("0")
 
         # Weather coverage (days cached)
-        weather_days = project.weather_snapshots.count() if hasattr(project, "weather_snapshots") else 0
+        weather_days = (
+            project.weather_snapshots.count() if hasattr(project, "weather_snapshots") else 0
+        )
 
         # Recent activity (limited list)
         # Recent activity (fetch minimal fields to reduce model instantiation)

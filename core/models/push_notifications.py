@@ -2,6 +2,7 @@
 PWA Push Notification Models
 Stores push notification subscriptions for Progressive Web App
 """
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -12,6 +13,7 @@ class PushSubscription(models.Model):
     Store push notification subscription details for PWA
     Each user can have multiple subscriptions (different devices/browsers)
     """
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -41,7 +43,7 @@ class PushSubscription(models.Model):
         verbose_name_plural = _("Push Subscriptions")
         unique_together = ["user", "endpoint"]
         ordering = ["-created_at"]
-        app_label = 'core'
+        app_label = "core"
 
     def __str__(self):
         return f"{self.user.username} - {self.endpoint[:50]}..."

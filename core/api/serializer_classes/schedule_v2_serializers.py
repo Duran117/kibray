@@ -126,7 +126,9 @@ class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
         end_date = attrs.get("end_date") or getattr(self.instance, "end_date", None)
 
         if start_date and end_date and end_date < start_date:
-            raise serializers.ValidationError({"end_date": "end_date no puede ser anterior a start_date"})
+            raise serializers.ValidationError(
+                {"end_date": "end_date no puede ser anterior a start_date"}
+            )
 
         progress = attrs.get("progress")
         if progress is not None and (progress < 0 or progress > 100):

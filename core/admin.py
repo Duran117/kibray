@@ -153,7 +153,14 @@ class TimeEntryAdmin(admin.ModelAdmin):
 # Cronograma
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ("project", "title", "start_datetime", "end_datetime", "is_complete", "is_personal")
+    list_display = (
+        "project",
+        "title",
+        "start_datetime",
+        "end_datetime",
+        "is_complete",
+        "is_personal",
+    )
     list_filter = ("project", "is_complete", "is_personal", "stage")
     search_fields = ("title", "description", "delay_reason", "advance_reason")
     date_hierarchy = "start_datetime"
@@ -163,7 +170,15 @@ class ScheduleAdmin(admin.ModelAdmin):
 # Cronograma jerárquico (ScheduleItem)
 @admin.register(ScheduleItem)
 class ScheduleItemAdmin(admin.ModelAdmin):
-    list_display = ("title", "project", "category", "status", "percent_complete", "order", "is_milestone")
+    list_display = (
+        "title",
+        "project",
+        "category",
+        "status",
+        "percent_complete",
+        "order",
+        "is_milestone",
+    )
     list_filter = ("project", "status", "is_milestone", "category")
     search_fields = ("title", "project__name", "category__name")
     ordering = ("project", "category__id", "order")
@@ -200,7 +215,15 @@ class InvoicePaymentInline(admin.TabularInline):
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ("invoice_number", "project", "status", "total_amount", "amount_paid", "balance_due", "date_issued")
+    list_display = (
+        "invoice_number",
+        "project",
+        "status",
+        "total_amount",
+        "amount_paid",
+        "balance_due",
+        "date_issued",
+    )
     inlines = [InvoiceLineInline, InvoicePaymentInline]
     search_fields = ("invoice_number", "project__name", "project__client")
     list_filter = ("status", "is_paid", "project")
@@ -215,7 +238,14 @@ class InvoiceLineAdmin(admin.ModelAdmin):
 
 @admin.register(InvoicePayment)
 class InvoicePaymentAdmin(admin.ModelAdmin):
-    list_display = ("invoice", "amount", "payment_date", "payment_method", "reference", "recorded_by")
+    list_display = (
+        "invoice",
+        "amount",
+        "payment_date",
+        "payment_method",
+        "reference",
+        "recorded_by",
+    )
     list_filter = ("payment_method", "payment_date")
     search_fields = ("invoice__invoice_number", "reference")
     readonly_fields = ("recorded_at",)
@@ -230,7 +260,15 @@ class BudgetProgressInline(admin.TabularInline):
 
 @admin.register(BudgetLine)
 class BudgetLineAdmin(admin.ModelAdmin):
-    list_display = ("id", "project", "cost_code", "description", "baseline_amount", "planned_start", "planned_finish")
+    list_display = (
+        "id",
+        "project",
+        "cost_code",
+        "description",
+        "baseline_amount",
+        "planned_start",
+        "planned_finish",
+    )
     list_filter = ("project", "cost_code")
     search_fields = ("description", "cost_code__code", "project__name")
     inlines = [BudgetProgressInline]
@@ -270,7 +308,15 @@ class MaterialRequestItemInline(admin.TabularInline):
 
 @admin.register(MaterialRequest)
 class MaterialRequestAdmin(admin.ModelAdmin):
-    list_display = ("id", "project", "requested_by", "status", "needed_when", "needed_date", "created_at")
+    list_display = (
+        "id",
+        "project",
+        "requested_by",
+        "status",
+        "needed_when",
+        "needed_date",
+        "created_at",
+    )
     list_filter = ("status", "needed_when", "project")
     inlines = [MaterialRequestItemInline]
 
@@ -294,14 +340,34 @@ class MaterialCatalogAdmin(admin.ModelAdmin):
 
 @admin.register(SitePhoto)
 class SitePhotoAdmin(admin.ModelAdmin):
-    list_display = ("id", "project", "room", "wall_ref", "approved_color", "brand", "finish", "coats", "created_at")
+    list_display = (
+        "id",
+        "project",
+        "room",
+        "wall_ref",
+        "approved_color",
+        "brand",
+        "finish",
+        "coats",
+        "created_at",
+    )
     list_filter = ("project", "room", "brand", "finish", "special_finish")
     search_fields = ("room", "wall_ref", "brand", "notes", "color_text")
 
 
 @admin.register(ColorSample)
 class ColorSampleAdmin(admin.ModelAdmin):
-    list_display = ("project", "name", "code", "brand", "status", "version", "approved_by", "approved_at", "created_at")
+    list_display = (
+        "project",
+        "name",
+        "code",
+        "brand",
+        "status",
+        "version",
+        "approved_by",
+        "approved_at",
+        "created_at",
+    )
     list_filter = ("project", "status", "brand")
     search_fields = ("name", "code", "brand", "notes")
     readonly_fields = ("approved_at", "created_at", "updated_at")
@@ -334,7 +400,10 @@ class ColorApprovalAdmin(admin.ModelAdmin):
         if request.user.is_superuser or request.user.is_staff:
             return True
         from .models import ProjectManagerAssignment
-        return ProjectManagerAssignment.objects.filter(project=obj.project, pm=request.user).exists()
+
+        return ProjectManagerAssignment.objects.filter(
+            project=obj.project, pm=request.user
+        ).exists()
 
     def approve_selected(self, request, queryset):
         approved = 0
@@ -347,6 +416,7 @@ class ColorApprovalAdmin(admin.ModelAdmin):
             obj.approve(approver=request.user)
             approved += 1
         self.message_user(request, f"Approved {approved} color approvals.")
+
     approve_selected.short_description = "Approve selected color approvals"
 
     def reject_selected(self, request, queryset):
@@ -360,6 +430,7 @@ class ColorApprovalAdmin(admin.ModelAdmin):
             obj.reject(approver=request.user, reason="Rejected via admin action")
             rejected += 1
         self.message_user(request, f"Rejected {rejected} color approvals.")
+
     reject_selected.short_description = "Reject selected color approvals"
 
 
@@ -392,7 +463,17 @@ class ProjectManagerAssignmentAdmin(admin.ModelAdmin):
 
 @admin.register(PlanPin)
 class PlanPinAdmin(admin.ModelAdmin):
-    list_display = ("plan", "pin_type", "title", "x", "y", "color_sample", "linked_task", "created_by", "created_at")
+    list_display = (
+        "plan",
+        "pin_type",
+        "title",
+        "x",
+        "y",
+        "color_sample",
+        "linked_task",
+        "created_by",
+        "created_at",
+    )
     list_filter = ("pin_type", "plan__project")
     search_fields = ("title", "description", "plan__name", "plan__project__name")
     inlines = [PlanPinAttachmentInline]
@@ -474,7 +555,15 @@ class ProjectInventoryAdmin(admin.ModelAdmin):
 
 @admin.register(InventoryMovement)
 class InventoryMovementAdmin(admin.ModelAdmin):
-    list_display = ("created_at", "movement_type", "item", "quantity", "from_location", "to_location", "created_by")
+    list_display = (
+        "created_at",
+        "movement_type",
+        "item",
+        "quantity",
+        "from_location",
+        "to_location",
+        "created_by",
+    )
     list_filter = ("movement_type", "item__category", "item", "created_by")
     search_fields = ("item__name", "from_location__name", "to_location__name", "note")
     readonly_fields = ("created_at", "created_by")
@@ -515,10 +604,19 @@ class ActivityTemplateAdmin(admin.ModelAdmin):
     inlines = [SOPReferenceFileInline]
 
     fieldsets = (
-        ("Basic Info", {"fields": ("name", "category", "description", "time_estimate", "is_active")}),
-        ("SOP Details", {"fields": ("steps", "materials_list", "tools_list", "tips", "common_errors")}),
+        (
+            "Basic Info",
+            {"fields": ("name", "category", "description", "time_estimate", "is_active")},
+        ),
+        (
+            "SOP Details",
+            {"fields": ("steps", "materials_list", "tools_list", "tips", "common_errors")},
+        ),
         ("Media", {"fields": ("reference_photos", "video_url")}),
-        ("Metadata", {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)}),
+        (
+            "Metadata",
+            {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)},
+        ),
     )
 
     def save_model(self, request, obj, form, change):
@@ -552,7 +650,14 @@ class PlannedActivityInline(admin.TabularInline):
 
 @admin.register(DailyPlan)
 class DailyPlanAdmin(admin.ModelAdmin):
-    list_display = ("project", "plan_date", "status", "created_by", "completion_deadline", "is_overdue")
+    list_display = (
+        "project",
+        "plan_date",
+        "status",
+        "created_by",
+        "completion_deadline",
+        "is_overdue",
+    )
     list_filter = ("status", "plan_date", "project")
     search_fields = ("project__name", "no_planning_reason")
     date_hierarchy = "plan_date"
@@ -569,7 +674,10 @@ class DailyPlanAdmin(admin.ModelAdmin):
                 "classes": ("collapse",),
             },
         ),
-        ("Metadata", {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)}),
+        (
+            "Metadata",
+            {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)},
+        ),
     )
 
     def save_model(self, request, obj, form, change):
@@ -591,15 +699,40 @@ class DailyPlanAdmin(admin.ModelAdmin):
 
 @admin.register(PlannedActivity)
 class PlannedActivityAdmin(admin.ModelAdmin):
-    list_display = ("title", "daily_plan", "status", "progress_percentage", "materials_checked", "material_shortage")
-    list_filter = ("status", "is_group_activity", "materials_checked", "material_shortage", "daily_plan__plan_date")
+    list_display = (
+        "title",
+        "daily_plan",
+        "status",
+        "progress_percentage",
+        "materials_checked",
+        "material_shortage",
+    )
+    list_filter = (
+        "status",
+        "is_group_activity",
+        "materials_checked",
+        "material_shortage",
+        "daily_plan__plan_date",
+    )
     search_fields = ("title", "description", "daily_plan__project__name")
     ordering = ("daily_plan__plan_date", "order")
     filter_horizontal = ("assigned_employees",)
     readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
-        ("Activity Info", {"fields": ("daily_plan", "title", "description", "order", "status", "progress_percentage")}),
+        (
+            "Activity Info",
+            {
+                "fields": (
+                    "daily_plan",
+                    "title",
+                    "description",
+                    "order",
+                    "status",
+                    "progress_percentage",
+                )
+            },
+        ),
         ("Links", {"fields": ("schedule_item", "activity_template")}),
         ("Assignment", {"fields": ("assigned_employees", "is_group_activity", "estimated_hours")}),
         ("Materials", {"fields": ("materials_needed", "materials_checked", "material_shortage")}),
@@ -618,7 +751,13 @@ class PlannedActivityAdmin(admin.ModelAdmin):
 
 @admin.register(ActivityCompletion)
 class ActivityCompletionAdmin(admin.ModelAdmin):
-    list_display = ("planned_activity", "completed_by", "completion_datetime", "progress_percentage", "verified_by")
+    list_display = (
+        "planned_activity",
+        "completed_by",
+        "completion_datetime",
+        "progress_percentage",
+        "verified_by",
+    )
     list_filter = ("completion_datetime", "verified_by", "completed_by")
     search_fields = ("planned_activity__title", "employee_notes")
     ordering = ("-completion_datetime",)
@@ -627,7 +766,14 @@ class ActivityCompletionAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             "Completion Info",
-            {"fields": ("planned_activity", "completed_by", "completion_datetime", "progress_percentage")},
+            {
+                "fields": (
+                    "planned_activity",
+                    "completed_by",
+                    "completion_datetime",
+                    "progress_percentage",
+                )
+            },
         ),
         ("Documentation", {"fields": ("completion_photos", "employee_notes")}),
         ("Verification", {"fields": ("verified_by", "verified_at")}),
@@ -650,7 +796,15 @@ class ActivityCompletionAdmin(admin.ModelAdmin):
 
 @admin.register(EVSnapshot)
 class EVSnapshotAdmin(admin.ModelAdmin):
-    list_display = ("project", "date", "earned_value", "actual_cost", "spi", "cpi", "percent_complete")
+    list_display = (
+        "project",
+        "date",
+        "earned_value",
+        "actual_cost",
+        "spi",
+        "cpi",
+        "percent_complete",
+    )
     list_filter = ("project", "date")
     search_fields = ("project__name",)
     date_hierarchy = "date"
@@ -685,25 +839,54 @@ class QualityInspectionAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             "Inspection Details",
-            {"fields": ("project", "inspection_type", "scheduled_date", "completed_date", "inspector", "status")},
+            {
+                "fields": (
+                    "project",
+                    "inspection_type",
+                    "scheduled_date",
+                    "completed_date",
+                    "inspector",
+                    "status",
+                )
+            },
         ),
-        ("Results", {"fields": ("overall_score", "ai_defect_count", "manual_defect_count", "notes")}),
+        (
+            "Results",
+            {"fields": ("overall_score", "ai_defect_count", "manual_defect_count", "notes")},
+        ),
         ("Checklist", {"fields": ("checklist_data",)}),
-        ("Warranty", {"fields": ("warranty_expiration", "warranty_notes"), "classes": ("collapse",)}),
+        (
+            "Warranty",
+            {"fields": ("warranty_expiration", "warranty_notes"), "classes": ("collapse",)},
+        ),
     )
 
 
 @admin.register(QualityDefect)
 class QualityDefectAdmin(admin.ModelAdmin):
-    list_display = ("inspection", "severity", "category", "detected_by_ai", "ai_confidence", "resolved", "resolved_by")
+    list_display = (
+        "inspection",
+        "severity",
+        "category",
+        "detected_by_ai",
+        "ai_confidence",
+        "resolved",
+        "resolved_by",
+    )
     list_filter = ("severity", "category", "detected_by_ai", "resolved", "inspection__project")
     search_fields = ("description", "location", "resolution_notes")
     readonly_fields = ("ai_confidence", "ai_pattern_match")
     fieldsets = (
-        ("Defect Info", {"fields": ("inspection", "severity", "category", "description", "location")}),
+        (
+            "Defect Info",
+            {"fields": ("inspection", "severity", "category", "description", "location")},
+        ),
         ("AI Detection", {"fields": ("detected_by_ai", "ai_confidence", "ai_pattern_match")}),
         ("Photos", {"fields": ("photo", "resolution_photo")}),
-        ("Resolution", {"fields": ("resolved", "resolved_date", "resolved_by", "resolution_notes")}),
+        (
+            "Resolution",
+            {"fields": ("resolved", "resolved_date", "resolved_by", "resolution_notes")},
+        ),
     )
 
 
@@ -723,7 +906,10 @@ class RecurringTaskAdmin(admin.ModelAdmin):
     search_fields = ("title", "description", "project__name")
     readonly_fields = ("last_generated",)
     fieldsets = (
-        ("Task Info", {"fields": ("project", "title", "description", "frequency", "estimated_hours")}),
+        (
+            "Task Info",
+            {"fields": ("project", "title", "description", "frequency", "estimated_hours")},
+        ),
         ("Schedule", {"fields": ("start_date", "end_date", "last_generated", "active")}),
         ("Assignment", {"fields": ("assigned_to", "cost_code")}),
         ("Checklist", {"fields": ("checklist",)}),
@@ -741,22 +927,55 @@ class GPSCheckInAdmin(admin.ModelAdmin):
         "distance_from_project",
         "flagged_for_review",
     )
-    list_filter = ("within_geofence", "flagged_for_review", "auto_break_detected", "project", "employee")
+    list_filter = (
+        "within_geofence",
+        "flagged_for_review",
+        "auto_break_detected",
+        "project",
+        "employee",
+    )
     search_fields = ("employee__first_name", "employee__last_name", "project__name", "review_notes")
     readonly_fields = ("distance_from_project", "auto_break_detected", "auto_break_minutes")
     date_hierarchy = "check_in_time"
     fieldsets = (
         ("Basic Info", {"fields": ("employee", "project", "time_entry")}),
-        ("Check In", {"fields": ("check_in_time", "check_in_latitude", "check_in_longitude", "check_in_accuracy")}),
+        (
+            "Check In",
+            {
+                "fields": (
+                    "check_in_time",
+                    "check_in_latitude",
+                    "check_in_longitude",
+                    "check_in_accuracy",
+                )
+            },
+        ),
         (
             "Check Out",
-            {"fields": ("check_out_time", "check_out_latitude", "check_out_longitude", "check_out_accuracy")},
+            {
+                "fields": (
+                    "check_out_time",
+                    "check_out_latitude",
+                    "check_out_longitude",
+                    "check_out_accuracy",
+                )
+            },
         ),
         (
             "Geofence Validation",
-            {"fields": ("within_geofence", "distance_from_project", "flagged_for_review", "review_notes")},
+            {
+                "fields": (
+                    "within_geofence",
+                    "distance_from_project",
+                    "flagged_for_review",
+                    "review_notes",
+                )
+            },
         ),
-        ("Auto Break Detection", {"fields": ("auto_break_detected", "auto_break_minutes"), "classes": ("collapse",)}),
+        (
+            "Auto Break Detection",
+            {"fields": ("auto_break_detected", "auto_break_minutes"), "classes": ("collapse",)},
+        ),
     )
 
 
@@ -790,7 +1009,10 @@ class ExpenseOCRDataAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("AI Suggestions", {"fields": ("suggested_category", "suggested_cost_code", "ai_suggestion_confidence")}),
+        (
+            "AI Suggestions",
+            {"fields": ("suggested_category", "suggested_cost_code", "ai_suggestion_confidence")},
+        ),
         ("Verification", {"fields": ("verified", "verified_by", "verification_notes")}),
     )
 
@@ -820,7 +1042,14 @@ class InvoiceAutomationAdmin(admin.ModelAdmin):
         ("Invoice Link", {"fields": ("invoice",)}),
         (
             "Recurrence",
-            {"fields": ("is_recurring", "recurrence_frequency", "next_recurrence_date", "recurrence_end_date")},
+            {
+                "fields": (
+                    "is_recurring",
+                    "recurrence_frequency",
+                    "next_recurrence_date",
+                    "recurrence_end_date",
+                )
+            },
         ),
         (
             "Automation Settings",
@@ -833,10 +1062,16 @@ class InvoiceAutomationAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("Late Fees", {"fields": ("apply_late_fees", "late_fee_percentage", "late_fee_grace_days")}),
+        (
+            "Late Fees",
+            {"fields": ("apply_late_fees", "late_fee_percentage", "late_fee_grace_days")},
+        ),
         (
             "Payment Integration",
-            {"fields": ("stripe_payment_intent_id", "payment_link", "last_reminder_sent"), "classes": ("collapse",)},
+            {
+                "fields": ("stripe_payment_intent_id", "payment_link", "last_reminder_sent"),
+                "classes": ("collapse",),
+            },
         ),
     )
 
@@ -857,7 +1092,17 @@ class InventoryBarcodeAdmin(admin.ModelAdmin):
     readonly_fields = ("barcode_image",)
     fieldsets = (
         ("Barcode Info", {"fields": ("item", "barcode_type", "barcode_value", "barcode_image")}),
-        ("Auto Reorder", {"fields": ("enable_auto_reorder", "reorder_point", "reorder_quantity", "preferred_vendor")}),
+        (
+            "Auto Reorder",
+            {
+                "fields": (
+                    "enable_auto_reorder",
+                    "reorder_point",
+                    "reorder_quantity",
+                    "preferred_vendor",
+                )
+            },
+        ),
     )
 
 
@@ -868,18 +1113,36 @@ class InventoryBarcodeAdmin(admin.ModelAdmin):
 
 @admin.register(PunchListItem)
 class PunchListItemAdmin(admin.ModelAdmin):
-    list_display = ("project", "location", "priority", "category", "status", "assigned_to", "created_at")
+    list_display = (
+        "project",
+        "location",
+        "priority",
+        "category",
+        "status",
+        "assigned_to",
+        "created_at",
+    )
     list_filter = ("status", "priority", "category", "created_at")
     search_fields = ("project__name", "location", "description")
     readonly_fields = ("created_at", "created_by", "completed_at", "verified_at", "verified_by")
     fieldsets = (
-        ("Item Details", {"fields": ("project", "location", "description", "priority", "category")}),
+        (
+            "Item Details",
+            {"fields": ("project", "location", "description", "priority", "category")},
+        ),
         ("Assignment", {"fields": ("assigned_to", "status")}),
         ("Media", {"fields": ("photo",)}),
         (
             "Tracking",
             {
-                "fields": ("created_at", "created_by", "completed_at", "verified_at", "verified_by", "notes"),
+                "fields": (
+                    "created_at",
+                    "created_by",
+                    "completed_at",
+                    "verified_at",
+                    "verified_by",
+                    "notes",
+                ),
                 "classes": ("collapse",),
             },
         ),
@@ -888,21 +1151,43 @@ class PunchListItemAdmin(admin.ModelAdmin):
 
 @admin.register(Subcontractor)
 class SubcontractorAdmin(admin.ModelAdmin):
-    list_display = ("company_name", "specialty", "contact_name", "phone", "rating", "insurance_verified", "is_active")
+    list_display = (
+        "company_name",
+        "specialty",
+        "contact_name",
+        "phone",
+        "rating",
+        "insurance_verified",
+        "is_active",
+    )
     list_filter = ("specialty", "insurance_verified", "w9_on_file", "is_active")
     search_fields = ("company_name", "contact_name", "email", "phone")
     readonly_fields = ("created_at",)
     fieldsets = (
-        ("Company Info", {"fields": ("company_name", "specialty", "contact_name", "email", "phone", "address")}),
+        (
+            "Company Info",
+            {"fields": ("company_name", "specialty", "contact_name", "email", "phone", "address")},
+        ),
         ("Rates & Rating", {"fields": ("hourly_rate", "rating")}),
-        ("Compliance", {"fields": ("insurance_verified", "insurance_expires", "w9_on_file", "license_number")}),
+        (
+            "Compliance",
+            {"fields": ("insurance_verified", "insurance_expires", "w9_on_file", "license_number")},
+        ),
         ("Status", {"fields": ("is_active", "notes", "created_at")}),
     )
 
 
 @admin.register(SubcontractorAssignment)
 class SubcontractorAssignmentAdmin(admin.ModelAdmin):
-    list_display = ("project", "subcontractor", "status", "start_date", "end_date", "contract_amount", "balance_due")
+    list_display = (
+        "project",
+        "subcontractor",
+        "status",
+        "start_date",
+        "end_date",
+        "contract_amount",
+        "balance_due",
+    )
     list_filter = ("status", "start_date")
     search_fields = ("project__name", "subcontractor__company_name")
     readonly_fields = ("created_at", "balance_due")
@@ -916,7 +1201,15 @@ class SubcontractorAssignmentAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeePerformanceMetric)
 class EmployeePerformanceMetricAdmin(admin.ModelAdmin):
-    list_display = ("employee", "year", "month", "productivity_rate", "quality_rating", "bonus_amount", "bonus_paid")
+    list_display = (
+        "employee",
+        "year",
+        "month",
+        "productivity_rate",
+        "quality_rating",
+        "bonus_amount",
+        "bonus_paid",
+    )
     list_filter = ("year", "month", "bonus_paid")
     search_fields = ("employee__first_name", "employee__last_name")
     readonly_fields = ("created_at", "updated_at", "overall_score")
@@ -937,7 +1230,10 @@ class EmployeePerformanceMetricAdmin(admin.ModelAdmin):
             },
         ),
         ("Attendance", {"fields": ("days_worked", "days_late", "days_absent")}),
-        ("Manual Ratings", {"fields": ("quality_rating", "attitude_rating", "teamwork_rating", "overall_score")}),
+        (
+            "Manual Ratings",
+            {"fields": ("quality_rating", "attitude_rating", "teamwork_rating", "overall_score")},
+        ),
         ("Bonus", {"fields": ("bonus_amount", "bonus_notes", "bonus_paid", "bonus_paid_date")}),
         ("Metadata", {"fields": ("notes", "created_at", "updated_at"), "classes": ("collapse",)}),
     )
@@ -955,10 +1251,18 @@ class EmployeeCertificationAdmin(admin.ModelAdmin):
         "verified_by",
     )
     list_filter = ("skill_category", "date_earned", "expires_at")
-    search_fields = ("employee__first_name", "employee__last_name", "certification_name", "certificate_number")
+    search_fields = (
+        "employee__first_name",
+        "employee__last_name",
+        "certification_name",
+        "certificate_number",
+    )
     readonly_fields = ("date_earned", "is_expired")
     fieldsets = (
-        ("Certification", {"fields": ("employee", "certification_name", "skill_category", "certificate_number")}),
+        (
+            "Certification",
+            {"fields": ("employee", "certification_name", "skill_category", "certificate_number")},
+        ),
         ("Dates", {"fields": ("date_earned", "expires_at", "is_expired")}),
         ("Verification", {"fields": ("verified_by", "notes")}),
     )
@@ -966,7 +1270,14 @@ class EmployeeCertificationAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeeSkillLevel)
 class EmployeeSkillLevelAdmin(admin.ModelAdmin):
-    list_display = ("employee", "skill", "level", "total_points", "assessments_passed", "last_assessment_date")
+    list_display = (
+        "employee",
+        "skill",
+        "level",
+        "total_points",
+        "assessments_passed",
+        "last_assessment_date",
+    )
     list_filter = ("level", "last_assessment_date")
     search_fields = ("employee__first_name", "employee__last_name", "skill")
     readonly_fields = ("created_at", "updated_at")
@@ -979,7 +1290,15 @@ class EmployeeSkillLevelAdmin(admin.ModelAdmin):
 
 @admin.register(SOPCompletion)
 class SOPCompletionAdmin(admin.ModelAdmin):
-    list_display = ("employee", "sop", "completed_at", "passed", "score", "points_awarded", "badge_awarded")
+    list_display = (
+        "employee",
+        "sop",
+        "completed_at",
+        "passed",
+        "score",
+        "points_awarded",
+        "badge_awarded",
+    )
     list_filter = ("passed", "completed_at", "badge_awarded")
     search_fields = ("employee__first_name", "employee__last_name", "sop__name")
     readonly_fields = ("completed_at",)
@@ -1030,26 +1349,51 @@ class TaskTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(ClientOrganization)
 class ClientOrganizationAdmin(admin.ModelAdmin):
-    list_display = ("name", "billing_email", "payment_terms_days", "active_projects_count", "is_active")
+    list_display = (
+        "name",
+        "billing_email",
+        "payment_terms_days",
+        "active_projects_count",
+        "is_active",
+    )
     list_filter = ("is_active", "created_at")
     search_fields = ("name", "legal_name", "billing_email", "tax_id")
-    readonly_fields = ("created_at", "updated_at", "active_projects_count", "total_contract_value", "outstanding_balance")
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "active_projects_count",
+        "total_contract_value",
+        "outstanding_balance",
+    )
 
     fieldsets = (
-        ("Basic Information", {
-            "fields": ("name", "legal_name", "tax_id", "logo", "website")
-        }),
-        ("Billing Information", {
-            "fields": ("billing_address", "billing_city", "billing_state", "billing_zip",
-                      "billing_email", "billing_phone", "billing_contact", "payment_terms_days")
-        }),
-        ("Metrics", {
-            "fields": ("active_projects_count", "total_contract_value", "outstanding_balance"),
-            "classes": ("collapse",)
-        }),
-        ("Status & Notes", {
-            "fields": ("is_active", "notes", "created_at", "updated_at", "created_by")
-        }),
+        ("Basic Information", {"fields": ("name", "legal_name", "tax_id", "logo", "website")}),
+        (
+            "Billing Information",
+            {
+                "fields": (
+                    "billing_address",
+                    "billing_city",
+                    "billing_state",
+                    "billing_zip",
+                    "billing_email",
+                    "billing_phone",
+                    "billing_contact",
+                    "payment_terms_days",
+                )
+            },
+        ),
+        (
+            "Metrics",
+            {
+                "fields": ("active_projects_count", "total_contract_value", "outstanding_balance"),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Status & Notes",
+            {"fields": ("is_active", "notes", "created_at", "updated_at", "created_by")},
+        ),
     )
 
 
@@ -1061,19 +1405,28 @@ class ClientContactAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
-        ("User & Organization", {
-            "fields": ("user", "organization", "role", "job_title", "department")
-        }),
-        ("Contact Information", {
-            "fields": ("phone_direct", "phone_mobile", "preferred_contact_method")
-        }),
-        ("Permissions", {
-            "fields": ("can_approve_change_orders", "can_view_financials", "can_create_tasks",
-                      "can_approve_colors", "receive_daily_reports", "receive_invoice_notifications")
-        }),
-        ("Status", {
-            "fields": ("is_active", "created_at", "updated_at")
-        }),
+        (
+            "User & Organization",
+            {"fields": ("user", "organization", "role", "job_title", "department")},
+        ),
+        (
+            "Contact Information",
+            {"fields": ("phone_direct", "phone_mobile", "preferred_contact_method")},
+        ),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "can_approve_change_orders",
+                    "can_view_financials",
+                    "can_create_tasks",
+                    "can_approve_colors",
+                    "receive_daily_reports",
+                    "receive_invoice_notifications",
+                )
+            },
+        ),
+        ("Status", {"fields": ("is_active", "created_at", "updated_at")}),
     )
 
 
@@ -1085,22 +1438,24 @@ class ClientContactAdmin(admin.ModelAdmin):
 @admin.register(UserStatus)
 class UserStatusAdmin(admin.ModelAdmin):
     """Admin for user online/offline status tracking"""
-    list_display = ("user", "is_online", "last_seen", "last_heartbeat", "connection_count", "device_type")
+
+    list_display = (
+        "user",
+        "is_online",
+        "last_seen",
+        "last_heartbeat",
+        "connection_count",
+        "device_type",
+    )
     list_filter = ("is_online", "device_type")
     search_fields = ("user__username", "user__email")
     readonly_fields = ("last_seen", "last_heartbeat")
     ordering = ("-last_seen",)
 
     fieldsets = (
-        ("User", {
-            "fields": ("user",)
-        }),
-        ("Status", {
-            "fields": ("is_online", "connection_count", "device_type")
-        }),
-        ("Timestamps", {
-            "fields": ("last_seen", "last_heartbeat")
-        }),
+        ("User", {"fields": ("user",)}),
+        ("Status", {"fields": ("is_online", "connection_count", "device_type")}),
+        ("Timestamps", {"fields": ("last_seen", "last_heartbeat")}),
     )
 
     def has_add_permission(self, request):
@@ -1111,6 +1466,7 @@ class UserStatusAdmin(admin.ModelAdmin):
 @admin.register(NotificationLog)
 class NotificationLogAdmin(admin.ModelAdmin):
     """Admin for notification delivery tracking"""
+
     list_display = ("user", "title", "category", "read", "delivered_via_websocket", "created_at")
     list_filter = ("category", "read", "delivered_via_websocket", "created_at")
     search_fields = ("user__username", "title", "message")
@@ -1118,15 +1474,9 @@ class NotificationLogAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
 
     fieldsets = (
-        ("User & Content", {
-            "fields": ("user", "title", "message", "category", "url")
-        }),
-        ("Status", {
-            "fields": ("read", "read_at", "delivered_via_websocket", "delivered_at")
-        }),
-        ("Timestamps", {
-            "fields": ("created_at",)
-        }),
+        ("User & Content", {"fields": ("user", "title", "message", "category", "url")}),
+        ("Status", {"fields": ("read", "read_at", "delivered_via_websocket", "delivered_at")}),
+        ("Timestamps", {"fields": ("created_at",)}),
     )
 
     actions = ["mark_as_read", "mark_as_delivered"]
@@ -1139,6 +1489,7 @@ class NotificationLogAdmin(admin.ModelAdmin):
                 notification.mark_as_read()
                 count += 1
         self.message_user(request, f"{count} notification(s) marked as read.")
+
     mark_as_read.short_description = "Mark selected as read"
 
     def mark_as_delivered(self, request, queryset):
@@ -1149,12 +1500,14 @@ class NotificationLogAdmin(admin.ModelAdmin):
                 notification.mark_as_delivered()
                 count += 1
         self.message_user(request, f"{count} notification(s) marked as delivered.")
+
     mark_as_delivered.short_description = "Mark selected as delivered"
 
 
 @admin.register(PMBlockedDay)
 class PMBlockedDayAdmin(admin.ModelAdmin):
     """Admin for PM blocked days (vacations, personal days, etc.)"""
+
     list_display = ("pm", "date", "reason", "is_full_day", "created_at")
     list_filter = ("reason", "is_full_day", "date")
     search_fields = ("pm__username", "pm__first_name", "pm__last_name", "notes")
@@ -1163,16 +1516,9 @@ class PMBlockedDayAdmin(admin.ModelAdmin):
     date_hierarchy = "date"
 
     fieldsets = (
-        ("PM & Date", {
-            "fields": ("pm", "date")
-        }),
-        ("Details", {
-            "fields": ("reason", "notes", "is_full_day", "start_time", "end_time")
-        }),
-        ("Timestamps", {
-            "fields": ("created_at", "updated_at"),
-            "classes": ("collapse",)
-        }),
+        ("PM & Date", {"fields": ("pm", "date")}),
+        ("Details", {"fields": ("reason", "notes", "is_full_day", "start_time", "end_time")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
 
     def get_queryset(self, request):
@@ -1187,99 +1533,101 @@ class PMBlockedDayAdmin(admin.ModelAdmin):
 class StrategicDayInline(admin.TabularInline):
     model = StrategicDay
     extra = 0
-    fields = ('target_date', 'items_count', 'estimated_total_hours', 'linked_schedule_item')
-    readonly_fields = ('items_count',)
+    fields = ("target_date", "items_count", "estimated_total_hours", "linked_schedule_item")
+    readonly_fields = ("items_count",)
     show_change_link = True
+
 
 @admin.register(StrategicPlanningSession)
 class StrategicPlanningSessionAdmin(admin.ModelAdmin):
-    list_display = ('project', 'date_range_start', 'date_range_end', 'status', 'user', 'total_days', 'is_approved')
-    list_filter = ('status', 'project', 'user')
-    search_fields = ('project__name', 'notes')
-    date_hierarchy = 'date_range_start'
+    list_display = (
+        "project",
+        "date_range_start",
+        "date_range_end",
+        "status",
+        "user",
+        "total_days",
+        "is_approved",
+    )
+    list_filter = ("status", "project", "user")
+    search_fields = ("project__name", "notes")
+    date_hierarchy = "date_range_start"
     inlines = [StrategicDayInline]
-    actions = ['mark_as_approved', 'mark_as_in_review']
+    actions = ["mark_as_approved", "mark_as_in_review"]
 
     fieldsets = (
-        ('Session Info', {
-            'fields': ('project', 'user', 'status')
-        }),
-        ('Date Range', {
-            'fields': ('date_range_start', 'date_range_end')
-        }),
-        ('Approval', {
-            'fields': ('approved_by', 'approved_at'),
-            'classes': ('collapse',)
-        }),
-        ('Export', {
-            'fields': ('exported_to_daily_plan', 'exported_at'),
-            'classes': ('collapse',)
-        }),
-        ('Notes', {
-            'fields': ('notes',)
-        }),
+        ("Session Info", {"fields": ("project", "user", "status")}),
+        ("Date Range", {"fields": ("date_range_start", "date_range_end")}),
+        ("Approval", {"fields": ("approved_by", "approved_at"), "classes": ("collapse",)}),
+        ("Export", {"fields": ("exported_to_daily_plan", "exported_at"), "classes": ("collapse",)}),
+        ("Notes", {"fields": ("notes",)}),
     )
 
     def mark_as_approved(self, request, queryset):
-        queryset.update(status='APPROVED', approved_by=request.user, approved_at=timezone.now())
+        queryset.update(status="APPROVED", approved_by=request.user, approved_at=timezone.now())
+
     mark_as_approved.short_description = "Mark selected sessions as Approved"
 
     def mark_as_in_review(self, request, queryset):
-        queryset.update(status='IN_REVIEW')
+        queryset.update(status="IN_REVIEW")
+
     mark_as_in_review.short_description = "Mark selected sessions as In Review"
 
 
 class StrategicItemInline(admin.StackedInline):
     model = StrategicItem
     extra = 0
-    fields = ('title', 'priority', 'estimated_hours', 'assigned_to', 'tasks_count')
-    readonly_fields = ('tasks_count',)
+    fields = ("title", "priority", "estimated_hours", "assigned_to", "tasks_count")
+    readonly_fields = ("tasks_count",)
     show_change_link = True
+
 
 @admin.register(StrategicDay)
 class StrategicDayAdmin(admin.ModelAdmin):
-    list_display = ('target_date', 'session', 'day_name', 'items_count', 'estimated_total_hours')
-    list_filter = ('session__project', 'target_date')
-    search_fields = ('session__project__name', 'notes')
-    date_hierarchy = 'target_date'
+    list_display = ("target_date", "session", "day_name", "items_count", "estimated_total_hours")
+    list_filter = ("session__project", "target_date")
+    search_fields = ("session__project__name", "notes")
+    date_hierarchy = "target_date"
     inlines = [StrategicItemInline]
 
 
 class StrategicTaskInline(admin.TabularInline):
     model = StrategicTask
     extra = 0
-    fields = ('description', 'order', 'estimated_hours', 'assigned_to')
+    fields = ("description", "order", "estimated_hours", "assigned_to")
     show_change_link = True
+
 
 class StrategicMaterialRequirementInline(admin.TabularInline):
     model = StrategicMaterialRequirement
     extra = 0
-    fields = ('name', 'quantity', 'unit', 'is_on_hand')
+    fields = ("name", "quantity", "unit", "is_on_hand")
+
 
 @admin.register(StrategicItem)
 class StrategicItemAdmin(admin.ModelAdmin):
-    list_display = ('title', 'strategic_day', 'priority', 'estimated_hours', 'tasks_count')
-    list_filter = ('priority', 'strategic_day__session__project')
-    search_fields = ('title', 'description', 'location_area')
+    list_display = ("title", "strategic_day", "priority", "estimated_hours", "tasks_count")
+    list_filter = ("priority", "strategic_day__session__project")
+    search_fields = ("title", "description", "location_area")
     inlines = [StrategicTaskInline, StrategicMaterialRequirementInline]
 
 
 class StrategicSubtaskInline(admin.TabularInline):
     model = StrategicSubtask
     extra = 0
-    fields = ('description', 'order', 'exported_to_daily_plan')
+    fields = ("description", "order", "exported_to_daily_plan")
+
 
 @admin.register(StrategicTask)
 class StrategicTaskAdmin(admin.ModelAdmin):
-    list_display = ('description', 'strategic_item', 'estimated_hours', 'subtasks_count')
-    list_filter = ('strategic_item__strategic_day__session__project',)
-    search_fields = ('description',)
+    list_display = ("description", "strategic_item", "estimated_hours", "subtasks_count")
+    list_filter = ("strategic_item__strategic_day__session__project",)
+    search_fields = ("description",)
     inlines = [StrategicSubtaskInline]
 
 
 @admin.register(StrategicDependency)
 class StrategicDependencyAdmin(admin.ModelAdmin):
-    list_display = ('predecessor', 'successor', 'dependency_type', 'lag_days')
-    list_filter = ('dependency_type',)
-    search_fields = ('predecessor__title', 'successor__title')
-
+    list_display = ("predecessor", "successor", "dependency_type", "lag_days")
+    list_filter = ("dependency_type",)
+    search_fields = ("predecessor__title", "successor__title")

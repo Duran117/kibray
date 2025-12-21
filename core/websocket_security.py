@@ -36,17 +36,17 @@ class WebSocketSecurityValidator:
 
     # Allowed message types (whitelist approach)
     ALLOWED_MESSAGE_TYPES = {
-        'chat_message',
-        'message',
-        'typing',
-        'typing_start',
-        'typing_stop',
-        'mark_read',
-        'read_receipt',
-        'ping',
-        'pong',
-        'status_update',
-        'notification_read',
+        "chat_message",
+        "message",
+        "typing",
+        "typing_start",
+        "typing_stop",
+        "mark_read",
+        "read_receipt",
+        "ping",
+        "pong",
+        "status_update",
+        "notification_read",
     }
 
     # Rate limiting: max messages per minute
@@ -54,12 +54,12 @@ class WebSocketSecurityValidator:
 
     # XSS patterns to detect and block
     XSS_PATTERNS = [
-        r'<script[^>]*>.*?</script>',
-        r'javascript:',
-        r'on\w+\s*=',  # onclick, onerror, etc.
-        r'<iframe',
-        r'<object',
-        r'<embed',
+        r"<script[^>]*>.*?</script>",
+        r"javascript:",
+        r"on\w+\s*=",  # onclick, onerror, etc.
+        r"<iframe",
+        r"<object",
+        r"<embed",
     ]
 
     @staticmethod
@@ -73,7 +73,7 @@ class WebSocketSecurityValidator:
         Returns:
             tuple: (is_valid, error_message)
         """
-        user = scope.get('user')
+        user = scope.get("user")
 
         if not user:
             return False, "Authentication required"
@@ -98,8 +98,8 @@ class WebSocketSecurityValidator:
         Returns:
             tuple: (is_valid, error_message)
         """
-        headers = dict(scope.get('headers', []))
-        origin = headers.get(b'origin', b'').decode()
+        headers = dict(scope.get("headers", []))
+        origin = headers.get(b"origin", b"").decode()
 
         if not origin:
             return False, "Origin header missing"
@@ -172,11 +172,12 @@ class WebSocketSecurityValidator:
             if re.search(pattern, message, re.IGNORECASE):
                 # Log potential XSS attempt
                 import logging
-                logger = logging.getLogger('security')
+
+                logger = logging.getLogger("security")
                 logger.warning(f"Potential XSS attempt detected: {pattern}")
 
                 # Remove malicious content
-                sanitized = re.sub(pattern, '', sanitized, flags=re.IGNORECASE)
+                sanitized = re.sub(pattern, "", sanitized, flags=re.IGNORECASE)
 
         # Explicitly strip common JS payload fragments like alert(...)
         sanitized = re.sub(r"alert\s*\([^)]*\)", "", sanitized, flags=re.IGNORECASE)
@@ -259,7 +260,7 @@ class WebSocketSecurityValidator:
             if hasattr(project, "assigned_users") and user in project.assigned_users.all():
                 return True, None
 
-            if hasattr(project, 'owner') and project.owner == user:
+            if hasattr(project, "owner") and project.owner == user:
                 return True, None
 
             return False, "Access denied to this project"
@@ -278,15 +279,20 @@ def require_authentication(func):
             # Only authenticated users reach here
             pass
     """
+
     @wraps(func)
     async def wrapper(self, *args, **kwargs):
         is_valid, error = WebSocketSecurityValidator.validate_authentication(self.scope)
 
         if not is_valid:
-            await self.send(text_data=json.dumps({
-                'type': 'error',
-                'error': error,
-            }))
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "error",
+                        "error": error,
+                    }
+                )
+            )
             await self.close()
             return
 
@@ -304,26 +310,32 @@ def require_permission(permission_name):
         async def receive(self, text_data):
             pass
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapper(self, *args, **kwargs):
-            user = self.scope.get('user')
+            user = self.scope.get("user")
 
             has_permission = await WebSocketSecurityValidator.check_permission(
                 user, permission_name
             )
 
             if not has_permission:
-                await self.send(text_data=json.dumps({
-                    'type': 'error',
-                    'error': f'Permission denied: {permission_name}',
-                }))
+                await self.send(
+                    text_data=json.dumps(
+                        {
+                            "type": "error",
+                            "error": f"Permission denied: {permission_name}",
+                        }
+                    )
+                )
                 await self.close()
                 return
 
             return await func(self, *args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -337,6 +349,7 @@ def validate_message(func):
             # text_data is already validated and sanitized
             pass
     """
+
     @wraps(func)
     async def wrapper(self, text_data, **kwargs):
         validator = WebSocketSecurityValidator
@@ -344,34 +357,46 @@ def validate_message(func):
         # Parse JSON
         data, error = validator.validate_json(text_data)
         if error:
-            await self.send(text_data=json.dumps({
-                'type': 'error',
-                'error': error,
-            }))
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "error",
+                        "error": error,
+                    }
+                )
+            )
             return
 
         # Validate message type
-        message_type = data.get('type')
+        message_type = data.get("type")
         is_valid, error = validator.validate_message_type(message_type)
         if not is_valid:
-            await self.send(text_data=json.dumps({
-                'type': 'error',
-                'error': error,
-            }))
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "error",
+                        "error": error,
+                    }
+                )
+            )
             return
 
         # Validate message length
         is_valid, error = validator.validate_message_length(data)
         if not is_valid:
-            await self.send(text_data=json.dumps({
-                'type': 'error',
-                'error': error,
-            }))
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "error",
+                        "error": error,
+                    }
+                )
+            )
             return
 
         # Sanitize message content
-        if 'message' in data:
-            data['message'] = validator.sanitize_message(data['message'])
+        if "message" in data:
+            data["message"] = validator.sanitize_message(data["message"])
 
         # Update text_data with sanitized version
         text_data = json.dumps(data)
@@ -406,6 +431,7 @@ class RateLimiter:
             bool: True if rate limited
         """
         import time
+
         current_time = time.time()
 
         # Cleanup old entries
@@ -421,9 +447,7 @@ class RateLimiter:
         # Remove messages outside window
         cutoff_time = current_time - window
         user_messages = [
-            (timestamp, count)
-            for timestamp, count in user_messages
-            if timestamp > cutoff_time
+            (timestamp, count) for timestamp, count in user_messages if timestamp > cutoff_time
         ]
 
         # Count messages in window
@@ -469,19 +493,29 @@ def rate_limit(max_messages=60, window=60):
         async def receive(self, text_data):
             pass
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapper(self, *args, **kwargs):
-            user = self.scope.get('user')
+            user = self.scope.get("user")
 
-            if user and user.is_authenticated and rate_limiter.is_rate_limited(user.id, max_messages, window):
-                await self.send(text_data=json.dumps({
-                    "type": "error",
-                    "error": "Rate limit exceeded. Please slow down.",
-                }))
+            if (
+                user
+                and user.is_authenticated
+                and rate_limiter.is_rate_limited(user.id, max_messages, window)
+            ):
+                await self.send(
+                    text_data=json.dumps(
+                        {
+                            "type": "error",
+                            "error": "Rate limit exceeded. Please slow down.",
+                        }
+                    )
+                )
                 return
 
             return await func(self, *args, **kwargs)
 
         return wrapper
+
     return decorator

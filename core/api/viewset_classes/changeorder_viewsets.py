@@ -1,6 +1,7 @@
 """
 ChangeOrder-related viewsets for the Kibray API
 """
+
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -22,43 +23,43 @@ class ChangeOrderViewSet(viewsets.ModelViewSet):
     """
     ViewSet for change orders with full CRUD operations
     """
-    queryset = ChangeOrder.objects.select_related('project')
+
+    queryset = ChangeOrder.objects.select_related("project")
     permission_classes = [IsAuthenticated]
     filterset_class = ChangeOrderFilter
-    search_fields = ['reference_code', 'description']
-    ordering_fields = ['date_created', 'amount', 'status']
-    ordering = ['-date_created']
+    search_fields = ["reference_code", "description"]
+    ordering_fields = ["date_created", "amount", "status"]
+    ordering = ["-date_created"]
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return ChangeOrderListSerializer
-        elif self.action == 'retrieve':
+        elif self.action == "retrieve":
             return ChangeOrderDetailSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
+        elif self.action in ["create", "update", "partial_update"]:
             return ChangeOrderCreateUpdateSerializer
-        elif self.action in ['approve', 'reject']:
+        elif self.action in ["approve", "reject"]:
             return ChangeOrderApprovalSerializer
         return ChangeOrderDetailSerializer
 
     def get_permissions(self):
         """Add change-order-specific permissions for certain actions"""
-        if self.action in ['approve', 'reject']:
+        if self.action in ["approve", "reject"]:
             return [IsAuthenticated(), CanApproveChangeOrder()]
         return super().get_permissions()
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         """Approve a change order"""
         change_order = self.get_object()
-        notes = request.data.get('notes', '')
+        notes = request.data.get("notes", "")
 
-        if change_order.status == 'approved':
+        if change_order.status == "approved":
             return Response(
-                {'error': 'Change order is already approved'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Change order is already approved"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        change_order.status = 'approved'
+        change_order.status = "approved"
         if notes:
             change_order.notes = f"{change_order.notes}\n\nApproval notes: {notes}".strip()
         change_order.save()
@@ -66,24 +67,23 @@ class ChangeOrderViewSet(viewsets.ModelViewSet):
         # TODO: Create notification/alert for project members
 
         serializer = self.get_serializer_class()(change_order)
-        return Response({
-            'message': 'Change order approved successfully',
-            'change_order': serializer.data
-        })
+        return Response(
+            {"message": "Change order approved successfully", "change_order": serializer.data}
+        )
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def reject(self, request, pk=None):
         """Reject a change order"""
         change_order = self.get_object()
-        notes = request.data.get('notes', '')
+        notes = request.data.get("notes", "")
 
-        if change_order.status == 'approved':
+        if change_order.status == "approved":
             return Response(
-                {'error': 'Cannot reject an approved change order'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Cannot reject an approved change order"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        change_order.status = 'draft'  # Set back to draft
+        change_order.status = "draft"  # Set back to draft
         if notes:
             change_order.notes = f"{change_order.notes}\n\nRejection notes: {notes}".strip()
         change_order.save()
@@ -91,15 +91,12 @@ class ChangeOrderViewSet(viewsets.ModelViewSet):
         # TODO: Create notification/alert for submitter
 
         serializer = self.get_serializer_class()(change_order)
-        return Response({
-            'message': 'Change order rejected',
-            'change_order': serializer.data
-        })
+        return Response({"message": "Change order rejected", "change_order": serializer.data})
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def pending_approvals(self, request):
         """Get pending change orders"""
-        queryset = self.get_queryset().filter(status='pending')
+        queryset = self.get_queryset().filter(status="pending")
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -112,13 +109,13 @@ class ChangeOrderViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Set submission date and generate reference code"""
         # Generate next reference code
-        project = serializer.validated_data.get('project')
+        project = serializer.validated_data.get("project")
         if project:
-            last_co = ChangeOrder.objects.filter(project=project).order_by('-id').first()
+            last_co = ChangeOrder.objects.filter(project=project).order_by("-id").first()
             if last_co and last_co.reference_code:
                 # Extract number from last code
                 try:
-                    num = int(last_co.reference_code.split('-')[-1])
+                    num = int(last_co.reference_code.split("-")[-1])
                     next_num = num + 1
                 except (ValueError, TypeError, IndexError):
                     next_num = 1

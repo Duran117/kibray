@@ -47,9 +47,9 @@ def notify_task_completed(task, completer):
 
     link = reverse("client_project_view", args=[task.project.id])
     # Notify client
-    client_users = ClientProjectAccess.objects.filter(project=task.project, role="client").values_list(
-        "user", flat=True
-    )
+    client_users = ClientProjectAccess.objects.filter(
+        project=task.project, role="client"
+    ).values_list("user", flat=True)
     for uid in client_users:
         try:
             u = User.objects.get(id=uid)
@@ -89,9 +89,9 @@ def notify_color_approved(color_sample, approver):
 
     link = reverse("color_sample_detail", args=[color_sample.id])
     # Notify client
-    client_users = ClientProjectAccess.objects.filter(project=color_sample.project, role="client").values_list(
-        "user", flat=True
-    )
+    client_users = ClientProjectAccess.objects.filter(
+        project=color_sample.project, role="client"
+    ).values_list("user", flat=True)
     for uid in client_users:
         try:
             u = User.objects.get(id=uid)
