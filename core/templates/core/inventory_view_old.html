@@ -1,44 +1,38 @@
-{% extends "core/base.html" %}
+{% extends "core/base_modern.html" %}
 {% load i18n %}
+
 {% block content %}
-<div class="container py-3">
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h4>{% trans "Inventario" %} · {{ project.name }}</h4>
-    <div class="d-flex gap-2">
-      <a class="btn btn-success btn-sm" href="{% url 'materials_direct_purchase' project.id %}">{% trans "Compra directa" %}</a>
-      <a class="btn btn-primary btn-sm" href="{% url 'inventory_move' project.id %}">{% trans "Registrar movimiento" %}</a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'inventory_history' project.id %}">{% trans "Historial" %}</a>
+  <div class="max-w-2xl mx-auto p-6">
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0 mt-0.5">
+          <div class="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+            <span class="text-amber-700 font-bold">!</span>
+          </div>
+        </div>
+        <div class="flex-1">
+          <h1 class="text-lg font-semibold text-amber-900">{% trans "Legacy template disabled" %}</h1>
+          <p class="mt-1 text-sm text-amber-800">
+            {% trans "This page is an old/backup template and is no longer used. Please use the current Inventory view." %}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {% if project %}
+              <a
+                href="{% url 'inventory_view' project.id %}"
+                class="inline-flex items-center rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+              >
+                {% trans "Go to Inventory" %}
+              </a>
+            {% endif %}
+            <a
+              href="{% url 'dashboard_employee' %}"
+              class="inline-flex items-center rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+            >
+              {% trans "Back to Dashboard" %}
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
-  {% if low %}
-    <div class="alert alert-warning py-2">
-      <strong>{% trans "Alertas:" %}</strong>
-      {% for s in low %}
-        <span class="badge bg-danger">{{ s.item.name }} ({{ s.quantity }} {{ s.item.unit }})</span>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <table class="table table-sm align-middle">
-    <thead>
-      <tr>
-        <th>{% trans "Categoría" %}</th><th>{% trans "Item" %}</th><th>{% trans "Cantidad" %}</th><th>{% trans "Umbral" %}</th><th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in stocks %}
-        <tr class="{% if s.is_below %}table-warning{% endif %}">
-          <td>{{ s.item.get_category_display }}</td>
-          <td>{{ s.item.name }}</td>
-          <td>{{ s.quantity }} {{ s.item.unit }}</td>
-          <td>{{ s.threshold|default:"—" }}</td>
-          <td>{% if s.is_below %}<span class="badge bg-danger">{% trans "Bajo" %}</span>{% endif %}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="5" class="text-muted">{% trans "Sin registros." %}</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
 {% endblock %}

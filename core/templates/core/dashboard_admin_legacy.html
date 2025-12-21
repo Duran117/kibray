@@ -1,75 +1,20 @@
-{% extends "core/base.html" %}
+{% extends "core/base_modern.html" %}
 {% load i18n %}
-{% get_current_language as CURRENT_LANG %}
 
 {% block title %}{% trans "Admin Dashboard" %}{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <div class="row mb-4">
-    <div class="col">
-      <h1 class="h3">{% trans "Admin Dashboard" %} (Legacy)</h1>
-      <p class="text-muted">{% trans "Classic layout preserved for backward compatibility." %}</p>
-    </div>
-  </div>
-  <div class="row mb-3">
-    <div class="col-md-3">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <p class="text-muted mb-1">
-            {% if english_mode %}
-              Active Projects
-            {% else %}
-              Proyectos Activos
-            {% endif %}
-          </p>
-          <h3 class="h4 mb-0">{{ active_projects }}</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <p class="text-muted mb-1">
-            {% if english_mode %}
-              Completed Projects
-            {% else %}
-              Proyectos Completados
-            {% endif %}
-          </p>
-          <h3 class="h4 mb-0">{{ completed_projects }}</h3>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row mb-3">
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title mb-2">{% trans "Django Admin" %}</h5>
-          <p class="card-text text-muted">{% trans "Manage users, permissions, and system settings" %}</p>
-          <a class="btn btn-primary" href="/admin/">{% trans "Open Admin" %}</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title mb-2">{% trans "Approvals & Actions" %}</h5>
-          <p class="card-text text-muted">{% trans "Review COs, invoices, and client requests" %}</p>
-          <a class="btn btn-outline-secondary" href="{% url 'changeorder_board' %}">{% trans "Go to CO Board" %}</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title mb-2">{% trans "Planning & Analytics" %}</h5>
-          <p class="card-text text-muted">{% trans "Access schedule, BI dashboards, and KPIs" %}</p>
-          <a class="btn btn-outline-secondary" href="{% url 'master_schedule_center' %}">{% trans "Open Schedule" %}</a>
-        </div>
-      </div>
+<div class="max-w-3xl mx-auto p-6">
+  <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+    <h1 class="text-lg font-semibold text-amber-900">{% trans "Legacy template disabled" %}</h1>
+    <p class="mt-2 text-sm text-amber-800">
+      {% trans "This legacy admin dashboard template has been retired. Use the modern admin dashboard instead." %}
+    </p>
+    <div class="mt-4">
+      <a class="inline-flex items-center rounded-lg bg-kibray-600 px-4 py-2 text-white hover:bg-kibray-700"
+         href="{% url 'dashboard_admin' %}">
+        {% trans "Go to Admin Dashboard" %}
+      </a>
     </div>
   </div>
 </div>

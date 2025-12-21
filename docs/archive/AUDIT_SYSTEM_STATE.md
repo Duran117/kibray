@@ -250,7 +250,7 @@ class DailyPlan:
 - `task_list.html` - ✅ Existe
 - `task_list_all.html` - ✅ Existe
 - `task_detail.html` - ✅ Existe
-- `task_detail_backup.html` - ⚠️ Backup? Revisar
+- `task_detail_backup.html` - (Removed) Template legacy eliminado durante el cleanup modern-only
 - `task_form.html` - ✅ Existe
 - `task_confirm_delete.html` - ✅ Existe
 

@@ -1,223 +1,26 @@
-{% extends 'core/base.html' %}
+{% extends "core/base_modern.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Generador de Cronograma" %} - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Schedule Generator" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-3">
-        <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-                    <li class="breadcrumb-item active">{% trans "Generador de Cronograma" %}</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2><i class="bi bi-calendar-week"></i> {% trans "Cronograma Jerárquico" %}</h2>
-            <p class="text-muted">{% trans "Organiza el trabajo en categorías e ítems. Vincula tareas para calcular progreso automáticamente." %}</p>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
-            </a>
-        </div>
-    </div>
-
-    <!-- Generate from Estimate -->
-    {% if approved_estimate and can_manage %}
-    <div class="alert alert-info d-flex align-items-center mb-4">
-        <i class="bi bi-lightbulb fs-4 me-3"></i>
-        <div class="flex-grow-1">
-            <strong>{% trans "Estimado aprobado disponible" %}:</strong> {{ approved_estimate.code }}
-            <p class="mb-0 small">{% trans "Puedes generar categorías e ítems automáticamente desde este estimado." %}</p>
-        </div>
-        <form method="post" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="generate_from_estimate">
-            <button type="submit" class="btn btn-primary" onclick="return confirm('{% trans "¿Generar cronograma desde el estimado? Se crearán categorías e ítems automáticamente." %}')">
-                <i class="bi bi-magic"></i> {% trans "Generar desde Estimado" %}
-            </button>
-        </form>
-    </div>
+<div class="max-w-3xl mx-auto p-6">
+  <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+    <h1 class="text-lg font-semibold text-amber-900">{% trans "Legacy template disabled" %}</h1>
+    <p class="mt-2 text-sm text-amber-800">
+      {% trans "This legacy schedule generator template has been retired. Use the current schedule generator instead." %}
+    </p>
+    {% if project %}
+      <div class="mt-4">
+        <a class="inline-flex items-center rounded-lg bg-kibray-600 px-4 py-2 text-white hover:bg-kibray-700"
+           href="{% url 'schedule_generator' project.id %}">
+          {% trans "Go to Schedule Generator" %}
+        </a>
+      </div>
     {% endif %}
-
-    <!-- Categories and Items List -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-list-nested"></i> {% trans "Categorías e Ítems" %}</h5>
-            {% if can_manage %}
-            <div>
-                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
-                    <i class="bi bi-folder-plus"></i> {% trans "Nueva Categoría" %}
-                </button>
-                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#createItemModal">
-                    <i class="bi bi-plus-circle"></i> {% trans "Nuevo Ítem" %}
-                </button>
-            </div>
-            {% endif %}
-        </div>
-        <div class="card-body">
-            {% if not categories and not orphan_items %}
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-calendar-x fs-1"></i>
-                    <p class="mt-3">{% trans "No hay categorías ni ítems todavía." %}</p>
-                    {% if approved_estimate and can_manage %}
-                        <p class="small">{% trans "Usa el botón 'Generar desde Estimado' arriba para comenzar." %}</p>
-                    {% endif %}
-                </div>
-            {% else %}
-                <!-- Hierarchical list -->
-                <div class="accordion" id="scheduleAccordion">
-                    {% for category in categories %}
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading{{ category.id }}">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ category.id }}">
-                                <strong>{{ category.name }}</strong>
-                                <span class="badge bg-secondary ms-2">{{ category.items.count }} {% trans "ítems" %}</span>
-                                <span class="badge bg-info ms-2">{{ category.percent_complete }}%</span>
-                            </button>
-                        </h2>
-                        <div id="collapse{{ category.id }}" class="accordion-collapse collapse show" data-bs-parent="#scheduleAccordion">
-                            <div class="accordion-body">
-                                {% if can_manage %}
-                                <div class="mb-2">
-                                    <a href="{% url 'schedule_category_edit' category.id %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-pencil"></i> {% trans "Editar" %}
-                                    </a>
-                                    <a href="{% url 'schedule_category_delete' category.id %}" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i> {% trans "Eliminar" %}
-                                    </a>
-                                </div>
-                                {% endif %}
-
-                                {% if category.items.all %}
-                                <table class="table table-sm table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>{% trans "Ítem" %}</th>
-                                            <th>{% trans "Estado" %}</th>
-                                            <th>{% trans "Inicio" %}</th>
-                                            <th>{% trans "Fin" %}</th>
-                                            <th>{% trans "Progreso" %}</th>
-                                            <th>{% trans "Tareas" %}</th>
-                                            {% if can_manage %}<th>{% trans "Acciones" %}</th>{% endif %}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for item in category.items.all %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ item.title }}</strong>
-                                                {% if item.description %}
-                                                <br><small class="text-muted">{{ item.description|truncatewords:10 }}</small>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                {% if item.status == 'DONE' %}
-                                                    <span class="badge bg-success">{% trans "Completado" %}</span>
-                                                {% elif item.status == 'IN_PROGRESS' %}
-                                                    <span class="badge bg-warning text-dark">{% trans "En progreso" %}</span>
-                                                {% elif item.status == 'BLOCKED' %}
-                                                    <span class="badge bg-danger">{% trans "Bloqueado" %}</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">{% trans "No iniciado" %}</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>{{ item.planned_start|default:"—" }}</td>
-                                            <td>{{ item.planned_end|default:"—" }}</td>
-                                            <td>
-                                                <div class="progress" style="height: 20px;">
-                                                    <div class="progress-bar" role="progressbar" style="width: {{ item.percent_complete }}%;">
-                                                        {{ item.percent_complete }}%
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-info">{{ item.tasks.count }} tareas</span>
-                                            </td>
-                                            {% if can_manage %}
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <a href="{% url 'schedule_item_edit' item.id %}" class="btn btn-outline-primary btn-sm">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                    <form method="post" class="d-inline" onsubmit="return confirm('{% trans "¿Recalcular progreso desde tareas vinculadas?" %}')">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="action" value="recalc_progress">
-                                                        <input type="hidden" name="item_id" value="{{ item.id }}">
-                                                        <button type="submit" class="btn btn-outline-info btn-sm">
-                                                            <i class="bi bi-arrow-repeat"></i>
-                                                        </button>
-                                                    </form>
-                                                    <a href="{% url 'schedule_item_delete' item.id %}" class="btn btn-outline-danger btn-sm">
-                                                        <i class="bi bi-trash"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                            {% endif %}
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                                {% else %}
-                                <p class="text-muted small">{% trans "No hay ítems en esta categoría." %}</p>
-                                {% endif %}
-
-                                <!-- Subcategories (if any) -->
-                                {% if category.children.all %}
-                                <div class="ms-4 mt-3">
-                                    <h6 class="text-muted">{% trans "Subcategorías" %}:</h6>
-                                    <ul class="list-unstyled">
-                                        {% for child in category.children.all %}
-                                        <li class="mb-2">
-                                            <i class="bi bi-folder2"></i> {{ child.name }}
-                                            <span class="badge bg-secondary">{{ child.items.count }}</span>
-                                            <span class="badge bg-info">{{ child.percent_complete }}%</span>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Orphan items (no category) -->
-                {% if orphan_items %}
-                <div class="mt-4">
-                    <h5 class="text-warning"><i class="bi bi-exclamation-triangle"></i> {% trans "Ítems sin categoría" %}</h5>
-                    <table class="table table-sm">
-                        <tbody>
-                            {% for item in orphan_items %}
-                            <tr>
-                                <td>{{ item.title }}</td>
-                                <td>{{ item.percent_complete }}%</td>
-                                {% if can_manage %}
-                                <td>
-                                    <a href="{% url 'schedule_item_edit' item.id %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-pencil"></i> {% trans "Asignar categoría" %}
-                                    </a>
-                                </td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-            {% endif %}
-        </div>
-    </div>
+  </div>
 </div>
-
-<!-- Modal: Create Category -->
+{% endblock %}
 {% if can_manage %}
 <div class="modal fade" id="createCategoryModal" tabindex="-1">
     <div class="modal-dialog">

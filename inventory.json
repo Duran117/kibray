@@ -2192,10 +2192,6 @@
       "size": 14307
     },
     {
-      "path": "core/templates/core/inventory_view_old.html",
-      "size": 1751
-    },
-    {
       "path": "core/templates/core/invoice_aging_report.html",
       "size": 9364
     },
@@ -2254,10 +2250,6 @@
     {
       "path": "core/templates/core/materials_request.html",
       "size": 18954
-    },
-    {
-      "path": "core/templates/core/materials_request_old.html",
-      "size": 25583
     },
     {
       "path": "core/templates/core/notifications_list.html",
@@ -2400,10 +2392,6 @@
       "size": 32139
     },
     {
-      "path": "core/templates/core/schedule_generator_old.html",
-      "size": 18166
-    },
-    {
       "path": "core/templates/core/schedule_google_calendar.html",
       "size": 6484
     },
@@ -2444,10 +2432,6 @@
       "size": 13332
     },
     {
-      "path": "core/templates/core/task_detail_backup.html",
-      "size": 1465
-    },
-    {
       "path": "core/templates/core/task_form.html",
       "size": 11799
     },
@@ -2474,10 +2458,6 @@
     {
       "path": "core/templates/core/touchup_board_clean.html",
       "size": 7940
-    },
-    {
-      "path": "core/templates/core/touchup_board_old.html",
-      "size": 9582
     },
     {
       "path": "core/templates/core/touchup_board_react.html",

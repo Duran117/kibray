@@ -1,223 +1,40 @@
-{% extends "core/base.html" %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block extra_css %}
-<style>
-    /* ===== MOBILE-FIRST MATERIALS REQUEST ===== */
-    .materials-container {
-        padding: 12px;
-        background: #f8f9fa;
-        min-height: 100vh;
-    }
-    
-    @media (min-width: 768px) {
-        .materials-container {
-            padding: 24px;
-        }
-    }
-    
-    /* ===== HEADER ===== */
-    .materials-header {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: white;
-        padding: 20px 16px;
-        border-radius: 12px 12px 0 0;
-        margin-bottom: 0;
-    }
-    
-    .materials-header h1 {
-        font-size: 20px;
-        margin: 0 0 4px 0;
-        font-weight: 700;
-    }
-    
-    .materials-header .project {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-    
-    /* ===== FORM CARD ===== */
-    .materials-form {
-        background: white;
-        border-radius: 0 0 12px 12px;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    /* ===== SECTION HEADERS ===== */
-    .section-divider {
-        border-top: 2px solid #e5e7eb;
-        margin: 24px 0 16px 0;
-        position: relative;
-    }
-    
-    .section-title {
-        position: absolute;
-        top: -12px;
-        left: 0;
-        background: white;
-        padding: 0 12px 0 0;
-        font-size: 14px;
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    /* ===== FORM INPUTS (LARGE FOR MOBILE) ===== */
-    .materials-form label {
-        font-size: 14px;
-        font-weight: 500;
-        color: #374151;
-        margin-bottom: 6px;
-    }
-    
-    .materials-form select,
-    .materials-form input,
-    .materials-form textarea {
-        height: 48px;
-        font-size: 16px; /* Prevent iOS zoom */
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        transition: border-color 0.2s;
-    }
-    
-    .materials-form textarea {
-        height: 100px;
-        resize: vertical;
-    }
-    
-    .materials-form select:focus,
-    .materials-form input:focus,
-    .materials-form textarea:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-    
-    /* ===== QUICK SELECT BUTTONS ===== */
-    .quick-selects {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-bottom: 20px;
-    }
-    
-    .quick-select-btn {
-        background: #f3f4f6;
-        border: 2px solid #e5e7eb;
-        padding: 12px;
-        border-radius: 8px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .quick-select-btn:hover,
-    .quick-select-btn.active {
-        background: #3b82f6;
-        border-color: #3b82f6;
-        color: white;
-    }
-    
-    .quick-select-btn i {
-        font-size: 24px;
-        display: block;
-        margin-bottom: 4px;
-    }
-    
-    .quick-select-btn span {
-        font-size: 12px;
-        font-weight: 500;
-    }
-    
-    /* ===== PHOTO UPLOAD (PROMINENT) ===== */
-    .photo-upload {
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 12px;
-        text-align: center;
-        cursor: pointer;
-        transition: transform 0.2s;
-        margin-bottom: 20px;
-    }
-    
-    .photo-upload:active {
-        transform: scale(0.98);
-    }
-    
-    .photo-upload i {
-        font-size: 48px;
-        margin-bottom: 8px;
-    }
-    
-    .photo-upload p {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 500;
-    }
-    
-    .photo-upload small {
-        opacity: 0.9;
-    }
-    
-    .photo-preview {
-        position: relative;
-        margin-top: 12px;
-    }
-    
-    .photo-preview img {
-        width: 100%;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .photo-preview .remove-photo {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: #ef4444;
-        color: white;
-        border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        font-size: 18px;
-        line-height: 1;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    
-    /* ===== QUANTITY INPUT (LARGE NUMBERS) ===== */
-    .quantity-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .quantity-group input {
-        flex: 1;
-        font-size: 24px;
-        font-weight: 700;
-        text-align: center;
-        color: #1f2937;
-    }
-    
-    .quantity-group select {
-        flex: 0 0 120px;
-    }
-    
-    .quantity-btn {
-        background: #3b82f6;
-        color: white;
-        border: none;
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
-        font-size: 24px;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-    
-    /* ===== SUBMIT BUTTON (PROMINENT) ===== */
+{% block content %}
+  <div class="max-w-2xl mx-auto p-6">
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0 mt-0.5">
+          <div class="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+            <span class="text-amber-700 font-bold">!</span>
+          </div>
+        </div>
+        <div class="flex-1">
+          <h1 class="text-lg font-semibold text-amber-900">{% trans "Legacy template disabled" %}</h1>
+          <p class="mt-1 text-sm text-amber-800">
+            {% trans "This page is an old/backup template and is no longer used. Please use the current Materials Request flow." %}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {% if project %}
+              <a
+                href="{% url 'materials_request' project.id %}"
+                class="inline-flex items-center rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+              >
+                {% trans "Go to Materials Request" %}
+              </a>
+            {% endif %}
+            <a
+              href="{% url 'dashboard_employee' %}"
+              class="inline-flex items-center rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+            >
+              {% trans "Back to Dashboard" %}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
     .submit-section {
         position: sticky;
         bottom: 0;

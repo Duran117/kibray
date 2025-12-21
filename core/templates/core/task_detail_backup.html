@@ -1,36 +1,38 @@
-{% extends 'core/base.html' %}
+{% extends "core/base_modern.html" %}
 {% load i18n %}
+
 {% block content %}
-<div class="container py-4">
-  <h2 class="mb-3"><i class="bi bi-check2-square"></i> {{ task.title }}</h2>
-  <p class="text-muted mb-2">{% trans 'Proyecto' %}: {{ task.project.name|default:'—' }}</p>
-  <p class="mb-3">{{ task.description|default:_('Sin descripción') }}</p>
-  <div class="row g-3 mb-3">
-    <div class="col-md-3">
-      <div class="p-3 bg-light rounded">
-        <small class="text-muted d-block">{% trans 'Estado' %}</small>
-        <strong>{{ task.status|default:'—' }}</strong>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="p-3 bg-light rounded">
-        <small class="text-muted d-block">{% trans 'Asignado a' %}</small>
-        <strong>{{ task.assigned_to|default:'—' }}</strong>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="p-3 bg-light rounded">
-        <small class="text-muted d-block">{% trans 'Creado' %}</small>
-        <strong>{{ task.created_at|date:'M d, Y'|default:'—' }}</strong>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="p-3 bg-light rounded">
-        <small class="text-muted d-block">{% trans 'Actualizado' %}</small>
-        <strong>{{ task.updated_at|date:'M d, Y'|default:'—' }}</strong>
+  <div class="max-w-2xl mx-auto p-6">
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0 mt-0.5">
+          <div class="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+            <span class="text-amber-700 font-bold">!</span>
+          </div>
+        </div>
+        <div class="flex-1">
+          <h1 class="text-lg font-semibold text-amber-900">{% trans "Legacy template disabled" %}</h1>
+          <p class="mt-1 text-sm text-amber-800">
+            {% trans "This page is a backup template and is no longer used. Please use the current Task Detail page." %}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {% if task %}
+              <a
+                href="{% url 'task_detail' task.id %}"
+                class="inline-flex items-center rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+              >
+                {% trans "Go to Task" %}
+              </a>
+            {% endif %}
+            <a
+              href="{% url 'dashboard_employee' %}"
+              class="inline-flex items-center rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+            >
+              {% trans "Back to Dashboard" %}
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <a href="javascript:history.back();" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> {% trans 'Regresar' %}</a>
-</div>
 {% endblock %}
