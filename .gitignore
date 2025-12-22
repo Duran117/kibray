@@ -58,6 +58,10 @@ settings_old.py.backup
 firebase-service-account.json
 *-firebase-adminsdk-*.json
 
+# Test/dev auth tokens
+auth.json
+playwright-auth.json
+
 # Testing
 .coverage
 htmlcov/
