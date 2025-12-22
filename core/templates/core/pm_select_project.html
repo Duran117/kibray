@@ -1,22 +1,415 @@
 {% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Select Project" %} | Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== PROJECT SELECTOR - MOBILE FIRST ASANA STYLE ===== */
+.project-selector-page {
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 16px;
+}
+
+@media (min-width: 640px) {
+    .project-selector-page {
+        padding: 24px;
+    }
+}
+
+/* Header */
+.selector-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    color: white;
+    text-align: center;
+}
+
+@media (min-width: 640px) {
+    .selector-header {
+        padding: 32px;
+        text-align: left;
+    }
+}
+
+.selector-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+@media (min-width: 640px) {
+    .selector-header h1 {
+        font-size: 28px;
+        justify-content: flex-start;
+    }
+}
+
+.selector-header p {
+    opacity: 0.9;
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Action Badge */
+.action-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
+}
+
+/* Main Card */
+.selector-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.selector-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (min-width: 640px) {
+    .selector-card-header {
+        padding: 20px 24px;
+    }
+}
+
+.selector-card-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.selector-card-header i {
+    color: #6366f1;
+    font-size: 20px;
+}
+
+.selector-card-body {
+    padding: 20px;
+}
+
+@media (min-width: 640px) {
+    .selector-card-body {
+        padding: 24px;
+    }
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    transition: all 0.2s;
+    background: white;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    padding-right: 44px;
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* Buttons */
+.btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+@media (min-width: 640px) {
+    .btn-group {
+        flex-direction: row;
+    }
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@media (min-width: 640px) {
+    .btn-primary {
+        width: auto;
+        flex: 1;
+    }
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+    width: 100%;
+    padding: 14px 24px;
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@media (min-width: 640px) {
+    .btn-secondary {
+        width: auto;
+    }
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+/* Project List (Alternative View) */
+.project-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.project-item:last-child {
+    border-bottom: none;
+}
+
+.project-item:hover {
+    background: #f9fafb;
+}
+
+.project-item:active {
+    background: #f3f4f6;
+}
+
+.project-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.project-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.project-info h4 {
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.project-info p {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.project-arrow {
+    color: #9ca3af;
+    font-size: 20px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 48px;
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 640px) {
+    .project-item {
+        padding: 18px 16px;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        min-height: 52px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-3">
-  <h4>Selecciona proyecto · {{ action|title }}</h4>
-  <form method="post" class="row g-2 mt-2">
-    {% csrf_token %}
-    <div class="col-md-6">
-      <label class="form-label">Proyecto</label>
-      <select name="project" class="form-select">
-        <option value="">— Selecciona —</option>
-        {% for p in projects %}
-          <option value="{{ p.id }}">{{ p.name }}</option>
-        {% endfor %}
-      </select>
+<div class="project-selector-page">
+    <!-- Header -->
+    <div class="selector-header">
+        <h1>
+            <i class="bi bi-folder2-open"></i>
+            {% trans "Select Project" %}
+        </h1>
+        <p>{% trans "Choose a project to continue" %}</p>
+        <div class="action-badge">
+            {% if action == 'overview' %}
+                <i class="bi bi-eye"></i> {% trans "View Project" %}
+            {% elif action == 'materials' %}
+                <i class="bi bi-box"></i> {% trans "Materials" %}
+            {% elif action == 'touchups' %}
+                <i class="bi bi-brush"></i> {% trans "Touch-Ups" %}
+            {% elif action == 'damages' %}
+                <i class="bi bi-shield-exclamation"></i> {% trans "Damages" %}
+            {% elif action == 'chat' %}
+                <i class="bi bi-chat-dots"></i> {% trans "Chat" %}
+            {% elif action == 'plans' %}
+                <i class="bi bi-map"></i> {% trans "Plans" %}
+            {% elif action == 'colors' %}
+                <i class="bi bi-palette"></i> {% trans "Colors" %}
+            {% elif action == 'ev' %}
+                <i class="bi bi-graph-up"></i> {% trans "Earned Value" %}
+            {% else %}
+                <i class="bi bi-arrow-right-circle"></i> {{ action|title }}
+            {% endif %}
+        </div>
     </div>
-    <div class="col-12">
-      <button class="btn btn-primary">Continuar</button>
-      <a class="btn btn-secondary" href="{% url 'dashboard_pm' %}">Cancelar</a>
+    
+    <!-- Selector Card -->
+    <div class="selector-card">
+        <div class="selector-card-header">
+            <i class="bi bi-building"></i>
+            <h2>{% trans "Available Projects" %}</h2>
+        </div>
+        <div class="selector-card-body">
+            {% if projects %}
+            <!-- Project List for Mobile -->
+            <form method="post" id="projectForm">
+                {% csrf_token %}
+                <input type="hidden" name="project" id="selectedProject">
+                
+                <ul class="project-list">
+                    {% for p in projects %}
+                    <li class="project-item" data-project-id="{{ p.id }}" onclick="selectProject({{ p.id }})">
+                        <div class="project-avatar">
+                            {{ p.name|slice:":2"|upper }}
+                        </div>
+                        <div class="project-info">
+                            <h4>{{ p.name }}</h4>
+                            <p>
+                                {% if p.client %}{{ p.client.name }}{% else %}{% trans "No client" %}{% endif %}
+                            </p>
+                        </div>
+                        <i class="bi bi-chevron-right project-arrow"></i>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </form>
+            
+            <div class="btn-group" style="margin-top: 16px;">
+                <a href="{% url 'dashboard' %}" class="btn-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    {% trans "Back" %}
+                </a>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-folder-x"></i>
+                <h4>{% trans "No Projects Available" %}</h4>
+                <p>{% trans "You don't have access to any projects yet." %}</p>
+            </div>
+            <div class="btn-group">
+                <a href="{% url 'dashboard' %}" class="btn-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    {% trans "Back to Dashboard" %}
+                </a>
+            </div>
+            {% endif %}
+        </div>
     </div>
-  </form>
 </div>
+
+<script>
+function selectProject(projectId) {
+    document.getElementById('selectedProject').value = projectId;
+    document.getElementById('projectForm').submit();
+}
+</script>
 {% endblock %}
