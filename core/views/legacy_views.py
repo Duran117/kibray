@@ -1267,24 +1267,42 @@ def payroll_weekly_review(request):
     """
     Vista para revisar y aprobar la nómina semanal.
     Muestra todos los empleados con sus horas trabajadas en la semana,
-    permite editar horas y tasas, y crear registros de nómina.
+    permite editar horas de entrada/salida por día, y registrar pagos.
     """
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
         return redirect("dashboard")
 
-    # Obtener parámetros de fecha (por defecto: semana actual)
     from datetime import datetime, timedelta
+    from decimal import Decimal
+    from django.utils import timezone
 
+    # Obtener parámetros de fecha (por defecto: semana actual)
     week_start_str = request.GET.get("week_start")
     if week_start_str:
-        week_start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
+        try:
+            week_start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
+        except ValueError:
+            week_start = datetime.now().date() - timedelta(days=datetime.now().date().weekday())
     else:
         today = datetime.now().date()
         week_start = today - timedelta(days=today.weekday())  # Lunes de esta semana
 
     week_end = week_start + timedelta(days=6)  # Domingo
+    prev_week = week_start - timedelta(days=7)
+    next_week = week_start + timedelta(days=7)
+
+    # Crear lista de días de la semana
+    day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    days = []
+    for i in range(7):
+        day_date = week_start + timedelta(days=i)
+        days.append({
+            'name': day_names[i],
+            'date': day_date,
+            'index': i
+        })
 
     # Buscar o crear PayrollPeriod
     period, created = PayrollPeriod.objects.get_or_create(
@@ -1293,6 +1311,109 @@ def payroll_weekly_review(request):
 
     # Obtener todos los empleados activos
     employees = Employee.objects.filter(is_active=True).order_by("last_name", "first_name")
+
+    # POST: Actualizar registros
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "update_records":
+            time_format = "%H:%M"
+            
+            for emp in employees:
+                emp_id = str(emp.id)
+                
+                # Procesar horas de entrada/salida por cada día
+                for i in range(7):
+                    day = week_start + timedelta(days=i)
+                    start_val = request.POST.get(f"start_{emp_id}_{i}")
+                    end_val = request.POST.get(f"end_{emp_id}_{i}")
+                    
+                    # Buscar entrada existente para este día
+                    existing_entry = TimeEntry.objects.filter(
+                        employee=emp, date=day, change_order__isnull=True
+                    ).first()
+                    
+                    if start_val and end_val:
+                        try:
+                            start_time = datetime.strptime(start_val, time_format).time()
+                            end_time = datetime.strptime(end_val, time_format).time()
+                        except ValueError:
+                            continue
+                        
+                        if existing_entry:
+                            existing_entry.start_time = start_time
+                            existing_entry.end_time = end_time
+                            existing_entry.save()
+                        else:
+                            TimeEntry.objects.create(
+                                employee=emp,
+                                date=day,
+                                start_time=start_time,
+                                end_time=end_time,
+                            )
+                    elif existing_entry and not start_val and not end_val:
+                        # Si se borraron ambos campos, eliminar la entrada
+                        existing_entry.delete()
+                
+                # Actualizar PayrollRecord
+                record, _ = PayrollRecord.objects.get_or_create(
+                    period=period,
+                    employee=emp,
+                    week_start=week_start,
+                    week_end=week_end,
+                    defaults={
+                        "hourly_rate": emp.hourly_rate,
+                        "total_hours": Decimal("0.00"),
+                        "total_pay": Decimal("0.00"),
+                    },
+                )
+                
+                # Recalcular horas totales
+                time_entries = TimeEntry.objects.filter(
+                    employee=emp, date__range=(week_start, week_end)
+                )
+                total_hours = sum(
+                    Decimal(str(entry.hours_worked)) if entry.hours_worked else Decimal("0.00")
+                    for entry in time_entries
+                )
+                
+                # Actualizar rate si cambió
+                rate = request.POST.get(f"rate_{emp_id}")
+                if rate:
+                    try:
+                        record.adjusted_rate = Decimal(rate)
+                    except:
+                        pass
+                
+                record.total_hours = total_hours
+                record.split_hours_regular_overtime()
+                record.calculate_total_pay()
+                record.reviewed = True
+                record.save()
+                
+                # Procesar pago con cheque si se proporcionó
+                check_number = request.POST.get(f"check_{emp_id}")
+                pay_date = request.POST.get(f"pay_date_{emp_id}")
+                
+                if check_number and pay_date and record.total_pay > 0:
+                    # Verificar si ya existe un pago con este cheque
+                    existing_payment = PayrollPayment.objects.filter(
+                        payroll_record=record,
+                        check_number=check_number
+                    ).first()
+                    
+                    if not existing_payment:
+                        PayrollPayment.objects.create(
+                            payroll_record=record,
+                            amount=record.balance_due(),
+                            payment_date=pay_date,
+                            payment_method="check",
+                            check_number=check_number,
+                            recorded_by=request.user,
+                        )
+
+            messages.success(request, "Nómina actualizada correctamente.")
+            return redirect(f"{request.path}?week_start={week_start.isoformat()}")
 
     # Preparar datos de cada empleado
     employee_data = []
@@ -1310,118 +1431,68 @@ def payroll_weekly_review(request):
             },
         )
 
-        # Calcular horas reales desde TimeEntry
-        time_entries = TimeEntry.objects.filter(employee=emp, date__range=(week_start, week_end))
+        # Obtener entradas de tiempo para cada día de la semana
+        day_entries = []
+        calculated_hours = Decimal("0.00")
+        
+        for i in range(7):
+            day = week_start + timedelta(days=i)
+            entry = TimeEntry.objects.filter(
+                employee=emp, date=day, change_order__isnull=True
+            ).first()
+            
+            if entry:
+                start_str = entry.start_time.strftime("%H:%M") if entry.start_time else ""
+                end_str = entry.end_time.strftime("%H:%M") if entry.end_time else ""
+                hours = entry.hours_worked or Decimal("0")
+                calculated_hours += Decimal(str(hours)) if hours else Decimal("0")
+            else:
+                start_str = ""
+                end_str = ""
+                hours = None
+            
+            day_entries.append({
+                'start': start_str,
+                'end': end_str,
+                'hours': hours,
+            })
+        
+        # Actualizar record con horas calculadas si es diferente
+        if record.total_hours != calculated_hours:
+            record.total_hours = calculated_hours
+            record.split_hours_regular_overtime()
+            record.calculate_total_pay()
+            record.save()
+        
+        # Obtener último pago
+        last_payment = record.payments.order_by('-payment_date').first()
 
-        calculated_hours = sum(
-            Decimal(entry.hours_worked) if entry.hours_worked else Decimal("0.00")
-            for entry in time_entries
-        )
+        employee_data.append({
+            "employee": emp,
+            "record": record,
+            "calculated_hours": calculated_hours,
+            "day_entries": day_entries,
+            "last_payment": last_payment,
+        })
 
-        # Desglose por proyecto
-        hours_by_project = {}
-        for entry in time_entries:
-            proj_name = entry.project.name if entry.project else "Sin Proyecto"
-            if proj_name not in hours_by_project:
-                hours_by_project[proj_name] = Decimal("0.00")
-            hours_by_project[proj_name] += (
-                Decimal(entry.hours_worked) if entry.hours_worked else Decimal("0.00")
-            )
-
-        # Desglose por CO
-        hours_by_co = {}
-        for entry in time_entries.filter(change_order__isnull=False):
-            co_desc = f"CO #{entry.change_order.id}: {entry.change_order.description[:30]}"
-            if co_desc not in hours_by_co:
-                hours_by_co[co_desc] = Decimal("0.00")
-            hours_by_co[co_desc] += (
-                Decimal(entry.hours_worked) if entry.hours_worked else Decimal("0.00")
-            )
-
-        employee_data.append(
-            {
-                "employee": emp,
-                "record": record,
-                "calculated_hours": calculated_hours,
-                "hours_by_project": hours_by_project,
-                "hours_by_co": hours_by_co,
-                "time_entries": time_entries,
-            }
-        )
-
-    # POST: Actualizar registros
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        if action == "update_records":
-            # Actualizar cada registro con los valores del formulario
-            for emp_data in employee_data:
-                record = emp_data["record"]
-                emp_id = str(record.employee.id)
-
-                # Obtener valores del POST
-                hours = request.POST.get(f"hours_{emp_id}")
-                rate = request.POST.get(f"rate_{emp_id}")
-                notes = request.POST.get(f"notes_{emp_id}", "")
-
-                if hours:
-                    record.total_hours = Decimal(hours)
-                if rate:
-                    record.adjusted_rate = Decimal(rate)
-
-                # Q16.5: Split regular vs overtime before calculating pay
-                record.split_hours_regular_overtime()
-                # Ensure overtime_rate default if not set
-                if not record.overtime_rate:
-                    # Graceful fallback if employee lacks new fields (pre-migration data)
-                    overtime_multiplier = Decimal("1.50")
-                    if (
-                        hasattr(record.employee, "has_custom_overtime")
-                        and hasattr(record.employee, "overtime_multiplier")
-                        and record.employee.has_custom_overtime
-                        and record.employee.overtime_multiplier
-                    ):
-                        overtime_multiplier = record.employee.overtime_multiplier
-                    record.overtime_rate = (record.effective_rate() * overtime_multiplier).quantize(
-                        Decimal("0.01")
-                    )
-                # Defaults for bonus/deductions to avoid attribute errors
-                if not hasattr(record, "bonus"):
-                    record.bonus = Decimal("0")
-                if not hasattr(record, "deductions"):
-                    record.deductions = Decimal("0")
-                if not hasattr(record, "tax_withheld"):
-                    record.tax_withheld = Decimal("0")
-
-                record.total_pay = record.calculate_total_pay()
-                record.notes = notes
-                record.reviewed = True
-                record.save()
-
-            messages.success(request, "Registros de nómina actualizados correctamente.")
-            return redirect("payroll_weekly_review")
-
-        elif action == "approve_period":
-            try:
-                period.approve(request.user, skip_validation=False)
-                messages.success(
-                    request,
-                    _("Nómina de la semana %(start)s - %(end)s aprobada.")
-                    % {"start": week_start, "end": week_end},
-                )
-            except Exception as e:
-                messages.error(request, _("No se pudo aprobar: %(error)s") % {"error": e})
-            return redirect("payroll_weekly_review")
+    # Calcular totales
+    total_hours = sum(data["calculated_hours"] for data in employee_data)
+    total_payroll = sum(data["record"].total_pay or Decimal("0") for data in employee_data)
+    total_paid = sum(data["record"].amount_paid() for data in employee_data)
+    balance_due = total_payroll - total_paid
 
     context = {
         "period": period,
         "week_start": week_start,
         "week_end": week_end,
+        "prev_week": prev_week,
+        "next_week": next_week,
+        "days": days,
         "employee_data": employee_data,
-        "total_hours": sum(data["calculated_hours"] for data in employee_data),
-        "total_payroll": period.total_payroll(),
-        "total_paid": period.total_paid(),
-        "balance_due": period.balance_due(),
+        "total_hours": total_hours,
+        "total_payroll": total_payroll,
+        "total_paid": total_paid,
+        "balance_due": balance_due,
     }
 
     return render(request, "core/payroll_weekly_review.html", context)

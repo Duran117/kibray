@@ -1,198 +1,107 @@
-{% extends 'core/base.html' %}
+{% extends 'core/base_modern.html' %}
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "Weekly Payroll Review" %} | {{ block.super }}{% endblock %}
+{% block title %}{% trans "Weekly Payroll Review" %} | Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
+/* ===== PAYROLL MODERN STYLES ===== */
+:root {
+    --payroll-primary: #6366f1;
+    --payroll-primary-dark: #4f46e5;
+    --payroll-success: #10b981;
+    --payroll-warning: #f59e0b;
+    --payroll-danger: #ef4444;
+    --payroll-gray-50: #f9fafb;
+    --payroll-gray-100: #f3f4f6;
+    --payroll-gray-200: #e5e7eb;
+    --payroll-gray-300: #d1d5db;
+    --payroll-gray-600: #4b5563;
+    --payroll-gray-700: #374151;
+    --payroll-gray-800: #1f2937;
+    --payroll-gray-900: #111827;
+}
+
 .payroll-container {
-    display: flex;
-    min-height: 100vh;
-    background: #1e1f21;
+    padding: 24px;
+    background: var(--payroll-gray-50);
+    min-height: calc(100vh - 64px);
 }
 
-.payroll-sidebar {
-    width: 240px;
-    background: #1e1f21;
-    border-right: 1px solid #424244;
-    position: fixed;
-    height: 100vh;
-    overflow-y: auto;
-    z-index: 100;
-}
-
-.sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid #424244;
-}
-
-.sidebar-title {
-    color: #f5f4f3;
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.sidebar-title i { color: #6d6e6f; }
-.sidebar-nav { padding: 12px 0; }
-
-.nav-section-title {
-    color: #6d6e6f;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 12px 20px 8px;
-    margin: 0;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 20px;
-    color: #a2a0a2;
-    text-decoration: none;
-    font-size: 14px;
-    transition: all 0.15s ease;
-    border-left: 3px solid transparent;
-}
-
-.nav-item:hover {
-    background: #2e2e30;
-    color: #f5f4f3;
-}
-
-.nav-item.active {
-    background: #2e2e30;
-    color: #f5f4f3;
-    border-left-color: #4573d2;
-}
-
-.nav-item i {
-    width: 20px;
-    margin-right: 12px;
-    font-size: 14px;
-}
-
-.nav-item-badge {
-    margin-left: auto;
-    background: #4573d2;
-    color: white;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 600;
-}
-
-.payroll-main {
-    flex: 1;
-    margin-left: 240px;
-    background: #f6f8f9;
-    min-height: 100vh;
-}
-
-.content-header {
+/* Header Section */
+.payroll-header {
     background: white;
-    border-bottom: 1px solid #e8ecee;
-    padding: 20px 32px;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-}
-
-.header-top {
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
-}
-
-.page-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #1e1f21;
-    margin: 0;
-}
-
-.header-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.btn-asana {
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.15s ease;
-    text-decoration: none;
-}
-
-.btn-asana-primary { background: #4573d2; color: white; }
-.btn-asana-primary:hover { background: #3a63b8; color: white; }
-.btn-asana-secondary { background: #f6f8f9; color: #6d6e6f; border: 1px solid #e8ecee; }
-.btn-asana-secondary:hover { background: #e8ecee; color: #1e1f21; }
-.btn-asana-success { background: #1aa251; color: white; }
-.btn-asana-success:hover { background: #158f45; }
-.btn-asana:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.week-nav {
-    display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: 16px;
 }
 
-.week-nav-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid #e8ecee;
-    background: white;
-    color: #6d6e6f;
+.payroll-title {
     display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    text-decoration: none;
+    gap: 12px;
 }
 
-.week-nav-btn:hover {
-    background: #f6f8f9;
-    color: #1e1f21;
-    border-color: #a2a0a2;
+.payroll-title i {
+    font-size: 28px;
+    color: var(--payroll-primary);
 }
 
-.current-week {
-    font-size: 15px;
-    font-weight: 500;
-    color: #1e1f21;
+.payroll-title h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--payroll-gray-900);
+    margin: 0;
 }
 
-.current-week span { color: #6d6e6f; font-weight: 400; }
-
-.week-picker {
-    padding: 6px 12px;
-    border: 1px solid #e8ecee;
-    border-radius: 6px;
+.payroll-title h1 small {
+    display: block;
     font-size: 14px;
-    cursor: pointer;
+    font-weight: 500;
+    color: var(--payroll-gray-600);
+    margin-top: 4px;
 }
 
-.content-body { padding: 24px 32px; }
+/* Week Navigation */
+.week-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--payroll-gray-100);
+    padding: 8px 16px;
+    border-radius: 8px;
+}
 
+.week-nav a {
+    color: var(--payroll-gray-600);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.week-nav a:hover {
+    background: white;
+    color: var(--payroll-primary);
+}
+
+.week-nav .current-week {
+    font-weight: 600;
+    color: var(--payroll-gray-900);
+    padding: 0 12px;
+}
+
+/* Stats Cards */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -201,382 +110,625 @@
     background: white;
     border-radius: 12px;
     padding: 20px;
-    border: 1px solid #e8ecee;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+.stat-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 24px;
     margin-bottom: 12px;
-    font-size: 18px;
 }
 
-.stat-icon.blue { background: #e8f0fe; color: #4573d2; }
-.stat-icon.green { background: #e3fcef; color: #1aa251; }
-.stat-icon.orange { background: #fff8e1; color: #f9a825; }
-.stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
+.stat-card .stat-icon.blue { background: #dbeafe; color: #2563eb; }
+.stat-card .stat-icon.green { background: #d1fae5; color: #059669; }
+.stat-card .stat-icon.yellow { background: #fef3c7; color: #d97706; }
+.stat-card .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
 
-.stat-label {
-    font-size: 12px;
-    color: #6d6e6f;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
+.stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--payroll-gray-900);
 }
 
-.stat-value { font-size: 28px; font-weight: 600; color: #1e1f21; }
-.stat-meta { font-size: 12px; color: #a2a0a2; margin-top: 4px; }
-
-.status-banner {
-    background: white;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    border: 1px solid #e8ecee;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.status-info { display: flex; align-items: center; gap: 12px; }
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
+.stat-card .stat-label {
     font-size: 13px;
-    font-weight: 500;
+    color: var(--payroll-gray-600);
+    margin-top: 4px;
 }
 
-.status-badge.draft { background: #f6f8f9; color: #6d6e6f; }
-.status-badge.under-review { background: #fff8e1; color: #f9a825; }
-.status-badge.approved { background: #e3fcef; color: #1aa251; }
-.status-badge.paid { background: #e8f0fe; color: #4573d2; }
-
-.data-table-container {
+/* Table Container */
+.table-container {
     background: white;
     border-radius: 12px;
-    border: 1px solid #e8ecee;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     overflow: hidden;
 }
 
 .table-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--payroll-gray-200);
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e8ecee;
+    align-items: center;
 }
 
-.table-title { font-size: 16px; font-weight: 600; color: #1e1f21; margin: 0; }
-
-.data-table { width: 100%; border-collapse: collapse; }
-
-.data-table th {
-    background: #f6f8f9;
-    padding: 12px 16px;
-    text-align: left;
-    font-size: 11px;
+.table-header h2 {
+    font-size: 18px;
     font-weight: 600;
-    color: #6d6e6f;
+    color: var(--payroll-gray-900);
+    margin: 0;
+}
+
+/* Payroll Table */
+.payroll-table-wrapper {
+    overflow-x: auto;
+}
+
+.payroll-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 1400px;
+}
+
+.payroll-table thead {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+}
+
+.payroll-table thead th {
+    padding: 14px 8px;
+    font-weight: 600;
+    text-align: center;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid #e8ecee;
+    white-space: nowrap;
 }
 
-.data-table td {
-    padding: 16px;
-    border-bottom: 1px solid #f0f2f3;
-    font-size: 14px;
-    color: #1e1f21;
+.payroll-table thead th.employee-col {
+    text-align: left;
+    padding-left: 20px;
+    min-width: 180px;
+}
+
+.payroll-table thead .day-header {
+    background: rgba(255,255,255,0.1);
+    border-left: 1px solid rgba(255,255,255,0.2);
+}
+
+.payroll-table tbody tr {
+    border-bottom: 1px solid var(--payroll-gray-200);
+    transition: background 0.2s;
+}
+
+.payroll-table tbody tr:hover {
+    background: var(--payroll-gray-50);
+}
+
+.payroll-table tbody td {
+    padding: 12px 8px;
     vertical-align: middle;
+    text-align: center;
 }
 
-.data-table tbody tr:hover { background: #f9fafb; }
-.data-table tbody tr:last-child td { border-bottom: none; }
+.payroll-table tbody td.employee-cell {
+    text-align: left;
+    padding-left: 20px;
+}
 
-.employee-info { display: flex; align-items: center; gap: 12px; }
+.employee-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
 .employee-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4573d2 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
     font-weight: 600;
     font-size: 14px;
-    flex-shrink: 0;
 }
 
-.employee-name { font-weight: 500; color: #1e1f21; }
-.employee-role { font-size: 12px; color: #6d6e6f; }
+.employee-name {
+    font-weight: 600;
+    color: var(--payroll-gray-900);
+}
 
-.inline-input {
-    width: 80px;
-    padding: 6px 10px;
-    border: 1px solid #e8ecee;
+.employee-role {
+    font-size: 12px;
+    color: var(--payroll-gray-600);
+}
+
+/* Day Cell Group */
+.day-cell-group {
+    border-left: 1px solid var(--payroll-gray-200);
+    padding: 4px;
+}
+
+/* Time Inputs */
+.time-input {
+    width: 70px;
+    padding: 6px 8px;
+    border: 1px solid var(--payroll-gray-300);
     border-radius: 6px;
-    font-size: 14px;
-    text-align: right;
-    transition: all 0.15s ease;
+    font-size: 12px;
+    text-align: center;
+    transition: all 0.2s;
 }
 
-.inline-input:focus {
+.time-input:focus {
     outline: none;
-    border-color: #4573d2;
-    box-shadow: 0 0 0 3px rgba(69, 115, 210, 0.1);
+    border-color: var(--payroll-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.inline-input.modified { background: #fff8e1; border-color: #f9a825; }
+.time-input:disabled {
+    background: var(--payroll-gray-100);
+    color: var(--payroll-gray-600);
+}
 
-.money-value { font-weight: 600; font-family: monospace; }
-.money-value.positive { color: #1aa251; }
+.hours-display {
+    font-weight: 600;
+    color: var(--payroll-primary);
+    padding: 6px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 6px;
+    min-width: 50px;
+    display: inline-block;
+}
 
-.hours-badge {
+/* Summary Cells */
+.total-hours-cell {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--payroll-gray-900);
+}
+
+.rate-input, .amount-input {
+    width: 80px;
+    padding: 6px 8px;
+    border: 1px solid var(--payroll-gray-300);
+    border-radius: 6px;
+    font-size: 12px;
+    text-align: right;
+}
+
+.total-pay-cell {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--payroll-success);
+}
+
+/* Payment Fields */
+.check-input {
+    width: 100px;
+    padding: 6px 8px;
+    border: 1px solid var(--payroll-gray-300);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.date-input {
+    width: 120px;
+    padding: 6px 8px;
+    border: 1px solid var(--payroll-gray-300);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* Status Badge */
+.status-badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 8px;
-    background: #f6f8f9;
-    border-radius: 6px;
-    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
-.hours-badge.overtime { background: #fff8e1; color: #f9a825; }
+.status-badge.paid {
+    background: #d1fae5;
+    color: #059669;
+}
 
-.action-btn {
-    padding: 6px 12px;
+.status-badge.pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-badge.partial {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+/* Sub-row Labels */
+.sub-row-label {
+    font-size: 10px;
+    color: var(--payroll-gray-600);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    display: block;
+}
+
+/* Action Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
     border: none;
-    background: #f6f8f9;
-    color: #6d6e6f;
-    border-radius: 6px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 13px;
-    transition: all 0.15s ease;
+    transition: all 0.2s;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    text-decoration: none;
+    gap: 8px;
 }
 
-.action-btn:hover { background: #e8ecee; color: #1e1f21; }
-.action-btn.primary { background: #4573d2; color: white; }
-.action-btn.primary:hover { background: #3a63b8; }
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
 
-.alert-modern {
-    padding: 16px 20px;
+.btn-secondary {
+    background: white;
+    color: var(--payroll-gray-700);
+    border: 1px solid var(--payroll-gray-300);
+    padding: 10px 20px;
     border-radius: 8px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.alert-modern i { font-size: 18px; margin-top: 2px; }
-.alert-modern.warning { background: #fff8e1; border: 1px solid #ffd54f; color: #5d4037; }
-.alert-content h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
-.alert-content p { margin: 0; font-size: 13px; }
+.btn-secondary:hover {
+    background: var(--payroll-gray-50);
+    border-color: var(--payroll-gray-400);
+}
 
-.empty-state { text-align: center; padding: 60px 20px; }
+/* Footer Actions */
+.table-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--payroll-gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
 
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    background: #f6f8f9;
-    border-radius: 50%;
+.footer-totals {
+    display: flex;
+    gap: 32px;
+}
+
+.footer-total-item {
+    text-align: center;
+}
+
+.footer-total-item .label {
+    font-size: 12px;
+    color: var(--payroll-gray-600);
+    text-transform: uppercase;
+}
+
+.footer-total-item .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--payroll-gray-900);
+}
+
+.footer-total-item .value.money {
+    color: var(--payroll-success);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .payroll-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .week-nav {
+        justify-content: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Day columns */
+.day-col {
+    min-width: 90px;
+}
+
+.day-col .day-name {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.day-col .day-date {
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+/* Input groups for time */
+.time-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+}
+
+.time-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
+    gap: 4px;
 }
 
-.empty-icon i { font-size: 32px; color: #a2a0a2; }
-.empty-title { font-size: 18px; font-weight: 600; color: #1e1f21; margin-bottom: 8px; }
-.empty-text { color: #6d6e6f; font-size: 14px; }
-
-@media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 1024px) { .payroll-sidebar { display: none; } .payroll-main { margin-left: 0; } }
-@media (max-width: 768px) {
-    .content-header { padding: 16px; }
-    .header-top { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .content-body { padding: 16px; }
-    .stats-grid { grid-template-columns: 1fr; }
-    .data-table-container { overflow-x: auto; }
-    .data-table { min-width: 800px; }
+.time-label {
+    font-size: 9px;
+    color: var(--payroll-gray-600);
+    width: 20px;
+    text-align: right;
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="payroll-container">
-    <aside class="payroll-sidebar">
-        <div class="sidebar-header">
-            <h1 class="sidebar-title"><i class="fas fa-money-check-alt"></i> {% trans "Payroll" %}</h1>
+    <!-- Header -->
+    <div class="payroll-header">
+        <div class="payroll-title">
+            <i class="bi bi-calendar-check"></i>
+            <h1>
+                {% trans "Weekly Payroll" %}
+                <small>{% trans "Review and edit employee hours" %}</small>
+            </h1>
         </div>
-        <nav class="sidebar-nav">
-            <p class="nav-section-title">{% trans "Management" %}</p>
-            <a href="{% url 'payroll_weekly_review' %}" class="nav-item active">
-                <i class="fas fa-calendar-week"></i> {% trans "Weekly Review" %}
-                {% if records %}<span class="nav-item-badge">{{ records|length }}</span>{% endif %}
+        
+        <!-- Week Navigation -->
+        <div class="week-nav">
+            <a href="?week_start={{ prev_week|date:'Y-m-d' }}" title="{% trans 'Previous Week' %}">
+                <i class="bi bi-chevron-left"></i> {% trans "Prev" %}
             </a>
-            <a href="{% url 'payroll_payment_history' %}" class="nav-item">
-                <i class="fas fa-history"></i> {% trans "Payment History" %}
+            <span class="current-week">
+                {{ week_start|date:"M d" }} — {{ week_end|date:"M d, Y" }}
+            </span>
+            <a href="?week_start={{ next_week|date:'Y-m-d' }}" title="{% trans 'Next Week' %}">
+                {% trans "Next" %} <i class="bi bi-chevron-right"></i>
             </a>
-            <a href="{% url 'payroll_summary' %}" class="nav-item">
-                <i class="fas fa-chart-pie"></i> {% trans "Summary" %}
-            </a>
-        </nav>
-    </aside>
+        </div>
+    </div>
     
-    <main class="payroll-main">
-        <header class="content-header">
-            <div class="header-top">
-                <h1 class="page-title">{% trans "Weekly Payroll Review" %}</h1>
-                <div class="header-actions">
-                    {% if period.status != 'approved' and period.status != 'paid' %}
-                    <form method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="approve_period">
-                        <button type="submit" class="btn-asana btn-asana-success">
-                            <i class="fas fa-check-circle"></i> {% trans "Approve Week" %}
-                        </button>
-                    </form>
-                    {% endif %}
-                    <button class="btn-asana btn-asana-secondary" onclick="window.print()">
-                        <i class="fas fa-print"></i> {% trans "Print" %}
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-people"></i></div>
+            <div class="stat-value">{{ employee_data|length }}</div>
+            <div class="stat-label">{% trans "Employees" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-value">{{ total_hours|floatformat:1 }}</div>
+            <div class="stat-label">{% trans "Total Hours" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-value">${{ total_payroll|floatformat:2 }}</div>
+            <div class="stat-label">{% trans "Total Payroll" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon yellow"><i class="bi bi-wallet2"></i></div>
+            <div class="stat-value">${{ balance_due|floatformat:2 }}</div>
+            <div class="stat-label">{% trans "Pending Payment" %}</div>
+        </div>
+    </div>
+    
+    <!-- Main Table -->
+    <form method="post" id="payrollForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_records">
+        
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="bi bi-table"></i> {% trans "Employee Hours" %}</h2>
+                <div>
+                    <button type="button" class="btn-secondary" onclick="window.print()">
+                        <i class="bi bi-printer"></i> {% trans "Print" %}
                     </button>
                 </div>
             </div>
             
-            <div class="week-nav">
-                <a href="?week_start={{ prev_week|date:'Y-m-d' }}" class="week-nav-btn"><i class="fas fa-chevron-left"></i></a>
-                <div class="current-week">{{ week_start|date:"M d" }} — {{ week_end|date:"M d, Y" }} <span>({% trans "Week" %} {{ week_start|date:"W" }})</span></div>
-                <a href="?week_start={{ next_week|date:'Y-m-d' }}" class="week-nav-btn"><i class="fas fa-chevron-right"></i></a>
-                <form method="get" style="margin-left: 16px;">
-                    <input type="date" name="week_start" value="{{ week_start|date:'Y-m-d' }}" class="week-picker" onchange="this.form.submit()">
-                </form>
-            </div>
-        </header>
-        
-        <div class="content-body">
-            {% if missing_employee_entries.exists or inactive_employee_entries.exists %}
-            <div class="alert-modern warning">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div class="alert-content">
-                    <h4>{% trans "Attention Required" %}</h4>
-                    <p>{% if missing_employee_entries.exists %}{{ missing_employee_entries.count }} {% trans "time entries without employee." %}{% endif %}
-                    {% if inactive_employee_entries.exists %}{{ inactive_employee_entries.count }} {% trans "inactive employee entries excluded." %}{% endif %}</p>
-                </div>
-            </div>
-            {% endif %}
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
-                    <div class="stat-label">{% trans "Employees" %}</div>
-                    <div class="stat-value">{{ records|length }}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon green"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-label">{% trans "Total Payroll" %}</div>
-                    <div class="stat-value">${{ total_payroll|floatformat:2|default:"0.00" }}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon purple"><i class="fas fa-check-circle"></i></div>
-                    <div class="stat-label">{% trans "Paid" %}</div>
-                    <div class="stat-value">${{ total_paid|floatformat:2|default:"0.00" }}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
-                    <div class="stat-label">{% trans "Pending" %}</div>
-                    <div class="stat-value">${{ balance_due|floatformat:2|default:"0.00" }}</div>
-                </div>
-            </div>
-            
-            <div class="status-banner">
-                <div class="status-info">
-                    <span class="status-badge {{ period.status|default:'draft' }}">
-                        {% if period.status == 'approved' %}<i class="fas fa-check-circle"></i> {% trans "Approved" %}
-                        {% elif period.status == 'paid' %}<i class="fas fa-money-bill-wave"></i> {% trans "Paid" %}
-                        {% else %}<i class="fas fa-edit"></i> {% trans "Draft" %}{% endif %}
-                    </span>
-                </div>
-            </div>
-            
-            <div class="data-table-container">
-                <div class="table-header">
-                    <h2 class="table-title">{% trans "Payroll Records" %}</h2>
-                    <form method="post" id="updateForm">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="update_records">
-                        <button type="submit" class="btn-asana btn-asana-primary"><i class="fas fa-save"></i> {% trans "Save" %}</button>
-                    </form>
-                </div>
-                
-                {% if records %}
-                <table class="data-table">
+            <div class="payroll-table-wrapper">
+                <table class="payroll-table">
                     <thead>
                         <tr>
-                            <th>{% trans "Employee" %}</th>
-                            <th>{% trans "Hours" %}</th>
-                            <th>{% trans "Edit" %}</th>
+                            <th class="employee-col">{% trans "Employee" %}</th>
+                            {% for day in days %}
+                            <th class="day-header day-col">
+                                <div class="day-name">{{ day.name }}</div>
+                                <div class="day-date">{{ day.date|date:"m/d" }}</div>
+                            </th>
+                            {% endfor %}
+                            <th>{% trans "Total Hrs" %}</th>
                             <th>{% trans "Rate" %}</th>
-                            <th>{% trans "Overtime" %}</th>
-                            <th>{% trans "Gross" %}</th>
-                            <th>{% trans "Net" %}</th>
-                            <th></th>
+                            <th>{% trans "Total Pay" %}</th>
+                            <th>{% trans "Check #" %}</th>
+                            <th>{% trans "Pay Date" %}</th>
+                            <th>{% trans "Status" %}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for record in records %}
+                        {% for data in employee_data %}
                         <tr>
-                            <td>
+                            <td class="employee-cell">
                                 <div class="employee-info">
-                                    <div class="employee-avatar">{{ record.employee.first_name|slice:":1" }}{{ record.employee.last_name|slice:":1" }}</div>
+                                    <div class="employee-avatar">
+                                        {{ data.employee.first_name|slice:":1" }}{{ data.employee.last_name|slice:":1" }}
+                                    </div>
                                     <div>
-                                        <div class="employee-name">{{ record.employee.get_full_name }}</div>
-                                        <div class="employee-role">{{ record.employee.role|default:"Employee" }}</div>
+                                        <div class="employee-name">{{ data.employee.first_name }} {{ data.employee.last_name }}</div>
+                                        <div class="employee-role">${{ data.employee.hourly_rate }}/hr</div>
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="hours-badge"><i class="fas fa-clock"></i> {{ record.total_hours|floatformat:1 }}h</span></td>
-                            <td><input type="number" name="hours_{{ record.employee.id }}" value="{{ record.total_hours|floatformat:2 }}" step="0.25" min="0" class="inline-input" form="updateForm"></td>
-                            <td><span class="money-value">${{ record.hourly_rate|floatformat:2 }}</span></td>
-                            <td>{% if record.overtime_hours > 0 %}<span class="hours-badge overtime"><i class="fas fa-fire"></i> {{ record.overtime_hours|floatformat:1 }}h</span>{% else %}—{% endif %}</td>
-                            <td><span class="money-value">${{ record.gross_pay|floatformat:2|default:record.total_pay }}</span></td>
-                            <td><span class="money-value positive">${{ record.net_pay|floatformat:2|default:record.total_pay }}</span></td>
-                            <td><a href="{% url 'payroll_record_payment' record.id %}" class="action-btn primary"><i class="fas fa-money-bill"></i> {% trans "Pay" %}</a></td>
+                            
+                            {% for day_entry in data.day_entries %}
+                            <td class="day-cell-group">
+                                <div class="time-group">
+                                    <div class="time-row">
+                                        <span class="time-label">In:</span>
+                                        <input type="time" 
+                                               name="start_{{ data.employee.id }}_{{ forloop.counter0 }}" 
+                                               value="{{ day_entry.start }}"
+                                               class="time-input">
+                                    </div>
+                                    <div class="time-row">
+                                        <span class="time-label">Out:</span>
+                                        <input type="time" 
+                                               name="end_{{ data.employee.id }}_{{ forloop.counter0 }}" 
+                                               value="{{ day_entry.end }}"
+                                               class="time-input">
+                                    </div>
+                                    <div class="time-row">
+                                        <span class="time-label">Hrs:</span>
+                                        <span class="hours-display">{{ day_entry.hours|floatformat:1|default:"-" }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            {% endfor %}
+                            
+                            <td class="total-hours-cell">{{ data.calculated_hours|floatformat:2 }}</td>
+                            
+                            <td>
+                                <input type="number" 
+                                       name="rate_{{ data.employee.id }}" 
+                                       value="{{ data.record.effective_rate|floatformat:2 }}"
+                                       step="0.01"
+                                       min="0"
+                                       class="rate-input">
+                            </td>
+                            
+                            <td class="total-pay-cell">${{ data.record.total_pay|floatformat:2 }}</td>
+                            
+                            <td>
+                                <input type="text" 
+                                       name="check_{{ data.employee.id }}" 
+                                       value="{{ data.last_payment.check_number|default:'' }}"
+                                       placeholder="Check #"
+                                       class="check-input">
+                            </td>
+                            
+                            <td>
+                                <input type="date" 
+                                       name="pay_date_{{ data.employee.id }}" 
+                                       value="{{ data.last_payment.payment_date|date:'Y-m-d'|default:'' }}"
+                                       class="date-input">
+                            </td>
+                            
+                            <td>
+                                {% if data.record.is_paid %}
+                                <span class="status-badge paid"><i class="bi bi-check-circle"></i> {% trans "Paid" %}</span>
+                                {% elif data.record.amount_paid > 0 %}
+                                <span class="status-badge partial"><i class="bi bi-clock"></i> {% trans "Partial" %}</span>
+                                {% else %}
+                                <span class="status-badge pending"><i class="bi bi-hourglass"></i> {% trans "Pending" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="13" style="text-align: center; padding: 40px; color: var(--payroll-gray-600);">
+                                <i class="bi bi-inbox" style="font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5;"></i>
+                                {% trans "No employees found for this period" %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot>
-                        <tr style="background: #f6f8f9; font-weight: 600;">
-                            <td colspan="5" style="text-align: right;">{% trans "Totals" %}:</td>
-                            <td><span class="money-value">${{ total_payroll|floatformat:2 }}</span></td>
-                            <td><span class="money-value positive">${{ total_net|floatformat:2|default:total_payroll }}</span></td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
                 </table>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon"><i class="fas fa-calendar-times"></i></div>
-                    <h3 class="empty-title">{% trans "No records for this week" %}</h3>
-                    <p class="empty-text">{% trans "No time entries found for this period." %}</p>
+            </div>
+            
+            <div class="table-footer">
+                <div class="footer-totals">
+                    <div class="footer-total-item">
+                        <div class="label">{% trans "Total Hours" %}</div>
+                        <div class="value">{{ total_hours|floatformat:1 }}</div>
+                    </div>
+                    <div class="footer-total-item">
+                        <div class="label">{% trans "Total Payroll" %}</div>
+                        <div class="value money">${{ total_payroll|floatformat:2 }}</div>
+                    </div>
+                    <div class="footer-total-item">
+                        <div class="label">{% trans "Paid" %}</div>
+                        <div class="value">${{ total_paid|floatformat:2 }}</div>
+                    </div>
                 </div>
-                {% endif %}
+                
+                <div>
+                    <button type="submit" class="btn-primary">
+                        <i class="bi bi-save"></i> {% trans "Save All Changes" %}
+                    </button>
+                </div>
             </div>
         </div>
-    </main>
+    </form>
 </div>
-{% endblock %}
 
+<script>
+// Auto-calculate hours when time changes
+document.querySelectorAll('.time-input').forEach(input => {
+    input.addEventListener('change', function() {
+        const name = this.name;
+        const parts = name.split('_');
+        const type = parts[0]; // 'start' or 'end'
+        const empId = parts[1];
+        const dayIdx = parts[2];
+        
+        const startInput = document.querySelector(`input[name="start_${empId}_${dayIdx}"]`);
+        const endInput = document.querySelector(`input[name="end_${empId}_${dayIdx}"]`);
+        const hoursSpan = startInput.closest('.time-group').querySelector('.hours-display');
+        
+        if (startInput.value && endInput.value) {
+            const start = startInput.value.split(':').map(Number);
+            const end = endInput.value.split(':').map(Number);
+            
+            let startMins = start[0] * 60 + start[1];
+            let endMins = end[0] * 60 + end[1];
+            
+            // Handle overnight shifts
+            if (endMins < startMins) {
+                endMins += 24 * 60;
+            }
+            
+            let hours = (endMins - startMins) / 60;
+            
+            // Lunch deduction (30 min if shift >= 5 hours and crosses 12:30)
+            const lunchTime = 12 * 60 + 30;
+            if (hours >= 5 && startMins < lunchTime && endMins > lunchTime) {
+                hours -= 0.5;
+            }
+            
+            hoursSpan.textContent = hours.toFixed(1);
+        } else {
+            hoursSpan.textContent = '-';
+        }
+    });
+});
+</script>
+{% endblock %}
