@@ -3,19 +3,15 @@
 
 {% block extra_css %}
 <style>
-  /* ===== HIDE GLOBAL NAVIGATION ON PROJECT PAGES ===== */
-  /* The project has its own sidebar and header, so hide the global ones */
-  #kb-sidebar { display: none !important; }
-  #kb-sidebar-backdrop { display: none !important; }
-  #kb-header { display: none !important; }
+  /* ===== PROJECT LAYOUT OVERRIDES ===== */
+  /* With legacy_shell=True, global header/sidebar are not rendered */
+  /* Just need to remove any leftover padding from main content */
   
-  /* Remove the top padding that was for the header */
   [data-layout-root] { 
     min-height: 100vh !important; 
     padding-top: 0 !important;
   }
   
-  /* Remove all padding/margin from main content that was for global sidebar */
   #main-content,
   #main-content.lg\:pl-64,
   main.lg\:pl-64 { 
@@ -23,27 +19,11 @@
     margin-left: 0 !important;
   }
   
-  /* Remove wrapper padding completely */
   #main-content > div.w-full,
-  #main-content > div,
-  #main-content > .container,
-  #main-content > .container-fluid { 
+  #main-content > div { 
     padding: 0 !important;
     max-width: 100% !important;
     margin: 0 !important;
-  }
-  [data-layout-root] > main { padding-left: 0 !important; }
-  
-  /* Force override Tailwind responsive padding at all breakpoints */
-  @media (min-width: 640px) {
-    #main-content > div.w-full { padding: 0 !important; }
-  }
-  @media (min-width: 768px) {
-    #main-content > div.w-full { padding: 0 !important; }
-  }
-  @media (min-width: 1024px) {
-    #main-content { padding-left: 0 !important; }
-    #main-content > div.w-full { padding: 0 !important; }
   }
   
   /* ===== PROJECT SIDEBAR - Desktop ===== */

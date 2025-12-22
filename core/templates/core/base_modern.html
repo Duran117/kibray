@@ -70,11 +70,13 @@
             <script src="{% static 'js/kibray-navigation.js' %}"></script>
         {% endif %}
 
-    {# Header/Navbar #}
+    {# Header/Navbar - hidden on legacy_shell pages (e.g., project overview with custom nav) #}
+    {% if not legacy_shell|default:False %}
     {% include "core/components/header.html" %}
+    {% endif %}
     
     {# Main Layout #}
-    <div class="flex min-h-[calc(100vh-64px)] w-full min-w-0" data-layout-root>
+    <div class="flex {% if not legacy_shell|default:False %}min-h-[calc(100vh-64px)]{% else %}min-h-screen{% endif %} w-full min-w-0" data-layout-root>
     {# Sidebar (on by default, can be hidden via show_sidebar=False or legacy_shell=True) #}
     {% if show_sidebar|default:True and not legacy_shell|default:False %}
         {% include "core/components/sidebar.html" %}

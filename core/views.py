@@ -6395,6 +6395,7 @@ def project_overview(request, project_id: int):
             "project": project,
             "project_info": project_info,
             "show_sidebar": False,  # Hide global sidebar, use project-specific Asana-style sidebar
+            "legacy_shell": True,   # Hide backdrop and disable global nav scripts
             "colors": colors,
             "upcoming_schedules": upcoming_schedules,
             "recent_tasks": recent_tasks,
