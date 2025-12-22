@@ -1,1018 +1,2033 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
-{% load static %}
+{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
 
-{% block title %}Master Schedule Center{% endblock %}
+{% load i18n %}{% load i18n %}
 
-{% block extra_head %}
-<!-- FullCalendar CSS -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
-<style>
-  body.schedule-center { background:#f8fafc; }
-  
-  .schedule-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
-    padding: 2rem;
-    border-radius: 16px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
-  }
-  
-  .schedule-header h1 {
-    letter-spacing: -0.02em;
-    color: white;
+{% load static %}{% load static %}
+
+
+
+{% block title %}{% trans "Master Schedule" %}{% endblock %}{% block title %}Master Schedule Center{% endblock %}
+
+
+
+{% block extra_head %}{% block extra_head %}
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet"><!-- FullCalendar CSS -->
+
+<style><link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+
+  /* ===========================================<style>
+
+     MASTER SCHEDULE - MOBILE-FIRST GANTT  body.schedule-center { background:#f8fafc; }
+
+     Strategic Project Timeline  
+
+     =========================================== */  .schedule-header {
+
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }    color: white;
+
+  body.schedule-center { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }    padding: 2rem;
+
+      border-radius: 16px;
+
+  /* ===== HEADER ===== */    margin-bottom: 1.5rem;
+
+  .schedule-header {    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);  }
+
+    color: white;  
+
+    padding: 20px;  .schedule-header h1 {
+
+    border-radius: 16px;    letter-spacing: -0.02em;
+
+    margin-bottom: 16px;    color: white;
+
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);  }
+
   }
 
-  .schedule-header p {
-    color: rgba(255,255,255,0.9);
+  .schedule-header h1 {  .schedule-header p {
+
+    font-size: 1.5rem;    color: rgba(255,255,255,0.9);
+
+    font-weight: 700;  }
+
+    color: white;  
+
+    margin: 0 0 8px 0;  .view-toggle {
+
+    display: flex;    display: inline-flex;
+
+    align-items: center;    gap: 0.5rem;
+
+    gap: 10px;    background: rgba(255,255,255,0.2);
+
+  }    padding: 0.4rem;
+
+  .schedule-header p { color: rgba(255,255,255,0.85); font-size: 0.9rem; margin: 0; }    border-radius: 12px;
+
+    }
+
+  /* View Toggle */  
+
+  .view-toggle {  .toggle-btn {
+
+    display: flex;    flex: 1;
+
+    gap: 8px;    padding: 0.7rem 1.1rem;
+
+    background: rgba(255,255,255,0.15);    border: none;
+
+    padding: 6px;    background: transparent;
+
+    border-radius: 12px;    color: rgba(255,255,255,0.9);
+
+    margin-top: 16px;    border-radius: 10px;
+
+  }    cursor: pointer;
+
+  .toggle-btn {    transition: all 0.2s ease;
+
+    flex: 1;    font-weight: 700;
+
+    padding: 12px 16px;    display: flex;
+
+    border: none;    align-items: center;
+
+    background: transparent;    justify-content: center;
+
+    color: rgba(255,255,255,0.85);    gap: 0.5rem;
+
+    border-radius: 10px;  }
+
+    cursor: pointer;  
+
+    transition: all 0.2s ease;  .toggle-btn:hover {
+
+    font-weight: 600;    background: rgba(255,255,255,0.15);
+
+    font-size: 14px;    color: white;
+
+    display: flex;  }
+
+    align-items: center;  
+
+    justify-content: center;  .toggle-btn.active {
+
+    gap: 8px;    background: white;
+
+  }    color: #6366f1;
+
+  .toggle-btn:hover { background: rgba(255,255,255,0.1); color: white; }    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+  .toggle-btn.active {  }
+
+    background: white;  
+
+    color: #6366f1;  .view-content {
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);    display: none;
+
+  }    animation: fadeIn 0.3s ease;
+
+    }
+
+  /* Stats */  
+
+  .stats-grid {  .view-content.active {
+
+    display: grid;    display: block;
+
+    grid-template-columns: repeat(2, 1fr);  }
+
+    gap: 10px;  
+
+    margin-top: 16px;  @keyframes fadeIn {
+
+  }    from { opacity: 0; transform: translateY(10px); }
+
+  .stat-card {    to { opacity: 1; transform: translateY(0); }
+
+    background: rgba(255,255,255,0.12);  }
+
+    padding: 14px;  
+
+    border-radius: 12px;  /* Gantt View Styles */
+
+    text-align: center;  .gantt-container {
+
+  }      background: #fff;
+
+  .stat-value { font-size: 1.5rem; font-weight: 800; color: white; }      border-radius: 18px;
+
+  .stat-label {      padding: 1.75rem;
+
+    font-size: 0.7rem;      box-shadow: 0 18px 32px rgba(0,0,0,0.08);
+
+    color: rgba(255,255,255,0.8);      border: 1px solid rgba(0,0,0,0.04);
+
+    text-transform: uppercase;      overflow-x: auto;
+
+    letter-spacing: 0.5px;    }
+
+    font-weight: 600;  
+
+  }    .gantt-toolbar {
+
+        display: flex;
+
+  /* Views */      justify-content: space-between;
+
+  .view-content { display: none; animation: fadeIn 0.3s ease; }      align-items: center;
+
+  .view-content.active { display: block; }      gap: 1rem;
+
+  @keyframes fadeIn {      margin-bottom: 1rem;
+
+    from { opacity: 0; transform: translateY(10px); }      flex-wrap: wrap;
+
+    to { opacity: 1; transform: translateY(0); }    }
+
   }
-  
-  .view-toggle {
-    display: inline-flex;
-    gap: 0.5rem;
-    background: rgba(255,255,255,0.2);
-    padding: 0.4rem;
-    border-radius: 12px;
+
+      .gantt-zoom {
+
+  /* ===== GANTT ===== */      display: inline-flex;
+
+  .gantt-container {      border: 1px solid #e2e8f0;
+
+    background: white;      border-radius: 10px;
+
+    border-radius: 16px;      overflow: hidden;
+
+    padding: 16px;      background: #f8fafc;
+
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);    }
+
+    margin-bottom: 16px;
+
+  }    .gantt-zoom button {
+
+  .gantt-title {      padding: 0.5rem 0.9rem;
+
+    font-size: 1.1rem;      border: none;
+
+    font-weight: 700;      background: transparent;
+
+    color: #1e293b;      font-weight: 600;
+
+    margin-bottom: 16px;      color: #475569;
+
+    display: flex;      cursor: pointer;
+
+    align-items: center;      transition: background 0.2s ease, color 0.2s ease;
+
+    gap: 8px;    }
+
   }
-  
-  .toggle-btn {
-    flex: 1;
-    padding: 0.7rem 1.1rem;
-    border: none;
-    background: transparent;
-    color: rgba(255,255,255,0.9);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 700;
-    display: flex;
+
+  .gantt-toolbar {    .gantt-zoom button.active {
+
+    display: flex;      background: #0f172a;
+
+    flex-direction: column;      color: #f8fafc;
+
+    gap: 12px;    }
+
+    margin-bottom: 16px;  
+
+    padding-bottom: 16px;    .gantt-timeline {
+
+    border-bottom: 1px solid #e2e8f0;      display: grid;
+
+  }      grid-template-columns: 250px 1fr;
+
+  .gantt-info { font-size: 0.85rem; color: #64748b; }      gap: 1rem;
+
+  .today-indicator {      min-width: 1200px;
+
+    display: flex;    }
+
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+
+    gap: 8px;    .gantt-scale {
+
+    font-size: 0.8rem;      display: grid;
+
+    color: #dc2626;      grid-template-columns: 250px 1fr;
+
+    font-weight: 600;      gap: 1rem;
+
+  }      margin-bottom: 0.75rem;
+
+  .today-dot {      align-items: stretch;
+
+    width: 8px;    }
+
+    height: 8px;
+
+    border-radius: 50%;    .gantt-scale-labels {
+
+    background: #dc2626;      color: #475569;
+
+    animation: pulse 2s infinite;      font-weight: 600;
+
+  }      display: flex;
+
+  @keyframes pulse {      align-items: center;
+
+    0%, 100% { opacity: 1; }      justify-content: center;
+
+    50% { opacity: 0.5; }    }
+
   }
-  
-  .toggle-btn:hover {
-    background: rgba(255,255,255,0.15);
-    color: white;
+
+  .gantt-zoom {    .gantt-scale-ticks {
+
+    display: flex;      position: relative;
+
+    border: 2px solid #e2e8f0;      height: 42px;
+
+    border-radius: 10px;      background: #f8fafc;
+
+    overflow: hidden;      border-radius: 10px;
+
+  }      overflow: hidden;
+
+  .gantt-zoom button {      display: flex;
+
+    flex: 1;    }
+
+    padding: 10px 16px;
+
+    border: none;    .gantt-scale-tick {
+
+    background: transparent;      position: relative;
+
+    font-weight: 600;      flex: 1;
+
+    font-size: 13px;      border-left: 1px solid #e2e8f0;
+
+    color: #475569;      display: flex;
+
+    cursor: pointer;      align-items: flex-end;
+
+    transition: all 0.2s ease;      padding: 0.35rem 0.35rem 0.45rem;
+
+  }      font-size: 0.75rem;
+
+  .gantt-zoom button:not(:last-child) { border-right: 1px solid #e2e8f0; }      color: #475569;
+
+  .gantt-zoom button.active { background: #6366f1; color: white; }      min-width: 50px;
+
+  .gantt-zoom button:hover:not(.active) { background: #f1f5f9; }      box-sizing: border-box;
+
+      }
+
+  /* Gantt Chart */
+
+  .gantt-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }    .gantt-scale-tick:first-child { border-left: none; }
+
+  .gantt-chart { min-width: 700px; }
+
+      .gantt-scale-tick.today {
+
+  /* Scale */      background: rgba(14,165,233,0.08);
+
+  .gantt-scale {      color: #0ea5e9;
+
+    display: grid;      font-weight: 700;
+
+    grid-template-columns: 180px 1fr;    }
+
+    gap: 12px;  
+
+    margin-bottom: 8px;  .gantt-labels {
+
+    position: sticky;    display: flex;
+
+    top: 0;    flex-direction: column;
+
+    background: white;    gap: 0.75rem;
+
+    z-index: 10;  }
+
+  }  
+
+  .gantt-scale-label {  .gantt-label {
+
+    font-size: 0.75rem;    padding: 1rem;
+
+    font-weight: 700;    background: #f1f5f9;
+
+    color: #64748b;    border-radius: 8px;
+
+    text-transform: uppercase;    font-weight: 600;
+
+    letter-spacing: 0.5px;    font-size: 0.875rem;
+
+    padding: 8px 12px;    display: flex;
+
+    background: #f8fafc;    flex-direction: column;
+
+    border-radius: 8px;    gap: 0.25rem;
+
+    text-align: center;    min-height: 60px;
+
+  }  }
+
+  .gantt-scale-ticks {  
+
+    display: flex;  .gantt-label-name {
+
+    background: #f8fafc;    color: #1e293b;
+
+    border-radius: 8px;  }
+
+    overflow: hidden;  
+
+    position: relative;  .gantt-label-meta {
+
+  }    font-size: 0.75rem;
+
+  .gantt-tick {    color: #64748b;
+
+    flex: 1;    font-weight: 400;
+
+    min-width: 35px;  }
+
+    padding: 8px 2px;  
+
+    font-size: 0.65rem;  .gantt-bars {
+
+    font-weight: 600;    display: flex;
+
+    color: #64748b;    flex-direction: column;
+
+    text-align: center;    gap: 0.75rem;
+
+    border-left: 1px solid #e2e8f0;    position: relative;
+
+    white-space: nowrap;  }
+
   }
-  
-  .toggle-btn.active {
-    background: white;
-    color: #6366f1;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
-  
-  .view-content {
-    display: none;
-    animation: fadeIn 0.3s ease;
-  }
-  
-  .view-content.active {
-    display: block;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  /* Gantt View Styles */
-  .gantt-container {
-      background: #fff;
-      border-radius: 18px;
-      padding: 1.75rem;
-      box-shadow: 0 18px 32px rgba(0,0,0,0.08);
-      border: 1px solid rgba(0,0,0,0.04);
-      overflow-x: auto;
+
+  .gantt-tick:first-child { border-left: none; }  .gantt-bar-row {
+
+  .gantt-tick.today { background: rgba(220, 38, 38, 0.1); color: #dc2626; }    display: flex;
+
+  .gantt-tick.weekend { background: #f1f5f9; color: #94a3b8; }    flex-direction: column;
+
+      gap: 0.5rem;
+
+  /* Rows */  }
+
+  .gantt-body { display: flex; flex-direction: column; gap: 6px; }  
+
+  .gantt-row {  .gantt-bar-container {
+
+    display: grid;    position: relative;
+
+    grid-template-columns: 180px 1fr;    height: 60px;
+
+    gap: 12px;    background: #f8fafc;
+
+    min-height: 52px;    border-radius: 8px;
+
+  }  }
+
+  .gantt-row-label {  
+
+    padding: 10px 12px;  .gantt-bar {
+
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);    position: absolute;
+
+    border-radius: 10px;    height: 100%;
+
+    border-left: 4px solid #6366f1;    border-radius: 8px;
+
+    display: flex;    padding: 0.5rem 1rem;
+
+    flex-direction: column;    color: white;
+
+    justify-content: center;    font-size: 0.875rem;
+
+    cursor: pointer;    font-weight: 600;
+
+    transition: all 0.2s ease;    display: flex;
+
+  }    align-items: center;
+
+  .gantt-row-label:hover {    justify-content: space-between;
+
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);    cursor: pointer;
+
+    transform: translateX(2px);    transition: all 0.3s ease;
+
+  }    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  .gantt-row-name {  }
+
+    font-size: 0.85rem;  
+
+    font-weight: 600;  .gantt-bar:hover {
+
+    color: #1e293b;    transform: translateY(-2px);
+
+    white-space: nowrap;    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+
+    overflow: hidden;  }
+
+    text-overflow: ellipsis;  
+
+  }  .gantt-bar-progress {
+
+  .gantt-row-meta { font-size: 0.7rem; color: #64748b; margin-top: 2px; }    position: absolute;
+
+  .gantt-row-bars {    left: 0;
+
+    position: relative;    top: 0;
+
+    background: #fafafa;    height: 100%;
+
+    border-radius: 8px;    background: rgba(255,255,255,0.2);
+
+    overflow: hidden;    border-radius: 8px 0 0 8px;
+
+  }    transition: width 0.5s ease;
+
     }
-  
-    .gantt-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-    }
 
-    .gantt-zoom {
-      display: inline-flex;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #f8fafc;
-    }
+  /* Today Line */  
 
-    .gantt-zoom button {
-      padding: 0.5rem 0.9rem;
-      border: none;
-      background: transparent;
-      font-weight: 600;
-      color: #475569;
-      cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease;
-    }
+  .today-line {  .gantt-bar-content {
 
-    .gantt-zoom button.active {
-      background: #0f172a;
-      color: #f8fafc;
-    }
-  
-    .gantt-timeline {
-      display: grid;
-      grid-template-columns: 250px 1fr;
-      gap: 1rem;
-      min-width: 1200px;
-    }
+    position: absolute;    position: relative;
 
-    .gantt-scale {
-      display: grid;
-      grid-template-columns: 250px 1fr;
-      gap: 1rem;
-      margin-bottom: 0.75rem;
-      align-items: stretch;
-    }
+    top: 0;    z-index: 1;
 
-    .gantt-scale-labels {
-      color: #475569;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    bottom: 0;    display: flex;
 
-    .gantt-scale-ticks {
-      position: relative;
-      height: 42px;
-      background: #f8fafc;
-      border-radius: 10px;
-      overflow: hidden;
-      display: flex;
-    }
+    width: 2px;    align-items: center;
 
-    .gantt-scale-tick {
-      position: relative;
-      flex: 1;
-      border-left: 1px solid #e2e8f0;
-      display: flex;
-      align-items: flex-end;
-      padding: 0.35rem 0.35rem 0.45rem;
-      font-size: 0.75rem;
-      color: #475569;
-      min-width: 50px;
-      box-sizing: border-box;
-    }
+    background: #dc2626;    justify-content: space-between;
 
-    .gantt-scale-tick:first-child { border-left: none; }
+    z-index: 5;    width: 100%;
 
-    .gantt-scale-tick.today {
-      background: rgba(14,165,233,0.08);
-      color: #0ea5e9;
-      font-weight: 700;
-    }
-  
-  .gantt-labels {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .gantt-label {
-    padding: 1rem;
-    background: #f1f5f9;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-height: 60px;
-  }
-  
-  .gantt-label-name {
-    color: #1e293b;
-  }
-  
-  .gantt-label-meta {
-    font-size: 0.75rem;
-    color: #64748b;
-    font-weight: 400;
-  }
-  
-  .gantt-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    position: relative;
-  }
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.4);  }
 
-  .gantt-bar-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .gantt-bar-container {
-    position: relative;
-    height: 60px;
-    background: #f8fafc;
-    border-radius: 8px;
-  }
-  
-  .gantt-bar {
-    position: absolute;
-    height: 100%;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    color: white;
-    font-size: 0.875rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  .gantt-bar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-  }
-  
-  .gantt-bar-progress {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    background: rgba(255,255,255,0.2);
-    border-radius: 8px 0 0 8px;
-    transition: width 0.5s ease;
-  }
-  
-  .gantt-bar-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  .gantt-bar-text {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .gantt-bar-percent {
-    background: rgba(0,0,0,0.2);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    margin-left: 0.5rem;
-  }
+  }  
 
-  .gantt-item-row {
-    position: relative;
-    height: 40px;
-    background: #f8fafc;
-    border-radius: 8px;
-    overflow: hidden;
-  }
+  .today-line::before {  .gantt-bar-text {
 
-  .gantt-item-bar {
-    position: absolute;
-    height: 32px;
+    content: '▼';    flex: 1;
+
+    position: absolute;    white-space: nowrap;
+
+    top: -10px;    overflow: hidden;
+
+    left: 50%;    text-overflow: ellipsis;
+
+    transform: translateX(-50%);  }
+
+    font-size: 8px;  
+
+    color: #dc2626;  .gantt-bar-percent {
+
+  }    background: rgba(0,0,0,0.2);
+
+      padding: 0.25rem 0.5rem;
+
+  /* Project Bar */    border-radius: 4px;
+
+  .gantt-bar {    font-size: 0.75rem;
+
+    position: absolute;    margin-left: 0.5rem;
+
+    height: calc(100% - 8px);  }
+
     top: 4px;
-    border-radius: 8px;
-    padding: 0.35rem 0.75rem;
-    color: white;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    cursor: grab;
-  }
 
-  .gantt-item-bar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 3px 12px rgba(0,0,0,0.2);
-  }
+    border-radius: 8px;  .gantt-item-row {
 
-  .gantt-item-bar:active {
-    cursor: grabbing;
-  }
+    padding: 6px 10px;    position: relative;
 
-  .gantt-item-progress {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
+    color: white;    height: 40px;
+
+    font-size: 0.75rem;    background: #f8fafc;
+
+    font-weight: 600;    border-radius: 8px;
+
+    display: flex;    overflow: hidden;
+
+    align-items: center;  }
+
+    justify-content: space-between;
+
+    cursor: pointer;  .gantt-item-bar {
+
+    transition: transform 0.2s, box-shadow 0.2s;    position: absolute;
+
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);    height: 32px;
+
+    min-width: 50px;    top: 4px;
+
+    overflow: hidden;    border-radius: 8px;
+
+  }    padding: 0.35rem 0.75rem;
+
+  .gantt-bar:hover {    color: white;
+
+    transform: translateY(-2px);    font-size: 0.8rem;
+
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);    font-weight: 600;
+
+    z-index: 10;    display: flex;
+
+  }    align-items: center;
+
+  .gantt-bar-progress {    gap: 0.35rem;
+
+    position: absolute;    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+
+    left: 0;    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    top: 0;    cursor: grab;
+
+    height: 100%;  }
+
     background: rgba(255,255,255,0.25);
-    border-radius: 8px 0 0 8px;
-  }
 
-  .gantt-item-text {
-    position: relative;
+    border-radius: 8px 0 0 8px;  .gantt-item-bar:hover {
+
+  }    transform: translateY(-2px);
+
+  .gantt-bar-text {    box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+
+    position: relative;  }
+
     z-index: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 
-  .gantt-item-add {
-    position: absolute;
-    right: 6px;
-    top: 4px;
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.18);
-    color: #fff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    cursor: pointer;
-    z-index: 2;
-    transition: background 0.15s ease, transform 0.15s ease;
-  }
+    white-space: nowrap;  .gantt-item-bar:active {
 
-  .gantt-item-add:hover {
-    background: rgba(255,255,255,0.28);
-    transform: scale(1.05);
-  }
-  
-  /* Calendar View Styles */
-  .calendar-container {
-    background: #fff;
-    border-radius: 18px;
-    padding: 1.75rem;
-    box-shadow: 0 18px 32px rgba(0,0,0,0.08);
-    border: 1px solid rgba(0,0,0,0.04);
-  }
-  
-  #calendar {
-    max-width: 100%;
-  }
-  
-  .fc {
-    font-family: inherit;
-  }
-  
-  .fc .fc-button-primary {
-    background: #667eea;
-    border-color: #667eea;
-  }
-  
-  .fc .fc-button-primary:hover {
-    background: #5568d3;
-    border-color: #5568d3;
-  }
-  
-  .fc .fc-button-primary:not(:disabled).fc-button-active {
-    background: #4c51bf;
-    border-color: #4c51bf;
-  }
-  
-  /* Legend */
-  .legend {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    margin-top: 1.5rem;
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: 8px;
-  }
-  
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-  }
-  
-  .legend-color {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-  }
-  
-  /* Loading State */
-  .loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-  
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #e2e8f0;
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
+    overflow: hidden;    cursor: grabbing;
 
-  /* Task modal */
-  .task-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(15,23,42,0.45);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
+    text-overflow: ellipsis;  }
 
-  .task-modal {
-    background: #fff;
-    border-radius: 14px;
-    max-width: 520px;
-    width: 92%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    overflow: hidden;
-  }
+    flex: 1;
 
-  .task-modal header {
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+  }  .gantt-item-progress {
 
-  .task-modal form {
-    padding: 18px 20px 20px;
-    display: grid;
+  .gantt-bar-percent {    position: absolute;
+
+    position: relative;    left: 0;
+
+    z-index: 1;    top: 0;
+
+    background: rgba(0,0,0,0.2);    height: 100%;
+
+    padding: 2px 5px;    background: rgba(255,255,255,0.25);
+
+    border-radius: 4px;    border-radius: 8px 0 0 8px;
+
+    font-size: 0.65rem;  }
+
+    margin-left: 4px;
+
+    flex-shrink: 0;  .gantt-item-text {
+
+  }    position: relative;
+
+      z-index: 1;
+
+  /* Schedule Items */    white-space: nowrap;
+
+  .gantt-item-row {    overflow: hidden;
+
+    display: grid;    text-overflow: ellipsis;
+
+    grid-template-columns: 180px 1fr;  }
+
     gap: 12px;
-  }
 
-  .task-modal label {
-    font-weight: 600;
-    color: #0f172a;
-    font-size: 0.95rem;
-  }
+    min-height: 32px;  .gantt-item-add {
 
-  .task-modal input,
-  .task-modal select,
-  .task-modal textarea {
-    width: 100%;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 0.95rem;
-  }
+    margin-left: 16px;    position: absolute;
 
-  .task-modal textarea { min-height: 90px; }
+  }    right: 6px;
 
-  .task-modal .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 4px;
-  }
+  .gantt-item-label {    top: 4px;
 
-  .btn-secondary {
-    background: #e2e8f0;
-    color: #0f172a;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 600;
-  }
+    padding: 4px 10px;    width: 24px;
 
-  .btn-primary {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 700;
-    box-shadow: 0 10px 25px rgba(99,102,241,0.25);
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-top: 1.25rem;
-  }
-  
-  .stat-card {
-    background: rgba(255,255,255,0.15);
-    padding: 1rem 1.25rem;
-    border-radius: 12px;
-    display: grid;
-    gap: 0.25rem;
-  }
-  
-  .stat-value {
-    font-size: 1.75rem;
-    font-weight: 800;
+    background: #f8fafc;    height: 24px;
+
+    border-radius: 6px;    border-radius: 6px;
+
+    border-left: 3px solid #94a3b8;    background: rgba(255,255,255,0.18);
+
+    font-size: 0.75rem;    color: #fff;
+
+    color: #475569;    display: inline-flex;
+
+    display: flex;    align-items: center;
+
+    align-items: center;    justify-content: center;
+
+    gap: 4px;    font-size: 14px;
+
+    white-space: nowrap;    cursor: pointer;
+
+    overflow: hidden;    z-index: 2;
+
+    text-overflow: ellipsis;    transition: background 0.15s ease, transform 0.15s ease;
+
+  }  }
+
+  .gantt-item-label.milestone { border-left-color: #f59e0b; }
+
+  .gantt-item-bars {  .gantt-item-add:hover {
+
+    position: relative;    background: rgba(255,255,255,0.28);
+
+    background: #fafafa;    transform: scale(1.05);
+
+    border-radius: 6px;  }
+
+  }  
+
+  .gantt-item-bar {  /* Calendar View Styles */
+
+    position: absolute;  .calendar-container {
+
+    height: calc(100% - 4px);    background: #fff;
+
+    top: 2px;    border-radius: 18px;
+
+    border-radius: 6px;    padding: 1.75rem;
+
+    padding: 3px 8px;    box-shadow: 0 18px 32px rgba(0,0,0,0.08);
+
+    color: white;    border: 1px solid rgba(0,0,0,0.04);
+
+    font-size: 0.7rem;  }
+
+    font-weight: 600;  
+
+    display: flex;  #calendar {
+
+    align-items: center;    max-width: 100%;
+
+    gap: 4px;  }
+
+    cursor: grab;  
+
+    transition: transform 0.2s, box-shadow 0.2s;  .fc {
+
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);    font-family: inherit;
+
+  }  }
+
+  .gantt-item-bar:hover {  
+
+    transform: translateY(-1px);  .fc .fc-button-primary {
+
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);    background: #667eea;
+
+  }    border-color: #667eea;
+
+  .gantt-item-bar:active { cursor: grabbing; }  }
+
+  .gantt-item-bar .item-progress {  
+
+    position: absolute;  .fc .fc-button-primary:hover {
+
+    left: 0;    background: #5568d3;
+
+    top: 0;    border-color: #5568d3;
+
+    height: 100%;  }
+
+    background: rgba(255,255,255,0.25);  
+
+    border-radius: 6px 0 0 6px;  .fc .fc-button-primary:not(:disabled).fc-button-active {
+
+  }    background: #4c51bf;
+
+  .gantt-item-bar .item-text {    border-color: #4c51bf;
+
+    position: relative;  }
+
+    z-index: 1;  
+
+    white-space: nowrap;  /* Legend */
+
+    overflow: hidden;  .legend {
+
+    text-overflow: ellipsis;    display: flex;
+
+    flex: 1;    gap: 1.5rem;
+
+  }    flex-wrap: wrap;
+
+  .gantt-item-bar .add-task-btn {    margin-top: 1.5rem;
+
+    position: relative;    padding: 1rem;
+
+    z-index: 2;    background: #f8fafc;
+
+    width: 18px;    border-radius: 8px;
+
+    height: 18px;  }
+
+    border-radius: 4px;  
+
+    background: rgba(255,255,255,0.2);  .legend-item {
+
+    border: none;    display: flex;
+
+    color: white;    align-items: center;
+
+    font-size: 12px;    gap: 0.5rem;
+
+    cursor: pointer;    font-size: 0.875rem;
+
+    display: flex;  }
+
+    align-items: center;  
+
+    justify-content: center;  .legend-color {
+
+    flex-shrink: 0;    width: 16px;
+
+  }    height: 16px;
+
+  .gantt-item-bar .add-task-btn:hover { background: rgba(255,255,255,0.35); }    border-radius: 4px;
+
+    }
+
+  /* Status colors */  
+
+  .status-not_started { background: #94a3b8; }  /* Loading State */
+
+  .status-in_progress { background: #3b82f6; }  .loading-overlay {
+
+  .status-blocked { background: #ef4444; }    position: fixed;
+
+  .status-done { background: #10b981; }    top: 0;
+
+      left: 0;
+
+  /* ===== CALENDAR ===== */    right: 0;
+
+  .calendar-container {    bottom: 0;
+
+    background: white;    background: rgba(255,255,255,0.9);
+
+    border-radius: 16px;    display: flex;
+
+    padding: 16px;    align-items: center;
+
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);    justify-content: center;
+
+  }    z-index: 9999;
+
+  .calendar-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 16px; }  }
+
+  #calendar { max-width: 100%; }  
+
+  .fc { font-family: inherit; }  .spinner {
+
+  .fc .fc-button-primary { background: #6366f1; border-color: #6366f1; }    width: 50px;
+
+  .fc .fc-button-primary:hover { background: #4f46e5; border-color: #4f46e5; }    height: 50px;
+
+  .fc .fc-button-primary:not(:disabled).fc-button-active { background: #4338ca; border-color: #4338ca; }    border: 4px solid #e2e8f0;
+
+  .legend {    border-top-color: #667eea;
+
+    display: flex;    border-radius: 50%;
+
+    gap: 12px;    animation: spin 0.8s linear infinite;
+
+    flex-wrap: wrap;  }
+
+    margin-top: 16px;
+
+    padding: 12px;  /* Task modal */
+
+    background: #f8fafc;  .task-modal-backdrop {
+
+    border-radius: 10px;    position: fixed;
+
+  }    inset: 0;
+
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #475569; }    background: rgba(15,23,42,0.45);
+
+  .legend-color { width: 12px; height: 12px; border-radius: 3px; }    display: none;
+
+      align-items: center;
+
+  /* ===== MODALS ===== */    justify-content: center;
+
+  .modal-backdrop {    z-index: 9999;
+
+    position: fixed;  }
+
+    inset: 0;
+
+    background: rgba(15, 23, 42, 0.5);  .task-modal {
+
+    display: none;    background: #fff;
+
+    align-items: center;    border-radius: 14px;
+
+    justify-content: center;    max-width: 520px;
+
+    z-index: 9999;    width: 92%;
+
+    padding: 16px;    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+
+  }    overflow: hidden;
+
+  .modal-content {  }
+
+    background: white;
+
+    border-radius: 16px;  .task-modal header {
+
+    max-width: 480px;    padding: 16px 20px;
+
+    width: 100%;    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);    color: #fff;
+
+    overflow: hidden;    display: flex;
+
+    animation: modalSlide 0.3s ease;    align-items: center;
+
+  }    justify-content: space-between;
+
+  @keyframes modalSlide {  }
+
+    from { opacity: 0; transform: translateY(20px); }
+
+    to { opacity: 1; transform: translateY(0); }  .task-modal form {
+
+  }    padding: 18px 20px 20px;
+
+  .modal-header {    display: grid;
+
+    padding: 16px 20px;    gap: 12px;
+
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);  }
+
     color: white;
+
+    display: flex;  .task-modal label {
+
+    align-items: center;    font-weight: 600;
+
+    justify-content: space-between;    color: #0f172a;
+
+  }    font-size: 0.95rem;
+
+  .modal-header h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }  }
+
+  .modal-close {
+
+    background: rgba(255,255,255,0.2);  .task-modal input,
+
+    border: none;  .task-modal select,
+
+    color: white;  .task-modal textarea {
+
+    width: 32px;    width: 100%;
+
+    height: 32px;    border: 1px solid #e2e8f0;
+
+    border-radius: 8px;    border-radius: 10px;
+
+    cursor: pointer;    padding: 10px 12px;
+
+    font-size: 18px;    font-size: 0.95rem;
+
+  }  }
+
+  .modal-body { padding: 20px; }
+
+  .modal-body .form-group { margin-bottom: 16px; }  .task-modal textarea { min-height: 90px; }
+
+  .modal-body label {
+
+    display: block;  .task-modal .actions {
+
+    font-size: 0.85rem;    display: flex;
+
+    font-weight: 600;    justify-content: flex-end;
+
+    color: #374151;    gap: 10px;
+
+    margin-bottom: 6px;    margin-top: 4px;
+
+  }  }
+
+  .modal-body input,
+
+  .modal-body select,  .btn-secondary {
+
+  .modal-body textarea {    background: #e2e8f0;
+
+    width: 100%;    color: #0f172a;
+
+    padding: 12px 14px;    border: none;
+
+    border: 2px solid #e2e8f0;    padding: 10px 14px;
+
+    border-radius: 10px;    border-radius: 10px;
+
+    font-size: 16px;    cursor: pointer;
+
+    transition: border-color 0.2s, box-shadow 0.2s;    font-weight: 600;
+
+  }  }
+
+  .modal-body input:focus,
+
+  .modal-body select:focus,  .btn-primary {
+
+  .modal-body textarea:focus {    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+
+    outline: none;    color: #fff;
+
+    border-color: #6366f1;    border: none;
+
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);    padding: 10px 14px;
+
+  }    border-radius: 10px;
+
+  .modal-body textarea { min-height: 80px; resize: vertical; }    cursor: pointer;
+
+  .modal-footer {    font-weight: 700;
+
+    padding: 16px 20px;    box-shadow: 0 10px 25px rgba(99,102,241,0.25);
+
+    background: #f8fafc;  }
+
+    display: flex;  
+
+    gap: 10px;  @keyframes spin {
+
+    justify-content: flex-end;    to { transform: rotate(360deg); }
+
+  }  }
+
+  .btn-cancel {  
+
+    padding: 12px 20px;  .stats-grid {
+
+    background: white;    display: grid;
+
+    border: 2px solid #e2e8f0;    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+
+    border-radius: 10px;    gap: 1rem;
+
+    font-weight: 600;    margin-top: 1.25rem;
+
+    color: #475569;  }
+
+    cursor: pointer;  
+
+  }  .stat-card {
+
+  .btn-cancel:hover { background: #f1f5f9; }    background: rgba(255,255,255,0.15);
+
+  .btn-save {    padding: 1rem 1.25rem;
+
+    padding: 12px 24px;    border-radius: 12px;
+
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);    display: grid;
+
+    border: none;    gap: 0.25rem;
+
+    border-radius: 10px;  }
+
+    font-weight: 700;  
+
+    color: white;  .stat-value {
+
+    cursor: pointer;    font-size: 1.75rem;
+
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);    font-weight: 800;
+
+  }    color: white;
+
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4); }  }
+
+    
+
+  /* Loading */  .stat-label {
+
+  .loading-overlay {    font-size: 0.85rem;
+
+    position: fixed;    color: rgba(255,255,255,0.8);
+
+    inset: 0;    text-transform: uppercase;
+
+    background: rgba(255,255,255,0.95);    letter-spacing: 0.5px;
+
+    display: flex;    font-weight: 600;
+
+    align-items: center;  }
+
+    justify-content: center;</style>
+
+    z-index: 9999;{% endblock %}
+
   }
-  
-  .stat-label {
-    font-size: 0.85rem;
-    color: rgba(255,255,255,0.8);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-  }
-</style>
-{% endblock %}
 
-{% block page_header %}
-<div class="schedule-header">
-  <div class="flex items-center justify-between flex-wrap gap-4 mb-4">
-    <div>
-      <h1 class="text-4xl font-bold mb-2">📊 Master Schedule Center</h1>
-      <p class="text-gray-600">Strategic Overview & Tactical Planning</p>
-    </div>
-    <div class="view-toggle">
-      <button class="toggle-btn active" data-view="gantt">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-        </svg>
-        Gantt View
-      </button>
-      <button class="toggle-btn" data-view="calendar">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-        </svg>
-        Calendar View
-      </button>
-    </div>
-  </div>
-  
-  <div class="stats-grid" id="statsGrid">
-    <div class="stat-card">
-      <div class="stat-label">Active Projects</div>
-      <div class="stat-value" id="statProjects">--</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Schedule Items</div>
-      <div class="stat-value" id="statScheduleItems">--</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Upcoming Events</div>
-      <div class="stat-value" id="statEvents">--</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">View Range</div>
-      <div class="stat-value text-2xl" id="statRange">--</div>
-    </div>
-  </div>
-</div>
-{% endblock %}
+  .spinner {{% block page_header %}
 
-{% block content %}
-<!-- Gantt View -->
-<div class="view-content active" id="ganttView">
-  <div class="gantt-container">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">Strategic Project Timeline</h2>
-    <div id="ganttContent">
-      <div class="text-center py-12 text-gray-400">Loading projects...</div>
-    </div>
-  </div>
-</div>
+    width: 48px;<div class="schedule-header">
 
-<!-- Calendar View -->
-<div class="view-content" id="calendarView">
-  <div class="calendar-container">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">Tactical Event Calendar</h2>
-    <div id="calendar"></div>
-    <div class="legend">
-      <div class="legend-item">
-        <div class="legend-color" style="background:#dc2626;"></div>
-        <span>Invoices Due</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background:#f59e0b;"></div>
-        <span>{% trans "Change Orders" %}</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background:#fb923c;"></div>
+    height: 48px;  <div class="flex items-center justify-between flex-wrap gap-4 mb-4">
+
+    border: 4px solid #e2e8f0;    <div>
+
+    border-top-color: #6366f1;      <h1 class="text-4xl font-bold mb-2">📊 Master Schedule Center</h1>
+
+    border-radius: 50%;      <p class="text-gray-600">Strategic Overview & Tactical Planning</p>
+
+    animation: spin 0.8s linear infinite;    </div>
+
+  }    <div class="view-toggle">
+
+  @keyframes spin { to { transform: rotate(360deg); } }      <button class="toggle-btn active" data-view="gantt">
+
+  .empty-state { text-align: center; padding: 48px 20px; color: #94a3b8; }        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+  .empty-state i { font-size: 48px; margin-bottom: 16px; display: block; }          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+
+          </svg>
+
+  /* Desktop */        Gantt View
+
+  @media (min-width: 768px) {      </button>
+
+    .schedule-header { padding: 28px; }      <button class="toggle-btn" data-view="calendar">
+
+    .schedule-header h1 { font-size: 2rem; }        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+    .header-content { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+
+    .view-toggle { margin-top: 0; width: auto; }        </svg>
+
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }        Calendar View
+
+    .gantt-container { padding: 24px; }      </button>
+
+    .gantt-toolbar { flex-direction: row; justify-content: space-between; align-items: center; }    </div>
+
+    .gantt-scale { grid-template-columns: 220px 1fr; }  </div>
+
+    .gantt-row { grid-template-columns: 220px 1fr; }  
+
+    .gantt-item-row { grid-template-columns: 220px 1fr; margin-left: 24px; }  <div class="stats-grid" id="statsGrid">
+
+  }    <div class="stat-card">
+
+  @media (min-width: 1200px) {      <div class="stat-label">Active Projects</div>
+
+    .gantt-scale { grid-template-columns: 280px 1fr; }      <div class="stat-value" id="statProjects">--</div>
+
+    .gantt-row { grid-template-columns: 280px 1fr; }    </div>
+
+    .gantt-item-row { grid-template-columns: 280px 1fr; }    <div class="stat-card">
+
+  }      <div class="stat-label">Schedule Items</div>
+
+</style>      <div class="stat-value" id="statScheduleItems">--</div>
+
+{% endblock %}    </div>
+
+    <div class="stat-card">
+
+{% block page_header %}      <div class="stat-label">Upcoming Events</div>
+
+<div class="schedule-header">      <div class="stat-value" id="statEvents">--</div>
+
+  <div class="header-content">    </div>
+
+    <div>    <div class="stat-card">
+
+      <h1>📊 {% trans "Master Schedule" %}</h1>      <div class="stat-label">View Range</div>
+
+      <p>{% trans "Timeline estratégico de proyectos" %}</p>      <div class="stat-value text-2xl" id="statRange">--</div>
+
+    </div>    </div>
+
+    <div class="view-toggle">  </div>
+
+      <button class="toggle-btn active" data-view="gantt"></div>
+
+        <i class="bi bi-bar-chart-steps"></i>{% endblock %}
+
+        Gantt
+
+      </button>{% block content %}
+
+      <button class="toggle-btn" data-view="calendar"><!-- Gantt View -->
+
+        <i class="bi bi-calendar3"></i><div class="view-content active" id="ganttView">
+
+        {% trans "Calendario" %}  <div class="gantt-container">
+
+      </button>    <h2 class="text-2xl font-bold mb-4 text-gray-800">Strategic Project Timeline</h2>
+
+    </div>    <div id="ganttContent">
+
+  </div>      <div class="text-center py-12 text-gray-400">Loading projects...</div>
+
+  <div class="stats-grid">    </div>
+
+    <div class="stat-card">  </div>
+
+      <div class="stat-value" id="statProjects">--</div></div>
+
+      <div class="stat-label">{% trans "Proyectos" %}</div>
+
+    </div><!-- Calendar View -->
+
+    <div class="stat-card"><div class="view-content" id="calendarView">
+
+      <div class="stat-value" id="statScheduleItems">--</div>  <div class="calendar-container">
+
+      <div class="stat-label">{% trans "Items" %}</div>    <h2 class="text-2xl font-bold mb-4 text-gray-800">Tactical Event Calendar</h2>
+
+    </div>    <div id="calendar"></div>
+
+    <div class="stat-card">    <div class="legend">
+
+      <div class="stat-value" id="statEvents">--</div>      <div class="legend-item">
+
+      <div class="stat-label">{% trans "Eventos" %}</div>        <div class="legend-color" style="background:#dc2626;"></div>
+
+    </div>        <span>Invoices Due</span>
+
+    <div class="stat-card">      </div>
+
+      <div class="stat-value" id="statRange">--</div>      <div class="legend-item">
+
+      <div class="stat-label">{% trans "Días" %}</div>        <div class="legend-color" style="background:#f59e0b;"></div>
+
+    </div>        <span>{% trans "Change Orders" %}</span>
+
+  </div>      </div>
+
+</div>      <div class="legend-item">
+
+{% endblock %}        <div class="legend-color" style="background:#fb923c;"></div>
+
         <span class="text-muted text-xs">{% trans "Incluye Tasks, Change Orders, RFIs y Damages" %}</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background:#3b82f6;"></div>
-        <span>Critical Tasks</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background:#8b5cf6;"></div>
-        <span>Meetings</span>
-      </div>
-      <div class="legend-item">
+
+{% block content %}      </div>
+
+<!-- Gantt View -->      <div class="legend-item">
+
+<div class="view-content active" id="ganttView">        <div class="legend-color" style="background:#3b82f6;"></div>
+
+  <div class="gantt-container">        <span>Critical Tasks</span>
+
+    <div class="gantt-title"><i class="bi bi-diagram-3"></i> {% trans "Timeline de Proyectos" %}</div>      </div>
+
+    <div id="ganttContent">      <div class="legend-item">
+
+      <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>{% trans "Cargando..." %}</p></div>        <div class="legend-color" style="background:#8b5cf6;"></div>
+
+    </div>        <span>Meetings</span>
+
+  </div>      </div>
+
+</div>      <div class="legend-item">
+
         <div class="legend-color" style="background:#10b981;"></div>
-        <span>Client Requests</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background:#06b6d4;"></div>
-        <span>Material Requests</span>
-      </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background:#cbd5e1;"></div>
-          <span>Schedule Items (status-coded)</span>
-        </div>
-    </div>
-  </div>
+
+<!-- Calendar View -->        <span>Client Requests</span>
+
+<div class="view-content" id="calendarView">      </div>
+
+  <div class="calendar-container">      <div class="legend-item">
+
+    <div class="calendar-title"><i class="bi bi-calendar-event"></i> {% trans "Calendario de Eventos" %}</div>        <div class="legend-color" style="background:#06b6d4;"></div>
+
+    <div id="calendar"></div>        <span>Material Requests</span>
+
+    <div class="legend">      </div>
+
+      <div class="legend-item"><div class="legend-color" style="background:#dc2626;"></div><span>{% trans "Facturas" %}</span></div>        <div class="legend-item">
+
+      <div class="legend-item"><div class="legend-color" style="background:#f59e0b;"></div><span>{% trans "Change Orders" %}</span></div>          <div class="legend-color" style="background:#cbd5e1;"></div>
+
+      <div class="legend-item"><div class="legend-color" style="background:#3b82f6;"></div><span>{% trans "Tareas" %}</span></div>          <span>Schedule Items (status-coded)</span>
+
+      <div class="legend-item"><div class="legend-color" style="background:#8b5cf6;"></div><span>{% trans "Reuniones" %}</span></div>        </div>
+
+      <div class="legend-item"><div class="legend-color" style="background:#10b981;"></div><span>{% trans "Completado" %}</span></div>    </div>
+
+    </div>  </div>
+
+  </div></div>
+
 </div>
 
 <!-- Loading Overlay -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
+
+<!-- Loading --><div class="loading-overlay" id="loadingOverlay">
+
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>  <div class="spinner"></div>
+
 </div>
 
-<!-- Task creation modal -->
-<div class="task-modal-backdrop" id="taskModal">
-  <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
-    <header>
-      <div>
-        <div class="text-sm text-white/80">{% trans "Nueva tarea" %}</div>
-        <div class="text-lg font-bold" id="taskModalTitle">{% trans "Crear tarea" %}</div>
-      </div>
-      <button type="button" aria-label="Close" class="text-white/80" onclick="window.MasterSchedule.closeTaskModal()">✕</button>
-    </header>
-    <form id="taskForm">
-      <input type="hidden" name="project" id="taskProject">
-      <input type="hidden" name="schedule_item" id="taskScheduleItem">
-      <div>
-        <label for="taskTitle">{% trans "Título" %}</label>
-        <input id="taskTitle" name="title" required placeholder="{% trans 'Ej. Definir alcance con cliente' %}">
-      </div>
-      <div>
-        <label for="taskDueDate">{% trans "Fecha límite" %}</label>
-        <input id="taskDueDate" name="due_date" type="date">
-      </div>
-      <div>
-        <label for="taskPriority">{% trans "Prioridad" %}</label>
-        <select id="taskPriority" name="priority">
-          <option value="medium">{% trans "Media" %}</option>
-          <option value="high">{% trans "Alta" %}</option>
-          <option value="urgent">{% trans "Urgente" %}</option>
-          <option value="low">{% trans "Baja" %}</option>
-        </select>
-      </div>
-      <div>
-        <label for="taskDescription">{% trans "Descripción" %}</label>
-        <textarea id="taskDescription" name="description" placeholder="{% trans 'Notas opcionales' %}"></textarea>
-      </div>
-      <div class="actions">
-        <button type="button" class="btn-secondary" onclick="window.MasterSchedule.closeTaskModal()">{% trans "Cancelar" %}</button>
-        <button type="submit" class="btn-primary">{% trans "Crear" %}</button>
-      </div>
-    </form>
+<!-- Task Modal -->
+
+<div class="modal-backdrop" id="taskModal"><!-- Task creation modal -->
+
+  <div class="modal-content"><div class="task-modal-backdrop" id="taskModal">
+
+    <div class="modal-header">  <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+
+      <h3>{% trans "Nueva Tarea" %}</h3>    <header>
+
+      <button class="modal-close" onclick="closeTaskModal()">×</button>      <div>
+
+    </div>        <div class="text-sm text-white/80">{% trans "Nueva tarea" %}</div>
+
+    <form id="taskForm">        <div class="text-lg font-bold" id="taskModalTitle">{% trans "Crear tarea" %}</div>
+
+      <div class="modal-body">      </div>
+
+        <input type="hidden" name="project" id="taskProject">      <button type="button" aria-label="Close" class="text-white/80" onclick="window.MasterSchedule.closeTaskModal()">✕</button>
+
+        <input type="hidden" name="schedule_item" id="taskScheduleItem">    </header>
+
+        <div class="form-group">    <form id="taskForm">
+
+          <label for="taskTitle">{% trans "Título" %}</label>      <input type="hidden" name="project" id="taskProject">
+
+          <input type="text" id="taskTitle" name="title" required>      <input type="hidden" name="schedule_item" id="taskScheduleItem">
+
+        </div>      <div>
+
+        <div class="form-group">        <label for="taskTitle">{% trans "Título" %}</label>
+
+          <label for="taskDueDate">{% trans "Fecha límite" %}</label>        <input id="taskTitle" name="title" required placeholder="{% trans 'Ej. Definir alcance con cliente' %}">
+
+          <input type="date" id="taskDueDate" name="due_date">      </div>
+
+        </div>      <div>
+
+        <div class="form-group">        <label for="taskDueDate">{% trans "Fecha límite" %}</label>
+
+          <label for="taskPriority">{% trans "Prioridad" %}</label>        <input id="taskDueDate" name="due_date" type="date">
+
+          <select id="taskPriority" name="priority">      </div>
+
+            <option value="medium">{% trans "Media" %}</option>      <div>
+
+            <option value="high">{% trans "Alta" %}</option>        <label for="taskPriority">{% trans "Prioridad" %}</label>
+
+            <option value="urgent">{% trans "Urgente" %}</option>        <select id="taskPriority" name="priority">
+
+            <option value="low">{% trans "Baja" %}</option>          <option value="medium">{% trans "Media" %}</option>
+
+          </select>          <option value="high">{% trans "Alta" %}</option>
+
+        </div>          <option value="urgent">{% trans "Urgente" %}</option>
+
+        <div class="form-group">          <option value="low">{% trans "Baja" %}</option>
+
+          <label for="taskDescription">{% trans "Descripción" %}</label>        </select>
+
+          <textarea id="taskDescription" name="description"></textarea>      </div>
+
+        </div>      <div>
+
+      </div>        <label for="taskDescription">{% trans "Descripción" %}</label>
+
+      <div class="modal-footer">        <textarea id="taskDescription" name="description" placeholder="{% trans 'Notas opcionales' %}"></textarea>
+
+        <button type="button" class="btn-cancel" onclick="closeTaskModal()">{% trans "Cancelar" %}</button>      </div>
+
+        <button type="submit" class="btn-save">{% trans "Crear" %}</button>      <div class="actions">
+
+      </div>        <button type="button" class="btn-secondary" onclick="window.MasterSchedule.closeTaskModal()">{% trans "Cancelar" %}</button>
+
+    </form>        <button type="submit" class="btn-primary">{% trans "Crear" %}</button>
+
+  </div>      </div>
+
+</div>    </form>
+
   </div>
-</div>
 
-<div class="task-modal-backdrop" id="itemDetailModal" aria-hidden="true">
-  <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="itemDetailTitle">
-    <header>
-      <div class="text-lg font-bold" id="itemDetailTitle">{% trans "Detalle de item" %}</div>
-      <button type="button" aria-label="Close" class="text-white/80" onclick="window.MasterSchedule.closeItemDetail()">✕</button>
-    </header>
-    <div style="padding: 18px 20px 12px; display: grid; gap: 10px;">
-      <div><strong>{% trans "Título" %}:</strong> <span data-field="title">-</span></div>
-      <div><strong>{% trans "Estado" %}:</strong> <span data-field="status">-</span></div>
-      <div><strong>{% trans "Rango" %}:</strong> <span data-field="dates">-</span></div>
-      <div><strong>{% trans "Progreso" %}:</strong> <span data-field="progress">0%</span></div>
-    </div>
-    <div class="actions" style="padding: 0 20px 18px; display:flex; justify-content:flex-end; gap:10px;">
-      <button type="button" class="btn-secondary" onclick="window.MasterSchedule.closeItemDetail()">{% trans "Cerrar" %}</button>
-      <a class="btn-secondary" data-action="edit" href="#" target="_blank" rel="noopener">{% trans "Ver/editar" %}</a>
-      <button type="button" class="btn-primary" data-action="create-task">{% trans "Crear tarea" %}</button>
-    </div>
+<!-- Item Detail Modal --></div>
+
+<div class="modal-backdrop" id="itemDetailModal">
+
+  <div class="modal-content"><div class="task-modal-backdrop" id="itemDetailModal" aria-hidden="true">
+
+    <div class="modal-header">  <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="itemDetailTitle">
+
+      <h3 id="itemDetailTitle">{% trans "Detalle" %}</h3>    <header>
+
+      <button class="modal-close" onclick="closeItemDetail()">×</button>      <div class="text-lg font-bold" id="itemDetailTitle">{% trans "Detalle de item" %}</div>
+
+    </div>      <button type="button" aria-label="Close" class="text-white/80" onclick="window.MasterSchedule.closeItemDetail()">✕</button>
+
+    <div class="modal-body">    </header>
+
+      <div class="form-group"><label>{% trans "Estado" %}</label><p id="itemDetailStatus" style="margin:0;font-weight:600;">-</p></div>    <div style="padding: 18px 20px 12px; display: grid; gap: 10px;">
+
+      <div class="form-group"><label>{% trans "Fechas" %}</label><p id="itemDetailDates" style="margin:0;">-</p></div>      <div><strong>{% trans "Título" %}:</strong> <span data-field="title">-</span></div>
+
+      <div class="form-group"><label>{% trans "Progreso" %}</label><p id="itemDetailProgress" style="margin:0;font-weight:600;">0%</p></div>      <div><strong>{% trans "Estado" %}:</strong> <span data-field="status">-</span></div>
+
+    </div>      <div><strong>{% trans "Rango" %}:</strong> <span data-field="dates">-</span></div>
+
+    <div class="modal-footer">      <div><strong>{% trans "Progreso" %}:</strong> <span data-field="progress">0%</span></div>
+
+      <button type="button" class="btn-cancel" onclick="closeItemDetail()">{% trans "Cerrar" %}</button>    </div>
+
+      <a id="itemDetailEditLink" href="#" class="btn-cancel" style="text-decoration:none;text-align:center;">{% trans "Editar" %}</a>    <div class="actions" style="padding: 0 20px 18px; display:flex; justify-content:flex-end; gap:10px;">
+
+      <button type="button" class="btn-save" id="itemDetailTaskBtn">{% trans "Crear Tarea" %}</button>      <button type="button" class="btn-secondary" onclick="window.MasterSchedule.closeItemDetail()">{% trans "Cerrar" %}</button>
+
+    </div>      <a class="btn-secondary" data-action="edit" href="#" target="_blank" rel="noopener">{% trans "Ver/editar" %}</a>
+
+  </div>      <button type="button" class="btn-primary" data-action="create-task">{% trans "Crear tarea" %}</button>
+
+</div>    </div>
+
   </div>
-</div>
 
-<!-- FullCalendar JS -->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script></div>
 
 <script>
-(function() {
-  'use strict';
-  
-  let scheduleData = null;
-  let calendar = null;
-  let scheduleItems = [];
-  let ganttMinDate = null;
-  let ganttTotalDays = 0;
-  let ganttZoom = 'week';
-  let dragState = null;
-  
-  // View Toggle Logic
-  const toggleButtons = document.querySelectorAll('.toggle-btn');
-  const viewContents = document.querySelectorAll('.view-content');
-  
-  toggleButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const viewType = btn.dataset.view;
-      
-      // Update active states
-      toggleButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      viewContents.forEach(v => v.classList.remove('active'));
-      document.getElementById(viewType + 'View').classList.add('active');
-      
-      // Render calendar if switching to it
-      if (viewType === 'calendar' && calendar) {
-        calendar.render();
-      }
-    });
-  });
-  
-  // Fetch Schedule Data
-  async function fetchScheduleData() {
-    try {
-      const headers = {
-        'X-CSRFToken': getCookie('csrftoken')
-      };
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
 
-      const response = await fetch('/api/v1/schedule/master/', {
-        headers: headers
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch schedule data');
-      }
-      
-      scheduleData = await response.json();
-      
-      // Update stats
-  document.getElementById('statProjects').textContent = scheduleData.metadata.total_projects;
-  document.getElementById('statEvents').textContent = scheduleData.metadata.total_events;
-  document.getElementById('statScheduleItems').textContent = scheduleData.metadata.total_schedule_items;
-      
-      const startDate = new Date(scheduleData.metadata.date_range.start);
-      const endDate = new Date(scheduleData.metadata.date_range.end);
-      const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-      document.getElementById('statRange').textContent = `${daysDiff} days`;
-      
-      // Render views
-  scheduleItems = scheduleData.schedule_items || [];
-  renderGantt(scheduleData.projects, scheduleItems);
-      initCalendar(scheduleData.events);
-      
-      document.getElementById('loadingOverlay').style.display = 'none';
-    } catch (error) {
-      console.error('Error fetching schedule:', error);
-      alert('Failed to load schedule data. Please refresh the page.');
-    }
-  }
+(function() {<!-- FullCalendar JS -->
+
+  'use strict';<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
   
-  // Render Gantt Chart
-  function renderGantt(projects, scheduleItems = []) {
-    if (!projects || projects.length === 0) {
-      document.getElementById('ganttContent').innerHTML = '<div class="text-center py-12 text-gray-400">No active projects found.</div>';
-      return;
-    }
-    
-    // Calculate date range across projects and items
-  const projectDates = projects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]);
-  const itemDates = (scheduleItems || []).flatMap(si => [new Date(si.start_date), new Date(si.end_date)]);
-    const allDates = [...projectDates, ...itemDates].filter(Boolean);
-  const minDate = new Date(Math.min(...allDates));
-  const maxDate = new Date(Math.max(...allDates));
-  const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
-  ganttMinDate = minDate;
-  ganttTotalDays = totalDays;
 
-    const ticks = buildScaleTicks(minDate, maxDate, ganttZoom);
-    
-    // Build Gantt HTML
-    const labelsHTML = projects.map(p => `
-      <div class="gantt-label">
-        <div class="gantt-label-name">${escapeHtml(p.name)}</div>
-        <div class="gantt-label-meta">PM: ${escapeHtml(p.pm_name)}</div>
-        <div class="gantt-label-meta">Client: ${escapeHtml(p.client_name)}</div>
-      </div>
-    `).join('');
-    
-    const barsHTML = projects.map(p => {
-      const start = new Date(p.start_date);
-      const end = new Date(p.end_date);
-      const daysFromStart = Math.ceil((start - minDate) / (1000 * 60 * 60 * 24));
-      const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-      
-      const leftPercent = (daysFromStart / totalDays) * 100;
-      const widthPercent = (duration / totalDays) * 100;
+  let scheduleData = null;<script>
 
-      const itemsForProject = (scheduleItems || []).filter(si => si.project === p.id);
-        const itemsHTML = itemsForProject.map(si => {
-        const iStart = new Date(si.start_date);
-        const iEnd = new Date(si.end_date);
-        const iDaysFromStart = Math.max(0, Math.ceil((iStart - minDate) / (1000 * 60 * 60 * 24)));
-        const iDuration = Math.max(1, Math.ceil((iEnd - iStart) / (1000 * 60 * 60 * 24)));
-        const iLeftPercent = (iDaysFromStart / totalDays) * 100;
-        const iWidthPercent = Math.max((iDuration / totalDays) * 100, 0.8);
-        return `
-          <div class="gantt-item-bar" data-item-id="${si.id}" data-project-id="${si.project}" data-start="${si.start_date}" data-end="${si.end_date}" data-url="${si.url || ''}" data-title="${escapeHtml(si.title)}" data-status="${si.status}" data-progress="${si.percent_complete}" data-milestone="${si.is_milestone}">
-            <div class="gantt-item-progress" style="width: ${si.percent_complete}%; background: rgba(255,255,255,0.25);"></div>
-            <span class="gantt-item-text">${si.is_milestone ? '🚧 ' : ''}${escapeHtml(si.title)}</span>
-            <button type="button" class="gantt-item-add" data-item-id="${si.id}" title="{% trans 'Agregar tarea' %}">+</button>
+  let calendar = null;(function() {
+
+  let scheduleItems = [];  'use strict';
+
+  let ganttMinDate = null;  
+
+  let ganttTotalDays = 0;  let scheduleData = null;
+
+  let ganttZoom = 'week';  let calendar = null;
+
+  let currentItem = null;  let scheduleItems = [];
+
+  let dragState = null;  let ganttMinDate = null;
+
+    let ganttTotalDays = 0;
+
+  // View Toggle  let ganttZoom = 'week';
+
+  document.querySelectorAll('.toggle-btn').forEach(btn => {  let dragState = null;
+
+    btn.addEventListener('click', () => {  
+
+      const v = btn.dataset.view;  // View Toggle Logic
+
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));  const toggleButtons = document.querySelectorAll('.toggle-btn');
+
+      btn.classList.add('active');  const viewContents = document.querySelectorAll('.view-content');
+
+      document.querySelectorAll('.view-content').forEach(c => c.classList.remove('active'));  
+
+      document.getElementById(v + 'View').classList.add('active');  toggleButtons.forEach(btn => {
+
+      if (v === 'calendar' && calendar) setTimeout(() => calendar.render(), 100);    btn.addEventListener('click', () => {
+
+    });      const viewType = btn.dataset.view;
+
+  });      
+
+        // Update active states
+
+  // Fetch Data      toggleButtons.forEach(b => b.classList.remove('active'));
+
+  async function fetchScheduleData() {      btn.classList.add('active');
+
+    try {      
+
+      const headers = { 'X-CSRFToken': getCookie('csrftoken') };      viewContents.forEach(v => v.classList.remove('active'));
+
+      const token = localStorage.getItem('access_token');      document.getElementById(viewType + 'View').classList.add('active');
+
+      if (token) headers['Authorization'] = `Bearer ${token}`;      
+
+            // Render calendar if switching to it
+
+      const res = await fetch('/api/v1/schedule/master/', { headers });      if (viewType === 'calendar' && calendar) {
+
+      if (!res.ok) throw new Error('Failed');        calendar.render();
+
+            }
+
+      scheduleData = await res.json();    });
+
+      document.getElementById('statProjects').textContent = scheduleData.metadata.total_projects;  });
+
+      document.getElementById('statScheduleItems').textContent = scheduleData.metadata.total_schedule_items;  
+
+      document.getElementById('statEvents').textContent = scheduleData.metadata.total_events;  // Fetch Schedule Data
+
+        async function fetchScheduleData() {
+
+      const s = new Date(scheduleData.metadata.date_range.start);    try {
+
+      const e = new Date(scheduleData.metadata.date_range.end);      const headers = {
+
+      document.getElementById('statRange').textContent = Math.ceil((e - s) / 86400000);        'X-CSRFToken': getCookie('csrftoken')
+
+            };
+
+      scheduleItems = scheduleData.schedule_items || [];      const token = localStorage.getItem('access_token');
+
+      renderGantt(scheduleData.projects, scheduleItems);      if (token) {
+
+      initCalendar(scheduleData.events);        headers['Authorization'] = `Bearer ${token}`;
+
+      document.getElementById('loadingOverlay').style.display = 'none';      }
+
+    } catch (err) {
+
+      console.error(err);      const response = await fetch('/api/v1/schedule/master/', {
+
+      document.getElementById('loadingOverlay').style.display = 'none';        headers: headers
+
+      document.getElementById('ganttContent').innerHTML = '<div class="empty-state"><i class="bi bi-exclamation-triangle"></i><p>Error. Recarga la página.</p></div>';      });
+
+    }      
+
+  }      if (!response.ok) {
+
+          throw new Error('Failed to fetch schedule data');
+
+  // Render Gantt      }
+
+  function renderGantt(projects, items = []) {      
+
+    if (!projects || !projects.length) {      scheduleData = await response.json();
+
+      document.getElementById('ganttContent').innerHTML = '<div class="empty-state"><i class="bi bi-folder-x"></i><p>{% trans "No hay proyectos" %}</p></div>';      
+
+      return;      // Update stats
+
+    }  document.getElementById('statProjects').textContent = scheduleData.metadata.total_projects;
+
+      document.getElementById('statEvents').textContent = scheduleData.metadata.total_events;
+
+    const pDates = projects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]);  document.getElementById('statScheduleItems').textContent = scheduleData.metadata.total_schedule_items;
+
+    const iDates = items.flatMap(i => [new Date(i.start_date), new Date(i.end_date)]);      
+
+    const all = [...pDates, ...iDates].filter(d => !isNaN(d));      const startDate = new Date(scheduleData.metadata.date_range.start);
+
+    const minD = new Date(Math.min(...all));      const endDate = new Date(scheduleData.metadata.date_range.end);
+
+    const maxD = new Date(Math.max(...all));      const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+    const totalD = Math.max(1, Math.ceil((maxD - minD) / 86400000));      document.getElementById('statRange').textContent = `${daysDiff} days`;
+
+          
+
+    ganttMinDate = minD;      // Render views
+
+    ganttTotalDays = totalD;  scheduleItems = scheduleData.schedule_items || [];
+
+      renderGantt(scheduleData.projects, scheduleItems);
+
+    const ticks = buildTicks(minD, maxD, ganttZoom);      initCalendar(scheduleData.events);
+
+    const today = new Date();      
+
+    const todayOff = Math.ceil((today - minD) / 86400000);      document.getElementById('loadingOverlay').style.display = 'none';
+
+    const todayPct = (todayOff / totalD) * 100;    } catch (error) {
+
+          console.error('Error fetching schedule:', error);
+
+    let rows = '';      alert('Failed to load schedule data. Please refresh the page.');
+
+    projects.forEach(p => {    }
+
+      const st = new Date(p.start_date);  }
+
+      const en = new Date(p.end_date);  
+
+      const dfs = Math.ceil((st - minD) / 86400000);  // Render Gantt Chart
+
+      const dur = Math.ceil((en - st) / 86400000);  function renderGantt(projects, scheduleItems = []) {
+
+      const lp = (dfs / totalD) * 100;    if (!projects || projects.length === 0) {
+
+      const wp = Math.max((dur / totalD) * 100, 2);      document.getElementById('ganttContent').innerHTML = '<div class="text-center py-12 text-gray-400">No active projects found.</div>';
+
+            return;
+
+      rows += `<div class="gantt-row">    }
+
+        <div class="gantt-row-label" onclick="location.href='${p.url}'" style="border-left-color:${p.color}">    
+
+          <div class="gantt-row-name">${esc(p.name)}</div>    // Calculate date range across projects and items
+
+          <div class="gantt-row-meta">${esc(p.client_name)}</div>  const projectDates = projects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]);
+
+        </div>  const itemDates = (scheduleItems || []).flatMap(si => [new Date(si.start_date), new Date(si.end_date)]);
+
+        <div class="gantt-row-bars">    const allDates = [...projectDates, ...itemDates].filter(Boolean);
+
+          ${todayPct >= 0 && todayPct <= 100 ? `<div class="today-line" style="left:${todayPct}%"></div>` : ''}  const minDate = new Date(Math.min(...allDates));
+
+          <div class="gantt-bar" style="left:${lp}%;width:${wp}%;background:${p.color};" onclick="location.href='${p.url}'" title="${esc(p.name)} - ${p.progress_pct}%">  const maxDate = new Date(Math.max(...allDates));
+
+            <div class="gantt-bar-progress" style="width:${p.progress_pct}%"></div>  const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
+
+            <span class="gantt-bar-text">${esc(p.name)}</span>  ganttMinDate = minDate;
+
+            <span class="gantt-bar-percent">${p.progress_pct}%</span>  ganttTotalDays = totalDays;
+
           </div>
-        `;
-      }).join('');
-      
-      return `
-        <div class="gantt-bar-row">
-          <div class="gantt-bar-container">
-            <div class="gantt-bar" 
-                 style="left: ${leftPercent}%; width: ${widthPercent}%; background: ${p.color};"
-                 onclick="window.location.href='${p.url}'"
-                 title="${escapeHtml(p.name)} - PM: ${escapeHtml(p.pm_name)} - Client: ${escapeHtml(p.client_name)}">
-              <div class="gantt-bar-progress" style="width: ${p.progress_pct}%;"></div>
-              <div class="gantt-bar-content">
-                <span class="gantt-bar-text">${escapeHtml(p.name)}</span>
-                <span class="gantt-bar-percent">${p.progress_pct}%</span>
-              </div>
-            </div>
-          </div>
-          ${itemsForProject.length ? `<div class="gantt-item-row">${itemsHTML}</div>` : ''}
-        </div>
-      `;
-    }).join('');
-    
-    document.getElementById('ganttContent').innerHTML = `
-      <div class="gantt-toolbar">
-        <div class="text-sm text-slate-600">Rango: ${formatDate(minDate)} → ${formatDate(maxDate)} · ${totalDays}d</div>
-        <div class="gantt-zoom" role="group" aria-label="Zoom timeline">
-          <button type="button" class="${ganttZoom === 'day' ? 'active' : ''}" data-zoom="day">Día</button>
-          <button type="button" class="${ganttZoom === 'week' ? 'active' : ''}" data-zoom="week">Semana</button>
-          <button type="button" class="${ganttZoom === 'month' ? 'active' : ''}" data-zoom="month">Mes</button>
-        </div>
-      </div>
-      <div class="gantt-scale">
-        <div class="gantt-scale-labels">Línea de tiempo</div>
-        <div class="gantt-scale-ticks">
-          ${ticks.map(t => `<div class="gantt-scale-tick ${t.isToday ? 'today' : ''}" style="flex: ${t.flex}">${t.label}</div>`).join('')}
-        </div>
-      </div>
-      <div class="gantt-timeline">
-        <div class="gantt-labels">${labelsHTML}</div>
-        <div class="gantt-bars">${barsHTML}</div>
-      </div>
-    `;
 
-    attachGanttInteractions();
+        </div>    const ticks = buildScaleTicks(minDate, maxDate, ganttZoom);
 
-    // Zoom button handlers
-    document.querySelectorAll('.gantt-zoom button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const z = btn.dataset.zoom;
-        if (z && z !== ganttZoom) {
-          ganttZoom = z;
-          renderGantt(projects, scheduleItems);
-        }
-      });
-    });
-  }
+      </div>`;    
 
-  function buildScaleTicks(minDate, maxDate, zoom) {
-    const ticks = [];
-    const stepDays = zoom === 'day' ? 1 : zoom === 'month' ? 30 : 7;
-    const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
-    const count = Math.max(1, Math.ceil(totalDays / stepDays));
-    for (let i = 0; i < count; i++) {
-      const d = addDays(minDate, i * stepDays);
-      const label = zoom === 'month' ? d.toLocaleString(undefined, { month: 'short', year: 'numeric' }) : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      ticks.push({ label, isToday: isSameDay(d, new Date()), flex: stepDays });
-    }
-    return ticks;
-  }
+          // Build Gantt HTML
 
-  function attachGanttInteractions() {
-    const bars = document.querySelectorAll('.gantt-item-bar');
-    bars.forEach(bar => {
-      const itemId = bar.dataset.itemId;
-      const start = new Date(bar.dataset.start);
-      const end = new Date(bar.dataset.end);
-      const barsContainer = bar.closest('.gantt-bars');
-      const widthPx = barsContainer ? barsContainer.getBoundingClientRect().width : 1;
+      const pItems = items.filter(i => i.project === p.id);    const labelsHTML = projects.map(p => `
 
-      // Position bar based on dates
-      const daysFromStart = Math.max(0, Math.ceil((start - ganttMinDate) / (1000 * 60 * 60 * 24)));
-      const duration = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-      const leftPercent = (daysFromStart / ganttTotalDays) * 100;
-      const widthPercent = Math.max((duration / ganttTotalDays) * 100, 0.8);
-      bar.style.left = `${leftPercent}%`;
-      bar.style.width = `${widthPercent}%`;
+      pItems.forEach(si => {      <div class="gantt-label">
 
-      bar.addEventListener('mousedown', (e) => {
-        if ((e.target && e.target.classList.contains('gantt-item-add'))) return;
-        // Only start drag with primary button
-        if (e.button !== 0) return;
+        const ist = new Date(si.start_date);        <div class="gantt-label-name">${escapeHtml(p.name)}</div>
+
+        const ien = new Date(si.end_date);        <div class="gantt-label-meta">PM: ${escapeHtml(p.pm_name)}</div>
+
+        const idfs = Math.max(0, Math.ceil((ist - minD) / 86400000));        <div class="gantt-label-meta">Client: ${escapeHtml(p.client_name)}</div>
+
+        const idur = Math.max(1, Math.ceil((ien - ist) / 86400000));      </div>
+
+        const ilp = (idfs / totalD) * 100;    `).join('');
+
+        const iwp = Math.max((idur / totalD) * 100, 1);    
+
+        const sc = 'status-' + (si.status || 'not_started').toLowerCase();    const barsHTML = projects.map(p => {
+
+              const start = new Date(p.start_date);
+
+        rows += `<div class="gantt-item-row">      const end = new Date(p.end_date);
+
+          <div class="gantt-item-label ${si.is_milestone ? 'milestone' : ''}">${si.is_milestone ? '🚧' : '📋'} ${esc(si.title)}</div>      const daysFromStart = Math.ceil((start - minDate) / (1000 * 60 * 60 * 24));
+
+          <div class="gantt-item-bars">      const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+            <div class="gantt-item-bar ${sc}" style="left:${ilp}%;width:${iwp}%;" data-id="${si.id}" data-pid="${si.project}" data-start="${si.start_date}" data-end="${si.end_date}" data-url="${si.url||''}" data-title="${esc(si.title)}" data-status="${si.status}" data-progress="${si.percent_complete}" onclick="openDetail(${si.id})">      
+
+              <div class="item-progress" style="width:${si.percent_complete}%"></div>      const leftPercent = (daysFromStart / totalDays) * 100;
+
+              <span class="item-text">${esc(si.title)}</span>      const widthPercent = (duration / totalDays) * 100;
+
+              <button type="button" class="add-task-btn" onclick="event.stopPropagation();openTask(${si.id})">+</button>
+
+            </div>      const itemsForProject = (scheduleItems || []).filter(si => si.project === p.id);
+
+          </div>        const itemsHTML = itemsForProject.map(si => {
+
+        </div>`;        const iStart = new Date(si.start_date);
+
+      });        const iEnd = new Date(si.end_date);
+
+    });        const iDaysFromStart = Math.max(0, Math.ceil((iStart - minDate) / (1000 * 60 * 60 * 24)));
+
+            const iDuration = Math.max(1, Math.ceil((iEnd - iStart) / (1000 * 60 * 60 * 24)));
+
+    document.getElementById('ganttContent').innerHTML = `        const iLeftPercent = (iDaysFromStart / totalDays) * 100;
+
+      <div class="gantt-toolbar">        const iWidthPercent = Math.max((iDuration / totalDays) * 100, 0.8);
+
+        <div class="gantt-info">        return `
+
+          <span class="today-indicator"><span class="today-dot"></span>{% trans "Hoy" %}: ${fmtDate(today)}</span>          <div class="gantt-item-bar" data-item-id="${si.id}" data-project-id="${si.project}" data-start="${si.start_date}" data-end="${si.end_date}" data-url="${si.url || ''}" data-title="${escapeHtml(si.title)}" data-status="${si.status}" data-progress="${si.percent_complete}" data-milestone="${si.is_milestone}">
+
+          &nbsp;·&nbsp;${fmtDate(minD)} → ${fmtDate(maxD)} (${totalD} {% trans "días" %})            <div class="gantt-item-progress" style="width: ${si.percent_complete}%; background: rgba(255,255,255,0.25);"></div>
+
+        </div>            <span class="gantt-item-text">${si.is_milestone ? '🚧 ' : ''}${escapeHtml(si.title)}</span>
+
+        <div class="gantt-zoom">            <button type="button" class="gantt-item-add" data-item-id="${si.id}" title="{% trans 'Agregar tarea' %}">+</button>
+
+          <button type="button" class="${ganttZoom==='day'?'active':''}" data-z="day">{% trans "Día" %}</button>          </div>
+
+          <button type="button" class="${ganttZoom==='week'?'active':''}" data-z="week">{% trans "Semana" %}</button>        `;
+
+          <button type="button" class="${ganttZoom==='month'?'active':''}" data-z="month">{% trans "Mes" %}</button>      }).join('');
+
+        </div>      
+
+      </div>      return `
+
+      <div class="gantt-wrapper">        <div class="gantt-bar-row">
+
+        <div class="gantt-chart">          <div class="gantt-bar-container">
+
+          <div class="gantt-scale">            <div class="gantt-bar" 
+
+            <div class="gantt-scale-label">{% trans "Proyecto" %}</div>                 style="left: ${leftPercent}%; width: ${widthPercent}%; background: ${p.color};"
+
+            <div class="gantt-scale-ticks">${ticks.map(t => `<div class="gantt-tick ${t.today?'today':''} ${t.wknd?'weekend':''}">${t.lbl}</div>`).join('')}</div>                 onclick="window.location.href='${p.url}'"
+
+          </div>                 title="${escapeHtml(p.name)} - PM: ${escapeHtml(p.pm_name)} - Client: ${escapeHtml(p.client_name)}">
+
+          <div class="gantt-body">${rows}</div>              <div class="gantt-bar-progress" style="width: ${p.progress_pct}%;"></div>
+
+        </div>              <div class="gantt-bar-content">
+
+      </div>`;                <span class="gantt-bar-text">${escapeHtml(p.name)}</span>
+
+                    <span class="gantt-bar-percent">${p.progress_pct}%</span>
+
+    document.querySelectorAll('.gantt-zoom button').forEach(b => {              </div>
+
+      b.addEventListener('click', () => {            </div>
+
+        const z = b.dataset.z;          </div>
+
+        if (z && z !== ganttZoom) { ganttZoom = z; renderGantt(projects, items); }          ${itemsForProject.length ? `<div class="gantt-item-row">${itemsHTML}</div>` : ''}
+
+      });        </div>
+
+    });      `;
+
+        }).join('');
+
+    attachDrag();    
+
+  }    document.getElementById('ganttContent').innerHTML = `
+
+        <div class="gantt-toolbar">
+
+  function buildTicks(min, max, z) {        <div class="text-sm text-slate-600">Rango: ${formatDate(minDate)} → ${formatDate(maxDate)} · ${totalDays}d</div>
+
+    const ticks = [];        <div class="gantt-zoom" role="group" aria-label="Zoom timeline">
+
+    const step = z === 'day' ? 1 : z === 'month' ? 30 : 7;          <button type="button" class="${ganttZoom === 'day' ? 'active' : ''}" data-zoom="day">Día</button>
+
+    const total = Math.max(1, Math.ceil((max - min) / 86400000));          <button type="button" class="${ganttZoom === 'week' ? 'active' : ''}" data-zoom="week">Semana</button>
+
+    const cnt = Math.max(1, Math.ceil(total / step));          <button type="button" class="${ganttZoom === 'month' ? 'active' : ''}" data-zoom="month">Mes</button>
+
+    const today = new Date();        </div>
+
+    for (let i = 0; i < cnt; i++) {      </div>
+
+      const d = addD(min, i * step);      <div class="gantt-scale">
+
+      const dow = d.getDay();        <div class="gantt-scale-labels">Línea de tiempo</div>
+
+      const lbl = z === 'month' ? d.toLocaleDateString(undefined, {month:'short'}) : d.toLocaleDateString(undefined, {month:'short',day:'numeric'});        <div class="gantt-scale-ticks">
+
+      ticks.push({ lbl, today: sameDay(d, today), wknd: dow === 0 || dow === 6 });          ${ticks.map(t => `<div class="gantt-scale-tick ${t.isToday ? 'today' : ''}" style="flex: ${t.flex}">${t.label}</div>`).join('')}
+
+    }        </div>
+
+    return ticks;      </div>
+
+  }      <div class="gantt-timeline">
+
+          <div class="gantt-labels">${labelsHTML}</div>
+
+  function attachDrag() {        <div class="gantt-bars">${barsHTML}</div>
+
+    document.querySelectorAll('.gantt-item-bar').forEach(bar => {      </div>
+
+      bar.addEventListener('mousedown', e => {    `;
+
+        if (e.target.classList.contains('add-task-btn') || e.button !== 0) return;
+
+        const cont = bar.closest('.gantt-item-bars');    attachGanttInteractions();
+
         dragState = {
-          el: bar,
-          startX: e.clientX,
-          origStart: start,
-          origEnd: end,
-          widthPx,
-        };
-        document.addEventListener('mousemove', onDragMove);
-        document.addEventListener('mouseup', onDragEnd);
-      });
 
-      // Click opens detail modal (without dragging)
-      bar.addEventListener('click', (e) => {
-        if (dragState) return; // ignore if in drag
-        if (e.target && e.target.classList.contains('gantt-item-add')) return;
+          el: bar,    // Zoom button handlers
+
+          startX: e.clientX,    document.querySelectorAll('.gantt-zoom button').forEach(btn => {
+
+          origStart: new Date(bar.dataset.start),      btn.addEventListener('click', () => {
+
+          origEnd: new Date(bar.dataset.end),        const z = btn.dataset.zoom;
+
+          w: cont ? cont.getBoundingClientRect().width : 1        if (z && z !== ganttZoom) {
+
+        };          ganttZoom = z;
+
+        document.addEventListener('mousemove', onDragMove);          renderGantt(projects, scheduleItems);
+
+        document.addEventListener('mouseup', onDragEnd);        }
+
+      });      });
+
+    });    });
+
+  }  }
+
+  
+
+  function onDragMove(e) {  function buildScaleTicks(minDate, maxDate, zoom) {
+
+    if (!dragState) return;    const ticks = [];
+
+    const dx = e.clientX - dragState.startX;    const stepDays = zoom === 'day' ? 1 : zoom === 'month' ? 30 : 7;
+
+    const ppd = dragState.w / ganttTotalDays;    const totalDays = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
+
+    const dd = Math.round(dx / ppd);    const count = Math.max(1, Math.ceil(totalDays / stepDays));
+
+    const ns = addD(dragState.origStart, dd);    for (let i = 0; i < count; i++) {
+
+    const ne = addD(dragState.origEnd, dd);      const d = addDays(minDate, i * stepDays);
+
+    const dfs = Math.max(0, Math.ceil((ns - ganttMinDate) / 86400000));      const label = zoom === 'month' ? d.toLocaleString(undefined, { month: 'short', year: 'numeric' }) : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+    const dur = Math.max(1, Math.ceil((ne - ns) / 86400000));      ticks.push({ label, isToday: isSameDay(d, new Date()), flex: stepDays });
+
+    const lp = (dfs / ganttTotalDays) * 100;    }
+
+    const wp = Math.max((dur / ganttTotalDays) * 100, 1);    return ticks;
+
+    dragState.el.style.left = `${lp}%`;  }
+
+    dragState.el.style.width = `${wp}%`;
+
+    dragState.newStart = ns;  function attachGanttInteractions() {
+
+    dragState.newEnd = ne;    const bars = document.querySelectorAll('.gantt-item-bar');
+
+  }    bars.forEach(bar => {
+
         const itemId = bar.dataset.itemId;
-        const item = scheduleItems.find(si => String(si.id) === String(itemId));
-        if (item) {
-          openItemDetail(item);
-        }
-      });
-    });
 
-    const addButtons = document.querySelectorAll('.gantt-item-add');
-    addButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const itemId = btn.dataset.itemId;
-        const item = scheduleItems.find(si => String(si.id) === String(itemId));
-        if (item) {
-          openTaskModal(item);
-        }
-      });
-    });
-  }
+  function onDragEnd() {      const start = new Date(bar.dataset.start);
 
-  function onDragMove(e) {
-    if (!dragState) return;
-    const deltaX = e.clientX - dragState.startX;
-    const pxPerDay = dragState.widthPx / ganttTotalDays;
-    const deltaDays = Math.round(deltaX / pxPerDay);
-    const newStart = addDays(dragState.origStart, deltaDays);
-    const newEnd = addDays(dragState.origEnd, deltaDays);
-    const daysFromStart = Math.max(0, Math.ceil((newStart - ganttMinDate) / (1000 * 60 * 60 * 24)));
-    const duration = Math.max(1, Math.ceil((newEnd - newStart) / (1000 * 60 * 60 * 24)));
-    const leftPercent = (daysFromStart / ganttTotalDays) * 100;
-    const widthPercent = Math.max((duration / ganttTotalDays) * 100, 0.8);
-    dragState.el.style.left = `${leftPercent}%`;
-    dragState.el.style.width = `${widthPercent}%`;
-    dragState.newStart = newStart;
-    dragState.newEnd = newEnd;
-  }
+    if (!dragState) return;      const end = new Date(bar.dataset.end);
 
-  function onDragEnd() {
-    if (!dragState) return;
-    document.removeEventListener('mousemove', onDragMove);
-    document.removeEventListener('mouseup', onDragEnd);
+    document.removeEventListener('mousemove', onDragMove);      const barsContainer = bar.closest('.gantt-bars');
+
+    document.removeEventListener('mouseup', onDragEnd);      const widthPx = barsContainer ? barsContainer.getBoundingClientRect().width : 1;
+
     const { newStart, newEnd, origStart, origEnd, el } = dragState;
-    const itemId = el.dataset.itemId;
-    dragState = null;
-    if (newStart && newEnd && (newStart.toDateString() !== origStart.toDateString() || newEnd.toDateString() !== origEnd.toDateString())) {
-      saveScheduleItemDates(itemId, newStart, newEnd);
-    }
-  }
 
-  async function saveScheduleItemDates(itemId, startDate, endDate) {
-    try {
-      const payload = {
-        updates: [
-          {
-            id: Number(itemId),
-            planned_start: startDate.toISOString().slice(0, 10),
-            planned_end: endDate.toISOString().slice(0, 10),
-          },
-        ],
-      };
-      const res = await fetch('/api/v1/scheduleitems/bulk_update/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify(payload),
+    const id = el.dataset.id;      // Position bar based on dates
+
+    dragState = null;      const daysFromStart = Math.max(0, Math.ceil((start - ganttMinDate) / (1000 * 60 * 60 * 24)));
+
+    if (newStart && newEnd && (newStart.toDateString() !== origStart.toDateString() || newEnd.toDateString() !== origEnd.toDateString())) {      const duration = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+
+      saveDates(id, newStart, newEnd);      const leftPercent = (daysFromStart / ganttTotalDays) * 100;
+
+    }      const widthPercent = Math.max((duration / ganttTotalDays) * 100, 0.8);
+
+  }      bar.style.left = `${leftPercent}%`;
+
+        bar.style.width = `${widthPercent}%`;
+
+  async function saveDates(id, s, e) {
+
+    try {      bar.addEventListener('mousedown', (e) => {
+
+      const res = await fetch('/api/v1/scheduleitems/bulk_update/', {        if ((e.target && e.target.classList.contains('gantt-item-add'))) return;
+
+        method: 'POST',        // Only start drag with primary button
+
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },        if (e.button !== 0) return;
+
+        body: JSON.stringify({ updates: [{ id: Number(id), planned_start: s.toISOString().slice(0,10), planned_end: e.toISOString().slice(0,10) }] })        dragState = {
+
+      });          el: bar,
+
+      if (!res.ok) throw new Error('Save failed');          startX: e.clientX,
+
+      const upd = await res.json();          origStart: start,
+
+      if (Array.isArray(upd)) {          origEnd: end,
+
+        scheduleItems = scheduleItems.map(si => {          widthPx,
+
+          const h = upd.find(u => u.id === si.id);        };
+
+          return h ? { ...si, start_date: h.planned_start, end_date: h.planned_end } : si;        document.addEventListener('mousemove', onDragMove);
+
+        });        document.addEventListener('mouseup', onDragEnd);
+
+      }      });
+
+    } catch (err) {
+
+      console.error(err);      // Click opens detail modal (without dragging)
+
+      alert('{% trans "Error guardando fechas" %}');      bar.addEventListener('click', (e) => {
+
+    }        if (dragState) return; // ignore if in drag
+
+  }        if (e.target && e.target.classList.contains('gantt-item-add')) return;
+
+          const itemId = bar.dataset.itemId;
+
+  // Calendar        const item = scheduleItems.find(si => String(si.id) === String(itemId));
+
+  function initCalendar(events) {        if (item) {
+
+    calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {          openItemDetail(item);
+
+      initialView: 'dayGridMonth',        }
+
+      locale: '{{ request.LANGUAGE_CODE }}',      });
+
+      headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },    });
+
+      events: events.map(e => ({ title: e.title, start: e.start, end: e.end || e.start, backgroundColor: e.color, borderColor: e.color, url: e.url, extendedProps: { description: e.description, type: e.type } })),
+
+      eventClick: info => { info.jsEvent.preventDefault(); if (info.event.url) location.href = info.event.url; },    const addButtons = document.querySelectorAll('.gantt-item-add');
+
+      eventDidMount: info => { if (info.event.extendedProps.description) info.el.title = info.event.extendedProps.description; },    addButtons.forEach(btn => {
+
+      height: 'auto'      btn.addEventListener('click', (e) => {
+
+    });        e.stopPropagation();
+
+    if (document.getElementById('calendarView').classList.contains('active')) calendar.render();        const itemId = btn.dataset.itemId;
+
+  }        const item = scheduleItems.find(si => String(si.id) === String(itemId));
+
+          if (item) {
+
+  // Modals          openTaskModal(item);
+
+  window.openTask = function(id) {        }
+
+    const it = scheduleItems.find(i => i.id === id);      });
+
+    if (!it) return;    });
+
+    currentItem = it;  }
+
+    document.getElementById('taskProject').value = it.project;
+
+    document.getElementById('taskScheduleItem').value = it.id;  function onDragMove(e) {
+
+    document.getElementById('taskTitle').value = '';    if (!dragState) return;
+
+    document.getElementById('taskDescription').value = '';    const deltaX = e.clientX - dragState.startX;
+
+    document.getElementById('taskPriority').value = 'medium';    const pxPerDay = dragState.widthPx / ganttTotalDays;
+
+    document.getElementById('taskDueDate').value = it.start_date ? it.start_date.slice(0,10) : '';    const deltaDays = Math.round(deltaX / pxPerDay);
+
+    document.getElementById('taskModal').style.display = 'flex';    const newStart = addDays(dragState.origStart, deltaDays);
+
+  };    const newEnd = addDays(dragState.origEnd, deltaDays);
+
+  window.closeTaskModal = function() { document.getElementById('taskModal').style.display = 'none'; currentItem = null; };    const daysFromStart = Math.max(0, Math.ceil((newStart - ganttMinDate) / (1000 * 60 * 60 * 24)));
+
+      const duration = Math.max(1, Math.ceil((newEnd - newStart) / (1000 * 60 * 60 * 24)));
+
+  window.openDetail = function(id) {    const leftPercent = (daysFromStart / ganttTotalDays) * 100;
+
+    const it = scheduleItems.find(i => i.id === id);    const widthPercent = Math.max((duration / ganttTotalDays) * 100, 0.8);
+
+    if (!it) return;    dragState.el.style.left = `${leftPercent}%`;
+
+    currentItem = it;    dragState.el.style.width = `${widthPercent}%`;
+
+    document.getElementById('itemDetailTitle').textContent = it.title || '{% trans "Detalle" %}';    dragState.newStart = newStart;
+
+    document.getElementById('itemDetailStatus').textContent = it.status || '-';    dragState.newEnd = newEnd;
+
+    document.getElementById('itemDetailDates').textContent = `${it.start_date} → ${it.end_date}`;  }
+
+    document.getElementById('itemDetailProgress').textContent = `${it.percent_complete || 0}%`;
+
+    document.getElementById('itemDetailEditLink').href = it.url || '#';  function onDragEnd() {
+
+    document.getElementById('itemDetailTaskBtn').onclick = () => { closeItemDetail(); openTask(id); };    if (!dragState) return;
+
+    document.getElementById('itemDetailModal').style.display = 'flex';    document.removeEventListener('mousemove', onDragMove);
+
+  };    document.removeEventListener('mouseup', onDragEnd);
+
+  window.closeItemDetail = function() { document.getElementById('itemDetailModal').style.display = 'none'; currentItem = null; };    const { newStart, newEnd, origStart, origEnd, el } = dragState;
+
+      const itemId = el.dataset.itemId;
+
+  document.getElementById('taskForm').addEventListener('submit', async e => {    dragState = null;
+
+    e.preventDefault();    if (newStart && newEnd && (newStart.toDateString() !== origStart.toDateString() || newEnd.toDateString() !== origEnd.toDateString())) {
+
+    const data = Object.fromEntries(new FormData(e.target));      saveScheduleItemDates(itemId, newStart, newEnd);
+
+    try {    }
+
+      const res = await fetch('/api/v1/tasks/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }, body: JSON.stringify(data) });  }
+
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Error'); }
+
+      closeTaskModal();  async function saveScheduleItemDates(itemId, startDate, endDate) {
+
+      alert('{% trans "Tarea creada" %}');    try {
+
+    } catch (err) { console.error(err); alert(err.message || '{% trans "Error" %}'); }      const payload = {
+
+  });        updates: [
+
+            {
+
+  // Utils            id: Number(itemId),
+
+  function getCookie(n) { const c = document.cookie.split(';'); for (let x of c) { const [k, v] = x.trim().split('='); if (k === n) return decodeURIComponent(v); } return null; }            planned_start: startDate.toISOString().slice(0, 10),
+
+  function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }            planned_end: endDate.toISOString().slice(0, 10),
+
+  function fmtDate(d) { return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }          },
+
+  function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }        ],
+
+  function addD(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }      };
+
+        const res = await fetch('/api/v1/scheduleitems/bulk_update/', {
+
+  document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; }); });        method: 'POST',
+
+          headers: {
+
+  document.addEventListener('DOMContentLoaded', () => { document.body.classList.add('schedule-center'); fetchScheduleData(); });          'Content-Type': 'application/json',
+
+})();          'X-CSRFToken': getCookie('csrftoken'),
+
+</script>        },
+
+{% endblock %}        body: JSON.stringify(payload),
+
       });
       if (!res.ok) {
         throw new Error('Failed to save dates');
