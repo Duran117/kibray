@@ -1,119 +1,54 @@
-{% extends 'core/base.html' %}{% extends "core/base_modern.html" %}
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% load static %}
 
-{% load i18n %}{% block content %}
+{% block title %}{% trans "Record Payment" %} | {{ block.super }}{% endblock %}
 
-{% load static %}<div class="container py-4">
-
-  <h3>Registrar Pago a {{ record.employee.first_name }} {{ record.employee.last_name }}</h3>
-
-{% block title %}{% trans "Record Payment" %} | {{ block.super }}{% endblock %}  <p class="text-muted">Semana: {{ record.week_start }} — {{ record.week_end }}</p>
-
-  <div class="alert alert-info">
-
-{% block extra_css %}    Total a pagar: <strong>${{ record.total_pay|floatformat:2 }}</strong><br />
-
-<style>    Pagado hasta ahora: <strong>${{ record.amount_paid|floatformat:2 }}</strong><br />
-
-/* Asana-Style Payment Form */    Pendiente: <strong>${{ record.balance_due|floatformat:2 }}</strong>
-
-.payment-page {  </div>
-
-    min-height: 100vh;  <form method="post">{% csrf_token %}
-
-    background: #f6f8f9;    <div class="row g-3">
-
-    display: flex;      <div class="col-md-3">
-
-    align-items: center;        <label class="form-label">Monto</label>
-
-    justify-content: center;        <input type="number" name="amount" step="0.01" class="form-control" value="{{ record.balance_due|floatformat:2 }}" required />
-
-    padding: 40px 20px;      </div>
-
-}      <div class="col-md-3">
-
-        <label class="form-label">Fecha de Pago</label>
-
-.payment-card {        <input type="date" name="payment_date" class="form-control" required />
-
-    background: white;      </div>
-
-    border-radius: 12px;      <div class="col-md-3">
-
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);        <label class="form-label">Método</label>
-
-    width: 100%;        <select name="payment_method" class="form-select">
-
-    max-width: 520px;          <option value="check">Cheque</option>
-
-    overflow: hidden;          <option value="transfer">Transferencia</option>
-
-}          <option value="cash">Efectivo</option>
-
-        </select>
-
-.payment-header {      </div>
-
-    background: linear-gradient(135deg, #1e1f21 0%, #2e2e30 100%);      <div class="col-md-3">
-
-    padding: 32px;        <label class="form-label">Número de Cheque</label>
-
-    color: white;        <input type="text" name="check_number" class="form-control" />
-
-}      </div>
-
-      <div class="col-md-6">
-
-.payment-header-top {        <label class="form-label">Referencia</label>
-
-    display: flex;        <input type="text" name="reference" class="form-control" placeholder="ID transferencia, nota, etc." />
-
-    align-items: center;      </div>
-
-    justify-content: space-between;      <div class="col-md-6">
-
-    margin-bottom: 24px;        <label class="form-label">Notas</label>
-
-}        <textarea name="notes" class="form-control" rows="2" placeholder="Notas opcionales"></textarea>
-
-      </div>
-
-.back-link {    </div>
-
-    color: rgba(255, 255, 255, 0.7);    <div class="mt-3">
-
-    text-decoration: none;      <button class="btn btn-success">Guardar Pago</button>
-
-    display: flex;      <a href="{% url 'payroll_weekly_review' %}" class="btn btn-secondary">Regresar</a>
-
-    align-items: center;    </div>
-
-    gap: 8px;  </form>
-
-    font-size: 14px;</div>
-
-    transition: color 0.15s ease;{% endblock %}
-
+{% block extra_css %}
+<style>
+.payment-page {
+    min-height: 100vh;
+    background: #f6f8f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
 }
 
-.back-link:hover {
+.payment-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 520px;
+    overflow: hidden;
+}
+
+.payment-header {
+    background: linear-gradient(135deg, #1e1f21 0%, #2e2e30 100%);
+    padding: 32px;
     color: white;
 }
 
-.payment-badge {
-    background: rgba(69, 115, 210, 0.2);
-    color: #7c9df5;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.employee-section {
+.payment-header-top {
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 24px;
 }
+
+.back-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.back-link:hover { color: white; }
+
+.employee-section { display: flex; align-items: center; gap: 16px; }
 
 .employee-avatar-large {
     width: 64px;
@@ -128,17 +63,8 @@
     font-size: 22px;
 }
 
-.employee-details h2 {
-    margin: 0 0 4px;
-    font-size: 22px;
-    font-weight: 600;
-}
-
-.employee-details p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
-}
+.employee-details h2 { margin: 0 0 4px; font-size: 22px; font-weight: 600; }
+.employee-details p { margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 14px; }
 
 .payment-summary-bar {
     display: grid;
@@ -156,32 +82,13 @@
     text-align: center;
 }
 
-.summary-label {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-}
+.summary-label { color: rgba(255, 255, 255, 0.6); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.summary-value { font-size: 18px; font-weight: 600; color: white; }
+.summary-value.highlight { color: #4ade80; }
 
-.summary-value {
-    font-size: 18px;
-    font-weight: 600;
-    color: white;
-}
+.payment-body { padding: 32px; }
 
-.summary-value.highlight {
-    color: #4ade80;
-}
-
-/* Form Body */
-.payment-body {
-    padding: 32px;
-}
-
-.form-section {
-    margin-bottom: 24px;
-}
+.form-section { margin-bottom: 24px; }
 
 .form-section-title {
     font-size: 14px;
@@ -193,21 +100,11 @@
     gap: 8px;
 }
 
-.form-section-title i {
-    color: #6d6e6f;
-}
+.form-section-title i { color: #6d6e6f; }
 
-.form-group {
-    margin-bottom: 20px;
-}
+.form-group { margin-bottom: 20px; }
 
-.form-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: #6d6e6f;
-    margin-bottom: 8px;
-}
+.form-label { display: block; font-size: 13px; font-weight: 500; color: #6d6e6f; margin-bottom: 8px; }
 
 .form-control {
     width: 100%;
@@ -218,6 +115,7 @@
     color: #1e1f21;
     transition: all 0.15s ease;
     background: white;
+    box-sizing: border-box;
 }
 
 .form-control:focus {
@@ -226,56 +124,14 @@
     box-shadow: 0 0 0 3px rgba(69, 115, 210, 0.1);
 }
 
-.form-control::placeholder {
-    color: #a2a0a2;
-}
-
-.input-with-icon {
-    position: relative;
-}
-
-.input-with-icon i {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #a2a0a2;
-}
-
-.input-with-icon .form-control {
-    padding-left: 44px;
-}
-
-.input-prefix {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #1e1f21;
-    font-weight: 500;
-}
-
-.input-with-prefix .form-control {
-    padding-left: 32px;
-}
-
-/* Payment Method Selector */
 .payment-methods {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
 }
 
-.method-option {
-    position: relative;
-}
-
-.method-option input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+.method-option { position: relative; }
+.method-option input { position: absolute; opacity: 0; width: 0; height: 0; }
 
 .method-card {
     display: flex;
@@ -289,14 +145,8 @@
     background: white;
 }
 
-.method-option input:checked + .method-card {
-    border-color: #4573d2;
-    background: #f0f5ff;
-}
-
-.method-card:hover {
-    border-color: #a2a0a2;
-}
+.method-option input:checked + .method-card { border-color: #4573d2; background: #f0f5ff; }
+.method-card:hover { border-color: #a2a0a2; }
 
 .method-icon {
     width: 48px;
@@ -309,49 +159,12 @@
     margin-bottom: 8px;
 }
 
-.method-icon.check {
-    background: #e8f0fe;
-    color: #4573d2;
-}
+.method-icon.check { background: #e8f0fe; color: #4573d2; }
+.method-icon.transfer { background: #e3fcef; color: #1aa251; }
+.method-icon.cash { background: #fff8e1; color: #f9a825; }
 
-.method-icon.transfer {
-    background: #e3fcef;
-    color: #1aa251;
-}
+.method-name { font-size: 13px; font-weight: 500; color: #1e1f21; }
 
-.method-icon.cash {
-    background: #fff8e1;
-    color: #f9a825;
-}
-
-.method-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: #1e1f21;
-}
-
-/* Conditional Fields */
-.conditional-field {
-    display: none;
-    animation: fadeIn 0.2s ease;
-}
-
-.conditional-field.show {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Notes Area */
-.form-textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-/* Actions */
 .payment-actions {
     display: flex;
     gap: 12px;
@@ -371,104 +184,20 @@
     justify-content: center;
     gap: 8px;
     transition: all 0.15s ease;
+    text-decoration: none;
 }
 
-.btn-payment-primary {
-    background: #4573d2;
-    color: white;
-}
+.btn-payment-primary { background: #4573d2; color: white; }
+.btn-payment-primary:hover { background: #3a63b8; }
+.btn-payment-secondary { background: #f6f8f9; color: #6d6e6f; border: 1px solid #e8ecee; }
+.btn-payment-secondary:hover { background: #e8ecee; color: #1e1f21; }
 
-.btn-payment-primary:hover {
-    background: #3a63b8;
-}
-
-.btn-payment-secondary {
-    background: #f6f8f9;
-    color: #6d6e6f;
-    border: 1px solid #e8ecee;
-}
-
-.btn-payment-secondary:hover {
-    background: #e8ecee;
-    color: #1e1f21;
-}
-
-/* Quick Amount Buttons */
-.quick-amounts {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.quick-amount-btn {
-    padding: 6px 12px;
-    background: #f6f8f9;
-    border: 1px solid #e8ecee;
-    border-radius: 6px;
-    font-size: 12px;
-    color: #6d6e6f;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.quick-amount-btn:hover {
-    background: #e8ecee;
-    color: #1e1f21;
-}
-
-.quick-amount-btn.active {
-    background: #4573d2;
-    color: white;
-    border-color: #4573d2;
-}
-
-/* Alert Messages */
-.alert-info-custom {
-    background: #f0f5ff;
-    border: 1px solid #c5d5f5;
-    border-radius: 8px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.alert-info-custom i {
-    color: #4573d2;
-    font-size: 16px;
-    margin-top: 2px;
-}
-
-.alert-info-custom p {
-    margin: 0;
-    font-size: 13px;
-    color: #1e1f21;
-}
-
-/* Responsive */
 @media (max-width: 576px) {
-    .payment-page {
-        padding: 0;
-        align-items: stretch;
-    }
-    
-    .payment-card {
-        border-radius: 0;
-        min-height: 100vh;
-    }
-    
-    .payment-summary-bar {
-        grid-template-columns: 1fr;
-    }
-    
-    .payment-methods {
-        grid-template-columns: 1fr;
-    }
-    
-    .payment-actions {
-        flex-direction: column;
-    }
+    .payment-page { padding: 0; }
+    .payment-card { border-radius: 0; min-height: 100vh; }
+    .payment-summary-bar { grid-template-columns: 1fr; }
+    .payment-methods { grid-template-columns: 1fr; }
+    .payment-actions { flex-direction: column; }
 }
 </style>
 {% endblock %}
@@ -479,22 +208,15 @@
         <div class="payment-header">
             <div class="payment-header-top">
                 <a href="{% url 'payroll_weekly_review' %}" class="back-link">
-                    <i class="fas fa-arrow-left"></i>
-                    {% trans "Back to Payroll" %}
+                    <i class="fas fa-arrow-left"></i> {% trans "Back to Payroll" %}
                 </a>
-                <span class="payment-badge">
-                    <i class="fas fa-calendar-alt"></i>
-                    {{ record.period.week_start|date:"M d" }} - {{ record.period.week_end|date:"M d, Y" }}
-                </span>
             </div>
             
             <div class="employee-section">
-                <div class="employee-avatar-large">
-                    {{ record.employee.first_name|slice:":1" }}{{ record.employee.last_name|slice:":1" }}
-                </div>
+                <div class="employee-avatar-large">{{ record.employee.first_name|slice:":1" }}{{ record.employee.last_name|slice:":1" }}</div>
                 <div class="employee-details">
                     <h2>{{ record.employee.get_full_name }}</h2>
-                    <p>{% if record.employee.role %}{{ record.employee.role }}{% else %}{% trans "Employee" %}{% endif %}</p>
+                    <p>{{ record.employee.role|default:"Employee" }}</p>
                 </div>
             </div>
             
@@ -505,11 +227,11 @@
                 </div>
                 <div class="summary-item">
                     <div class="summary-label">{% trans "Gross Pay" %}</div>
-                    <div class="summary-value">${{ record.gross_pay|floatformat:2 }}</div>
+                    <div class="summary-value">${{ record.gross_pay|floatformat:2|default:record.total_pay }}</div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-label">{% trans "Net Pay" %}</div>
-                    <div class="summary-value highlight">${{ record.net_pay|floatformat:2 }}</div>
+                    <div class="summary-value highlight">${{ record.net_pay|floatformat:2|default:record.total_pay }}</div>
                 </div>
             </div>
         </div>
@@ -518,203 +240,64 @@
             <form method="post" id="paymentForm">
                 {% csrf_token %}
                 
-                {% if record.remaining_balance > 0 %}
-                <div class="alert-info-custom">
-                    <i class="fas fa-info-circle"></i>
-                    <p>{% blocktrans with balance=record.remaining_balance|floatformat:2 %}Remaining balance to pay: <strong>${{ balance }}</strong>{% endblocktrans %}</p>
-                </div>
-                {% endif %}
-                
-                <!-- Amount Section -->
                 <div class="form-section">
-                    <h3 class="form-section-title">
-                        <i class="fas fa-dollar-sign"></i>
-                        {% trans "Payment Amount" %}
-                    </h3>
-                    
+                    <h3 class="form-section-title"><i class="fas fa-dollar-sign"></i> {% trans "Payment Amount" %}</h3>
                     <div class="form-group">
                         <label class="form-label">{% trans "Amount to Pay" %}</label>
-                        <div class="input-with-prefix">
-                            <span class="input-prefix">$</span>
-                            <input type="number" name="amount" id="amount" class="form-control" 
-                                   step="0.01" min="0.01" 
-                                   max="{{ record.remaining_balance|default:record.net_pay }}"
-                                   value="{{ record.remaining_balance|default:record.net_pay }}"
-                                   required>
-                        </div>
-                        <div class="quick-amounts">
-                            <button type="button" class="quick-amount-btn active" data-amount="{{ record.remaining_balance|default:record.net_pay }}">
-                                {% trans "Full Amount" %}
-                            </button>
-                            {% if record.net_pay > 100 %}
-                            <button type="button" class="quick-amount-btn" data-amount="{{ record.net_pay|divisibleby:2 }}">
-                                {% trans "Half" %}
-                            </button>
-                            {% endif %}
-                            <button type="button" class="quick-amount-btn" data-amount="100">
-                                $100
-                            </button>
-                        </div>
+                        <input type="number" name="amount" class="form-control" step="0.01" min="0.01" value="{{ record.net_pay|default:record.total_pay }}" required>
                     </div>
                 </div>
                 
-                <!-- Payment Method -->
                 <div class="form-section">
-                    <h3 class="form-section-title">
-                        <i class="fas fa-credit-card"></i>
-                        {% trans "Payment Method" %}
-                    </h3>
-                    
+                    <h3 class="form-section-title"><i class="fas fa-credit-card"></i> {% trans "Payment Method" %}</h3>
                     <div class="payment-methods">
                         <label class="method-option">
                             <input type="radio" name="payment_method" value="check" checked>
                             <div class="method-card">
-                                <div class="method-icon check">
-                                    <i class="fas fa-money-check"></i>
-                                </div>
+                                <div class="method-icon check"><i class="fas fa-money-check"></i></div>
                                 <span class="method-name">{% trans "Check" %}</span>
                             </div>
                         </label>
-                        
                         <label class="method-option">
                             <input type="radio" name="payment_method" value="transfer">
                             <div class="method-card">
-                                <div class="method-icon transfer">
-                                    <i class="fas fa-university"></i>
-                                </div>
+                                <div class="method-icon transfer"><i class="fas fa-university"></i></div>
                                 <span class="method-name">{% trans "Transfer" %}</span>
                             </div>
                         </label>
-                        
                         <label class="method-option">
                             <input type="radio" name="payment_method" value="cash">
                             <div class="method-card">
-                                <div class="method-icon cash">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                </div>
+                                <div class="method-icon cash"><i class="fas fa-money-bill-wave"></i></div>
                                 <span class="method-name">{% trans "Cash" %}</span>
                             </div>
                         </label>
                     </div>
                 </div>
                 
-                <!-- Conditional Fields -->
                 <div class="form-section">
-                    <!-- Check Number -->
-                    <div class="form-group conditional-field" id="checkNumberField">
-                        <label class="form-label">{% trans "Check Number" %}</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-hashtag"></i>
-                            <input type="text" name="check_number" class="form-control" placeholder="{% trans 'Enter check number' %}">
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Check Number / Reference" %}</label>
+                        <input type="text" name="check_number" class="form-control" placeholder="{% trans 'Optional' %}">
                     </div>
-                    
-                    <!-- Reference / Transaction ID -->
-                    <div class="form-group conditional-field" id="referenceField">
-                        <label class="form-label">{% trans "Transaction Reference" %}</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-fingerprint"></i>
-                            <input type="text" name="reference" class="form-control" placeholder="{% trans 'Transaction ID or reference' %}">
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Date -->
                     <div class="form-group">
                         <label class="form-label">{% trans "Payment Date" %}</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-calendar"></i>
-                            <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
-                        </div>
+                        <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
                     </div>
-                    
-                    <!-- Notes -->
                     <div class="form-group">
-                        <label class="form-label">{% trans "Notes" %} <span style="color: #a2a0a2;">({% trans "Optional" %})</span></label>
-                        <textarea name="notes" class="form-control form-textarea" placeholder="{% trans 'Add any notes about this payment...' %}"></textarea>
+                        <label class="form-label">{% trans "Notes" %}</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="{% trans 'Optional notes...' %}"></textarea>
                     </div>
                 </div>
                 
-                <!-- Actions -->
                 <div class="payment-actions">
-                    <a href="{% url 'payroll_weekly_review' %}" class="btn-payment btn-payment-secondary">
-                        {% trans "Cancel" %}
-                    </a>
+                    <a href="{% url 'payroll_weekly_review' %}" class="btn-payment btn-payment-secondary">{% trans "Cancel" %}</a>
                     <button type="submit" class="btn-payment btn-payment-primary">
-                        <i class="fas fa-check"></i>
-                        {% trans "Record Payment" %}
+                        <i class="fas fa-check"></i> {% trans "Record Payment" %}
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const methodInputs = document.querySelectorAll('input[name="payment_method"]');
-    const checkNumberField = document.getElementById('checkNumberField');
-    const referenceField = document.getElementById('referenceField');
-    const quickAmountBtns = document.querySelectorAll('.quick-amount-btn');
-    const amountInput = document.getElementById('amount');
-    
-    // Handle payment method change
-    function updateConditionalFields() {
-        const selected = document.querySelector('input[name="payment_method"]:checked').value;
-        
-        checkNumberField.classList.remove('show');
-        referenceField.classList.remove('show');
-        
-        if (selected === 'check') {
-            checkNumberField.classList.add('show');
-        } else if (selected === 'transfer') {
-            referenceField.classList.add('show');
-        }
-    }
-    
-    methodInputs.forEach(input => {
-        input.addEventListener('change', updateConditionalFields);
-    });
-    
-    // Initialize
-    updateConditionalFields();
-    
-    // Handle quick amount buttons
-    quickAmountBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const amount = this.dataset.amount;
-            amountInput.value = amount;
-            
-            quickAmountBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-    
-    // Remove active state when manually editing amount
-    amountInput.addEventListener('input', function() {
-        quickAmountBtns.forEach(b => b.classList.remove('active'));
-    });
-    
-    // Form validation
-    document.getElementById('paymentForm').addEventListener('submit', function(e) {
-        const amount = parseFloat(amountInput.value);
-        if (amount <= 0) {
-            e.preventDefault();
-            alert('{% trans "Please enter a valid amount" %}');
-            return;
-        }
-        
-        const method = document.querySelector('input[name="payment_method"]:checked').value;
-        if (method === 'check') {
-            const checkNumber = document.querySelector('input[name="check_number"]').value;
-            if (!checkNumber.trim()) {
-                e.preventDefault();
-                alert('{% trans "Please enter the check number" %}');
-                return;
-            }
-        }
-    });
-});
-</script>
-{% endblock %}
 {% endblock %}

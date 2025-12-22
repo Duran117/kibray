@@ -1,99 +1,44 @@
-{% extends 'core/base.html' %}{% extends "core/base_modern.html" %}
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% load static %}
 
-{% load i18n %}{% block content %}
+{% block title %}{% trans "Payment History" %} | {{ block.super }}{% endblock %}
 
-{% load static %}<div class="container py-4">
-
-  <div class="d-flex justify-content-between align-items-center mb-3">
-
-{% block title %}{% trans "Payment History" %} | {{ block.super }}{% endblock %}    <h3>Historial de Pagos de Nómina{% if employee %}: {{ employee.first_name }} {{ employee.last_name }}{% endif %}</h3>
-
-    <a href="{% url 'payroll_weekly_review' %}" class="btn btn-outline-secondary">Volver a Nómina Semanal</a>
-
-{% block extra_css %}  </div>
-
+{% block extra_css %}
 <style>
+.payroll-history-container {
+    display: flex;
+    min-height: 100vh;
+    background: #1e1f21;
+}
 
-/* Asana-Style Payment History */  <div class="table-responsive">
+.payroll-sidebar {
+    width: 240px;
+    background: #1e1f21;
+    border-right: 1px solid #424244;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+}
 
-.payroll-history-container {    <table class="table table-striped align-middle">
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #424244;
+}
 
-    display: flex;      <thead>
+.sidebar-title {
+    color: #f5f4f3;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-    min-height: 100vh;        <tr>
-
-    background: #1e1f21;          <th>Empleado</th>
-
-}          <th>Semana</th>
-
-          <th>Horas</th>
-
-/* Dark Sidebar */          <th>Total ($)</th>
-
-.payroll-sidebar {          <th>Pagado ($)</th>
-
-    width: 240px;          <th>Pendiente ($)</th>
-
-    background: #1e1f21;          <th>Pagos</th>
-
-    border-right: 1px solid #424244;        </tr>
-
-    position: fixed;      </thead>
-
-    height: 100vh;      <tbody>
-
-    overflow-y: auto;      {% for row in records_data %}
-
-    z-index: 100;        <tr>
-
-}          <td>{{ row.record.employee.first_name }} {{ row.record.employee.last_name }}</td>
-
-          <td>{{ row.record.week_start }} — {{ row.record.week_end }}</td>
-
-.sidebar-header {          <td>{{ row.record.total_hours|floatformat:2 }}</td>
-
-    padding: 20px;          <td>${{ row.record.total_pay|floatformat:2 }}</td>
-
-    border-bottom: 1px solid #424244;          <td>${{ row.amount_paid|floatformat:2 }}</td>
-
-}          <td>${{ row.balance_due|floatformat:2 }}</td>
-
-          <td>
-
-.sidebar-title {            <ul class="mb-0 small">
-
-    color: #f5f4f3;            {% for p in row.payments %}
-
-    font-size: 16px;              <li>{{ p.payment_date }} — ${{ p.amount|floatformat:2 }} ({{ p.get_payment_method_display }}) {% if p.check_number %}#{{ p.check_number }}{% endif %}</li>
-
-    font-weight: 600;            {% empty %}
-
-    margin: 0;              <li>—</li>
-
-    display: flex;            {% endfor %}
-
-    align-items: center;            </ul>
-
-    gap: 10px;          </td>
-
-}        </tr>
-
-      {% empty %}
-
-.sidebar-title i {        <tr><td colspan="7" class="text-center text-muted">Sin registros</td></tr>
-
-    color: #6d6e6f;      {% endfor %}
-
-}      </tbody>
-
-    </table>
-
-.sidebar-nav {  </div>
-
-    padding: 12px 0;</div>
-
-}{% endblock %}
-
+.sidebar-title i { color: #6d6e6f; }
+.sidebar-nav { padding: 12px 0; }
 
 .nav-section-title {
     color: #6d6e6f;
@@ -116,34 +61,10 @@
     border-left: 3px solid transparent;
 }
 
-.nav-item:hover {
-    background: #2e2e30;
-    color: #f5f4f3;
-}
+.nav-item:hover { background: #2e2e30; color: #f5f4f3; }
+.nav-item.active { background: #2e2e30; color: #f5f4f3; border-left-color: #4573d2; }
+.nav-item i { width: 20px; margin-right: 12px; font-size: 14px; }
 
-.nav-item.active {
-    background: #2e2e30;
-    color: #f5f4f3;
-    border-left-color: #4573d2;
-}
-
-.nav-item i {
-    width: 20px;
-    margin-right: 12px;
-    font-size: 14px;
-}
-
-.nav-item-badge {
-    margin-left: auto;
-    background: #4573d2;
-    color: white;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 600;
-}
-
-/* Main Content */
 .payroll-main {
     flex: 1;
     margin-left: 240px;
@@ -167,17 +88,8 @@
     margin-bottom: 16px;
 }
 
-.page-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #1e1f21;
-    margin: 0;
-}
-
-.header-actions {
-    display: flex;
-    gap: 12px;
-}
+.page-title { font-size: 24px; font-weight: 600; color: #1e1f21; margin: 0; }
+.header-actions { display: flex; gap: 12px; }
 
 .btn-asana {
     padding: 8px 16px;
@@ -193,97 +105,16 @@
     text-decoration: none;
 }
 
-.btn-asana-primary {
-    background: #4573d2;
-    color: white;
-}
+.btn-asana-primary { background: #4573d2; color: white; }
+.btn-asana-primary:hover { background: #3a63b8; color: white; }
+.btn-asana-secondary { background: #f6f8f9; color: #6d6e6f; border: 1px solid #e8ecee; }
+.btn-asana-secondary:hover { background: #e8ecee; color: #1e1f21; }
 
-.btn-asana-primary:hover {
-    background: #3a63b8;
-    color: white;
-}
+.content-body { padding: 24px 32px; }
 
-.btn-asana-secondary {
-    background: #f6f8f9;
-    color: #6d6e6f;
-    border: 1px solid #e8ecee;
-}
-
-.btn-asana-secondary:hover {
-    background: #e8ecee;
-    color: #1e1f21;
-}
-
-/* Filters Bar */
-.filters-bar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.filter-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.filter-label {
-    color: #6d6e6f;
-    font-size: 13px;
-}
-
-.filter-select {
-    padding: 6px 32px 6px 12px;
-    border: 1px solid #e8ecee;
-    border-radius: 6px;
-    font-size: 13px;
-    color: #1e1f21;
-    background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236d6e6f' d='M2 4l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center;
-    appearance: none;
-    cursor: pointer;
-}
-
-.filter-select:hover {
-    border-color: #a2a0a2;
-}
-
-.search-input {
-    padding: 8px 12px 8px 36px;
-    border: 1px solid #e8ecee;
-    border-radius: 6px;
-    font-size: 13px;
-    width: 250px;
-    background: white;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #4573d2;
-    box-shadow: 0 0 0 3px rgba(69, 115, 210, 0.1);
-}
-
-.search-wrapper {
-    position: relative;
-}
-
-.search-wrapper i {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #a2a0a2;
-}
-
-/* Content Area */
-.content-body {
-    padding: 24px 32px;
-}
-
-/* Stats Cards */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -295,35 +126,11 @@
     border: 1px solid #e8ecee;
 }
 
-.stat-label {
-    color: #6d6e6f;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
+.stat-label { color: #6d6e6f; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-value { font-size: 28px; font-weight: 600; color: #1e1f21; }
+.stat-value.success { color: #1aa251; }
+.stat-meta { color: #a2a0a2; font-size: 12px; margin-top: 4px; }
 
-.stat-value {
-    font-size: 28px;
-    font-weight: 600;
-    color: #1e1f21;
-}
-
-.stat-value.success {
-    color: #1aa251;
-}
-
-.stat-value.warning {
-    color: #f9a825;
-}
-
-.stat-meta {
-    color: #a2a0a2;
-    font-size: 12px;
-    margin-top: 4px;
-}
-
-/* Data Table */
 .data-table-container {
     background: white;
     border-radius: 8px;
@@ -339,21 +146,9 @@
     border-bottom: 1px solid #e8ecee;
 }
 
-.table-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e1f21;
-}
+.table-title { font-size: 16px; font-weight: 600; color: #1e1f21; }
 
-.table-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+.data-table { width: 100%; border-collapse: collapse; }
 
 .data-table th {
     background: #f6f8f9;
@@ -374,20 +169,9 @@
     color: #1e1f21;
 }
 
-.data-table tbody tr:hover {
-    background: #f9fafb;
-}
+.data-table tbody tr:hover { background: #f9fafb; }
 
-.data-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-/* Employee Cell */
-.employee-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+.employee-info { display: flex; align-items: center; gap: 12px; }
 
 .employee-avatar {
     width: 40px;
@@ -402,17 +186,9 @@
     font-size: 14px;
 }
 
-.employee-name {
-    font-weight: 500;
-    color: #1e1f21;
-}
+.employee-name { font-weight: 500; color: #1e1f21; }
+.employee-role { font-size: 12px; color: #6d6e6f; }
 
-.employee-role {
-    font-size: 12px;
-    color: #6d6e6f;
-}
-
-/* Status Badge */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -421,29 +197,11 @@
     border-radius: 12px;
     font-size: 12px;
     font-weight: 500;
-}
-
-.status-badge.completed {
     background: #e3fcef;
     color: #1aa251;
 }
 
-.status-badge.pending {
-    background: #fff8e1;
-    color: #f9a825;
-}
-
-.status-badge.failed {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-/* Payment Method */
-.payment-method {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+.payment-method { display: flex; align-items: center; gap: 8px; }
 
 .method-icon {
     width: 32px;
@@ -455,311 +213,95 @@
     font-size: 14px;
 }
 
-.method-icon.check {
-    background: #e8f0fe;
-    color: #4573d2;
-}
+.method-icon.check { background: #e8f0fe; color: #4573d2; }
+.method-icon.transfer { background: #e3fcef; color: #1aa251; }
+.method-icon.cash { background: #fff8e1; color: #f9a825; }
 
-.method-icon.transfer {
-    background: #e3fcef;
-    color: #1aa251;
-}
+.amount { font-weight: 600; color: #1e1f21; }
 
-.method-icon.cash {
-    background: #fff8e1;
-    color: #f9a825;
-}
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-icon { width: 80px; height: 80px; background: #f6f8f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.empty-icon i { font-size: 32px; color: #a2a0a2; }
+.empty-title { font-size: 18px; font-weight: 600; color: #1e1f21; margin-bottom: 8px; }
+.empty-text { color: #6d6e6f; font-size: 14px; }
 
-/* Amount */
-.amount {
-    font-weight: 600;
-    color: #1e1f21;
-}
-
-.amount-currency {
-    color: #a2a0a2;
-    font-size: 12px;
-}
-
-/* Actions */
-.action-btn {
-    padding: 6px;
-    border: none;
-    background: transparent;
-    color: #6d6e6f;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.action-btn:hover {
-    background: #f6f8f9;
-    color: #1e1f21;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-}
-
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    background: #f6f8f9;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-}
-
-.empty-icon i {
-    font-size: 32px;
-    color: #a2a0a2;
-}
-
-.empty-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1e1f21;
-    margin-bottom: 8px;
-}
-
-.empty-text {
-    color: #6d6e6f;
-    font-size: 14px;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-/* Pagination */
-.pagination-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-top: 1px solid #e8ecee;
-}
-
-.pagination-info {
-    color: #6d6e6f;
-    font-size: 13px;
-}
-
-.pagination-controls {
-    display: flex;
-    gap: 4px;
-}
-
-.page-btn {
-    padding: 6px 12px;
-    border: 1px solid #e8ecee;
-    background: white;
-    color: #6d6e6f;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.15s ease;
-}
-
-.page-btn:hover {
-    background: #f6f8f9;
-    color: #1e1f21;
-}
-
-.page-btn.active {
-    background: #4573d2;
-    color: white;
-    border-color: #4573d2;
-}
-
-.page-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Mobile Responsive */
 @media (max-width: 1024px) {
-    .payroll-sidebar {
-        display: none;
-    }
-    
-    .payroll-main {
-        margin-left: 0;
-    }
+    .payroll-sidebar { display: none; }
+    .payroll-main { margin-left: 0; }
 }
 
 @media (max-width: 768px) {
-    .content-header {
-        padding: 16px;
-    }
-    
-    .header-top {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-    }
-    
-    .filters-bar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .search-input {
-        width: 100%;
-    }
-    
-    .content-body {
-        padding: 16px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .data-table {
-        display: block;
-        overflow-x: auto;
-    }
+    .content-header { padding: 16px; }
+    .content-body { padding: 16px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .data-table { display: block; overflow-x: auto; }
 }
 
 @media (max-width: 480px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
+    .stats-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="payroll-history-container">
-    <!-- Dark Sidebar -->
     <aside class="payroll-sidebar">
         <div class="sidebar-header">
-            <h1 class="sidebar-title">
-                <i class="fas fa-money-check-alt"></i>
-                {% trans "Payroll" %}
-            </h1>
+            <h1 class="sidebar-title"><i class="fas fa-money-check-alt"></i> {% trans "Payroll" %}</h1>
         </div>
-        
         <nav class="sidebar-nav">
             <p class="nav-section-title">{% trans "Management" %}</p>
-            
             <a href="{% url 'payroll_weekly_review' %}" class="nav-item">
-                <i class="fas fa-calendar-week"></i>
-                {% trans "Weekly Review" %}
+                <i class="fas fa-calendar-week"></i> {% trans "Weekly Review" %}
             </a>
-            
             <a href="{% url 'payroll_payment_history' %}" class="nav-item active">
-                <i class="fas fa-history"></i>
-                {% trans "Payment History" %}
+                <i class="fas fa-history"></i> {% trans "Payment History" %}
             </a>
-            
             <a href="{% url 'payroll_summary' %}" class="nav-item">
-                <i class="fas fa-chart-pie"></i>
-                {% trans "Summary" %}
-            </a>
-            
-            <p class="nav-section-title">{% trans "Reports" %}</p>
-            
-            <a href="#" class="nav-item">
-                <i class="fas fa-file-export"></i>
-                {% trans "Export Data" %}
-            </a>
-            
-            <a href="#" class="nav-item">
-                <i class="fas fa-calculator"></i>
-                {% trans "Tax Reports" %}
+                <i class="fas fa-chart-pie"></i> {% trans "Summary" %}
             </a>
         </nav>
     </aside>
     
-    <!-- Main Content -->
     <main class="payroll-main">
         <header class="content-header">
             <div class="header-top">
                 <h1 class="page-title">{% trans "Payment History" %}</h1>
                 <div class="header-actions">
                     <a href="{% url 'payroll_weekly_review' %}" class="btn-asana btn-asana-secondary">
-                        <i class="fas fa-arrow-left"></i>
-                        {% trans "Back to Review" %}
+                        <i class="fas fa-arrow-left"></i> {% trans "Back" %}
                     </a>
-                    <button class="btn-asana btn-asana-primary" onclick="exportHistory()">
-                        <i class="fas fa-download"></i>
-                        {% trans "Export" %}
-                    </button>
-                </div>
-            </div>
-            
-            <div class="filters-bar">
-                <div class="filter-group">
-                    <span class="filter-label">{% trans "Period" %}:</span>
-                    <select class="filter-select" id="periodFilter" onchange="filterPayments()">
-                        <option value="">{% trans "All Time" %}</option>
-                        <option value="week">{% trans "This Week" %}</option>
-                        <option value="month">{% trans "This Month" %}</option>
-                        <option value="quarter">{% trans "This Quarter" %}</option>
-                        <option value="year">{% trans "This Year" %}</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <span class="filter-label">{% trans "Method" %}:</span>
-                    <select class="filter-select" id="methodFilter" onchange="filterPayments()">
-                        <option value="">{% trans "All Methods" %}</option>
-                        <option value="check">{% trans "Check" %}</option>
-                        <option value="transfer">{% trans "Transfer" %}</option>
-                        <option value="cash">{% trans "Cash" %}</option>
-                    </select>
-                </div>
-                
-                <div class="search-wrapper">
-                    <i class="fas fa-search"></i>
-                    <input type="text" class="search-input" placeholder="{% trans 'Search employees...' %}" id="searchInput" oninput="filterPayments()">
                 </div>
             </div>
         </header>
         
         <div class="content-body">
-            <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label">{% trans "Total Payments" %}</div>
                     <div class="stat-value">{{ payments|length }}</div>
-                    <div class="stat-meta">{% trans "All time records" %}</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">{% trans "Total Amount Paid" %}</div>
+                    <div class="stat-label">{% trans "Total Paid" %}</div>
                     <div class="stat-value success">${{ total_paid|floatformat:2|default:"0.00" }}</div>
-                    <div class="stat-meta">{% trans "Completed payments" %}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">{% trans "This Month" %}</div>
                     <div class="stat-value">${{ month_total|floatformat:2|default:"0.00" }}</div>
-                    <div class="stat-meta">{{ month_payments|default:0 }} {% trans "payments" %}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">{% trans "Avg Payment" %}</div>
                     <div class="stat-value">${{ avg_payment|floatformat:2|default:"0.00" }}</div>
-                    <div class="stat-meta">{% trans "Per transaction" %}</div>
                 </div>
             </div>
             
-            <!-- Payments Table -->
             <div class="data-table-container">
                 <div class="table-header">
                     <h2 class="table-title">{% trans "Payment Records" %}</h2>
-                    <div class="table-actions">
-                        <button class="btn-asana btn-asana-secondary btn-sm" onclick="printHistory()">
-                            <i class="fas fa-print"></i>
-                            {% trans "Print" %}
-                        </button>
-                    </div>
                 </div>
                 
                 {% if payments %}
-                <table class="data-table" id="paymentsTable">
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>{% trans "Employee" %}</th>
@@ -768,196 +310,47 @@
                             <th>{% trans "Date" %}</th>
                             <th>{% trans "Reference" %}</th>
                             <th>{% trans "Period" %}</th>
-                            <th>{% trans "Status" %}</th>
-                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for payment in payments %}
-                        <tr data-employee="{{ payment.payroll_record.employee.get_full_name|lower }}" 
-                            data-method="{{ payment.payment_method }}"
-                            data-date="{{ payment.payment_date|date:'Y-m-d' }}">
+                        <tr>
                             <td>
                                 <div class="employee-info">
-                                    <div class="employee-avatar">
-                                        {{ payment.payroll_record.employee.first_name|slice:":1" }}{{ payment.payroll_record.employee.last_name|slice:":1" }}
-                                    </div>
+                                    <div class="employee-avatar">{{ payment.payroll_record.employee.first_name|slice:":1" }}{{ payment.payroll_record.employee.last_name|slice:":1" }}</div>
                                     <div>
                                         <div class="employee-name">{{ payment.payroll_record.employee.get_full_name }}</div>
-                                        <div class="employee-role">{% if payment.payroll_record.employee.role %}{{ payment.payroll_record.employee.role }}{% else %}{% trans "Employee" %}{% endif %}</div>
+                                        <div class="employee-role">{{ payment.payroll_record.employee.role|default:"Employee" }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td>
-                                <div class="amount">${{ payment.amount|floatformat:2 }}</div>
-                                <div class="amount-currency">USD</div>
-                            </td>
+                            <td><div class="amount">${{ payment.amount|floatformat:2 }}</div></td>
                             <td>
                                 <div class="payment-method">
                                     <div class="method-icon {{ payment.payment_method }}">
-                                        {% if payment.payment_method == 'check' %}
-                                        <i class="fas fa-money-check"></i>
-                                        {% elif payment.payment_method == 'transfer' %}
-                                        <i class="fas fa-university"></i>
-                                        {% else %}
-                                        <i class="fas fa-money-bill-wave"></i>
-                                        {% endif %}
+                                        {% if payment.payment_method == 'check' %}<i class="fas fa-money-check"></i>
+                                        {% elif payment.payment_method == 'transfer' %}<i class="fas fa-university"></i>
+                                        {% else %}<i class="fas fa-money-bill-wave"></i>{% endif %}
                                     </div>
                                     <span>{{ payment.get_payment_method_display }}</span>
                                 </div>
                             </td>
                             <td>{{ payment.payment_date|date:"M d, Y" }}</td>
-                            <td>
-                                {% if payment.check_number %}
-                                <span class="text-muted">#{{ payment.check_number }}</span>
-                                {% elif payment.reference %}
-                                <span class="text-muted">{{ payment.reference|truncatechars:15 }}</span>
-                                {% else %}
-                                <span class="text-muted">—</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <small>
-                                    {{ payment.payroll_record.period.week_start|date:"M d" }} - 
-                                    {{ payment.payroll_record.period.week_end|date:"M d" }}
-                                </small>
-                            </td>
-                            <td>
-                                <span class="status-badge completed">
-                                    <i class="fas fa-check-circle"></i>
-                                    {% trans "Completed" %}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="action-btn" onclick="viewPaymentDetails({{ payment.id }})" title="{% trans 'View Details' %}">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
+                            <td>{% if payment.check_number %}#{{ payment.check_number }}{% elif payment.reference %}{{ payment.reference|truncatechars:15 }}{% else %}—{% endif %}</td>
+                            <td><small>{{ payment.payroll_record.period.week_start|date:"M d" }} - {{ payment.payroll_record.period.week_end|date:"M d" }}</small></td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                
-                <div class="pagination-wrapper">
-                    <div class="pagination-info">
-                        {% blocktrans with count=payments|length %}Showing {{ count }} payments{% endblocktrans %}
-                    </div>
-                </div>
                 {% else %}
                 <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-receipt"></i>
-                    </div>
+                    <div class="empty-icon"><i class="fas fa-receipt"></i></div>
                     <h3 class="empty-title">{% trans "No payment records yet" %}</h3>
-                    <p class="empty-text">{% trans "Payment records will appear here once you start processing payroll payments." %}</p>
-                    <a href="{% url 'payroll_weekly_review' %}" class="btn-asana btn-asana-primary" style="margin-top: 20px;">
-                        <i class="fas fa-play"></i>
-                        {% trans "Go to Payroll Review" %}
-                    </a>
+                    <p class="empty-text">{% trans "Payment records will appear here once you start processing payroll." %}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </main>
 </div>
-
-{% block extra_js %}
-<script>
-function filterPayments() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const method = document.getElementById('methodFilter').value;
-    const period = document.getElementById('periodFilter').value;
-    
-    const rows = document.querySelectorAll('#paymentsTable tbody tr');
-    
-    rows.forEach(row => {
-        const employee = row.dataset.employee;
-        const rowMethod = row.dataset.method;
-        const rowDate = new Date(row.dataset.date);
-        
-        let show = true;
-        
-        // Search filter
-        if (search && !employee.includes(search)) {
-            show = false;
-        }
-        
-        // Method filter
-        if (method && rowMethod !== method) {
-            show = false;
-        }
-        
-        // Period filter
-        if (period) {
-            const now = new Date();
-            let startDate;
-            
-            switch(period) {
-                case 'week':
-                    startDate = new Date(now);
-                    startDate.setDate(now.getDate() - 7);
-                    break;
-                case 'month':
-                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                    break;
-                case 'quarter':
-                    const quarter = Math.floor(now.getMonth() / 3);
-                    startDate = new Date(now.getFullYear(), quarter * 3, 1);
-                    break;
-                case 'year':
-                    startDate = new Date(now.getFullYear(), 0, 1);
-                    break;
-            }
-            
-            if (rowDate < startDate) {
-                show = false;
-            }
-        }
-        
-        row.style.display = show ? '' : 'none';
-    });
-}
-
-function exportHistory() {
-    // Get visible rows
-    const table = document.getElementById('paymentsTable');
-    if (!table) {
-        alert('{% trans "No data to export" %}');
-        return;
-    }
-    
-    let csv = 'Employee,Amount,Method,Date,Reference,Period\n';
-    
-    const rows = table.querySelectorAll('tbody tr:not([style*="display: none"])');
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        const employee = cells[0].querySelector('.employee-name').textContent.trim();
-        const amount = cells[1].querySelector('.amount').textContent.trim();
-        const method = cells[2].textContent.trim();
-        const date = cells[3].textContent.trim();
-        const reference = cells[4].textContent.trim();
-        const period = cells[5].textContent.trim();
-        
-        csv += `"${employee}","${amount}","${method}","${date}","${reference}","${period}"\n`;
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'payment_history.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-}
-
-function printHistory() {
-    window.print();
-}
-
-function viewPaymentDetails(paymentId) {
-    // Could open a modal with more details
-    alert('{% trans "Payment details view coming soon" %}');
-}
-</script>
-{% endblock %}
 {% endblock %}
