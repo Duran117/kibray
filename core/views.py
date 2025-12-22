@@ -1480,15 +1480,27 @@ def payroll_weekly_review(request):
                 messages.error(request, _("No se pudo aprobar: %(error)s") % {"error": e})
             return redirect("payroll_weekly_review")
 
+    # Calculate prev/next week for navigation
+    prev_week = week_start - timedelta(days=7)
+    next_week = week_start + timedelta(days=7)
+    
+    # Prepare records list for template
+    records = [data["record"] for data in employee_data]
+    total_net = sum(r.net_pay or r.total_pay or Decimal("0") for r in records)
+    
     context = {
         "period": period,
         "week_start": week_start,
         "week_end": week_end,
+        "prev_week": prev_week,
+        "next_week": next_week,
         "employee_data": employee_data,
+        "records": records,
         "total_hours": sum(data["calculated_hours"] for data in employee_data),
         "total_payroll": period.total_payroll(),
         "total_paid": period.total_paid(),
         "balance_due": period.balance_due(),
+        "total_net": total_net,
         "missing_employee_entries": missing_employee_entries,
         "inactive_employee_entries": inactive_employee_entries,
     }
@@ -1553,34 +1565,48 @@ def payroll_payment_history(request, employee_id=None):
     """
     Historial de pagos de nómina. Si se especifica employee_id, muestra solo ese empleado.
     """
+    from datetime import datetime
+    from django.db.models import Sum
+    
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
         return redirect("dashboard")
 
+    # Get all payments
+    payments = PayrollPayment.objects.select_related(
+        'payroll_record', 
+        'payroll_record__employee',
+        'payroll_record__period'
+    ).order_by('-payment_date', '-created_at')
+    
     if employee_id:
         employee = get_object_or_404(Employee, id=employee_id)
-        records = PayrollRecord.objects.filter(employee=employee).order_by("-week_start")
+        payments = payments.filter(payroll_record__employee=employee)
     else:
         employee = None
-        records = PayrollRecord.objects.all().order_by("-week_start", "employee__last_name")
 
-    # Agregar datos de pagos a cada registro
-    records_data = []
-    for record in records:
-        payments = record.payments.all()
-        records_data.append(
-            {
-                "record": record,
-                "payments": payments,
-                "amount_paid": record.amount_paid(),
-                "balance_due": record.balance_due(),
-            }
-        )
+    # Calculate stats
+    total_paid = payments.aggregate(total=Sum('amount'))['total'] or Decimal("0")
+    
+    # This month stats
+    now = datetime.now()
+    month_start = now.replace(day=1).date()
+    month_payments = payments.filter(payment_date__gte=month_start)
+    month_total = month_payments.aggregate(total=Sum('amount'))['total'] or Decimal("0")
+    month_count = month_payments.count()
+    
+    # Average payment
+    payment_count = payments.count()
+    avg_payment = total_paid / payment_count if payment_count > 0 else Decimal("0")
 
     context = {
         "employee": employee,
-        "records_data": records_data,
+        "payments": payments,
+        "total_paid": total_paid,
+        "month_total": month_total,
+        "month_payments": month_count,
+        "avg_payment": avg_payment,
     }
 
     return render(request, "core/payroll_payment_history.html", context)
@@ -6368,6 +6394,7 @@ def project_overview(request, project_id: int):
         {
             "project": project,
             "project_info": project_info,
+            "show_sidebar": False,  # Hide global sidebar, use project-specific Asana-style sidebar
             "colors": colors,
             "upcoming_schedules": upcoming_schedules,
             "recent_tasks": recent_tasks,
@@ -8973,7 +9000,7 @@ def project_schedule_google_calendar(request, project_id):
 def schedule_gantt_react_view(request, project_id):
     """
     Render the React-based Gantt chart for project schedule.
-    Replaces the Django template-based schedule view with an interactive React component.
+    Uses the new unified KibrayGantt React component.
     """
     project = get_object_or_404(Project, id=project_id)
 
@@ -8981,14 +9008,26 @@ def schedule_gantt_react_view(request, project_id):
     user_profile = getattr(request.user, "profile", None)
     can_manage = bool(
         request.user.is_staff
-        or (user_profile and getattr(user_profile, "role", None) in ["project_manager"])
+        or (user_profile and getattr(user_profile, "role", None) in ["project_manager", "admin", "superuser"])
     )
 
     if not can_manage:
         return HttpResponseForbidden("No tienes permisos para ver este cronograma.")
 
+    # Get team members for task assignment
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    team_members = User.objects.filter(
+        is_active=True
+    ).exclude(
+        username__in=['admin', 'system']
+    ).order_by('first_name', 'last_name')[:50]
+
     context = {
         "project": project,
+        "can_edit": can_manage,
+        "team_members": team_members,
+        "disable_notification_center": True,  # Avoid React conflicts with Gantt bundle
     }
 
     return render(request, "schedule_gantt_react.html", context)

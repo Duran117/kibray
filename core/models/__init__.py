@@ -281,7 +281,7 @@ class ColorApproval(models.Model):
     def __str__(self):
         return f"{self.project.name} · {self.color_name} ({self.status})"
 
-    def approve(self, approver: User | None = None, signature_file=None):
+    def approve(self, approver=None, signature_file=None):
         from django.utils import timezone
 
         self.status = "APPROVED"
@@ -305,7 +305,7 @@ class ColorApproval(models.Model):
                 related_object_id=self.project_id,
             )
 
-    def reject(self, approver: User | None = None, reason: str = ""):
+    def reject(self, approver=None, reason: str = ""):
         self.status = "REJECTED"
         if approver:
             self.approved_by = approver
@@ -2434,7 +2434,7 @@ class TwoFactorProfile(models.Model):
 
     @staticmethod
     def _totp(
-        secret_b32: str, for_time: int | None = None, period: int = 30, digits: int = 6
+        secret_b32: str, for_time=None, period: int = 30, digits: int = 6
     ) -> str:
         if for_time is None:
             for_time = int(time.time())

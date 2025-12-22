@@ -1,95 +1,581 @@
-{% extends "core/base_modern.html" %}
+{% extends 'core/base.html' %}
+{% load i18n %}
 {% load static %}
+
+{% block title %}{% trans "Weekly Payroll Review" %} | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.payroll-container {
+    display: flex;
+    min-height: 100vh;
+    background: #1e1f21;
+}
+
+.payroll-sidebar {
+    width: 240px;
+    background: #1e1f21;
+    border-right: 1px solid #424244;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #424244;
+}
+
+.sidebar-title {
+    color: #f5f4f3;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-title i { color: #6d6e6f; }
+.sidebar-nav { padding: 12px 0; }
+
+.nav-section-title {
+    color: #6d6e6f;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 20px 8px;
+    margin: 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 20px;
+    color: #a2a0a2;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.15s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+    background: #2e2e30;
+    color: #f5f4f3;
+}
+
+.nav-item.active {
+    background: #2e2e30;
+    color: #f5f4f3;
+    border-left-color: #4573d2;
+}
+
+.nav-item i {
+    width: 20px;
+    margin-right: 12px;
+    font-size: 14px;
+}
+
+.nav-item-badge {
+    margin-left: auto;
+    background: #4573d2;
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.payroll-main {
+    flex: 1;
+    margin-left: 240px;
+    background: #f6f8f9;
+    min-height: 100vh;
+}
+
+.content-header {
+    background: white;
+    border-bottom: 1px solid #e8ecee;
+    padding: 20px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e1f21;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-asana {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+
+.btn-asana-primary { background: #4573d2; color: white; }
+.btn-asana-primary:hover { background: #3a63b8; color: white; }
+.btn-asana-secondary { background: #f6f8f9; color: #6d6e6f; border: 1px solid #e8ecee; }
+.btn-asana-secondary:hover { background: #e8ecee; color: #1e1f21; }
+.btn-asana-success { background: #1aa251; color: white; }
+.btn-asana-success:hover { background: #158f45; }
+.btn-asana:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.week-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.week-nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #e8ecee;
+    background: white;
+    color: #6d6e6f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+
+.week-nav-btn:hover {
+    background: #f6f8f9;
+    color: #1e1f21;
+    border-color: #a2a0a2;
+}
+
+.current-week {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1e1f21;
+}
+
+.current-week span { color: #6d6e6f; font-weight: 400; }
+
+.week-picker {
+    padding: 6px 12px;
+    border: 1px solid #e8ecee;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.content-body { padding: 24px 32px; }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e8ecee;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+
+.stat-icon.blue { background: #e8f0fe; color: #4573d2; }
+.stat-icon.green { background: #e3fcef; color: #1aa251; }
+.stat-icon.orange { background: #fff8e1; color: #f9a825; }
+.stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
+
+.stat-label {
+    font-size: 12px;
+    color: #6d6e6f;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.stat-value { font-size: 28px; font-weight: 600; color: #1e1f21; }
+.stat-meta { font-size: 12px; color: #a2a0a2; margin-top: 4px; }
+
+.status-banner {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border: 1px solid #e8ecee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.status-info { display: flex; align-items: center; gap: 12px; }
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.status-badge.draft { background: #f6f8f9; color: #6d6e6f; }
+.status-badge.under-review { background: #fff8e1; color: #f9a825; }
+.status-badge.approved { background: #e3fcef; color: #1aa251; }
+.status-badge.paid { background: #e8f0fe; color: #4573d2; }
+
+.data-table-container {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8ecee;
+    overflow: hidden;
+}
+
+.table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e8ecee;
+}
+
+.table-title { font-size: 16px; font-weight: 600; color: #1e1f21; margin: 0; }
+
+.data-table { width: 100%; border-collapse: collapse; }
+
+.data-table th {
+    background: #f6f8f9;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d6e6f;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e8ecee;
+}
+
+.data-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f0f2f3;
+    font-size: 14px;
+    color: #1e1f21;
+    vertical-align: middle;
+}
+
+.data-table tbody tr:hover { background: #f9fafb; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+.employee-info { display: flex; align-items: center; gap: 12px; }
+
+.employee-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4573d2 0%, #7c3aed 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.employee-name { font-weight: 500; color: #1e1f21; }
+.employee-role { font-size: 12px; color: #6d6e6f; }
+
+.inline-input {
+    width: 80px;
+    padding: 6px 10px;
+    border: 1px solid #e8ecee;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: right;
+    transition: all 0.15s ease;
+}
+
+.inline-input:focus {
+    outline: none;
+    border-color: #4573d2;
+    box-shadow: 0 0 0 3px rgba(69, 115, 210, 0.1);
+}
+
+.inline-input.modified { background: #fff8e1; border-color: #f9a825; }
+
+.money-value { font-weight: 600; font-family: monospace; }
+.money-value.positive { color: #1aa251; }
+
+.hours-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: #f6f8f9;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.hours-badge.overtime { background: #fff8e1; color: #f9a825; }
+
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    background: #f6f8f9;
+    color: #6d6e6f;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.action-btn:hover { background: #e8ecee; color: #1e1f21; }
+.action-btn.primary { background: #4573d2; color: white; }
+.action-btn.primary:hover { background: #3a63b8; }
+
+.alert-modern {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.alert-modern i { font-size: 18px; margin-top: 2px; }
+.alert-modern.warning { background: #fff8e1; border: 1px solid #ffd54f; color: #5d4037; }
+.alert-content h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+.alert-content p { margin: 0; font-size: 13px; }
+
+.empty-state { text-align: center; padding: 60px 20px; }
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: #f6f8f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.empty-icon i { font-size: 32px; color: #a2a0a2; }
+.empty-title { font-size: 18px; font-weight: 600; color: #1e1f21; margin-bottom: 8px; }
+.empty-text { color: #6d6e6f; font-size: 14px; }
+
+@media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1024px) { .payroll-sidebar { display: none; } .payroll-main { margin-left: 0; } }
+@media (max-width: 768px) {
+    .content-header { padding: 16px; }
+    .header-top { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .content-body { padding: 16px; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .data-table-container { overflow-x: auto; }
+    .data-table { min-width: 800px; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <h2>Nómina Semanal: {{ week_start }} — {{ week_end }}</h2>
-
-  <div class="d-flex gap-2 my-3">
-    <form method="get" class="d-flex gap-2">
-      <input type="date" name="week_start" value="{{ week_start }}" class="form-control" />
-      <button class="btn btn-outline-primary" type="submit">Ir a semana</button>
-    </form>
-    <form method="post" class="ms-auto">{% csrf_token %}
-      <input type="hidden" name="action" value="approve_period" />
-      <button class="btn btn-success" {% if period.status == 'approved' %}disabled{% endif %}>Aprobar Semana</button>
-    </form>
-  </div>
-
-  <div class="alert alert-info">
-    Total Nómina: <strong>${{ total_payroll|floatformat:2 }}</strong> · Pagado: <strong>${{ total_paid|floatformat:2 }}</strong> · Pendiente: <strong>${{ balance_due|floatformat:2 }}</strong>
-  </div>
-
-  {% if missing_employee_entries.exists or inactive_employee_entries.exists %}
-  <div class="alert alert-warning">
-    <strong>Diagnóstico:</strong>
-    {% if missing_employee_entries.exists %}
-      {{ missing_employee_entries.count }} registros de tiempo en la semana no tienen empleado vinculado; no se pueden asignar a nómina.
-    {% endif %}
-    {% if inactive_employee_entries.exists %}
-      {{ inactive_employee_entries.count }} registros pertenecen a empleados inactivos y se omiten en la nómina.
-    {% endif %}
-  </div>
-  {% endif %}
-
-  <form method="post" class="card">{% csrf_token %}
-    <input type="hidden" name="action" value="update_records" />
-    <div class="table-responsive">
-      <table class="table table-striped align-middle">
-        <thead>
-          <tr>
-            <th>Empleado</th>
-            <th>Horas calculadas</th>
-            <th>Horas (editar)</th>
-            <th>Tasa base</th>
-            <th>Tasa ajustada</th>
-            <th>Total ($)</th>
-            <th>Notas</th>
-            <th>Pago</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for item in employee_data %}
-          {% with emp=item.employee rec=item.record %}
-          <tr>
-            <td>
-              <div class="fw-semibold">{{ emp.first_name }} {{ emp.last_name }}</div>
-              <div class="small text-muted">{{ emp.role|default:"Empleado" }}</div>
-              <details class="small mt-1">
-                <summary>Desglose por Proyecto</summary>
-                <ul class="mb-0">
-                  {% for pname, hrs in item.hours_by_project.items %}
-                    <li>{{ pname }}: {{ hrs|floatformat:2 }}h</li>
-                  {% empty %}<li>—</li>{% endfor %}
-                </ul>
-              </details>
-              <details class="small mt-1">
-                <summary>Desglose por CO</summary>
-                <ul class="mb-0">
-                  {% for co_desc, hrs in item.hours_by_co.items %}
-                    <li>{{ co_desc }}: {{ hrs|floatformat:2 }}h</li>
-                  {% empty %}<li>—</li>{% endfor %}
-                </ul>
-              </details>
-            </td>
-            <td>{{ item.calculated_hours|floatformat:2 }} h</td>
-            <td style="max-width:120px"><input class="form-control" type="number" step="0.01" name="hours_{{ emp.id }}" value="{{ rec.total_hours|default:item.calculated_hours }}" /></td>
-            <td>${{ rec.hourly_rate|floatformat:2 }}</td>
-            <td style="max-width:120px"><input class="form-control" type="number" step="0.01" name="rate_{{ emp.id }}" value="{{ rec.adjusted_rate|default:rec.hourly_rate }}" /></td>
-            <td>${{ rec.total_pay|floatformat:2 }}</td>
-            <td style="max-width:220px"><input class="form-control" type="text" name="notes_{{ emp.id }}" value="{{ rec.notes }}" placeholder="Notas" /></td>
-            <td>
-              <a href="{% url 'payroll_record_payment' rec.id %}" class="btn btn-sm btn-outline-success">Registrar Pago</a>
-              <div class="small text-muted">Pagado: ${{ rec.amount_paid|floatformat:2 }} · Pendiente: ${{ rec.balance_due|floatformat:2 }}</div>
-            </td>
-          </tr>
-          {% endwith %}
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <div class="p-3 text-end">
-      <button class="btn btn-primary">Guardar Cambios</button>
-    </div>
-  </form>
+<div class="payroll-container">
+    <aside class="payroll-sidebar">
+        <div class="sidebar-header">
+            <h1 class="sidebar-title"><i class="fas fa-money-check-alt"></i> {% trans "Payroll" %}</h1>
+        </div>
+        <nav class="sidebar-nav">
+            <p class="nav-section-title">{% trans "Management" %}</p>
+            <a href="{% url 'payroll_weekly_review' %}" class="nav-item active">
+                <i class="fas fa-calendar-week"></i> {% trans "Weekly Review" %}
+                {% if records %}<span class="nav-item-badge">{{ records|length }}</span>{% endif %}
+            </a>
+            <a href="{% url 'payroll_payment_history' %}" class="nav-item">
+                <i class="fas fa-history"></i> {% trans "Payment History" %}
+            </a>
+            <a href="{% url 'payroll_summary' %}" class="nav-item">
+                <i class="fas fa-chart-pie"></i> {% trans "Summary" %}
+            </a>
+        </nav>
+    </aside>
+    
+    <main class="payroll-main">
+        <header class="content-header">
+            <div class="header-top">
+                <h1 class="page-title">{% trans "Weekly Payroll Review" %}</h1>
+                <div class="header-actions">
+                    {% if period.status != 'approved' and period.status != 'paid' %}
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="approve_period">
+                        <button type="submit" class="btn-asana btn-asana-success">
+                            <i class="fas fa-check-circle"></i> {% trans "Approve Week" %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <button class="btn-asana btn-asana-secondary" onclick="window.print()">
+                        <i class="fas fa-print"></i> {% trans "Print" %}
+                    </button>
+                </div>
+            </div>
+            
+            <div class="week-nav">
+                <a href="?week_start={{ prev_week|date:'Y-m-d' }}" class="week-nav-btn"><i class="fas fa-chevron-left"></i></a>
+                <div class="current-week">{{ week_start|date:"M d" }} — {{ week_end|date:"M d, Y" }} <span>({% trans "Week" %} {{ week_start|date:"W" }})</span></div>
+                <a href="?week_start={{ next_week|date:'Y-m-d' }}" class="week-nav-btn"><i class="fas fa-chevron-right"></i></a>
+                <form method="get" style="margin-left: 16px;">
+                    <input type="date" name="week_start" value="{{ week_start|date:'Y-m-d' }}" class="week-picker" onchange="this.form.submit()">
+                </form>
+            </div>
+        </header>
+        
+        <div class="content-body">
+            {% if missing_employee_entries.exists or inactive_employee_entries.exists %}
+            <div class="alert-modern warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="alert-content">
+                    <h4>{% trans "Attention Required" %}</h4>
+                    <p>{% if missing_employee_entries.exists %}{{ missing_employee_entries.count }} {% trans "time entries without employee." %}{% endif %}
+                    {% if inactive_employee_entries.exists %}{{ inactive_employee_entries.count }} {% trans "inactive employee entries excluded." %}{% endif %}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                    <div class="stat-label">{% trans "Employees" %}</div>
+                    <div class="stat-value">{{ records|length }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-label">{% trans "Total Payroll" %}</div>
+                    <div class="stat-value">${{ total_payroll|floatformat:2|default:"0.00" }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-label">{% trans "Paid" %}</div>
+                    <div class="stat-value">${{ total_paid|floatformat:2|default:"0.00" }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                    <div class="stat-label">{% trans "Pending" %}</div>
+                    <div class="stat-value">${{ balance_due|floatformat:2|default:"0.00" }}</div>
+                </div>
+            </div>
+            
+            <div class="status-banner">
+                <div class="status-info">
+                    <span class="status-badge {{ period.status|default:'draft' }}">
+                        {% if period.status == 'approved' %}<i class="fas fa-check-circle"></i> {% trans "Approved" %}
+                        {% elif period.status == 'paid' %}<i class="fas fa-money-bill-wave"></i> {% trans "Paid" %}
+                        {% else %}<i class="fas fa-edit"></i> {% trans "Draft" %}{% endif %}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="data-table-container">
+                <div class="table-header">
+                    <h2 class="table-title">{% trans "Payroll Records" %}</h2>
+                    <form method="post" id="updateForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_records">
+                        <button type="submit" class="btn-asana btn-asana-primary"><i class="fas fa-save"></i> {% trans "Save" %}</button>
+                    </form>
+                </div>
+                
+                {% if records %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Employee" %}</th>
+                            <th>{% trans "Hours" %}</th>
+                            <th>{% trans "Edit" %}</th>
+                            <th>{% trans "Rate" %}</th>
+                            <th>{% trans "Overtime" %}</th>
+                            <th>{% trans "Gross" %}</th>
+                            <th>{% trans "Net" %}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>
+                                <div class="employee-info">
+                                    <div class="employee-avatar">{{ record.employee.first_name|slice:":1" }}{{ record.employee.last_name|slice:":1" }}</div>
+                                    <div>
+                                        <div class="employee-name">{{ record.employee.get_full_name }}</div>
+                                        <div class="employee-role">{{ record.employee.role|default:"Employee" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="hours-badge"><i class="fas fa-clock"></i> {{ record.total_hours|floatformat:1 }}h</span></td>
+                            <td><input type="number" name="hours_{{ record.employee.id }}" value="{{ record.total_hours|floatformat:2 }}" step="0.25" min="0" class="inline-input" form="updateForm"></td>
+                            <td><span class="money-value">${{ record.hourly_rate|floatformat:2 }}</span></td>
+                            <td>{% if record.overtime_hours > 0 %}<span class="hours-badge overtime"><i class="fas fa-fire"></i> {{ record.overtime_hours|floatformat:1 }}h</span>{% else %}—{% endif %}</td>
+                            <td><span class="money-value">${{ record.gross_pay|floatformat:2|default:record.total_pay }}</span></td>
+                            <td><span class="money-value positive">${{ record.net_pay|floatformat:2|default:record.total_pay }}</span></td>
+                            <td><a href="{% url 'payroll_record_payment' record.id %}" class="action-btn primary"><i class="fas fa-money-bill"></i> {% trans "Pay" %}</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #f6f8f9; font-weight: 600;">
+                            <td colspan="5" style="text-align: right;">{% trans "Totals" %}:</td>
+                            <td><span class="money-value">${{ total_payroll|floatformat:2 }}</span></td>
+                            <td><span class="money-value positive">${{ total_net|floatformat:2|default:total_payroll }}</span></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-calendar-times"></i></div>
+                    <h3 class="empty-title">{% trans "No records for this week" %}</h3>
+                    <p class="empty-text">{% trans "No time entries found for this period." %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
 </div>
 {% endblock %}

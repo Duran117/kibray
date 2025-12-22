@@ -102,10 +102,11 @@
     
     {# Core JavaScript #}
     <script src="{% static 'core/js/kibray-core.js' %}"></script>
-    {# NotificationCenter React bundle (only if authenticated and not in employee dashboard) #}
+    {# NotificationCenter React bundle - DISABLED: bundle was removed during Gantt cleanup
     {% if user.is_authenticated and not disable_notification_center %}
     <script type="module" src="{% static 'gantt/notification.DugCJ5ir.js' %}"></script>
     {% endif %}
+    #}
     
     {# Page-specific JavaScript #}
     {% block extra_js %}{% endblock %}

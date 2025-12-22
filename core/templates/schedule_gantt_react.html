@@ -1,11 +1,18 @@
 {% extends "core/base_modern.html" %}
 {% load static %}
+{% load i18n %}
+
+{# Disable notification center to avoid React version conflicts with Gantt bundle #}
+{% block disable_notification_center %}{% endblock %}
+
+{% block title %}{{ project.name }} - {% trans "Schedule" %}{% endblock %}
 
 {% block extra_css %}
+{# Styles are included inline in the bundle or via Tailwind CDN #}
 <style>
     .gantt-react-container {
         width: 100%;
-        height: calc(100vh - 100px);
+        height: calc(100vh - 120px);
         background: #fff;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -20,25 +27,69 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-3">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4 px-2">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'project_overview' project.id %}" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-xl font-semibold text-gray-800">{{ project.name }} - {% trans "Schedule" %}</h1>
+        </div>
+    </div>
+    
+    <!-- Gantt Container -->
     <div class="gantt-react-container">
-        <div id="gantt-app-root" data-project-id="{{ project.id }}"></div>
+        <div id="gantt-app-root"></div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-{% if DEBUG %}
-    <!-- Development: Load from Vite dev server -->
-    <script type="module" src="http://localhost:5173/@vite/client"></script>
-    <script type="module" src="http://localhost:5173/src/main.tsx"></script>
-{% else %}
-    <!-- Production: Load built Gantt bundle -->
-    <script type="module" crossorigin src="{% static 'gantt/gantt-app.js' %}"></script>
-    <!-- CSS is inlined in JS bundle or check actual filename in static/gantt/assets/ -->
-    {% comment %}
-    If CSS is needed separately, update the hash after each build:
-    <link rel="stylesheet" href="{% static 'gantt/assets/index-HASH.css' %}">
-    {% endcomment %}
-{% endif %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<script src="{% static 'gantt/gantt-app.iife.js' %}?v=20251221"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Team members for task assignment
+        const teamMembers = [
+            {% for member in team_members %}
+            { id: {{ member.id }}, name: "{{ member.get_full_name|default:member.username }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        // Helper: wait for the bundle to define window.KibrayGantt.mount
+        function waitForKibrayMount(cb, timeout = 5000) {
+            if (window.KibrayGantt && typeof window.KibrayGantt.mount === 'function') {
+                return cb();
+            }
+            const start = Date.now();
+            const iv = setInterval(() => {
+                if (window.KibrayGantt && typeof window.KibrayGantt.mount === 'function') {
+                    clearInterval(iv);
+                    return cb();
+                }
+                if (Date.now() - start > timeout) {
+                    clearInterval(iv);
+                    console.error('KibrayGantt bundle did not initialize within timeout');
+                }
+            }, 50);
+        }
+
+        // Mount the Gantt component when available
+        waitForKibrayMount(() => {
+            window.KibrayGantt.mount('gantt-app-root', {
+                mode: 'project',
+                projectId: {{ project.id }},
+                projectName: "{{ project.name|escapejs }}",
+                canEdit: {{ can_edit|yesno:"true,false" }},
+                csrfToken: "{{ csrf_token }}",
+                apiBaseUrl: '/api/v1',
+                initialView: 'gantt',
+                teamMembers: teamMembers,
+            });
+        });
+    });
+</script>
 {% endblock %}

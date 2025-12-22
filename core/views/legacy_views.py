@@ -6267,6 +6267,7 @@ def project_overview(request, project_id: int):
         {
             "project": project,
             "project_info": project_info,
+            "show_sidebar": False,  # Hide global sidebar, use project-specific Asana-style sidebar
             "colors": colors,
             "upcoming_schedules": upcoming_schedules,
             "recent_tasks": recent_tasks,
@@ -9179,7 +9180,7 @@ def project_schedule_google_calendar(request, project_id):
 def schedule_gantt_react_view(request, project_id):
     """
     Render the React-based Gantt chart for project schedule.
-    Replaces the Django template-based schedule view with an interactive React component.
+    Uses the new unified KibrayGantt React component.
     """
     project = get_object_or_404(Project, id=project_id)
 
@@ -9187,14 +9188,26 @@ def schedule_gantt_react_view(request, project_id):
     user_profile = getattr(request.user, "profile", None)
     can_manage = bool(
         request.user.is_staff
-        or (user_profile and getattr(user_profile, "role", None) in ["project_manager"])
+        or (user_profile and getattr(user_profile, "role", None) in ["project_manager", "admin", "superuser"])
     )
 
     if not can_manage:
         return HttpResponseForbidden("No tienes permisos para ver este cronograma.")
 
+    # Get team members for task assignment
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    team_members = User.objects.filter(
+        is_active=True
+    ).exclude(
+        username__in=['admin', 'system']
+    ).order_by('first_name', 'last_name')[:50]
+
     context = {
         "project": project,
+        "can_edit": can_manage,
+        "team_members": team_members,
+        "disable_notification_center": True,  # Avoid React conflicts with Gantt bundle
     }
 
     return render(request, "schedule_gantt_react.html", context)

@@ -2,6 +2,7 @@
 AI Services for Strategic Planner
 Provides intelligent assistance for task prioritization and planning
 """
+from __future__ import annotations
 
 try:
     import openai
