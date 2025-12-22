@@ -1,166 +1,647 @@
 {% extends "core/base_modern.html" %}
 {% load i18n %}
+{% load static %}
 
-{% block title %}{% trans "Asignaciones" %}{% endblock %}
+{% block title %}{% trans "Assignment Hub" %} | Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-  body {
-    background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.06), transparent 35%),
-                radial-gradient(circle at 80% 0%, rgba(56, 189, 248, 0.08), transparent 35%),
-                #f8fafc;
-  }
-  .kb-card {
-    border: 1px solid rgba(0,0,0,0.04);
+/* ===== ASSIGNMENT HUB - ASANA STYLE ===== */
+:root {
+    --hub-primary: #6366f1;
+    --hub-success: #10b981;
+    --hub-warning: #f59e0b;
+    --hub-danger: #ef4444;
+    --hub-gray-50: #f9fafb;
+    --hub-gray-100: #f3f4f6;
+    --hub-gray-200: #e5e7eb;
+    --hub-gray-300: #d1d5db;
+    --hub-gray-500: #6b7280;
+    --hub-gray-700: #374151;
+    --hub-gray-900: #111827;
+}
+
+.hub-page {
+    min-height: calc(100vh - 64px);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 24px;
+}
+
+/* Header */
+.hub-header {
+    background: linear-gradient(135deg, var(--hub-primary) 0%, #8b5cf6 100%);
     border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.07);
-    backdrop-filter: blur(6px);
-  }
-  .soft-header {
-    background: linear-gradient(135deg, #ffffff 0%, #f5f7fb 100%);
-    border-bottom: 1px solid rgba(0,0,0,0.04);
-    border-radius: 16px 16px 0 0;
-  }
-  .pill-badge {
-    border-radius: 999px;
-    padding: 4px 10px;
-    font-size: 12px;
-    background: #eef2ff;
-    color: #4338ca;
-  }
-  .list-group-item {
-    border: 1px solid rgba(0,0,0,0.03);
+    padding: 32px;
+    margin-bottom: 24px;
+    color: white;
+}
+
+.hub-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hub-header p {
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Stats */
+.hub-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.hub-stat {
+    background: white;
     border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.hub-stat h3 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--hub-gray-900);
+    margin: 0;
+}
+
+.hub-stat p {
+    font-size: 13px;
+    color: var(--hub-gray-500);
+    margin: 4px 0 0 0;
+}
+
+/* Main Grid */
+.hub-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 1024px) {
+    .hub-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Form Card */
+.form-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    height: fit-content;
+    position: sticky;
+    top: 24px;
+}
+
+.form-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--hub-gray-100);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--hub-gray-900);
+    margin: 0;
+}
+
+.form-card-header i {
+    color: var(--hub-primary);
+}
+
+.form-card-body {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--hub-gray-700);
     margin-bottom: 8px;
-  }
-  .list-group-item:last-child { margin-bottom: 0; }
-  .ghost-divider {
-    border-top: 1px dashed rgba(15,23,42,0.08);
-    margin: 12px 0;
-  }
+    font-size: 14px;
+}
+
+.form-group select,
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--hub-gray-200);
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.2s;
+    background: white;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    outline: none;
+    border-color: var(--hub-primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--hub-primary) 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+/* Calendar Section */
+.calendar-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.calendar-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--hub-gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.calendar-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--hub-gray-900);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-btn {
+    padding: 8px 12px;
+    background: var(--hub-gray-100);
+    border: none;
+    border-radius: 8px;
+    color: var(--hub-gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.nav-btn:hover {
+    background: var(--hub-gray-200);
+}
+
+.nav-btn.active {
+    background: var(--hub-primary);
+    color: white;
+}
+
+/* Day Grid */
+.day-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--hub-gray-100);
+}
+
+.day-header {
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--hub-gray-500);
+    font-size: 12px;
+    text-transform: uppercase;
+    background: var(--hub-gray-50);
+    border-right: 1px solid var(--hub-gray-100);
+}
+
+.day-header:last-child {
+    border-right: none;
+}
+
+/* Assignments List */
+.assignments-list {
+    padding: 0;
+}
+
+.date-group {
+    border-bottom: 1px solid var(--hub-gray-100);
+}
+
+.date-group:last-child {
+    border-bottom: none;
+}
+
+.date-header {
+    padding: 16px 24px;
+    background: var(--hub-gray-50);
+    font-weight: 600;
+    color: var(--hub-gray-700);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.date-header:hover {
+    background: var(--hub-gray-100);
+}
+
+.date-header .count {
+    background: var(--hub-primary);
+    color: white;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.date-header.today {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1e40af;
+}
+
+.date-header.today .count {
+    background: #1e40af;
+}
+
+.assignment-row {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--hub-gray-100);
+    gap: 16px;
+    transition: background 0.2s;
+}
+
+.assignment-row:hover {
+    background: var(--hub-gray-50);
+}
+
+.assignment-row:last-child {
+    border-bottom: none;
+}
+
+.emp-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--hub-primary) 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.assignment-info {
+    flex: 1;
+}
+
+.assignment-info h4 {
+    font-weight: 600;
+    color: var(--hub-gray-900);
+    margin: 0 0 4px 0;
+}
+
+.assignment-info p {
+    font-size: 13px;
+    color: var(--hub-gray-500);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.shift-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.shift-badge.morning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.shift-badge.afternoon {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.shift-badge.night {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.shift-badge.full {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.btn-delete {
+    padding: 8px;
+    background: none;
+    border: none;
+    color: var(--hub-gray-400);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+    color: var(--hub-danger);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--hub-gray-500);
+}
+
+.empty-state i {
+    font-size: 64px;
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+.empty-state h4 {
+    margin: 0 0 8px 0;
+    color: var(--hub-gray-700);
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+/* Filter Bar */
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    padding: 8px 16px;
+    border: 1px solid var(--hub-gray-200);
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+}
+
+/* Alert Messages */
+.alert-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border: 1px solid #6ee7b7;
+    color: #065f46;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h2 class="mb-1"><i class="bi bi-people"></i> {% trans "Asignaciones" %}</h2>
-      <p class="text-muted mb-0">{% trans "Asigna empleados a proyectos (máx. 2 por día: mañana / tarde)." %}</p>
+<div class="hub-page">
+    <!-- Header -->
+    <div class="hub-header">
+        <h1><i class="bi bi-people-fill"></i> {% trans "Assignment Hub" %}</h1>
+        <p>{% trans "Manage employee assignments to projects by date and shift" %}</p>
     </div>
-    <form method="get" class="d-flex align-items-center gap-2">
-      <label class="text-muted small mb-0" for="date">{% trans "Fecha base" %}</label>
-      <input type="date" id="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" class="form-control" style="max-width: 170px;" onchange="this.form.submit()">
-    </form>
-  </div>
-
-  {% if not can_assign %}
-    <div class="alert alert-warning"><i class="bi bi-shield-exclamation"></i> {% trans "Solo PM o admin pueden crear asignaciones." %}</div>
-  {% endif %}
-
-  <div class="row g-4">
-    <div class="col-lg-5">
-      <div class="card kb-card">
-        <div class="card-header soft-header d-flex align-items-center justify-content-between">
-          <div>
-            <strong>{% trans "Nueva asignación" %}</strong>
-            <div class="text-muted small">{% trans "Selecciona empleado, proyecto y turno" %}</div>
-          </div>
-          <span class="pill-badge">{% trans "Wizard" %}</span>
+    
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert-{{ message.tags }}">
+            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}-fill"></i>
+            {{ message }}
         </div>
-        <div class="card-body">
-          <form method="post" novalidate>
-            {% csrf_token %}
-            {% if form.non_field_errors %}
-              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-            {% endif %}
-            <div class="mb-3">
-              <label class="form-label">{% trans "Empleado" %}</label>
-              {{ form.employee }}
-              {% if form.employee.errors %}<div class="text-danger small">{{ form.employee.errors|striptags }}</div>{% endif %}
-            </div>
-            <div class="mb-3">
-              <label class="form-label">{% trans "Proyecto" %}</label>
-              {{ form.project }}
-              {% if form.project.errors %}<div class="text-danger small">{{ form.project.errors|striptags }}</div>{% endif %}
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">{% trans "Fecha" %}</label>
-                {{ form.date }}
-                {% if form.date.errors %}<div class="text-danger small">{{ form.date.errors|striptags }}</div>{% endif %}
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">{% trans "Turno" %}</label>
-                {{ form.shift }}
-                {% if form.shift.errors %}<div class="text-danger small">{{ form.shift.errors|striptags }}</div>{% endif %}
-              </div>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">{% trans "Notas" %}</label>
-              {{ form.notes }}
-              {% if form.notes.errors %}<div class="text-danger small">{{ form.notes.errors|striptags }}</div>{% endif %}
-            </div>
-            <button type="submit" class="btn btn-primary w-100" {% if not can_assign %}disabled{% endif %}>
-              <i class="bi bi-plus-circle"></i> {% trans "Asignar" %}
-            </button>
-          </form>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Stats -->
+    <div class="hub-stats">
+        <div class="hub-stat">
+            <h3>{{ assignments|length }}</h3>
+            <p>{% trans "Total Assignments" %}</p>
         </div>
-      </div>
+        <div class="hub-stat">
+            <h3>{{ employees|length }}</h3>
+            <p>{% trans "Available Employees" %}</p>
+        </div>
+        <div class="hub-stat">
+            <h3>{{ projects|length }}</h3>
+            <p>{% trans "Active Projects" %}</p>
+        </div>
     </div>
-
-    <div class="col-lg-7">
-      <div class="card kb-card">
-        <div class="card-header soft-header d-flex justify-content-between align-items-center">
-          <div>
-            <strong>{% trans "Calendario de asignaciones" %}</strong>
-            <div class="text-muted small">{% trans "Ventana deslizante de 14 días" %}</div>
-          </div>
-          <span class="pill-badge">±14d</span>
-        </div>
-        <div class="card-body">
-          {% if assignments_by_date %}
-            {% for day, items in assignments_by_date.items %}
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <h6 class="mb-0">{{ day|date:'l, M d, Y' }}</h6>
-                  <span class="badge bg-secondary">{{ items|length }} {% trans "asignaciones" %}</span>
-                </div>
-                <div class="list-group mb-2">
-                  {% for a in items %}
-                  <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <strong>{{ a.employee.first_name }} {{ a.employee.last_name }}</strong>
-                      <div class="text-muted small">{{ a.project.name }} · {{ a.get_shift_display }}</div>
-                      {% if a.notes %}<div class="small">{{ a.notes }}</div>{% endif %}
+    
+    <!-- Main Grid -->
+    <div class="hub-grid">
+        <!-- Form Card -->
+        {% if can_assign %}
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi bi-plus-circle"></i>
+                <h3>{% trans "New Assignment" %}</h3>
+            </div>
+            <div class="form-card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label><i class="bi bi-person"></i> {% trans "Employee" %}</label>
+                        <select name="employee" required>
+                            <option value="">{% trans "Select employee..." %}</option>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="text-end text-muted small">
-                      {% if a.created_by %}{% trans "Por" %} {{ a.created_by.username }}<br>{% endif %}
-                      {{ a.created_at|date:'M d, H:i' }}
-                      {% if can_assign %}
-                      <div class="mt-2 d-flex justify-content-end gap-2">
-                        <a class="btn btn-sm btn-outline-primary" href="{% url 'assignment_edit' a.id %}"><i class="bi bi-pencil"></i></a>
-                        <form method="post" action="{% url 'assignment_delete' a.id %}" onsubmit="return confirm('{% trans '¿Eliminar asignación?' %}');">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </form>
-                      </div>
-                      {% endif %}
+                    
+                    <div class="form-group">
+                        <label><i class="bi bi-building"></i> {% trans "Project" %}</label>
+                        <select name="project" required>
+                            <option value="">{% trans "Select project..." %}</option>
+                            {% for proj in projects %}
+                            <option value="{{ proj.id }}">{{ proj.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                  </div>
-                  {% endfor %}
-                </div>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="text-center text-muted py-5">
-              <i class="bi bi-calendar2-x fs-3 d-block mb-2"></i>
-              {% trans "Sin asignaciones en la ventana seleccionada." %}
+                    
+                    <div class="form-group">
+                        <label><i class="bi bi-calendar"></i> {% trans "Date" %}</label>
+                        <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="bi bi-clock"></i> {% trans "Shift" %}</label>
+                        <select name="shift" required>
+                            <option value="morning">🌅 {% trans "Morning" %}</option>
+                            <option value="afternoon">☀️ {% trans "Afternoon" %}</option>
+                            <option value="night">🌙 {% trans "Night" %}</option>
+                            <option value="full" selected>📅 {% trans "Full Day" %}</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-check-lg"></i>
+                        {% trans "Create Assignment" %}
+                    </button>
+                </form>
             </div>
-          {% endif %}
         </div>
-      </div>
+        {% endif %}
+        
+        <!-- Calendar/List Section -->
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <h3><i class="bi bi-calendar3"></i> {% trans "Assignments Calendar" %}</h3>
+                <div class="filter-bar">
+                    <select class="filter-select" id="projectFilter">
+                        <option value="">{% trans "All Projects" %}</option>
+                        {% for proj in projects %}
+                        <option value="{{ proj.id }}">{{ proj.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="filter-select" id="employeeFilter">
+                        <option value="">{% trans "All Employees" %}</option>
+                        {% for emp in employees %}
+                        <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="assignments-list">
+                {% if assignments_by_date %}
+                    {% for date, date_assignments in assignments_by_date.items %}
+                    <div class="date-group">
+                        <div class="date-header {% if date == today %}today{% endif %}">
+                            <i class="bi bi-calendar-day"></i>
+                            {{ date|date:"l, F d" }}
+                            {% if date == today %}
+                            <span style="font-size: 12px; opacity: 0.8; margin-left: 8px;">({% trans "Today" %})</span>
+                            {% endif %}
+                            <span class="count">{{ date_assignments|length }}</span>
+                        </div>
+                        {% for a in date_assignments %}
+                        <div class="assignment-row" data-project="{{ a.project.id }}" data-employee="{{ a.employee.id }}">
+                            <div class="emp-avatar">
+                                {{ a.employee.first_name|slice:":1" }}{{ a.employee.last_name|slice:":1" }}
+                            </div>
+                            <div class="assignment-info">
+                                <h4>{{ a.employee.first_name }} {{ a.employee.last_name }}</h4>
+                                <p>
+                                    <i class="bi bi-building"></i> {{ a.project.name }}
+                                </p>
+                            </div>
+                            <span class="shift-badge {{ a.shift }}">
+                                {% if a.shift == 'morning' %}🌅 {% trans "Morning" %}
+                                {% elif a.shift == 'afternoon' %}☀️ {% trans "Afternoon" %}
+                                {% elif a.shift == 'night' %}🌙 {% trans "Night" %}
+                                {% else %}📅 {% trans "Full Day" %}{% endif %}
+                            </span>
+                            {% if can_assign %}
+                            <form method="post" action="{% url 'assignment_delete' a.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-delete" onclick="return confirm('{% trans "Delete this assignment?" %}');">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-calendar-x"></i>
+                        <h4>{% trans "No Assignments" %}</h4>
+                        <p>{% trans "Create your first assignment using the form" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-  </div>
 </div>
+
+<script>
+// Filter functionality
+document.getElementById('projectFilter')?.addEventListener('change', filterAssignments);
+document.getElementById('employeeFilter')?.addEventListener('change', filterAssignments);
+
+function filterAssignments() {
+    const projectId = document.getElementById('projectFilter').value;
+    const employeeId = document.getElementById('employeeFilter').value;
+    
+    document.querySelectorAll('.assignment-row').forEach(row => {
+        const matchProject = !projectId || row.dataset.project === projectId;
+        const matchEmployee = !employeeId || row.dataset.employee === employeeId;
+        row.style.display = matchProject && matchEmployee ? 'flex' : 'none';
+    });
+    
+    // Update date group visibility
+    document.querySelectorAll('.date-group').forEach(group => {
+        const visibleRows = group.querySelectorAll('.assignment-row[style="display: flex;"], .assignment-row:not([style*="display"])');
+        let hasVisible = false;
+        group.querySelectorAll('.assignment-row').forEach(r => {
+            if(r.style.display !== 'none') hasVisible = true;
+        });
+        group.style.display = hasVisible ? 'block' : 'none';
+    });
+}
+</script>
 {% endblock %}

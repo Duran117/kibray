@@ -97,8 +97,10 @@ def assignment_hub(request):
             "can_assign": can_assign,
             "selected_date": selected_date,
             "assignments_by_date": assignments_by_date,
+            "assignments": assignments,
             "employees": employees,
             "projects": projects,
+            "today": today,
         },
     )
 

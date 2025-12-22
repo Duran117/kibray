@@ -1,297 +1,777 @@
 {% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Employee Dashboard" %} | Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== EMPLOYEE DASHBOARD - ASANA STYLE ===== */
+:root {
+    --emp-primary: #6366f1;
+    --emp-primary-dark: #4f46e5;
+    --emp-success: #10b981;
+    --emp-warning: #f59e0b;
+    --emp-danger: #ef4444;
+    --emp-gray-50: #f9fafb;
+    --emp-gray-100: #f3f4f6;
+    --emp-gray-200: #e5e7eb;
+    --emp-gray-300: #d1d5db;
+    --emp-gray-500: #6b7280;
+    --emp-gray-600: #4b5563;
+    --emp-gray-700: #374151;
+    --emp-gray-800: #1f2937;
+    --emp-gray-900: #111827;
+}
+
+.emp-dashboard {
+    min-height: calc(100vh - 64px);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 24px;
+}
+
+/* Header */
+.emp-header {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.emp-greeting {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.emp-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--emp-primary) 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+}
+
+.emp-greeting h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--emp-gray-900);
+    margin: 0;
+}
+
+.emp-greeting p {
+    color: var(--emp-gray-500);
+    margin: 4px 0 0 0;
+    font-size: 15px;
+}
+
+.emp-time-display {
+    text-align: right;
+}
+
+.emp-time-display .time {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--emp-gray-900);
+    font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+.emp-time-display .date {
+    color: var(--emp-gray-500);
+    font-size: 14px;
+}
+
+/* Clock Card */
+.clock-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.clock-status {
+    margin-bottom: 24px;
+}
+
+.clock-status .icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.clock-status.working .icon {
+    color: var(--emp-success);
+    animation: pulse 2s infinite;
+}
+
+.clock-status.not-working .icon {
+    color: var(--emp-gray-300);
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+.clock-status h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--emp-gray-900);
+    margin: 0 0 8px 0;
+}
+
+.clock-status p {
+    color: var(--emp-gray-500);
+    margin: 0;
+}
+
+.clock-project {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--emp-gray-100);
+    padding: 8px 16px;
+    border-radius: 20px;
+    margin-top: 12px;
+    font-weight: 500;
+    color: var(--emp-gray-700);
+}
+
+.clock-btn {
+    padding: 16px 48px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.clock-btn.clock-in {
+    background: linear-gradient(135deg, var(--emp-success) 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+.clock-btn.clock-in:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.clock-btn.clock-out {
+    background: linear-gradient(135deg, var(--emp-danger) 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+}
+
+.clock-btn.clock-out:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+}
+
+/* Clock Form */
+.clock-form {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.clock-form .form-group {
+    margin-bottom: 20px;
+}
+
+.clock-form label {
+    display: block;
+    font-weight: 600;
+    color: var(--emp-gray-700);
+    margin-bottom: 8px;
+}
+
+.clock-form select,
+.clock-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--emp-gray-200);
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.2s;
+}
+
+.clock-form select:focus,
+.clock-form textarea:focus {
+    outline: none;
+    border-color: var(--emp-primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* Stats Grid */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-card .stat-icon.blue { background: #dbeafe; color: #2563eb; }
+.stat-card .stat-icon.green { background: #d1fae5; color: #059669; }
+.stat-card .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
+.stat-card .stat-icon.orange { background: #ffedd5; color: #ea580c; }
+
+.stat-card .stat-info h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--emp-gray-900);
+    margin: 0;
+}
+
+.stat-card .stat-info p {
+    font-size: 13px;
+    color: var(--emp-gray-500);
+    margin: 4px 0 0 0;
+}
+
+/* Main Grid */
+.emp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+/* Section Cards */
+.section-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--emp-gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--emp-gray-900);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header h3 i {
+    color: var(--emp-primary);
+}
+
+.section-badge {
+    background: var(--emp-primary);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.section-body {
+    padding: 20px 24px;
+}
+
+/* Task List */
+.task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--emp-gray-100);
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--emp-gray-300);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.task-checkbox:hover {
+    border-color: var(--emp-primary);
+}
+
+.task-checkbox.completed {
+    background: var(--emp-success);
+    border-color: var(--emp-success);
+}
+
+.task-content {
+    flex: 1;
+}
+
+.task-title {
+    font-weight: 500;
+    color: var(--emp-gray-900);
+    margin: 0 0 4px 0;
+}
+
+.task-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--emp-gray-500);
+}
+
+.task-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.task-tag.project {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.task-tag.touchup {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Schedule List */
+.schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--emp-gray-100);
+}
+
+.schedule-item:last-child {
+    border-bottom: none;
+}
+
+.schedule-time {
+    background: linear-gradient(135deg, var(--emp-primary) 0%, #8b5cf6 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    text-align: center;
+    min-width: 60px;
+}
+
+.schedule-info h4 {
+    font-weight: 600;
+    color: var(--emp-gray-900);
+    margin: 0 0 4px 0;
+}
+
+.schedule-info p {
+    font-size: 13px;
+    color: var(--emp-gray-500);
+    margin: 0;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--emp-gray-500);
+}
+
+.empty-state i {
+    font-size: 48px;
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+/* Assignment Alert */
+.assignment-alert {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #93c5fd;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.assignment-alert h4 {
+    font-weight: 600;
+    color: #1e40af;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.assignment-alert ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #1e40af;
+}
+
+.assignment-alert li {
+    margin: 4px 0;
+}
+
+/* No Assignment Warning */
+.no-assignment-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1px solid #fcd34d;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.no-assignment-warning h4 {
+    font-weight: 600;
+    color: #92400e;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.no-assignment-warning p {
+    color: #92400e;
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .emp-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .emp-greeting {
+        flex-direction: column;
+    }
+    
+    .emp-time-display {
+        text-align: center;
+    }
+    
+    .emp-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-4 kb-container-narrow">
-  {% if not employee %}
-    <div class="alert alert-danger">No estás vinculado a un empleado. Pide al admin que te asigne.</div>
-  {% else %}
-
-  <!-- Header -->
-  <div class="text-center mb-4">
-    <h2 class="mb-1"><span class="text-gradient"><i class="bi bi-person-workspace"></i> Hola, {{ employee.first_name }}!</span></h2>
-    <p class="text-muted">{{ today|date:"l, F d, Y" }} · {{ now|date:"g:i A" }}</p>
-  </div>
-
-  <!-- Clock In/Out (Destacado) -->
-  <div class="card kb-elevated mb-4">
-    <div class="card-body text-center p-4">
-      {% if open_entry %}
-        <i class="bi bi-clock-fill text-success" style="font-size: 3rem;"></i>
-        <h4 class="mt-3 mb-2">Trabajando en {{ open_entry.project.name }}</h4>
-        <p class="text-muted mb-3">Entrada: {{ open_entry.start_time|date:"g:i A" }}</p>
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="clock_out">
-          <button class="btn btn-danger btn-lg px-5">
-            <i class="bi bi-box-arrow-right"></i> Marcar Salida
-          </button>
+<div class="emp-dashboard">
+    {% if not employee %}
+    <div class="clock-card">
+        <div class="empty-state">
+            <i class="bi bi-person-x"></i>
+            <h2>{% trans "Account Not Linked" %}</h2>
+            <p>{% trans "Your user account is not linked to an employee profile. Please contact your administrator." %}</p>
+        </div>
+    </div>
+    {% else %}
+    
+    <!-- Header -->
+    <div class="emp-header">
+        <div class="emp-greeting">
+            <div class="emp-avatar">
+                {{ employee.first_name|slice:":1" }}{{ employee.last_name|slice:":1" }}
+            </div>
+            <div>
+                <h1>{% trans "Hello" %}, {{ employee.first_name }}! 👋</h1>
+                <p>{% trans "Welcome to your dashboard" %}</p>
+            </div>
+        </div>
+        <div class="emp-time-display">
+            <div class="time" id="currentTime">--:--</div>
+            <div class="date">{{ today|date:"l, F d, Y" }}</div>
+        </div>
+    </div>
+    
+    <!-- Clock In/Out Card -->
+    <div class="clock-card">
+        {% if open_entry %}
+        <!-- Currently Working -->
+        <div class="clock-status working">
+            <div class="icon"><i class="bi bi-clock-fill"></i></div>
+            <h2>{% trans "Currently Working" %}</h2>
+            <p>{% trans "Started at" %} {{ open_entry.start_time|time:"g:i A" }}</p>
+            <div class="clock-project">
+                <i class="bi bi-building"></i>
+                {{ open_entry.project.name }}
+            </div>
+        </div>
+        <form method="post" style="margin-top: 24px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_out">
+            <button type="submit" class="clock-btn clock-out">
+                <i class="bi bi-box-arrow-right"></i>
+                {% trans "Clock Out" %}
+            </button>
         </form>
-      {% else %}
-        <i class="bi bi-clock text-primary" style="font-size: 3rem;"></i>
-        <h4 class="mt-3 mb-4">Marca tu Entrada</h4>
+        {% else %}
+        <!-- Not Working -->
+        <div class="clock-status not-working">
+            <div class="icon"><i class="bi bi-clock"></i></div>
+            <h2>{% trans "Ready to Start?" %}</h2>
+            <p>{% trans "Clock in to begin your workday" %}</p>
+        </div>
         
         {% if assignments_today %}
-        <div class="alert alert-info mb-3 text-start">
-          <i class="bi bi-people"></i> <strong>Asignaciones de hoy:</strong><br>
-          <ul class="mb-0 mt-2 ps-3">
-            {% for a in assignments_today %}
-            <li>{{ a.project.name }} ({{ a.get_shift_display }})</li>
-            {% endfor %}
-          </ul>
-          {% if not allow_all_projects %}
-          <div class="mt-2">
-            <a href="{% url 'dashboard_employee' %}?all_projects=1" class="btn btn-sm btn-outline-warning">
-              Modo temporal: ver todos los proyectos
-            </a>
-            <small class="text-muted d-block">Solo mientras afinamos las asignaciones.</small>
-          </div>
-          {% endif %}
-        </div>
-        {% else %}
-        <div class="alert alert-warning mb-3">
-          <i class="bi bi-exclamation-triangle"></i> <strong>No tienes proyectos asignados hoy.</strong><br>
-          <small>Contacta a tu supervisor para que te asigne a un proyecto en el Plan Diario.</small>
-          {% if upcoming_assignments %}
-          <div class="mt-2">
-            <strong>Asignaciones próximas:</strong>
-            <ul class="mb-0 mt-1 ps-3">
-              {% for a in upcoming_assignments %}
-              <li>{{ a.date }} · {{ a.project.name }} ({{ a.get_shift_display }})</li>
-              {% endfor %}
+        <div class="assignment-alert">
+            <h4><i class="bi bi-calendar-check"></i> {% trans "Today's Assignments" %}</h4>
+            <ul>
+                {% for a in assignments_today %}
+                <li>{{ a.project.name }} ({{ a.get_shift_display }})</li>
+                {% endfor %}
             </ul>
-          </div>
-          {% endif %}
-        </div>
-        {% endif %}
-        {% if form.errors %}
-        <div class="alert alert-danger text-start">
-          <strong>Errores:</strong>
-          <ul class="mb-0 mt-2 ps-3">
-            {% for field, errs in form.errors.items %}
-            <li>{{ field }}: {{ errs|join:", " }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-        {% endif %}
-
-        {% if available_projects_count == 0 %}
-        <div class="alert alert-danger small text-start">
-          <strong>Debug:</strong> No se encontraron proyectos en la lista disponible. Verifica que existan proyectos o usa ?all_projects=1.
         </div>
         {% else %}
-        <div class="alert alert-secondary small text-start">
-          <strong>Debug:</strong> Proyectos disponibles (máx 5):
-          <ul class="mb-0 mt-1 ps-3">
-            {% for p in available_projects_preview %}
-            <li>{{ p.id }} · {{ p.name }}</li>
-            {% endfor %}
-          </ul>
+        <div class="no-assignment-warning">
+            <h4><i class="bi bi-exclamation-triangle"></i> {% trans "No Assignments Today" %}</h4>
+            <p>{% trans "Contact your supervisor for project assignment." %}</p>
         </div>
         {% endif %}
-
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="clock_in">
-          {% if allow_all_projects %}
-          <input type="hidden" name="all_projects" value="1">
-          <div class="alert alert-success small text-start">
-            <i class="bi bi-unlock"></i> Modo temporal activo: puedes elegir cualquier proyecto ({{ available_projects_count }}).
-            <a href="{% url 'dashboard_employee' %}" class="ms-2">Volver a asignados</a>
-          </div>
-          {% elif not assignments_today %}
-          <div class="alert alert-secondary small text-start">
-            <i class="bi bi-info-circle"></i> Sin asignaciones hoy: mostramos todos los proyectos disponibles ({{ available_projects_count }}).
-          </div>
-          {% endif %}
-          <div class="row g-3 justify-content-center">
-            <div class="col-md-6">
-              <label class="form-label"><strong>Proyecto:</strong></label>
-              {{ form.project }}
+        
+        <form method="post" class="clock-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_in">
+            
+            <div class="form-group">
+                <label>{% trans "Project" %}</label>
+                {{ form.project }}
             </div>
-            <div class="col-md-4">
-              <label class="form-label"><strong>Cost Code:</strong></label>
-              {{ form.cost_code }}
+            
+            <div class="form-group">
+                <label>{% trans "Cost Code" %} ({% trans "Optional" %})</label>
+                {{ form.cost_code }}
             </div>
-            <div class="col-12">
-              <label class="form-label"><strong>Notas (opcional):</strong></label>
-              {{ form.notes }}
+            
+            <div class="form-group">
+                <label>{% trans "Notes" %} ({% trans "Optional" %})</label>
+                {{ form.notes }}
             </div>
-            <div class="col-12">
-              <button class="btn btn-primary btn-lg px-5 shadow-hover">
-                <i class="bi bi-box-arrow-in-right"></i> Marcar Entrada
-              </button>
+            
+            <div style="text-align: center; margin-top: 24px;">
+                <button type="submit" class="clock-btn clock-in">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    {% trans "Clock In" %}
+                </button>
             </div>
-          </div>
         </form>
-      {% endif %}
-  <!-- Mis Touch-Ups -->
-  {% if my_touchups %}
-  <div class="card mb-4">
-    <div class="card-header" style="background: var(--kb-gradient-accent); color:#fff;">
-      <h5 class="mb-0"><i class="bi bi-brush"></i> Mis Touch-Ups Asignados</h5>
+        {% endif %}
     </div>
-    <div class="card-body">
-      <ul class="list-group list-group-flush">
-        {% for task in my_touchups %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-          <div>
-            <h6 class="mb-1">{{ task.title }}</h6>
-            <small class="text-muted">{{ task.project.name }}</small>
-            {% if task.description %}
-            <p class="mb-0 small mt-1">{{ task.description|truncatewords:15 }}</p>
-            {% endif %}
-          </div>
-          <div class="d-flex flex-column align-items-end gap-1">
-            <span class="badge bg-{% if task.status == 'Pendiente' %}secondary{% elif task.status == 'En Progreso' %}primary{% else %}success{% endif %}">
-              {{ task.status }}
-            </span>
-            <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-outline-primary">
-              Ver
-            </a>
-          </div>
-        </li>
-        {% endfor %}
-      </ul>
-    </div>
-  </div>
-  {% endif %}
-
-    </div>
-  </div>
-
-  <!-- Horas de la Semana -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-6">
-      <div class="card text-center h-100">
-        <div class="card-body">
-          <i class="bi bi-calendar-week text-info" style="font-size: 2rem;"></i>
-          <h3 class="mt-2 mb-0">{{ week_hours|floatformat:1 }}h</h3>
-          <p class="text-muted mb-0">Esta Semana</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card text-center h-100">
-        <div class="card-body">
-          <i class="bi bi-list-check text-success" style="font-size: 2rem;"></i>
-          <h3 class="mt-2 mb-0">{{ my_activities|length }}</h3>
-          <p class="text-muted mb-0">Tareas Pendientes Hoy</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Qué hacer hoy -->
-  {% if my_activities %}
-  <div class="card mb-4">
-    <div class="card-header text-white" style="background: var(--kb-gradient-success);">
-      <h5 class="mb-0"><i class="bi bi-list-task"></i> Qué Hacer Hoy</h5>
-    </div>
-    <div class="card-body">
-      <ul class="list-group list-group-flush">
-        {% for item in my_activities %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-          <div>
-            <h6 class="mb-1">{{ item.activity.title }}</h6>
-            <small class="text-muted">{{ item.project.name }}</small>
-            {% if item.activity.description %}
-            <p class="mb-0 small mt-1">{{ item.activity.description }}</p>
-            {% endif %}
-          </div>
-          <a href="{% url 'activity_complete' item.activity.id %}" class="btn btn-sm btn-outline-success">
-            <i class="bi bi-check-circle"></i> Completar
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Mi Schedule Hoy -->
-  {% if my_schedule %}
-  <div class="card mb-4">
-    <div class="card-header text-white" style="background: var(--kb-gradient-accent);">
-      <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Mi Horario de Hoy</h5>
-    </div>
-    <div class="card-body">
-      <ul class="list-group list-group-flush">
-        {% for sched in my_schedule %}
-        <li class="list-group-item">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <h6 class="mb-1">{{ sched.title }}</h6>
-              <small class="text-muted">{{ sched.project.name }}</small>
+    
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-calendar-check"></i></div>
+            <div class="stat-info">
+                <h3>{{ my_schedule|length }}</h3>
+                <p>{% trans "Today's Schedule" %}</p>
             </div>
-            <span class="badge bg-info">{{ sched.start_datetime|date:"g:i A" }}</span>
-          </div>
-          {% if sched.description %}
-          <p class="mb-0 small mt-2">{{ sched.description }}</p>
-          {% endif %}
-        </li>
-        {% endfor %}
-      </ul>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-list-task"></i></div>
+            <div class="stat-info">
+                <h3>{{ my_activities|length }}</h3>
+                <p>{% trans "Activities Assigned" %}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="bi bi-brush"></i></div>
+            <div class="stat-info">
+                <h3>{{ my_touchups|length }}</h3>
+                <p>{% trans "Touch-ups Pending" %}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-building"></i></div>
+            <div class="stat-info">
+                <h3>{{ assignments_today|length }}</h3>
+                <p>{% trans "Projects Today" %}</p>
+            </div>
+        </div>
     </div>
-  </div>
-  {% endif %}
-
-  <!-- Acciones Rápidas -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5 class="mb-0"><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
+    
+    <!-- Main Grid -->
+    <div class="emp-grid">
+        <!-- Today's Activities -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="bi bi-lightning-charge"></i> {% trans "Today's Activities" %}</h3>
+                {% if my_activities %}
+                <span class="section-badge">{{ my_activities|length }}</span>
+                {% endif %}
+            </div>
+            <div class="section-body">
+                {% if my_activities %}
+                <ul class="task-list">
+                    {% for item in my_activities %}
+                    <li class="task-item">
+                        <div class="task-checkbox"></div>
+                        <div class="task-content">
+                            <p class="task-title">{{ item.activity.description }}</p>
+                            <div class="task-meta">
+                                <span class="task-tag project">
+                                    <i class="bi bi-building"></i> {{ item.project.name }}
+                                </span>
+                                {% if item.activity.start_time %}
+                                <span><i class="bi bi-clock"></i> {{ item.activity.start_time|time:"g:i A" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-clipboard-check"></i>
+                    <p>{% trans "No activities assigned for today" %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- My Schedule -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="bi bi-calendar3"></i> {% trans "Today's Schedule" %}</h3>
+            </div>
+            <div class="section-body">
+                {% if my_schedule %}
+                {% for s in my_schedule %}
+                <div class="schedule-item">
+                    <div class="schedule-time">
+                        {{ s.start_datetime|time:"g:i A" }}
+                    </div>
+                    <div class="schedule-info">
+                        <h4>{{ s.title }}</h4>
+                        <p>{{ s.project.name }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <p>{% trans "No scheduled events today" %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Touch-ups -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="bi bi-brush"></i> {% trans "My Touch-ups" %}</h3>
+                {% if my_touchups %}
+                <span class="section-badge">{{ my_touchups|length }}</span>
+                {% endif %}
+            </div>
+            <div class="section-body">
+                {% if my_touchups %}
+                <ul class="task-list">
+                    {% for task in my_touchups %}
+                    <li class="task-item">
+                        <div class="task-checkbox {% if task.status == 'Completada' %}completed{% endif %}"></div>
+                        <div class="task-content">
+                            <p class="task-title">{{ task.title }}</p>
+                            <div class="task-meta">
+                                <span class="task-tag touchup">
+                                    <i class="bi bi-brush"></i> Touch-up
+                                </span>
+                                <span class="task-tag project">{{ task.project.name }}</span>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-brush"></i>
+                    <p>{% trans "No touch-ups assigned" %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-      <div class="kb-action-grid" role="grid" aria-label="Acciones rápidas Empleado">
-        <a href="{% url 'employee_morning_dashboard' %}" class="shadow-hover"><i class="bi bi-sun"></i> Plan Mañana</a>
-        <a href="{% url 'notifications_list' %}" class="shadow-hover"><i class="bi bi-bell"></i> Notificaciones {% if badges.unread_notifications_count > 0 %}<span class="badge bg-danger ms-1">{{ badges.unread_notifications_count }}</span>{% endif %}</a>
-        <a href="{% url 'task_list_all' %}" class="shadow-hover"><i class="bi bi-list-check"></i> Mis Tareas</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Últimas Entradas -->
-  <div class="card">
-    <div class="card-header">
-      <h5 class="mb-0"><i class="bi bi-clock-history"></i> Últimas Entradas</h5>
-    </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Proyecto</th>
-              <th>Inicio</th>
-              <th>Fin</th>
-              <th class="text-end">Horas</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for r in recent %}
-            <tr>
-              <td>{{ r.date|date:"M d" }}</td>
-              <td>{% if r.project %}{{ r.project.name }}{% else %}—{% endif %}</td>
-              <td>{{ r.start_time|date:"g:i A" }}</td>
-              <td>{{ r.end_time|date:"g:i A"|default:"—" }}</td>
-              <td class="text-end">
-                {% if r.hours_worked %}
-                <span class="badge bg-primary">{{ r.hours_worked|floatformat:1 }}h</span>
-                {% else %}—{% endif %}
-              </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5" class="text-muted">Sin registros recientes.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  {% endif %}
+    
+    {% endif %}
 </div>
 
-<style>
-.card { transition: transform 0.2s; }
-.card:hover { transform: translateY(-2px); }
-</style>
+<script>
+// Update time display
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+    });
+    document.getElementById('currentTime').textContent = timeStr;
+}
+updateTime();
+setInterval(updateTime, 1000);
+</script>
 {% endblock %}
