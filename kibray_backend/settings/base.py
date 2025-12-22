@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "core",
     "signatures",
-    "reports",
 ]
 
 MIDDLEWARE = [

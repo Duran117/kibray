@@ -25,7 +25,7 @@ from core import views_notifications as notif_views
 from core import views_planner as planner_views
 from core import views_pm_calendar as pm_calendar_views
 from core.api.views import tasks_gantt_alias
-from reports.api.views import ProjectCostSummaryView
+# from reports.api.views import ProjectCostSummaryView  # TODO: Module reports not created yet
 from signatures.api.views import SignatureViewSet
 
 signatures_router = DefaultRouter()
@@ -57,8 +57,8 @@ urlpatterns = [
     path("search/", views.navigation_app_view, name="navigation_search"),
     # Admin
     path("admin/", admin.site.urls),
-    # Legacy custom admin panel (admin-panel/*) → redirect to Django admin (preserve extra path)
-    path("admin-panel/", include("legacy.custom_admin.urls_admin")),
+    # Legacy custom admin panel - TODO: Module not created
+    # path("admin-panel/", include("legacy.custom_admin.urls_admin")),
     # User Management Wizard
     path("users/manage/", views_user_wizard.user_list_view, name="user_wizard_list"),
     path("users/manage/new/", views_user_wizard.user_wizard_view, name="user_wizard_create"),
@@ -892,11 +892,12 @@ urlpatterns = [
     # REST API v1 (mobile, integrations)
     path("api/v1/", include("core.api.urls")),
     path("api/v1/", include(signatures_router.urls)),
-    path(
-        "api/v1/reports/project-cost-summary/<int:project_id>/",
-        ProjectCostSummaryView.as_view(),
-        name="project-cost-summary",
-    ),
+    # TODO: ProjectCostSummaryView not implemented yet
+    # path(
+    #     "api/v1/reports/project-cost-summary/<int:project_id>/",
+    #     ProjectCostSummaryView.as_view(),
+    #     name="project-cost-summary",
+    # ),
     # Language switchers
     # Django standard i18n endpoint (expects POST with 'language' and optional 'next')
     path("i18n/setlang/", dj_set_language, name="set_language"),
