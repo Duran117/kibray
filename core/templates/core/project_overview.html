@@ -26,6 +26,16 @@
     margin: 0 !important;
   }
   
+  /* ===== HIDE GLOBAL NAV ELEMENTS ===== */
+  /* Project overview has its own navigation, hide the global one */
+  #kb-header,
+  #kb-sidebar,
+  #kb-sidebar-backdrop,
+  #react-navigation-root,
+  [id^="react-"] {
+    display: none !important;
+  }
+  
   /* ===== PROJECT SIDEBAR - Desktop ===== */
   .project-sidebar {
     width: 240px;
@@ -35,7 +45,7 @@
     position: fixed;
     left: 0;
     top: 0;
-    z-index: 40;
+    z-index: 50; /* Higher than global nav (40) */
     overflow-y: auto;
     overflow-x: hidden;
     display: flex;
@@ -234,8 +244,9 @@
     .mobile-project-header { display: flex !important; }
     .mobile-bottom-nav { display: block !important; }
     
-    /* Ensure flex wrapper works */
-    .flex { display: block !important; }
+    /* Ensure the main content wrapper is block on mobile */
+    [data-layout-root] > .flex,
+    .project-layout-wrapper { display: block !important; }
   }
 </style>
 {% endblock %}
