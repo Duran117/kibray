@@ -82,37 +82,33 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-gray-900 antialiased overflow-x-hidden">
     
-    {# ===== LEGACY SHELL MODE ===== #}
-    {# Pages with their own navigation (like project_overview) set legacy_shell=True #}
-    {% if legacy_shell|default:False %}
-        {# No global header/sidebar - page handles its own navigation #}
-        <div class="min-h-screen" data-layout-root>
-            {% block content %}{% endblock %}
-        </div>
-    {% else %}
+    {# Header - hidden on legacy_shell pages #}
+    {% if not legacy_shell|default:False %}
+        {% include "core/components/header_dark.html" %}
+    {% endif %}
     
-    {# ===== NORMAL MODE: Dark Header + Sidebar ===== #}
-    {% include "core/components/header_dark.html" %}
-    
-    <div class="flex min-h-[calc(100vh-56px)]" data-layout-root>
-        {# Sidebar - shown unless explicitly hidden #}
-        {% if show_sidebar|default:True %}
+    {# Main Layout Container #}
+    <div class="{% if not legacy_shell|default:False %}flex min-h-[calc(100vh-56px)]{% else %}min-h-screen{% endif %}" data-layout-root>
+        
+        {# Sidebar - shown unless legacy_shell or explicitly hidden #}
+        {% if not legacy_shell|default:False and show_sidebar|default:True %}
             {% include "core/components/sidebar_dark.html" %}
         {% endif %}
         
         {# Main Content Area #}
-        <main class="flex-1 min-w-0 {% if show_sidebar|default:True %}with-sidebar{% endif %}" id="main-content" tabindex="-1">
+        <main class="flex-1 min-w-0 {% if not legacy_shell|default:False and show_sidebar|default:True %}with-sidebar{% endif %}" id="main-content" tabindex="-1">
+            {% if not legacy_shell|default:False %}
             <div class="w-full px-4 sm:px-6 lg:px-8 py-6 fade-in">
-                {# Optional Page Header (breadcrumbs, title, actions) #}
                 {% block page_header %}{% endblock %}
+            {% endif %}
                 
-                {# Main Content #}
                 {% block content %}{% endblock %}
+                
+            {% if not legacy_shell|default:False %}
             </div>
+            {% endif %}
         </main>
     </div>
-    
-    {% endif %}
     
     {# Toast Container #}
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
