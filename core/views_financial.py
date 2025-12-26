@@ -11,7 +11,7 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import ExpressionWrapper, F, FloatField, Q, Sum
+from django.db.models import F, Q, Sum
 from django.db.models.functions import Coalesce, TruncMonth
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -346,35 +346,39 @@ def productivity_dashboard(request):
                 Decimal("0.00"),
             ),
         )
-        .annotate(
-            productivity=ExpressionWrapper(
-                F("billable_hours") / F("total_hours") * 100, output_field=FloatField()
-            )
-        )
         .filter(total_hours__gt=0)
-        .order_by("-productivity")
+        .order_by("-total_hours")
     )
 
-    top_performers = employees[:10]
-    bottom_performers = employees.order_by("productivity")[:5]
+    # Calculate productivity manually to avoid division by zero in DB
+    top_performers = []
+    for emp in employees[:10]:
+        emp.productivity = float(emp.billable_hours / emp.total_hours * 100) if emp.total_hours > 0 else 0
+        top_performers.append(emp)
+    
+    # Sort by productivity
+    top_performers = sorted(top_performers, key=lambda x: x.productivity, reverse=True)
+    
+    bottom_performers = sorted(top_performers, key=lambda x: x.productivity)[:5] if top_performers else []
 
     # ========== CHARTS ==========
-
-    # Productivity trend over time
-    productivity_by_week = (
-        time_entries.extra(select={"week": 'strftime("%%W", date)'})
-        .values("week")
-        .annotate(
-            total=Sum("hours_worked"),
-            billable=Sum("hours_worked", filter=Q(change_order__isnull=False)),
-        )
-        .order_by("week")
-    )
-
+    # Calculate weekly productivity using Python (DB-agnostic)
+    from collections import defaultdict
+    weekly_data = defaultdict(lambda: {'total': Decimal('0'), 'billable': Decimal('0')})
+    
+    for entry in time_entries.values('date', 'hours_worked', 'change_order'):
+        week_num = entry['date'].isocalendar()[1]
+        weekly_data[week_num]['total'] += entry['hours_worked'] or Decimal('0')
+        if entry['change_order']:
+            weekly_data[week_num]['billable'] += entry['hours_worked'] or Decimal('0')
+    
+    # Sort by week number
+    sorted_weeks = sorted(weekly_data.items())
+    
     productivity_trend = {
-        "labels": [f"Semana {item['week']}" for item in productivity_by_week],
-        "total_hours": [float(item["total"]) for item in productivity_by_week],
-        "billable_hours": [float(item["billable"]) for item in productivity_by_week],
+        "labels": [f"Semana {week}" for week, _ in sorted_weeks],
+        "total_hours": [float(data['total']) for _, data in sorted_weeks],
+        "billable_hours": [float(data['billable']) for _, data in sorted_weeks],
     }
 
     context = {

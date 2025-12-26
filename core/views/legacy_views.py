@@ -19,7 +19,8 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Q, Sum
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import Coalesce
 from django.http import (
     Http404,
     HttpResponse,
@@ -10610,24 +10611,107 @@ def js_i18n_demo(request):
 @login_required
 def analytics_dashboard(request):
     """
-    Analytics Dashboard view - serves React-based analytics dashboard.
-    Provides comprehensive project metrics, touchup analytics, color approvals,
-    and PM performance data visualization.
+    Analytics Dashboard - Comprehensive metrics and KPIs.
+    Shows: Project performance, employee stats, financial overview.
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    # Determine user role for frontend permission checks
-    user_role = "user"
-    if request.user.is_superuser:
-        user_role = "admin"
-    elif request.user.is_staff:
-        user_role = "staff"
-
-    return render(
-        request,
-        "core/analytics_dashboard.html",
-        {
-            "user_role": user_role,
-        },
-    )
+    # Solo admin/superuser puede acceder
+    profile = getattr(request.user, 'profile', None)
+    if not (request.user.is_superuser or (profile and profile.role == 'admin')):
+        messages.error(request, _("No tienes permiso para acceder a Analytics."))
+        return redirect("dashboard")
+    
+    today = timezone.now().date()
+    month_start = today.replace(day=1)
+    
+    # === PROJECT METRICS ===
+    total_projects = Project.objects.count()
+    active_projects = Project.objects.filter(status='active').count()
+    completed_projects = Project.objects.filter(status='completed').count()
+    
+    # Projects this month
+    projects_this_month = Project.objects.filter(created_at__gte=month_start).count()
+    
+    # === EMPLOYEE METRICS ===
+    total_employees = Employee.objects.filter(is_active=True).count()
+    
+    # Hours this month
+    month_hours = TimeEntry.objects.filter(
+        date__gte=month_start,
+        date__lte=today
+    ).aggregate(total=Coalesce(Sum('hours_worked'), Decimal('0.00')))['total']
+    
+    # === CHANGE ORDER METRICS ===
+    total_cos = ChangeOrder.objects.count()
+    pending_cos = ChangeOrder.objects.filter(status='pending').count()
+    approved_cos = ChangeOrder.objects.filter(status='approved').count()
+    
+    # CO value this month
+    co_value_month = ChangeOrder.objects.filter(
+        created_at__gte=month_start,
+        status='approved'
+    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+    
+    # === TASKS METRICS ===
+    total_tasks = Task.objects.count()
+    completed_tasks = Task.objects.filter(status='completed').count()
+    overdue_tasks = Task.objects.filter(
+        due_date__lt=today,
+        status__in=['pending', 'in_progress']
+    ).count()
+    
+    task_completion_rate = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0
+    
+    # === TOP PROJECTS BY ACTIVITY ===
+    top_projects = Project.objects.filter(
+        status='active'
+    ).annotate(
+        task_count=Count('tasks'),
+        co_count=Count('change_orders'),
+        hours=Coalesce(Sum('timeentry__hours_worked'), Decimal('0.00'))
+    ).order_by('-hours')[:5]
+    
+    # === TOP EMPLOYEES BY HOURS ===
+    top_employees = Employee.objects.filter(
+        is_active=True
+    ).annotate(
+        month_hours=Coalesce(
+            Sum('timeentry__hours_worked', filter=Q(
+                timeentry__date__gte=month_start,
+                timeentry__date__lte=today
+            )),
+            Decimal('0.00')
+        )
+    ).filter(month_hours__gt=0).order_by('-month_hours')[:5]
+    
+    context = {
+        # Project metrics
+        'total_projects': total_projects,
+        'active_projects': active_projects,
+        'completed_projects': completed_projects,
+        'projects_this_month': projects_this_month,
+        # Employee metrics
+        'total_employees': total_employees,
+        'month_hours': month_hours,
+        # Change order metrics
+        'total_cos': total_cos,
+        'pending_cos': pending_cos,
+        'approved_cos': approved_cos,
+        'co_value_month': co_value_month,
+        # Task metrics
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'overdue_tasks': overdue_tasks,
+        'task_completion_rate': task_completion_rate,
+        # Top lists
+        'top_projects': top_projects,
+        'top_employees': top_employees,
+        # Date context
+        'month_start': month_start,
+        'today': today,
+    }
+    
+    return render(request, "core/analytics_dashboard.html", context)
 
 
 # --- TOUCHUP BOARD REACT ---

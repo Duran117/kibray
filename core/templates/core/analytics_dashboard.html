@@ -1,24 +1,441 @@
 {% extends "core/base_modern.html" %}
 {% load static %}
 {% load i18n %}
+{% load humanize %}
 
-{% block title %}Analytics Dashboard{% endblock %}
+{% block title %}{% trans "Analytics Dashboard" %}{% endblock %}
 
 {% block extra_css %}
 <style>
-  /* Ensure dashboard is full-width and styled consistently */
-  #dashboard-root {
-    min-height: 80vh;
-  }
+/* Asana-style Analytics Dashboard */
+.analytics-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+}
+
+.analytics-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.analytics-header p {
+    color: rgba(255,255,255,0.85);
+    margin: 0;
+}
+
+/* KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
+}
+
+.kpi-card:hover {
+    border-color: #6366f1;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.kpi-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+}
+
+.kpi-icon.blue { background: #dbeafe; color: #2563eb; }
+.kpi-icon.green { background: #dcfce7; color: #16a34a; }
+.kpi-icon.purple { background: #f3e8ff; color: #9333ea; }
+.kpi-icon.orange { background: #ffedd5; color: #ea580c; }
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.kpi-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.kpi-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+}
+
+.kpi-change.positive { background: #dcfce7; color: #16a34a; }
+.kpi-change.negative { background: #fee2e2; color: #dc2626; }
+
+/* Section Cards */
+.section-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafafa;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-body {
+    padding: 20px;
+}
+
+/* Stats Row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+    .stats-row { grid-template-columns: 1fr; }
+}
+
+.stat-item {
+    text-align: center;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 10px;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+/* Lists */
+.top-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.top-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.top-list li:last-child {
+    border-bottom: none;
+}
+
+.list-rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-right: 12px;
+}
+
+.list-rank.gold { background: #fef3c7; color: #b45309; }
+.list-rank.silver { background: #e5e7eb; color: #4b5563; }
+.list-rank.bronze { background: #fed7aa; color: #c2410c; }
+
+.list-info {
+    flex: 1;
+}
+
+.list-name {
+    font-weight: 600;
+    color: #111827;
+    font-size: 0.9rem;
+}
+
+.list-meta {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.list-value {
+    font-weight: 600;
+    color: #6366f1;
+}
+
+/* Two Column Layout */
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 1024px) {
+    .two-col { grid-template-columns: 1fr; }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div id="dashboard-root" data-user-role="{{ user_role }}" data-is-staff="{% if user.is_staff %}true{% else %}false{% endif %}"></div>
-{% endblock %}
+<!-- Header -->
+<div class="analytics-header">
+    <h1><i class="bi bi-graph-up-arrow me-2"></i>{% trans "Analytics Dashboard" %}</h1>
+    <p>{% trans "Comprehensive overview of your business metrics" %} • {{ month_start|date:"F Y" }}</p>
+</div>
 
-{% block extra_js %}
-<!-- Dashboard React Component -->
-<!-- Always load production build for E2E testing stability -->
-<script type="module" src="{% static 'gantt/dashboard.D4chUXzj.js' %}"></script>
+<!-- Main KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon blue"><i class="bi bi-folder"></i></div>
+        <div class="kpi-value">{{ active_projects }}</div>
+        <div class="kpi-label">{% trans "Active Projects" %}</div>
+        <div class="kpi-change positive">
+            <i class="bi bi-plus"></i> {{ projects_this_month }} {% trans "this month" %}
+        </div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-icon green"><i class="bi bi-people"></i></div>
+        <div class="kpi-value">{{ total_employees }}</div>
+        <div class="kpi-label">{% trans "Active Employees" %}</div>
+        <div class="kpi-change positive">
+            <i class="bi bi-clock"></i> {{ month_hours|floatformat:0 }}h {% trans "worked" %}
+        </div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-icon purple"><i class="bi bi-file-earmark-diff"></i></div>
+        <div class="kpi-value">{{ pending_cos }}</div>
+        <div class="kpi-label">{% trans "Pending Change Orders" %}</div>
+        <div class="kpi-change">
+            {{ approved_cos }} {% trans "approved" %}
+        </div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-icon orange"><i class="bi bi-check2-square"></i></div>
+        <div class="kpi-value">{{ task_completion_rate }}%</div>
+        <div class="kpi-label">{% trans "Task Completion Rate" %}</div>
+        <div class="kpi-change {% if overdue_tasks > 0 %}negative{% else %}positive{% endif %}">
+            {% if overdue_tasks > 0 %}
+                <i class="bi bi-exclamation-triangle"></i> {{ overdue_tasks }} {% trans "overdue" %}
+            {% else %}
+                <i class="bi bi-check"></i> {% trans "On track" %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stats Summary -->
+<div class="section-card">
+    <div class="section-header">
+        <div class="section-title"><i class="bi bi-bar-chart"></i> {% trans "Summary Statistics" %}</div>
+    </div>
+    <div class="section-body">
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-number">{{ total_projects }}</div>
+                <div class="stat-label">{% trans "Total Projects" %}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ completed_projects }}</div>
+                <div class="stat-label">{% trans "Completed" %}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">${{ co_value_month|floatformat:0|intcomma }}</div>
+                <div class="stat-label">{% trans "CO Value This Month" %}</div>
+            </div>
+        </div>
+        <div class="stats-row" style="margin-bottom: 0;">
+            <div class="stat-item">
+                <div class="stat-number">{{ total_tasks }}</div>
+                <div class="stat-label">{% trans "Total Tasks" %}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ completed_tasks }}</div>
+                <div class="stat-label">{% trans "Completed Tasks" %}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ total_cos }}</div>
+                <div class="stat-label">{% trans "Total Change Orders" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two Column Section -->
+<div class="two-col">
+    <!-- Top Projects -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-title"><i class="bi bi-trophy"></i> {% trans "Top Projects by Hours" %}</div>
+            <a href="{% url 'project_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+        </div>
+        <div class="section-body">
+            {% if top_projects %}
+            <ul class="top-list">
+                {% for project in top_projects %}
+                <li>
+                    <span class="list-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</span>
+                    <div class="list-info">
+                        <div class="list-name">{{ project.name|truncatechars:30 }}</div>
+                        <div class="list-meta">{{ project.task_count }} {% trans "tasks" %} • {{ project.co_count }} {% trans "COs" %}</div>
+                    </div>
+                    <div class="list-value">{{ project.hours|floatformat:1 }}h</div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-folder-x"></i>
+                <p>{% trans "No active projects" %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Top Employees -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-title"><i class="bi bi-star"></i> {% trans "Top Employees This Month" %}</div>
+            <a href="{% url 'employee_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+        </div>
+        <div class="section-body">
+            {% if top_employees %}
+            <ul class="top-list">
+                {% for emp in top_employees %}
+                <li>
+                    <span class="list-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</span>
+                    <div class="list-info">
+                        <div class="list-name">{{ emp.first_name }} {{ emp.last_name }}</div>
+                        <div class="list-meta">{{ emp.role|default:"Employee" }}</div>
+                    </div>
+                    <div class="list-value">{{ emp.month_hours|floatformat:1 }}h</div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-person-x"></i>
+                <p>{% trans "No hours recorded this month" %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Change Orders and Tasks Status -->
+<div class="two-col">
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-title"><i class="bi bi-check2-square"></i> {% trans "Task Status" %}</div>
+        </div>
+        <div class="section-body">
+            <div class="stats-row" style="margin-bottom: 0;">
+                <div class="stat-item">
+                    <div class="stat-number" style="color: #16a34a;">{{ completed_tasks }}</div>
+                    <div class="stat-label">{% trans "Completed" %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" style="color: #eab308;">{% widthratio total_tasks 1 1 as pending_tasks %}{{ total_tasks|add:completed_tasks|stringformat:"d" }}</div>
+                    <div class="stat-label">{% trans "In Progress" %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" style="color: #dc2626;">{{ overdue_tasks }}</div>
+                    <div class="stat-label">{% trans "Overdue" %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-title"><i class="bi bi-cash-stack"></i> {% trans "Change Orders" %}</div>
+        </div>
+        <div class="section-body">
+            <div class="stats-row" style="margin-bottom: 0;">
+                <div class="stat-item">
+                    <div class="stat-number" style="color: #eab308;">{{ pending_cos }}</div>
+                    <div class="stat-label">{% trans "Pending" %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" style="color: #16a34a;">{{ approved_cos }}</div>
+                    <div class="stat-label">{% trans "Approved" %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" style="color: #6366f1;">${{ co_value_month|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">{% trans "This Month" %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
