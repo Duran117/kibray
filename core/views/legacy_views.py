@@ -10462,7 +10462,7 @@ def project_create(request):
     else:
         form = ProjectCreateForm()
 
-    return render(request, "core/project_form.html", {"form": form, "is_create": True})
+    return render(request, "core/project_form_modern.html", {"form": form, "is_create": True})
 
 
 @login_required
@@ -10483,7 +10483,7 @@ def project_edit(request, project_id):
         form = ProjectEditForm(instance=project)
 
     return render(
-        request, "core/project_form.html", {"form": form, "project": project, "is_create": False}
+        request, "core/project_form_modern.html", {"form": form, "project": project, "is_create": False}
     )
 
 

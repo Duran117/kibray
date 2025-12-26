@@ -7,107 +7,676 @@
 {% block extra_head %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 <style>
-.schedule-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
-    padding: 24px;
-    border-radius: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
+/* ============================================
+   MONDAY.COM INSPIRED GANTT - MODERN & VIBRANT
+   ============================================ */
+:root {
+    --monday-purple: #6161FF;
+    --monday-blue: #0073EA;
+    --monday-green: #00C875;
+    --monday-yellow: #FFCB00;
+    --monday-red: #E2445C;
+    --monday-orange: #FF7575;
+    --monday-dark: #323338;
+    --monday-gray: #676879;
+    --monday-light: #F5F6F8;
+    --monday-border: #D0D4E4;
+    --monday-hover: #DCE0EC;
 }
-.schedule-header h1 { font-size: 1.75rem; font-weight: 800; margin: 0 0 8px 0; }
-.schedule-header p { color: rgba(255,255,255,0.9); font-size: 0.95rem; margin: 0; }
-.view-toggle { display: flex; gap: 8px; background: rgba(255,255,255,0.15); padding: 6px; border-radius: 14px; margin-top: 20px; }
-.toggle-btn { flex: 1; padding: 14px 20px; border: none; background: transparent; color: rgba(255,255,255,0.9); border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.3s ease; }
-.toggle-btn:hover { background: rgba(255,255,255,0.1); }
-.toggle-btn.active { background: white; color: #6366f1; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
-.stat-card { background: rgba(255,255,255,0.15); padding: 16px; border-radius: 14px; text-align: center; }
-.stat-value { font-size: 2rem; font-weight: 800; color: white; }
-.stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.8); text-transform: uppercase; margin-top: 4px; }
-.view-content { display: none; }
+
+/* Header - Monday Style */
+.schedule-header {
+    background: linear-gradient(135deg, var(--monday-purple) 0%, #7B68EE 50%, var(--monday-blue) 100%);
+    color: white;
+    padding: 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 40px rgba(97, 97, 255, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+.schedule-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.schedule-header h1 { 
+    font-size: 2rem; 
+    font-weight: 800; 
+    margin: 0 0 8px 0; 
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.schedule-header p { 
+    color: rgba(255,255,255,0.85); 
+    font-size: 1rem; 
+    margin: 0;
+    position: relative;
+}
+
+/* View Toggle Pills */
+.view-toggle { 
+    display: flex; 
+    gap: 8px; 
+    background: rgba(0,0,0,0.2); 
+    padding: 6px; 
+    border-radius: 50px; 
+    margin-top: 24px;
+    max-width: 400px;
+    backdrop-filter: blur(10px);
+}
+.toggle-btn { 
+    flex: 1; 
+    padding: 12px 24px; 
+    border: none; 
+    background: transparent; 
+    color: rgba(255,255,255,0.8); 
+    border-radius: 50px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    font-size: 14px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.toggle-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+.toggle-btn.active { 
+    background: white; 
+    color: var(--monday-purple); 
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transform: scale(1.02);
+}
+
+/* Stats Cards */
+.stats-grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 16px; 
+    margin-top: 24px; 
+}
+.stat-card { 
+    background: rgba(255,255,255,0.12); 
+    padding: 20px; 
+    border-radius: 16px; 
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.3s ease;
+}
+.stat-card:hover {
+    background: rgba(255,255,255,0.18);
+    transform: translateY(-2px);
+}
+.stat-value { 
+    font-size: 2.5rem; 
+    font-weight: 800; 
+    color: white;
+    line-height: 1;
+}
+.stat-label { 
+    font-size: 0.75rem; 
+    color: rgba(255,255,255,0.7); 
+    text-transform: uppercase; 
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.view-content { display: none; animation: fadeSlide 0.4s ease; }
 .view-content.active { display: block; }
-.gantt-container { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; }
-.gantt-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid #f1f5f9; }
-.today-indicator { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #dc2626; font-weight: 700; background: #fef2f2; padding: 10px 16px; border-radius: 10px; }
-.today-dot { width: 10px; height: 10px; border-radius: 50%; background: #dc2626; animation: pulse 2s infinite; }
-@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-.gantt-zoom { display: flex; border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-.gantt-zoom button { padding: 12px 20px; border: none; background: transparent; font-weight: 600; font-size: 14px; color: #64748b; cursor: pointer; }
-.gantt-zoom button:not(:last-child) { border-right: 2px solid #e2e8f0; }
-.gantt-zoom button:hover { background: #f8fafc; }
-.gantt-zoom button.active { background: #6366f1; color: white; }
-.gantt-wrapper { overflow-x: auto; padding-bottom: 10px; }
-.gantt-scale { display: grid; grid-template-columns: 200px 1fr; gap: 16px; margin-bottom: 12px; padding: 12px 0; border-bottom: 2px solid #e2e8f0; }
-.scale-header { font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; }
-.scale-dates { display: flex; }
-.scale-date { flex: 1; text-align: center; font-size: 0.75rem; color: #94a3b8; font-weight: 600; }
-.gantt-row { display: grid; grid-template-columns: 200px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
-.gantt-row:hover { background: #fafbfc; }
-.row-label { display: flex; flex-direction: column; gap: 4px; }
-.project-name { font-weight: 700; font-size: 0.9rem; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.project-pm { font-size: 0.75rem; color: #64748b; }
-.row-bars { position: relative; height: 44px; background: #f8fafc; border-radius: 10px; overflow: hidden; }
-.gantt-bar { position: absolute; height: 36px; top: 4px; border-radius: 8px; display: flex; align-items: center; padding: 0 14px; font-size: 0.8rem; font-weight: 700; color: white; cursor: pointer; min-width: 80px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.2s; }
-.gantt-bar:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); z-index: 10; }
-.gantt-bar .progress-fill { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.2); border-radius: 8px 0 0 8px; }
-.bar-text { position: relative; z-index: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.today-line { position: absolute; top: 0; bottom: 0; width: 3px; background: #dc2626; z-index: 5; }
-.today-line::before { content: 'HOY'; position: absolute; top: -24px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; color: white; font-weight: 800; background: #dc2626; padding: 3px 8px; border-radius: 4px; }
-.calendar-container { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+@keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Gantt Container - Monday Style */
+.gantt-container { 
+    background: white; 
+    border-radius: 16px; 
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 24px;
+    overflow: hidden;
+    border: 1px solid var(--monday-border);
+}
+
+/* Gantt Toolbar */
+.gantt-toolbar { 
+    display: flex; 
+    flex-wrap: wrap; 
+    align-items: center; 
+    justify-content: space-between; 
+    gap: 16px; 
+    padding: 20px 24px;
+    background: var(--monday-light);
+    border-bottom: 1px solid var(--monday-border);
+}
+
+/* Today Indicator */
+.today-indicator { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    font-size: 0.875rem; 
+    color: var(--monday-red); 
+    font-weight: 600; 
+    background: white; 
+    padding: 10px 18px; 
+    border-radius: 8px;
+    border: 1px solid var(--monday-border);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+.today-dot { 
+    width: 10px; 
+    height: 10px; 
+    border-radius: 50%; 
+    background: var(--monday-red); 
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 0 4px rgba(226, 68, 92, 0.2);
+}
+@keyframes pulse { 
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 4px rgba(226, 68, 92, 0.2); } 
+    50% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(226, 68, 92, 0.1); } 
+}
+
+/* Zoom Buttons */
+.gantt-zoom { 
+    display: flex; 
+    background: white;
+    border-radius: 8px; 
+    overflow: hidden;
+    border: 1px solid var(--monday-border);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+.gantt-zoom button { 
+    padding: 10px 20px; 
+    border: none; 
+    background: transparent; 
+    font-weight: 600; 
+    font-size: 13px; 
+    color: var(--monday-gray); 
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.gantt-zoom button:not(:last-child) { border-right: 1px solid var(--monday-border); }
+.gantt-zoom button:hover { background: var(--monday-hover); color: var(--monday-dark); }
+.gantt-zoom button.active { 
+    background: var(--monday-blue); 
+    color: white; 
+}
+
+/* Gantt Grid */
+.gantt-wrapper { 
+    overflow-x: auto; 
+    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--monday-border) transparent;
+}
+.gantt-wrapper::-webkit-scrollbar { height: 8px; }
+.gantt-wrapper::-webkit-scrollbar-track { background: transparent; }
+.gantt-wrapper::-webkit-scrollbar-thumb { background: var(--monday-border); border-radius: 4px; }
+
+/* Table Header */
+.gantt-header {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    background: var(--monday-light);
+    border-bottom: 1px solid var(--monday-border);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--monday-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.header-project {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-right: 1px solid var(--monday-border);
+}
+.header-timeline {
+    display: flex;
+    align-items: stretch;
+}
+.timeline-column {
+    flex: 1;
+    min-width: 40px;
+    padding: 8px 4px;
+    text-align: center;
+    border-right: 1px solid rgba(208, 212, 228, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.timeline-column.today {
+    background: linear-gradient(180deg, rgba(226, 68, 92, 0.1) 0%, rgba(226, 68, 92, 0.05) 100%);
+}
+.timeline-day { font-size: 0.7rem; color: var(--monday-gray); }
+.timeline-date { font-size: 0.85rem; color: var(--monday-dark); font-weight: 700; margin-top: 2px; }
+.timeline-column.today .timeline-date { color: var(--monday-red); }
+
+/* Gantt Rows */
+.gantt-rows { }
+.gantt-row { 
+    display: grid; 
+    grid-template-columns: 280px 1fr; 
+    border-bottom: 1px solid var(--monday-border);
+    transition: background 0.15s ease;
+}
+.gantt-row:hover { background: rgba(0, 115, 234, 0.03); }
+.gantt-row:last-child { border-bottom: none; }
+
+/* Row Info (Left Side) */
+.row-info {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-right: 1px solid var(--monday-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.row-info:hover {
+    background: var(--monday-hover);
+}
+
+/* Project Color Indicator */
+.project-color {
+    width: 6px;
+    height: 48px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+/* Avatar */
+.project-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--monday-purple), var(--monday-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(97, 97, 255, 0.3);
+}
+
+/* Project Details */
+.project-details {
+    flex: 1;
+    min-width: 0;
+}
+.project-name { 
+    font-weight: 700; 
+    font-size: 0.9rem; 
+    color: var(--monday-dark); 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+.project-meta { 
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem; 
+    color: var(--monday-gray);
+}
+.project-pm {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Progress Badge */
+.progress-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.progress-badge.green { background: rgba(0, 200, 117, 0.15); color: var(--monday-green); }
+.progress-badge.yellow { background: rgba(255, 203, 0, 0.2); color: #B08D00; }
+.progress-badge.red { background: rgba(226, 68, 92, 0.15); color: var(--monday-red); }
+
+/* Row Timeline (Right Side) */
+.row-timeline {
+    position: relative;
+    display: flex;
+    min-height: 80px;
+}
+.timeline-cell {
+    flex: 1;
+    min-width: 40px;
+    border-right: 1px solid rgba(208, 212, 228, 0.3);
+    position: relative;
+}
+.timeline-cell.today {
+    background: linear-gradient(180deg, rgba(226, 68, 92, 0.08) 0%, transparent 100%);
+}
+.timeline-cell.today::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: var(--monday-red);
+    opacity: 0.5;
+}
+.timeline-cell.weekend { background: rgba(0,0,0,0.02); }
+
+/* Gantt Bar - Monday Style */
+.gantt-bar-wrapper {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 32px;
+    z-index: 5;
+    padding: 0 4px;
+}
+.gantt-bar { 
+    height: 100%;
+    border-radius: 16px;
+    display: flex; 
+    align-items: center; 
+    padding: 0 12px;
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    color: white; 
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+.gantt-bar:hover { 
+    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 20;
+}
+.gantt-bar .progress-fill { 
+    position: absolute; 
+    left: 0; 
+    top: 0; 
+    height: 100%; 
+    background: rgba(0,0,0,0.2);
+    transition: width 0.5s ease;
+}
+.bar-content { 
+    position: relative; 
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+}
+.bar-text { 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+}
+.bar-progress {
+    background: rgba(255,255,255,0.3);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 800;
+}
+
+/* Tooltip */
+.gantt-tooltip {
+    position: fixed;
+    background: var(--monday-dark);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: all 0.2s ease;
+    max-width: 280px;
+}
+.gantt-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.tooltip-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; }
+.tooltip-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 4px; }
+.tooltip-label { color: rgba(255,255,255,0.6); }
+.tooltip-value { font-weight: 600; }
+.tooltip-progress { 
+    height: 4px; 
+    background: rgba(255,255,255,0.2); 
+    border-radius: 2px; 
+    margin-top: 8px;
+    overflow: hidden;
+}
+.tooltip-progress-fill { height: 100%; background: var(--monday-green); border-radius: 2px; }
+
+/* Calendar Container */
+.calendar-container { 
+    background: white; 
+    border-radius: 16px; 
+    padding: 24px; 
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid var(--monday-border);
+}
 #masterCalendar { min-height: 500px; }
-.fc .fc-toolbar { flex-wrap: wrap; gap: 10px; }
-.fc .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; }
-.fc .fc-button { padding: 8px 16px !important; border-radius: 8px !important; }
-.fc .fc-button-primary { background: #6366f1 !important; border-color: #6366f1 !important; }
-.fc-event { border-radius: 6px !important; font-weight: 600 !important; }
-.empty-state { text-align: center; padding: 80px 20px; color: #94a3b8; }
-.empty-state svg { width: 80px; height: 80px; margin-bottom: 20px; opacity: 0.5; }
-.empty-state h3 { color: #64748b; margin-bottom: 8px; }
-.legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 2px solid #f1f5f9; }
-.legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #64748b; }
-.legend-color { width: 16px; height: 16px; border-radius: 4px; }
-@media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+.fc .fc-toolbar { flex-wrap: wrap; gap: 10px; padding-bottom: 16px; }
+.fc .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; color: var(--monday-dark); }
+.fc .fc-button { 
+    padding: 10px 18px !important; 
+    border-radius: 8px !important; 
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+}
+.fc .fc-button-primary { 
+    background: var(--monday-blue) !important; 
+    border-color: var(--monday-blue) !important; 
+}
+.fc .fc-button-primary:hover {
+    background: #0060C7 !important; 
+    border-color: #0060C7 !important; 
+}
+.fc-event { 
+    border-radius: 8px !important; 
+    font-weight: 600 !important; 
+    border: none !important;
+    padding: 4px 8px !important;
+}
+.fc-daygrid-day-number { 
+    font-weight: 600 !important; 
+    color: var(--monday-dark) !important;
+}
+.fc-day-today { background: rgba(0, 200, 117, 0.08) !important; }
+
+/* Empty State */
+.empty-state { 
+    text-align: center; 
+    padding: 80px 24px; 
+    color: var(--monday-gray);
+}
+.empty-state svg { width: 100px; height: 100px; margin-bottom: 24px; opacity: 0.4; }
+.empty-state h3 { 
+    color: var(--monday-dark); 
+    margin-bottom: 8px; 
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+.empty-state p { color: var(--monday-gray); }
+
+/* Legend */
+.legend { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 20px; 
+    padding: 20px 24px;
+    background: var(--monday-light);
+    border-top: 1px solid var(--monday-border);
+}
+.legend-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    font-size: 0.8rem; 
+    color: var(--monday-gray);
+    font-weight: 500;
+}
+.legend-color { 
+    width: 20px; 
+    height: 20px; 
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+}
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--monday-border);
+    border-top-color: var(--monday-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (min-width: 768px) { 
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 768px) {
+    .schedule-header { padding: 24px 20px; }
+    .schedule-header h1 { font-size: 1.5rem; }
+    .gantt-toolbar { padding: 16px; flex-direction: column; align-items: stretch; }
+    .gantt-header, .gantt-row { grid-template-columns: 200px 1fr; }
+    .row-info { padding: 12px 16px; }
+    .header-project { padding: 12px 16px; }
+}
 </style>
 {% endblock %}
 
 {% block page_header %}{% endblock %}
 
 {% block content %}
+<!-- Tooltip Element -->
+<div class="gantt-tooltip" id="tooltip">
+    <div class="tooltip-title"></div>
+    <div class="tooltip-row"><span class="tooltip-label">{% trans "Manager" %}:</span><span class="tooltip-value" data-field="pm"></span></div>
+    <div class="tooltip-row"><span class="tooltip-label">{% trans "Start" %}:</span><span class="tooltip-value" data-field="start"></span></div>
+    <div class="tooltip-row"><span class="tooltip-label">{% trans "End" %}:</span><span class="tooltip-value" data-field="end"></span></div>
+    <div class="tooltip-row"><span class="tooltip-label">{% trans "Progress" %}:</span><span class="tooltip-value" data-field="progress"></span></div>
+    <div class="tooltip-progress"><div class="tooltip-progress-fill"></div></div>
+</div>
+
 <div class="schedule-header">
-    <h1>📊 {% trans "Master Schedule" %}</h1>
-    <p>{% trans "Strategic project timeline - Plan, track, and manage all projects" %}</p>
+    <h1><i class="bi bi-calendar3"></i> {% trans "Master Schedule" %}</h1>
+    <p>{% trans "Strategic project timeline — Plan, track, and visualize all your projects in one place" %}</p>
     <div class="view-toggle">
-        <button class="toggle-btn active" data-view="gantt">📅 {% trans "Gantt" %}</button>
-        <button class="toggle-btn" data-view="calendar">📆 {% trans "Calendar" %}</button>
+        <button class="toggle-btn active" data-view="gantt">
+            <i class="bi bi-bar-chart-steps"></i> {% trans "Gantt" %}
+        </button>
+        <button class="toggle-btn" data-view="calendar">
+            <i class="bi bi-calendar-month"></i> {% trans "Calendar" %}
+        </button>
     </div>
     <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value" id="totalProjects">-</div><div class="stat-label">{% trans "Projects" %}</div></div>
-        <div class="stat-card"><div class="stat-value" id="activeProjects">-</div><div class="stat-label">{% trans "Active" %}</div></div>
-        <div class="stat-card"><div class="stat-value" id="totalMilestones">-</div><div class="stat-label">{% trans "Milestones" %}</div></div>
-        <div class="stat-card"><div class="stat-value" id="avgProgress">-</div><div class="stat-label">{% trans "Avg Progress" %}</div></div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalProjects">—</div>
+            <div class="stat-label">{% trans "Total Projects" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="activeProjects">—</div>
+            <div class="stat-label">{% trans "In Progress" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalMilestones">—</div>
+            <div class="stat-label">{% trans "Milestones" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="avgProgress">—</div>
+            <div class="stat-label">{% trans "Avg Progress" %}</div>
+        </div>
     </div>
 </div>
+
 <div id="ganttView" class="view-content active">
     <div class="gantt-container">
         <div class="gantt-toolbar">
-            <div class="today-indicator"><span class="today-dot"></span><span id="todayDate"></span></div>
+            <div class="today-indicator">
+                <span class="today-dot"></span>
+                <span id="todayDate"></span>
+            </div>
             <div class="gantt-zoom">
                 <button data-zoom="day">{% trans "Day" %}</button>
                 <button data-zoom="week" class="active">{% trans "Week" %}</button>
                 <button data-zoom="month">{% trans "Month" %}</button>
             </div>
         </div>
-        <div class="gantt-wrapper"><div class="gantt-chart" id="ganttChart"><div class="empty-state"><h3>{% trans "Loading..." %}</h3></div></div></div>
+        <div class="gantt-wrapper">
+            <div id="ganttChart">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <span style="color: var(--monday-gray);">{% trans "Loading projects..." %}</span>
+                </div>
+            </div>
+        </div>
         <div class="legend">
-            <div class="legend-item"><div class="legend-color" style="background:#10b981;"></div><span>{% trans "On Track" %}</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#f59e0b;"></div><span>{% trans "At Risk" %}</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#ef4444;"></div><span>{% trans "Delayed" %}</span></div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--monday-green);"></div>
+                <span>{% trans "On Track" %} (75%+)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--monday-yellow);"></div>
+                <span>{% trans "In Progress" %} (25-74%)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--monday-red);"></div>
+                <span>{% trans "Starting" %} (&lt;25%)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--monday-purple);"></div>
+                <span>{% trans "Complete" %} (100%)</span>
+            </div>
         </div>
     </div>
 </div>
+
 <div id="calendarView" class="view-content">
-    <div class="calendar-container"><div id="masterCalendar"></div></div>
+    <div class="calendar-container">
+        <div id="masterCalendar"></div>
+    </div>
 </div>
 {% endblock %}
 
@@ -115,23 +684,68 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Monday.com inspired color palette
+    const COLORS = [
+        '#6161FF', '#0073EA', '#00C875', '#FFCB00', '#E2445C', 
+        '#FF7575', '#A25DDC', '#037F4C', '#FF642E', '#66CCFF',
+        '#9D99B9', '#CAB641', '#7E3B8A', '#359970', '#CE5757'
+    ];
+    
     let scheduleData = { projects: [], schedule_items: [], events: [] };
     let currentZoom = 'week';
     let calendar = null;
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
-    document.getElementById('todayDate').textContent = today.toLocaleDateString('es-MX', { weekday: 'long', month: 'long', day: 'numeric' });
+    // Format today's date
+    const todayFormatted = today.toLocaleDateString('es-MX', { 
+        weekday: 'long', 
+        day: 'numeric',
+        month: 'long'
+    });
+    document.getElementById('todayDate').textContent = todayFormatted.charAt(0).toUpperCase() + todayFormatted.slice(1);
     
+    // Tooltip handling
+    const tooltip = document.getElementById('tooltip');
+    function showTooltip(e, project) {
+        const progress = project.progress_pct || 0;
+        tooltip.querySelector('.tooltip-title').textContent = project.name;
+        tooltip.querySelector('[data-field="pm"]').textContent = project.pm_name || '—';
+        tooltip.querySelector('[data-field="start"]').textContent = formatDate(project.start_date);
+        tooltip.querySelector('[data-field="end"]').textContent = formatDate(project.end_date);
+        tooltip.querySelector('[data-field="progress"]').textContent = progress + '%';
+        tooltip.querySelector('.tooltip-progress-fill').style.width = progress + '%';
+        
+        const rect = e.target.getBoundingClientRect();
+        tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+        tooltip.style.top = (rect.top - 10) + 'px';
+        tooltip.style.transform = 'translate(-50%, -100%)';
+        tooltip.classList.add('visible');
+    }
+    function hideTooltip() {
+        tooltip.classList.remove('visible');
+    }
+    
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    
+    // View toggle
     document.querySelectorAll('.toggle-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
             document.getElementById(this.dataset.view + 'View').classList.add('active');
-            if (this.dataset.view === 'calendar' && calendar) setTimeout(() => calendar.updateSize(), 100);
+            if (this.dataset.view === 'calendar' && calendar) {
+                setTimeout(() => calendar.updateSize(), 100);
+            }
         });
     });
     
+    // Zoom toggle
     document.querySelectorAll('.gantt-zoom button').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.gantt-zoom button').forEach(b => b.classList.remove('active'));
@@ -141,81 +755,246 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Fetch data
     async function fetchScheduleData() {
         try {
             const response = await fetch('/api/v1/schedule/master/');
+            if (!response.ok) throw new Error('Network error');
             scheduleData = await response.json();
+            
+            // Assign colors to projects
+            scheduleData.projects.forEach((p, i) => {
+                if (!p.color) p.color = COLORS[i % COLORS.length];
+            });
+            
             updateStats();
             renderGantt();
             initCalendar();
         } catch (error) {
             console.error('Error:', error);
-            document.getElementById('ganttChart').innerHTML = '<div class="empty-state"><h3>Error loading data</h3></div>';
+            document.getElementById('ganttChart').innerHTML = `
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <h3>{% trans "Could not load projects" %}</h3>
+                    <p>{% trans "Please try refreshing the page" %}</p>
+                </div>
+            `;
         }
     }
     
     function updateStats() {
         const projects = scheduleData.projects || [];
         const items = scheduleData.schedule_items || [];
+        
         document.getElementById('totalProjects').textContent = projects.length;
-        document.getElementById('activeProjects').textContent = projects.filter(p => (p.progress_pct || 0) < 100).length;
+        document.getElementById('activeProjects').textContent = projects.filter(p => (p.progress_pct || 0) > 0 && (p.progress_pct || 0) < 100).length;
         document.getElementById('totalMilestones').textContent = items.filter(i => i.is_milestone).length;
-        const avg = projects.length ? Math.round(projects.reduce((s, p) => s + (p.progress_pct || 0), 0) / projects.length) : 0;
-        document.getElementById('avgProgress').textContent = avg + '%';
+        
+        const avgProgress = projects.length 
+            ? Math.round(projects.reduce((s, p) => s + (p.progress_pct || 0), 0) / projects.length)
+            : 0;
+        document.getElementById('avgProgress').textContent = avgProgress + '%';
+    }
+    
+    function getProjectColor(progress) {
+        if (progress >= 100) return 'var(--monday-purple)';
+        if (progress >= 75) return 'var(--monday-green)';
+        if (progress >= 25) return 'var(--monday-yellow)';
+        return 'var(--monday-red)';
+    }
+    
+    function getProgressBadgeClass(progress) {
+        if (progress >= 75) return 'green';
+        if (progress >= 25) return 'yellow';
+        return 'red';
+    }
+    
+    function getInitials(name) {
+        if (!name) return '?';
+        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     }
     
     function renderGantt() {
         const projects = scheduleData.projects || [];
         const container = document.getElementById('ganttChart');
-        if (!projects.length) { container.innerHTML = '<div class="empty-state"><h3>No projects found</h3></div>'; return; }
         
-        const allDates = projects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]).filter(d => !isNaN(d));
-        if (!allDates.length) { container.innerHTML = '<div class="empty-state"><h3>No dates</h3></div>'; return; }
+        if (!projects.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h3>{% trans "No projects yet" %}</h3>
+                    <p>{% trans "Create your first project to see it here" %}</p>
+                </div>
+            `;
+            return;
+        }
         
-        let minDate = new Date(Math.min(...allDates)); minDate.setDate(minDate.getDate() - 7);
-        let maxDate = new Date(Math.max(...allDates)); maxDate.setDate(maxDate.getDate() + 14);
-        const totalDays = Math.ceil((maxDate - minDate) / 86400000);
-        const dayWidth = currentZoom === 'day' ? 40 : currentZoom === 'week' ? 20 : 8;
-        const chartWidth = Math.max(700, totalDays * dayWidth);
+        // Calculate date range
+        const validProjects = projects.filter(p => p.start_date && p.end_date);
+        if (!validProjects.length) {
+            container.innerHTML = '<div class="empty-state"><h3>{% trans "No scheduled projects" %}</h3></div>';
+            return;
+        }
         
-        let scaleDates = [], d = new Date(minDate);
-        const interval = currentZoom === 'month' ? 7 : currentZoom === 'week' ? 3 : 1;
-        while (d <= maxDate) { scaleDates.push(new Date(d)); d.setDate(d.getDate() + interval); }
+        const allDates = validProjects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]);
+        let minDate = new Date(Math.min(...allDates));
+        let maxDate = new Date(Math.max(...allDates));
         
-        const todayPos = ((today - minDate) / (maxDate - minDate)) * 100;
-        const showToday = todayPos >= 0 && todayPos <= 100;
+        // Add padding
+        minDate.setDate(minDate.getDate() - 7);
+        maxDate.setDate(maxDate.getDate() + 14);
         
-        let html = '<div class="gantt-scale"><div class="scale-header">Proyecto</div><div class="scale-dates" style="min-width:' + chartWidth + 'px">' +
-            scaleDates.map(d => '<div class="scale-date">' + d.toLocaleDateString('es-MX', {month:'short', day:'numeric'}) + '</div>').join('') +
-            '</div></div><div class="gantt-rows">';
+        // Generate columns based on zoom level
+        const columns = [];
+        let currentDate = new Date(minDate);
+        const interval = currentZoom === 'month' ? 7 : currentZoom === 'week' ? 2 : 1;
         
-        projects.forEach(p => {
-            const start = new Date(p.start_date), end = new Date(p.end_date);
-            if (isNaN(start) || isNaN(end)) return;
-            const left = Math.max(0, ((start - minDate) / (maxDate - minDate)) * 100);
-            const width = Math.max(5, ((end - start) / (maxDate - minDate)) * 100);
-            const progress = p.progress_pct || 0;
-            const color = p.color || '#6366f1';
-            html += '<div class="gantt-row"><div class="row-label"><div class="project-name">' + p.name + '</div><div class="project-pm">' + (p.pm_name || '') + ' • ' + progress + '%</div></div>' +
-                '<div class="row-bars" style="min-width:' + chartWidth + 'px">' + (showToday ? '<div class="today-line" style="left:' + todayPos + '%"></div>' : '') +
-                '<div class="gantt-bar" style="left:' + left + '%;width:' + width + '%;background:' + color + '" onclick="location.href=\'/project/' + p.id + '/\'">' +
-                '<div class="progress-fill" style="width:' + progress + '%"></div><span class="bar-text">' + p.name + '</span></div></div></div>';
+        while (currentDate <= maxDate) {
+            const isToday = currentDate.toDateString() === today.toDateString();
+            const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+            columns.push({
+                date: new Date(currentDate),
+                isToday,
+                isWeekend,
+                dayName: currentDate.toLocaleDateString('es-MX', { weekday: 'short' }),
+                dayNum: currentDate.getDate(),
+                month: currentDate.toLocaleDateString('es-MX', { month: 'short' })
+            });
+            currentDate.setDate(currentDate.getDate() + interval);
+        }
+        
+        const totalRange = maxDate - minDate;
+        
+        // Build HTML
+        let html = `
+            <div class="gantt-header">
+                <div class="header-project">
+                    <i class="bi bi-folder2"></i> {% trans "Project" %}
+                </div>
+                <div class="header-timeline">
+                    ${columns.map(col => `
+                        <div class="timeline-column ${col.isToday ? 'today' : ''} ${col.isWeekend ? 'weekend' : ''}">
+                            <div class="timeline-day">${col.dayName}</div>
+                            <div class="timeline-date">${col.dayNum}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="gantt-rows">
+        `;
+        
+        validProjects.forEach((project, index) => {
+            const start = new Date(project.start_date);
+            const end = new Date(project.end_date);
+            const progress = project.progress_pct || 0;
+            const color = project.color || COLORS[index % COLORS.length];
+            
+            // Calculate bar position
+            const leftPercent = Math.max(0, ((start - minDate) / totalRange) * 100);
+            const widthPercent = Math.max(3, ((end - start) / totalRange) * 100);
+            
+            const progressClass = getProgressBadgeClass(progress);
+            const initials = getInitials(project.pm_name);
+            
+            html += `
+                <div class="gantt-row">
+                    <div class="row-info" onclick="location.href='/project/${project.id}/'">
+                        <div class="project-color" style="background: ${color}"></div>
+                        <div class="project-avatar" style="background: linear-gradient(135deg, ${color}, ${color}dd)">
+                            ${initials}
+                        </div>
+                        <div class="project-details">
+                            <div class="project-name">${project.name}</div>
+                            <div class="project-meta">
+                                <span class="project-pm">
+                                    <i class="bi bi-person"></i> ${project.pm_name || '—'}
+                                </span>
+                                <span class="progress-badge ${progressClass}">${progress}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-timeline">
+                        ${columns.map(col => `
+                            <div class="timeline-cell ${col.isToday ? 'today' : ''} ${col.isWeekend ? 'weekend' : ''}"></div>
+                        `).join('')}
+                        <div class="gantt-bar-wrapper" style="left: ${leftPercent}%; width: ${widthPercent}%;">
+                            <div class="gantt-bar" 
+                                 style="background: linear-gradient(90deg, ${color} 0%, ${color}dd 100%)"
+                                 data-project='${JSON.stringify(project).replace(/'/g, "&#39;")}'
+                                 onclick="event.stopPropagation(); location.href='/project/${project.id}/'">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                                <div class="bar-content">
+                                    <span class="bar-text">${project.name}</span>
+                                    <span class="bar-progress">${progress}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
+        
         html += '</div>';
         container.innerHTML = html;
+        
+        // Add tooltip handlers
+        document.querySelectorAll('.gantt-bar').forEach(bar => {
+            bar.addEventListener('mouseenter', function(e) {
+                const project = JSON.parse(this.dataset.project.replace(/&#39;/g, "'"));
+                showTooltip(e, project);
+            });
+            bar.addEventListener('mouseleave', hideTooltip);
+        });
     }
     
     function initCalendar() {
         const events = [];
-        (scheduleData.projects || []).forEach(p => {
-            if (p.start_date && p.end_date) events.push({ title: p.name, start: p.start_date, end: p.end_date, backgroundColor: p.color || '#6366f1', url: '/project/' + p.id + '/' });
+        
+        (scheduleData.projects || []).forEach((p, i) => {
+            if (p.start_date && p.end_date) {
+                events.push({
+                    title: p.name,
+                    start: p.start_date,
+                    end: p.end_date,
+                    backgroundColor: p.color || COLORS[i % COLORS.length],
+                    borderColor: 'transparent',
+                    url: '/project/' + p.id + '/'
+                });
+            }
         });
+        
         (scheduleData.schedule_items || []).filter(i => i.is_milestone).forEach(m => {
-            events.push({ title: '🏁 ' + m.title, start: m.start_date, backgroundColor: '#f59e0b' });
+            events.push({
+                title: '🏁 ' + m.title,
+                start: m.start_date,
+                backgroundColor: '#FFCB00',
+                borderColor: 'transparent',
+                allDay: true
+            });
         });
+        
         calendar = new FullCalendar.Calendar(document.getElementById('masterCalendar'), {
-            initialView: 'dayGridMonth', locale: 'es', headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
-            events: events, eventClick: function(info) { if (info.event.url) { info.jsEvent.preventDefault(); location.href = info.event.url; } }, height: 'auto'
+            initialView: 'dayGridMonth',
+            locale: 'es',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek'
+            },
+            events: events,
+            eventClick: function(info) {
+                if (info.event.url) {
+                    info.jsEvent.preventDefault();
+                    location.href = info.event.url;
+                }
+            },
+            height: 'auto',
+            eventDisplay: 'block',
+            dayMaxEvents: 3
         });
         calendar.render();
     }
