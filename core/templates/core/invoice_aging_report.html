@@ -131,9 +131,7 @@
                         <strong>{{ invoice.invoice_number }}</strong> - {{ invoice.project.name }}
                         <br>
                         <small class="text-muted">{{ invoice.date_issued|date:"M j, Y" }}</small>
-                        {% with days=(report_date|timesince:invoice.date_issued)|slice:":2" %}
-                        <span class="days-badge days-current">{{ days }} days</span>
-                        {% endwith %}
+                        <span class="days-badge days-current">{{ invoice.date_issued|timesince }}</span>
                     </div>
                     <div class="invoice-amount text-success">
                         ${{ invoice.total_amount|floatformat:2 }}

@@ -612,7 +612,7 @@
         
         <p style="text-align: center; color: #999; font-style: italic;">
             {% trans "No habits yet?" %} 
-            <a href="{% url 'core:settings' %}" target="_blank">{% trans "Create your first habit" %}</a>
+            <a href="{% url 'strategic_planner' %}" target="_blank">{% trans "Create your first habit" %}</a>
         </p>
     </div>
 </template>
@@ -628,7 +628,7 @@
         
         <p style="text-align: center; color: #999; font-style: italic; margin-top: 2rem;">
             {% trans "No life visions yet?" %} 
-            <a href="{% url 'core:settings' %}" target="_blank">{% trans "Create your North Star goals" %}</a>
+            <a href="{% url 'strategic_planner' %}" target="_blank">{% trans "Create your North Star goals" %}</a>
         </p>
     </div>
 </template>
@@ -1211,7 +1211,7 @@ async function submitRitual() {
         
         if (response.ok) {
             alert('{% trans "Ritual completed! Your strategic day is planned." %}');
-            window.location.href = '{% url "core:dashboard" %}';
+            window.location.href = '{% url "dashboard" %}';
         } else {
             alert('{% trans "Error completing ritual. Please try again." %}');
         }
