@@ -91,9 +91,13 @@
                     <i class="bi bi-check2-square"></i>
                     <span>{% trans "All Tasks" %}</span>
                 </a>
-                <a href="{% url 'payroll_summary' %}" class="sidebar-item">
-                    <i class="bi bi-cash-coin"></i>
-                    <span>{% trans "Payroll" %}</span>
+                <a href="{% url 'materials_requests_list_all' %}" class="sidebar-item">
+                    <i class="bi bi-box-seam"></i>
+                    <span>{% trans "Material Requests" %}</span>
+                </a>
+                <a href="{% url 'unassigned_timeentries' %}" class="sidebar-item">
+                    <i class="bi bi-clock-history"></i>
+                    <span>{% trans "Unassigned Time" %}</span>
                 </a>
             </div>
         </div>
@@ -105,12 +109,52 @@
             <div class="sidebar-section-title">{% trans "Administration" %}</div>
             <div class="space-y-1">
                 <a href="{% url 'dashboard_admin' %}" class="sidebar-item">
-                    <i class="bi bi-gear"></i>
+                    <i class="bi bi-speedometer2"></i>
                     <span>{% trans "Admin Dashboard" %}</span>
                 </a>
                 <a href="/admin/core/employee/" class="sidebar-item">
                     <i class="bi bi-person-badge"></i>
                     <span>{% trans "Employees" %}</span>
+                </a>
+                <a href="{% url 'payroll_weekly_review' %}" class="sidebar-item">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>{% trans "Payroll Review" %}</span>
+                </a>
+            </div>
+        </div>
+        
+        <div>
+            <div class="sidebar-section-title">{% trans "Finance" %}</div>
+            <div class="space-y-1">
+                <a href="{% url 'financial_dashboard' %}" class="sidebar-item">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>{% trans "Financial Dashboard" %}</span>
+                </a>
+                <a href="{% url 'income_list' %}" class="sidebar-item">
+                    <i class="bi bi-currency-dollar"></i>
+                    <span>{% trans "Income" %}</span>
+                </a>
+                <a href="{% url 'expense_list' %}" class="sidebar-item">
+                    <i class="bi bi-receipt"></i>
+                    <span>{% trans "Expenses" %}</span>
+                </a>
+                <a href="{% url 'invoice_list' %}" class="sidebar-item">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>{% trans "Invoices" %}</span>
+                </a>
+            </div>
+        </div>
+        
+        <div>
+            <div class="sidebar-section-title">{% trans "Reports" %}</div>
+            <div class="space-y-1">
+                <a href="{% url 'analytics_dashboard' %}" class="sidebar-item">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <span>{% trans "Analytics" %}</span>
+                </a>
+                <a href="{% url 'productivity_dashboard' %}" class="sidebar-item">
+                    <i class="bi bi-activity"></i>
+                    <span>{% trans "Productivity" %}</span>
                 </a>
                 <a href="/admin/" class="sidebar-item">
                     <i class="bi bi-database"></i>
