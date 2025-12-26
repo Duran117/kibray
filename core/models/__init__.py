@@ -7824,6 +7824,275 @@ class ProjectFile(models.Model):
 
 
 # ========================================================================================
+# DOCUMENT WORKFLOW & APPROVALS (Odoo-style Phase 3)
+# ========================================================================================
+
+
+class DocumentWorkflowTemplate(models.Model):
+    """
+    Workflow templates for document approval processes.
+    Define the steps required to approve documents (Odoo-style).
+    """
+
+    if TYPE_CHECKING:
+        id: int
+
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="document_workflow_templates"
+    )
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    auto_assign_to_category = models.ForeignKey(
+        FileCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="default_workflow",
+        help_text="Auto-apply this workflow to files uploaded to this category",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_workflows",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Document Workflow Template"
+        verbose_name_plural = "Document Workflow Templates"
+
+    def __str__(self):
+        return f"{self.name} ({self.project.name})"
+
+
+class WorkflowStep(models.Model):
+    """
+    Individual steps in a workflow template.
+    Each step defines who needs to approve and in what order.
+    """
+
+    if TYPE_CHECKING:
+        id: int
+
+    STEP_TYPES = [
+        ("approve", "Aprobación"),
+        ("review", "Revisión"),
+        ("sign", "Firma"),
+        ("notify", "Notificación"),
+    ]
+
+    workflow = models.ForeignKey(
+        DocumentWorkflowTemplate, on_delete=models.CASCADE, related_name="steps"
+    )
+    name = models.CharField(max_length=100)
+    step_type = models.CharField(max_length=20, choices=STEP_TYPES, default="approve")
+    order = models.PositiveIntegerField(default=0)
+    
+    # Who can approve this step
+    assigned_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="workflow_steps_assigned",
+        help_text="Specific user to handle this step",
+    )
+    assigned_role = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Role name (e.g., 'project_manager', 'client') - all users with this role can approve",
+    )
+    
+    # Step requirements
+    requires_comment = models.BooleanField(default=False)
+    requires_signature = models.BooleanField(default=False)
+    auto_approve_days = models.PositiveIntegerField(
+        default=0,
+        help_text="Auto-approve after X days if no action (0 = disabled)",
+    )
+    
+    # Notifications
+    send_email_notification = models.BooleanField(default=True)
+    reminder_days = models.PositiveIntegerField(
+        default=3,
+        help_text="Send reminder after X days pending",
+    )
+
+    class Meta:
+        ordering = ["order"]
+        verbose_name = "Workflow Step"
+        verbose_name_plural = "Workflow Steps"
+
+    def __str__(self):
+        return f"{self.workflow.name} - Step {self.order}: {self.name}"
+
+
+class DocumentWorkflow(models.Model):
+    """
+    Active workflow instance for a specific document.
+    Tracks the approval progress of a file.
+    """
+
+    if TYPE_CHECKING:
+        id: int
+
+    STATUS_CHOICES = [
+        ("pending", "Pendiente"),
+        ("in_progress", "En Progreso"),
+        ("approved", "Aprobado"),
+        ("rejected", "Rechazado"),
+        ("cancelled", "Cancelado"),
+    ]
+
+    file = models.ForeignKey(
+        ProjectFile, on_delete=models.CASCADE, related_name="workflows"
+    )
+    template = models.ForeignKey(
+        DocumentWorkflowTemplate,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="instances",
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    current_step = models.PositiveIntegerField(default=0)
+    
+    # Tracking
+    initiated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="initiated_workflows",
+    )
+    initiated_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    # Final result
+    final_comment = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ["-initiated_at"]
+        verbose_name = "Document Workflow"
+        verbose_name_plural = "Document Workflows"
+
+    def __str__(self):
+        return f"Workflow for {self.file.name} - {self.get_status_display()}"
+
+    def get_current_step(self):
+        """Get the current WorkflowStep object"""
+        if self.template:
+            return self.template.steps.filter(order=self.current_step).first()
+        return None
+
+    def get_progress_percentage(self):
+        """Calculate workflow progress as percentage"""
+        if not self.template:
+            return 0
+        total_steps = self.template.steps.count()
+        if total_steps == 0:
+            return 100
+        completed = self.step_actions.filter(action__in=["approved", "signed"]).count()
+        return int((completed / total_steps) * 100)
+
+    def advance_to_next_step(self):
+        """Move to the next step if current is completed"""
+        if not self.template:
+            return False
+        
+        next_step = self.template.steps.filter(order__gt=self.current_step).first()
+        if next_step:
+            self.current_step = next_step.order
+            self.status = "in_progress"
+            self.save()
+            return True
+        else:
+            # All steps completed
+            self.status = "approved"
+            self.completed_at = timezone.now()
+            self.save()
+            return True
+
+    def reject(self, user, comment=""):
+        """Reject the document and stop workflow"""
+        self.status = "rejected"
+        self.completed_at = timezone.now()
+        self.final_comment = comment
+        self.save()
+        
+        # Create rejection action
+        WorkflowStepAction.objects.create(
+            workflow=self,
+            step=self.get_current_step(),
+            action="rejected",
+            performed_by=user,
+            comment=comment,
+        )
+
+
+class WorkflowStepAction(models.Model):
+    """
+    Records actions taken on workflow steps.
+    Audit trail for all approvals, rejections, etc.
+    """
+
+    if TYPE_CHECKING:
+        id: int
+
+    ACTION_CHOICES = [
+        ("approved", "Aprobado"),
+        ("rejected", "Rechazado"),
+        ("signed", "Firmado"),
+        ("commented", "Comentado"),
+        ("delegated", "Delegado"),
+        ("reminder_sent", "Recordatorio Enviado"),
+    ]
+
+    workflow = models.ForeignKey(
+        DocumentWorkflow, on_delete=models.CASCADE, related_name="step_actions"
+    )
+    step = models.ForeignKey(
+        WorkflowStep, on_delete=models.SET_NULL, null=True, related_name="actions"
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    performed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="workflow_actions",
+    )
+    performed_at = models.DateTimeField(auto_now_add=True)
+    
+    # Details
+    comment = models.TextField(blank=True)
+    signature_image = models.ImageField(
+        upload_to="workflow_signatures/%Y/%m/",
+        blank=True,
+        null=True,
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    
+    # Delegation
+    delegated_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="delegated_workflow_actions",
+    )
+
+    class Meta:
+        ordering = ["performed_at"]
+        verbose_name = "Workflow Step Action"
+        verbose_name_plural = "Workflow Step Actions"
+
+    def __str__(self):
+        return f"{self.get_action_display()} by {self.performed_by} on {self.performed_at}"
+
+
+# ========================================================================================
 # TOUCH-UP SYSTEM (Separate from Info Pins)
 # ========================================================================================
 

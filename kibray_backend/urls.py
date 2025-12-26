@@ -543,10 +543,17 @@ urlpatterns = [
     path("api/files/<int:file_id>/details/", views.file_details_api, name="file_details_api"),
     path("api/files/<int:file_id>/favorite/", views.file_toggle_favorite, name="file_toggle_favorite"),
     path("api/files/<int:file_id>/share/", views.file_generate_share_link, name="file_generate_share_link"),
+    path("api/files/<int:file_id>/workflow/", views.file_workflow_status, name="file_workflow_status"),
     path("api/folders/<int:category_id>/share/", views.folder_generate_share_link, name="folder_generate_share_link"),
     # Public share links (no login required)
     path("shared/file/<str:token>/", views.file_public_view, name="file_public_view"),
     path("shared/folder/<str:token>/", views.folder_public_view, name="folder_public_view"),
+    # Document Workflow API (Odoo-style)
+    path("api/projects/<int:project_id>/workflows/", views.workflow_templates_list, name="workflow_templates_list"),
+    path("api/projects/<int:project_id>/workflows/create/", views.workflow_template_create, name="workflow_template_create"),
+    path("api/files/<int:file_id>/workflow/start/", views.workflow_start, name="workflow_start"),
+    path("api/workflows/<int:workflow_id>/", views.workflow_detail, name="workflow_detail"),
+    path("api/workflows/<int:workflow_id>/action/", views.workflow_action, name="workflow_action"),
     # Touch-up Pins (deprecated flow) - gated via settings.TOUCHUP_PIN_ENABLED
     # These routes are disabled by default to consolidate on Task(is_touchup=True)
     # Set TOUCHUP_PIN_ENABLED=True to re-enable the legacy TouchUpPin UI.

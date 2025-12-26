@@ -9804,6 +9804,268 @@ def folder_public_upload(request, token):
 
 
 # ========================================================================================
+# DOCUMENT WORKFLOW API (Odoo-style Phase 3)
+# ========================================================================================
+
+
+@login_required
+def workflow_templates_list(request, project_id):
+    """List all workflow templates for a project"""
+    from core.models import DocumentWorkflowTemplate
+
+    project = get_object_or_404(Project, id=project_id)
+    templates = DocumentWorkflowTemplate.objects.filter(project=project, is_active=True)
+    
+    data = [{
+        "id": t.id,
+        "name": t.name,
+        "description": t.description,
+        "steps_count": t.steps.count(),
+        "auto_category": t.auto_assign_to_category.name if t.auto_assign_to_category else None,
+    } for t in templates]
+    
+    return JsonResponse({"templates": data})
+
+
+@login_required
+@require_POST
+def workflow_template_create(request, project_id):
+    """Create a new workflow template"""
+    from core.models import DocumentWorkflowTemplate, WorkflowStep
+    import json
+
+    project = get_object_or_404(Project, id=project_id)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    
+    template = DocumentWorkflowTemplate.objects.create(
+        project=project,
+        name=data.get("name", "Nuevo Workflow"),
+        description=data.get("description", ""),
+        created_by=request.user,
+    )
+    
+    # Create steps
+    for i, step_data in enumerate(data.get("steps", [])):
+        WorkflowStep.objects.create(
+            workflow=template,
+            name=step_data.get("name", f"Paso {i+1}"),
+            step_type=step_data.get("type", "approve"),
+            order=i,
+            assigned_role=step_data.get("role", ""),
+            requires_comment=step_data.get("requires_comment", False),
+            requires_signature=step_data.get("requires_signature", False),
+        )
+    
+    return JsonResponse({
+        "success": True,
+        "template_id": template.id,
+        "message": gettext("Workflow creado correctamente"),
+    })
+
+
+@login_required
+@require_POST
+def workflow_start(request, file_id):
+    """Start a workflow for a document"""
+    from core.models import ProjectFile, DocumentWorkflow, DocumentWorkflowTemplate
+    import json
+
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = {}
+    
+    template_id = data.get("template_id")
+    if not template_id:
+        # Try to get default template for this category
+        template = DocumentWorkflowTemplate.objects.filter(
+            auto_assign_to_category=file_obj.category,
+            is_active=True
+        ).first()
+    else:
+        template = get_object_or_404(DocumentWorkflowTemplate, id=template_id)
+    
+    if not template:
+        return JsonResponse({"error": gettext("No hay workflow disponible")}, status=400)
+    
+    # Check if there's already an active workflow
+    existing = DocumentWorkflow.objects.filter(
+        file=file_obj,
+        status__in=["pending", "in_progress"]
+    ).exists()
+    
+    if existing:
+        return JsonResponse({"error": gettext("Ya existe un workflow activo")}, status=400)
+    
+    # Create workflow instance
+    workflow = DocumentWorkflow.objects.create(
+        file=file_obj,
+        template=template,
+        status="in_progress",
+        current_step=0,
+        initiated_by=request.user,
+    )
+    
+    return JsonResponse({
+        "success": True,
+        "workflow_id": workflow.id,
+        "message": gettext("Workflow iniciado"),
+    })
+
+
+@login_required
+def workflow_detail(request, workflow_id):
+    """Get workflow details and progress"""
+    from core.models import DocumentWorkflow
+
+    workflow = get_object_or_404(DocumentWorkflow, id=workflow_id)
+    
+    # Get all steps with their actions
+    steps_data = []
+    if workflow.template:
+        for step in workflow.template.steps.all():
+            actions = workflow.step_actions.filter(step=step)
+            steps_data.append({
+                "id": step.id,
+                "name": step.name,
+                "type": step.step_type,
+                "order": step.order,
+                "is_current": step.order == workflow.current_step,
+                "is_completed": actions.filter(action__in=["approved", "signed"]).exists(),
+                "requires_signature": step.requires_signature,
+                "requires_comment": step.requires_comment,
+                "actions": [{
+                    "action": a.action,
+                    "performed_by": a.performed_by.get_full_name() if a.performed_by else "Sistema",
+                    "performed_at": a.performed_at.isoformat(),
+                    "comment": a.comment,
+                } for a in actions]
+            })
+    
+    return JsonResponse({
+        "id": workflow.id,
+        "file_name": workflow.file.name,
+        "file_id": workflow.file.id,
+        "status": workflow.status,
+        "status_display": workflow.get_status_display(),
+        "progress": workflow.get_progress_percentage(),
+        "current_step": workflow.current_step,
+        "initiated_by": workflow.initiated_by.get_full_name() if workflow.initiated_by else None,
+        "initiated_at": workflow.initiated_at.isoformat(),
+        "completed_at": workflow.completed_at.isoformat() if workflow.completed_at else None,
+        "steps": steps_data,
+    })
+
+
+@login_required
+@require_POST
+def workflow_action(request, workflow_id):
+    """Perform an action on the current workflow step"""
+    from core.models import DocumentWorkflow, WorkflowStepAction
+    import json
+
+    workflow = get_object_or_404(DocumentWorkflow, id=workflow_id)
+    
+    if workflow.status not in ["pending", "in_progress"]:
+        return JsonResponse({"error": gettext("Workflow ya finalizado")}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = {}
+    
+    action = data.get("action", "approved")
+    comment = data.get("comment", "")
+    
+    current_step = workflow.get_current_step()
+    if not current_step:
+        return JsonResponse({"error": gettext("No hay paso actual")}, status=400)
+    
+    # Validate requirements
+    if current_step.requires_comment and not comment:
+        return JsonResponse({"error": gettext("Se requiere comentario")}, status=400)
+    
+    # Get client IP
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    ip_address = x_forwarded_for.split(",")[0] if x_forwarded_for else request.META.get("REMOTE_ADDR")
+    
+    # Create action record
+    step_action = WorkflowStepAction.objects.create(
+        workflow=workflow,
+        step=current_step,
+        action=action,
+        performed_by=request.user,
+        comment=comment,
+        ip_address=ip_address,
+    )
+    
+    # Handle signature if provided
+    signature_data = data.get("signature")
+    if signature_data and current_step.requires_signature:
+        # Handle base64 signature image
+        import base64
+        from django.core.files.base import ContentFile
+        
+        if signature_data.startswith("data:image"):
+            format_str, imgstr = signature_data.split(";base64,")
+            ext = format_str.split("/")[-1]
+            step_action.signature_image.save(
+                f"signature_{workflow_id}_{current_step.order}.{ext}",
+                ContentFile(base64.b64decode(imgstr))
+            )
+    
+    # Process action
+    if action == "rejected":
+        workflow.reject(request.user, comment)
+        message = gettext("Documento rechazado")
+    else:
+        workflow.advance_to_next_step()
+        if workflow.status == "approved":
+            message = gettext("Workflow completado - Documento aprobado")
+        else:
+            message = gettext("Paso aprobado - Avanzando al siguiente")
+    
+    return JsonResponse({
+        "success": True,
+        "workflow_status": workflow.status,
+        "progress": workflow.get_progress_percentage(),
+        "message": message,
+    })
+
+
+@login_required
+def file_workflow_status(request, file_id):
+    """Get workflow status for a file"""
+    from core.models import ProjectFile, DocumentWorkflow
+
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    # Get active or latest workflow
+    workflow = DocumentWorkflow.objects.filter(file=file_obj).order_by("-initiated_at").first()
+    
+    if not workflow:
+        return JsonResponse({
+            "has_workflow": False,
+            "can_start": True,
+        })
+    
+    return JsonResponse({
+        "has_workflow": True,
+        "workflow_id": workflow.id,
+        "status": workflow.status,
+        "status_display": workflow.get_status_display(),
+        "progress": workflow.get_progress_percentage(),
+        "can_start": workflow.status in ["approved", "rejected", "cancelled"],
+    })
+
+
+# ========================================================================================
 # TOUCH-UP PIN VIEWS (Separate from Info Pins)
 # ========================================================================================
 
