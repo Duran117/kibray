@@ -1405,15 +1405,16 @@ def make_planned_activity_formset(daily_plan, data=None, files=None, **kwargs):
 
 
 class FileCategoryForm(forms.ModelForm):
-    """Form for creating/editing file categories"""
+    """Form for creating/editing file categories - supports hierarchy"""
 
     class Meta:
         model = FileCategory
-        fields = ["name", "category_type", "description", "icon", "color", "order"]
+        fields = ["name", "parent", "category_type", "description", "icon", "color", "order"]
         widgets = {
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Ej: Contratos, Planos, Fotos..."}
             ),
+            "parent": forms.Select(attrs={"class": "form-select"}),
             "category_type": forms.Select(attrs={"class": "form-select"}),
             "description": forms.Textarea(
                 attrs={

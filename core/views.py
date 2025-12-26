@@ -7,6 +7,7 @@ from functools import wraps
 import io
 from io import BytesIO
 import json
+import logging
 import re
 
 from django.conf import settings
@@ -19,8 +20,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Q, Sum
-from django.db.models.functions import Coalesce
+from django.db.models import Q, Sum
 from django.http import (
     Http404,
     HttpResponse,
@@ -36,6 +36,54 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods, require_POST
+
+from core import models
+from core.forms import InventoryMovementForm
+from core.models import (
+    RFI,
+    ActivityCompletion,
+    ActivityTemplate,
+    BudgetLine,
+    BudgetProgress,
+    ChangeOrder,
+    ChangeOrderPhoto,
+    ChatChannel,
+    ChatMessage,
+    ColorApproval,
+    ColorSample,
+    Comment,
+    CostCode,
+    DailyLog,
+    DailyPlan,
+    DamageReport,
+    Employee,
+    Estimate,
+    Expense,
+    FloorPlan,
+    Income,
+    InventoryLocation,
+    Invoice,
+    InvoiceLine,
+    Issue,
+    MaterialCatalog,
+    MaterialRequest,
+    MaterialRequestItem,
+    PayrollPeriod,
+    PlannedActivity,
+    Profile,
+    Project,
+    ProjectInventory,
+    Risk,
+    Schedule,
+    ScheduleCategory,
+    ScheduleItem,
+    Task,
+    TimeEntry,
+)
+from core.services.earned_value import compute_project_ev
+from core.services.financial_service import FinancialAnalyticsService  # BI Module 21
+
+logger = logging.getLogger(__name__)
 
 try:
     from xhtml2pdf import pisa  # Optional HTML->PDF engine (requires system cairo libs)
@@ -71,9 +119,7 @@ def _generate_basic_pdf_from_html(html: str) -> bytes:
     return buf.getvalue()
 
 
-from core import models  # noqa: E402
-from core.forms import (  # noqa: E402
-    ActivationWizardForm,
+from .forms import (  # noqa: E402
     ActivityTemplateForm,
     BudgetLineForm,
     BudgetLineScheduleForm,
@@ -89,7 +135,6 @@ from core.forms import (  # noqa: E402
     ExpenseForm,
     FloorPlanForm,
     IncomeForm,
-    InventoryMovementForm,
     InvoiceForm,
     InvoiceLineFormSet,
     IssueForm,
@@ -104,52 +149,6 @@ from core.forms import (  # noqa: E402
     ScheduleItemForm,
     TimeEntryForm,
 )
-from core.models import (  # noqa: E402
-    RFI,
-    ActivityCompletion,
-    ActivityTemplate,
-    BudgetLine,
-    BudgetProgress,
-    ChangeOrder,
-    ChangeOrderPhoto,
-    ChatChannel,
-    ChatMessage,
-    ColorApproval,
-    ColorSample,
-    Comment,
-    CostCode,
-    DailyLog,
-    DailyPlan,
-    DamageReport,
-    Employee,
-    Estimate,
-    Expense,
-    FloorPlan,
-    Income,
-    InventoryLocation,
-    Invoice,
-    InvoiceLine,
-    Issue,
-    MaterialCatalog,
-    MaterialRequest,
-    MaterialRequestItem,
-    PayrollPayment,
-    PayrollPeriod,
-    PayrollRecord,
-    PlannedActivity,
-    Profile,
-    Project,
-    ProjectInventory,
-    ResourceAssignment,
-    Risk,
-    Schedule,
-    ScheduleCategory,
-    ScheduleItem,
-    Task,
-    TimeEntry,
-)
-from core.services.earned_value import compute_project_ev  # noqa: E402
-from core.services.financial_service import FinancialAnalyticsService  # BI Module 21  # noqa: E402
 
 
 # --- CLIENT REQUESTS ---
@@ -384,14 +383,11 @@ def dashboard_admin(request):
         # Return 403 immediately to avoid any transient exposure.
         return HttpResponseForbidden("Forbidden")
 
-    # Respect session language hint for legacy rendering (used by i18n tests)
-    session_lang = request.session.get("lang")
-    if session_lang:
-        translation.activate(session_lang)
-        request.LANGUAGE_CODE = session_lang
-
     today = timezone.localdate()
     now = timezone.localtime()
+
+    # Optional legacy shell support (no modern sidebar) for backwards compatibility/tests.
+    legacy_shell = bool(request.GET.get("legacy"))
 
     # Obtener empleado ligado al usuario (para Admin que también es empleado)
     employee = Employee.objects.filter(user=request.user).first()
@@ -419,7 +415,6 @@ def dashboard_admin(request):
                     employee=employee,
                     project=form.cleaned_data["project"],
                     change_order=form.cleaned_data.get("change_order"),
-                    budget_line=form.cleaned_data.get("budget_line"),  # Nueva línea
                     date=today,
                     start_time=now.time(),
                     end_time=None,
@@ -444,8 +439,13 @@ def dashboard_admin(request):
             )
             return redirect("dashboard_admin")
 
+    # Proyectos disponibles (admin puede ver todos)
+    available_projects = Project.objects.all()
+    available_projects_count = available_projects.count()
+    available_projects_preview = list(available_projects[:5])
+
     # Form para clock in
-    form = ClockInForm() if employee else None
+    form = ClockInForm(available_projects=available_projects) if employee else None
 
     # === MÉTRICAS FINANCIERAS (refactored to service) ===
     fa = FinancialAnalyticsService()
@@ -476,6 +476,29 @@ def dashboard_admin(request):
         .distinct()
         .count()
     )
+
+    # ---- Render ----
+    # Always use the modern template, but allow hiding the sidebar when legacy mode is requested.
+    context = {
+        "today": today,
+        "now": now,
+        "employee": employee,
+        "open_entry": open_entry,
+        "available_projects_count": available_projects_count,
+        "available_projects_preview": available_projects_preview,
+        "form": form,
+        "kpis": kpis,
+        "net_profit": net_profit,
+        "total_income": total_income,
+        "total_expense": total_expense,
+        "unassigned_time_count": unassigned_time_count,
+        "unassigned_time_hours": unassigned_time_hours,
+        "pending_client_requests": pending_client_requests,
+        "pending_payroll": pending_payroll,
+        "legacy_shell": legacy_shell,
+    }
+
+    return render(request, "core/dashboard_admin.html", context)
 
     # 4. Facturas pendientes de pago
     pending_invoices = Invoice.objects.filter(
@@ -612,11 +635,6 @@ def dashboard_admin(request):
             item for item in morning_briefing if item.get("category") == "approvals"
         ]
 
-    active_lang = (
-        session_lang or getattr(request, "LANGUAGE_CODE", None) or translation.get_language()
-    )
-    english_mode = str(active_lang or "").lower().startswith("en")
-
     context = {
         # Financiero
         "total_income": total_income,
@@ -655,15 +673,14 @@ def dashboard_admin(request):
         "employee": employee,
         "open_entry": open_entry,
         "form": form,
-        "active_lang": active_lang,
-        "session_lang": session_lang,
-        "english_mode": english_mode,
+        "available_projects_count": available_projects_count,
+        "available_projects_preview": available_projects_preview,
     }
 
-    # Keep `?legacy=` reserved for the legacy_shell (sidebar suppression) behavior.
-    # The admin dashboard no longer supports a separate legacy template.
-    template = "core/dashboard_admin_clean.html"
+    use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
+    template = "core/dashboard_admin.html" if use_legacy else "core/dashboard_admin_clean.html"
 
+    # Provide a safe badges fallback for header/sidebar (context processor may override)
     context.setdefault("badges", {"unread_notifications_count": 0})
 
     return render(request, template, context)
@@ -825,10 +842,10 @@ def dashboard_client(request):
         "active_filter": active_filter,
     }
 
-    # Always serve clean modern template; legacy can be enabled manually if needed
-    force_legacy = request.GET.get("legacy", "false").lower() == "true"
+    # Use clean template by default, legacy with ?legacy=true
+    use_legacy = request.GET.get("legacy")
     template_name = (
-        "core/dashboard_client.html" if force_legacy else "core/dashboard_client_clean.html"
+        "core/dashboard_client.html" if use_legacy else "core/dashboard_client_clean.html"
     )
     return render(request, template_name, context)
 
@@ -944,11 +961,6 @@ def dashboard_view(request):
     profile = getattr(user, "profile", None)
     role = getattr(profile, "role", None)
 
-    # Check if user has an Employee record (priority for employee redirect)
-    from core.models import Employee
-
-    has_employee = Employee.objects.filter(user=user).exists()
-
     # Redirect based on role
     if user.is_superuser or (profile and role == "admin"):
         return redirect("dashboard_admin")
@@ -962,9 +974,6 @@ def dashboard_view(request):
     elif profile and role == "designer":
         return redirect("dashboard_designer")
     # Rol superintendente ya cubierto arriba por cliente/builder unificado
-    # PRIORITY FIX: If user has Employee record, always go to employee dashboard
-    elif has_employee:
-        return redirect("dashboard_employee")
     else:
         # Default: check if user is staff -> PM dashboard, otherwise employee
         if user.is_staff:
@@ -1033,6 +1042,18 @@ def schedule_create_view(request):
     return render(request, "core/schedule_form.html", {"form": form})
 
 
+# --- Helpers ---
+
+
+def _update_project_total_expenses(project):
+    from django.db.models import Sum
+
+    total = project.expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    project.total_expenses = total
+    project.save(update_fields=["total_expenses"])
+    return total
+
+
 @login_required
 def expense_create_view(request):
     profile = getattr(request.user, "profile", None)
@@ -1048,7 +1069,8 @@ def expense_create_view(request):
     if request.method == "POST":
         form = ExpenseForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            expense = form.save()
+            _update_project_total_expenses(expense.project)
             return redirect("dashboard")
     else:
         form = ExpenseForm()
@@ -1158,7 +1180,8 @@ def expense_edit_view(request, expense_id):
     if request.method == "POST":
         form = ExpenseForm(request.POST, request.FILES, instance=expense)
         if form.is_valid():
-            form.save()
+            expense = form.save()
+            _update_project_total_expenses(expense.project)
             messages.success(request, "Gasto actualizado.")
             return redirect("expense_list")
     else:
@@ -1177,7 +1200,9 @@ def expense_delete_view(request, expense_id):
         messages.error(request, "Acceso denegado.")
         return redirect("expense_list")
     if request.method == "POST":
+        project = expense.project
         expense.delete()
+        _update_project_total_expenses(project)
         messages.success(request, "Gasto eliminado.")
         return redirect("expense_list")
     return render(request, "core/expense_confirm_delete.html", {"expense": expense})
@@ -1262,334 +1287,29 @@ def timeentry_delete_view(request, entry_id: int):
 #     pass
 
 
-# --- SISTEMA DE NÓMINA MEJORADO ---
+# --- SISTEMA DE NÓMINA ---
+# NOTA: Las vistas de nómina están en core/views/legacy_views.py
+# Estas funciones solo redirigen para mantener compatibilidad de imports
+
 @login_required
 def payroll_weekly_review(request):
-    """
-    Vista para revisar y aprobar la nómina semanal.
-    Muestra todos los empleados con sus horas trabajadas en la semana,
-    permite editar horas de entrada/salida por día, y registrar pagos.
-    
-    SOLO ACCESIBLE POR ADMIN/SUPERUSER
-    """
-    # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
-
-    from datetime import datetime, timedelta
-    from decimal import Decimal
-
-    # Obtener parámetros de fecha (por defecto: semana actual)
-    week_start_str = request.GET.get("week_start")
-    if week_start_str:
-        try:
-            week_start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
-        except ValueError:
-            week_start = datetime.now().date() - timedelta(days=datetime.now().date().weekday())
-    else:
-        today = datetime.now().date()
-        week_start = today - timedelta(days=today.weekday())  # Lunes de esta semana
-
-    week_end = week_start + timedelta(days=6)  # Domingo
-    prev_week = week_start - timedelta(days=7)
-    next_week = week_start + timedelta(days=7)
-
-    # Crear lista de días de la semana
-    day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    days = []
-    for i in range(7):
-        day_date = week_start + timedelta(days=i)
-        days.append({
-            'name': day_names[i],
-            'date': day_date,
-            'index': i
-        })
-
-    # Buscar o crear PayrollPeriod
-    period, created = PayrollPeriod.objects.get_or_create(
-        week_start=week_start, week_end=week_end, defaults={"created_by": request.user}
-    )
-
-    # Obtener todos los empleados activos
-    employees = Employee.objects.filter(is_active=True).order_by("last_name", "first_name")
-
-    # POST: Actualizar registros
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        if action == "update_records":
-            time_format = "%H:%M"
-            
-            for emp in employees:
-                emp_id = str(emp.id)
-                
-                # Procesar horas de entrada/salida por cada día
-                for i in range(7):
-                    day = week_start + timedelta(days=i)
-                    start_val = request.POST.get(f"start_{emp_id}_{i}")
-                    end_val = request.POST.get(f"end_{emp_id}_{i}")
-                    
-                    # Buscar entrada existente para este día
-                    existing_entry = TimeEntry.objects.filter(
-                        employee=emp, date=day, change_order__isnull=True
-                    ).first()
-                    
-                    if start_val and end_val:
-                        try:
-                            start_time = datetime.strptime(start_val, time_format).time()
-                            end_time = datetime.strptime(end_val, time_format).time()
-                        except ValueError:
-                            continue
-                        
-                        if existing_entry:
-                            existing_entry.start_time = start_time
-                            existing_entry.end_time = end_time
-                            existing_entry.save()
-                        else:
-                            TimeEntry.objects.create(
-                                employee=emp,
-                                date=day,
-                                start_time=start_time,
-                                end_time=end_time,
-                            )
-                    elif existing_entry and not start_val and not end_val:
-                        # Si se borraron ambos campos, eliminar la entrada
-                        existing_entry.delete()
-                
-                # Actualizar PayrollRecord
-                record, _ = PayrollRecord.objects.get_or_create(
-                    period=period,
-                    employee=emp,
-                    week_start=week_start,
-                    week_end=week_end,
-                    defaults={
-                        "hourly_rate": emp.hourly_rate,
-                        "total_hours": Decimal("0.00"),
-                        "total_pay": Decimal("0.00"),
-                    },
-                )
-                
-                # Recalcular horas totales
-                time_entries = TimeEntry.objects.filter(
-                    employee=emp, date__range=(week_start, week_end)
-                )
-                total_hours = sum(
-                    Decimal(str(entry.hours_worked)) if entry.hours_worked else Decimal("0.00")
-                    for entry in time_entries
-                )
-                
-                # Actualizar rate si cambió
-                rate = request.POST.get(f"rate_{emp_id}")
-                if rate:
-                    try:
-                        record.adjusted_rate = Decimal(rate)
-                    except:
-                        pass
-                
-                record.total_hours = total_hours
-                record.split_hours_regular_overtime()
-                record.calculate_total_pay()
-                record.reviewed = True
-                record.save()
-                
-                # Procesar pago con cheque si se proporcionó
-                check_number = request.POST.get(f"check_{emp_id}")
-                pay_date = request.POST.get(f"pay_date_{emp_id}")
-                
-                if check_number and pay_date and record.total_pay > 0:
-                    # Verificar si ya existe un pago con este cheque
-                    existing_payment = PayrollPayment.objects.filter(
-                        payroll_record=record,
-                        check_number=check_number
-                    ).first()
-                    
-                    if not existing_payment:
-                        PayrollPayment.objects.create(
-                            payroll_record=record,
-                            amount=record.balance_due(),
-                            payment_date=pay_date,
-                            payment_method="check",
-                            check_number=check_number,
-                            recorded_by=request.user,
-                        )
-
-            messages.success(request, "Nómina actualizada correctamente.")
-            return redirect(f"{request.path}?week_start={week_start.isoformat()}")
-
-    # Preparar datos de cada empleado
-    employee_data = []
-    for emp in employees:
-        # Buscar o crear PayrollRecord
-        record, rec_created = PayrollRecord.objects.get_or_create(
-            period=period,
-            employee=emp,
-            week_start=week_start,
-            week_end=week_end,
-            defaults={
-                "hourly_rate": emp.hourly_rate,
-                "total_hours": Decimal("0.00"),
-                "total_pay": Decimal("0.00"),
-            },
-        )
-
-        # Obtener entradas de tiempo para cada día de la semana
-        day_entries = []
-        calculated_hours = Decimal("0.00")
-        
-        for i in range(7):
-            day = week_start + timedelta(days=i)
-            entry = TimeEntry.objects.filter(
-                employee=emp, date=day, change_order__isnull=True
-            ).first()
-            
-            if entry:
-                start_str = entry.start_time.strftime("%H:%M") if entry.start_time else ""
-                end_str = entry.end_time.strftime("%H:%M") if entry.end_time else ""
-                hours = entry.hours_worked or Decimal("0")
-                calculated_hours += Decimal(str(hours)) if hours else Decimal("0")
-            else:
-                start_str = ""
-                end_str = ""
-                hours = None
-            
-            day_entries.append({
-                'start': start_str,
-                'end': end_str,
-                'hours': hours,
-            })
-        
-        # Actualizar record con horas calculadas si es diferente
-        if record.total_hours != calculated_hours:
-            record.total_hours = calculated_hours
-            record.split_hours_regular_overtime()
-            record.calculate_total_pay()
-            record.save()
-        
-        # Obtener último pago
-        last_payment = record.payments.order_by('-payment_date').first()
-
-        employee_data.append({
-            "employee": emp,
-            "record": record,
-            "calculated_hours": calculated_hours,
-            "day_entries": day_entries,
-            "last_payment": last_payment,
-        })
-
-    # Calcular totales
-    total_hours = sum(data["calculated_hours"] for data in employee_data)
-    total_payroll = sum(data["record"].total_pay or Decimal("0") for data in employee_data)
-    total_paid = sum(data["record"].amount_paid() for data in employee_data)
-    balance_due = total_payroll - total_paid
-
-    context = {
-        "period": period,
-        "week_start": week_start,
-        "week_end": week_end,
-        "prev_week": prev_week,
-        "next_week": next_week,
-        "days": days,
-        "employee_data": employee_data,
-        "total_hours": total_hours,
-        "total_payroll": total_payroll,
-        "total_paid": total_paid,
-        "balance_due": balance_due,
-    }
-
-    return render(request, "core/payroll_weekly_review.html", context)
+    """Redirect to legacy_views implementation"""
+    from core.views.legacy_views import payroll_weekly_review as legacy_view
+    return legacy_view(request)
 
 
 @login_required
 def payroll_record_payment(request, record_id):
-    """
-    Registrar un pago (parcial o completo) para un PayrollRecord.
-    SOLO ACCESIBLE POR ADMIN/SUPERUSER
-    """
-    # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
-
-    record = get_object_or_404(PayrollRecord, id=record_id)
-
-    if request.method == "POST":
-        amount = request.POST.get("amount")
-        payment_date = request.POST.get("payment_date")
-        payment_method = request.POST.get("payment_method", "check")
-        check_number = request.POST.get("check_number", "")
-        reference = request.POST.get("reference", "")
-        notes = request.POST.get("notes", "")
-
-        if amount and payment_date:
-            PayrollPayment.objects.create(
-                payroll_record=record,
-                amount=Decimal(amount),
-                payment_date=payment_date,
-                payment_method=payment_method,
-                check_number=check_number,
-                reference=reference,
-                notes=notes,
-                recorded_by=request.user,
-            )
-
-            messages.success(
-                request,
-                _("Pago de $%(amount)s registrado para %(employee)s.")
-                % {"amount": amount, "employee": record.employee},
-            )
-
-            # Redirigir de vuelta a la revisión semanal
-            return redirect("payroll_weekly_review")
-        else:
-            messages.error(request, "Monto y fecha de pago son requeridos.")
-
-    return render(
-        request,
-        "core/payroll_payment_form.html",
-        {
-            "record": record,
-        },
-    )
+    """Redirect to legacy_views implementation"""
+    from core.views.legacy_views import payroll_record_payment as legacy_view
+    return legacy_view(request, record_id)
 
 
 @login_required
 def payroll_payment_history(request, employee_id=None):
-    """
-    Historial de pagos de nómina. Si se especifica employee_id, muestra solo ese empleado.
-    SOLO ACCESIBLE POR ADMIN/SUPERUSER
-    """
-    # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
-
-    if employee_id:
-        employee = get_object_or_404(Employee, id=employee_id)
-        records = PayrollRecord.objects.filter(employee=employee).order_by("-week_start")
-    else:
-        employee = None
-        records = PayrollRecord.objects.all().order_by("-week_start", "employee__last_name")
-
-    # Agregar datos de pagos a cada registro
-    records_data = []
-    for record in records:
-        payments = record.payments.all()
-        records_data.append(
-            {
-                "record": record,
-                "payments": payments,
-                "amount_paid": record.amount_paid(),
-                "balance_due": record.balance_due(),
-            }
-        )
-
-    context = {
-        "employee": employee,
-        "records_data": records_data,
-    }
-
-    return render(request, "core/payroll_payment_history.html", context)
+    """Redirect to legacy_views implementation"""
+    from core.views.legacy_views import payroll_payment_history as legacy_view
+    return legacy_view(request, employee_id)
 
 
 # --- CLIENTE: Vista de proyecto y formularios ---
@@ -2033,72 +1753,6 @@ def floor_plan_detail(request, plan_id):
     return render(
         request,
         "core/floor_plan_detail.html",
-        {
-            "plan": plan,
-            "pins": pins,
-            "pins_json": pins_json,
-            "color_samples": color_samples,
-            "project": plan.project,
-            "can_edit_pins": can_edit_pins,
-            "can_delete": can_delete,
-            "form": pin_form,
-        },
-    )
-
-
-@login_required
-def floor_plan_touchup_view(request, plan_id):
-    """Display floor plan with ONLY touch-up pins (filtered view)"""
-    import json
-
-    from core.models import FloorPlan
-
-    plan = get_object_or_404(FloorPlan, id=plan_id)
-
-    # Filter to show ONLY touchup pins
-    pins = plan.pins.filter(pin_type="touchup").select_related("color_sample", "linked_task").all()
-
-    color_samples = plan.project.color_samples.filter(status__in=["approved", "review"]).order_by(
-        "-created_at"
-    )[:50]
-
-    # Check if user can edit pins (PM, Admin, Client, Designer, Owner)
-    profile = getattr(request.user, "profile", None)
-    can_edit_pins = request.user.is_staff or (
-        profile
-        and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
-    )
-
-    # Check if user can delete pins/plan (only PM, Admin, Owner - NOT Designer)
-    can_delete = request.user.is_staff or (
-        profile and profile.role in ["project_manager", "admin", "superuser", "owner"]
-    )
-
-    # Serialize pins data for JavaScript (only touchup pins)
-    pins_data = []
-    for pin in pins:
-        pins_data.append(
-            {
-                "id": pin.id,
-                "x": float(pin.x),
-                "y": float(pin.y),
-                "title": pin.title,
-                "description": pin.description or "",
-                "pin_type": pin.pin_type,
-                "pin_color": pin.pin_color,
-                "path_points": pin.path_points or [],
-            }
-        )
-    pins_json = json.dumps(pins_data)
-
-    # Provide PlanPinForm so the page can render the pin editor fields
-    from core.forms import PlanPinForm
-
-    pin_form = PlanPinForm()
-
-    return render(
-        request,
-        "core/floor_plan_touchup_view.html",
         {
             "plan": plan,
             "pins": pins,
@@ -3415,10 +3069,23 @@ def changeorder_board_view(request):
 # --- DASHBOARD ASIGNACIÓN DE CHANGE ORDERS ---
 @login_required
 def unassigned_timeentries_view(request):
-    """Lista de TimeEntries sin change_order para asignación masiva por PM/admin."""
-    profile = getattr(request.user, "profile", None)
+    """
+    Lista de TimeEntries sin change_order para asignación masiva por PM/admin.
+    
+    IMPORTANTE: Solo muestra TimeEntries que tienen cost_code asignado,
+    lo cual indica que es trabajo presupuestado que debería ir a un CO.
+    El trabajo normal del proyecto (sin cost_code) NO aparece aquí porque
+    es parte del contrato base, no de change orders.
+    """
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = None
     role = getattr(profile, "role", "employee")
-    if role not in ["admin", "superuser", "project_manager"]:
+    # Permitir staff/superuser aunque no tengan profile de PM
+    if role not in ["admin", "superuser", "project_manager"] and not (
+        request.user.is_staff or request.user.is_superuser
+    ):
         return redirect("dashboard")
 
     # Filtros
@@ -3426,12 +3093,23 @@ def unassigned_timeentries_view(request):
     employee_id = request.GET.get("employee")
     date_from = request.GET.get("from")
     date_to = request.GET.get("to")
+    
+    # Opción para mostrar todos (incluyendo trabajo sin cost_code) - solo para admins
+    show_all = request.GET.get("show_all") == "1" and request.user.is_superuser
 
-    qs = (
-        TimeEntry.objects.filter(change_order__isnull=True)
-        .select_related("employee", "project")
-        .order_by("-date")
+    # Base query: TimeEntries sin change_order asignado
+    # Por defecto, solo mostramos las que tienen cost_code (trabajo presupuestado)
+    # El trabajo normal del proyecto (sin cost_code) es parte del contrato base
+    qs = TimeEntry.objects.filter(change_order__isnull=True).select_related(
+        "employee", "project", "cost_code"
     )
+    
+    if not show_all:
+        # Solo mostrar TimeEntries con cost_code = trabajo presupuestado pendiente de CO
+        qs = qs.filter(cost_code__isnull=False)
+    
+    qs = qs.order_by("-date")
+    
     if project_id:
         qs = qs.filter(project_id=project_id)
     if employee_id:
@@ -3514,12 +3192,26 @@ def unassigned_timeentries_view(request):
         page_size = int(request.GET.get("ps", 50))
     except (TypeError, ValueError):
         page_size = 50
+
+    # Evitar valores inválidos que rompan la paginación (ps=0 lanza ValueError)
     if page_size <= 0:
         page_size = 50
+    # Limitar tamaño máximo para no cargar demasiadas filas a la vez
     if page_size > 500:
         page_size = 500
-    paginator = Paginator(qs, page_size)
-    page_obj = paginator.get_page(request.GET.get("page"))
+
+    try:
+        paginator = Paginator(qs, page_size)
+        page_obj = paginator.get_page(request.GET.get("page"))
+    except Exception:
+        logger.exception(
+            "Failed to paginate unassigned timeentries", extra={"page_size": page_size}
+        )
+        messages.error(
+            request, _("No se pudo paginar los registros; se usará el tamaño por defecto.")
+        )
+        paginator = Paginator(qs, 50)
+        page_obj = paginator.get_page(1)
 
     projects = Project.objects.all().order_by("name")
     employees = Employee.objects.filter(is_active=True).order_by("last_name")
@@ -3546,6 +3238,8 @@ def unassigned_timeentries_view(request):
                 "page_size": page_size,
             },
             "page_sizes": [25, 50, 100],
+            "show_all": show_all,
+            "is_superuser": request.user.is_superuser,
         },
     )
 
@@ -4510,6 +4204,7 @@ def project_activation_view(request, project_id):
     - Tasks for daily operations
     - Invoice for deposit/advance
     """
+    from core.forms import ActivationWizardForm
     from core.services.activation_service import ProjectActivationService
 
     project = get_object_or_404(Project, pk=project_id)
@@ -4678,32 +4373,6 @@ def daily_log_detail(request, log_id):
     }
 
     return render(request, "core/daily_log_detail.html", context)
-
-
-@login_required
-def daily_log_delete(request, log_id):
-    """Eliminar un Daily Log (solo PM, admin, superuser)"""
-    from core.models import DailyLog
-
-    log = get_object_or_404(DailyLog.objects.select_related("project"), id=log_id)
-
-    profile = getattr(request.user, "profile", None)
-    role = getattr(profile, "role", "employee")
-    can_delete = role in ["admin", "superuser", "project_manager"]
-
-    if not can_delete:
-        messages.error(request, "No tienes permisos para eliminar Daily Logs")
-        return redirect("daily_log_detail", log_id=log.id)
-
-    if request.method == "POST":
-        project_id = log.project_id
-        log.delete()
-        messages.success(request, "Daily Log eliminado correctamente")
-        return redirect("daily_log", project_id=project_id)
-
-    return render(
-        request, "core/daily_log_confirm_delete.html", {"log": log, "project": log.project}
-    )
 
 
 @login_required
@@ -5525,21 +5194,49 @@ def project_progress_csv(request, project_id):
 @login_required
 def dashboard_employee(request):
     """Dashboard simple para empleados: qué hacer hoy, clock in/out, materiales"""
-    # legacy flag kept for compatibility; value is handled by router/templates
-    _is_legacy = request.GET.get("legacy", "false").lower() == "true"
     # Obtener empleado ligado al usuario
     employee = Employee.objects.filter(user=request.user).first()
     if not employee:
         messages.error(request, "Tu usuario no está vinculado a un empleado.")
-        # NOTE: keep legacy template only (clean template was removed)
-        return render(
-            request,
-            "core/dashboard_employee.html",
-            {"employee": None, "badges": {"unread_notifications_count": 0}},
-        )
+        return render(request, "core/dashboard_employee_clean.html", {"employee": None})
 
     today = timezone.localdate()
     now = timezone.localtime()
+
+    # Asignaciones de proyecto para hoy (ResourceAssignment) — source of truth
+    from core.models import ResourceAssignment
+
+    assignments_today = ResourceAssignment.objects.filter(
+        employee=employee, date=today
+    ).select_related("project")
+    upcoming_assignments = (
+        ResourceAssignment.objects.filter(employee=employee, date__gt=today)
+        .select_related("project")
+        .order_by("date")[:5]
+    )
+
+    # Proyectos asignados específicamente para hoy
+    projects_from_assignments = Project.objects.filter(
+        resource_assignments__in=assignments_today
+    ).distinct()
+
+    has_assignments_today = assignments_today.exists()
+
+    # === Proyectos permitidos para clock-in (Regla A) ===
+    # Staff/Admin puede override; empleados SOLO asignaciones de hoy.
+    allow_override = (
+        request.GET.get("all_projects") == "1" or request.POST.get("all_projects") == "1"
+    ) and request.user.is_staff
+
+    if allow_override:
+        available_projects = Project.objects.filter(is_archived=False)
+        clock_in_mode = "override_admin"
+    else:
+        available_projects = projects_from_assignments
+        clock_in_mode = "assigned_today"
+
+    available_projects_count = available_projects.count()
+    available_projects_preview = list(available_projects[:5])
 
     # TimeEntry abierto (si está trabajando)
     open_entry = (
@@ -5560,18 +5257,17 @@ def dashboard_employee(request):
     # === QUÉ HACER HOY (Daily Plan Activities) ===
     from core.models import DailyPlan
 
+    # Nota: DailyPlan NO es autorización; solo "qué hacer".
+    # Aquí filtramos a planes del día para proyectos que el empleado tiene asignados HOY.
     today_plans = (
-        DailyPlan.objects.filter(
-            plan_date=today,
-            project__in=employee.projects.all() if hasattr(employee, "projects") else [],
-        )
+        DailyPlan.objects.filter(plan_date=today, project__in=projects_from_assignments)
         .select_related("project")
-        .prefetch_related("activities__assigned_employees")
+        .prefetch_related("planned_activities")
     )
 
     my_activities = []
     for plan in today_plans:
-        for activity in plan.activities.filter(assigned_employees=employee, is_completed=False):
+        for activity in plan.planned_activities.filter(is_completed=False):
             my_activities.append(
                 {
                     "activity": activity,
@@ -5586,6 +5282,34 @@ def dashboard_employee(request):
         .order_by("start_datetime")
     )
 
+    # Horas de la semana ACTUAL (lunes a hoy)
+    week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
+    current_week_entries = TimeEntry.objects.filter(
+        employee=employee, date__gte=week_start, date__lte=today
+    )
+    current_week_hours = sum(entry.hours_worked or 0 for entry in current_week_entries)
+    
+    # Horas de la semana PASADA (período de pago anterior - lunes a domingo)
+    last_week_start = week_start - timedelta(days=7)
+    last_week_end = week_start - timedelta(days=1)
+    last_week_entries = TimeEntry.objects.filter(
+        employee=employee, date__gte=last_week_start, date__lte=last_week_end
+    )
+    last_week_hours = sum(entry.hours_worked or 0 for entry in last_week_entries)
+    
+    # Para compatibilidad, week_hours = current_week_hours
+    week_hours = current_week_hours
+    
+    # Cálculo de pago estimado semanal (semana actual)
+    estimated_weekly_pay = None
+    estimated_last_week_pay = None
+    if employee.hourly_rate:
+        if current_week_hours:
+            estimated_weekly_pay = round(float(current_week_hours) * float(employee.hourly_rate), 2)
+        if last_week_hours:
+            estimated_last_week_pay = round(float(last_week_hours) * float(employee.hourly_rate), 2)
+
     if request.method == "POST":
         action = request.POST.get("action")
 
@@ -5593,29 +5317,51 @@ def dashboard_employee(request):
             if open_entry:
                 messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
                 return redirect("dashboard_employee")
-            form = ClockInForm(request.POST)
+
+            # Debug: ver qué datos se están enviando
+            project_id = request.POST.get("project")
+            logger.info(
+                f"[Clock-in] Attempt by employee={employee.id} user={request.user.username}"
+            )
+            logger.info(
+                f"[Clock-in] POST data: project={project_id}, available_projects_count={available_projects.count()}"
+            )
+            logger.info(
+                f"[Clock-in] Available project IDs: {list(available_projects.values_list('id', flat=True))}"
+            )
+
+            form = ClockInForm(request.POST, available_projects=available_projects)
             if form.is_valid():
-                project = form.cleaned_data["project"]
+                logger.info("[Clock-in] Form is VALID")
+                # === VALIDACIÓN BACKEND: Verificar que el proyecto sea permitido ===
+                selected_project = form.cleaned_data["project"]
 
-                # ✅ VALIDACIÓN (Regla A): solo si está asignado HOY.
-                # SOURCE OF TRUTH: ResourceAssignment.
-                is_assigned_today = ResourceAssignment.objects.filter(
-                    employee=employee,
-                    project=project,
-                    date=today,
-                ).exists()
-
-                if not is_assigned_today:
+                # Recalcular proyectos permitidos (no confiar solo en UI)
+                if request.user.is_staff:
+                    # Staff puede clock-in en cualquier proyecto
+                    logger.info("[Clock-in] ALLOWED: Staff user")
+                    pass
+                elif selected_project in available_projects:
+                    # Empleado seleccionó un proyecto de la lista permitida
+                    logger.info(
+                        f"[Clock-in] ALLOWED: Project in available list (mode={clock_in_mode})"
+                    )
+                    pass
+                else:
+                    # Proyecto no permitido
                     messages.error(
                         request,
-                        f"❌ No estás asignado a '{project.name}' hoy. "
-                        f"Contacta a tu PM si hay un error.",
+                        f"❌ No tienes permiso para trabajar en el proyecto '{selected_project.name}'. Contacta a tu supervisor.",
+                    )
+                    logger.warning(
+                        f"Clock-in denied: employee={employee.id} tried project={selected_project.id} not in available list"
                     )
                     return redirect("dashboard_employee")
 
-                TimeEntry.objects.create(
+                # Si pasa validación, crear TimeEntry
+                te = TimeEntry.objects.create(
                     employee=employee,
-                    project=project,
+                    project=selected_project,
                     change_order=form.cleaned_data.get("change_order"),
                     date=today,
                     start_time=now.time(),
@@ -5623,11 +5369,42 @@ def dashboard_employee(request):
                     notes=form.cleaned_data.get("notes") or "",
                     cost_code=form.cleaned_data.get("cost_code"),
                 )
+                # Debug: adicionamos info para confirmar la creación en prod
                 messages.success(
                     request,
-                    _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime("%H:%M")},
+                    _("✓ Entrada registrada a las %(time)s en %(project)s")
+                    % {"time": now.strftime("%H:%M"), "project": te.project.name},
                 )
+                try:
+                    logger.info(
+                        f"TimeEntry created id={te.id} employee={employee.id} project={selected_project.id}"
+                    )
+                except Exception:
+                    logger.exception("Failed to log TimeEntry debug info")
                 return redirect("dashboard_employee")
+            else:
+                # Mostrar errores de validación detallados
+                logger.error(f"[Clock-in] Form is INVALID for employee={employee.id}")
+                logger.error(f"[Clock-in] Form errors: {form.errors.as_json()}")
+                logger.error(f"[Clock-in] Non-field errors: {form.non_field_errors()}")
+
+                error_details = []
+                for field, err_list in form.errors.items():
+                    logger.error(f"[Clock-in] Field '{field}' errors: {err_list}")
+                    if field == "__all__":
+                        error_details.append(f"Error general: {', '.join(err_list)}")
+                    elif field == "project":
+                        error_details.append(f"❌ Proyecto: {', '.join(err_list)}")
+                    else:
+                        error_details.append(f"{field}: {', '.join(err_list)}")
+
+                error_message = (
+                    " | ".join(error_details)
+                    if error_details
+                    else "Revisa los campos del formulario"
+                )
+                messages.error(request, f"No se pudo registrar la entrada. {error_message}")
+                logger.warning(f"[Clock-in] Validation failed summary: {error_message}")
 
         elif action == "clock_out":
             if not open_entry:
@@ -5640,16 +5417,9 @@ def dashboard_employee(request):
                 f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}",
             )
             return redirect("dashboard_employee")
-
-    # ✅ Obtener proyectos donde está asignado HOY (SOURCE OF TRUTH: ResourceAssignment)
-    # Nota: DailyPlan NO define asignación de proyectos; solo planificación.
-    my_projects_today = Project.objects.filter(
-        resource_assignments__employee=employee,
-        resource_assignments__date=today,
-    ).distinct()
-
-    # GET o POST inválido - crear form con proyectos filtrados
-    form = ClockInForm(available_projects=my_projects_today)
+    else:
+        # GET
+        form = ClockInForm(available_projects=available_projects)
 
     # === MORNING BRIEFING (Employee Daily Tasks) ===
     morning_briefing = []
@@ -5679,13 +5449,6 @@ def dashboard_employee(request):
                 "category": "schedule",
             }
         )
-
-    # Horas de la semana (calcular ANTES de usarse)
-    week_start = today - timedelta(days=today.weekday())
-    week_entries = TimeEntry.objects.filter(
-        employee=employee, date__gte=week_start, date__lte=today
-    )
-    week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
 
     # Category: clock (Work hours)
     if not open_entry:
@@ -5719,17 +5482,6 @@ def dashboard_employee(request):
     # Historial reciente (últimas 5 entradas)
     recent = TimeEntry.objects.filter(employee=employee).order_by("-date", "-start_time")[:5]
 
-    # Mensaje si no tiene asignaciones hoy
-    has_assignments_today = my_projects_today.exists()
-
-    # Variables para el template legacy
-    assignments_today = ResourceAssignment.objects.filter(
-        employee=employee, date=today
-    ).select_related("project")
-
-    available_projects_count = my_projects_today.count()
-    available_projects_preview = list(my_projects_today[:5])
-
     context = {
         "employee": employee,
         "open_entry": open_entry,
@@ -5738,22 +5490,34 @@ def dashboard_employee(request):
         "now": now,
         "recent": recent,
         "week_hours": week_hours,
+        "current_week_hours": current_week_hours,
+        "last_week_hours": last_week_hours,
+        "week_start": week_start,
+        "week_end": week_end,
+        "last_week_start": last_week_start,
+        "last_week_end": last_week_end,
+        "estimated_weekly_pay": estimated_weekly_pay,
+        "estimated_last_week_pay": estimated_last_week_pay,
         "my_activities": my_activities,
         "my_schedule": my_schedule,
         "my_touchups": my_touchups,
         "morning_briefing": morning_briefing,
         "active_filter": active_filter,
-        "badges": {"unread_notifications_count": 0},
-        "my_projects_today": my_projects_today,
+        "badges": {"unread_notifications_count": 0},  # Placeholder
         "has_assignments_today": has_assignments_today,
         "assignments_today": assignments_today,
+        "upcoming_assignments": upcoming_assignments,
         "available_projects_count": available_projects_count,
         "available_projects_preview": available_projects_preview,
+        "clock_in_mode": clock_in_mode,  # ← Nuevo: indica el modo de clock-in
+        "allow_all_projects": allow_override,
+        "disable_notification_center": True,  # Desactivar React NotificationCenter en esta página
+        "form_errors": form.errors if request.method == "POST" else None,
     }
 
-    # Use legacy template (stable version)
-    template_name = "core/dashboard_employee.html"
-    return render(request, template_name, context)
+    # Always use the modern (clean) employee dashboard.
+    # The legacy template is intentionally not used.
+    return render(request, "core/dashboard_employee_clean.html", context)
 
 
 # --- DASHBOARD PM ---
@@ -5982,8 +5746,8 @@ def dashboard_pm(request):
     }
 
     # Use clean template by default; legacy only when explicitly requested
-    force_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
-    template_name = "core/dashboard_pm.html" if force_legacy else "core/dashboard_pm_clean.html"
+    use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
+    template_name = "core/dashboard_pm.html" if use_legacy else "core/dashboard_pm_clean.html"
     return render(request, template_name, context)
 
 
@@ -6035,40 +5799,27 @@ def pm_select_project(request, action: str):
     return render(request, "core/pm_select_project.html", {"action": action, "projects": projects})
 
 
-def set_language_view(request, code: str = ""):
-    """Set language using Django's standard session/cookie key and persist on profile."""
-    lang_code = (code or request.POST.get("language") or "").lower()
-    supported = {c[0] for c in settings.LANGUAGES}
-    if lang_code not in supported:
+def set_language_view(request, code: str):
+    """Set language consistently (session + cookie) and persist on profile when available."""
+    lang_code = (code or "").lower()
+    valid_codes = {c[0] for c in getattr(settings, "LANGUAGES", [])} or {settings.LANGUAGE_CODE}
+    if lang_code not in valid_codes:
         lang_code = settings.LANGUAGE_CODE
 
     translation.activate(lang_code)
-    request.session[translation.LANGUAGE_SESSION_KEY] = lang_code
 
-    # persist on user profile if logged in
-    try:
-        if request.user.is_authenticated:
-            prof = getattr(request.user, "profile", None)
-            if prof and prof.language != lang_code:
-                prof.language = lang_code
-                prof.save(update_fields=["language"])
-    except Exception:
-        pass
-
-    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER") or reverse("dashboard")
+    next_url = request.META.get("HTTP_REFERER") or reverse("dashboard")
     response = redirect(next_url)
 
-    # mirror Django's set_language cookie behavior
-    response.set_cookie(
-        settings.LANGUAGE_COOKIE_NAME,
-        lang_code,
-        max_age=getattr(settings, "LANGUAGE_COOKIE_AGE", None),
-        path=getattr(settings, "LANGUAGE_COOKIE_PATH", "/"),
-        domain=getattr(settings, "LANGUAGE_COOKIE_DOMAIN", None),
-        secure=getattr(settings, "LANGUAGE_COOKIE_SECURE", False),
-        httponly=getattr(settings, "LANGUAGE_COOKIE_HTTPONLY", False),
-        samesite=getattr(settings, "LANGUAGE_COOKIE_SAMESITE", None),
-    )
+    if request.user.is_authenticated:
+        prof = getattr(request.user, "profile", None)
+        if prof and getattr(prof, "language", None) != lang_code:
+            prof.language = lang_code
+            prof.save(update_fields=["language"])
+
+    request.session[translation.LANGUAGE_SESSION_KEY] = lang_code
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang_code)
+
     return response
 
 
@@ -6081,8 +5832,34 @@ def project_overview(request, project_id: int):
     project = get_object_or_404(Project, pk=project_id)
 
     # Imports opcionales por si no existen algunos modelos
-    # Nota: algunos modelos están importados a nivel de módulo (Task/Schedule/Issue/DailyLog);
-    # aquí sólo necesitamos opcionalmente ProjectFile.
+    try:
+        from core.models import Task as TaskModel
+    except Exception:
+        task_model = None
+    else:
+        task_model = TaskModel
+
+    try:
+        from core.models import Schedule as ScheduleModel
+    except Exception:
+        schedule_model = None
+    else:
+        schedule_model = ScheduleModel
+
+    try:
+        from core.models import Issue as IssueModel  # reporte de daños
+    except Exception:
+        issue_model = None
+    else:
+        issue_model = IssueModel
+
+    try:
+        from core.models import DailyLog as DailyLogModel
+    except Exception:
+        daily_log_model = None
+    else:
+        daily_log_model = DailyLogModel
+
     try:
         from core.models import ProjectFile as ProjectFileModel
     except Exception:
@@ -6098,7 +5875,7 @@ def project_overview(request, project_id: int):
         color_model = ColorModel
 
     try:
-        from core.models import LeftoverItem as LeftoverItemModel  # “sobras” de material
+        from core.models import LeftoverItem as LeftoverItemModel
     except Exception:
         leftover_item_model = None
     else:
@@ -6113,55 +5890,24 @@ def project_overview(request, project_id: int):
         "client": getattr(project, "client", None),
     }
 
-    colors = []
-    if color_model:
-        colors = list(color_model.objects.filter(project=project).order_by("name"))
-
-    # Fallback: If no Color model records found, parse from Project text fields
-    if not colors:
-
-        class SimpleColor:
-            def __init__(self, name, code=None, brand=None):
-                self.name = name
-                self.code = code
-                self.brand = brand
-
-        # 1. Paint Colors
-        if getattr(project, "paint_colors", None):
-            # Split by comma or newline
-            import re
-
-            items = re.split(r"[,\n]+", project.paint_colors)
-            for item in items:
-                clean_item = item.strip()
-                if clean_item:
-                    colors.append(SimpleColor(name=clean_item, brand="Paint"))
-
-        # 2. Paint Codes
-        if getattr(project, "paint_codes", None):
-            items = re.split(r"[,\n]+", project.paint_codes)
-            for item in items:
-                clean_item = item.strip()
-                if clean_item:
-                    colors.append(SimpleColor(name=clean_item, brand="Code"))
-
-        # 3. Stains/Finishes
-        if getattr(project, "stains_or_finishes", None):
-            items = re.split(r"[,\n]+", project.stains_or_finishes)
-            for item in items:
-                clean_item = item.strip()
-                if clean_item:
-                    colors.append(SimpleColor(name=clean_item, brand="Finish"))
-
+    colors = color_model.objects.filter(project=project).order_by("name") if color_model else []
     upcoming_schedules = (
-        Schedule.objects.filter(project=project).order_by("start_datetime")[:10] if Schedule else []
+        schedule_model.objects.filter(project=project).order_by("start_datetime")[:10]
+        if schedule_model
+        else []
     )
-    recent_tasks = Task.objects.filter(project=project).order_by("-id")[:10] if Task else []
+    recent_tasks = (
+        task_model.objects.filter(project=project).order_by("-id")[:10] if task_model else []
+    )
     recent_issues = (
-        Issue.objects.filter(project=project).order_by("-created_at")[:10] if Issue else []
+        issue_model.objects.filter(project=project).order_by("-created_at")[:10]
+        if issue_model
+        else []
     )
     recent_logs = (
-        DailyLog.objects.filter(project=project).order_by("-date")[:10] if DailyLog else []
+        daily_log_model.objects.filter(project=project).order_by("-date")[:10]
+        if daily_log_model
+        else []
     )
     files = (
         project_file_model.objects.filter(project=project).order_by("-uploaded_at")[:10]
@@ -6243,6 +5989,7 @@ def project_overview(request, project_id: int):
             "project": project,
             "project_info": project_info,
             "show_sidebar": False,  # Hide global sidebar, use project-specific Asana-style sidebar
+            "legacy_shell": True,   # Hide backdrop and disable global nav scripts
             "colors": colors,
             "upcoming_schedules": upcoming_schedules,
             "recent_tasks": recent_tasks,
@@ -6292,24 +6039,12 @@ def materials_request_view(request, project_id):
             request.POST, request.FILES, colors=colors, presets=PRESET_PRODUCTS, catalog=catalog_qs
         )
         if form.is_valid():
-            # Get activity information from query parameters or POST
-            activity_id = request.GET.get("activity_id") or request.POST.get("activity_id")
-            activity_name = request.GET.get("activity_name", "") or request.POST.get(
-                "activity_name", ""
-            )
-
-            # Build notes with activity reference
-            notes = form.cleaned_data.get("comments", "")
-            if activity_id and activity_name:
-                activity_note = f"[Solicitado para actividad: {activity_name} (ID: {activity_id})]"
-                notes = f"{activity_note}\n{notes}" if notes else activity_note
-
             mr = MaterialRequest.objects.create(
                 project=project,
                 requested_by=request.user,
                 needed_when=form.cleaned_data["needed_when"],
                 needed_date=form.cleaned_data.get("needed_date") or None,
-                notes=notes,
+                notes=form.cleaned_data.get("comments", ""),
                 status="pending",
             )
 
@@ -6460,27 +6195,14 @@ def materials_request_view(request, project_id):
         for m in catalog_qs
     ]
 
-    # Get activity information from query parameters
-    activity_id = request.GET.get("activity_id")
-    activity_name = request.GET.get("activity_name", "")
-
-    # Use modern template by default, legacy with ?legacy=true
-    template = (
-        "core/materials_request.html"
-        if request.GET.get("legacy")
-        else "core/materials_request_modern.html"
-    )
-
     return render(
         request,
-        template,
+        "core/materials_request.html",
         {
             "project": project,
             "form": form,
             "presets_json": json.dumps(PRESET_PRODUCTS),
             "catalog_json": json.dumps(catalog_payload),
-            "activity_id": activity_id,
-            "activity_name": activity_name,
         },
     )
 
@@ -6577,20 +6299,9 @@ def task_list_view(request, project_id: int):
 
 @login_required
 def task_detail(request, task_id: int):
-    """Detalle de una tarea.
-
-    Permisos:
-    - Staff: puede ver cualquier tarea.
-    - Empleado: solo tareas asignadas a su Employee.
-    """
+    """Detalle simple de una tarea (agregado para evitar enlace roto en tablero)."""
     task = get_object_or_404(Task, pk=task_id)
-    employee = Employee.objects.filter(user=request.user).first()
-
-    if not request.user.is_staff and (not employee or task.assigned_to_id != employee.id):
-        messages.error(request, gettext("Sin permiso para ver esta tarea."))
-        return redirect("task_list_all")
-
-    return render(request, "core/task_detail.html", {"task": task, "employee": employee})
+    return render(request, "core/task_detail.html", {"task": task})
 
 
 @login_required
@@ -6609,7 +6320,7 @@ def task_edit_view(request, task_id: int):
             return redirect("task_detail", task_id=task.id)
     else:
         form = TaskForm(instance=task)
-    return render(request, "core/task_form_modern.html", {"form": form, "task": task, "edit": True})
+    return render(request, "core/task_form.html", {"form": form, "task": task, "edit": True})
 
 
 @login_required
@@ -6628,14 +6339,36 @@ def task_delete_view(request, task_id: int):
 
 @login_required
 def task_list_all(request):
-    """Lista de tareas asignadas al usuario actual (para empleado)."""
-    employee = Employee.objects.filter(user=request.user).first()
-    tasks = (
-        Task.objects.filter(assigned_to=employee).select_related("project").order_by("-id")
-        if employee and Task
-        else []
+    """Listado agrupado de tareas.
+    - Staff / PM: todas las tareas agrupadas por proyecto.
+    - Empleado: solo sus tareas asignadas.
+    """
+    if not Task:
+        tasks = []
+    elif request.user.is_staff or request.user.is_superuser:
+        tasks = (
+            Task.objects.select_related("project", "assigned_to")
+            .prefetch_related("dependencies")
+            .order_by("project__name", "-id")
+        )
+    else:
+        tasks = (
+            Task.objects.filter(assigned_to=request.user)
+            .select_related("project", "assigned_to")
+            .prefetch_related("dependencies")
+            .order_by("project__name", "-id")
+        )
+
+    can_manage = request.user.is_staff or request.user.is_superuser
+
+    return render(
+        request,
+        "core/task_list_all.html",
+        {
+            "tasks": tasks,
+            "can_manage": can_manage,
+        },
     )
-    return render(request, "core/task_list_all.html", {"tasks": tasks})
 
 
 # ===========================
@@ -6650,10 +6383,9 @@ def task_start_tracking(request, task_id):
         return JsonResponse({"error": gettext("POST required")}, status=405)
 
     task = get_object_or_404(Task, id=task_id)
-    employee = Employee.objects.filter(user=request.user).first()
 
     # Check permission
-    if not (request.user.is_staff or (employee and task.assigned_to == employee)):
+    if not (request.user.is_staff or task.assigned_to == request.user):
         return JsonResponse({"error": gettext("Sin permiso")}, status=403)
 
     # Check if task can start (dependencies)
@@ -6688,10 +6420,9 @@ def task_stop_tracking(request, task_id):
         return JsonResponse({"error": gettext("POST required")}, status=405)
 
     task = get_object_or_404(Task, id=task_id)
-    employee = Employee.objects.filter(user=request.user).first()
 
     # Check permission
-    if not (request.user.is_staff or (employee and task.assigned_to == employee)):
+    if not (request.user.is_staff or task.assigned_to == request.user):
         return JsonResponse({"error": gettext("Sin permiso")}, status=403)
 
     # Stop tracking
@@ -7276,16 +7007,9 @@ def materials_requests_list_view(request, project_id=None):
         .order_by("-created_at")
     )
 
-    # Use modern template by default, legacy with ?legacy=true
-    template = (
-        "core/materials_requests_list.html"
-        if request.GET.get("legacy")
-        else "core/materials_requests_list_modern.html"
-    )
-
     return render(
         request,
-        template,
+        "core/materials_requests_list.html",
         {
             "project": project,
             "requests": qs,
@@ -7560,194 +7284,6 @@ def inventory_adjust(request, item_id, location_id):
     return redirect("inventory_view", project_id=location.project_id)
 
 
-@login_required
-@staff_required
-@require_http_methods(["GET", "POST"])
-def inventory_wizard(request, project_id):
-    """
-    Modern wizard interface for inventory management
-    Handles: Add (RECEIVE), Move (TRANSFER), Adjust (ADJUST)
-    """
-    from decimal import Decimal
-    import json
-
-    from django.core.exceptions import ValidationError
-    from django.db.models import Q
-
-    from core.models import InventoryItem, InventoryLocation, InventoryMovement, ProjectInventory
-
-    project = get_object_or_404(Project, pk=project_id)
-
-    # Get all inventory items and locations
-    items = InventoryItem.objects.all().order_by("category", "name")
-    locations = InventoryLocation.objects.filter(Q(is_storage=True) | Q(project=project)).order_by(
-        "is_storage", "name"
-    )
-
-    # Get all stock data for JavaScript
-    stocks = ProjectInventory.objects.filter(location__in=locations).select_related(
-        "item", "location"
-    )
-
-    stock_data = {}
-    for stock in stocks:
-        key = f"{stock.item.id}-{stock.location.id}"
-        stock_data[key] = {
-            "quantity": float(stock.quantity),
-            "unit": stock.item.unit,
-            "threshold": float(stock.threshold()) if stock.threshold() else None,
-        }
-
-    # Get low stock items
-    low_stock_items = []
-    for stock in stocks:
-        if stock.is_below:
-            low_stock_items.append(stock)
-
-    # Handle POST request (form submission)
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        try:
-            item_id = request.POST.get("item_id")
-            quantity = Decimal(request.POST.get("quantity", "0"))
-            reason = request.POST.get("reason", "")
-
-            # Validate: for ADJUST, allow negative quantities; for others, require positive
-            if not item_id or not reason:
-                raise ValidationError(_("Please fill all required fields"))
-
-            if action != "adjust" and quantity <= 0:
-                raise ValidationError(_("Quantity must be positive"))
-
-            if action == "adjust" and quantity == 0:
-                raise ValidationError(_("Adjustment quantity cannot be zero"))
-
-            item = get_object_or_404(InventoryItem, pk=item_id)
-
-            if action == "add":
-                # RECEIVE movement
-                to_location_id = request.POST.get("to_location_id")
-                unit_price = request.POST.get("unit_price")
-
-                to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
-
-                movement = InventoryMovement.objects.create(
-                    item=item,
-                    to_location=to_location,
-                    movement_type="RECEIVE",
-                    quantity=quantity,
-                    unit_cost=Decimal(unit_price)
-                    if unit_price
-                    else None,  # Changed from unit_price to unit_cost
-                    reason=reason,
-                    created_by=request.user,
-                )
-                movement.apply()
-
-                messages.success(
-                    request,
-                    _("Successfully added %(quantity)s %(unit)s of %(item)s to %(location)s")
-                    % {
-                        "quantity": quantity,
-                        "unit": item.unit,
-                        "item": item.name,
-                        "location": to_location.name,
-                    },
-                )
-
-            elif action == "move":
-                # TRANSFER movement
-                from_location_id = request.POST.get("from_location_id")
-                to_location_id = request.POST.get("to_location_id")
-
-                if from_location_id == to_location_id:
-                    raise ValidationError(_("Source and destination locations must be different"))
-
-                from_location = get_object_or_404(InventoryLocation, pk=from_location_id)
-                to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
-
-                movement = InventoryMovement.objects.create(
-                    item=item,
-                    from_location=from_location,
-                    to_location=to_location,
-                    movement_type="TRANSFER",
-                    quantity=quantity,
-                    reason=reason,
-                    created_by=request.user,
-                )
-                movement.apply()
-
-                messages.success(
-                    request,
-                    _(
-                        "Successfully moved %(quantity)s %(unit)s of %(item)s from %(from)s to %(to)s"
-                    )
-                    % {
-                        "quantity": quantity,
-                        "unit": item.unit,
-                        "item": item.name,
-                        "from": from_location.name,
-                        "to": to_location.name,
-                    },
-                )
-
-            elif action == "adjust":
-                # ADJUST movement
-                to_location_id = request.POST.get("to_location_id")
-                to_location = get_object_or_404(InventoryLocation, pk=to_location_id)
-
-                movement = InventoryMovement.objects.create(
-                    item=item,
-                    to_location=to_location,
-                    movement_type="ADJUST",
-                    quantity=quantity,  # Can be negative
-                    reason=reason,
-                    created_by=request.user,
-                )
-                movement.apply()
-
-                action_text = _("increased") if quantity > 0 else _("decreased")
-                messages.success(
-                    request,
-                    _(
-                        "Successfully %(action)s stock of %(item)s by %(quantity)s %(unit)s at %(location)s"
-                    )
-                    % {
-                        "action": action_text,
-                        "item": item.name,
-                        "quantity": abs(quantity),
-                        "unit": item.unit,
-                        "location": to_location.name,
-                    },
-                )
-
-            else:
-                raise ValidationError(_("Invalid action"))
-
-            # Redirect back to wizard
-            return redirect("inventory_wizard", project_id=project.id)
-
-        except ValidationError as e:
-            messages.error(request, str(e))
-        except Exception as e:
-            messages.error(request, _("Error: %(error)s") % {"error": str(e)})
-
-    # Render wizard template
-    return render(
-        request,
-        "core/inventory_wizard.html",
-        {
-            "project": project,
-            "items": items,
-            "locations": locations,
-            "stock_data_json": json.dumps(stock_data),
-            "low_stock_items": low_stock_items,
-            "low_stock_count": len(low_stock_items),
-        },
-    )
-
-
 # ===========================
 # DAILY PLANNING SYSTEM VIEWS
 # ===========================
@@ -7780,22 +7316,16 @@ def daily_plan_detail(request, plan_id):
     plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
     activities = (
         plan.activities.select_related("activity_template", "schedule_item")
-        .prefetch_related("assigned_employees", "sub_activities__assigned_employees")
-        .filter(parent__isnull=True)  # Only top-level activities
+        .prefetch_related("assigned_employees")
         .order_by("order")
     )
     productivity = plan.calculate_productivity_score()
-
-    # Get all active employees for assignment modal
-    employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
-
     return render(
         request,
         "core/daily_plan_detail.html",
         {
             "plan": plan,
             "activities": activities,
-            "employees": employees,
             "productivity_score": productivity,
             "weather": plan.weather_data,
             "can_convert": plan.status == "PUBLISHED",
@@ -7806,32 +7336,9 @@ def daily_plan_detail(request, plan_id):
 
 
 @login_required
-def daily_plan_delete(request, plan_id):
-    """Delete a daily plan (staff/PM only). Shows confirm page."""
-    if not _is_staffish(request.user):
-        return HttpResponseForbidden("Access denied")
-
-    plan = get_object_or_404(DailyPlan.objects.select_related("project"), pk=plan_id)
-
-    if request.method == "POST":
-        project_name = plan.project.name
-        plan_date = plan.plan_date
-        plan.delete()
-        messages.success(
-            request,
-            _("Daily plan for %(date)s in %(project)s deleted")
-            % {"date": plan_date, "project": project_name},
-        )
-        return redirect("daily_planning_dashboard")
-
-    return render(request, "core/daily_plan_confirm_delete.html", {"plan": plan})
-
-
-@login_required
 def daily_planning_dashboard(request):
     """
     Main dashboard for daily planning - shows all plans and overdue alerts
-    Modern Wizard-style interface
     """
     if not _is_staffish(request.user):
         return HttpResponseForbidden("Access denied")
@@ -7840,7 +7347,7 @@ def daily_planning_dashboard(request):
 
     # Handle create plan form submission
     if request.method == "POST" and request.POST.get("create_plan"):
-        project_id = request.POST.get("project")
+        project_id = request.POST.get("project_id")
         plan_date_str = request.POST.get("plan_date")
 
         if project_id and plan_date_str:
@@ -7853,7 +7360,7 @@ def daily_planning_dashboard(request):
                 messages.warning(
                     request, _("Plan already exists for %(date)s") % {"date": plan_date}
                 )
-                return redirect("daily_plan_detail", plan_id=existing.id)
+                return redirect("daily_plan_edit", plan_id=existing.id)
 
             # Set completion deadline (5pm day before)
             completion_deadline = timezone.make_aware(
@@ -7872,14 +7379,12 @@ def daily_planning_dashboard(request):
             )
 
             messages.success(request, _("Daily plan created for %(date)s") % {"date": plan_date})
-            return redirect("daily_plan_detail", plan_id=plan.id)
+            return redirect("daily_plan_edit", plan_id=plan.id)
 
     # Get recent plans
-    recent_plans = (
-        DailyPlan.objects.select_related("project", "created_by")
-        .prefetch_related("activities")
-        .order_by("-plan_date")[:20]
-    )
+    recent_plans = DailyPlan.objects.select_related("project", "created_by").order_by("-plan_date")[
+        :20
+    ]
 
     # Check for overdue plans (draft plans past 5pm deadline)
     overdue_plans = DailyPlan.objects.filter(
@@ -7887,11 +7392,7 @@ def daily_planning_dashboard(request):
     ).select_related("project", "created_by")
 
     # Get today's plans
-    todays_plans = (
-        DailyPlan.objects.filter(plan_date=today)
-        .select_related("project")
-        .prefetch_related("activities", "created_by")
-    )
+    todays_plans = DailyPlan.objects.filter(plan_date=today).select_related("project")
 
     # Get active projects for creating new plans
     active_projects = Project.objects.filter(
@@ -7902,11 +7403,11 @@ def daily_planning_dashboard(request):
         "recent_plans": recent_plans,
         "overdue_plans": overdue_plans,
         "todays_plans": todays_plans,
-        "projects": active_projects,
+        "active_projects": active_projects,
         "today": today,
     }
 
-    return render(request, "core/daily_planning_dashboard_modern.html", context)
+    return render(request, "core/daily_planning_dashboard.html", context)
 
 
 @login_required
@@ -8097,60 +7598,6 @@ def daily_plan_edit(request, plan_id):
             else:
                 messages.error(request, _("Cannot submit empty plan"))
             return redirect("daily_plan_edit", plan_id=plan.id)
-
-        elif action == "copy_yesterday_team":
-            # ✅ Copy team assignments from yesterday's plan
-            from datetime import timedelta
-
-            yesterday_date = plan.plan_date - timedelta(days=1)
-
-            try:
-                yesterday_plan = DailyPlan.objects.filter(
-                    project=plan.project, plan_date=yesterday_date
-                ).first()
-
-                if not yesterday_plan:
-                    messages.warning(
-                        request, _(f"No plan found for {yesterday_date.strftime('%Y-%m-%d')}")
-                    )
-                    return redirect("daily_plan_edit", plan_id=plan.id)
-
-                # Get yesterday's activities with employees
-                yesterday_activities = yesterday_plan.activities.prefetch_related(
-                    "assigned_employees"
-                ).all()
-
-                if not yesterday_activities:
-                    messages.warning(request, _("Yesterday's plan has no activities"))
-                    return redirect("daily_plan_edit", plan_id=plan.id)
-
-                # Collect all unique employees from yesterday
-                all_employees = set()
-                for activity in yesterday_activities:
-                    all_employees.update(activity.assigned_employees.all())
-
-                if not all_employees:
-                    messages.warning(request, _("Yesterday's plan has no employees assigned"))
-                    return redirect("daily_plan_edit", plan_id=plan.id)
-
-                # Apply to all today's activities
-                count = 0
-                for activity in plan.activities.all():
-                    activity.assigned_employees.set(all_employees)
-                    count += 1
-
-                employee_names = ", ".join([f"{e.first_name}" for e in all_employees])
-                messages.success(
-                    request,
-                    _(
-                        f"✅ Copied {len(all_employees)} employees ({employee_names}) to {count} activities"
-                    ),
-                )
-                return redirect("daily_plan_edit", plan_id=plan.id)
-
-            except Exception as e:
-                messages.error(request, f"❌ Error copying team: {str(e)}")
-                return redirect("daily_plan_edit", plan_id=plan.id)
 
         elif action == "check_materials":
             # Mock material check for now or call method on activities
@@ -8421,7 +7868,7 @@ def sop_create_edit(request, template_id=None):
             # Handle file uploads for reference files
             uploaded_files = request.FILES.getlist("reference_files")
             if uploaded_files:
-                from core.models import SOPReferenceFile
+                from .models import SOPReferenceFile
 
                 for f in uploaded_files:
                     SOPReferenceFile.objects.create(sop=sop, file=f)
@@ -8507,7 +7954,7 @@ def sop_create_wizard(request, template_id=None):
         # Handle file uploads
         uploaded_files = request.FILES.getlist("reference_files")
         if uploaded_files:
-            from core.models import SOPReferenceFile
+            from .models import SOPReferenceFile
 
             for f in uploaded_files:
                 SOPReferenceFile.objects.create(sop=sop, file=f)
@@ -8727,9 +8174,9 @@ def dashboard_designer(request):
     }
 
     # Use clean template by default; legacy only when explicitly requested
-    force_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
+    use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
     template_name = (
-        "core/dashboard_designer.html" if force_legacy else "core/dashboard_designer_clean.html"
+        "core/dashboard_designer.html" if use_legacy else "core/dashboard_designer_clean.html"
     )
     return render(request, template_name, context)
 
@@ -8741,8 +8188,6 @@ def dashboard_superintendent(request):
     if not profile or profile.role != "superintendent":
         return HttpResponseForbidden("Acceso restringido a superintendentes")
 
-    employee = Employee.objects.filter(user=request.user).first()
-
     # Projects assigned to this superintendent (via damage reports or tasks)
     project_ids = set()
 
@@ -8751,13 +8196,12 @@ def dashboard_superintendent(request):
     project_ids.update(damage_projects)
 
     # Via assigned touch-ups
-    if employee:
-        touchup_projects = (
-            Task.objects.filter(assigned_to=employee, is_touchup=True)
-            .values_list("project_id", flat=True)
-            .distinct()
-        )
-        project_ids.update(touchup_projects)
+    touchup_projects = (
+        Task.objects.filter(assigned_to=request.user, is_touchup=True)
+        .values_list("project_id", flat=True)
+        .distinct()
+    )
+    project_ids.update(touchup_projects)
 
     projects = Project.objects.filter(id__in=project_ids).order_by("-created_at")[:10]
 
@@ -8770,15 +8214,11 @@ def dashboard_superintendent(request):
 
     # Assigned touch-ups
     touchups = (
-        (
-            Task.objects.filter(
-                assigned_to=employee, is_touchup=True, status__in=["Pendiente", "En Progreso"]
-            )
-            .select_related("project")
-            .order_by("-created_at")[:15]
+        Task.objects.filter(
+            assigned_to=request.user, is_touchup=True, status__in=["Pendiente", "En Progreso"]
         )
-        if employee
-        else Task.objects.none()
+        .select_related("project")
+        .order_by("-created_at")[:15]
     )
 
     # Unassigned touch-ups (for assignment)
@@ -9330,7 +8770,7 @@ def project_files_view(request, project_id):
         FileCategory.objects.get_or_create(
             project=project,
             name=name,
-            parent=None,
+            parent=None,  # Root level
             defaults={
                 "category_type": cat_type,
                 "icon": icon,
@@ -9931,88 +9371,60 @@ def touchup_reject(request, touchup_id):
 @login_required
 def pin_info_ajax(request, pin_id):
     """Get info pin details via AJAX"""
-    import logging
-
     from core.models import PlanPin
 
-    logger = logging.getLogger(__name__)
+    pin = get_object_or_404(PlanPin, id=pin_id)
+    profile = getattr(request.user, "profile", None)
 
-    try:
-        pin = get_object_or_404(PlanPin, id=pin_id)
-        profile = getattr(request.user, "profile", None)
+    # Anyone can view info pins
+    can_edit = request.user.is_staff or (
+        profile
+        and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+    )
 
-        # Anyone can view info pins
-        can_edit = request.user.is_staff or (
-            profile
-            and profile.role
-            in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
-        )
+    data = {
+        "id": pin.id,
+        "title": pin.title,
+        "description": pin.description,
+        "pin_type": pin.pin_type,
+        "pin_type_display": pin.get_pin_type_display(),
+        "pin_color": pin.pin_color,
+        "can_edit": can_edit,
+        "color_sample": None,
+        "linked_task": None,
+        "attachments": [],
+    }
 
-        data = {
-            "id": pin.id,
-            "title": pin.title or "",
-            "description": pin.description or "",
-            "pin_type": pin.pin_type,
-            "pin_type_display": pin.get_pin_type_display(),
-            "pin_color": pin.pin_color,
-            "can_edit": can_edit,
-            "color_sample": None,
-            "linked_task": None,
-            "attachments": [],
+    # Add color sample if exists
+    if pin.color_sample:
+        data["color_sample"] = {
+            "id": pin.color_sample.id,
+            "name": pin.color_sample.name,
+            "manufacturer": pin.color_sample.manufacturer,
+            "color_code": pin.color_sample.color_code,
+            "hex_color": pin.color_sample.hex_color,
         }
 
-        # Add color sample if exists
-        try:
-            if pin.color_sample:
-                cs = pin.color_sample
-                data["color_sample"] = {
-                    "id": cs.id,
-                    "name": cs.name or "",
-                    "code": cs.code or "",
-                    "brand": cs.brand or "",
-                    "finish": cs.finish or "",
-                    "gloss": cs.gloss or "",
-                    "status": cs.status or "",
-                    "status_display": cs.get_status_display(),
-                    "notes": cs.notes or "",
-                    "room_location": cs.room_location or "",
-                    "sample_number": cs.sample_number or "",
-                    "sample_image": cs.sample_image.url if cs.sample_image else None,
-                    "reference_photo": cs.reference_photo.url if cs.reference_photo else None,
-                }
-        except Exception as e:
-            logger.error(f"Error loading color sample for pin {pin_id}: {e}")
+    # Add linked task if exists
+    if pin.linked_task:
+        data["linked_task"] = {
+            "id": pin.linked_task.id,
+            "name": pin.linked_task.name,
+            "status": pin.linked_task.status,
+        }
 
-        # Add linked task if exists
-        try:
-            if pin.linked_task:
-                data["linked_task"] = {
-                    "id": pin.linked_task.id,
-                    "title": pin.linked_task.title or "",
-                    "status": pin.linked_task.status or "",
-                }
-        except Exception as e:
-            logger.error(f"Error loading linked task for pin {pin_id}: {e}")
+    # Add attachments (photos)
+    data["attachments"] = [
+        {
+            "id": att.id,
+            "image_url": att.image.url,
+            "has_annotations": bool(att.annotations),
+            "created_at": att.created_at.isoformat(),
+        }
+        for att in pin.attachments.all()
+    ]
 
-        # Add attachments (photos)
-        try:
-            data["attachments"] = [
-                {
-                    "id": att.id,
-                    "image_url": att.image.url if att.image else "",
-                    "has_annotations": bool(att.annotations),
-                    "created_at": att.created_at.isoformat() if att.created_at else "",
-                }
-                for att in pin.attachments.all()
-            ]
-        except Exception as e:
-            logger.error(f"Error loading attachments for pin {pin_id}: {e}")
-
-        return JsonResponse(data)
-
-    except Exception as e:
-        logger.error(f"Error in pin_info_ajax for pin {pin_id}: {str(e)}", exc_info=True)
-        return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse(data)
 
 
 @login_required
@@ -10545,7 +9957,7 @@ def project_create(request):
     else:
         form = ProjectCreateForm()
 
-    return render(request, "core/project_form_modern.html", {"form": form, "is_create": True})
+    return render(request, "core/project_form.html", {"form": form, "is_create": True})
 
 
 @login_required
@@ -10566,7 +9978,7 @@ def project_edit(request, project_id):
         form = ProjectEditForm(instance=project)
 
     return render(
-        request, "core/project_form_modern.html", {"form": form, "project": project, "is_create": False}
+        request, "core/project_form.html", {"form": form, "project": project, "is_create": False}
     )
 
 
@@ -10592,20 +10004,27 @@ def project_delete(request, project_id):
         has_incomes = Income.objects.filter(project=project).exists()
         has_timeentries = TimeEntry.objects.filter(project=project).exists()
         has_changeorders = ChangeOrder.objects.filter(project=project).exists()
+
+        # Use already-imported model symbols (avoid unbound locals from later conditional imports)
         has_dailylogs = DailyLog.objects.filter(project=project).exists()
         has_schedules = ScheduleItem.objects.filter(project=project).exists()
         has_invoices = Invoice.objects.filter(project=project).exists()
 
-        if any(
-            [
-                has_expenses,
-                has_incomes,
-                has_timeentries,
-                has_changeorders,
-                has_dailylogs,
-                has_schedules,
-                has_invoices,
-            ]
+        confirm = request.POST.get("confirm")
+
+        if (
+            any(
+                [
+                    has_expenses,
+                    has_incomes,
+                    has_timeentries,
+                    has_changeorders,
+                    has_dailylogs,
+                    has_schedules,
+                    has_invoices,
+                ]
+            )
+            and not confirm
         ):
             messages.error(
                 request,
@@ -10620,7 +10039,6 @@ def project_delete(request, project_id):
         return redirect("project_list")
 
     # GET: Calcular estadísticas detalladas para confirmación
-
     expense_count = Expense.objects.filter(project=project).count()
     income_count = Income.objects.filter(project=project).count()
     timeentry_count = TimeEntry.objects.filter(project=project).count()
@@ -10694,106 +10112,30 @@ def js_i18n_demo(request):
 @login_required
 def analytics_dashboard(request):
     """
-    Analytics Dashboard - Comprehensive metrics and KPIs.
-    Shows: Project performance, employee stats, financial overview.
+    Analytics Dashboard view - serves React-based analytics dashboard.
+    Provides comprehensive project metrics, touchup analytics, color approvals,
+    and PM performance data visualization.
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
     # Solo admin/superuser puede acceder
-    profile = getattr(request.user, 'profile', None)
-    if not (request.user.is_superuser or (profile and profile.role == 'admin')):
-        messages.error(request, _("No tienes permiso para acceder a Analytics."))
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
         return redirect("dashboard")
     
-    today = timezone.now().date()
-    month_start = today.replace(day=1)
-    
-    # === PROJECT METRICS ===
-    total_projects = Project.objects.count()
-    active_projects = Project.objects.filter(is_archived=False).count()
-    archived_projects = Project.objects.filter(is_archived=True).count()
-    
-    # Projects this month
-    projects_this_month = Project.objects.filter(created_at__gte=month_start).count()
-    
-    # === EMPLOYEE METRICS ===
-    total_employees = Employee.objects.filter(is_active=True).count()
-    
-    # Hours this month
-    month_hours = TimeEntry.objects.filter(
-        date__gte=month_start,
-        date__lte=today
-    ).aggregate(total=Coalesce(Sum('hours_worked'), Decimal('0.00')))['total']
-    
-    # === CHANGE ORDER METRICS ===
-    total_cos = ChangeOrder.objects.count()
-    pending_cos = ChangeOrder.objects.filter(status='pending').count()
-    approved_cos = ChangeOrder.objects.filter(status='approved').count()
-    
-    # CO value this month
-    co_value_month = ChangeOrder.objects.filter(
-        date_created__gte=month_start,
-        status='approved'
-    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
-    
-    # === TASKS METRICS ===
-    total_tasks = Task.objects.count()
-    completed_tasks = Task.objects.filter(status='Completada').count()
-    overdue_tasks = Task.objects.filter(
-        due_date__lt=today
-    ).exclude(status='Completada').exclude(status='Cancelada').count()
-    
-    task_completion_rate = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0
-    
-    # === TOP PROJECTS BY ACTIVITY ===
-    top_projects = Project.objects.filter(
-        is_archived=False
-    ).annotate(
-        task_count=Count('tasks'),
-        co_count=Count('change_orders'),
-        hours=Coalesce(Sum('timeentry__hours_worked'), Decimal('0.00'))
-    ).order_by('-hours')[:5]
-    
-    # === TOP EMPLOYEES BY HOURS ===
-    top_employees = Employee.objects.filter(
-        is_active=True
-    ).annotate(
-        month_hours=Coalesce(
-            Sum('timeentry__hours_worked', filter=Q(
-                timeentry__date__gte=month_start,
-                timeentry__date__lte=today
-            )),
-            Decimal('0.00')
-        )
-    ).filter(month_hours__gt=0).order_by('-month_hours')[:5]
-    
-    context = {
-        # Project metrics
-        'total_projects': total_projects,
-        'active_projects': active_projects,
-        'archived_projects': archived_projects,
-        'projects_this_month': projects_this_month,
-        # Employee metrics
-        'total_employees': total_employees,
-        'month_hours': month_hours,
-        # Change order metrics
-        'total_cos': total_cos,
-        'pending_cos': pending_cos,
-        'approved_cos': approved_cos,
-        'co_value_month': co_value_month,
-        # Task metrics
-        'total_tasks': total_tasks,
-        'completed_tasks': completed_tasks,
-        'overdue_tasks': overdue_tasks,
-        'task_completion_rate': task_completion_rate,
-        # Top lists
-        'top_projects': top_projects,
-        'top_employees': top_employees,
-        # Date context
-        'month_start': month_start,
-        'today': today,
-    }
-    
-    return render(request, "core/analytics_dashboard.html", context)
+    # Determine user role for frontend permission checks
+    user_role = "user"
+    if request.user.is_superuser:
+        user_role = "admin"
+    elif request.user.is_staff:
+        user_role = "staff"
+
+    return render(
+        request,
+        "core/analytics_dashboard.html",
+        {
+            "user_role": user_role,
+        },
+    )
 
 
 # --- TOUCHUP BOARD REACT ---
@@ -10913,67 +10255,3 @@ def proposal_public_view(request, token):
     }
 
     return render(request, "core/proposal_public.html", context)
-
-
-@login_required
-def daily_plan_timeline(request, plan_id):
-    """Timeline view for a daily plan (Module 12.8)."""
-    if not _is_staffish(request.user):
-        return HttpResponseForbidden("Access denied")
-
-    from core.api.serializers import PlannedActivitySerializer
-
-    plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
-
-    # Fetch surrounding plans (e.g., +/- 15 days) for context
-    # Allow overriding the center date via query param to navigate
-    focus_date_str = request.GET.get("focus_date")
-    if focus_date_str:
-        try:
-            focus_date = datetime.strptime(focus_date_str, "%Y-%m-%d").date()
-        except ValueError:
-            focus_date = plan.plan_date
-    else:
-        focus_date = plan.plan_date
-
-    start_date = focus_date - timedelta(days=15)
-    end_date = focus_date + timedelta(days=15)
-
-    related_plans = DailyPlan.objects.filter(
-        project=plan.project, plan_date__range=[start_date, end_date]
-    ).prefetch_related("activities")
-
-    all_activities = []
-    for p in related_plans:
-        p_activities = p.activities.all().order_by("start_time", "order")
-        # We need to inject the plan_date into the activity data for the frontend
-        serialized = PlannedActivitySerializer(p_activities, many=True).data
-        for item in serialized:
-            item["plan_date"] = p.plan_date.isoformat()
-        all_activities.extend(serialized)
-
-    # Fetch employees for assignment dropdown
-    from core.models import Employee
-
-    employees = Employee.objects.filter(is_active=True).values("id", "first_name", "last_name")
-    employees_json = json.dumps(list(employees), default=str)
-
-    activities_json = json.dumps(all_activities, default=str)
-
-    # Pass date range info
-    timeline_config = {
-        "start_date": start_date.isoformat(),
-        "end_date": end_date.isoformat(),
-        "focus_date": focus_date.isoformat(),
-    }
-
-    return render(
-        request,
-        "core/daily_plan_timeline.html",
-        {
-            "plan": plan,
-            "activities_json": activities_json,
-            "employees_json": employees_json,
-            "timeline_config": json.dumps(timeline_config),
-        },
-    )

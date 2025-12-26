@@ -539,6 +539,9 @@ urlpatterns = [
     path("files/<int:file_id>/delete/", views.file_delete, name="file_delete"),
     path("files/<int:file_id>/download/", views.file_download, name="file_download"),
     path("files/<int:file_id>/edit/", views.file_edit_metadata, name="file_edit_metadata"),
+    # File API endpoints
+    path("api/files/<int:file_id>/details/", views.file_details_api, name="file_details_api"),
+    path("api/files/<int:file_id>/favorite/", views.file_toggle_favorite, name="file_toggle_favorite"),
     # Touch-up Pins (deprecated flow) - gated via settings.TOUCHUP_PIN_ENABLED
     # These routes are disabled by default to consolidate on Task(is_touchup=True)
     # Set TOUCHUP_PIN_ENABLED=True to re-enable the legacy TouchUpPin UI.
