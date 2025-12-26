@@ -6609,7 +6609,7 @@ def task_edit_view(request, task_id: int):
             return redirect("task_detail", task_id=task.id)
     else:
         form = TaskForm(instance=task)
-    return render(request, "core/task_form.html", {"form": form, "task": task, "edit": True})
+    return render(request, "core/task_form_modern.html", {"form": form, "task": task, "edit": True})
 
 
 @login_required

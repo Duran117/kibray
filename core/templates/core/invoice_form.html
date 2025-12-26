@@ -1,161 +1,567 @@
 {% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% if edit_mode %}{% trans "Edit Invoice" %}{% else %}{% trans "Create Invoice" %}{% endif %} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Invoice Form Styles (Teal/Cyan Theme) */
+.form-hero {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.form-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.form-hero h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+.form-hero .subtitle {
+  opacity: 0.9;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+.breadcrumb-modern {
+  background: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin-bottom: 1rem;
+}
+.breadcrumb-modern a {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.breadcrumb-modern a:hover { color: #06b6d4; }
+.form-section {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.section-header {
+  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #a5f3fc;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.section-header i {
+  font-size: 1.25rem;
+  color: #06b6d4;
+}
+.section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+.section-body {
+  padding: 1.25rem;
+}
+.form-field {
+  margin-bottom: 1.25rem;
+}
+.form-field:last-child {
+  margin-bottom: 0;
+}
+.form-field label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.form-field label i {
+  color: #6b7280;
+}
+.form-field .required-star {
+  color: #06b6d4;
+  font-weight: bold;
+}
+.modern-input, .modern-select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+.modern-input:focus, .modern-select:focus {
+  outline: none;
+  border-color: #06b6d4;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+}
+/* Invoice Lines */
+.invoice-line {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+@media (max-width: 640px) {
+  .invoice-line {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+.invoice-line input {
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+.invoice-line input:focus {
+  outline: none;
+  border-color: #06b6d4;
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+}
+.invoice-line .amount-input {
+  width: 140px;
+  text-align: right;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .invoice-line .amount-input { width: 100%; }
+}
+.invoice-line .delete-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.invoice-line .delete-btn:hover {
+  background: #fecaca;
+}
+.add-line-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border: 2px dashed #d1d5db;
+  border-radius: 0.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+.add-line-btn:hover {
+  border-color: #06b6d4;
+  color: #06b6d4;
+  background: #ecfeff;
+}
+/* Total Display */
+.total-display {
+  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  text-align: right;
+  border: 1px solid #a5f3fc;
+}
+.total-display .label {
+  font-size: 0.85rem;
+  color: #0e7490;
+  margin-bottom: 0.25rem;
+}
+.total-display .value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #06b6d4;
+}
+.btn-submit {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
+  width: 100%;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(6,182,212,0.3);
+}
+.btn-cancel {
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
+}
+.btn-cancel:hover {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+.co-selector-wrapper {
+  position: relative;
+}
+.co-selector-wrapper select {
+  width: 100%;
+  min-height: 120px;
+  padding: 0.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #fafafa;
+}
+.co-selector-wrapper select:focus {
+  outline: none;
+  border-color: #06b6d4;
+}
+.floating-save {
+  display: none;
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 6px 20px rgba(6,182,212,0.4);
+  z-index: 1000;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .floating-save { display: flex; align-items: center; justify-content: center; }
+  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .form-hero h1 { font-size: 1.5rem; }
+  .action-buttons .btn-submit { display: none; }
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  {% if edit_mode %}<h2>Edit Invoice</h2>{% else %}<h2>Create Invoice</h2>{% endif %}
+<div class="container-fluid py-3" style="max-width: 900px;">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-modern">
+    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'invoice_list' %}"><i class="bi bi-receipt me-1"></i>{% trans "Invoices" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% if edit_mode %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}</span>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="form-hero">
+    <h1>
+      <i class="bi bi-{% if edit_mode %}pencil-square{% else %}receipt{% endif %} me-2"></i>
+      {% if edit_mode %}{% trans "Edit Invoice" %}{% else %}{% trans "Create Invoice" %}{% endif %}
+    </h1>
+    <p class="subtitle">
+      {% if edit_mode %}
+        {% trans "Update invoice details and line items" %}
+      {% else %}
+        {% trans "Generate a professional invoice for your client" %}
+      {% endif %}
+    </p>
+  </div>
 
   <form method="post" id="invoice-form">
     {% csrf_token %}
 
-    <div class="mb-3">
-      <label class="form-label">Project</label>
-      {{ form.project }}
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Due Date</label>
-      {{ form.due_date }}
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Notes</label>
-      {{ form.notes }}
-    </div>
-
-    <div class="mb-3">
-  <label class="form-label">{% trans "Project Change Orders" %}</label>
-      <select id="co_selector" multiple class="form-control"></select>
-      <button type="button" id="add_change_order_lines" class="btn btn-outline-primary mt-2">Add CO Lines</button>
-    </div>
-
-    <h5 class="mt-3">Invoice Lines</h5>
-    <div id="invoice-lines">
-      {{ formset.management_form }}
-      {% for f in formset.forms %}
-        <div class="row g-2 align-items-center invoice-line mb-2">
-          <div class="col-8">{{ f.description }}</div>
-          <div class="col-3">{{ f.amount }}</div>
-          <div class="col-1">{% if formset.can_delete %}{{ f.DELETE }}{% endif %}</div>
+    <!-- Basic Info Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-info-circle"></i>
+        <h3>{% trans "Invoice Details" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="id_project">
+              <i class="bi bi-folder"></i>
+              {% trans "Project" %}
+              <span class="required-star">*</span>
+            </label>
+            {{ form.project }}
+          </div>
+          <div class="form-field">
+            <label for="id_due_date">
+              <i class="bi bi-calendar"></i>
+              {% trans "Due Date" %}
+            </label>
+            {{ form.due_date }}
+          </div>
         </div>
-      {% endfor %}
+        <div class="form-field">
+          <label for="id_notes">
+            <i class="bi bi-text-paragraph"></i>
+            {% trans "Notes" %}
+          </label>
+          {{ form.notes }}
+        </div>
+      </div>
     </div>
-    <button type="button" id="add_manual_line" class="btn btn-secondary mt-2">Add Line</button>
 
-    <div class="mt-3">
-      <strong>Total: $<span id="invoice-total">0.00</span></strong>
+    <!-- Change Orders Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-file-earmark-diff"></i>
+        <h3>{% trans "Import from Change Orders" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="form-field">
+          <label>
+            <i class="bi bi-list-check"></i>
+            {% trans "Select Change Orders" %}
+          </label>
+          <div class="co-selector-wrapper">
+            <select id="co_selector" multiple class="form-control"></select>
+          </div>
+          <button type="button" id="add_change_order_lines" class="add-line-btn mt-3">
+            <i class="bi bi-plus-circle"></i>
+            {% trans "Import Selected CO Lines" %}
+          </button>
+        </div>
+      </div>
     </div>
 
+    <!-- Invoice Lines Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-list-ul"></i>
+        <h3>{% trans "Invoice Lines" %}</h3>
+      </div>
+      <div class="section-body">
+        <div id="invoice-lines">
+          {{ formset.management_form }}
+          {% for f in formset.forms %}
+            <div class="invoice-line">
+              <input type="text" name="{{ f.description.html_name }}" value="{{ f.description.value|default:'' }}" placeholder="{% trans 'Description' %}" class="description-input">
+              <input type="number" name="{{ f.amount.html_name }}" value="{{ f.amount.value|default:'' }}" step="0.01" min="0" placeholder="0.00" class="amount-input">
+              {% if formset.can_delete %}
+                <button type="button" class="delete-btn" onclick="this.parentElement.remove(); recalcTotal();">
+                  <i class="bi bi-trash"></i>
+                </button>
+                <input type="checkbox" name="{{ f.DELETE.html_name }}" style="display:none;">
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        
+        <button type="button" id="add_manual_line" class="add-line-btn">
+          <i class="bi bi-plus-circle"></i>
+          {% trans "Add Line" %}
+        </button>
+        
+        <!-- Total -->
+        <div class="total-display mt-4">
+          <div class="label">{% trans "Invoice Total" %}</div>
+          <div class="value">$<span id="invoice-total">0.00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden fields -->
     <div style="display:none;">
       {{ form.total_amount }}
       {{ form.change_orders }}
     </div>
 
-    <div class="mt-3">
-      <button type="submit" class="btn btn-primary">Save</button>
-      <a class="btn btn-light" href="{% url 'dashboard' %}">Cancel</a>
+    <!-- Action Buttons -->
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-check-circle"></i>
+        {% trans "Save Invoice" %}
+      </button>
+      <a href="{% url 'dashboard' %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
+      </a>
     </div>
   </form>
 
-  <template id="line-template">
-    <div class="row g-2 align-items-center invoice-line mb-2">
-      <div class="col-8">
-        <input type="text" name="__NAME__-description" class="form-control" placeholder="Description">
-      </div>
-      <div class="col-3">
-        <input type="number" name="__NAME__-amount" step="0.01" min="0" class="form-control" placeholder="Amount">
-      </div>
-      <div class="col-1">
-        <input type="checkbox" name="__NAME__-DELETE" style="display:none;">
-      </div>
-    </div>
-  </template>
+  <!-- Floating Save Button (Mobile) -->
+  <button type="submit" form="invoice-form" class="floating-save">
+    <i class="bi bi-check-lg"></i>
+  </button>
+</div>
 
-  <script>
-    const projectSelect = document.getElementById('id_project');
-    const visibleCO = document.getElementById('co_selector');
-    const hiddenCO = document.getElementById('id_change_orders');
-    const linesContainer = document.getElementById('invoice-lines');
-    const totalSpan = document.getElementById('invoice-total');
-    const totalInput = document.getElementById('id_total_amount');
-    const mgmtTotal = document.getElementById('id_lines-TOTAL_FORMS');
+<template id="line-template">
+  <div class="invoice-line">
+    <input type="text" name="__NAME__-description" placeholder="{% trans 'Description' %}" class="description-input">
+    <input type="number" name="__NAME__-amount" step="0.01" min="0" placeholder="0.00" class="amount-input">
+    <button type="button" class="delete-btn" onclick="this.parentElement.remove(); recalcTotal();">
+      <i class="bi bi-trash"></i>
+    </button>
+    <input type="checkbox" name="__NAME__-DELETE" style="display:none;">
+  </div>
+</template>
 
-    function n0(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+<script>
+  const projectSelect = document.getElementById('id_project');
+  const visibleCO = document.getElementById('co_selector');
+  const hiddenCO = document.getElementById('id_change_orders');
+  const linesContainer = document.getElementById('invoice-lines');
+  const totalSpan = document.getElementById('invoice-total');
+  const totalInput = document.getElementById('id_total_amount');
+  const mgmtTotal = document.getElementById('id_lines-TOTAL_FORMS');
 
-    function recalcTotal(){
-      let t = 0;
-      linesContainer.querySelectorAll('input[name$="-amount"]').forEach(i => t += n0(i.value));
-      totalSpan.textContent = t.toFixed(2);
-      if (totalInput) totalInput.value = t.toFixed(2);
-    }
+  function n0(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
-    function addLine(desc, amt){
-      const tpl = document.getElementById('line-template').content.cloneNode(true);
-      const idx = parseInt(mgmtTotal.value, 10);
-      tpl.querySelectorAll('input').forEach(inp => {
-        inp.name = inp.name.replace('__NAME__', `lines-${idx}`);
-        if (inp.name.endsWith('-description') && desc !== undefined) inp.value = desc;
-        if (inp.name.endsWith('-amount') && amt !== undefined) inp.value = amt;
-      });
-      linesContainer.appendChild(tpl);
-      mgmtTotal.value = idx + 1;
-      recalcTotal();
-    }
+  function recalcTotal(){
+    let t = 0;
+    linesContainer.querySelectorAll('input[name$="-amount"]').forEach(i => t += n0(i.value));
+    totalSpan.textContent = t.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    if (totalInput) totalInput.value = t.toFixed(2);
+  }
 
-    function rebuildHiddenCOOptions(list){
-      if (!hiddenCO) return;
-      const preselected = new Set(Array.from(hiddenCO.selectedOptions).map(o => o.value));
-      hiddenCO.innerHTML = '';
-      list.forEach(co => {
-        const opt = document.createElement('option');
-        opt.value = String(co.id);
-        opt.textContent = co.description;
-        if (preselected.has(String(co.id))) opt.selected = true;
-        hiddenCO.appendChild(opt);
-      });
-    }
-
-    function syncHiddenCOSelection(){
-      if (!hiddenCO) return;
-      const selectedIds = new Set(Array.from(visibleCO.selectedOptions).map(o => o.value));
-      Array.from(hiddenCO.options).forEach(opt => opt.selected = selectedIds.has(opt.value));
-    }
-
-    function loadCO(){
-      const pid = projectSelect ? projectSelect.value : null;
-      visibleCO.innerHTML = '';
-      if (!pid) { rebuildHiddenCOOptions([]); return; }
-      const preselected = new Set(Array.from(hiddenCO ? hiddenCO.selectedOptions : []).map(o => o.value));
-      fetch(`/ajax/changeorders/?project_id=${pid}`)
-        .then(r => r.json())
-        .then(d => {
-          d.change_orders.forEach(co => {
-            const opt = document.createElement('option');
-            opt.value = String(co.id);
-            opt.textContent = `${co.description} - $${Number(co.amount).toFixed(2)}`;
-            if (preselected.has(String(co.id))) opt.selected = true;
-            visibleCO.appendChild(opt);
-          });
-          rebuildHiddenCOOptions(d.change_orders);
-          syncHiddenCOSelection();
-        });
-    }
-
-    document.getElementById('add_manual_line').addEventListener('click', () => addLine('', ''));
-    document.getElementById('add_change_order_lines').addEventListener('click', () => {
-      const ids = Array.from(visibleCO.selectedOptions).map(o => o.value);
-      if (!ids.length) return;
-      const qs = ids.map(id => `ids[]=${encodeURIComponent(id)}`).join('&');
-      fetch(`/ajax/changeorder_lines/?${qs}`)
-        .then(r => r.json())
-        .then(data => {
-          data.lines.forEach(l => addLine(l.description, l.amount));
-          recalcTotal();
-        });
-      syncHiddenCOSelection();
+  function addLine(desc, amt){
+    const tpl = document.getElementById('line-template').content.cloneNode(true);
+    const idx = parseInt(mgmtTotal.value, 10);
+    tpl.querySelectorAll('input').forEach(inp => {
+      inp.name = inp.name.replace('__NAME__', `lines-${idx}`);
+      if (inp.name.endsWith('-description') && desc !== undefined) inp.value = desc;
+      if (inp.name.endsWith('-amount') && amt !== undefined) inp.value = amt;
     });
+    linesContainer.appendChild(tpl);
+    mgmtTotal.value = idx + 1;
+    recalcTotal();
+  }
 
-    visibleCO.addEventListener('change', syncHiddenCOSelection);
-    linesContainer.addEventListener('input', e => { if (e.target.name.endsWith('-amount')) recalcTotal(); });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      if (projectSelect) { projectSelect.addEventListener('change', loadCO); loadCO(); }
-      recalcTotal();
+  function rebuildHiddenCOOptions(list){
+    if (!hiddenCO) return;
+    const preselected = new Set(Array.from(hiddenCO.selectedOptions).map(o => o.value));
+    hiddenCO.innerHTML = '';
+    list.forEach(co => {
+      const opt = document.createElement('option');
+      opt.value = String(co.id);
+      opt.textContent = co.description;
+      if (preselected.has(String(co.id))) opt.selected = true;
+      hiddenCO.appendChild(opt);
     });
-  </script>
+  }
+
+  function syncHiddenCOSelection(){
+    if (!hiddenCO) return;
+    const selectedIds = new Set(Array.from(visibleCO.selectedOptions).map(o => o.value));
+    Array.from(hiddenCO.options).forEach(opt => opt.selected = selectedIds.has(opt.value));
+  }
+
+  function loadCO(){
+    const pid = projectSelect ? projectSelect.value : null;
+    visibleCO.innerHTML = '';
+    if (!pid) { rebuildHiddenCOOptions([]); return; }
+    const preselected = new Set(Array.from(hiddenCO ? hiddenCO.selectedOptions : []).map(o => o.value));
+    fetch(`/ajax/changeorders/?project_id=${pid}`)
+      .then(r => r.json())
+      .then(d => {
+        d.change_orders.forEach(co => {
+          const opt = document.createElement('option');
+          opt.value = String(co.id);
+          opt.textContent = `${co.description} - $${Number(co.amount).toFixed(2)}`;
+          if (preselected.has(String(co.id))) opt.selected = true;
+          visibleCO.appendChild(opt);
+        });
+        rebuildHiddenCOOptions(d.change_orders);
+        syncHiddenCOSelection();
+      });
+  }
+
+  document.getElementById('add_manual_line').addEventListener('click', () => addLine('', ''));
+  document.getElementById('add_change_order_lines').addEventListener('click', () => {
+    const ids = Array.from(visibleCO.selectedOptions).map(o => o.value);
+    if (!ids.length) return;
+    const qs = ids.map(id => `ids[]=${encodeURIComponent(id)}`).join('&');
+    fetch(`/ajax/changeorder_lines/?${qs}`)
+      .then(r => r.json())
+      .then(data => {
+        data.lines.forEach(l => addLine(l.description, l.amount));
+        recalcTotal();
+      });
+    syncHiddenCOSelection();
+  });
+
+  visibleCO.addEventListener('change', syncHiddenCOSelection);
+  linesContainer.addEventListener('input', e => { if (e.target.name.endsWith('-amount')) recalcTotal(); });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Style form inputs
+    document.querySelectorAll('#invoice-form select, #invoice-form input[type="date"], #invoice-form textarea').forEach(el => {
+      el.classList.add('modern-input');
+    });
+    
+    if (projectSelect) { projectSelect.addEventListener('change', loadCO); loadCO(); }
+    recalcTotal();
+    
+    // Initialize Flatpickr for date fields
+    if (typeof flatpickr !== 'undefined') {
+      document.querySelectorAll('input[type="date"]').forEach(el => {
+        flatpickr(el, {
+          dateFormat: "Y-m-d",
+          locale: "es",
+          allowInput: true,
+          altInput: true,
+          altFormat: "F j, Y"
+        });
+      });
+    }
+  });
+</script>
 {% endblock %}

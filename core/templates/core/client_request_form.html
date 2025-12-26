@@ -1,20 +1,313 @@
 {% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "New Client Request" %} - {{ project.name }} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Form Styles - Client Request (Purple Theme) */
+.form-hero {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.form-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.form-hero h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+.form-hero .subtitle {
+  opacity: 0.9;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+.form-hero .project-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 0.375rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.breadcrumb-modern {
+  background: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin-bottom: 1rem;
+}
+.breadcrumb-modern a {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.breadcrumb-modern a:hover { color: #8b5cf6; }
+.form-section {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.section-header {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #ddd6fe;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.section-header i {
+  font-size: 1.25rem;
+  color: #8b5cf6;
+}
+.section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+.section-body {
+  padding: 1.25rem;
+}
+.form-field {
+  margin-bottom: 1.25rem;
+}
+.form-field:last-child {
+  margin-bottom: 0;
+}
+.form-field label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.form-field label i {
+  color: #6b7280;
+}
+.form-field .required-star {
+  color: #8b5cf6;
+  font-weight: bold;
+}
+.modern-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+.modern-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+}
+.modern-input::placeholder {
+  color: #9ca3af;
+}
+.char-counter {
+  text-align: right;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 0.375rem;
+}
+.btn-submit {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
+  width: 100%;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(139,92,246,0.3);
+}
+.btn-cancel {
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
+}
+.btn-cancel:hover {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+.floating-save {
+  display: none;
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+  z-index: 1000;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .floating-save { display: flex; align-items: center; justify-content: center; }
+  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .form-hero h1 { font-size: 1.5rem; }
+  .action-buttons .btn-submit { display: none; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <h3>Nueva Solicitud del Cliente – {{ project.name }}</h3>
-  <form method="post" class="card p-3">{% csrf_token %}
-    <div class="mb-3">
-      <label class="form-label">Título *</label>
-      <input type="text" name="title" class="form-control" required />
+<div class="container-fluid py-3" style="max-width: 700px;">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-modern">
+    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'client_requests_list' project.id %}"><i class="bi bi-inbox me-1"></i>{% trans "Requests" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% trans "New" %}</span>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="form-hero">
+    <h1>
+      <i class="bi bi-chat-left-dots me-2"></i>
+      {% trans "New Client Request" %}
+    </h1>
+    <p class="subtitle">
+      {% trans "Submit a new request or question for your project" %}
+    </p>
+    <div class="project-badge">
+      <i class="bi bi-folder"></i>
+      {{ project.name }}
     </div>
-    <div class="mb-3">
-      <label class="form-label">Descripción</label>
-      <textarea name="description" rows="4" class="form-control" placeholder="Detalles adicionales"></textarea>
+  </div>
+
+  <form method="post" id="requestForm">
+    {% csrf_token %}
+    
+    <!-- Request Details Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-card-text"></i>
+        <h3>{% trans "Request Details" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="form-field">
+          <label for="title">
+            <i class="bi bi-card-heading"></i>
+            {% trans "Title" %}
+            <span class="required-star">*</span>
+          </label>
+          <input type="text" name="title" id="title" class="modern-input" placeholder="{% trans 'Brief summary of your request' %}" required maxlength="200">
+          <div class="char-counter"><span id="titleCount">0</span>/200</div>
+        </div>
+        
+        <div class="form-field">
+          <label for="description">
+            <i class="bi bi-text-paragraph"></i>
+            {% trans "Description" %}
+          </label>
+          <textarea name="description" id="description" class="modern-input" rows="5" placeholder="{% trans 'Provide additional details, questions, or specific requirements...' %}" maxlength="2000"></textarea>
+          <div class="char-counter"><span id="descCount">0</span>/2000</div>
+        </div>
+      </div>
     </div>
-    <div class="d-flex gap-2">
-      <button class="btn btn-primary">Guardar</button>
-      <a href="{% url 'client_requests_list' project.id %}" class="btn btn-secondary">Cancelar</a>
+
+    <!-- Tips Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-lightbulb"></i>
+        <h3>{% trans "Tips" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="d-flex flex-column gap-2 text-muted small">
+          <div><i class="bi bi-check-circle text-success me-2"></i>{% trans "Be specific about what you need" %}</div>
+          <div><i class="bi bi-check-circle text-success me-2"></i>{% trans "Include any relevant dates or deadlines" %}</div>
+          <div><i class="bi bi-check-circle text-success me-2"></i>{% trans "Reference specific areas or rooms if applicable" %}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-send"></i>
+        {% trans "Submit Request" %}
+      </button>
+      <a href="{% url 'client_requests_list' project.id %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
+      </a>
     </div>
   </form>
+
+  <!-- Floating Save Button (Mobile) -->
+  <button type="submit" form="requestForm" class="floating-save">
+    <i class="bi bi-send-fill"></i>
+  </button>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Character counters
+  const titleInput = document.getElementById('title');
+  const titleCount = document.getElementById('titleCount');
+  const descInput = document.getElementById('description');
+  const descCount = document.getElementById('descCount');
+  
+  if (titleInput && titleCount) {
+    titleInput.addEventListener('input', () => titleCount.textContent = titleInput.value.length);
+  }
+  if (descInput && descCount) {
+    descInput.addEventListener('input', () => descCount.textContent = descInput.value.length);
+  }
+});
+</script>
 {% endblock %}

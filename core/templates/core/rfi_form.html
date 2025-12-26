@@ -3,104 +3,405 @@
 {% load static %}
 {% load core_extras %}
 
-{% block title %}{% trans "Edit RFI" %} - Kibray{% endblock %}
+{% block title %}{% if rfi %}{% trans "Edit RFI" %}{% else %}{% trans "New RFI" %}{% endif %} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Form Styles - RFI (Blue Theme) */
+.form-hero {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.form-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.form-hero h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+.form-hero .subtitle {
+  opacity: 0.9;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+.form-hero .rfi-number {
+  background: rgba(255,255,255,0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  margin-left: 0.75rem;
+}
+.breadcrumb-modern {
+  background: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin-bottom: 1rem;
+}
+.breadcrumb-modern a {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.breadcrumb-modern a:hover { color: #3b82f6; }
+.form-section {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.section-header {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #bfdbfe;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.section-header i {
+  font-size: 1.25rem;
+  color: #3b82f6;
+}
+.section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+.section-body {
+  padding: 1.25rem;
+}
+.form-field {
+  margin-bottom: 1.25rem;
+}
+.form-field:last-child {
+  margin-bottom: 0;
+}
+.form-field label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.form-field label i {
+  color: #6b7280;
+}
+.form-field .required-star {
+  color: #3b82f6;
+  font-weight: bold;
+}
+.modern-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+.modern-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+.modern-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23374151' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 3rem;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.status-badge.open { background: #dbeafe; color: #1d4ed8; }
+.status-badge.pending { background: #fef3c7; color: #b45309; }
+.status-badge.answered { background: #dcfce7; color: #166534; }
+.status-badge.closed { background: #f3f4f6; color: #4b5563; }
+.btn-submit {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
+  width: 100%;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(59,130,246,0.3);
+}
+.btn-cancel {
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
+}
+.btn-cancel:hover {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+.floating-save {
+  display: none;
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+  z-index: 1000;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .floating-save { display: flex; align-items: center; justify-content: center; }
+  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .form-hero h1 { font-size: 1.5rem; }
+  .action-buttons .btn-submit { display: none; }
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3 py-md-4" style="max-width: 900px;">
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
-    <h2 class="mb-0 h3 h-md-2">
-      <i class="bi bi-pencil-square text-primary me-2"></i>
-      {% trans "Edit RFI" %} #{{ rfi.number }}
-    </h2>
-    <a href="{% url 'rfi_list' project.id %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>
-      {% trans "Back to List" %}
-    </a>
+<div class="container-fluid py-3" style="max-width: 800px;">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-modern">
+    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'rfi_list' project.id %}"><i class="bi bi-question-circle me-1"></i>{% trans "RFIs" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% if rfi %}#{{ rfi.number }}{% else %}{% trans "New" %}{% endif %}</span>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-body p-3 p-md-4">
-      <form method="post">
-        {% csrf_token %}
-        
-        <div class="row g-3">
+  <!-- Hero Header -->
+  <div class="form-hero">
+    <h1>
+      <i class="bi bi-{% if rfi %}pencil-square{% else %}question-circle{% endif %} me-2"></i>
+      {% if rfi %}{% trans "Edit RFI" %}<span class="rfi-number">#{{ rfi.number }}</span>{% else %}{% trans "Request for Information" %}{% endif %}
+    </h1>
+    <p class="subtitle">
+      {% if rfi %}
+        {% trans "Update the RFI details below" %}
+      {% else %}
+        {% trans "Submit a formal request for project clarification" %}
+      {% endif %}
+    </p>
+  </div>
+
+  <form method="post" id="rfiForm">
+    {% csrf_token %}
+    
+    <!-- Question Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-chat-left-text"></i>
+        <h3>{% trans "Question Details" %}</h3>
+      </div>
+      <div class="section-body">
+        {% for field in form %}
+          {% if field.name == 'subject' or field.name == 'title' or field.name == 'question' %}
+            <div class="form-field">
+              <label for="{{ field.id_for_label }}">
+                {% if field.name == 'subject' or field.name == 'title' %}<i class="bi bi-card-heading"></i>{% else %}<i class="bi bi-question-lg"></i>{% endif %}
+                {{ field.label }}
+                {% if field.field.required %}<span class="required-star">*</span>{% endif %}
+              </label>
+              {% if 'textarea' in field.field.widget|class_name|lower %}
+                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" rows="5" placeholder="{% trans 'Describe your question or request in detail...' %}" {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+              {% else %}
+                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" value="{{ field.value|default:'' }}" placeholder="{% trans 'Brief subject of your RFI' %}" {% if field.field.required %}required{% endif %}>
+              {% endif %}
+              {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Status & Priority Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-flag"></i>
+        <h3>{% trans "Status & Priority" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-2">
           {% for field in form %}
-            {% if field.field.widget.input_type != 'hidden' %}
-              <div class="col-12">
-                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+            {% if field.name == 'status' or field.name == 'priority' or field.name == 'urgency' %}
+              <div class="form-field">
+                <label for="{{ field.id_for_label }}">
+                  {% if field.name == 'status' %}<i class="bi bi-circle-half"></i>
+                  {% else %}<i class="bi bi-exclamation-diamond"></i>{% endif %}
                   {{ field.label }}
-                  {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                  {% if field.field.required %}<span class="required-star">*</span>{% endif %}
                 </label>
-                
-                {% if field.field.widget.input_type == 'textarea' or 'textarea' in field.field.widget|class_name|lower %}
-                  <textarea 
-                    name="{{ field.name }}" 
-                    id="{{ field.id_for_label }}"
-                    class="form-control {% if field.errors %}is-invalid{% endif %}"
-                    rows="4"
-                    style="min-height: 100px; font-size: 16px;"
-                    {% if field.field.required %}required{% endif %}
-                  >{{ field.value|default:'' }}</textarea>
-                {% elif 'select' in field.field.widget|class_name|lower %}
-                  <select 
-                    name="{{ field.name }}" 
-                    id="{{ field.id_for_label }}"
-                    class="form-select {% if field.errors %}is-invalid{% endif %}"
-                    style="min-height: 50px; font-size: 16px;"
-                    {% if field.field.required %}required{% endif %}
-                  >
-                    {% for value, text in field.field.choices %}
-                      <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
-                    {% endfor %}
-                  </select>
-                {% else %}
-                  <input 
-                    type="{{ field.field.widget.input_type }}" 
-                    name="{{ field.name }}" 
-                    id="{{ field.id_for_label }}"
-                    class="form-control {% if field.errors %}is-invalid{% endif %}"
-                    value="{{ field.value|default:'' }}"
-                    style="min-height: 50px; font-size: 16px;"
-                    {% if field.field.required %}required{% endif %}
-                  >
-                {% endif %}
-                
-                {% if field.errors %}
-                  <div class="invalid-feedback d-block">{{ field.errors }}</div>
-                {% endif %}
-                {% if field.help_text %}
-                  <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
+                <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input modern-select" {% if field.field.required %}required{% endif %}>
+                  {% for value, text in field.field.choices %}
+                    <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
+                  {% endfor %}
+                </select>
+                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
               </div>
-            {% else %}
-              {{ field }}
             {% endif %}
           {% endfor %}
+        </div>
+      </div>
+    </div>
 
-          {% if form.non_field_errors %}
-          <div class="col-12">
-            <div class="alert alert-danger" role="alert">
-              {{ form.non_field_errors }}
-            </div>
+    <!-- Response Section (if editing) -->
+    {% for field in form %}
+      {% if field.name == 'response' or field.name == 'answer' %}
+        <div class="form-section">
+          <div class="section-header">
+            <i class="bi bi-chat-right-text"></i>
+            <h3>{% trans "Response" %}</h3>
           </div>
-          {% endif %}
-
-          <div class="col-12">
-            <hr class="my-3">
-            <div class="d-flex flex-column flex-sm-row gap-2">
-              <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
-                <i class="bi bi-check-circle me-2"></i>
-                {% trans "Save RFI" %}
-              </button>
-              <a href="{% url 'rfi_list' project.id %}" class="btn btn-outline-secondary btn-lg">
-                <i class="bi bi-x-circle me-2"></i>
-                {% trans "Cancel" %}
-              </a>
+          <div class="section-body">
+            <div class="form-field">
+              <label for="{{ field.id_for_label }}">
+                <i class="bi bi-reply"></i>
+                {{ field.label }}
+              </label>
+              <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" rows="5" placeholder="{% trans 'Provide the response to this RFI...' %}">{{ field.value|default:'' }}</textarea>
+              {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
             </div>
           </div>
         </div>
-      </form>
+      {% endif %}
+    {% endfor %}
+
+    <!-- Dates Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-calendar-event"></i>
+        <h3>{% trans "Dates" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-2">
+          {% for field in form %}
+            {% if field.name == 'due_date' or field.name == 'response_date' or field.name == 'date_needed' %}
+              <div class="form-field">
+                <label for="{{ field.id_for_label }}">
+                  <i class="bi bi-calendar"></i>
+                  {{ field.label }}
+                  {% if field.field.required %}<span class="required-star">*</span>{% endif %}
+                </label>
+                <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input date-picker" value="{{ field.value|default:'' }}" {% if field.field.required %}required{% endif %}>
+                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
     </div>
-  </div>
+
+    <!-- Hidden fields -->
+    {% for field in form %}
+      {% if field.field.widget.input_type == 'hidden' %}
+        {{ field }}
+      {% endif %}
+    {% endfor %}
+
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger rounded-3 mb-4">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-check-circle"></i>
+        {% trans "Save RFI" %}
+      </button>
+      <a href="{% url 'rfi_list' project.id %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
+      </a>
+    </div>
+  </form>
+
+  <!-- Floating Save Button (Mobile) -->
+  <button type="submit" form="rfiForm" class="floating-save">
+    <i class="bi bi-check-lg"></i>
+  </button>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Flatpickr for date fields
+  if (typeof flatpickr !== 'undefined') {
+    document.querySelectorAll('.date-picker, input[type="date"]').forEach(el => {
+      flatpickr(el, {
+        dateFormat: "Y-m-d",
+        locale: "es",
+        allowInput: true,
+        altInput: true,
+        altFormat: "F j, Y"
+      });
+    });
+  }
+});
+</script>
 {% endblock %}
