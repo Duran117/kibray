@@ -7562,12 +7562,79 @@ class PaintLeftover(models.Model):
 # ========================================================================================
 
 
+# ========================================================================================
+# DOCUMENT MANAGEMENT SYSTEM (Odoo-style)
+# ========================================================================================
+
+
+class DocumentTag(models.Model):
+    """Tags for categorizing documents - organized by category (Odoo-style)"""
+
+    if TYPE_CHECKING:
+        id: int
+
+    TAG_CATEGORIES = [
+        ("status", "Estado"),
+        ("type", "Tipo"),
+        ("priority", "Prioridad"),
+        ("department", "Departamento"),
+        ("custom", "Personalizado"),
+    ]
+
+    COLOR_CHOICES = [
+        ("red", "#EF4444"),
+        ("orange", "#F97316"),
+        ("amber", "#F59E0B"),
+        ("yellow", "#EAB308"),
+        ("lime", "#84CC16"),
+        ("green", "#22C55E"),
+        ("emerald", "#10B981"),
+        ("teal", "#14B8A6"),
+        ("cyan", "#06B6D4"),
+        ("sky", "#0EA5E9"),
+        ("blue", "#3B82F6"),
+        ("indigo", "#6366F1"),
+        ("violet", "#8B5CF6"),
+        ("purple", "#A855F7"),
+        ("fuchsia", "#D946EF"),
+        ("pink", "#EC4899"),
+        ("rose", "#F43F5E"),
+        ("slate", "#64748B"),
+    ]
+
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="document_tags"
+    )
+    name = models.CharField(max_length=50)
+    category = models.CharField(max_length=20, choices=TAG_CATEGORIES, default="custom")
+    color = models.CharField(max_length=20, choices=COLOR_CHOICES, default="blue")
+    description = models.CharField(max_length=200, blank=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["category", "order", "name"]
+        unique_together = ["project", "name"]
+        verbose_name = "Document Tag"
+        verbose_name_plural = "Document Tags"
+
+    def __str__(self):
+        return f"{self.name} ({self.get_category_display()})"
+
+    def get_color_hex(self):
+        """Get hex color value"""
+        color_map = dict(self.COLOR_CHOICES)
+        return color_map.get(self.color, "#3B82F6")
+
+
 class FileCategory(models.Model):
-    """Categories for organizing project files"""
+    """Workspace/Folder for organizing project files - supports hierarchy (Odoo-style)"""
 
     if TYPE_CHECKING:
         id: int
         files: "RelatedManager[ProjectFile]"
+        children: "RelatedManager[FileCategory]"
+        workspace_tags: "RelatedManager[DocumentTag]"
 
     CATEGORY_TYPES = [
         ("daily_logs", "Daily Logs Photos"),
@@ -7584,6 +7651,14 @@ class FileCategory(models.Model):
     ]
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="file_categories")
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        help_text="Parent workspace for hierarchical organization",
+    )
     name = models.CharField(max_length=100)
     category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES, default="other")
     description = models.TextField(blank=True)
@@ -7602,10 +7677,21 @@ class FileCategory(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
+    
+    # Odoo-style features
+    default_tags = models.ManyToManyField(
+        DocumentTag,
+        blank=True,
+        related_name="default_workspaces",
+        help_text="Tags auto-applied to files uploaded to this workspace",
+    )
+    is_shared = models.BooleanField(default=False, help_text="Workspace is shared externally")
+    share_token = models.CharField(max_length=64, blank=True, help_text="Token for public sharing")
+    share_expires = models.DateTimeField(null=True, blank=True, help_text="Share link expiration")
+    allow_upload = models.BooleanField(default=False, help_text="Allow external uploads via share link")
 
     class Meta:
         ordering = ["order", "name"]
-        unique_together = ["project", "name"]
         verbose_name = "File Category"
         verbose_name_plural = "File Categories"
 
@@ -7616,13 +7702,51 @@ class FileCategory(models.Model):
         """Count files in this category"""
         return self.files.count()
 
+    def total_file_count(self):
+        """Count files including subcategories"""
+        count = self.files.count()
+        for child in self.children.all():
+            count += child.total_file_count()
+        return count
+
     def total_size(self):
         """Calculate total size of files in bytes"""
         return sum(f.file.size for f in self.files.all() if f.file)
 
+    def get_breadcrumbs(self):
+        """Get list of parent categories for breadcrumb navigation"""
+        breadcrumbs = []
+        current = self
+        while current:
+            breadcrumbs.insert(0, current)
+            current = current.parent
+        return breadcrumbs
+
+    def get_all_children(self):
+        """Get all descendant categories recursively"""
+        children = list(self.children.all())
+        for child in self.children.all():
+            children.extend(child.get_all_children())
+        return children
+
+    def get_inherited_tags(self):
+        """Get tags from this workspace and all parent workspaces"""
+        tags = set(self.default_tags.all())
+        if self.parent:
+            tags.update(self.parent.get_inherited_tags())
+        return tags
+
+    def generate_share_token(self):
+        """Generate a unique share token"""
+        import secrets
+        self.share_token = secrets.token_urlsafe(32)
+        self.is_shared = True
+        self.save(update_fields=["share_token", "is_shared"])
+        return self.share_token
+
 
 class ProjectFile(models.Model):
-    """Files organized by categories within projects"""
+    """Files organized by categories within projects - Enhanced with Odoo-style features"""
 
     if TYPE_CHECKING:
         id: int
@@ -7633,6 +7757,9 @@ class ProjectFile(models.Model):
         ("spreadsheet", "Spreadsheet"),
         ("word", "Word Document"),
         ("cad", "CAD Drawing"),
+        ("video", "Video"),
+        ("audio", "Audio"),
+        ("archive", "Archive"),
         ("other", "Other"),
     ]
 
@@ -7643,6 +7770,7 @@ class ProjectFile(models.Model):
     description = models.TextField(blank=True)
     file_type = models.CharField(max_length=20, choices=FILE_TYPES, default="other")
     file_size = models.BigIntegerField(default=0, help_text="Size in bytes")
+    mime_type = models.CharField(max_length=100, blank=True, help_text="MIME type")
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -7652,17 +7780,67 @@ class ProjectFile(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Optional metadata
-    tags = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags")
+    # Legacy tags (kept for backward compatibility)
+    tags = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags (legacy)")
+    
+    # New structured tags (Odoo-style)
+    document_tags = models.ManyToManyField(
+        DocumentTag,
+        blank=True,
+        related_name="files",
+        help_text="Structured tags for better organization",
+    )
+    
     is_public = models.BooleanField(default=False, help_text="Visible to clients")
     version = models.CharField(
         max_length=20, blank=True, help_text="Document version (e.g., v1.0, Rev A)"
     )
+    
+    # Odoo-style features
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="owned_files",
+        help_text="Document owner (different from uploader)",
+    )
+    contact = models.ForeignKey(
+        "Client",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="related_files",
+        help_text="Related contact/client",
+    )
+    is_favorited = models.BooleanField(default=False, help_text="Marked as favorite")
+    is_locked = models.BooleanField(default=False, help_text="Locked for editing")
+    locked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="locked_files",
+    )
+    
+    # Share features
+    is_shared = models.BooleanField(default=False)
+    share_token = models.CharField(max_length=64, blank=True)
+    share_expires = models.DateTimeField(null=True, blank=True)
+    download_count = models.PositiveIntegerField(default=0)
+    
+    # Thumbnail for images/PDFs
+    thumbnail = models.ImageField(upload_to="project_files/thumbnails/", blank=True, null=True)
 
     class Meta:
         ordering = ["-uploaded_at"]
         verbose_name = "Project File"
         verbose_name_plural = "Project Files"
+        indexes = [
+            models.Index(fields=["project", "-uploaded_at"]),
+            models.Index(fields=["category", "-uploaded_at"]),
+            models.Index(fields=["file_type"]),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.category.name})"
@@ -7680,6 +7858,8 @@ class ProjectFile(models.Model):
                 "jpeg": "image",
                 "png": "image",
                 "gif": "image",
+                "webp": "image",
+                "svg": "image",
                 "xls": "spreadsheet",
                 "xlsx": "spreadsheet",
                 "csv": "spreadsheet",
@@ -7687,8 +7867,21 @@ class ProjectFile(models.Model):
                 "docx": "word",
                 "dwg": "cad",
                 "dxf": "cad",
+                "mp4": "video",
+                "mov": "video",
+                "avi": "video",
+                "mp3": "audio",
+                "wav": "audio",
+                "zip": "archive",
+                "rar": "archive",
+                "7z": "archive",
             }
             self.file_type = type_map.get(ext, "other")
+            
+            # Auto-detect MIME type
+            import mimetypes
+            mime, _ = mimetypes.guess_type(self.file.name)
+            self.mime_type = mime or "application/octet-stream"
 
         super().save(*args, **kwargs)
 
@@ -7700,6 +7893,9 @@ class ProjectFile(models.Model):
             "spreadsheet": "bi-file-spreadsheet",
             "word": "bi-file-word",
             "cad": "bi-file-ruled",
+            "video": "bi-file-play",
+            "audio": "bi-file-music",
+            "archive": "bi-file-zip",
             "other": "bi-file-earmark",
         }
         return icons.get(self.file_type, "bi-file-earmark")
@@ -7720,6 +7916,109 @@ class ProjectFile(models.Model):
             return []
         parts = re.split(r"[,\s]+", self.tags)
         return [p for p in parts if p]
+
+    def get_all_tags(self):
+        """Get both legacy tags and new structured tags"""
+        all_tags = list(self.document_tags.all())
+        return all_tags
+
+    def generate_share_link(self, expires_days=7):
+        """Generate a shareable link for this file"""
+        import secrets
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        self.share_token = secrets.token_urlsafe(32)
+        self.share_expires = timezone.now() + timedelta(days=expires_days)
+        self.is_shared = True
+        self.save(update_fields=["share_token", "share_expires", "is_shared"])
+        return self.share_token
+
+    def increment_download(self):
+        """Increment download counter"""
+        self.download_count += 1
+        self.save(update_fields=["download_count"])
+
+    def lock(self, user):
+        """Lock file for editing"""
+        self.is_locked = True
+        self.locked_by = user
+        self.save(update_fields=["is_locked", "locked_by"])
+
+    def unlock(self):
+        """Unlock file"""
+        self.is_locked = False
+        self.locked_by = None
+        self.save(update_fields=["is_locked", "locked_by"])
+
+
+class DocumentRequest(models.Model):
+    """Request for a document that hasn't been uploaded yet (Odoo-style)"""
+
+    if TYPE_CHECKING:
+        id: int
+
+    STATUS_CHOICES = [
+        ("pending", "Pendiente"),
+        ("received", "Recibido"),
+        ("overdue", "Vencido"),
+        ("cancelled", "Cancelado"),
+    ]
+
+    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="document_requests")
+    workspace = models.ForeignKey(
+        FileCategory, on_delete=models.CASCADE, related_name="document_requests"
+    )
+    name = models.CharField(max_length=255, help_text="Name of requested document")
+    description = models.TextField(blank=True)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="document_requests_made",
+    )
+    requested_from = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="document_requests_received",
+    )
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    
+    # Link to uploaded file when received
+    uploaded_file = models.ForeignKey(
+        ProjectFile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="fulfilled_request",
+    )
+    
+    default_tags = models.ManyToManyField(DocumentTag, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Document Request"
+        verbose_name_plural = "Document Requests"
+
+    def __str__(self):
+        return f"Request: {self.name} (from {self.requested_from.username})"
+
+    def is_overdue(self):
+        """Check if request is past due date"""
+        from django.utils import timezone
+        if self.due_date and self.status == "pending":
+            return timezone.now().date() > self.due_date
+        return False
+
+    def mark_received(self, file):
+        """Mark request as received with uploaded file"""
+        from django.utils import timezone
+        self.status = "received"
+        self.uploaded_file = file
+        self.completed_at = timezone.now()
+        self.save()
 
 
 # ========================================================================================

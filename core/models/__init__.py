@@ -7608,14 +7608,64 @@ class PaintLeftover(models.Model):
 # ========================================================================================
 # FILE ORGANIZATION SYSTEM
 # ========================================================================================
+# DOCUMENT MANAGEMENT SYSTEM (Odoo-style)
+# ========================================================================================
+
+
+class DocumentTag(models.Model):
+    """Tags for categorizing documents - organized by category (Odoo-style)"""
+
+    if TYPE_CHECKING:
+        id: int
+
+    TAG_CATEGORIES = [
+        ("status", "Estado"),
+        ("type", "Tipo"),
+        ("priority", "Prioridad"),
+        ("department", "Departamento"),
+        ("custom", "Personalizado"),
+    ]
+
+    COLOR_CHOICES = [
+        ("red", "#EF4444"),
+        ("orange", "#F97316"),
+        ("yellow", "#EAB308"),
+        ("green", "#22C55E"),
+        ("cyan", "#06B6D4"),
+        ("blue", "#3B82F6"),
+        ("indigo", "#6366F1"),
+        ("purple", "#A855F7"),
+        ("pink", "#EC4899"),
+        ("slate", "#64748B"),
+    ]
+
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="document_tags"
+    )
+    name = models.CharField(max_length=50)
+    category = models.CharField(max_length=20, choices=TAG_CATEGORIES, default="custom")
+    color = models.CharField(max_length=20, choices=COLOR_CHOICES, default="blue")
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["category", "order", "name"]
+        unique_together = ["project", "name"]
+
+    def __str__(self):
+        return f"{self.name}"
+
+    def get_color_hex(self):
+        return dict(self.COLOR_CHOICES).get(self.color, "#3B82F6")
 
 
 class FileCategory(models.Model):
-    """Categories for organizing project files"""
+    """Workspace/Folder for organizing project files - supports hierarchy (Odoo-style)"""
 
     if TYPE_CHECKING:
         id: int
         files: "RelatedManager[ProjectFile]"
+        children: "RelatedManager[FileCategory]"
 
     CATEGORY_TYPES = [
         ("daily_logs", "Daily Logs Photos"),
@@ -7632,28 +7682,25 @@ class FileCategory(models.Model):
     ]
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="file_categories")
+    parent = models.ForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
     name = models.CharField(max_length=100)
     category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES, default="other")
     description = models.TextField(blank=True)
-    icon = models.CharField(
-        max_length=50,
-        default="bi-folder",
-        help_text="Bootstrap icon class (e.g., bi-folder, bi-file-earmark)",
-    )
-    color = models.CharField(
-        max_length=20,
-        default="primary",
-        help_text="Bootstrap color (primary, success, danger, etc.)",
-    )
+    icon = models.CharField(max_length=50, default="bi-folder")
+    color = models.CharField(max_length=20, default="primary")
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
+    default_tags = models.ManyToManyField(DocumentTag, blank=True, related_name="workspaces")
+    is_shared = models.BooleanField(default=False)
+    share_token = models.CharField(max_length=64, blank=True)
 
     class Meta:
         ordering = ["order", "name"]
-        unique_together = ["project", "name"]
         verbose_name = "File Category"
         verbose_name_plural = "File Categories"
 
@@ -7661,16 +7708,22 @@ class FileCategory(models.Model):
         return f"{self.project.name} - {self.name}"
 
     def file_count(self):
-        """Count files in this category"""
         return self.files.count()
 
     def total_size(self):
-        """Calculate total size of files in bytes"""
         return sum(f.file.size for f in self.files.all() if f.file)
+
+    def get_breadcrumbs(self):
+        breadcrumbs = []
+        current = self
+        while current:
+            breadcrumbs.insert(0, current)
+            current = current.parent
+        return breadcrumbs
 
 
 class ProjectFile(models.Model):
-    """Files organized by categories within projects"""
+    """Files organized by categories within projects - Enhanced with Odoo-style features"""
 
     if TYPE_CHECKING:
         id: int
@@ -7681,6 +7734,7 @@ class ProjectFile(models.Model):
         ("spreadsheet", "Spreadsheet"),
         ("word", "Word Document"),
         ("cad", "CAD Drawing"),
+        ("video", "Video"),
         ("other", "Other"),
     ]
 
@@ -7700,12 +7754,20 @@ class ProjectFile(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Optional metadata
+    # Legacy tags (kept for backward compatibility)
     tags = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags")
+    # New structured tags (Odoo-style)
+    document_tags = models.ManyToManyField(DocumentTag, blank=True, related_name="files")
+    
     is_public = models.BooleanField(default=False, help_text="Visible to clients")
-    version = models.CharField(
-        max_length=20, blank=True, help_text="Document version (e.g., v1.0, Rev A)"
-    )
+    version = models.CharField(max_length=20, blank=True)
+    
+    # Share features
+    is_shared = models.BooleanField(default=False)
+    share_token = models.CharField(max_length=64, blank=True)
+    share_expires = models.DateTimeField(null=True, blank=True)
+    download_count = models.PositiveIntegerField(default=0)
+    is_favorited = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-uploaded_at"]
@@ -7716,11 +7778,8 @@ class ProjectFile(models.Model):
         return f"{self.name} ({self.category.name})"
 
     def save(self, *args, **kwargs):
-        # Auto-set file size and detect file type
         if self.file:
             self.file_size = self.file.size
-
-            # Auto-detect file type from extension
             ext = self.file.name.split(".")[-1].lower()
             type_map = {
                 "pdf": "pdf",
@@ -7728,6 +7787,7 @@ class ProjectFile(models.Model):
                 "jpeg": "image",
                 "png": "image",
                 "gif": "image",
+                "webp": "image",
                 "xls": "spreadsheet",
                 "xlsx": "spreadsheet",
                 "csv": "spreadsheet",
@@ -7735,9 +7795,10 @@ class ProjectFile(models.Model):
                 "docx": "word",
                 "dwg": "cad",
                 "dxf": "cad",
+                "mp4": "video",
+                "mov": "video",
             }
             self.file_type = type_map.get(ext, "other")
-
         super().save(*args, **kwargs)
 
     def get_icon(self):
