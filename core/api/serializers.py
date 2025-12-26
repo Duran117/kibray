@@ -1398,6 +1398,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 class BudgetLineSerializer(serializers.ModelSerializer):
     """Budget line serializer with cost code details"""
 
+    cost_code_code = serializers.CharField(source="cost_code.code", read_only=True)
     cost_code_name = serializers.CharField(source="cost_code.name", read_only=True)
     project_name = serializers.CharField(source="project.name", read_only=True)
     total_amount = serializers.SerializerMethodField()
@@ -1409,6 +1410,7 @@ class BudgetLineSerializer(serializers.ModelSerializer):
             "project",
             "project_name",
             "cost_code",
+            "cost_code_code",
             "cost_code_name",
             "description",
             "qty",

@@ -133,34 +133,59 @@
             if (projectSelect) {
                 projectSelect.addEventListener('change', function() {
                     const projectId = this.value;
-                    if (!projectId) return;
+                    if (!projectId) {
+                        // Limpiar selects si no hay proyecto
+                        budgetLineSelect.innerHTML = '<option value="">-- {% trans "First select project" %} --</option>';
+                        changeOrderSelect.innerHTML = '<option value="">-- {% trans "First select project" %} --</option>';
+                        return;
+                    }
                     
-                    // Fetch budget lines
-                    fetch(`/api/projects/${projectId}/budget-lines/`)
+                    // Fetch budget lines - API correcta: /api/v1/budget-lines/?project=X
+                    fetch(`/api/v1/budget-lines/?project=${projectId}`)
                         .then(r => r.json())
                         .then(data => {
                             budgetLineSelect.innerHTML = '<option value="">-- {% trans "Select phase" %} --</option>';
-                            (data.results || data || []).forEach(bl => {
+                            const items = data.results || data || [];
+                            if (items.length === 0) {
+                                budgetLineSelect.innerHTML = '<option value="">{% trans "No budget lines for this project" %}</option>';
+                            }
+                            items.forEach(bl => {
                                 const opt = document.createElement('option');
                                 opt.value = bl.id;
-                                opt.textContent = `${bl.cost_code_display || bl.cost_code} - ${bl.description || ''}`;
+                                const code = bl.cost_code_code || bl.cost_code_display || bl.cost_code || '';
+                                const name = bl.cost_code_name || bl.description || '';
+                                opt.textContent = code ? `${code} - ${name}` : `Phase ${bl.id}`;
                                 budgetLineSelect.appendChild(opt);
                             });
-                        }).catch(() => {});
+                        }).catch(err => {
+                            console.error('Error loading budget lines:', err);
+                            budgetLineSelect.innerHTML = '<option value="">{% trans "Error loading phases" %}</option>';
+                        });
                     
-                    // Fetch change orders
-                    fetch(`/api/change-orders/?project=${projectId}&status=pending,approved,sent`)
+                    // Fetch change orders - API correcta: /api/v1/changeorders/?project=X
+                    fetch(`/api/v1/changeorders/?project=${projectId}`)
                         .then(r => r.json())
                         .then(data => {
                             changeOrderSelect.innerHTML = '<option value="">-- {% trans "None (base work)" %} --</option>';
-                            (data.results || data || []).forEach(co => {
+                            const items = data.results || data || [];
+                            items.forEach(co => {
                                 const opt = document.createElement('option');
                                 opt.value = co.id;
-                                opt.textContent = `${co.code || 'CO-'+co.id}: ${co.description || co.title || ''}`;
+                                const coCode = co.code || `CO-${co.id}`;
+                                const coDesc = co.description || co.title || '';
+                                opt.textContent = `${coCode}: ${coDesc}`.substring(0, 60);
                                 changeOrderSelect.appendChild(opt);
                             });
-                        }).catch(() => {});
+                        }).catch(err => {
+                            console.error('Error loading change orders:', err);
+                            changeOrderSelect.innerHTML = '<option value="">{% trans "Error loading COs" %}</option>';
+                        });
                 });
+                
+                // Trigger inicial si ya hay proyecto seleccionado
+                if (projectSelect.value) {
+                    projectSelect.dispatchEvent(new Event('change'));
+                }
             }
         });
         </script>
