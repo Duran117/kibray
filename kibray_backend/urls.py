@@ -15,6 +15,7 @@ from core import (
     views_assignments,
     views_calendar_wizard,
     views_sop,
+    views_timeentry_assignment,
     views_unassigned_hours,
     views_user_wizard,
     views_wizards,
@@ -114,6 +115,17 @@ urlpatterns = [
         "hours/unassigned/",
         views_unassigned_hours.unassigned_hours_hub,
         name="unassigned_hours_hub",
+    ),
+    # TimeEntry Budget Line Assignment Hub
+    path(
+        "timeentry/assign/",
+        views_timeentry_assignment.timeentry_assignment_hub,
+        name="timeentry_assignment",
+    ),
+    path(
+        "timeentry/options/",
+        views_timeentry_assignment.timeentry_options_api,
+        name="timeentry_options",
     ),
     path("dashboard/employee/", views.dashboard_employee, name="dashboard_employee"),
     path("dashboard/pm/", views.dashboard_pm, name="dashboard_pm"),

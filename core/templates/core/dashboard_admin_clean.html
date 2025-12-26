@@ -47,32 +47,123 @@
         {% else %}
         <i class="bi bi-clock text-indigo-500 text-5xl mb-3"></i>
         <h4 class="text-xl font-bold text-slate-900 mb-4">{% trans "Clock In" %}</h4>
-        <form method="post" class="max-w-3xl mx-auto">
+        <form method="post" class="max-w-4xl mx-auto" id="clockInForm">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Project" %}:</label>
-                    {{ form.project }}
+            
+            <!-- Fila 1: Proyecto -->
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Project" %} <span class="text-red-500">*</span></label>
+                {{ form.project }}
+            </div>
+            
+            <!-- Fila 2: Tipo de trabajo -->
+            <div class="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <label class="block text-sm font-semibold text-slate-700 mb-3">{% trans "Work Type" %}:</label>
+                <div class="flex gap-4 mb-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="work_type" value="base" checked class="w-4 h-4 text-indigo-600" id="workTypeBase">
+                        <span class="text-sm font-medium text-slate-700">📋 {% trans "Contract Base" %}</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="work_type" value="co" class="w-4 h-4 text-orange-600" id="workTypeCO">
+                        <span class="text-sm font-medium text-slate-700">📝 {% trans "Change Order" %} ({% trans "Extra" %})</span>
+                    </label>
                 </div>
-                <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">CO (T&M / Fijo):</label>
+                
+                <!-- Si es contrato base: Budget Line -->
+                <div id="budgetLineSection" class="mt-3">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Phase/Budget Item" %}:</label>
+                    {{ form.budget_line }}
+                    <p class="text-xs text-slate-500 mt-1">{% trans "Select the phase to measure vs estimate" %}</p>
+                </div>
+                
+                <!-- Si es CO -->
+                <div id="changeOrderSection" class="mt-3 hidden">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Change Order" %}:</label>
                     {{ form.change_order }}
+                    <p class="text-xs text-orange-600 mt-1">⚠️ {% trans "CO hours are billed separately as extras" %}</p>
                 </div>
+            </div>
+            
+            <!-- Fila 3: Cost Code y Notas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <div class="text-left">
                     <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Cost Code" %}:</label>
                     {{ form.cost_code }}
                 </div>
+                <div class="text-left">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Notes" %} ({% trans "optional" %}):</label>
+                    {{ form.notes }}
+                </div>
             </div>
-            <div class="mb-4 text-left">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Notes" %} ({% trans "optional" %}):</label>
-                {{ form.notes }}
-            </div>
-            <button type="submit" class="px-8 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
+            
+            <button type="submit" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition text-lg">
                 <i class="bi bi-box-arrow-in-right mr-2"></i>
                 {% trans "Clock In" %}
             </button>
         </form>
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const workTypeBase = document.getElementById('workTypeBase');
+            const workTypeCO = document.getElementById('workTypeCO');
+            const budgetLineSection = document.getElementById('budgetLineSection');
+            const changeOrderSection = document.getElementById('changeOrderSection');
+            const budgetLineSelect = document.querySelector('[name="budget_line"]');
+            const changeOrderSelect = document.querySelector('[name="change_order"]');
+            
+            function toggleSections() {
+                if (workTypeCO.checked) {
+                    budgetLineSection.classList.add('hidden');
+                    changeOrderSection.classList.remove('hidden');
+                    if (budgetLineSelect) budgetLineSelect.value = '';
+                } else {
+                    budgetLineSection.classList.remove('hidden');
+                    changeOrderSection.classList.add('hidden');
+                    if (changeOrderSelect) changeOrderSelect.value = '';
+                }
+            }
+            
+            workTypeBase.addEventListener('change', toggleSections);
+            workTypeCO.addEventListener('change', toggleSections);
+            
+            // Cargar Budget Lines y COs cuando cambie el proyecto
+            const projectSelect = document.querySelector('[name="project"]');
+            if (projectSelect) {
+                projectSelect.addEventListener('change', function() {
+                    const projectId = this.value;
+                    if (!projectId) return;
+                    
+                    // Fetch budget lines
+                    fetch(`/api/projects/${projectId}/budget-lines/`)
+                        .then(r => r.json())
+                        .then(data => {
+                            budgetLineSelect.innerHTML = '<option value="">-- {% trans "Select phase" %} --</option>';
+                            (data.results || data || []).forEach(bl => {
+                                const opt = document.createElement('option');
+                                opt.value = bl.id;
+                                opt.textContent = `${bl.cost_code_display || bl.cost_code} - ${bl.description || ''}`;
+                                budgetLineSelect.appendChild(opt);
+                            });
+                        }).catch(() => {});
+                    
+                    // Fetch change orders
+                    fetch(`/api/change-orders/?project=${projectId}&status=pending,approved,sent`)
+                        .then(r => r.json())
+                        .then(data => {
+                            changeOrderSelect.innerHTML = '<option value="">-- {% trans "None (base work)" %} --</option>';
+                            (data.results || data || []).forEach(co => {
+                                const opt = document.createElement('option');
+                                opt.value = co.id;
+                                opt.textContent = `${co.code || 'CO-'+co.id}: ${co.description || co.title || ''}`;
+                                changeOrderSelect.appendChild(opt);
+                            });
+                        }).catch(() => {});
+                });
+            }
+        });
+        </script>
         {% endif %}
     </div>
 </div>

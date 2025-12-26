@@ -681,7 +681,13 @@ class ClockInForm(forms.Form):
             status__in=["billed", "paid"]
         ),
         required=False,
-        label="Change Order (opcional)",
+        label="Change Order (T&M / Extra)",
+    )
+    budget_line = forms.ModelChoiceField(
+        queryset=BudgetLine.objects.none(),
+        required=False,
+        label="Fase/Item del Presupuesto",
+        help_text="Solo si NO es Change Order - para medir vs cotización",
     )
     cost_code = forms.ModelChoiceField(
         queryset=CostCode.objects.filter(active=True), required=False, label="Cost Code"
@@ -710,7 +716,7 @@ class ClockInForm(forms.Form):
             self.fields["project"].queryset = Project.objects.all()
             self.fields["project"].empty_label = "-- Selecciona proyecto --"
 
-        # Filtrar COs por proyecto enviado para evitar combinaciones inválidas
+        # Filtrar COs y BudgetLines por proyecto
         project_id = None
         if self.is_bound:
             project_id = self.data.get("project") or self.data.get("project_id")
@@ -718,13 +724,22 @@ class ClockInForm(forms.Form):
             project_id = getattr(self.initial.get("project"), "id", self.initial.get("project"))
 
         if project_id:
+            # Change Orders activos del proyecto
             self.fields["change_order"].queryset = ChangeOrder.objects.filter(
                 project_id=project_id, status__in=["pending", "approved", "sent"]
             ).order_by("-date_created")
-            self.fields["change_order"].empty_label = "-- Ninguno --"
+            self.fields["change_order"].empty_label = "-- Ninguno (trabajo base) --"
+            
+            # Budget Lines del proyecto (para trabajo del contrato base)
+            self.fields["budget_line"].queryset = BudgetLine.objects.filter(
+                project_id=project_id
+            ).select_related("cost_code").order_by("cost_code__code")
+            self.fields["budget_line"].empty_label = "-- Selecciona fase --"
         else:
             self.fields["change_order"].queryset = ChangeOrder.objects.none()
             self.fields["change_order"].empty_label = "-- Primero selecciona proyecto --"
+            self.fields["budget_line"].queryset = BudgetLine.objects.none()
+            self.fields["budget_line"].empty_label = "-- Primero selecciona proyecto --"
 
     def clean_project(self):
         """Validación explícita del campo project"""
@@ -737,13 +752,20 @@ class ClockInForm(forms.Form):
         cleaned = super().clean()
         project = cleaned.get("project")
         co = cleaned.get("change_order")
+        budget_line = cleaned.get("budget_line")
 
         if not project:
             raise forms.ValidationError("Debes seleccionar un proyecto antes de marcar entrada")
 
         if co and co.project_id != project.id:
             raise forms.ValidationError("El CO seleccionado no pertenece al proyecto elegido.")
-            # Si no se elige CO, se considera horas base del contrato (permitido).
+
+        if budget_line and budget_line.project_id != project.id:
+            raise forms.ValidationError("La fase seleccionada no pertenece al proyecto elegido.")
+
+        # Si hay CO, limpiar budget_line (COs son costos extras, no del contrato base)
+        if co:
+            cleaned["budget_line"] = None
 
         return cleaned
 

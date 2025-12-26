@@ -419,6 +419,7 @@ def dashboard_admin(request):
                     employee=employee,
                     project=form.cleaned_data["project"],
                     change_order=form.cleaned_data.get("change_order"),
+                    budget_line=form.cleaned_data.get("budget_line"),  # Nueva línea
                     date=today,
                     start_time=now.time(),
                     end_time=None,

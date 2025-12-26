@@ -1,0 +1,511 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Time Entry Assignment Hub" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+.assignment-hub {
+    padding: 24px;
+    background: #f8fafc;
+    min-height: calc(100vh - 80px);
+}
+
+.hub-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+}
+.hub-header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+}
+.hub-header p {
+    color: rgba(255,255,255,0.85);
+    margin: 8px 0 0;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    text-align: center;
+}
+.stat-card.warning { border-left: 4px solid #f59e0b; }
+.stat-card.danger { border-left: 4px solid #ef4444; }
+.stat-card.success { border-left: 4px solid #10b981; }
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+.stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.filter-bar {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+.filter-bar select {
+    padding: 10px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 180px;
+}
+.filter-bar select:focus {
+    border-color: #6366f1;
+    outline: none;
+}
+.filter-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+.filter-btn.active {
+    background: #6366f1;
+    color: white;
+}
+.filter-btn:not(.active) {
+    background: #f1f5f9;
+    color: #475569;
+}
+.filter-btn:hover:not(.active) {
+    background: #e2e8f0;
+}
+
+.entries-table {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+.entries-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.entries-table th {
+    background: #f8fafc;
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
+}
+.entries-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.entries-table tr:hover {
+    background: #f8fafc;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-danger { background: #fee2e2; color: #991b1b; }
+.badge-success { background: #d1fae5; color: #065f46; }
+.badge-info { background: #dbeafe; color: #1e40af; }
+
+.inline-select {
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+    max-width: 200px;
+}
+
+.btn-assign {
+    padding: 6px 14px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+}
+.btn-assign:hover { background: #059669; }
+
+.bulk-actions {
+    background: #eff6ff;
+    border: 2px solid #3b82f6;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: none;
+}
+.bulk-actions.show { display: block; }
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+}
+.empty-state i { font-size: 4rem; margin-bottom: 16px; }
+.empty-state h3 { color: #64748b; margin-bottom: 8px; }
+
+@media (max-width: 768px) {
+    .entries-table { overflow-x: auto; }
+    .entries-table table { min-width: 800px; }
+}
+</style>
+{% endblock %}
+
+{% block page_header %}{% endblock %}
+
+{% block content %}
+<div class="assignment-hub">
+    <div class="hub-header">
+        <h1>🕐 {% trans "Time Entry Assignment Hub" %}</h1>
+        <p>{% trans "Assign unassigned hours to projects, budget lines, or change orders" %}</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card {% if no_project_count > 0 %}danger{% else %}success{% endif %}">
+            <div class="stat-value">{{ no_project_count }}</div>
+            <div class="stat-label">{% trans "Without Project" %}</div>
+        </div>
+        <div class="stat-card {% if no_budget_line_count > 0 %}warning{% else %}success{% endif %}">
+            <div class="stat-value">{{ no_budget_line_count }}</div>
+            <div class="stat-label">{% trans "Without Phase/CO" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_entries }}</div>
+            <div class="stat-label">{% trans "Filtered Entries" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_hours|floatformat:1 }}</div>
+            <div class="stat-label">{% trans "Total Hours" %}</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+        <span class="text-sm font-semibold text-slate-600 mr-2">{% trans "Filter" %}:</span>
+        <a href="?filter=all" class="filter-btn {% if filter_type == 'all' %}active{% endif %}">
+            {% trans "All" %}
+        </a>
+        <a href="?filter=unassigned" class="filter-btn {% if filter_type == 'unassigned' %}active{% endif %}">
+            ⚠️ {% trans "Unassigned" %}
+        </a>
+        <a href="?filter=no_project" class="filter-btn {% if filter_type == 'no_project' %}active{% endif %}">
+            🔴 {% trans "No Project" %}
+        </a>
+        <a href="?filter=no_budget_line" class="filter-btn {% if filter_type == 'no_budget_line' %}active{% endif %}">
+            🟡 {% trans "No Phase" %}
+        </a>
+        
+        <div class="ml-auto flex gap-2">
+            <select name="project_filter" onchange="applyFilters()" id="projectFilter">
+                <option value="">{% trans "All Projects" %}</option>
+                {% for p in projects %}
+                <option value="{{ p.id }}" {% if project_filter == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="employee_filter" onchange="applyFilters()" id="employeeFilter">
+                <option value="">{% trans "All Employees" %}</option>
+                {% for e in employees %}
+                <option value="{{ e.id }}" {% if employee_filter == e.id|stringformat:"s" %}selected{% endif %}>{{ e.first_name }} {{ e.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <form method="post" id="bulkForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="assign_bulk">
+        
+        <div class="bulk-actions" id="bulkActions">
+            <div class="flex items-center gap-4 flex-wrap">
+                <span class="font-semibold text-blue-800">
+                    <span id="selectedCount">0</span> {% trans "selected" %}
+                </span>
+                <select name="bulk_project_id" class="inline-select" id="bulkProject">
+                    <option value="">{% trans "Select Project" %}</option>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="bulk_budget_line_id" class="inline-select" id="bulkBudgetLine">
+                    <option value="">{% trans "Select Phase" %}</option>
+                </select>
+                <button type="submit" class="btn-assign">
+                    {% trans "Assign Selected" %}
+                </button>
+            </div>
+        </div>
+
+        <!-- Entries Table -->
+        <div class="entries-table">
+            {% if entries %}
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Employee" %}</th>
+                        <th>{% trans "Hours" %}</th>
+                        <th>{% trans "Project" %}</th>
+                        <th>{% trans "Phase/CO" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr data-entry-id="{{ entry.id }}">
+                        <td>
+                            <input type="checkbox" name="entry_ids" value="{{ entry.id }}" class="entry-checkbox" onchange="updateBulkActions()">
+                        </td>
+                        <td>
+                            <strong>{{ entry.date|date:"M d" }}</strong>
+                            <br><small class="text-slate-500">{{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}</small>
+                        </td>
+                        <td>
+                            {{ entry.employee.first_name }} {{ entry.employee.last_name }}
+                        </td>
+                        <td>
+                            <strong>{{ entry.hours_worked|floatformat:2 }}</strong> hrs
+                        </td>
+                        <td>
+                            {% if entry.project %}
+                                <span class="badge badge-success">{{ entry.project.name|truncatechars:20 }}</span>
+                            {% else %}
+                                <span class="badge badge-danger">{% trans "None" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if entry.change_order %}
+                                <span class="badge badge-info">CO-{{ entry.change_order.id }}</span>
+                            {% elif entry.budget_line %}
+                                <span class="badge badge-success">{{ entry.budget_line.cost_code.code }}</span>
+                            {% else %}
+                                <span class="badge badge-warning">{% trans "Unassigned" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not entry.project %}
+                                <span class="badge badge-danger">🔴 {% trans "Missing Project" %}</span>
+                            {% elif not entry.budget_line and not entry.change_order %}
+                                <span class="badge badge-warning">🟡 {% trans "Missing Phase" %}</span>
+                            {% else %}
+                                <span class="badge badge-success">✓ {% trans "Complete" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" class="btn-assign" onclick="openAssignModal({{ entry.id }}, {{ entry.project_id|default:'null' }})">
+                                {% trans "Edit" %}
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-check-circle"></i>
+                <h3>{% trans "All entries are assigned!" %}</h3>
+                <p>{% trans "No time entries match the current filter." %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Modal para asignar individual -->
+<div id="assignModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6">
+        <h3 class="text-xl font-bold mb-4">{% trans "Assign Time Entry" %}</h3>
+        <form method="post" id="singleAssignForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign_single">
+            <input type="hidden" name="entry_id" id="modalEntryId">
+            
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Project" %}:</label>
+                <select name="project_id" id="modalProject" class="w-full p-3 border-2 border-slate-200 rounded-lg" onchange="loadProjectOptions(this.value)">
+                    <option value="">{% trans "Select Project" %}</option>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Work Type" %}:</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="modal_work_type" value="base" checked onchange="toggleModalSections()">
+                        <span>📋 {% trans "Contract Base" %}</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="modal_work_type" value="co" onchange="toggleModalSections()">
+                        <span>📝 {% trans "Change Order" %}</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mb-4" id="modalBudgetLineSection">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Phase/Budget Line" %}:</label>
+                <select name="budget_line_id" id="modalBudgetLine" class="w-full p-3 border-2 border-slate-200 rounded-lg">
+                    <option value="">{% trans "Select Phase" %}</option>
+                </select>
+            </div>
+            
+            <div class="mb-4 hidden" id="modalCOSection">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Change Order" %}:</label>
+                <select name="change_order_id" id="modalChangeOrder" class="w-full p-3 border-2 border-slate-200 rounded-lg">
+                    <option value="">{% trans "Select CO" %}</option>
+                </select>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button type="button" onclick="closeModal()" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold">
+                    {% trans "Cancel" %}
+                </button>
+                <button type="submit" class="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                    {% trans "Save" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function applyFilters() {
+    const project = document.getElementById('projectFilter').value;
+    const employee = document.getElementById('employeeFilter').value;
+    const currentUrl = new URL(window.location.href);
+    
+    if (project) currentUrl.searchParams.set('project', project);
+    else currentUrl.searchParams.delete('project');
+    
+    if (employee) currentUrl.searchParams.set('employee', employee);
+    else currentUrl.searchParams.delete('employee');
+    
+    window.location.href = currentUrl.toString();
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    document.querySelectorAll('.entry-checkbox').forEach(cb => {
+        cb.checked = selectAll.checked;
+    });
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const checked = document.querySelectorAll('.entry-checkbox:checked').length;
+    document.getElementById('selectedCount').textContent = checked;
+    document.getElementById('bulkActions').classList.toggle('show', checked > 0);
+}
+
+function openAssignModal(entryId, projectId) {
+    document.getElementById('modalEntryId').value = entryId;
+    if (projectId) {
+        document.getElementById('modalProject').value = projectId;
+        loadProjectOptions(projectId);
+    }
+    document.getElementById('assignModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('assignModal').classList.add('hidden');
+}
+
+function toggleModalSections() {
+    const workType = document.querySelector('input[name="modal_work_type"]:checked').value;
+    document.getElementById('modalBudgetLineSection').classList.toggle('hidden', workType === 'co');
+    document.getElementById('modalCOSection').classList.toggle('hidden', workType !== 'co');
+    
+    // Clear opposite field
+    if (workType === 'co') {
+        document.getElementById('modalBudgetLine').value = '';
+    } else {
+        document.getElementById('modalChangeOrder').value = '';
+    }
+}
+
+function loadProjectOptions(projectId) {
+    if (!projectId) return;
+    
+    fetch(`/timeentry/options/?project_id=${projectId}`)
+        .then(r => r.json())
+        .then(data => {
+            // Budget Lines
+            const blSelect = document.getElementById('modalBudgetLine');
+            blSelect.innerHTML = '<option value="">{% trans "Select Phase" %}</option>';
+            data.budget_lines.forEach(bl => {
+                const opt = document.createElement('option');
+                opt.value = bl.id;
+                opt.textContent = bl.label;
+                blSelect.appendChild(opt);
+            });
+            
+            // Change Orders
+            const coSelect = document.getElementById('modalChangeOrder');
+            coSelect.innerHTML = '<option value="">{% trans "Select CO" %}</option>';
+            data.change_orders.forEach(co => {
+                const opt = document.createElement('option');
+                opt.value = co.id;
+                opt.textContent = co.label;
+                coSelect.appendChild(opt);
+            });
+            
+            // Bulk Budget Line
+            const bulkBL = document.getElementById('bulkBudgetLine');
+            bulkBL.innerHTML = '<option value="">{% trans "Select Phase" %}</option>';
+            data.budget_lines.forEach(bl => {
+                const opt = document.createElement('option');
+                opt.value = bl.id;
+                opt.textContent = bl.label;
+                bulkBL.appendChild(opt);
+            });
+        });
+}
+
+// Load options when bulk project changes
+document.getElementById('bulkProject').addEventListener('change', function() {
+    loadProjectOptions(this.value);
+});
+
+// Close modal on click outside
+document.getElementById('assignModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

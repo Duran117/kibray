@@ -556,6 +556,15 @@ class TimeEntry(models.Model):
     cost_code = models.ForeignKey(
         "CostCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="time_entries"
     )
+    # Budget Line: para medir costos vs cotización por fase del proyecto
+    budget_line = models.ForeignKey(
+        "BudgetLine",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="time_entries",
+        help_text="Línea de presupuesto/fase del proyecto (solo si NO es Change Order)",
+    )
     # Financial snapshots (migration 0095): capture rates at time of entry for immutability
     cost_rate_snapshot = models.DecimalField(
         max_digits=6,
