@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import json
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import ExpressionWrapper, F, FloatField, Q, Sum
 from django.db.models.functions import Coalesce, TruncMonth
@@ -37,7 +38,13 @@ def financial_dashboard(request):
     """
     Executive financial dashboard with KPIs, charts, and alerts.
     Shows: Revenue, Profit Margin, Cash Flow, Outstanding AR, Alerts
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
+    
     today = timezone.now().date()
     current_year = today.year
 
@@ -281,7 +288,13 @@ def productivity_dashboard(request):
     """
     Employee productivity metrics dashboard.
     Shows: Billable hours %, top performers, efficiency trends
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
+    
     # Filter by date range (default: this month)
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
@@ -517,7 +530,13 @@ def employee_performance_review(request, employee_id=None):
     """
     View employee performance metrics for bonus evaluation.
     Shows annual summary and allows setting bonus amounts.
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
+    
     year = int(request.GET.get("year", timezone.now().year))
 
     if employee_id:

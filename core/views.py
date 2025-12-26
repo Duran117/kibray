@@ -5287,18 +5287,33 @@ def dashboard_employee(request):
         .order_by("start_datetime")
     )
 
-    # Horas de la semana (se calcula antes de usar en el briefing)
+    # Horas de la semana ACTUAL (lunes a hoy)
     week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
-    week_entries = TimeEntry.objects.filter(
+    current_week_entries = TimeEntry.objects.filter(
         employee=employee, date__gte=week_start, date__lte=today
     )
-    week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
+    current_week_hours = sum(entry.hours_worked or 0 for entry in current_week_entries)
     
-    # Cálculo de pago estimado semanal
+    # Horas de la semana PASADA (período de pago anterior - lunes a domingo)
+    last_week_start = week_start - timedelta(days=7)
+    last_week_end = week_start - timedelta(days=1)
+    last_week_entries = TimeEntry.objects.filter(
+        employee=employee, date__gte=last_week_start, date__lte=last_week_end
+    )
+    last_week_hours = sum(entry.hours_worked or 0 for entry in last_week_entries)
+    
+    # Para compatibilidad, week_hours = current_week_hours
+    week_hours = current_week_hours
+    
+    # Cálculo de pago estimado semanal (semana actual)
     estimated_weekly_pay = None
-    if employee.hourly_rate and week_hours:
-        estimated_weekly_pay = round(float(week_hours) * float(employee.hourly_rate), 2)
+    estimated_last_week_pay = None
+    if employee.hourly_rate:
+        if current_week_hours:
+            estimated_weekly_pay = round(float(current_week_hours) * float(employee.hourly_rate), 2)
+        if last_week_hours:
+            estimated_last_week_pay = round(float(last_week_hours) * float(employee.hourly_rate), 2)
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -5480,9 +5495,14 @@ def dashboard_employee(request):
         "now": now,
         "recent": recent,
         "week_hours": week_hours,
+        "current_week_hours": current_week_hours,
+        "last_week_hours": last_week_hours,
         "week_start": week_start,
         "week_end": week_end,
+        "last_week_start": last_week_start,
+        "last_week_end": last_week_end,
         "estimated_weekly_pay": estimated_weekly_pay,
+        "estimated_last_week_pay": estimated_last_week_pay,
         "my_activities": my_activities,
         "my_schedule": my_schedule,
         "my_touchups": my_touchups,
@@ -10017,7 +10037,13 @@ def analytics_dashboard(request):
     Analytics Dashboard view - serves React-based analytics dashboard.
     Provides comprehensive project metrics, touchup analytics, color approvals,
     and PM performance data visualization.
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
+    
     # Determine user role for frontend permission checks
     user_role = "user"
     if request.user.is_superuser:

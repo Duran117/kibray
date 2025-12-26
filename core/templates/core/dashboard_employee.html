@@ -700,8 +700,8 @@
                 <i class="bi bi-clock-history"></i>
             </div>
             <div class="weekly-hours-text">
-                <h2>{{ week_hours|floatformat:1 }} {% trans "hrs" %}</h2>
-                <p>{% trans "This Week" %} ({{ week_start|date:"M d" }} - {{ week_end|date:"M d" }})</p>
+                <h2>{{ current_week_hours|floatformat:1 }} {% trans "hrs" %}</h2>
+                <p>{% trans "Current Week" %} ({{ week_start|date:"M d" }} - {{ week_end|date:"M d" }})</p>
             </div>
         </div>
         {% if estimated_weekly_pay %}
@@ -709,6 +709,26 @@
             <div class="label">{% trans "Estimated Pay" %}</div>
             <div class="amount">${{ estimated_weekly_pay|floatformat:2 }}</div>
             <div class="note">{% trans "Before taxes & deductions" %}</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Last Week Summary Card -->
+    <div class="weekly-hours-card" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border: 1px solid #cbd5e1;">
+        <div class="weekly-hours-info">
+            <div class="weekly-hours-icon" style="background: #e2e8f0; color: #64748b;">
+                <i class="bi bi-calendar-week"></i>
+            </div>
+            <div class="weekly-hours-text">
+                <h2 style="color: #475569;">{{ last_week_hours|floatformat:1 }} {% trans "hrs" %}</h2>
+                <p style="color: #64748b;">{% trans "Last Week" %} ({{ last_week_start|date:"M d" }} - {{ last_week_end|date:"M d" }})</p>
+            </div>
+        </div>
+        {% if estimated_last_week_pay %}
+        <div class="weekly-pay-estimate" style="background: rgba(71, 85, 105, 0.1);">
+            <div class="label" style="color: #64748b;">{% trans "Last Week Pay" %}</div>
+            <div class="amount" style="color: #475569;">${{ estimated_last_week_pay|floatformat:2 }}</div>
+            <div class="note" style="color: #94a3b8;">{% trans "Pending payment" %}</div>
         </div>
         {% endif %}
     </div>

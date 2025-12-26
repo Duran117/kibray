@@ -1269,10 +1269,12 @@ def payroll_weekly_review(request):
     Vista para revisar y aprobar la nómina semanal.
     Muestra todos los empleados con sus horas trabajadas en la semana,
     permite editar horas de entrada/salida por día, y registrar pagos.
+    
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    profile = getattr(request.user, "profile", None)
-    role = getattr(profile, "role", "employee")
-    if role not in ["admin", "superuser", "project_manager"]:
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
         return redirect("dashboard")
 
     from datetime import datetime, timedelta
@@ -1503,10 +1505,11 @@ def payroll_weekly_review(request):
 def payroll_record_payment(request, record_id):
     """
     Registrar un pago (parcial o completo) para un PayrollRecord.
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    profile = getattr(request.user, "profile", None)
-    role = getattr(profile, "role", "employee")
-    if role not in ["admin", "superuser", "project_manager"]:
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
         return redirect("dashboard")
 
     record = get_object_or_404(PayrollRecord, id=record_id)
@@ -1555,10 +1558,11 @@ def payroll_record_payment(request, record_id):
 def payroll_payment_history(request, employee_id=None):
     """
     Historial de pagos de nómina. Si se especifica employee_id, muestra solo ese empleado.
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    profile = getattr(request.user, "profile", None)
-    role = getattr(profile, "role", "employee")
-    if role not in ["admin", "superuser", "project_manager"]:
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
         return redirect("dashboard")
 
     if employee_id:
