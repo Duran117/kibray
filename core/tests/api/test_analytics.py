@@ -81,16 +81,16 @@ class AnalyticsAPITestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('kpis', response.data)
-        self.assertIn('budgetChart', response.data)
-        self.assertIn('projectProgress', response.data)
-        self.assertIn('taskDistribution', response.data)
+        self.assertIn('budget_chart', response.data)
+        self.assertIn('project_progress', response.data)
+        self.assertIn('task_distribution', response.data)
     
     def test_time_range_filter(self):
         """Test analytics with time range filter"""
         url = f"{reverse('nav-analytics-list')}?range=7d"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['timeRange'], '7d')
+        self.assertEqual(response.data['time_range'], '7d')
     
     def test_project_analytics(self):
         """Test getting project-specific analytics"""
