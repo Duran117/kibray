@@ -1,0 +1,961 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Budget Planner" %} - {{ project.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+:root {
+    --wizard-primary: #6366f1;
+    --wizard-success: #10b981;
+    --wizard-warning: #f59e0b;
+    --wizard-danger: #ef4444;
+}
+
+.budget-wizard {
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Header */
+.wizard-header {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.wizard-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+.wizard-header .project-badge {
+    background: linear-gradient(135deg, var(--wizard-primary), #8b5cf6);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Stats Bar */
+.stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    padding: 20px 24px;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+}
+.stat-item {
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+.stat-item.highlight { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+.stat-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Main Content */
+.wizard-content {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: calc(100vh - 200px);
+}
+
+@media (max-width: 1024px) {
+    .wizard-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Sidebar - Add Form */
+.wizard-sidebar {
+    background: white;
+    border-right: 1px solid #e2e8f0;
+    padding: 24px;
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+}
+.sidebar-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sidebar-title i { color: var(--wizard-primary); }
+
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--wizard-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.btn-add {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--wizard-primary), #8b5cf6);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+/* Board View */
+.budget-board {
+    padding: 24px;
+    overflow-x: auto;
+}
+
+.board-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.board-controls input {
+    padding: 10px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    min-width: 250px;
+}
+.view-toggle {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 4px;
+}
+.view-toggle button {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #64748b;
+}
+.view-toggle button.active {
+    background: white;
+    color: var(--wizard-primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Cards Grid */
+.budget-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.budget-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.budget-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    padding: 16px;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.card-code {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--wizard-primary);
+    background: rgba(99, 102, 241, 0.1);
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+.card-actions {
+    display: flex;
+    gap: 4px;
+}
+.card-actions button {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.2s;
+}
+.card-actions button:hover {
+    background: #e2e8f0;
+    color: #475569;
+}
+.card-actions button.delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.card-body {
+    padding: 16px;
+}
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+.card-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.card-amounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.amount-item {
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+.amount-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.amount-label {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.card-progress {
+    margin-top: 12px;
+}
+.progress-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+.progress-fill.good { background: var(--wizard-success); }
+.progress-fill.warning { background: var(--wizard-warning); }
+.progress-fill.danger { background: var(--wizard-danger); }
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* Table View */
+.budget-table {
+    display: none;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.budget-table.active { display: block; }
+.budget-cards.hidden { display: none; }
+
+.budget-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.budget-table th {
+    background: #f8fafc;
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
+}
+.budget-table th.number { text-align: right; }
+.budget-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.95rem;
+}
+.budget-table td.number { 
+    text-align: right;
+    font-family: 'SF Mono', monospace;
+    font-weight: 500;
+}
+.budget-table tr:hover { background: #f8fafc; }
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+}
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+.empty-state h3 {
+    color: #64748b;
+    margin-bottom: 8px;
+}
+.empty-state p {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Quick Add Row */
+.quick-add-row {
+    background: #fffbeb;
+    border: 2px dashed #fbbf24;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.quick-add-row input, .quick-add-row select {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+.quick-add-row button {
+    padding: 10px 20px;
+    background: var(--wizard-warning);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+    background: white;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+}
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+.modal-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f1f5f9;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #64748b;
+}
+.modal-body { padding: 24px; }
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+.btn-cancel {
+    padding: 12px 24px;
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-save {
+    padding: 12px 24px;
+    background: var(--wizard-primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-delete {
+    padding: 12px 24px;
+    background: var(--wizard-danger);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: auto;
+}
+</style>
+{% endblock %}
+
+{% block page_header %}{% endblock %}
+
+{% block content %}
+<div class="budget-wizard">
+    <!-- Header -->
+    <div class="wizard-header">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{% url 'project_overview' project.id %}" class="text-slate-400 hover:text-slate-600 transition">
+                    <i class="bi bi-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1>💰 {% trans "Budget Planner" %}</h1>
+                    <p class="text-sm text-slate-500 mt-1">{% trans "Manage phases and cost codes" %}</p>
+                </div>
+            </div>
+            <span class="project-badge">{{ project.name }}</span>
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item highlight">
+            <div class="stat-value">${{ total_baseline|floatformat:0|default:"0" }}</div>
+            <div class="stat-label">{% trans "Original Budget" %}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">${{ total_revised|floatformat:0|default:"0" }}</div>
+            <div class="stat-label">{% trans "Revised Budget" %}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">${{ total_spent|floatformat:0|default:"0" }}</div>
+            <div class="stat-label">{% trans "Spent to Date" %}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">{{ lines_count }}</div>
+            <div class="stat-label">{% trans "Budget Lines" %}</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="wizard-content">
+        <!-- Sidebar Form -->
+        <div class="wizard-sidebar">
+            <div class="sidebar-title">
+                <i class="bi bi-plus-circle-fill"></i>
+                {% trans "Add Budget Line" %}
+            </div>
+            
+            <form method="post" id="addBudgetForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                
+                <div class="form-group">
+                    <label>{% trans "Cost Code" %} *</label>
+                    <select name="cost_code" required id="costCodeSelect">
+                        <option value="">{% trans "Select cost code..." %}</option>
+                        {% for cc in cost_codes %}
+                        <option value="{{ cc.id }}" data-name="{{ cc.name }}">{{ cc.code }} - {{ cc.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>{% trans "Description" %}</label>
+                    <input type="text" name="description" placeholder="{% trans 'Phase description...' %}" id="descInput">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Quantity" %}</label>
+                        <input type="number" name="qty" step="0.01" value="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "Unit" %}</label>
+                        <select name="unit">
+                            <option value="LS">LS (Lump Sum)</option>
+                            <option value="HR">HR (Hours)</option>
+                            <option value="SF">SF (Sq Ft)</option>
+                            <option value="LF">LF (Linear Ft)</option>
+                            <option value="EA">EA (Each)</option>
+                            <option value="GAL">GAL (Gallons)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>{% trans "Unit Cost" %} ($)</label>
+                    <input type="number" name="unit_cost" step="0.01" min="0" placeholder="0.00">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Start Date" %}</label>
+                        <input type="date" name="planned_start">
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "End Date" %}</label>
+                        <input type="date" name="planned_finish">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="allowance" class="w-4 h-4">
+                        <span>{% trans "Mark as Allowance" %}</span>
+                    </label>
+                    <small class="text-slate-500">{% trans "Allowances are estimated amounts subject to change" %}</small>
+                </div>
+                
+                <button type="submit" class="btn-add">
+                    <i class="bi bi-plus-lg"></i>
+                    {% trans "Add to Budget" %}
+                </button>
+            </form>
+            
+            <hr class="my-6 border-slate-200">
+            
+            <!-- Quick Templates -->
+            <div class="sidebar-title">
+                <i class="bi bi-lightning-fill"></i>
+                {% trans "Quick Templates" %}
+            </div>
+            <div class="space-y-2">
+                <button type="button" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm transition" onclick="loadTemplate('painting')">
+                    🎨 {% trans "Painting Standard Phases" %}
+                </button>
+                <button type="button" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm transition" onclick="loadTemplate('drywall')">
+                    🧱 {% trans "Drywall Phases" %}
+                </button>
+                <button type="button" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm transition" onclick="loadTemplate('general')">
+                    🏗️ {% trans "General Construction" %}
+                </button>
+            </div>
+        </div>
+
+        <!-- Board -->
+        <div class="budget-board">
+            <!-- Controls -->
+            <div class="board-controls">
+                <input type="text" placeholder="🔍 {% trans 'Search budget lines...' %}" id="searchInput" onkeyup="filterCards()">
+                
+                <div class="view-toggle">
+                    <button type="button" class="active" onclick="setView('cards')" id="btnCards">
+                        <i class="bi bi-grid-3x3-gap"></i> {% trans "Cards" %}
+                    </button>
+                    <button type="button" onclick="setView('table')" id="btnTable">
+                        <i class="bi bi-table"></i> {% trans "Table" %}
+                    </button>
+                </div>
+                
+                <button type="button" class="ml-auto px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition" onclick="exportBudget()">
+                    <i class="bi bi-download"></i> {% trans "Export" %}
+                </button>
+            </div>
+
+            <!-- Cards View -->
+            <div class="budget-cards" id="cardsView">
+                {% if lines %}
+                    {% for line in lines %}
+                    <div class="budget-card" data-id="{{ line.id }}" data-search="{{ line.cost_code.code|lower }} {{ line.cost_code.name|lower }} {{ line.description|lower }}">
+                        <div class="card-header">
+                            <span class="card-code">{{ line.cost_code.code }}</span>
+                            <div class="card-actions">
+                                <button type="button" onclick="editLine({{ line.id }})" title="{% trans 'Edit' %}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="delete" onclick="deleteLine({{ line.id }})" title="{% trans 'Delete' %}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">{{ line.cost_code.name }}</div>
+                            {% if line.description %}
+                            <div class="card-desc">{{ line.description|truncatechars:60 }}</div>
+                            {% endif %}
+                            
+                            <div class="card-amounts">
+                                <div class="amount-item">
+                                    <div class="amount-value">${{ line.baseline_amount|floatformat:0 }}</div>
+                                    <div class="amount-label">{% trans "Budget" %}</div>
+                                </div>
+                                <div class="amount-item">
+                                    <div class="amount-value">{{ line.qty|floatformat:1 }} {{ line.unit }}</div>
+                                    <div class="amount-label">{% trans "Quantity" %}</div>
+                                </div>
+                            </div>
+                            
+                            {% if line.planned_start or line.planned_finish %}
+                            <div class="text-xs text-slate-500 flex items-center gap-2">
+                                <i class="bi bi-calendar"></i>
+                                {{ line.planned_start|date:"M d"|default:"?" }} → {{ line.planned_finish|date:"M d"|default:"?" }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if line.allowance %}
+                            <span class="inline-block mt-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
+                                {% trans "Allowance" %}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="bi bi-inbox"></i>
+                        <h3>{% trans "No budget lines yet" %}</h3>
+                        <p>{% trans "Start by adding budget lines using the form on the left, or load a quick template." %}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Table View -->
+            <div class="budget-table" id="tableView">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th class="number">{% trans "Qty" %}</th>
+                            <th>{% trans "Unit" %}</th>
+                            <th class="number">{% trans "Unit Cost" %}</th>
+                            <th class="number">{% trans "Total" %}</th>
+                            <th class="number">{% trans "Revised" %}</th>
+                            <th>{% trans "Schedule" %}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in lines %}
+                        <tr data-id="{{ line.id }}">
+                            <td><span class="font-semibold text-indigo-600">{{ line.cost_code.code }}</span></td>
+                            <td>
+                                <div class="font-medium">{{ line.cost_code.name }}</div>
+                                {% if line.description %}<div class="text-sm text-slate-500">{{ line.description }}</div>{% endif %}
+                            </td>
+                            <td class="number">{{ line.qty|floatformat:2 }}</td>
+                            <td>{{ line.unit }}</td>
+                            <td class="number">${{ line.unit_cost|floatformat:2 }}</td>
+                            <td class="number font-semibold">${{ line.baseline_amount|floatformat:2 }}</td>
+                            <td class="number">${{ line.revised_amount|floatformat:2 }}</td>
+                            <td class="text-sm text-slate-500">
+                                {% if line.planned_start %}{{ line.planned_start|date:"m/d" }}{% endif %}
+                                {% if line.planned_finish %} - {{ line.planned_finish|date:"m/d" }}{% endif %}
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <button onclick="editLine({{ line.id }})" class="p-1 hover:bg-slate-100 rounded">
+                                        <i class="bi bi-pencil text-slate-400"></i>
+                                    </button>
+                                    <button onclick="deleteLine({{ line.id }})" class="p-1 hover:bg-red-50 rounded">
+                                        <i class="bi bi-trash text-slate-400 hover:text-red-500"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-8 text-slate-400">
+                                {% trans "No budget lines defined" %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-slate-50 font-semibold">
+                        <tr>
+                            <td colspan="5" class="text-right">{% trans "TOTAL" %}:</td>
+                            <td class="number">${{ total_baseline|floatformat:2 }}</td>
+                            <td class="number">${{ total_revised|floatformat:2 }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>{% trans "Edit Budget Line" %}</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <form method="post" id="editForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="line_id" id="editLineId">
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>{% trans "Cost Code" %}</label>
+                    <select name="cost_code" id="editCostCode">
+                        {% for cc in cost_codes %}
+                        <option value="{{ cc.id }}">{{ cc.code }} - {{ cc.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>{% trans "Description" %}</label>
+                    <input type="text" name="description" id="editDescription">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Quantity" %}</label>
+                        <input type="number" name="qty" id="editQty" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "Unit" %}</label>
+                        <input type="text" name="unit" id="editUnit">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Unit Cost" %}</label>
+                        <input type="number" name="unit_cost" id="editUnitCost" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "Revised Amount" %}</label>
+                        <input type="number" name="revised_amount" id="editRevised" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Start Date" %}</label>
+                        <input type="date" name="planned_start" id="editStart">
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "End Date" %}</label>
+                        <input type="date" name="planned_finish" id="editFinish">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-delete" onclick="confirmDelete()">
+                    <i class="bi bi-trash"></i> {% trans "Delete" %}
+                </button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn-save">{% trans "Save Changes" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation -->
+<form method="post" id="deleteForm" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="line_id" id="deleteLineId">
+</form>
+
+<script>
+// Data for editing
+const linesData = {
+    {% for line in lines %}
+    {{ line.id }}: {
+        cost_code: {{ line.cost_code_id }},
+        description: "{{ line.description|escapejs }}",
+        qty: {{ line.qty|default:0 }},
+        unit: "{{ line.unit }}",
+        unit_cost: {{ line.unit_cost|default:0 }},
+        revised_amount: {{ line.revised_amount|default:0 }},
+        planned_start: "{{ line.planned_start|date:'Y-m-d'|default:'' }}",
+        planned_finish: "{{ line.planned_finish|date:'Y-m-d'|default:'' }}"
+    },
+    {% endfor %}
+};
+
+// View Toggle
+function setView(view) {
+    const cards = document.getElementById('cardsView');
+    const table = document.getElementById('tableView');
+    const btnCards = document.getElementById('btnCards');
+    const btnTable = document.getElementById('btnTable');
+    
+    if (view === 'cards') {
+        cards.classList.remove('hidden');
+        table.classList.remove('active');
+        btnCards.classList.add('active');
+        btnTable.classList.remove('active');
+    } else {
+        cards.classList.add('hidden');
+        table.classList.add('active');
+        btnCards.classList.remove('active');
+        btnTable.classList.add('active');
+    }
+}
+
+// Search Filter
+function filterCards() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.budget-card').forEach(card => {
+        const text = card.dataset.search || '';
+        card.style.display = text.includes(search) ? 'block' : 'none';
+    });
+}
+
+// Edit Modal
+function editLine(id) {
+    const data = linesData[id];
+    if (!data) return;
+    
+    document.getElementById('editLineId').value = id;
+    document.getElementById('editCostCode').value = data.cost_code;
+    document.getElementById('editDescription').value = data.description;
+    document.getElementById('editQty').value = data.qty;
+    document.getElementById('editUnit').value = data.unit;
+    document.getElementById('editUnitCost').value = data.unit_cost;
+    document.getElementById('editRevised').value = data.revised_amount;
+    document.getElementById('editStart').value = data.planned_start;
+    document.getElementById('editFinish').value = data.planned_finish;
+    
+    document.getElementById('editModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('editModal').classList.remove('show');
+}
+
+// Delete
+function deleteLine(id) {
+    if (confirm('{% trans "Are you sure you want to delete this budget line?" %}')) {
+        document.getElementById('deleteLineId').value = id;
+        document.getElementById('deleteForm').submit();
+    }
+}
+
+function confirmDelete() {
+    const id = document.getElementById('editLineId').value;
+    deleteLine(id);
+}
+
+// Auto-fill description from cost code
+document.getElementById('costCodeSelect').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    const descInput = document.getElementById('descInput');
+    if (selected.dataset.name && !descInput.value) {
+        descInput.value = selected.dataset.name;
+    }
+});
+
+// Templates
+function loadTemplate(type) {
+    if (!confirm('{% trans "This will add standard budget lines for this category. Continue?" %}')) return;
+    
+    // Submit form with template action
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.innerHTML = `
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="action" value="template">
+        <input type="hidden" name="template_type" value="${type}">
+    `;
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Export
+function exportBudget() {
+    window.location.href = '?export=csv';
+}
+
+// Close modal on outside click
+document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

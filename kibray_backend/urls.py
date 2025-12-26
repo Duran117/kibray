@@ -13,6 +13,7 @@ from rest_framework.routers import DefaultRouter
 from core import (
     views,
     views_assignments,
+    views_budget_wizard,
     views_calendar_wizard,
     views_sop,
     views_timeentry_assignment,
@@ -480,6 +481,11 @@ urlpatterns = [
     # Cost codes / presupuesto
     path("cost-codes/", views.costcode_list_view, name="costcode_list"),
     path("projects/<int:project_id>/budget/", views.budget_lines_view, name="budget_lines"),
+    path(
+        "projects/<int:project_id>/budget/wizard/",
+        views_budget_wizard.budget_wizard_view,
+        name="budget_wizard",
+    ),
     path("budget-line/<int:line_id>/plan/", views.budget_line_plan_view, name="budget_line_plan"),
     # Estimates
     path(
