@@ -2,7 +2,6 @@ from collections import defaultdict
 import contextlib
 import csv
 from datetime import date, datetime, timedelta
-from datetime import time as dt_time
 from decimal import Decimal, InvalidOperation
 from functools import wraps
 import io
@@ -69,9 +68,7 @@ from core.models import (
     MaterialCatalog,
     MaterialRequest,
     MaterialRequestItem,
-    PayrollPayment,
     PayrollPeriod,
-    PayrollRecord,
     PlannedActivity,
     Profile,
     Project,
@@ -142,7 +139,6 @@ from .forms import (  # noqa: E402
     InvoiceLineFormSet,
     IssueForm,
     MaterialsRequestForm,
-    PayrollRecordForm,
     PlanPinForm,
     ProposalEmailForm,
     RFIAnswerForm,
@@ -4382,7 +4378,6 @@ def daily_log_detail(request, log_id):
 @login_required
 def daily_log_create(request, project_id):
     """Vista dedicada para crear un nuevo Daily Log"""
-    from datetime import date
 
     from core.forms import DailyLogForm
     from core.models import Schedule, Task
@@ -6220,7 +6215,7 @@ def pickup_view(request, project_id: int):
 
 @login_required
 def task_list_view(request, project_id: int):
-    from datetime import date, timedelta
+    from datetime import timedelta
 
     project = get_object_or_404(Project, pk=project_id)
     tasks = (

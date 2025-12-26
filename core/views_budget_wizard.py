@@ -118,7 +118,7 @@ def handle_add_line(request, project):
         qty = Decimal(request.POST.get("qty") or "1")
         unit_cost = Decimal(request.POST.get("unit_cost") or "0")
         
-        line = BudgetLine.objects.create(
+        BudgetLine.objects.create(
             project=project,
             cost_code=cost_code,
             description=request.POST.get("description", ""),

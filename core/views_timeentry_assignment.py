@@ -7,7 +7,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
 from django.shortcuts import render, redirect, get_object_or_404
-from django.utils.translation import gettext as _
 from django.http import JsonResponse
 
 from core.models import (

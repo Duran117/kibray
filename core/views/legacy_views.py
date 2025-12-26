@@ -93,7 +93,6 @@ from core.forms import (  # noqa: E402
     InvoiceLineFormSet,
     IssueForm,
     MaterialsRequestForm,
-    PayrollRecordForm,
     PlanPinForm,
     ProposalEmailForm,
     RFIAnswerForm,
@@ -1279,7 +1278,6 @@ def payroll_weekly_review(request):
 
     from datetime import datetime, timedelta
     from decimal import Decimal
-    from django.utils import timezone
 
     # Obtener parámetros de fecha (por defecto: semana actual)
     week_start_str = request.GET.get("week_start")
@@ -4710,7 +4708,6 @@ def daily_log_delete(request, log_id):
 @login_required
 def daily_log_create(request, project_id):
     """Vista dedicada para crear un nuevo Daily Log"""
-    from datetime import date
 
     from core.forms import DailyLogForm
     from core.models import Schedule, Task
@@ -6495,7 +6492,7 @@ def pickup_view(request, project_id: int):
 
 @login_required
 def task_list_view(request, project_id: int):
-    from datetime import date, timedelta
+    from datetime import timedelta
 
     project = get_object_or_404(Project, pk=project_id)
     tasks = (
@@ -7314,6 +7311,29 @@ def materials_mark_ordered_view(request, request_id):
         request, _("Solicitud #%(id)s marcada como ordenada.") % {"id": mat_request.id}
     )
     return redirect("materials_requests_list", project_id=mat_request.project_id)
+
+
+@login_required
+@staff_required
+@require_POST
+def materials_request_delete_view(request, request_id):
+    """
+    Elimina una solicitud de materiales (solo staff/admin).
+    """
+    mat_request = get_object_or_404(MaterialRequest, pk=request_id)
+    project_id = mat_request.project_id
+    req_id = mat_request.id
+    
+    # Delete the request (items will be deleted via CASCADE)
+    mat_request.delete()
+    
+    messages.success(
+        request, _("Solicitud #%(id)s eliminada correctamente.") % {"id": req_id}
+    )
+    
+    if project_id:
+        return redirect("materials_requests_list", project_id=project_id)
+    return redirect("materials_requests_list_all")
 
 
 @login_required
