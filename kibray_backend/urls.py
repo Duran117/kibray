@@ -542,6 +542,11 @@ urlpatterns = [
     # File API endpoints
     path("api/files/<int:file_id>/details/", views.file_details_api, name="file_details_api"),
     path("api/files/<int:file_id>/favorite/", views.file_toggle_favorite, name="file_toggle_favorite"),
+    path("api/files/<int:file_id>/share/", views.file_generate_share_link, name="file_generate_share_link"),
+    path("api/folders/<int:category_id>/share/", views.folder_generate_share_link, name="folder_generate_share_link"),
+    # Public share links (no login required)
+    path("shared/file/<str:token>/", views.file_public_view, name="file_public_view"),
+    path("shared/folder/<str:token>/", views.folder_public_view, name="folder_public_view"),
     # Touch-up Pins (deprecated flow) - gated via settings.TOUCHUP_PIN_ENABLED
     # These routes are disabled by default to consolidate on Task(is_touchup=True)
     # Set TOUCHUP_PIN_ENABLED=True to re-enable the legacy TouchUpPin UI.

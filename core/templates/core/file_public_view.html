@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ file.name }} - Kibray</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .share-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+      overflow: hidden;
+    }
+    
+    .share-header {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      padding: 40px 30px;
+      text-align: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .file-icon {
+      width: 80px;
+      height: 80px;
+      background: white;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .file-icon i {
+      font-size: 40px;
+    }
+    
+    .file-icon.pdf i { color: #ef4444; }
+    .file-icon.image i { color: #8b5cf6; }
+    .file-icon.spreadsheet i { color: #10b981; }
+    .file-icon.word i { color: #3b82f6; }
+    .file-icon.video i { color: #ec4899; }
+    .file-icon.other i { color: #6b7280; }
+    
+    .file-preview {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .file-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+    
+    .file-meta {
+      font-size: 14px;
+      color: #64748b;
+    }
+    
+    .share-body {
+      padding: 30px;
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+    }
+    
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    
+    .info-label {
+      color: #64748b;
+    }
+    
+    .info-value {
+      color: #1e293b;
+      font-weight: 500;
+    }
+    
+    .download-btn {
+      display: block;
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #5046e5 0%, #7c3aed 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      margin-top: 24px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(80, 70, 229, 0.3);
+      color: white;
+    }
+    
+    .download-btn i {
+      margin-right: 8px;
+    }
+    
+    .share-footer {
+      background: #f8fafc;
+      padding: 16px 30px;
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .share-footer a {
+      color: #5046e5;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .project-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eef2ff;
+      color: #5046e5;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 12px;
+    }
+    
+    @media (max-width: 480px) {
+      .share-header {
+        padding: 30px 20px;
+      }
+      
+      .share-body {
+        padding: 20px;
+      }
+      
+      .file-name {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="share-card">
+    <div class="share-header">
+      {% if file.file_type == 'image' and file.file %}
+      <img src="{{ file.file.url }}" alt="{{ file.name }}" class="file-preview">
+      {% else %}
+      <div class="file-icon {{ file.file_type }}">
+        <i class="{{ file.get_icon }}"></i>
+      </div>
+      {% endif %}
+      
+      <h1 class="file-name">{{ file.name }}</h1>
+      <p class="file-meta">{{ file.get_size_display }} · {{ file.get_file_type_display }}</p>
+      
+      <div class="project-badge">
+        <i class="bi bi-folder"></i>
+        {{ project.name }}
+      </div>
+    </div>
+    
+    <div class="share-body">
+      {% if file.description %}
+      <div class="info-row">
+        <span class="info-label">Descripción</span>
+        <span class="info-value">{{ file.description }}</span>
+      </div>
+      {% endif %}
+      
+      <div class="info-row">
+        <span class="info-label">Subido</span>
+        <span class="info-value">{{ file.uploaded_at|date:"d/m/Y H:i" }}</span>
+      </div>
+      
+      {% if file.version %}
+      <div class="info-row">
+        <span class="info-label">Versión</span>
+        <span class="info-value">{{ file.version }}</span>
+      </div>
+      {% endif %}
+      
+      <div class="info-row">
+        <span class="info-label">Descargas</span>
+        <span class="info-value">{{ file.download_count }}</span>
+      </div>
+      
+      <a href="{% url 'file_public_download' token=file.share_token %}" class="download-btn">
+        <i class="bi bi-download"></i>
+        Descargar Archivo
+      </a>
+    </div>
+    
+    <div class="share-footer">
+      Compartido desde <a href="/">Kibray</a> · Project Management
+    </div>
+  </div>
+</body>
+</html>

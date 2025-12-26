@@ -9580,6 +9580,230 @@ def file_toggle_favorite(request, file_id):
 
 
 # ========================================================================================
+# FILE SHARING SYSTEM (Odoo-style)
+# ========================================================================================
+
+
+@login_required
+@require_POST
+def file_generate_share_link(request, file_id):
+    """Generate a shareable link for a file"""
+    import secrets
+    from datetime import timedelta
+    from core.models import ProjectFile
+
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    # Check permission
+    if not (request.user.is_staff or request.user == file_obj.uploaded_by):
+        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+    
+    # Get expiration days from request (default 7)
+    try:
+        expires_days = int(request.POST.get("expires_days", 7))
+        if expires_days < 1:
+            expires_days = 1
+        elif expires_days > 365:
+            expires_days = 365
+    except (ValueError, TypeError):
+        expires_days = 7
+    
+    # Generate token
+    file_obj.share_token = secrets.token_urlsafe(32)
+    file_obj.share_expires = timezone.now() + timedelta(days=expires_days)
+    file_obj.is_shared = True
+    file_obj.save(update_fields=["share_token", "share_expires", "is_shared"])
+    
+    # Build share URL
+    share_url = request.build_absolute_uri(
+        reverse("file_public_view", kwargs={"token": file_obj.share_token})
+    )
+    
+    return JsonResponse({
+        "success": True,
+        "share_url": share_url,
+        "token": file_obj.share_token,
+        "expires": file_obj.share_expires.strftime("%d/%m/%Y %H:%M"),
+        "expires_days": expires_days,
+    })
+
+
+@login_required
+@require_POST
+def file_revoke_share_link(request, file_id):
+    """Revoke a file's share link"""
+    from core.models import ProjectFile
+
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    # Check permission
+    if not (request.user.is_staff or request.user == file_obj.uploaded_by):
+        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+    
+    file_obj.share_token = ""
+    file_obj.share_expires = None
+    file_obj.is_shared = False
+    file_obj.save(update_fields=["share_token", "share_expires", "is_shared"])
+    
+    return JsonResponse({
+        "success": True,
+        "message": gettext("Link de compartir revocado"),
+    })
+
+
+def file_public_view(request, token):
+    """Public view for shared files - no login required"""
+    from core.models import ProjectFile
+
+    # Find file by token
+    file_obj = get_object_or_404(ProjectFile, share_token=token, is_shared=True)
+    
+    # Check if link has expired
+    if file_obj.share_expires and file_obj.share_expires < timezone.now():
+        return render(request, "core/file_share_expired.html", {
+            "message": gettext("Este link ha expirado"),
+        })
+    
+    # Icon color mapping
+    icon_colors = {
+        "pdf": "#ef4444",
+        "image": "#8b5cf6",
+        "spreadsheet": "#10b981",
+        "word": "#3b82f6",
+        "cad": "#f59e0b",
+        "video": "#ec4899",
+        "other": "#6b7280",
+    }
+    
+    return render(request, "core/file_public_view.html", {
+        "file": file_obj,
+        "project": file_obj.project,
+        "icon_color": icon_colors.get(file_obj.file_type, "#6b7280"),
+    })
+
+
+def file_public_download(request, token):
+    """Download a shared file - no login required"""
+    from core.models import ProjectFile
+
+    # Find file by token
+    file_obj = get_object_or_404(ProjectFile, share_token=token, is_shared=True)
+    
+    # Check if link has expired
+    if file_obj.share_expires and file_obj.share_expires < timezone.now():
+        return HttpResponseForbidden(gettext("Este link ha expirado"))
+    
+    # Increment download count
+    file_obj.download_count += 1
+    file_obj.save(update_fields=["download_count"])
+    
+    # Serve file
+    if file_obj.file:
+        response = HttpResponse(file_obj.file, content_type="application/octet-stream")
+        response["Content-Disposition"] = f'attachment; filename="{file_obj.name}"'
+        return response
+    
+    return HttpResponseNotFound(gettext("Archivo no encontrado"))
+
+
+@login_required
+@require_POST
+def folder_generate_share_link(request, category_id):
+    """Generate a shareable link for a folder/workspace"""
+    import secrets
+    from datetime import timedelta
+    from core.models import FileCategory
+
+    folder = get_object_or_404(FileCategory, id=category_id)
+    
+    # Check permission
+    if not (request.user.is_staff or request.user == folder.created_by):
+        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+    
+    # Get options from request
+    try:
+        expires_days = int(request.POST.get("expires_days", 7))
+        if expires_days < 1:
+            expires_days = 1
+        elif expires_days > 365:
+            expires_days = 365
+    except (ValueError, TypeError):
+        expires_days = 7
+    
+    allow_upload = request.POST.get("allow_upload") == "true"
+    
+    # Generate token
+    folder.share_token = secrets.token_urlsafe(32)
+    folder.is_shared = True
+    folder.allow_upload = allow_upload
+    folder.save(update_fields=["share_token", "is_shared", "allow_upload"])
+    
+    # Build share URL
+    share_url = request.build_absolute_uri(
+        reverse("folder_public_view", kwargs={"token": folder.share_token})
+    )
+    
+    return JsonResponse({
+        "success": True,
+        "share_url": share_url,
+        "token": folder.share_token,
+        "allow_upload": allow_upload,
+    })
+
+
+def folder_public_view(request, token):
+    """Public view for shared folders - no login required"""
+    from core.models import FileCategory, ProjectFile
+
+    # Find folder by token
+    folder = get_object_or_404(FileCategory, share_token=token, is_shared=True)
+    
+    # Get files in this folder
+    files = ProjectFile.objects.filter(category=folder).order_by("-uploaded_at")
+    
+    return render(request, "core/folder_public_view.html", {
+        "folder": folder,
+        "project": folder.project,
+        "files": files,
+        "allow_upload": folder.allow_upload,
+    })
+
+
+@require_POST
+def folder_public_upload(request, token):
+    """Upload files to a shared folder - no login required"""
+    from core.models import FileCategory, ProjectFile
+
+    # Find folder by token
+    folder = get_object_or_404(FileCategory, share_token=token, is_shared=True)
+    
+    # Check if uploads are allowed
+    if not folder.allow_upload:
+        return JsonResponse({"error": gettext("Subidas no permitidas")}, status=403)
+    
+    # Handle file upload
+    uploaded_file = request.FILES.get("file")
+    if not uploaded_file:
+        return JsonResponse({"error": gettext("No se recibió archivo")}, status=400)
+    
+    # Create file record
+    file_obj = ProjectFile.objects.create(
+        project=folder.project,
+        category=folder,
+        file=uploaded_file,
+        name=uploaded_file.name,
+        uploaded_by=None,  # Anonymous upload
+    )
+    
+    return JsonResponse({
+        "success": True,
+        "file_id": file_obj.id,
+        "file_name": file_obj.name,
+        "message": gettext("Archivo subido correctamente"),
+    })
+
+
+# ========================================================================================
 # TOUCH-UP PIN VIEWS (Separate from Info Pins)
 # ========================================================================================
 
