@@ -1,0 +1,248 @@
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Risks" %} - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-6">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-2 text-sm text-slate-500 mb-4">
+        <a href="{% url 'project_list' %}" class="hover:text-slate-700">{% trans "Projects" %}</a>
+        <i class="bi bi-chevron-right text-xs"></i>
+        <a href="{% url 'project_overview' project.id %}" class="hover:text-slate-700">{{ project.name }}</a>
+        <i class="bi bi-chevron-right text-xs"></i>
+        <span class="text-slate-700">{% trans "Risks" %}</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <i class="bi bi-shield-exclamation text-amber-500"></i>
+                {% trans "Risk Register" %}
+            </h1>
+            <p class="text-slate-500 mt-1">{% trans "Track and manage project risks" %}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'project_overview' project.id %}" class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition">
+                <i class="bi bi-arrow-left mr-2"></i>
+                {% trans "Back to Project" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Add Risk Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">
+            <i class="bi bi-plus-circle text-indigo-500 mr-2"></i>
+            {% trans "Add New Risk" %}
+        </h2>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Title" %}</label>
+                    {{ form.title }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Category" %}</label>
+                    {{ form.category }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Likelihood" %}</label>
+                    {{ form.likelihood }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Impact" %}</label>
+                    {{ form.impact }}
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Description" %}</label>
+                {{ form.description }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Mitigation Plan" %}</label>
+                {{ form.mitigation }}
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
+                    <i class="bi bi-plus-lg mr-2"></i>
+                    {% trans "Add Risk" %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Risk Matrix Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {% with critical=risks|length low=0 medium=0 high=0 %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-500">{% trans "Total Risks" %}</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ risks|length }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                    <i class="bi bi-shield text-slate-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-l-4 border-l-red-500 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-500">{% trans "High Impact" %}</p>
+                    <p class="text-2xl font-bold text-red-600">{{ risks|dictsort:"impact"|slice:":3"|length }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="bi bi-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-l-4 border-l-amber-500 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-500">{% trans "Medium Impact" %}</p>
+                    <p class="text-2xl font-bold text-amber-600">-</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                    <i class="bi bi-exclamation-circle text-amber-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-l-4 border-l-green-500 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-500">{% trans "Low Impact" %}</p>
+                    <p class="text-2xl font-bold text-green-600">-</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                    <i class="bi bi-check-circle text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+    </div>
+
+    <!-- Risks List -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200">
+            <h2 class="text-lg font-semibold text-slate-900">{% trans "Risk Register" %}</h2>
+        </div>
+        
+        {% if risks %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Risk" %}</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Category" %}</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Likelihood" %}</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Impact" %}</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Score" %}</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Status" %}</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for risk in risks %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-slate-900">{{ risk.title }}</div>
+                            {% if risk.description %}
+                            <div class="text-sm text-slate-500 mt-1 line-clamp-2">{{ risk.description|truncatewords:15 }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                {{ risk.get_category_display|default:risk.category }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full 
+                                {% if risk.likelihood >= 4 %}bg-red-100 text-red-700
+                                {% elif risk.likelihood >= 3 %}bg-amber-100 text-amber-700
+                                {% else %}bg-green-100 text-green-700{% endif %}
+                                font-semibold text-sm">
+                                {{ risk.likelihood }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full 
+                                {% if risk.impact >= 4 %}bg-red-100 text-red-700
+                                {% elif risk.impact >= 3 %}bg-amber-100 text-amber-700
+                                {% else %}bg-green-100 text-green-700{% endif %}
+                                font-semibold text-sm">
+                                {{ risk.impact }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            {% with score=risk.likelihood|add:risk.impact %}
+                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-bold
+                                {% if score >= 8 %}bg-red-500 text-white
+                                {% elif score >= 5 %}bg-amber-500 text-white
+                                {% else %}bg-green-500 text-white{% endif %}">
+                                {{ score }}
+                            </span>
+                            {% endwith %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if risk.status == 'open' %}bg-blue-100 text-blue-800
+                                {% elif risk.status == 'mitigated' %}bg-green-100 text-green-800
+                                {% elif risk.status == 'closed' %}bg-slate-100 text-slate-800
+                                {% else %}bg-amber-100 text-amber-800{% endif %}">
+                                {{ risk.get_status_display|default:risk.status|default:"Open" }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'risk_edit' risk.id %}" class="p-2 text-slate-400 hover:text-indigo-600 transition" title="{% trans 'Edit' %}">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'risk_delete' risk.id %}" class="p-2 text-slate-400 hover:text-red-600 transition" title="{% trans 'Delete' %}">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                <i class="bi bi-shield-check text-3xl text-slate-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-slate-900 mb-1">{% trans "No risks registered" %}</h3>
+            <p class="text-slate-500">{% trans "Use the form above to add the first risk" %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Form styling */
+#id_title, #id_description, #id_mitigation, #id_category, #id_likelihood, #id_impact {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#id_title:focus, #id_description:focus, #id_mitigation:focus, 
+#id_category:focus, #id_likelihood:focus, #id_impact:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+#id_description, #id_mitigation {
+    min-height: 80px;
+    resize: vertical;
+}
+</style>
+{% endblock %}

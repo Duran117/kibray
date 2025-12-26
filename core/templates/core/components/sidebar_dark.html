@@ -112,13 +112,29 @@
                     <i class="bi bi-speedometer2"></i>
                     <span>{% trans "Admin Dashboard" %}</span>
                 </a>
+                <a href="{% url 'client_list' %}" class="sidebar-item">
+                    <i class="bi bi-people"></i>
+                    <span>{% trans "Clients" %}</span>
+                </a>
                 <a href="/admin/core/employee/" class="sidebar-item">
                     <i class="bi bi-person-badge"></i>
                     <span>{% trans "Employees" %}</span>
                 </a>
+                <a href="{% url 'user_wizard_list' %}" class="sidebar-item">
+                    <i class="bi bi-person-gear"></i>
+                    <span>{% trans "User Management" %}</span>
+                </a>
                 <a href="{% url 'payroll_weekly_review' %}" class="sidebar-item">
                     <i class="bi bi-cash-stack"></i>
                     <span>{% trans "Payroll Review" %}</span>
+                </a>
+                <a href="{% url 'costcode_list' %}" class="sidebar-item">
+                    <i class="bi bi-code-square"></i>
+                    <span>{% trans "Cost Codes" %}</span>
+                </a>
+                <a href="{% url 'sop_library' %}" class="sidebar-item">
+                    <i class="bi bi-journal-bookmark"></i>
+                    <span>{% trans "SOP Library" %}</span>
                 </a>
             </div>
         </div>
@@ -142,6 +158,10 @@
                     <i class="bi bi-file-earmark-text"></i>
                     <span>{% trans "Invoices" %}</span>
                 </a>
+                <a href="{% url 'invoice_aging_report' %}" class="sidebar-item">
+                    <i class="bi bi-calendar-x"></i>
+                    <span>{% trans "Aging Report" %}</span>
+                </a>
             </div>
         </div>
         
@@ -155,6 +175,10 @@
                 <a href="{% url 'productivity_dashboard' %}" class="sidebar-item">
                     <i class="bi bi-activity"></i>
                     <span>{% trans "Productivity" %}</span>
+                </a>
+                <a href="{% url 'dashboard_bi' %}" class="sidebar-item">
+                    <i class="bi bi-pie-chart"></i>
+                    <span>{% trans "Executive BI" %}</span>
                 </a>
                 <a href="/admin/" class="sidebar-item">
                     <i class="bi bi-database"></i>
@@ -172,6 +196,44 @@
                 <a href="{% url 'dashboard_employee' %}" class="sidebar-item">
                     <i class="bi bi-clock-history"></i>
                     <span>{% trans "Time Tracking" %}</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        {# ===== DESIGNER SECTION ===== #}
+        {% if role == 'designer' %}
+        <div>
+            <div class="sidebar-section-title">{% trans "Design" %}</div>
+            <div class="space-y-1">
+                <a href="{% url 'dashboard_designer' %}" class="sidebar-item">
+                    <i class="bi bi-palette2"></i>
+                    <span>{% trans "My Dashboard" %}</span>
+                </a>
+                <a href="{% url 'color_approvals_react' %}" class="sidebar-item">
+                    <i class="bi bi-palette"></i>
+                    <span>{% trans "Color Approvals" %}</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        {# ===== SUPERINTENDENT SECTION ===== #}
+        {% if role == 'superintendent' %}
+        <div>
+            <div class="sidebar-section-title">{% trans "Field Operations" %}</div>
+            <div class="space-y-1">
+                <a href="{% url 'dashboard_superintendent' %}" class="sidebar-item">
+                    <i class="bi bi-clipboard-check"></i>
+                    <span>{% trans "My Dashboard" %}</span>
+                </a>
+                <a href="{% url 'daily_planning_dashboard' %}" class="sidebar-item">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>{% trans "Daily Plans" %}</span>
+                </a>
+                <a href="{% url 'task_list_all' %}" class="sidebar-item">
+                    <i class="bi bi-check2-square"></i>
+                    <span>{% trans "Tasks" %}</span>
                 </a>
             </div>
         </div>

@@ -547,10 +547,14 @@
         <i class="bi bi-palette"></i>
         <span class="nav-text">{% trans "Color Samples" %}</span>
       </a>
+      <a href="{% url 'site_photo_list' project.id %}" class="nav-item">
+        <i class="bi bi-camera"></i>
+        <span class="nav-text">{% trans "Site Photos" %}</span>
+      </a>
       
       <!-- Operaciones -->
       <div class="section-title">{% trans "Operaciones" %}</div>
-      <a href="{% url 'touchup_plans_list' project.id %}" class="nav-item">
+      <a href="{% url 'touchup_board' project.id %}" class="nav-item">
         <i class="bi bi-brush"></i>
         <span class="nav-text">{% trans "Touch-ups" %}</span>
       </a>
@@ -566,9 +570,17 @@
         <i class="bi bi-box-seam"></i>
         <span class="nav-text">{% trans "Inventario" %}</span>
       </a>
+      <a href="{% url 'pickup_view' project.id %}" class="nav-item">
+        <i class="bi bi-bag-check"></i>
+        <span class="nav-text">{% trans "Pickup" %}</span>
+      </a>
       <a href="{% url 'issue_list' project.id %}" class="nav-item">
         <i class="bi bi-bug"></i>
         <span class="nav-text">{% trans "Issues" %}</span>
+      </a>
+      <a href="{% url 'risk_list' project.id %}" class="nav-item">
+        <i class="bi bi-shield-exclamation"></i>
+        <span class="nav-text">{% trans "Risks" %}</span>
       </a>
       
       <!-- Change Orders -->
@@ -591,6 +603,33 @@
       <a href="{% url 'task_list' project.id %}" class="nav-item">
         <i class="bi bi-check2-square"></i>
         <span class="nav-text">{% trans "Tareas" %}</span>
+      </a>
+      <a href="{% url 'project_chat_index' project.id %}" class="nav-item">
+        <i class="bi bi-chat-dots"></i>
+        <span class="nav-text">{% trans "Chat" %}</span>
+      </a>
+      
+      <!-- Exports & Tools -->
+      <div class="section-title">{% trans "Tools" %}</div>
+      <a href="{% url 'estimate_create' project.id %}" class="nav-item">
+        <i class="bi bi-calculator"></i>
+        <span class="nav-text">{% trans "Estimates" %}</span>
+      </a>
+      <a href="{% url 'schedule_generator' project.id %}" class="nav-item">
+        <i class="bi bi-magic"></i>
+        <span class="nav-text">{% trans "Schedule Gen" %}</span>
+      </a>
+      <a href="{% url 'project_schedule_ics' project.id %}" class="nav-item" target="_blank">
+        <i class="bi bi-calendar-event"></i>
+        <span class="nav-text">{% trans "Export ICS" %}</span>
+      </a>
+      <a href="{% url 'project_pdf' project.id %}" class="nav-item" target="_blank">
+        <i class="bi bi-file-pdf"></i>
+        <span class="nav-text">{% trans "Export PDF" %}</span>
+      </a>
+      <a href="{% url 'project_edit' project.id %}" class="nav-item">
+        <i class="bi bi-gear"></i>
+        <span class="nav-text">{% trans "Settings" %}</span>
       </a>
     </nav>
     
