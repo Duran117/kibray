@@ -232,7 +232,7 @@
             </thead>
             <tbody>
                 {% for p in projects %}
-                <tr>
+                <tr onclick="window.location='{% url 'project_overview' p.id %}'" style="cursor: pointer;">
                     <!-- ID -->
                     <td>
                         <span class="project-id">#{{ p.id }}</span>
@@ -253,19 +253,15 @@
                     
                     <!-- Status -->
                     <td>
-                        {% if p.status %}
-                        <span class="project-status {{ p.status }}">
-                            {% if p.status == 'active' %}
-                                <i class="bi bi-play-circle"></i> {{ p.get_status_display|default:p.status }}
-                            {% elif p.status == 'pending' %}
-                                <i class="bi bi-clock"></i> {{ p.get_status_display|default:p.status }}
-                            {% elif p.status == 'completed' %}
-                                <i class="bi bi-check-circle"></i> {{ p.get_status_display|default:p.status }}
-                            {% else %}
-                                <i class="bi bi-dash-circle"></i> {{ p.get_status_display|default:p.status }}
-                            {% endif %}
+                        {% if p.is_archived %}
+                        <span class="project-status archived">
+                            <i class="bi bi-archive"></i> {% trans "Archived" %}
                         </span>
-                        {% else %}—{% endif %}
+                        {% else %}
+                        <span class="project-status active">
+                            <i class="bi bi-play-circle"></i> {% trans "Active" %}
+                        </span>
+                        {% endif %}
                     </td>
                     
                     <!-- Budget -->

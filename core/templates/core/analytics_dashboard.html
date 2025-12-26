@@ -306,8 +306,8 @@
                 <div class="stat-label">{% trans "Total Projects" %}</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">{{ completed_projects }}</div>
-                <div class="stat-label">{% trans "Completed" %}</div>
+                <div class="stat-number">{{ archived_projects }}</div>
+                <div class="stat-label">{% trans "Archived" %}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">${{ co_value_month|floatformat:0|intcomma }}</div>
@@ -366,7 +366,7 @@
     <div class="section-card">
         <div class="section-header">
             <div class="section-title"><i class="bi bi-star"></i> {% trans "Top Employees This Month" %}</div>
-            <a href="{% url 'employee_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+            <a href="/admin/core/employee/" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
         </div>
         <div class="section-body">
             {% if top_employees %}

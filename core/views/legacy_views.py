@@ -10626,8 +10626,8 @@ def analytics_dashboard(request):
     
     # === PROJECT METRICS ===
     total_projects = Project.objects.count()
-    active_projects = Project.objects.filter(status='active').count()
-    completed_projects = Project.objects.filter(status='completed').count()
+    active_projects = Project.objects.filter(is_archived=False).count()
+    archived_projects = Project.objects.filter(is_archived=True).count()
     
     # Projects this month
     projects_this_month = Project.objects.filter(created_at__gte=month_start).count()
@@ -10648,23 +10648,22 @@ def analytics_dashboard(request):
     
     # CO value this month
     co_value_month = ChangeOrder.objects.filter(
-        created_at__gte=month_start,
+        date_created__gte=month_start,
         status='approved'
     ).aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
     
     # === TASKS METRICS ===
     total_tasks = Task.objects.count()
-    completed_tasks = Task.objects.filter(status='completed').count()
+    completed_tasks = Task.objects.filter(status='Completada').count()
     overdue_tasks = Task.objects.filter(
-        due_date__lt=today,
-        status__in=['pending', 'in_progress']
-    ).count()
+        due_date__lt=today
+    ).exclude(status='Completada').exclude(status='Cancelada').count()
     
     task_completion_rate = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0
     
     # === TOP PROJECTS BY ACTIVITY ===
     top_projects = Project.objects.filter(
-        status='active'
+        is_archived=False
     ).annotate(
         task_count=Count('tasks'),
         co_count=Count('change_orders'),
@@ -10688,7 +10687,7 @@ def analytics_dashboard(request):
         # Project metrics
         'total_projects': total_projects,
         'active_projects': active_projects,
-        'completed_projects': completed_projects,
+        'archived_projects': archived_projects,
         'projects_this_month': projects_this_month,
         # Employee metrics
         'total_employees': total_employees,
