@@ -159,7 +159,10 @@ class FinancialAnalyticsService:
         if cached:
             return cached
         data: list[dict[str, Any]] = []
-        for p in Project.objects.filter(is_archived=False).order_by("name"):
+        # Filter active projects (end_date is None or in the future)
+        for p in Project.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=self.as_of)
+        ).order_by("name"):
             invoiced = p.invoices.aggregate(t=Sum("total_amount"))["t"] or Decimal("0")
             labor_cost = p.timeentry_set.aggregate(
                 t=Sum(F("hours_worked") * F("employee__hourly_rate"))

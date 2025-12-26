@@ -235,7 +235,7 @@ def invoice_aging_report(request):
     }
 
     unpaid_invoices = (
-        Invoice.objects.filter(status__in=["sent", "viewed", "approved", "partial"])
+        Invoice.objects.filter(status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"])
         .select_related("project")
         .order_by("date_issued")
     )
