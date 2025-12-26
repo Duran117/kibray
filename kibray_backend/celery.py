@@ -78,6 +78,12 @@ app.conf.beat_schedule = {
         "schedule": 300.0,  # Every 5 minutes (in seconds)
         "kwargs": {"threshold_minutes": 5},
     },
+    # Cleanup old resource assignments weekly on Sunday at 3 AM
+    "cleanup-old-assignments": {
+        "task": "core.tasks.cleanup_old_assignments",
+        "schedule": crontab(hour=3, minute=0, day_of_week=0),  # Sunday 3 AM
+        "kwargs": {"days": 30},  # Retain only last 30 days
+    },
 }
 
 # Celery configuration

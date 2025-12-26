@@ -979,3 +979,38 @@ def cleanup_old_websocket_metrics():
             "status": "error",
             "error": str(e),
         }
+
+
+@shared_task(name="core.tasks.cleanup_old_assignments")
+def cleanup_old_assignments(days: int = 30):
+    """
+    Elimina asignaciones de empleados anteriores a X días.
+    Reduce costos de almacenamiento sin afectar funcionalidad.
+    
+    Se ejecuta semanalmente (configurar en Celery Beat).
+    """
+    from core.models import ResourceAssignment
+    
+    try:
+        cutoff_date = timezone.localdate() - timedelta(days=days)
+        
+        old_assignments = ResourceAssignment.objects.filter(date__lt=cutoff_date)
+        count = old_assignments.count()
+        
+        if count == 0:
+            logger.info("cleanup_old_assignments: No hay asignaciones antiguas para eliminar.")
+            return {"status": "success", "deleted": 0}
+        
+        deleted, _ = old_assignments.delete()
+        logger.info(f"cleanup_old_assignments: Eliminadas {deleted} asignaciones anteriores a {cutoff_date}")
+        
+        return {
+            "status": "success",
+            "deleted": deleted,
+            "cutoff_date": str(cutoff_date),
+        }
+        
+    except Exception as e:
+        logger.error(f"Error en cleanup_old_assignments: {e}")
+        return {"status": "error", "error": str(e)}
+
