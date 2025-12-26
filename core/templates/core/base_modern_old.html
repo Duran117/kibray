@@ -1,0 +1,177 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}Kibray{% endblock %}</title>
+    
+    {# Tailwind CSS CDN - suppress console warning #}
+    <script>
+        // Suppress Tailwind CDN production warning
+        if (typeof window !== 'undefined') {
+            window.TAILWIND_DISABLE_WARN = true;
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    
+    {# Bootstrap Icons #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    {# Tailwind Config - Kibray Theme #}
+    <script>
+        tailwind.config = {
+            // Disable CDN warning in production
+            corePlugins: { preflight: true },
+            theme: {
+                extend: {
+                    colors: {
+                        kibray: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#6366f1',
+                            700: '#4f46e5',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    {# Custom CSS overrides #}
+    <style>
+    /* Smooth scrolling and overflow guard */
+    html { scroll-behavior: smooth; max-width: 100vw; overflow-x: hidden; }
+    body { max-width: 100vw; overflow-x: hidden; }
+    [data-layout-root] { width: 100%; min-width: 0; }
+    #main-content { min-width: 0; overflow-x: hidden; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Prevent FOUC */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-900 antialiased overflow-x-hidden">
+        {# Optional legacy React navigation shell. Used only in tests / transitional pages. #}
+        {% if enable_react_nav|default:False %}
+            <script id="user-data" type="application/json">
+                {"id":{{ user.id|default:0 }},"username":"{{ user.username|default:'' }}","first_name":"{{ user.first_name|default:'' }}","last_name":"{{ user.last_name|default:'' }}","role":"{{ user.profile.role|default:'pm' }}"}
+            </script>
+            <div id="react-navigation-root"></div>
+            <script src="{% static 'js/kibray-navigation.js' %}"></script>
+        {% endif %}
+
+    {# Header/Navbar - hidden on legacy_shell pages (e.g., project overview with custom nav) #}
+    {% if not legacy_shell|default:False %}
+    {% include "core/components/header.html" %}
+    {% endif %}
+    
+    {# Main Layout #}
+    <div class="flex {% if not legacy_shell|default:False %}min-h-[calc(100vh-64px)]{% else %}min-h-screen{% endif %} w-full min-w-0" data-layout-root>
+    {# Sidebar (on by default, can be hidden via show_sidebar=False or legacy_shell=True) #}
+    {% if show_sidebar|default:True and not legacy_shell|default:False %}
+        {% include "core/components/sidebar.html" %}
+        {% endif %}
+        
+        {# Main Content #}
+        <main class="flex-1 w-full min-w-0 transition-all duration-300 {% if show_sidebar|default:True and not legacy_shell|default:False %}lg:pl-64{% endif %}" id="main-content" tabindex="-1">
+            <div class="w-full px-4 sm:px-6 lg:px-8 py-6 fade-in min-w-0">
+                {# Page Header (optional breadcrumbs, title, actions) #}
+                {% block page_header %}{% endblock %}
+                
+                {# Main Content Area #}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    {# Mobile overlay backdrop for sidebar (omit in legacy shell mode) #}
+    {% if not legacy_shell|default:False %}
+    <div id="kb-sidebar-backdrop" class="fixed inset-0 bg-black/40 opacity-0 pointer-events-none transition-opacity duration-200 z-30"></div>
+    {% endif %}
+    
+    {# Toast/Alert Container #}
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    {# Core JavaScript #}
+    <script src="{% static 'core/js/kibray-core.js' %}"></script>
+    {# NotificationCenter React bundle - DISABLED: bundle was removed during Gantt cleanup
+    {% if user.is_authenticated and not disable_notification_center %}
+    <script type="module" src="{% static 'gantt/notification.DugCJ5ir.js' %}"></script>
+    {% endif %}
+    #}
+    
+    {# Page-specific JavaScript #}
+    {% block extra_js %}{% endblock %}
+    
+    {% if not legacy_shell|default:False %}
+    <script>
+    // Accessible sidebar toggle (mobile overlay)
+    (function(){
+        const sidebar = document.getElementById('kb-sidebar');
+        const backdrop = document.getElementById('kb-sidebar-backdrop');
+        const openBtn = document.getElementById('mobile-menu-toggle');
+        const closeBtn = document.getElementById('kb-sidebar-close');
+        const focusableSelectors = 'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        let lastFocus = null;
+
+        function openSidebar(){
+            if(!sidebar) return;
+            lastFocus = document.activeElement;
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            if(backdrop){
+                backdrop.classList.remove('opacity-0','pointer-events-none');
+                backdrop.classList.add('opacity-100');
+            }
+            document.documentElement.classList.add('overflow-hidden');
+            const focusable = sidebar.querySelectorAll(focusableSelectors);
+            if(focusable.length){ focusable[0].focus(); }
+        }
+        function closeSidebar(){
+            if(!sidebar) return;
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            if(backdrop){
+                backdrop.classList.add('opacity-0','pointer-events-none');
+                backdrop.classList.remove('opacity-100');
+            }
+            document.documentElement.classList.remove('overflow-hidden');
+            if(lastFocus){ lastFocus.focus(); }
+        }
+        openBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        backdrop?.addEventListener('click', closeSidebar);
+        document.addEventListener('keydown', (e)=>{
+            if(e.key === 'Escape') closeSidebar();
+            if(e.key === 'Tab' && sidebar && !sidebar.classList.contains('-translate-x-full')){
+                const focusable = Array.from(sidebar.querySelectorAll(focusableSelectors)).filter(el=>!el.hasAttribute('disabled'));
+                if(!focusable.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length-1];
+                if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+                else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+            }
+        });
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>
