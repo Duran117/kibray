@@ -5269,10 +5269,16 @@ def dashboard_employee(request):
 
     # Horas de la semana (se calcula antes de usar en el briefing)
     week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
     week_entries = TimeEntry.objects.filter(
         employee=employee, date__gte=week_start, date__lte=today
     )
     week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
+    
+    # Cálculo de pago estimado semanal
+    estimated_weekly_pay = None
+    if employee.hourly_rate and week_hours:
+        estimated_weekly_pay = round(float(week_hours) * float(employee.hourly_rate), 2)
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -5454,6 +5460,9 @@ def dashboard_employee(request):
         "now": now,
         "recent": recent,
         "week_hours": week_hours,
+        "week_start": week_start,
+        "week_end": week_end,
+        "estimated_weekly_pay": estimated_weekly_pay,
         "my_activities": my_activities,
         "my_schedule": my_schedule,
         "my_touchups": my_touchups,
