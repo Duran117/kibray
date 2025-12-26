@@ -3224,6 +3224,32 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+    @action(detail=False, methods=["get"])
+    def upcoming(self, request):
+        """Get upcoming daily plans (next 7 days)"""
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        today = timezone.localdate()
+        end_date = today + timedelta(days=7)
+        
+        plans = DailyPlan.objects.filter(
+            plan_date__gte=today,
+            plan_date__lte=end_date
+        ).select_related("project").order_by("plan_date")[:10]
+        
+        result = []
+        for plan in plans:
+            result.append({
+                "id": plan.id,
+                "title": f"{plan.project.name} - Daily Plan",
+                "date": plan.plan_date.isoformat(),
+                "project": plan.project.name,
+                "status": plan.status,
+            })
+        
+        return Response(result)
+
     @action(detail=True, methods=["post"])
     def fetch_weather(self, request, pk=None):
         """Fetch and attach weather data to the plan"""
