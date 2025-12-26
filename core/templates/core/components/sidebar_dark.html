@@ -67,10 +67,12 @@
                     <i class="bi bi-compass"></i>
                     <span>{% trans "Strategic" %}</span>
                 </a>
+                {% if user.is_superuser or role == 'admin' %}
                 <a href="{% url 'master_schedule_center' %}" class="sidebar-item">
                     <i class="bi bi-calendar3"></i>
                     <span>{% trans "Master Schedule" %}</span>
                 </a>
+                {% endif %}
                 <a href="{% url 'assignment_hub' %}" class="sidebar-item">
                     <i class="bi bi-people"></i>
                     <span>{% trans "Team Assignments" %}</span>

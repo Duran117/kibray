@@ -7024,6 +7024,29 @@ def materials_mark_ordered_view(request, request_id):
 
 
 @login_required
+@staff_required
+@require_POST
+def materials_request_delete_view(request, request_id):
+    """
+    Elimina una solicitud de materiales (solo staff/admin).
+    """
+    mat_request = get_object_or_404(MaterialRequest, pk=request_id)
+    project_id = mat_request.project_id
+    req_id = mat_request.id
+    
+    # Delete the request (items will be deleted via CASCADE)
+    mat_request.delete()
+    
+    messages.success(
+        request, _("Solicitud #%(id)s eliminada correctamente.") % {"id": req_id}
+    )
+    
+    if project_id:
+        return redirect("materials_requests_list", project_id=project_id)
+    return redirect("materials_requests_list_all")
+
+
+@login_required
 def materials_request_detail_view(request, request_id):
     """
     Muestra detalle de solicitud con ítems.

@@ -686,6 +686,11 @@ urlpatterns = [
         views.materials_mark_ordered_view,
         name="materials_mark_ordered",
     ),
+    path(
+        "materials/requests/<int:request_id>/delete/",
+        views.materials_request_delete_view,
+        name="materials_request_delete",
+    ),
     # ACTIVITY 2: Material Request Workflow (Q14.4, Q14.10, Q14.6)
     path(
         "materials/requests/<int:request_id>/submit/",

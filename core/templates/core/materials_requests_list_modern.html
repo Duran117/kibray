@@ -133,6 +133,17 @@
                                 </button>
                             </form>
                             {% endif %}
+                            
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <form method="post" action="{% url 'materials_request_delete' req.id %}" class="m-0"
+                                  onsubmit="return confirm('{% trans "Are you sure you want to delete this request?" %}');">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="w-full px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">
+                                    <i class="bi bi-trash mr-1"></i>{% trans "Delete" %}
+                                </button>
+                            </form>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
