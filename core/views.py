@@ -3073,7 +3073,14 @@ def changeorder_board_view(request):
 # --- DASHBOARD ASIGNACIÓN DE CHANGE ORDERS ---
 @login_required
 def unassigned_timeentries_view(request):
-    """Lista de TimeEntries sin change_order para asignación masiva por PM/admin."""
+    """
+    Lista de TimeEntries sin change_order para asignación masiva por PM/admin.
+    
+    IMPORTANTE: Solo muestra TimeEntries que tienen cost_code asignado,
+    lo cual indica que es trabajo presupuestado que debería ir a un CO.
+    El trabajo normal del proyecto (sin cost_code) NO aparece aquí porque
+    es parte del contrato base, no de change orders.
+    """
     try:
         profile = request.user.profile
     except Profile.DoesNotExist:
@@ -3090,12 +3097,23 @@ def unassigned_timeentries_view(request):
     employee_id = request.GET.get("employee")
     date_from = request.GET.get("from")
     date_to = request.GET.get("to")
+    
+    # Opción para mostrar todos (incluyendo trabajo sin cost_code) - solo para admins
+    show_all = request.GET.get("show_all") == "1" and request.user.is_superuser
 
-    qs = (
-        TimeEntry.objects.filter(change_order__isnull=True)
-        .select_related("employee", "project")
-        .order_by("-date")
+    # Base query: TimeEntries sin change_order asignado
+    # Por defecto, solo mostramos las que tienen cost_code (trabajo presupuestado)
+    # El trabajo normal del proyecto (sin cost_code) es parte del contrato base
+    qs = TimeEntry.objects.filter(change_order__isnull=True).select_related(
+        "employee", "project", "cost_code"
     )
+    
+    if not show_all:
+        # Solo mostrar TimeEntries con cost_code = trabajo presupuestado pendiente de CO
+        qs = qs.filter(cost_code__isnull=False)
+    
+    qs = qs.order_by("-date")
+    
     if project_id:
         qs = qs.filter(project_id=project_id)
     if employee_id:
@@ -3224,6 +3242,8 @@ def unassigned_timeentries_view(request):
                 "page_size": page_size,
             },
             "page_sizes": [25, 50, 100],
+            "show_all": show_all,
+            "is_superuser": request.user.is_superuser,
         },
     )
 

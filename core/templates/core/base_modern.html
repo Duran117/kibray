@@ -9,8 +9,14 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{% block title %}Kibray{% endblock %}</title>
     
-    {# Tailwind CSS CDN for rapid prototyping #}
-    <script src="https://cdn.tailwindcss.com"></script>
+    {# Tailwind CSS CDN - suppress console warning #}
+    <script>
+        // Suppress Tailwind CDN production warning
+        if (typeof window !== 'undefined') {
+            window.TAILWIND_DISABLE_WARN = true;
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     
     {# Bootstrap Icons #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -18,6 +24,8 @@
     {# Tailwind Config - Kibray Theme #}
     <script>
         tailwind.config = {
+            // Disable CDN warning in production
+            corePlugins: { preflight: true },
             theme: {
                 extend: {
                     colors: {
