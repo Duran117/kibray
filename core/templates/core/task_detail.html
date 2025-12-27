@@ -61,7 +61,7 @@
   </div>
   
   <!-- ACTIVITY 1: Time tracking buttons (Q11.13) -->
-  {% if request.user.is_staff or (employee and not task.is_touchup and task.assigned_to_id == employee.id) %}
+  {% if request.user.is_staff or employee and not task.is_touchup and task.assigned_to_id == employee.id %}
   <div class="alert alert-info" role="alert">
     <h5 class="alert-heading"><i class="bi bi-stopwatch"></i> {% trans 'Seguimiento de tiempo' %}</h5>
     <p class="mb-2">{% trans 'Registra el tiempo que trabajas en esta tarea' %}</p>

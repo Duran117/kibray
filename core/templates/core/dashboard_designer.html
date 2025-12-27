@@ -36,11 +36,7 @@
         <div class="list-group">
           {% for p in projects %}
             <a href="{% url 'project_overview' p.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-            </div>
-
-          {% endblock %}
-          {% endcomment %}
-              </div>
+              <div>{{ p.name }}</div>
               <span class="badge bg-info">{{ p.status }}</span>
             </a>
           {% endfor %}

@@ -277,6 +277,27 @@ class BudgetLineForm(forms.ModelForm):
             "planned_finish",
             "weight_override",
         ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make fields with defaults not required
+        self.fields['qty'].required = False
+        self.fields['unit_cost'].required = False
+        self.fields['revised_amount'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Set defaults if not provided
+        if not cleaned_data.get('qty'):
+            cleaned_data['qty'] = 0
+        if not cleaned_data.get('unit_cost'):
+            cleaned_data['unit_cost'] = 0
+        if not cleaned_data.get('revised_amount'):
+            # Calculate from qty * unit_cost if not provided
+            qty = cleaned_data.get('qty', 0) or 0
+            unit_cost = cleaned_data.get('unit_cost', 0) or 0
+            cleaned_data['revised_amount'] = qty * unit_cost
+        return cleaned_data
 
 
 EstimateLineFormSet = inlineformset_factory(
