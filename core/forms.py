@@ -95,9 +95,31 @@ class ScheduleForm(forms.ModelForm):
 
 
 class ExpenseForm(forms.ModelForm):
+    """Formulario para crear/editar gastos."""
+    
     class Meta:
         model = Expense
-        fields = "__all__"
+        fields = ["project", "amount", "date", "category", "description", "receipt", "invoice", "change_order", "cost_code"]
+        widgets = {
+            "project": forms.Select(attrs={"class": "form-select modern-input"}),
+            "amount": forms.NumberInput(attrs={"class": "form-control modern-input", "step": "0.01", "min": "0", "placeholder": "0.00"}),
+            "date": forms.DateInput(attrs={"class": "form-control modern-input", "type": "date"}),
+            "category": forms.Select(attrs={"class": "form-select modern-input"}),
+            "description": forms.Textarea(attrs={"class": "form-control modern-input", "rows": 3, "placeholder": "Descripción del gasto..."}),
+            "receipt": forms.FileInput(attrs={"class": "form-control", "accept": "image/*,.pdf"}),
+            "invoice": forms.FileInput(attrs={"class": "form-control", "accept": "image/*,.pdf"}),
+            "change_order": forms.Select(attrs={"class": "form-select modern-input"}),
+            "cost_code": forms.Select(attrs={"class": "form-select modern-input"}),
+        }
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Auto-fill project_name from project
+        if instance.project:
+            instance.project_name = instance.project.name
+        if commit:
+            instance.save()
+        return instance
 
 
 class IncomeForm(forms.ModelForm):

@@ -1,55 +1,390 @@
 {% extends "core/base_modern.html" %}
 {% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Expenses" %} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Hero Section */
+.expense-hero {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 50%, #bd2130 100%);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+.expense-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.expense-hero h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+.expense-hero .stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+}
+.expense-hero .stat-item {
+    text-align: center;
+}
+.expense-hero .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+.expense-hero .stat-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Filter Bar */
+.filter-bar {
+    background: white;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filter-bar select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: #f9fafb;
+}
+.filter-bar .btn-new {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+.filter-bar .btn-new:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+    color: white;
+}
+
+/* Expense Cards - Mobile First */
+.expense-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.expense-card {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 1rem;
+    transition: all 0.2s;
+    border-left: 4px solid #dc3545;
+}
+.expense-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+.expense-card .card-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+.expense-card .amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #dc3545;
+}
+.expense-card .date {
+    font-size: 0.75rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.expense-card .project-name {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+.expense-card .category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #fef2f2;
+    color: #dc3545;
+}
+.expense-card .description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.5rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.expense-card .card-footer-custom {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f3f4f6;
+}
+.expense-card .btn-action {
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s;
+}
+.expense-card .btn-edit {
+    background: #f3f4f6;
+    color: #374151;
+}
+.expense-card .btn-edit:hover {
+    background: #e5e7eb;
+}
+.expense-card .btn-delete {
+    background: #fef2f2;
+    color: #dc3545;
+}
+.expense-card .btn-delete:hover {
+    background: #fee2e2;
+}
+.expense-card .btn-receipt {
+    background: #ecfdf5;
+    color: #059669;
+}
+.expense-card .btn-receipt:hover {
+    background: #d1fae5;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.empty-state i {
+    font-size: 3rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+.empty-state h3 {
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+.empty-state p {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+.empty-state .btn-add {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Floating Action Button - Mobile */
+.fab-add {
+    display: none;
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 16px rgba(220,53,69,0.4);
+    font-size: 1.5rem;
+    z-index: 1000;
+    text-decoration: none;
+    align-items: center;
+    justify-content: center;
+}
+@media (max-width: 768px) {
+    .fab-add {
+        display: flex;
+    }
+    .filter-bar .btn-new {
+        display: none;
+    }
+    .expense-hero {
+        border-radius: 0;
+        margin: -1rem -1rem 1rem -1rem;
+        padding: 1.25rem;
+    }
+    .expense-hero h1 {
+        font-size: 1.25rem;
+    }
+    .expense-hero .stats {
+        gap: 1rem;
+    }
+    .expense-hero .stat-value {
+        font-size: 1.25rem;
+    }
+}
+
+/* Category Colors */
+.category-MATERIALES { background: #dbeafe; color: #1e40af; }
+.category-COMIDA { background: #fef3c7; color: #92400e; }
+.category-SEGURO { background: #d1fae5; color: #065f46; }
+.category-ALMACÉN { background: #e0e7ff; color: #3730a3; }
+.category-MANO_OBRA { background: #fce7f3; color: #9d174d; }
+.category-OFICINA { background: #f3e8ff; color: #6b21a8; }
+.category-OTRO { background: #f3f4f6; color: #374151; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2><i class="bi bi-receipt"></i> {% trans "Gastos" %}</h2>
-    <div class="btn-group">
-      <a href="{% url 'expense_create' %}" class="btn btn-danger btn-sm">
-        <i class="bi bi-plus-circle"></i> {% trans "Nuevo Gasto" %}
-      </a>
+<div class="container-fluid py-3" style="max-width: 900px;">
+    
+    <!-- Hero Section with Stats -->
+    <div class="expense-hero">
+        <h1>
+            <i class="bi bi-receipt me-2"></i>{% trans "Gastos" %}
+        </h1>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ expenses|length }}</div>
+                <div class="stat-label">{% trans "Total Gastos" %}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${{ total_amount|floatformat:0|default:"0" }}</div>
+                <div class="stat-label">{% trans "Monto Total" %}</div>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead>
-          <tr>
-            <th>{% trans "Fecha" %}</th>
-            <th>{% trans "Proyecto" %}</th>
-            <th>{% trans "Descripción" %}</th>
-            <th class="text-end">{% trans "Monto" %}</th>
-            <th>{% trans "Acciones" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for exp in expenses %}
-          <tr>
-            <td>{{ exp.date|date:'Y-m-d' }}</td>
-            <td>{{ exp.project.name|default:'—' }}</td>
-            <td>{{ exp.description|default:'—' }}</td>
-            <td class="text-end">${{ exp.amount|floatformat:2 }}</td>
-            <td>
-              <div class="btn-group btn-group-sm">
-                <a href="{% url 'expense_edit' exp.id %}" class="btn btn-outline-secondary">
-                  <i class="bi bi-pencil"></i>
-                </a>
-                <a href="{% url 'expense_delete' exp.id %}" class="btn btn-outline-danger">
-                  <i class="bi bi-trash"></i>
-                </a>
-              </div>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="5" class="text-center text-muted py-5">{% trans "Sin gastos" %}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center" style="flex: 1;">
+            <select name="project" onchange="this.form.submit()">
+                <option value="">{% trans "Todos los proyectos" %}</option>
+                {% for p in projects %}
+                <option value="{{ p.id }}" {% if request.GET.project == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="category" onchange="this.form.submit()">
+                <option value="">{% trans "Todas las categorías" %}</option>
+                <option value="MATERIALES" {% if request.GET.category == "MATERIALES" %}selected{% endif %}>{% trans "Materiales" %}</option>
+                <option value="COMIDA" {% if request.GET.category == "COMIDA" %}selected{% endif %}>{% trans "Comida" %}</option>
+                <option value="SEGURO" {% if request.GET.category == "SEGURO" %}selected{% endif %}>{% trans "Seguro" %}</option>
+                <option value="ALMACÉN" {% if request.GET.category == "ALMACÉN" %}selected{% endif %}>{% trans "Almacén" %}</option>
+                <option value="MANO_OBRA" {% if request.GET.category == "MANO_OBRA" %}selected{% endif %}>{% trans "Mano de obra" %}</option>
+                <option value="OFICINA" {% if request.GET.category == "OFICINA" %}selected{% endif %}>{% trans "Oficina" %}</option>
+                <option value="OTRO" {% if request.GET.category == "OTRO" %}selected{% endif %}>{% trans "Otro" %}</option>
+            </select>
+        </form>
+        <a href="{% url 'expense_create' %}" class="btn-new">
+            <i class="bi bi-plus-lg"></i>
+            {% trans "Nuevo Gasto" %}
+        </a>
     </div>
-  </div>
+    
+    <!-- Expense Cards -->
+    {% if expenses %}
+    <div class="expense-cards">
+        {% for exp in expenses %}
+        <div class="expense-card">
+            <div class="card-header-custom">
+                <div>
+                    <div class="project-name">{{ exp.project.name|default:"Sin proyecto" }}</div>
+                    <span class="category-badge category-{{ exp.category }}">{{ exp.get_category_display }}</span>
+                </div>
+                <div style="text-align: right;">
+                    <div class="amount">${{ exp.amount|floatformat:2 }}</div>
+                    <div class="date">
+                        <i class="bi bi-calendar3 me-1"></i>{{ exp.date|date:"d M Y" }}
+                    </div>
+                </div>
+            </div>
+            
+            {% if exp.description %}
+            <div class="description">{{ exp.description }}</div>
+            {% endif %}
+            
+            <div class="card-footer-custom">
+                {% if exp.receipt %}
+                <a href="{{ exp.receipt.url }}" target="_blank" class="btn-action btn-receipt">
+                    <i class="bi bi-file-earmark-image"></i>
+                    {% trans "Recibo" %}
+                </a>
+                {% endif %}
+                <a href="{% url 'expense_edit' exp.id %}" class="btn-action btn-edit">
+                    <i class="bi bi-pencil"></i>
+                    {% trans "Editar" %}
+                </a>
+                <a href="{% url 'expense_delete' exp.id %}" class="btn-action btn-delete">
+                    <i class="bi bi-trash"></i>
+                    {% trans "Eliminar" %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="bi bi-receipt"></i>
+        <h3>{% trans "No hay gastos registrados" %}</h3>
+        <p>{% trans "Comienza a registrar los gastos de tus proyectos" %}</p>
+        <a href="{% url 'expense_create' %}" class="btn-add">
+            <i class="bi bi-plus-lg"></i>
+            {% trans "Agregar Primer Gasto" %}
+        </a>
+    </div>
+    {% endif %}
 </div>
+
+<!-- Floating Action Button for Mobile -->
+<a href="{% url 'expense_create' %}" class="fab-add">
+    <i class="bi bi-plus-lg"></i>
+</a>
 {% endblock %}
+

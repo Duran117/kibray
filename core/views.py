@@ -1071,7 +1071,10 @@ def expense_create_view(request):
         if form.is_valid():
             expense = form.save()
             _update_project_total_expenses(expense.project)
-            return redirect("dashboard")
+            messages.success(request, _("Gasto guardado correctamente."))
+            return redirect("expense_list")
+        else:
+            messages.error(request, _("Por favor corrige los errores del formulario."))
     else:
         form = ExpenseForm()
     return render(request, "core/expense_form.html", {"form": form})
@@ -1154,17 +1157,36 @@ def income_delete_view(request, income_id):
 
 @login_required
 def expense_list(request):
-    from core.models import Expense
+    from core.models import Expense, Project
+    from django.db.models import Sum
 
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
         return redirect("dashboard")
+    
     qs = Expense.objects.select_related("project").all().order_by("-date")
+    
+    # Filters
     project_id = request.GET.get("project")
     if project_id:
         qs = qs.filter(project_id=project_id)
-    return render(request, "core/expense_list.html", {"expenses": qs})
+    
+    category = request.GET.get("category")
+    if category:
+        qs = qs.filter(category=category)
+    
+    # Calculate total
+    total_amount = qs.aggregate(total=Sum("amount"))["total"] or 0
+    
+    # Get projects for filter
+    projects = Project.objects.all().order_by("name")
+    
+    return render(request, "core/expense_list.html", {
+        "expenses": qs,
+        "total_amount": total_amount,
+        "projects": projects,
+    })
 
 
 @login_required
