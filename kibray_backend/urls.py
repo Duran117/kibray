@@ -372,6 +372,11 @@ urlpatterns = [
         name="changeorder_billing_history",
     ),
     path(
+        "changeorder/<int:changeorder_id>/cost-breakdown/",
+        views.changeorder_cost_breakdown_view,
+        name="changeorder_cost_breakdown",
+    ),
+    path(
         "changeorder/<int:changeorder_id>/sign/",
         views.changeorder_customer_signature_view,
         name="changeorder_customer_signature",

@@ -2913,6 +2913,75 @@ def changeorder_billing_history_view(request, changeorder_id):
     return render(request, "core/changeorder_billing_history.html", context)
 
 
+@login_required
+def changeorder_cost_breakdown_view(request, changeorder_id):
+    """
+    Vista estilo factura para mostrar el desglose de costos de un Change Order.
+    Separa Materiales vs Mano de Obra para fácil envío al cliente.
+    """
+    from decimal import Decimal
+
+    from django.db.models import Sum
+
+    changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
+
+    # Get all expenses associated with this CO, separated by category
+    material_expenses = changeorder.expenses.filter(
+        category__in=["MATERIALES", "ALMACÉN"]
+    ).order_by("date")
+    other_expenses = changeorder.expenses.exclude(
+        category__in=["MATERIALES", "ALMACÉN", "MANO_OBRA"]
+    ).order_by("date")
+
+    # Get all time entries for labor costs
+    time_entries = changeorder.time_entries.select_related("employee").order_by("date")
+
+    # Calculate totals
+    total_materials = material_expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    total_other_expenses = other_expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+    # Labor cost from TimeEntries
+    labor_cost = sum(entry.labor_cost for entry in time_entries)
+    total_hours = sum((entry.hours_worked or Decimal("0")) for entry in time_entries)
+
+    # Apply markup if CO has T&M pricing
+    material_markup_pct = Decimal("0")
+    billing_rate = Decimal("50.00")  # Default rate
+
+    if hasattr(changeorder, "pricing_type") and changeorder.pricing_type == "T_AND_M":
+        material_markup_pct = changeorder.material_markup_percent or Decimal("0")
+        billing_rate = changeorder.get_effective_billing_rate() if hasattr(changeorder, "get_effective_billing_rate") else Decimal("50.00")
+
+    # Calculate billable amounts with markup
+    material_with_markup = total_materials * (1 + material_markup_pct / Decimal("100"))
+    labor_billable = total_hours * billing_rate
+
+    # Grand totals
+    subtotal_cost = total_materials + labor_cost + total_other_expenses
+    subtotal_billable = material_with_markup + labor_billable + total_other_expenses
+    profit_margin = subtotal_billable - subtotal_cost if subtotal_billable > 0 else Decimal("0.00")
+
+    context = {
+        "changeorder": changeorder,
+        "material_expenses": material_expenses,
+        "other_expenses": other_expenses,
+        "time_entries": time_entries,
+        "total_materials": total_materials,
+        "total_other_expenses": total_other_expenses,
+        "labor_cost": labor_cost,
+        "total_hours": total_hours,
+        "material_markup_pct": material_markup_pct,
+        "billing_rate": billing_rate,
+        "material_with_markup": material_with_markup,
+        "labor_billable": labor_billable,
+        "subtotal_cost": subtotal_cost,
+        "subtotal_billable": subtotal_billable,
+        "profit_margin": profit_margin,
+    }
+
+    return render(request, "core/changeorder_cost_breakdown.html", context)
+
+
 def changeorder_customer_signature_view(request, changeorder_id, token=None):
     """Vista pública para capturar firma de cliente en Change Orders.
     Mejoras:

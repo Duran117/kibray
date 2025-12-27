@@ -635,6 +635,9 @@
             <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Volver al Board
             </a>
+            <a href="{% url 'changeorder_cost_breakdown' changeorder.id %}" class="btn btn-outline" style="border-color: #8b5cf6; color: #8b5cf6;">
+                <i class="bi bi-calculator"></i> Ver Desglose de Costos
+            </a>
             {% if changeorder.status in 'billed,paid' %}
             <a href="{% url 'changeorder_billing_history' changeorder.id %}" class="btn btn-outline" style="border-color: #059669; color: #059669;">
                 <i class="bi bi-receipt-cutoff"></i> Ver Historial de Facturación
