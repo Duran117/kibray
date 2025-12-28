@@ -853,6 +853,8 @@ class ScheduleCategorySerializer(serializers.ModelSerializer):
             "order",
             "parent",
             "is_phase",
+            "start_date",
+            "end_date",
             "cost_code",
             "item_count",
             "percent_complete",

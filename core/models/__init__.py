@@ -724,6 +724,8 @@ class ScheduleCategory(models.Model):
         default=False,
         help_text="Marcar si esta categoría representa una fase agregada del cronograma",
     )
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
     cost_code = models.ForeignKey(
         "CostCode",
         on_delete=models.SET_NULL,
