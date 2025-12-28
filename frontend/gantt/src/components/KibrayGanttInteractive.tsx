@@ -211,7 +211,9 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   const days = getDaysBetween(dateRange.start, dateRange.end);
   const config = ZOOM_CONFIG[zoom];
   const timelineWidth = days * config.dayWidth;
-  const timelineHeight = HEADER_HEIGHT + visibleRows.length * ROW_HEIGHT;
+  // Ensure minimum height for empty grid (at least 10 rows)
+  const effectiveRowCount = Math.max(visibleRows.length, 10);
+  const timelineHeight = HEADER_HEIGHT + effectiveRowCount * ROW_HEIGHT;
 
   // Handlers
   const handleToggleCategory = useCallback((categoryId: number) => {
@@ -234,9 +236,14 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   }, [dragState.isDragging]);
 
   const handleGridClick = useCallback((date: Date, rowIndex: number) => {
-    if (!canEdit || dragState.isDragging) return;
+    console.log('[KibrayGantt] handleGridClick called:', { date, rowIndex, canEdit, isDragging: dragState.isDragging });
+    if (!canEdit || dragState.isDragging) {
+      console.log('[KibrayGantt] handleGridClick blocked:', { canEdit, isDragging: dragState.isDragging });
+      return;
+    }
     
     // Open create modal
+    console.log('[KibrayGantt] Opening create modal for date:', date);
     setCreateModalDate(date);
     setIsCreateModalOpen(true);
   }, [canEdit, dragState.isDragging]);
@@ -426,12 +433,12 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
               height={HEADER_HEIGHT}
             />
 
-            {/* Grid */}
+            {/* Grid - ensure minimum rows for click-to-create even when empty */}
             <GanttGrid
               dateRange={dateRange}
               zoom={zoom}
               rowHeight={ROW_HEIGHT}
-              rowCount={visibleRows.length}
+              rowCount={Math.max(visibleRows.length, 10)}
               headerHeight={HEADER_HEIGHT}
               onClick={handleGridClick}
             />
