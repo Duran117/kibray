@@ -241,7 +241,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
             </div>
 
             {/* Category (Stage) */}
-            {itemType !== 'personal' && localCategories.length > 0 && (
+            {itemType !== 'personal' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Stage
@@ -265,7 +265,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">No stage</option>
+                  {localCategories.length === 0 && <option value="">No stages yet</option>}
                   {localCategories.map(cat => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name} ({cat.remaining_weight_percent ?? 100}% available)
