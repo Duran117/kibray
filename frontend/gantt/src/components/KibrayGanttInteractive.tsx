@@ -24,6 +24,7 @@ import { GanttHeader } from './GanttHeader';
 import { GanttSidebar } from './GanttSidebar';
 import { GanttGrid } from './GanttGrid';
 import { GanttBar } from './GanttBarInteractive';
+import { GanttStageBar } from './GanttStageBar';
 import { GanttDependencyLines } from './GanttDependencyLines';
 import { SlideOverPanel } from './SlideOverPanel';
 import { CreateItemModal } from './CreateItemModal';
@@ -77,11 +78,53 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
 
   // Local items state (for optimistic updates)
   const [items, setItems] = useState<GanttItem[]>(initialItems);
+  const [localCategories, setLocalCategories] = useState<GanttCategory[]>(categories);
   
   // Sync with prop changes
   useEffect(() => {
     setItems(initialItems);
   }, [initialItems]);
+
+  useEffect(() => {
+    setLocalCategories(categories);
+  }, [categories]);
+
+  const categoryDateRanges = useMemo(() => {
+    const itemsByCategory = new Map<number, GanttItem[]>();
+    items.forEach(item => {
+      if (item.category_id == null) return;
+      const list = itemsByCategory.get(item.category_id) || [];
+      list.push(item);
+      itemsByCategory.set(item.category_id, list);
+    });
+
+    const ranges = new Map<number, { start: Date; end: Date }>();
+    localCategories.forEach(category => {
+      if (category.id < 0) return;
+      const categoryItems = itemsByCategory.get(category.id) || [];
+      let minItemStart: Date | null = null;
+      let maxItemEnd: Date | null = null;
+
+      categoryItems.forEach(item => {
+        const itemStart = new Date(item.start_date);
+        const itemEnd = new Date(item.end_date);
+        if (!minItemStart || itemStart < minItemStart) minItemStart = itemStart;
+        if (!maxItemEnd || itemEnd > maxItemEnd) maxItemEnd = itemEnd;
+      });
+
+      let start = category.start_date ? new Date(category.start_date) : minItemStart;
+      let end = category.end_date ? new Date(category.end_date) : maxItemEnd;
+
+      if (start && !end) end = start;
+      if (end && !start) start = end;
+
+      if (start && end) {
+        ranges.set(category.id, { start, end });
+      }
+    });
+
+    return ranges;
+  }, [localCategories, items]);
 
   // State
   const [viewMode, setViewMode] = useState<ViewMode>('gantt');
@@ -108,7 +151,15 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   const dateRange = useMemo<DateRange>(() => {
     if (initialDateRange) return initialDateRange;
 
-    if (items.length === 0) {
+    const candidateDates: Date[] = [];
+    items.forEach(item => {
+      candidateDates.push(new Date(item.start_date), new Date(item.end_date));
+    });
+    categoryDateRanges.forEach(range => {
+      candidateDates.push(range.start, range.end);
+    });
+
+    if (candidateDates.length === 0) {
       const today = new Date();
       return {
         start: addDays(today, -15),
@@ -116,21 +167,18 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       };
     }
 
-    let minDate = new Date(items[0].start_date);
-    let maxDate = new Date(items[0].end_date);
-
-    items.forEach(item => {
-      const start = new Date(item.start_date);
-      const end = new Date(item.end_date);
-      if (start < minDate) minDate = start;
-      if (end > maxDate) maxDate = end;
+    let minDate = candidateDates[0];
+    let maxDate = candidateDates[0];
+    candidateDates.forEach(date => {
+      if (date < minDate) minDate = date;
+      if (date > maxDate) maxDate = date;
     });
 
     return {
       start: addDays(minDate, -14),
       end: addDays(maxDate, 21),
     };
-  }, [items, initialDateRange]);
+  }, [items, categoryDateRanges, initialDateRange]);
 
   // Drag and drop handler
   const handleDragUpdate = useCallback((item: GanttItem, newStartDate: Date, newEndDate: Date) => {
@@ -167,7 +215,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   const visibleRows = useMemo(() => {
     const rows: { type: 'category' | 'item'; data: GanttCategory | GanttItem }[] = [];
     
-    const sortedCategories = [...categories].sort((a, b) => a.order - b.order);
+    const sortedCategories = [...localCategories].sort((a, b) => a.order - b.order);
     const orphanItems = items.filter(i => !i.category_id).sort((a, b) => a.order - b.order);
 
     sortedCategories.forEach(category => {
@@ -194,7 +242,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
     }
 
     return rows;
-  }, [categories, items, collapsedCategories, projectId]);
+  }, [localCategories, items, collapsedCategories, projectId]);
 
   // Map item IDs to row indices
   const itemRowMap = useMemo(() => {
@@ -400,7 +448,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         <GanttSidebar
-          categories={categories}
+          categories={localCategories}
           items={items}
           rowHeight={ROW_HEIGHT}
           width={SIDEBAR_WIDTH}
@@ -453,6 +501,28 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
               height={timelineHeight}
             />
 
+            {/* Stage bars */}
+            {visibleRows.map((row, index) => {
+              if (row.type !== 'category') return null;
+              const category = row.data as GanttCategory;
+              const range = categoryDateRanges.get(category.id);
+              if (!range) return null;
+
+              return (
+                <GanttStageBar
+                  key={`stage-${category.id}`}
+                  category={category}
+                  dateRange={dateRange}
+                  zoom={zoom}
+                  rowHeight={ROW_HEIGHT}
+                  rowIndex={index}
+                  headerHeight={HEADER_HEIGHT}
+                  startDate={range.start}
+                  endDate={range.end}
+                />
+              );
+            })}
+
             {/* Task bars */}
             {visibleRows.map((row, index) => {
               if (row.type !== 'item') return null;
@@ -486,7 +556,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       <SlideOverPanel
         isOpen={isPanelOpen}
         item={selectedItem}
-        categories={categories}
+        categories={localCategories}
         onClose={handlePanelClose}
         onSave={handleItemSave}
         onDelete={handleItemDelete}
@@ -505,9 +575,13 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       <CreateItemModal
         isOpen={isCreateModalOpen}
         initialDate={createModalDate}
-        categories={categories}
+        categories={localCategories}
+        projectId={projectId}
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateItem}
+        onStageCreated={(category) => {
+          setLocalCategories(prev => [...prev, category]);
+        }}
       />
 
       {/* Create task modal */}

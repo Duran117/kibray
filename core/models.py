@@ -8640,6 +8640,8 @@ class SchedulePhaseV2(models.Model):
         default=False,
         help_text=_("Permitir trabajo en domingo para esta fase (por defecto se bloquea)"),
     )
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

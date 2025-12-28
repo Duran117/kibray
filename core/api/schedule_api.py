@@ -19,6 +19,7 @@ from core.api.serializer_classes.schedule_v2_serializers import (
     ScheduleItemV2Serializer,
     ScheduleItemV2WriteSerializer,
     SchedulePhaseV2Serializer,
+    SchedulePhaseV2WriteSerializer,
     ScheduleTaskV2Serializer,
     ScheduleTaskV2WriteSerializer,
 )
@@ -442,6 +443,27 @@ def get_project_gantt_v2(request, project_id=None):
             },
         }
     )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_schedule_phase_v2(request):
+    serializer = SchedulePhaseV2WriteSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    phase = serializer.save()
+    return Response(SchedulePhaseV2Serializer(phase).data, status=201)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_schedule_phase_v2(request, phase_id: int):
+    phase = SchedulePhaseV2.objects.filter(id=phase_id).first()
+    if not phase:
+        return Response({"error": "phase not found"}, status=404)
+    serializer = SchedulePhaseV2WriteSerializer(phase, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    phase = serializer.save()
+    return Response(SchedulePhaseV2Serializer(phase).data)
 
 
 @api_view(["POST"])

@@ -3,15 +3,16 @@
 // Modal for creating new items on click-to-create
 // =============================================================================
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getGanttApi } from '../api/ganttApi';
-import { GanttCategory, ItemStatus } from '../types/gantt';
-import { formatDate } from '../utils/dateUtils';
+import { GanttCategory, ItemStatus, ItemType } from '../types/gantt';
+import { addDays, formatDate } from '../utils/dateUtils';
 
 interface CreateItemModalProps {
   isOpen: boolean;
   initialDate: Date;
   categories: GanttCategory[];
+  projectId?: number;
   onClose: () => void;
   onCreate: (item: {
     title: string;
@@ -23,17 +24,24 @@ interface CreateItemModalProps {
     weight_percent: number;
     is_milestone: boolean;
     is_personal: boolean;
-  }) => void;
+  }) => void | Promise<void>;
+  onStageCreated?: (category: GanttCategory) => void;
 }
 
-type ItemType = 'task' | 'milestone' | 'personal';
+const ITEM_TYPES: { value: ItemType; label: string; icon: string; color: string }[] = [
+  { value: 'task', label: 'Task', icon: '📋', color: 'blue' },
+  { value: 'milestone', label: 'Milestone', icon: '🎯', color: 'violet' },
+  { value: 'personal', label: 'Personal', icon: '👤', color: 'amber' },
+];
 
 export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   isOpen,
   initialDate,
   categories,
+  projectId,
   onClose,
   onCreate,
+  onStageCreated,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -41,42 +49,91 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   const [itemType, setItemType] = useState<ItemType>('task');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState(formatDate(initialDate));
-  const [endDate, setEndDate] = useState(formatDate(new Date(initialDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [status] = useState<ItemStatus>('not_started');
   const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [weightPercent, setWeightPercent] = useState<number>(0);
+  const [weightPercent, setWeightPercent] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [localCategories, setLocalCategories] = useState<GanttCategory[]>(categories);
   const [showStageModal, setShowStageModal] = useState(false);
   const [newStageName, setNewStageName] = useState('');
   const [newStageColor, setNewStageColor] = useState('#1F2937');
+  const [stageStartDate, setStageStartDate] = useState('');
+  const [stageEndDate, setStageEndDate] = useState('');
   const [creatingStage, setCreatingStage] = useState(false);
 
-  // Get selected category info
-  const selectedCategory = categories.find(c => c.id === categoryId);
-  const remainingWeight = selectedCategory?.remaining_weight_percent ?? 100;
+  const selectedCategory = localCategories.find(cat => cat.id === categoryId) || null;
+  const remainingWeight = Math.max(0, selectedCategory?.remaining_weight_percent ?? 100);
 
-  // Local categories state for dynamic add
-  const [localCategories, setLocalCategories] = useState(categories);
-  useEffect(() => { setLocalCategories(categories); }, [categories]);
-
-  // Reset form when modal opens
   useEffect(() => {
-    if (isOpen) {
-      setItemType('task');
-      setTitle('');
-      setDescription('');
-      setStartDate(formatDate(initialDate));
-      setEndDate(formatDate(new Date(initialDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
-  setCategoryId(categories.length > 0 ? categories[0].id : null);
-      setWeightPercent(0);
-      setIsSubmitting(false);
+    setLocalCategories(categories);
+  }, [categories]);
 
-      // Focus title input
-      setTimeout(() => titleInputRef.current?.focus(), 100);
+  useEffect(() => {
+    if (itemType === 'personal') return;
+    if (categoryId && !localCategories.some(cat => cat.id === categoryId)) {
+      setCategoryId(localCategories[0]?.id ?? null);
     }
+  }, [localCategories, categoryId, itemType]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const start = formatDate(initialDate);
+    const end = formatDate(addDays(initialDate, 7));
+
+    setItemType('task');
+    setTitle('');
+    setDescription('');
+    setStartDate(start);
+    setEndDate(end);
+    setCategoryId(categories.length > 0 ? categories[0].id : null);
+    setWeightPercent(0);
+    setIsSubmitting(false);
+    setShowStageModal(false);
+    setNewStageName('');
+    setNewStageColor('#1F2937');
+    setStageStartDate(start);
+    setStageEndDate(end);
+    setCreatingStage(false);
+
+    setTimeout(() => titleInputRef.current?.focus(), 100);
   }, [isOpen, initialDate, categories]);
 
-  // Handle escape key
+  useEffect(() => {
+    if (itemType === 'personal') {
+      setCategoryId(null);
+      setWeightPercent(0);
+    }
+  }, [itemType]);
+
+  useEffect(() => {
+    if (itemType === 'milestone') {
+      setEndDate(startDate);
+    }
+  }, [itemType, startDate]);
+
+  useEffect(() => {
+    if (itemType !== 'milestone' && endDate && startDate && endDate < startDate) {
+      setEndDate(startDate);
+    }
+  }, [itemType, startDate, endDate]);
+
+  useEffect(() => {
+    if (weightPercent > remainingWeight) {
+      setWeightPercent(remainingWeight);
+    }
+  }, [remainingWeight, weightPercent]);
+
+  useEffect(() => {
+    if (showStageModal) {
+      setStageStartDate(startDate);
+      setStageEndDate(endDate);
+    }
+  }, [showStageModal, startDate, endDate]);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -87,7 +144,6 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     }
   }, [isOpen, onClose]);
 
-  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -100,50 +156,62 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     }
   }, [isOpen, onClose]);
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                  min={startDate}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    // Validate weight doesn't exceed remaining
-    if (weightPercent > remainingWeight) {
-      alert(`Weight cannot exceed ${remainingWeight}% available in this stage`);
+    const isMilestone = itemType === 'milestone';
+    const isPersonal = itemType === 'personal';
+    const normalizedEndDate = isMilestone ? startDate : endDate;
+
+    setIsSubmitting(true);
+    try {
+      await onCreate({
+        title: title.trim(),
+        description: description.trim(),
+        start_date: startDate,
+        end_date: normalizedEndDate,
+        status,
+        category_id: isPersonal ? null : categoryId,
+        weight_percent: isPersonal ? 0 : weightPercent,
+        is_milestone: isMilestone,
+        is_personal: isPersonal,
+      });
+      onClose();
+    } catch (err) {
+      alert('Failed to create item.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateStage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStageName.trim()) return;
+    if (!projectId) {
+      alert('Project ID not available.');
       return;
     }
 
-    setIsSubmitting(true);
-
-    onCreate({
-      title: title.trim(),
-      description: description.trim(),
-      start_date: startDate,
-      end_date: itemType === 'milestone' ? startDate : endDate,
-      status: 'not_started',
-      category_id: categoryId,
-      weight_percent: weightPercent,
-      is_milestone: itemType === 'milestone',
-      is_personal: itemType === 'personal',
-    });
+    setCreatingStage(true);
+    try {
+      const api = getGanttApi();
+      const newCat = await api.createCategory({
+        project_id: projectId,
+        name: newStageName.trim(),
+        color: newStageColor,
+        start_date: stageStartDate || null,
+        end_date: stageEndDate || null,
+      });
+      setLocalCategories(prev => [...prev, newCat]);
+      setCategoryId(newCat.id);
+      setShowStageModal(false);
+      onStageCreated?.(newCat);
+    } catch (err) {
+      alert('Failed to create stage.');
+    } finally {
+      setCreatingStage(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -151,52 +219,57 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30 z-40" />
+      <div className="fixed inset-0 bg-black/50 z-50" />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
           ref={modalRef}
-          className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
+          className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="text-lg font-semibold text-gray-800">Create New Item</h2>
-            <button
-              onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Create Item</h2>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Start: <span className="font-medium text-gray-700">{formatDate(initialDate, 'full')}</span>
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-5 space-y-5">
-            {/* Item type selector */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            {/* Item Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
               <div className="flex gap-2">
-                {[
-                  { value: 'task', label: 'Task', icon: '📋', color: 'blue' },
-                  { value: 'milestone', label: 'Milestone', icon: '🎯', color: 'violet' },
-                  { value: 'personal', label: 'Personal', icon: '👤', color: 'amber' },
-                ].map(type => (
+                {ITEM_TYPES.map(type => (
                   <button
                     key={type.value}
                     type="button"
-                    onClick={() => setItemType(type.value as ItemType)}
+                    onClick={() => setItemType(type.value)}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
                       itemType === type.value
                         ? `border-${type.color}-500 bg-${type.color}-50 text-${type.color}-700`
                         : 'border-gray-200 text-gray-600 hover:border-gray-300'
                     }`}
                     style={{
-                      borderColor: itemType === type.value ? 
-                        (type.color === 'blue' ? '#3b82f6' : type.color === 'violet' ? '#8b5cf6' : '#f59e0b') : undefined,
-                      backgroundColor: itemType === type.value ?
-                        (type.color === 'blue' ? '#eff6ff' : type.color === 'violet' ? '#f5f3ff' : '#fffbeb') : undefined,
+                      borderColor: itemType === type.value
+                        ? (type.color === 'blue' ? '#3b82f6' : type.color === 'violet' ? '#8b5cf6' : '#f59e0b')
+                        : undefined,
+                      backgroundColor: itemType === type.value
+                        ? (type.color === 'blue' ? '#eff6ff' : type.color === 'violet' ? '#f5f3ff' : '#fffbeb')
+                        : undefined,
                     }}
                   >
                     <span>{type.icon}</span>
@@ -282,7 +355,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                       return;
                     }
                     setCategoryId(e.target.value ? parseInt(e.target.value) : null);
-                    setWeightPercent(0); // Reset weight when changing stage
+                    setWeightPercent(0);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -292,87 +365,93 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                       {cat.name} ({cat.remaining_weight_percent ?? 100}% available)
                     </option>
                   ))}
-                  <option value="__create__">➕ Create new Stage…</option>
+                  <option value="__create__">+ Create new Stage...</option>
                 </select>
               </div>
             )}
-      {/* Stage Creation Modal */}
-      {showStageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-xs p-6 relative">
-            <button
-              onClick={() => setShowStageModal(false)}
-              className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">Create New Stage</h3>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!newStageName.trim()) return;
-                setCreatingStage(true);
-                try {
-                  const api = getGanttApi();
-                  const newCat = await api.createCategory({ name: newStageName.trim(), color: newStageColor });
-                  setLocalCategories((prev) => [...prev, newCat]);
-                  setCategoryId(newCat.id);
-                  setShowStageModal(false);
-                } catch (err) {
-                  alert('Failed to create stage.');
-                } finally {
-                  setCreatingStage(false);
-                }
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stage Name *</label>
-                <input
-                  type="text"
-                  value={newStageName}
-                  onChange={e => setNewStageName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
+
+            {/* Stage Creation Modal */}
+            {showStageModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-xs p-6 relative">
+                  <button
+                    onClick={() => setShowStageModal(false)}
+                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  <h3 className="text-lg font-semibold mb-3 text-gray-800">Create New Stage</h3>
+                  <form onSubmit={handleCreateStage} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Stage Name *</label>
+                      <input
+                        type="text"
+                        value={newStageName}
+                        onChange={e => setNewStageName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                      <input
+                        type="color"
+                        value={newStageColor}
+                        onChange={e => setNewStageColor(e.target.value)}
+                        className="w-12 h-8 p-0 border-0 bg-transparent"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <input
+                          type="date"
+                          value={stageStartDate}
+                          onChange={e => setStageStartDate(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                        <input
+                          type="date"
+                          value={stageEndDate}
+                          onChange={e => setStageEndDate(e.target.value)}
+                          min={stageStartDate}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowStageModal(false)}
+                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+                        disabled={creatingStage}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
+                        disabled={!newStageName.trim() || creatingStage}
+                      >
+                        {creatingStage ? 'Creating...' : 'Create'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                <input
-                  type="color"
-                  value={newStageColor}
-                  onChange={e => setNewStageColor(e.target.value)}
-                  className="w-12 h-8 p-0 border-0 bg-transparent"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowStageModal(false)}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
-                  disabled={creatingStage}
-                >Cancel</button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
-                  disabled={!newStageName.trim() || creatingStage}
-                >{creatingStage ? 'Creating…' : 'Create'}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            )}
 
             {/* Weight Percent */}
             {itemType !== 'personal' && categoryId && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Weight in Stage (%)
-                  <span className="ml-2 text-xs text-gray-500">
-                    Max: {remainingWeight}%
-                  </span>
+                  <span className="ml-2 text-xs text-gray-500">Max: {remainingWeight}%</span>
                 </label>
                 <div className="flex items-center gap-3">
                   <input

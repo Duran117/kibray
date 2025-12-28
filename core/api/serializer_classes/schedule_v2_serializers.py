@@ -121,6 +121,8 @@ class SchedulePhaseV2Serializer(serializers.ModelSerializer):
             "color",
             "order",
             "weight_percent",
+            "start_date",
+            "end_date",
             "calculated_progress",
             "remaining_weight_percent",
             "allow_sunday",
@@ -141,12 +143,21 @@ class SchedulePhaseV2WriteSerializer(serializers.ModelSerializer):
             "color",
             "order",
             "weight_percent",
+            "start_date",
+            "end_date",
             "allow_sunday",
         ]
 
     def validate(self, attrs):
         project = attrs.get("project") or getattr(self.instance, "project", None)
         weight_percent = attrs.get("weight_percent")
+        start_date = attrs.get("start_date") or getattr(self.instance, "start_date", None)
+        end_date = attrs.get("end_date") or getattr(self.instance, "end_date", None)
+
+        if start_date and end_date and end_date < start_date:
+            raise serializers.ValidationError(
+                {"end_date": "end_date no puede ser anterior a start_date"}
+            )
         
         if weight_percent is not None and project:
             # Calculate remaining weight available for this project

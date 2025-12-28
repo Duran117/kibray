@@ -12,6 +12,7 @@ export { GanttHeader } from './GanttHeader';
 export { GanttSidebar } from './GanttSidebar';
 export { GanttGrid } from './GanttGrid';
 export { GanttBar } from './GanttBarInteractive';
+export { GanttStageBar } from './GanttStageBar';
 export { GanttDependencyLines } from './GanttDependencyLines';
 export { SlideOverPanel } from './SlideOverPanel';
 export { CreateItemModal } from './CreateItemModal';

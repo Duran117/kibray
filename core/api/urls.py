@@ -334,6 +334,12 @@ urlpatterns = [
         schedule_api.get_project_gantt_v2,
         name="api-gantt-v2-project",
     ),
+    path("gantt/v2/phases/", schedule_api.create_schedule_phase_v2, name="api-gantt-v2-phase-create"),
+    path(
+        "gantt/v2/phases/<int:phase_id>/",
+        schedule_api.update_schedule_phase_v2,
+        name="api-gantt-v2-phase-update",
+    ),
     path("gantt/v2/items/", schedule_api.create_schedule_item_v2, name="api-gantt-v2-item-create"),
     path(
         "gantt/v2/items/<int:item_id>/",

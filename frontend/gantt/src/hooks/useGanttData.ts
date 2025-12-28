@@ -178,7 +178,10 @@ export function useGanttData(options: UseGanttDataOptions): UseGanttDataReturn {
     setIsSaving(true);
     
     try {
-      const created = await api.createCategory(category);
+      const created = await api.createCategory({
+        ...category,
+        project_id: category.project_id ?? projectId,
+      });
       setLocalCategories(prev => [...prev, created]);
       return created;
     } catch (err) {
@@ -187,7 +190,7 @@ export function useGanttData(options: UseGanttDataOptions): UseGanttDataReturn {
     } finally {
       setIsSaving(false);
     }
-  }, [api]);
+  }, [api, projectId]);
 
   // Toggle category collapse (local only, optional persist)
   const toggleCategoryCollapse = useCallback((categoryId: number) => {

@@ -150,14 +150,37 @@ export class GanttApi {
    * Create a new category
    */
   async createCategory(category: Partial<GanttCategory>): Promise<GanttCategory> {
-    const response = await fetch(`${this.baseUrl}/schedule/categories/`, {
+    const payload = {
+      project: category.project_id,
+      name: category.name,
+      color: category.color,
+      order: category.order,
+      weight_percent: category.weight_percent,
+      start_date: category.start_date,
+      end_date: category.end_date,
+    };
+
+    const response = await fetch(`${this.baseUrl}/gantt/v2/phases/`, {
       method: 'POST',
       headers: this.getHeaders(),
       credentials: 'same-origin',
-      body: JSON.stringify(category),
+      body: JSON.stringify(payload),
     });
 
-    return this.handleResponse<GanttCategory>(response);
+    const created = await this.handleResponse<any>(response);
+    return {
+      id: created.id,
+      name: created.name,
+      color: created.color,
+      order: created.order,
+      is_collapsed: false,
+      project_id: created.project,
+      start_date: created.start_date ?? null,
+      end_date: created.end_date ?? null,
+      weight_percent: created.weight_percent ?? 0,
+      calculated_progress: created.calculated_progress ?? 0,
+      remaining_weight_percent: created.remaining_weight_percent ?? 100,
+    };
   }
 
   /**

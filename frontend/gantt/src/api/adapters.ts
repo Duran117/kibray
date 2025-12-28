@@ -19,6 +19,8 @@ export function transformV2Response(apiResponse: any): GanttData {
     order: phase.order || 0,
     is_collapsed: false,
     project_id: phase.project,
+    start_date: phase.start_date || null,
+    end_date: phase.end_date || null,
     weight_percent: phase.weight_percent || 0,
     calculated_progress: phase.calculated_progress || 0,
     remaining_weight_percent: phase.remaining_weight_percent || 100,

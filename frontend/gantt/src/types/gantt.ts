@@ -44,6 +44,8 @@ export interface GanttCategory {
   order: number;
   is_collapsed: boolean;
   project_id: number;
+  start_date?: string | null;
+  end_date?: string | null;
   weight_percent?: number;
   calculated_progress?: number;
   remaining_weight_percent?: number;
@@ -184,10 +186,22 @@ export interface GanttSlideOverProps {
 
 export interface CreateItemModalProps {
   isOpen: boolean;
-  date: Date | null;
-  showPersonalOption: boolean;
+  initialDate: Date;
+  categories: GanttCategory[];
+  projectId?: number;
   onClose: () => void;
-  onSelect: (type: ItemType) => void;
+  onCreate: (item: {
+    title: string;
+    description: string;
+    start_date: string;
+    end_date: string;
+    status: ItemStatus;
+    category_id: number | null;
+    weight_percent: number;
+    is_milestone: boolean;
+    is_personal: boolean;
+  }) => void | Promise<void>;
+  onStageCreated?: (category: GanttCategory) => void;
 }
 
 // -----------------------------------------------------------------------------
