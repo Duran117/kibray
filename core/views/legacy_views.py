@@ -1052,7 +1052,18 @@ def expense_create_view(request):
             return redirect("dashboard")
     else:
         form = ExpenseForm()
-    return render(request, "core/expense_form.html", {"form": form})
+    
+    # Pass projects and change_orders for dynamic filtering
+    projects = Project.objects.all().order_by('name')
+    change_orders = ChangeOrder.objects.select_related('project').all().order_by('project__name', 'id')
+    cost_codes = CostCode.objects.filter(active=True).order_by('code')
+    
+    return render(request, "core/expense_form.html", {
+        "form": form,
+        "projects": projects,
+        "change_orders": change_orders,
+        "cost_codes": cost_codes,
+    })
 
 
 @login_required

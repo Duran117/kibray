@@ -367,33 +367,63 @@
     <div class="form-section">
       <div class="section-header">
         <i class="bi bi-building"></i>
-        <h3>{% trans "Project & Vendor" %}</h3>
+        <h3>{% trans "Project & Change Order" %}</h3>
       </div>
       <div class="section-body">
-        <div class="grid-2">
-          {% for field in form %}
-            {% if field.name == 'project' or field.name == 'vendor' or field.name == 'paid_to' or field.name == 'payment_method' %}
-              <div class="form-field">
-                <label for="{{ field.id_for_label }}">
-                  {% if field.name == 'project' %}<i class="bi bi-folder"></i>
-                  {% elif field.name == 'payment_method' %}<i class="bi bi-credit-card"></i>
-                  {% else %}<i class="bi bi-shop"></i>{% endif %}
-                  {{ field.label }}
-                  {% if field.field.required %}<span class="required-star">*</span>{% endif %}
-                </label>
-                {% if 'select' in field.field.widget|class_name|lower %}
-                  <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input modern-select" {% if field.field.required %}required{% endif %}>
-                    {% for value, text in field.field.choices %}
-                      <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
-                    {% endfor %}
-                  </select>
-                {% else %}
-                  <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" value="{{ field.value|default:'' }}" {% if field.field.required %}required{% endif %}>
-                {% endif %}
-                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
-              </div>
-            {% endif %}
-          {% endfor %}
+        <!-- Project Field -->
+        <div class="form-field">
+          <label for="id_project">
+            <i class="bi bi-folder"></i>
+            {% trans "Project" %}
+            <span class="required-star">*</span>
+          </label>
+          <select name="project" id="id_project" class="modern-input modern-select" required>
+            <option value="">-- {% trans "Select Project" %} --</option>
+            {% for project in projects %}
+              <option value="{{ project.id }}" {% if form.project.value|stringformat:"s" == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+            {% endfor %}
+          </select>
+          {% if form.project.errors %}<div class="text-danger small mt-1">{{ form.project.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Change Order Field (filtered by project) -->
+        <div class="form-field">
+          <label for="id_change_order">
+            <i class="bi bi-kanban"></i>
+            {% trans "Change Order" %}
+            <span class="text-muted small">({% trans "Optional" %})</span>
+          </label>
+          <select name="change_order" id="id_change_order" class="modern-input modern-select">
+            <option value="">-- {% trans "No Change Order (Main Project)" %} --</option>
+            {% for co in change_orders %}
+              <option value="{{ co.id }}" data-project="{{ co.project_id }}" {% if form.change_order.value|stringformat:"s" == co.id|stringformat:"s" %}selected{% endif %}>
+                CO-{{ co.id|stringformat:"04d" }} | {{ co.description|truncatechars:50 }}
+              </option>
+            {% endfor %}
+          </select>
+          <small class="text-muted d-block mt-1">
+            <i class="bi bi-info-circle"></i>
+            {% trans "Select a Change Order to associate this expense with extra work" %}
+          </small>
+          {% if form.change_order.errors %}<div class="text-danger small mt-1">{{ form.change_order.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Cost Code Field -->
+        <div class="form-field">
+          <label for="id_cost_code">
+            <i class="bi bi-code-square"></i>
+            {% trans "Cost Code" %}
+            <span class="text-muted small">({% trans "Optional" %})</span>
+          </label>
+          <select name="cost_code" id="id_cost_code" class="modern-input modern-select">
+            <option value="">-- {% trans "Select Cost Code" %} --</option>
+            {% for cc in cost_codes %}
+              <option value="{{ cc.id }}" {% if form.cost_code.value|stringformat:"s" == cc.id|stringformat:"s" %}selected{% endif %}>
+                {{ cc.code }} - {{ cc.name }}
+              </option>
+            {% endfor %}
+          </select>
+          {% if form.cost_code.errors %}<div class="text-danger small mt-1">{{ form.cost_code.errors }}</div>{% endif %}
         </div>
       </div>
     </div>
@@ -562,6 +592,58 @@ document.addEventListener('DOMContentLoaded', function() {
         altFormat: "F j, Y"
       });
     });
+  }
+  
+  // Dynamic Change Order filtering by Project
+  const projectSelect = document.getElementById('id_project');
+  const changeOrderSelect = document.getElementById('id_change_order');
+  
+  if (projectSelect && changeOrderSelect) {
+    // Store all original options
+    const allOptions = Array.from(changeOrderSelect.options).map(opt => ({
+      value: opt.value,
+      text: opt.textContent,
+      projectId: opt.dataset.project || ''
+    }));
+    
+    function filterChangeOrders() {
+      const selectedProjectId = projectSelect.value;
+      
+      // Clear current options
+      changeOrderSelect.innerHTML = '';
+      
+      // Add empty option
+      const emptyOpt = document.createElement('option');
+      emptyOpt.value = '';
+      emptyOpt.textContent = selectedProjectId ? '-- Seleccionar CO (opcional) --' : '-- Primero seleccione un proyecto --';
+      changeOrderSelect.appendChild(emptyOpt);
+      
+      if (selectedProjectId) {
+        // Filter and add matching options
+        allOptions.forEach(opt => {
+          if (opt.projectId === selectedProjectId && opt.value) {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            changeOrderSelect.appendChild(option);
+          }
+        });
+      }
+    }
+    
+    projectSelect.addEventListener('change', filterChangeOrders);
+    
+    // Initial filter on page load (for edit mode)
+    if (projectSelect.value) {
+      // Preserve currently selected CO if editing
+      const currentCO = changeOrderSelect.value;
+      filterChangeOrders();
+      if (currentCO) {
+        changeOrderSelect.value = currentCO;
+      }
+    } else {
+      filterChangeOrders();
+    }
   }
 });
 </script>

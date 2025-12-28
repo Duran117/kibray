@@ -108,9 +108,24 @@ class ExpenseForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"class": "form-control modern-input", "rows": 3, "placeholder": "Descripción del gasto..."}),
             "receipt": forms.FileInput(attrs={"class": "form-control", "accept": "image/*,.pdf"}),
             "invoice": forms.FileInput(attrs={"class": "form-control", "accept": "image/*,.pdf"}),
-            "change_order": forms.Select(attrs={"class": "form-select modern-input"}),
+            "change_order": forms.Select(attrs={"class": "form-select modern-input", "id": "id_change_order"}),
             "cost_code": forms.Select(attrs={"class": "form-select modern-input"}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add data-project-id attribute to each change_order option for JS filtering
+        if 'change_order' in self.fields:
+            from core.models import ChangeOrder
+            choices = [('', '-- Seleccionar CO (opcional) --')]
+            for co in ChangeOrder.objects.select_related('project').all():
+                choices.append((co.id, f"{co.title} ({co.project.name})"))
+            self.fields['change_order'].choices = choices
+            
+            # Store project IDs for each CO for JavaScript filtering
+            self.change_order_projects = {}
+            for co in ChangeOrder.objects.select_related('project').all():
+                self.change_order_projects[co.id] = co.project.id
     
     def save(self, commit=True):
         instance = super().save(commit=False)
