@@ -119,6 +119,27 @@ const KibrayGanttApp: React.FC<KibrayGanttAppConfig> = ({
     }
   };
 
+  // Item create handler
+  const handleItemCreate = async (item: Partial<GanttItem>): Promise<GanttItem> => {
+    if (!apiRef.current) throw new Error('API not initialized');
+
+    try {
+      const payload = toV2ItemPayload({
+        ...item,
+        project_id: projectId,
+      });
+      const createdItem = await apiRef.current.createItem(payload);
+      setState(prev => ({
+        ...prev,
+        items: [...prev.items, createdItem],
+      }));
+      return createdItem;
+    } catch (err: any) {
+      console.error('Failed to create item:', err);
+      throw err;
+    }
+  };
+
   // Item delete handler
   const handleItemDelete = async (itemId: number) => {
     if (!apiRef.current) return;
@@ -204,6 +225,7 @@ const KibrayGanttApp: React.FC<KibrayGanttAppConfig> = ({
             projectId={projectId}
             projectName={projectName}
             canEdit={canEdit}
+            onItemCreate={handleItemCreate}
             onItemUpdate={handleItemUpdate}
             onItemDelete={handleItemDelete}
             onTaskCreate={handleTaskCreate}

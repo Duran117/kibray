@@ -103,6 +103,12 @@ class ProjectMinimalSerializer(serializers.ModelSerializer):
 
 
 class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
+    phase = serializers.PrimaryKeyRelatedField(
+        queryset=SchedulePhaseV2.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    
     class Meta:
         model = ScheduleItemV2
         fields = [
@@ -140,6 +146,22 @@ class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"phase": "phase debe pertenecer al mismo proyecto"})
 
         return attrs
+    
+    def create(self, validated_data):
+        # If no phase provided, get or create a default "General" phase for the project
+        if not validated_data.get("phase"):
+            project = validated_data.get("project")
+            if project:
+                default_phase, _ = SchedulePhaseV2.objects.get_or_create(
+                    project=project,
+                    name="General",
+                    defaults={
+                        "color": "#6366f1",
+                        "order": 999,
+                    }
+                )
+                validated_data["phase"] = default_phase
+        return super().create(validated_data)
 
 
 class ScheduleTaskV2WriteSerializer(serializers.ModelSerializer):

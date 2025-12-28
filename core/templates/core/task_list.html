@@ -4,7 +4,12 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0"><i class="bi bi-list-task"></i> {% trans 'Tareas del Proyecto' %} – {{ project.name }}</h2>
-    <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans 'Volver' %}</a>
+    <div class="d-flex gap-2">
+      {% if can_create %}
+      <a href="#crear" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> {% trans 'Nueva Tarea' %}</a>
+      {% endif %}
+      <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans 'Volver' %}</a>
+    </div>
   </div>
   
   <!-- ACTIVITY 1: Advanced Filters (Q11.1, Q11.6) -->
