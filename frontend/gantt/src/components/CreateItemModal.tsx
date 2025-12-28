@@ -4,6 +4,7 @@
 // =============================================================================
 
 import React, { useState, useEffect, useRef } from 'react';
+import { getGanttApi } from '../api/ganttApi';
 import { GanttCategory, ItemStatus } from '../types/gantt';
 import { formatDate } from '../utils/dateUtils';
 
@@ -45,10 +46,18 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [weightPercent, setWeightPercent] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showStageModal, setShowStageModal] = useState(false);
+  const [newStageName, setNewStageName] = useState('');
+  const [newStageColor, setNewStageColor] = useState('#1F2937');
+  const [creatingStage, setCreatingStage] = useState(false);
 
   // Get selected category info
   const selectedCategory = categories.find(c => c.id === categoryId);
   const remainingWeight = selectedCategory?.remaining_weight_percent ?? 100;
+
+  // Local categories state for dynamic add
+  const [localCategories, setLocalCategories] = useState(categories);
+  useEffect(() => { setLocalCategories(categories); }, [categories]);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -58,7 +67,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
       setDescription('');
       setStartDate(formatDate(initialDate));
       setEndDate(formatDate(new Date(initialDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
-      setCategoryId(categories.length > 0 ? categories[0].id : null);
+  setCategoryId(categories.length > 0 ? categories[0].id : null);
       setWeightPercent(0);
       setIsSubmitting(false);
 
@@ -232,7 +241,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
             </div>
 
             {/* Category (Stage) */}
-            {itemType !== 'personal' && categories.length > 0 && (
+            {itemType !== 'personal' && localCategories.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Stage
@@ -245,20 +254,95 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                 <select
                   value={categoryId || ''}
                   onChange={(e) => {
+                    if (e.target.value === '__create__') {
+                      setShowStageModal(true);
+                      setNewStageName('');
+                      setNewStageColor('#1F2937');
+                      return;
+                    }
                     setCategoryId(e.target.value ? parseInt(e.target.value) : null);
                     setWeightPercent(0); // Reset weight when changing stage
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">No stage</option>
-                  {categories.map(cat => (
+                  {localCategories.map(cat => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name} ({cat.remaining_weight_percent ?? 100}% available)
                     </option>
                   ))}
+                  <option value="__create__">➕ Create new Stage…</option>
                 </select>
               </div>
             )}
+      {/* Stage Creation Modal */}
+      {showStageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-xs p-6 relative">
+            <button
+              onClick={() => setShowStageModal(false)}
+              className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h3 className="text-lg font-semibold mb-3 text-gray-800">Create New Stage</h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newStageName.trim()) return;
+                setCreatingStage(true);
+                try {
+                  const api = getGanttApi();
+                  const newCat = await api.createCategory({ name: newStageName.trim(), color: newStageColor });
+                  setLocalCategories((prev) => [...prev, newCat]);
+                  setCategoryId(newCat.id);
+                  setShowStageModal(false);
+                } catch (err) {
+                  alert('Failed to create stage.');
+                } finally {
+                  setCreatingStage(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stage Name *</label>
+                <input
+                  type="text"
+                  value={newStageName}
+                  onChange={e => setNewStageName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <input
+                  type="color"
+                  value={newStageColor}
+                  onChange={e => setNewStageColor(e.target.value)}
+                  className="w-12 h-8 p-0 border-0 bg-transparent"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowStageModal(false)}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+                  disabled={creatingStage}
+                >Cancel</button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
+                  disabled={!newStageName.trim() || creatingStage}
+                >{creatingStage ? 'Creating…' : 'Create'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
             {/* Weight Percent */}
             {itemType !== 'personal' && categoryId && (
