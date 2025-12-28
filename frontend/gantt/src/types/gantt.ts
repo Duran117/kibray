@@ -44,15 +44,33 @@ export interface GanttCategory {
   order: number;
   is_collapsed: boolean;
   project_id: number;
+  weight_percent?: number;
+  calculated_progress?: number;
+  remaining_weight_percent?: number;
 }
 
 export interface GanttTask {
   id: number;
   title: string;
+  description?: string;
   status: string;
   assigned_to: number | null;
   assigned_to_name?: string;
+  weight_percent?: number;
   is_completed: boolean;
+  completed_at?: string;
+  completed_by?: number;
+  completed_by_name?: string;
+  due_date?: string;
+  checklist_items?: TaskChecklistItem[];
+}
+
+export interface TaskChecklistItem {
+  id: number;
+  description: string;
+  is_completed: boolean;
+  order: number;
+  sop_reference?: string;
 }
 
 export interface GanttItem {
@@ -65,6 +83,9 @@ export interface GanttItem {
   end_date: string;
   status: ItemStatus;
   percent_complete: number;
+  weight_percent?: number;
+  calculated_progress?: number;
+  remaining_weight_percent?: number;
   is_milestone: boolean;
   is_personal: boolean;
   assigned_to?: number | null;

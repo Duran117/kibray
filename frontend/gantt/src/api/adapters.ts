@@ -11,17 +11,20 @@ import { GanttItem, GanttCategory, GanttDependency, GanttData, ItemStatus, Gantt
 export function transformV2Response(apiResponse: any): GanttData {
   const { project, phases, dependencies, metadata } = apiResponse;
 
-  // Transform phases to categories
+  // Transform phases to categories (with weight/progress info)
   const categories: GanttCategory[] = (phases || []).map((phase: any) => ({
     id: phase.id,
     name: phase.name,
-    color: phase.color || '#6366f1',
+    color: phase.color || '#1F2937', // Dark color for stages
     order: phase.order || 0,
     is_collapsed: false,
     project_id: phase.project,
+    weight_percent: phase.weight_percent || 0,
+    calculated_progress: phase.calculated_progress || 0,
+    remaining_weight_percent: phase.remaining_weight_percent || 100,
   }));
 
-  // Transform items from phases
+  // Transform items from phases (with weight/progress info)
   const items: GanttItem[] = [];
   (phases || []).forEach((phase: any) => {
     (phase.items || []).forEach((item: any) => {
@@ -55,7 +58,11 @@ export function transformV2Response(apiResponse: any): GanttData {
       can_edit: true,
       can_delete: true,
     },
-    metadata,
+    metadata: {
+      ...metadata,
+      project_progress: metadata?.project_progress || 0,
+      total_stage_weight: metadata?.total_stage_weight || 0,
+    },
   };
 }
 
@@ -72,7 +79,10 @@ function transformItemV2(item: any, phaseId: number): GanttItem {
     start_date: item.start_date,
     end_date: item.end_date,
     status: mapStatusV2(item.status),
-    percent_complete: item.progress || 0,
+    percent_complete: item.calculated_progress || item.progress || 0,
+    weight_percent: item.weight_percent || 0,
+    calculated_progress: item.calculated_progress || 0,
+    remaining_weight_percent: item.remaining_weight_percent || 100,
     is_milestone: item.is_milestone || false,
     is_personal: false,
     assigned_to: item.assigned_to,
@@ -92,10 +102,17 @@ function transformTaskV2(task: any): GanttTask {
   return {
     id: task.id,
     title: task.title,
+    description: task.description || '',
     status: task.status,
-    assigned_to: null,
-    assigned_to_name: undefined,
+    assigned_to: task.assigned_to,
+    assigned_to_name: task.assigned_to_name,
+    weight_percent: task.weight_percent || 0,
     is_completed: task.status === 'completed' || task.status === 'done',
+    completed_at: task.completed_at,
+    completed_by: task.completed_by,
+    completed_by_name: task.completed_by_name,
+    due_date: task.due_date,
+    checklist_items: task.checklist_items || [],
   };
 }
 
@@ -148,6 +165,7 @@ export function toV2ItemPayload(item: Partial<GanttItem>): any {
     assigned_to: item.assigned_to,
     status: item.status,
     progress: item.percent_complete,
+    weight_percent: item.weight_percent,
     order: item.order,
     is_milestone: item.is_milestone,
   };
@@ -160,7 +178,10 @@ export function toV2TaskPayload(task: any, itemId: number): any {
   return {
     item: itemId,
     title: task.title,
+    description: task.description || '',
     status: task.status || 'pending',
+    weight_percent: task.weight_percent || 0,
+    assigned_to: task.assigned_to,
     due_date: task.due_date,
     order: task.order || 0,
   };

@@ -54,34 +54,20 @@ export const GanttGrid: React.FC<GanttGridProps> = ({
 
   // Handle click on grid
   const handleClick = useCallback((e: React.MouseEvent) => {
-    console.log('[GanttGrid] handleClick called');
-    if (!gridRef.current) {
-      console.log('[GanttGrid] No gridRef');
-      return;
-    }
+    if (!gridRef.current) return;
     
     const rect = gridRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left + gridRef.current.scrollLeft;
     const y = e.clientY - rect.top - headerHeight;
     
-    console.log('[GanttGrid] Click coordinates:', { x, y, headerHeight });
-    
-    if (y < 0) {
-      console.log('[GanttGrid] Click was on header, ignoring');
-      return; // Click was on header
-    }
+    if (y < 0) return; // Click was on header
     
     const dayIndex = Math.floor(x / config.dayWidth);
     const rowIndex = Math.floor(y / rowHeight);
     
-    console.log('[GanttGrid] Calculated:', { dayIndex, rowIndex, days, rowCount });
-    
     if (dayIndex >= 0 && dayIndex < days && rowIndex >= 0 && rowIndex < rowCount) {
       const clickedDate = addDays(dateRange.start, dayIndex);
-      console.log('[GanttGrid] Calling onClick with:', { clickedDate, rowIndex });
       onClick(clickedDate, rowIndex);
-    } else {
-      console.log('[GanttGrid] Click out of bounds');
     }
   }, [config.dayWidth, rowHeight, headerHeight, days, rowCount, dateRange, onClick]);
 

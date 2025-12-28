@@ -19,6 +19,7 @@ interface CreateItemModalProps {
     end_date: string;
     status: ItemStatus;
     category_id: number | null;
+    weight_percent: number;
     is_milestone: boolean;
     is_personal: boolean;
   }) => void;
@@ -42,7 +43,12 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   const [startDate, setStartDate] = useState(formatDate(initialDate));
   const [endDate, setEndDate] = useState(formatDate(new Date(initialDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
   const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [weightPercent, setWeightPercent] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get selected category info
+  const selectedCategory = categories.find(c => c.id === categoryId);
+  const remainingWeight = selectedCategory?.remaining_weight_percent ?? 100;
 
   // Reset form when modal opens
   useEffect(() => {
@@ -53,6 +59,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
       setStartDate(formatDate(initialDate));
       setEndDate(formatDate(new Date(initialDate.getTime() + 7 * 24 * 60 * 60 * 1000)));
       setCategoryId(categories.length > 0 ? categories[0].id : null);
+      setWeightPercent(0);
       setIsSubmitting(false);
 
       // Focus title input
@@ -88,6 +95,12 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
+    // Validate weight doesn't exceed remaining
+    if (weightPercent > remainingWeight) {
+      alert(`Weight cannot exceed ${remainingWeight}% available in this stage`);
+      return;
+    }
+
     setIsSubmitting(true);
 
     onCreate({
@@ -97,6 +110,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
       end_date: itemType === 'milestone' ? startDate : endDate,
       status: 'not_started',
       category_id: categoryId,
+      weight_percent: weightPercent,
       is_milestone: itemType === 'milestone',
       is_personal: itemType === 'personal',
     });
@@ -217,22 +231,68 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
               )}
             </div>
 
-            {/* Category */}
+            {/* Category (Stage) */}
             {itemType !== 'personal' && categories.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stage
+                  {selectedCategory && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({selectedCategory.calculated_progress || 0}% complete)
+                    </span>
+                  )}
+                </label>
                 <select
                   value={categoryId || ''}
-                  onChange={(e) => setCategoryId(e.target.value ? parseInt(e.target.value) : null)}
+                  onChange={(e) => {
+                    setCategoryId(e.target.value ? parseInt(e.target.value) : null);
+                    setWeightPercent(0); // Reset weight when changing stage
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">No category</option>
+                  <option value="">No stage</option>
                   {categories.map(cat => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                      {cat.name} ({cat.remaining_weight_percent ?? 100}% available)
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {/* Weight Percent */}
+            {itemType !== 'personal' && categoryId && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Weight in Stage (%)
+                  <span className="ml-2 text-xs text-gray-500">
+                    Max: {remainingWeight}%
+                  </span>
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max={remainingWeight}
+                    step="1"
+                    value={weightPercent}
+                    onChange={(e) => setWeightPercent(parseFloat(e.target.value))}
+                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max={remainingWeight}
+                    step="0.5"
+                    value={weightPercent}
+                    onChange={(e) => setWeightPercent(Math.min(parseFloat(e.target.value) || 0, remainingWeight))}
+                    className="w-20 px-2 py-1 border border-gray-300 rounded-lg text-center text-sm"
+                  />
+                  <span className="text-sm text-gray-500">%</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  This determines how much this item contributes to the stage progress
+                </p>
               </div>
             )}
 

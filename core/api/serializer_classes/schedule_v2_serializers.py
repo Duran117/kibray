@@ -6,21 +6,57 @@ from core.models import (
     ScheduleItemV2,
     SchedulePhaseV2,
     ScheduleTaskV2,
+    TaskChecklistItem,
 )
 
 
+class TaskChecklistItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskChecklistItem
+        fields = [
+            "id",
+            "description",
+            "is_completed",
+            "order",
+            "sop_reference",
+            "created_at",
+        ]
+
+
 class ScheduleTaskV2Serializer(serializers.ModelSerializer):
+    checklist_items = TaskChecklistItemSerializer(many=True, read_only=True)
+    assigned_to_name = serializers.SerializerMethodField()
+    completed_by_name = serializers.SerializerMethodField()
+
     class Meta:
         model = ScheduleTaskV2
         fields = [
             "id",
             "title",
+            "description",
             "status",
+            "weight_percent",
+            "assigned_to",
+            "assigned_to_name",
             "due_date",
+            "completed_at",
+            "completed_by",
+            "completed_by_name",
             "order",
             "created_at",
             "updated_at",
+            "checklist_items",
         ]
+
+    def get_assigned_to_name(self, obj):
+        if obj.assigned_to:
+            return obj.assigned_to.get_full_name() or obj.assigned_to.username
+        return None
+
+    def get_completed_by_name(self, obj):
+        if obj.completed_by:
+            return obj.completed_by.get_full_name() or obj.completed_by.username
+        return None
 
 
 class ScheduleItemV2Serializer(serializers.ModelSerializer):
@@ -28,6 +64,8 @@ class ScheduleItemV2Serializer(serializers.ModelSerializer):
     phase_name = serializers.CharField(source="phase.name", read_only=True)
     assigned_to_name = serializers.SerializerMethodField()
     allow_sunday_effective = serializers.SerializerMethodField()
+    calculated_progress = serializers.ReadOnlyField()
+    remaining_weight_percent = serializers.ReadOnlyField()
 
     class Meta:
         model = ScheduleItemV2
@@ -45,6 +83,9 @@ class ScheduleItemV2Serializer(serializers.ModelSerializer):
             "color",
             "status",
             "progress",
+            "weight_percent",
+            "calculated_progress",
+            "remaining_weight_percent",
             "order",
             "is_milestone",
             "allow_sunday_override",
@@ -68,6 +109,8 @@ class ScheduleItemV2Serializer(serializers.ModelSerializer):
 
 class SchedulePhaseV2Serializer(serializers.ModelSerializer):
     items = ScheduleItemV2Serializer(many=True, read_only=True)
+    calculated_progress = serializers.ReadOnlyField()
+    remaining_weight_percent = serializers.ReadOnlyField()
 
     class Meta:
         model = SchedulePhaseV2
@@ -77,11 +120,49 @@ class SchedulePhaseV2Serializer(serializers.ModelSerializer):
             "name",
             "color",
             "order",
+            "weight_percent",
+            "calculated_progress",
+            "remaining_weight_percent",
             "allow_sunday",
             "created_at",
             "updated_at",
             "items",
         ]
+
+
+class SchedulePhaseV2WriteSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating stages with weight validation."""
+    
+    class Meta:
+        model = SchedulePhaseV2
+        fields = [
+            "project",
+            "name",
+            "color",
+            "order",
+            "weight_percent",
+            "allow_sunday",
+        ]
+
+    def validate(self, attrs):
+        project = attrs.get("project") or getattr(self.instance, "project", None)
+        weight_percent = attrs.get("weight_percent")
+        
+        if weight_percent is not None and project:
+            # Calculate remaining weight available for this project
+            current_weight = float(self.instance.weight_percent) if self.instance else 0
+            other_phases = SchedulePhaseV2.objects.filter(project=project)
+            if self.instance:
+                other_phases = other_phases.exclude(id=self.instance.id)
+            used = sum(float(p.weight_percent) for p in other_phases)
+            remaining = 100 - used
+            
+            if float(weight_percent) > remaining:
+                raise serializers.ValidationError({
+                    "weight_percent": f"El porcentaje no puede exceder {remaining}% disponible en el proyecto"
+                })
+        
+        return attrs
 
 
 class ScheduleDependencyV2Serializer(serializers.ModelSerializer):
@@ -122,6 +203,7 @@ class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
             "color",
             "status",
             "progress",
+            "weight_percent",
             "order",
             "is_milestone",
             "allow_sunday_override",
@@ -145,6 +227,18 @@ class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
         if project and phase and phase.project_id != project.id:
             raise serializers.ValidationError({"phase": "phase debe pertenecer al mismo proyecto"})
 
+        # Validate weight_percent doesn't exceed remaining
+        weight_percent = attrs.get("weight_percent")
+        if weight_percent is not None and phase:
+            current_weight = float(self.instance.weight_percent) if self.instance else 0
+            remaining = phase.remaining_weight_percent + current_weight
+            if float(weight_percent) > remaining:
+                raise serializers.ValidationError({
+                    "weight_percent": f"El porcentaje no puede exceder {remaining}% disponible en el stage"
+                })
+
+        return attrs
+
         return attrs
     
     def create(self, validated_data):
@@ -167,13 +261,40 @@ class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
 class ScheduleTaskV2WriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleTaskV2
-        fields = ["item", "title", "status", "due_date", "order"]
+        fields = [
+            "item",
+            "title",
+            "description",
+            "status",
+            "weight_percent",
+            "assigned_to",
+            "due_date",
+            "order",
+        ]
 
     def validate(self, attrs):
         status = attrs.get("status")
         if status and status not in dict(ScheduleTaskV2._meta.get_field("status").choices):
             raise serializers.ValidationError({"status": "status inválido"})
+        
+        # Validate weight_percent doesn't exceed remaining
+        weight_percent = attrs.get("weight_percent")
+        item = attrs.get("item") or getattr(self.instance, "item", None)
+        if weight_percent is not None and item:
+            current_weight = float(self.instance.weight_percent) if self.instance else 0
+            remaining = item.remaining_weight_percent + current_weight
+            if float(weight_percent) > remaining:
+                raise serializers.ValidationError({
+                    "weight_percent": f"El porcentaje no puede exceder {remaining}% disponible en el item"
+                })
+        
         return attrs
+
+
+class TaskChecklistItemWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskChecklistItem
+        fields = ["task", "description", "is_completed", "order", "sop_reference"]
 
 
 class ScheduleDependencyV2WriteSerializer(serializers.ModelSerializer):

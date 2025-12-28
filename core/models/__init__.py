@@ -837,12 +837,20 @@ class ScheduleItem(models.Model):
 # Cronograma Gantt v2 (phases/items/tasks/dependencies)
 # ---------------------
 class SchedulePhaseV2(models.Model):
-    """Fase del cronograma tipo Gantt por proyecto (v2 para evitar colisiones con el legado)."""
+    """
+    Stage/Fase del cronograma tipo Gantt por proyecto.
+    Representa el nivel más alto de organización (ej: Interior Painting, Exterior Painting).
+    Se visualiza como una barra negra fina en el Gantt.
+    """
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="gantt_phases")
     name = models.CharField(max_length=200)
-    color = models.CharField(max_length=32, default="#4F46E5")
+    color = models.CharField(max_length=32, default="#1F2937")  # Dark gray/black for stages
     order = models.IntegerField(default=0)
+    weight_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        help_text=_("Porcentaje que este stage representa del proyecto total (0-100)")
+    )
     allow_sunday = models.BooleanField(
         default=False,
         help_text=_("Permitir trabajo en domingo para esta fase (por defecto se bloquea)"),
@@ -860,9 +868,37 @@ class SchedulePhaseV2(models.Model):
     def __str__(self):
         return f"{self.project.name} · {self.name}"
 
+    @property
+    def calculated_progress(self):
+        """Calcula el progreso del stage basado en el progreso ponderado de sus items."""
+        items = self.items.all()
+        if not items.exists():
+            return 0
+        
+        total_weight = sum(float(item.weight_percent) for item in items)
+        if total_weight == 0:
+            # Si no hay pesos asignados, promedio simple
+            return sum(item.calculated_progress for item in items) / items.count()
+        
+        weighted_progress = sum(
+            float(item.weight_percent) * item.calculated_progress / 100 
+            for item in items
+        )
+        return round(weighted_progress, 2)
+
+    @property
+    def remaining_weight_percent(self):
+        """Retorna el porcentaje disponible para asignar a nuevos items."""
+        used = sum(float(item.weight_percent) for item in self.items.all())
+        return max(0, 100 - used)
+
 
 class ScheduleItemV2(models.Model):
-    """Item planificable (barra/hito) dentro de una fase del Gantt v2."""
+    """
+    Item/Actividad planificable dentro de un Stage del Gantt.
+    Se visualiza como barra de color en el Gantt.
+    Puede contener tareas que contribuyen a su progreso.
+    """
 
     STATUS_CHOICES = [
         ("planned", _("Planificado")),
@@ -882,7 +918,11 @@ class ScheduleItemV2(models.Model):
     )
     color = models.CharField(max_length=32, default="#22D3EE")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="planned")
-    progress = models.PositiveIntegerField(default=0, help_text="0-100")
+    progress = models.PositiveIntegerField(default=0, help_text="0-100 (manual si no hay tareas)")
+    weight_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        help_text=_("Porcentaje que este item representa del stage (0-100)")
+    )
     order = models.IntegerField(default=0)
     is_milestone = models.BooleanField(
         default=False, help_text=_("Si es hito, start=end y se muestra como diamante")
@@ -909,6 +949,34 @@ class ScheduleItemV2(models.Model):
     def __str__(self):
         return f"{self.project.name} · {self.name}"
 
+    @property
+    def calculated_progress(self):
+        """
+        Calcula el progreso del item basado en sus tareas.
+        Si no hay tareas, usa el campo progress manual.
+        """
+        tasks = self.tasks.all()
+        if not tasks.exists():
+            return self.progress
+        
+        total_weight = sum(float(task.weight_percent) for task in tasks)
+        if total_weight == 0:
+            # Si no hay pesos asignados, porcentaje de tareas completadas
+            completed = tasks.filter(status='done').count()
+            return round(100 * completed / tasks.count(), 2)
+        
+        # Progreso ponderado por peso de tareas completadas
+        weighted_progress = sum(
+            float(task.weight_percent) for task in tasks if task.status == 'done'
+        )
+        return round(weighted_progress, 2)
+
+    @property
+    def remaining_weight_percent(self):
+        """Retorna el porcentaje disponible para asignar a nuevas tareas."""
+        used = sum(float(task.weight_percent) for task in self.tasks.all())
+        return max(0, 100 - used)
+
     def clean(self):
         errors = {}
         if self.start_date and self.end_date and self.start_date > self.end_date:
@@ -927,7 +995,11 @@ class ScheduleItemV2(models.Model):
 
 
 class ScheduleTaskV2(models.Model):
-    """Tarea granular asociada a un item del Gantt v2."""
+    """
+    Tarea granular asociada a un item/actividad del Gantt.
+    Las tareas contribuyen al progreso del item según su weight_percent.
+    Puede tener un checklist/SOP asociado.
+    """
 
     STATUS_CHOICES = [
         ("pending", _("Pendiente")),
@@ -938,8 +1010,20 @@ class ScheduleTaskV2(models.Model):
 
     item = models.ForeignKey(ScheduleItemV2, on_delete=models.CASCADE, related_name="tasks")
     title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, help_text=_("Descripción detallada de la tarea"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    weight_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        help_text=_("Porcentaje que esta tarea representa del item (0-100)")
+    )
+    assigned_to = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="gantt_tasks"
+    )
     due_date = models.DateField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    completed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="completed_tasks"
+    )
     order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -947,10 +1031,43 @@ class ScheduleTaskV2(models.Model):
     class Meta:
         db_table = "schedule_tasks_v2"
         ordering = ["item_id", "order", "id"]
-        indexes = [models.Index(fields=["item", "order"])]
+        indexes = [
+            models.Index(fields=["item", "order"]),
+            models.Index(fields=["assigned_to", "status"]),
+        ]
 
     def __str__(self):
         return f"{self.title} ({self.item})"
+
+    def save(self, *args, **kwargs):
+        from django.utils import timezone
+        # Auto-set completed_at when status changes to done
+        if self.status == 'done' and not self.completed_at:
+            self.completed_at = timezone.now()
+        elif self.status != 'done':
+            self.completed_at = None
+            self.completed_by = None
+        super().save(*args, **kwargs)
+
+
+class TaskChecklistItem(models.Model):
+    """
+    Paso individual dentro del checklist/SOP de una tarea.
+    Sirve como guía de ejecución para el trabajador.
+    """
+    task = models.ForeignKey(ScheduleTaskV2, on_delete=models.CASCADE, related_name="checklist_items")
+    description = models.CharField(max_length=500)
+    is_completed = models.BooleanField(default=False)
+    order = models.IntegerField(default=0)
+    sop_reference = models.URLField(blank=True, help_text=_("Link a documento SOP o guía"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "task_checklist_items"
+        ordering = ["task_id", "order", "id"]
+
+    def __str__(self):
+        return f"{self.description[:50]}..."
 
 
 class ScheduleDependencyV2(models.Model):

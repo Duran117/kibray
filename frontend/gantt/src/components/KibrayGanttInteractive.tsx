@@ -236,14 +236,9 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   }, [dragState.isDragging]);
 
   const handleGridClick = useCallback((date: Date, rowIndex: number) => {
-    console.log('[KibrayGantt] handleGridClick called:', { date, rowIndex, canEdit, isDragging: dragState.isDragging });
-    if (!canEdit || dragState.isDragging) {
-      console.log('[KibrayGantt] handleGridClick blocked:', { canEdit, isDragging: dragState.isDragging });
-      return;
-    }
+    if (!canEdit || dragState.isDragging) return;
     
     // Open create modal
-    console.log('[KibrayGantt] Opening create modal for date:', date);
     setCreateModalDate(date);
     setIsCreateModalOpen(true);
   }, [canEdit, dragState.isDragging]);
@@ -316,6 +311,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
     end_date: string;
     status: ItemStatus;
     category_id: number | null;
+    weight_percent: number;
     is_milestone: boolean;
     is_personal: boolean;
   }) => {
@@ -325,6 +321,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       ...newItem,
       project_id: projectId || 0,
       percent_complete: 0,
+      weight_percent: newItem.weight_percent,
       order: items.length,
     };
 

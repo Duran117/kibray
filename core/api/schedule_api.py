@@ -412,6 +412,22 @@ def get_project_gantt_v2(request, project_id=None):
     items_count = sum(len(p.get("items", [])) for p in phases_data)
     tasks_count = sum(len(i.get("tasks", [])) for p in phases_data for i in p.get("items", []))
 
+    # Calculate project progress based on weighted stages
+    all_phases = SchedulePhaseV2.objects.filter(project=project)
+    total_stage_weight = sum(float(p.weight_percent) for p in all_phases)
+    
+    if total_stage_weight > 0:
+        project_progress = sum(
+            float(p.weight_percent) * p.calculated_progress / 100 
+            for p in all_phases
+        )
+    else:
+        # Fallback: simple average if no weights assigned
+        if all_phases.exists():
+            project_progress = sum(p.calculated_progress for p in all_phases) / all_phases.count()
+        else:
+            project_progress = 0
+
     return Response(
         {
             "project": project_data,
@@ -421,6 +437,8 @@ def get_project_gantt_v2(request, project_id=None):
                 "items_count": items_count,
                 "tasks_count": tasks_count,
                 "dependencies_count": len(deps_data),
+                "project_progress": round(project_progress, 2),
+                "total_stage_weight": round(total_stage_weight, 2),
             },
         }
     )
