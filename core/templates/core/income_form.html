@@ -300,9 +300,69 @@
     </p>
   </div>
 
+  <!-- Show ALL form errors prominently -->
+  {% if form.errors %}
+  <div class="alert alert-danger rounded-3 mb-4" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;">
+    <h5 class="mb-2"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Please correct the following errors:" %}</h5>
+    <ul class="mb-0 ps-3">
+      {% for field in form %}
+        {% for error in field.errors %}
+          <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+        {% endfor %}
+      {% endfor %}
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   <form method="post" enctype="multipart/form-data" id="incomeForm">
     {% csrf_token %}
     
+    <!-- Project & Payment Method Section (REQUIRED FIELDS) -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-building"></i>
+        <h3>{% trans "Project & Payment" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-2">
+          <!-- Project (Required) -->
+          <div class="form-field">
+            <label for="id_project">
+              <i class="bi bi-folder"></i>
+              {% trans "Project" %} <span class="required-star">*</span>
+            </label>
+            <select name="project" id="id_project" class="modern-input modern-select" required>
+              <option value="">----------</option>
+              {% for choice in form.project.field.queryset %}
+                <option value="{{ choice.pk }}" {% if form.project.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>{{ choice }}</option>
+              {% endfor %}
+            </select>
+            {% if form.project.errors %}<div class="text-danger small mt-1">{{ form.project.errors }}</div>{% endif %}
+          </div>
+          
+          <!-- Payment Method (Required) -->
+          <div class="form-field">
+            <label for="id_payment_method">
+              <i class="bi bi-credit-card"></i>
+              {% trans "Payment Method" %} <span class="required-star">*</span>
+            </label>
+            <select name="payment_method" id="id_payment_method" class="modern-input modern-select" required>
+              <option value="">----------</option>
+              {% for value, text in form.payment_method.field.choices %}
+                {% if value %}
+                <option value="{{ value }}" {% if form.payment_method.value == value %}selected{% endif %}>{{ text }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+            {% if form.payment_method.errors %}<div class="text-danger small mt-1">{{ form.payment_method.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Basic Info Section -->
     <div class="form-section">
       <div class="section-header">
@@ -310,27 +370,35 @@
         <h3>{% trans "Basic Information" %}</h3>
       </div>
       <div class="section-body">
-        {% for field in form %}
-          {% if field.name == 'description' or field.name == 'source' or field.name == 'category' %}
-            <div class="form-field">
-              <label for="{{ field.id_for_label }}">
-                {% if field.name == 'description' %}<i class="bi bi-card-heading"></i>{% else %}<i class="bi bi-tag"></i>{% endif %}
-                {{ field.label }}
-                {% if field.field.required %}<span class="required-star">*</span>{% endif %}
-              </label>
-              {% if 'select' in field.field.widget|class_name|lower %}
-                <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input modern-select" {% if field.field.required %}required{% endif %}>
-                  {% for value, text in field.field.choices %}
-                    <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
-                  {% endfor %}
-                </select>
-              {% else %}
-                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" value="{{ field.value|default:'' }}" placeholder="{% trans 'e.g., Payment for services, Project deposit' %}" {% if field.field.required %}required{% endif %}>
-              {% endif %}
-              {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
-            </div>
-          {% endif %}
-        {% endfor %}
+        <!-- Project Name / Invoice Reference (Required) -->
+        <div class="form-field">
+          <label for="id_project_name">
+            <i class="bi bi-file-text"></i>
+            {% trans "Invoice/Reference Name" %} <span class="required-star">*</span>
+          </label>
+          <input type="text" name="project_name" id="id_project_name" class="modern-input" value="{{ form.project_name.value|default:'' }}" placeholder="{% trans 'e.g., Invoice #001, Deposit Payment' %}" required>
+          {% if form.project_name.errors %}<div class="text-danger small mt-1">{{ form.project_name.errors }}</div>{% endif %}
+        </div>
+        
+        <div class="grid-2">
+          <!-- Category (Optional) -->
+          <div class="form-field">
+            <label for="id_category">
+              <i class="bi bi-tag"></i>
+              {% trans "Category" %}
+            </label>
+            <input type="text" name="category" id="id_category" class="modern-input" value="{{ form.category.value|default:'' }}" placeholder="{% trans 'e.g., Interior Painting, Exterior Work' %}">
+          </div>
+          
+          <!-- Description (Optional) -->
+          <div class="form-field">
+            <label for="id_description">
+              <i class="bi bi-card-heading"></i>
+              {% trans "Description" %}
+            </label>
+            <input type="text" name="description" id="id_description" class="modern-input" value="{{ form.description.value|default:'' }}" placeholder="{% trans 'Brief description...' %}">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -342,59 +410,29 @@
       </div>
       <div class="section-body">
         <div class="grid-2">
-          {% for field in form %}
-            {% if field.name == 'amount' or field.name == 'date' or field.name == 'date_received' %}
-              <div class="form-field">
-                <label for="{{ field.id_for_label }}">
-                  {% if field.name == 'amount' %}<i class="bi bi-cash"></i>{% else %}<i class="bi bi-calendar"></i>{% endif %}
-                  {{ field.label }}
-                  {% if field.field.required %}<span class="required-star">*</span>{% endif %}
-                </label>
-                <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input {% if 'date' in field.name %}date-picker{% endif %}" value="{{ field.value|default:'' }}" {% if field.name == 'amount' %}step="0.01" min="0" placeholder="0.00"{% endif %} {% if field.field.required %}required{% endif %}>
-                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
-              </div>
-            {% endif %}
-          {% endfor %}
+          <!-- Amount (Required) -->
+          <div class="form-field">
+            <label for="id_amount">
+              <i class="bi bi-cash"></i>
+              {% trans "Amount received" %} <span class="required-star">*</span>
+            </label>
+            <input type="number" name="amount" id="id_amount" class="modern-input" value="{{ form.amount.value|default:'' }}" step="0.01" min="0" placeholder="0.00" required>
+            {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors }}</div>{% endif %}
+          </div>
+          
+          <!-- Date (Required) -->
+          <div class="form-field">
+            <label for="id_date">
+              <i class="bi bi-calendar"></i>
+              {% trans "Income date" %} <span class="required-star">*</span>
+            </label>
+            <input type="date" name="date" id="id_date" class="modern-input date-picker" value="{{ form.date.value|default:'' }}" required>
+            {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors }}</div>{% endif %}
+          </div>
         </div>
         <div class="amount-preview" id="amountPreview" style="display: none;">
           <div class="label">{% trans "Income Total" %}</div>
           <div class="value">$<span id="amountValue">0.00</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Project & Client Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="bi bi-building"></i>
-        <h3>{% trans "Project & Client" %}</h3>
-      </div>
-      <div class="section-body">
-        <div class="grid-2">
-          {% for field in form %}
-            {% if field.name == 'project' or field.name == 'client' or field.name == 'from_whom' or field.name == 'payment_method' or field.name == 'invoice_number' %}
-              <div class="form-field">
-                <label for="{{ field.id_for_label }}">
-                  {% if field.name == 'project' %}<i class="bi bi-folder"></i>
-                  {% elif field.name == 'payment_method' %}<i class="bi bi-credit-card"></i>
-                  {% elif field.name == 'invoice_number' %}<i class="bi bi-file-text"></i>
-                  {% else %}<i class="bi bi-person-badge"></i>{% endif %}
-                  {{ field.label }}
-                  {% if field.field.required %}<span class="required-star">*</span>{% endif %}
-                </label>
-                {% if 'select' in field.field.widget|class_name|lower %}
-                  <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input modern-select" {% if field.field.required %}required{% endif %}>
-                    {% for value, text in field.field.choices %}
-                      <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
-                    {% endfor %}
-                  </select>
-                {% else %}
-                  <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" value="{{ field.value|default:'' }}" {% if field.field.required %}required{% endif %}>
-                {% endif %}
-                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
-              </div>
-            {% endif %}
-          {% endfor %}
         </div>
       </div>
     </div>
