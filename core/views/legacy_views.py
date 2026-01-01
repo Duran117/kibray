@@ -6663,6 +6663,8 @@ def task_detail(request, task_id: int):
     - Staff: puede ver cualquier tarea.
     - Empleado: solo tareas asignadas a su Employee.
     """
+    from datetime import date
+
     task = get_object_or_404(Task, pk=task_id)
     employee = Employee.objects.filter(user=request.user).first()
 
@@ -6670,7 +6672,11 @@ def task_detail(request, task_id: int):
         messages.error(request, gettext("Sin permiso para ver esta tarea."))
         return redirect("task_list_all")
 
-    return render(request, "core/task_detail.html", {"task": task, "employee": employee})
+    return render(request, "core/task_detail.html", {
+        "task": task,
+        "employee": employee,
+        "today": date.today(),
+    })
 
 
 @login_required
@@ -6686,10 +6692,11 @@ def task_edit_view(request, task_id: int):
         if form.is_valid():
             form.save()
             messages.success(request, "Tarea actualizada.")
-            return redirect("task_detail", task_id=task.id)
+            # Redirect to command center with project filter
+            return redirect(f"/tasks/command-center/?project={task.project_id}")
     else:
         form = TaskForm(instance=task)
-    return render(request, "core/task_form_modern.html", {"form": form, "task": task, "edit": True})
+    return render(request, "core/task_form.html", {"form": form, "task": task, "edit": True})
 
 
 @login_required
@@ -6699,10 +6706,11 @@ def task_delete_view(request, task_id: int):
         messages.error(request, "Solo staff puede eliminar tareas.")
         return redirect("task_detail", task_id=task.id)
     if request.method == "POST":
-        pid = task.project_id
+        project_id = task.project_id
         task.delete()
         messages.success(request, "Tarea eliminada.")
-        return redirect("task_list", project_id=pid)
+        # Redirect to command center with project filter
+        return redirect(f"/tasks/command-center/?project={project_id}")
     return render(request, "core/task_confirm_delete.html", {"task": task})
 
 

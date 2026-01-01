@@ -901,6 +901,20 @@ class Task(models.Model):
         help_text="Tareas que deben completarse antes de esta",
     )
 
+    # Link to Gantt V2 ScheduleItem with contribution percentage
+    schedule_item_v2 = models.ForeignKey(
+        "ScheduleItemV2",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="linked_tasks",
+        help_text="Item del Gantt V2 al que contribuye esta tarea",
+    )
+    contribution_percent = models.PositiveIntegerField(
+        default=0,
+        help_text="Porcentaje de contribución de esta tarea al item del Gantt (0-100)",
+    )
+
     def clean(self):
         """Validaciones de negocio del modelo Task."""
         from django.core.exceptions import ValidationError
@@ -929,6 +943,26 @@ class Task(models.Model):
             errors["dependencies"] = _(
                 "Dependencia circular detectada. Las tareas no pueden formar ciclos."
             )
+        
+        # Validar contribution_percent
+        if self.contribution_percent and (self.contribution_percent < 0 or self.contribution_percent > 100):
+            errors["contribution_percent"] = _("El porcentaje debe estar entre 0 y 100.")
+        
+        # Validar suma de porcentajes en el schedule_item_v2 no exceda 100%
+        if self.schedule_item_v2_id and self.contribution_percent:
+            from django.db.models import Sum
+            other_tasks_sum = Task.objects.filter(
+                schedule_item_v2=self.schedule_item_v2
+            ).exclude(pk=self.pk).aggregate(
+                total=Sum('contribution_percent')
+            )['total'] or 0
+            
+            if other_tasks_sum + self.contribution_percent > 100:
+                remaining = 100 - other_tasks_sum
+                errors["contribution_percent"] = _(
+                    f"La suma de porcentajes excede 100%. Disponible: {remaining}%"
+                )
+        
         if errors:
             raise ValidationError(errors)
 

@@ -6339,7 +6339,8 @@ def task_edit_view(request, task_id: int):
         if form.is_valid():
             form.save()
             messages.success(request, "Tarea actualizada.")
-            return redirect("task_detail", task_id=task.id)
+            # Redirect to command center with project filter
+            return redirect(f"/tasks/command-center/?project={task.project_id}")
     else:
         form = TaskForm(instance=task)
     return render(request, "core/task_form.html", {"form": form, "task": task, "edit": True})
@@ -6352,10 +6353,11 @@ def task_delete_view(request, task_id: int):
         messages.error(request, "Solo staff puede eliminar tareas.")
         return redirect("task_detail", task_id=task.id)
     if request.method == "POST":
-        pid = task.project_id
+        project_id = task.project_id
         task.delete()
         messages.success(request, "Tarea eliminada.")
-        return redirect("task_list", project_id=pid)
+        # Redirect to command center with project filter
+        return redirect(f"/tasks/command-center/?project={project_id}")
     return render(request, "core/task_confirm_delete.html", {"task": task})
 
 

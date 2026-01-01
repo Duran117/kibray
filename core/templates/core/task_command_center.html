@@ -272,6 +272,75 @@
 .status-badge.completed { background: #d1fae5; color: #047857; }
 .status-badge.cancelled { background: #f1f5f9; color: #64748b; }
 
+/* Generic Inline Dropdown (for Project, Priority, Status) */
+.inline-dropdown {
+    position: relative;
+    display: inline-block;
+}
+.inline-dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+}
+.inline-dropdown-btn:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+.inline-dropdown-btn i.bi-chevron-down {
+    font-size: 0.6rem;
+    opacity: 0.5;
+}
+.inline-dropdown-btn.priority-btn {
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+}
+.inline-dropdown-btn.priority-btn.urgent { background: #fef2f2; color: #dc2626; }
+.inline-dropdown-btn.priority-btn.high { background: #fff7ed; color: #ea580c; }
+.inline-dropdown-btn.priority-btn.medium { background: #fefce8; color: #ca8a04; }
+.inline-dropdown-btn.priority-btn.low { background: #f0fdf4; color: #16a34a; }
+.inline-dropdown-btn.status-btn {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.inline-dropdown-btn.status-btn.pending { background: #fef3c7; color: #b45309; }
+.inline-dropdown-btn.status-btn.in-progress { background: #dbeafe; color: #1d4ed8; }
+.inline-dropdown-btn.status-btn.review { background: #e0e7ff; color: #4338ca; }
+.inline-dropdown-btn.status-btn.completed { background: #d1fae5; color: #047857; }
+.inline-dropdown-btn.status-btn.cancelled { background: #f1f5f9; color: #64748b; }
+.inline-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 140px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none;
+}
+.inline-dropdown-menu.show {
+    display: block;
+}
+.inline-dropdown-option {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.15s;
+}
+.inline-dropdown-option:hover {
+    background: #f1f5f9;
+}
+
 /* Inline Assignee Dropdown */
 .assignee-dropdown {
     position: relative;
@@ -608,20 +677,68 @@
                     </td>
                     
                     <td class="hide-mobile">
+                        {% if is_staff %}
+                        <div class="inline-dropdown" data-task-id="{{ task.id }}" data-field="project">
+                            <button class="inline-dropdown-btn" onclick="toggleInlineDropdown(this, 'project')">
+                                <span>{{ task.project.name|truncatechars:12 }}</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="inline-dropdown-menu">
+                                {% for proj in projects %}
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'project', {{ proj.id }})">
+                                    {{ proj.name }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% else %}
                         <span class="text-muted" style="font-size: 0.8rem;">{{ task.project.name|truncatechars:15 }}</span>
+                        {% endif %}
                     </td>
                     
                     <td>
+                        {% if is_staff %}
+                        <div class="inline-dropdown" data-task-id="{{ task.id }}" data-field="priority">
+                            <button class="inline-dropdown-btn priority-btn {{ task.priority }}" onclick="toggleInlineDropdown(this, 'priority')">
+                                {% if task.priority == 'urgent' %}🔴{% elif task.priority == 'high' %}🟠{% elif task.priority == 'medium' %}🟡{% else %}🟢{% endif %}
+                                <span class="hide-mobile">{{ task.get_priority_display }}</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="inline-dropdown-menu">
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'priority', 'urgent')">🔴 {% trans "Urgent" %}</div>
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'priority', 'high')">🟠 {% trans "High" %}</div>
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'priority', 'medium')">🟡 {% trans "Medium" %}</div>
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'priority', 'low')">🟢 {% trans "Low" %}</div>
+                            </div>
+                        </div>
+                        {% else %}
                         <span class="priority-badge {{ task.priority }}">
                             {% if task.priority == 'urgent' %}🔴{% elif task.priority == 'high' %}🟠{% elif task.priority == 'medium' %}🟡{% else %}🟢{% endif %}
                             <span class="hide-mobile">{{ task.get_priority_display }}</span>
                         </span>
+                        {% endif %}
                     </td>
                     
                     <td>
+                        {% if is_staff %}
+                        <div class="inline-dropdown" data-task-id="{{ task.id }}" data-field="status">
+                            <button class="inline-dropdown-btn status-btn {% if task.status == 'Pendiente' %}pending{% elif task.status == 'En Progreso' %}in-progress{% elif task.status == 'En Revisión' %}review{% elif task.status == 'Completada' %}completed{% else %}cancelled{% endif %}" onclick="toggleInlineDropdown(this, 'status')">
+                                <span>{{ task.status }}</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="inline-dropdown-menu">
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'Pendiente')">{% trans "Pending" %}</div>
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'En Progreso')">{% trans "In Progress" %}</div>
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'En Revisión')">{% trans "In Review" %}</div>
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'Completada')">{% trans "Completed" %}</div>
+                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'Cancelada')">{% trans "Cancelled" %}</div>
+                            </div>
+                        </div>
+                        {% else %}
                         <span class="status-badge {% if task.status == 'Pendiente' %}pending{% elif task.status == 'En Progreso' %}in-progress{% elif task.status == 'En Revisión' %}review{% elif task.status == 'Completada' %}completed{% else %}cancelled{% endif %}">
                             {{ task.status }}
                         </span>
+                        {% endif %}
                     </td>
                     
                     <td>
@@ -757,14 +874,17 @@
                 <h6 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Delete Task" %}</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p class="mb-0">{% trans "Are you sure? This cannot be undone." %}</p>
-                <input type="hidden" id="deleteTaskId">
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                <button type="button" class="btn btn-danger btn-sm" onclick="executeDelete()">{% trans "Delete" %}</button>
-            </div>
+            <form id="deleteForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-0">{% trans "Are you sure? This cannot be undone." %}</p>
+                    <input type="hidden" id="deleteTaskId" name="task_id">
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-danger btn-sm">{% trans "Delete" %}</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -829,6 +949,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!e.target.closest('.assignee-dropdown')) {
             document.querySelectorAll('.assignee-select.show').forEach(el => el.classList.remove('show'));
         }
+        if (!e.target.closest('.inline-dropdown')) {
+            document.querySelectorAll('.inline-dropdown-menu.show').forEach(el => el.classList.remove('show'));
+        }
     });
 });
 
@@ -872,7 +995,44 @@ function toggleAssigneeDropdown(btn) {
     document.querySelectorAll('.assignee-select.show').forEach(el => {
         if (el !== dropdown) el.classList.remove('show');
     });
+    document.querySelectorAll('.inline-dropdown-menu.show').forEach(el => el.classList.remove('show'));
     dropdown.classList.toggle('show');
+}
+
+function toggleInlineDropdown(btn, fieldType) {
+    const dropdown = btn.nextElementSibling;
+    document.querySelectorAll('.inline-dropdown-menu.show').forEach(el => {
+        if (el !== dropdown) el.classList.remove('show');
+    });
+    document.querySelectorAll('.assignee-select.show').forEach(el => el.classList.remove('show'));
+    dropdown.classList.toggle('show');
+}
+
+function updateTaskField(taskId, field, value) {
+    fetch('/api/v1/tasks/bulk-update/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            task_ids: [taskId], 
+            action: field, 
+            value: value 
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success || data.updated_count > 0) {
+            location.reload();
+        } else {
+            alert(data.error || '{% trans "Error updating task" %}');
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('{% trans "Error updating task" %}');
+    });
 }
 
 function assignTask(taskId, employeeId) {
@@ -971,12 +1131,8 @@ function bulkChangeStatus() {
 
 function confirmDelete(taskId) {
     document.getElementById('deleteTaskId').value = taskId;
+    document.getElementById('deleteForm').action = '/tasks/' + taskId + '/delete/';
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
-
-function executeDelete() {
-    const taskId = document.getElementById('deleteTaskId').value;
-    window.location.href = '/tasks/' + taskId + '/delete/';
 }
 </script>
 {% endblock %}

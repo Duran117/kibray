@@ -48,6 +48,7 @@ from .models import (
     Schedule,
     ScheduleCategory,
     ScheduleItem,
+    ScheduleItemV2,
     SitePhoto,
     Task,
     TimeEntry,
@@ -566,6 +567,22 @@ class TaskForm(forms.ModelForm):
         widget=forms.Select(attrs={"class": "form-control"}),
         help_text=_("Prioridad de la tarea"),
     )
+    schedule_item_v2 = forms.ModelChoiceField(
+        queryset=ScheduleItemV2.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label=_("Gantt Item"),
+        help_text=_("Item del calendario/Gantt al que pertenece esta tarea"),
+    )
+    contribution_percent = forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=100,
+        initial=0,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "0-100"}),
+        label=_("Contribution %"),
+        help_text=_("Porcentaje de contribución al item del Gantt"),
+    )
     dependencies = forms.ModelMultipleChoiceField(
         queryset=Task.objects.all(),
         required=False,
@@ -583,6 +600,8 @@ class TaskForm(forms.ModelForm):
             "assigned_to",
             "priority",
             "due_date",
+            "schedule_item_v2",
+            "contribution_percent",
             "dependencies",
             "image",
             "is_touchup",
@@ -598,14 +617,35 @@ class TaskForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter dependencies to same project and exclude self
+        project = None
+        
+        # Get project from instance or initial data
         if self.instance and self.instance.pk:
-            self.fields["dependencies"].queryset = Task.objects.filter(
-                project=self.instance.project
-            ).exclude(pk=self.instance.pk)
-        elif "initial" in kwargs and "project" in kwargs["initial"]:
-            project_id = kwargs["initial"]["project"]
-            self.fields["dependencies"].queryset = Task.objects.filter(project_id=project_id)
+            project = self.instance.project
+        elif "initial" in kwargs and kwargs["initial"].get("project"):
+            project = kwargs["initial"]["project"]
+            if isinstance(project, int):
+                try:
+                    project = Project.objects.get(pk=project)
+                except Project.DoesNotExist:
+                    project = None
+        
+        # Filter schedule_item_v2 to selected project
+        if project:
+            self.fields["schedule_item_v2"].queryset = ScheduleItemV2.objects.filter(
+                project=project
+            ).select_related("phase").order_by("phase__order", "order")
+            
+            # Filter dependencies to same project and exclude self
+            if self.instance and self.instance.pk:
+                self.fields["dependencies"].queryset = Task.objects.filter(
+                    project=project
+                ).exclude(pk=self.instance.pk)
+            else:
+                self.fields["dependencies"].queryset = Task.objects.filter(project=project)
+        else:
+            self.fields["schedule_item_v2"].queryset = ScheduleItemV2.objects.none()
+            self.fields["dependencies"].queryset = Task.objects.none()
 
 
 # DEPRECATED: PayrollForm y PayrollEntryForm

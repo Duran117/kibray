@@ -143,13 +143,13 @@ class BulkTaskAssignAPIView(APIView):
 
 
 class BulkTaskUpdateAPIView(APIView):
-    """Bulk update Tasks (assign/status/priority).
+    """Bulk update Tasks (assign/status/priority/project).
 
     Expected JSON payload:
     {
         "task_ids": [1,2,3],
-        "action": "assign" | "status" | "priority",
-        "value": "15"  # employee id OR status string OR priority string
+        "action": "assign" | "status" | "priority" | "project",
+        "value": "15"  # employee id OR status string OR priority string OR project id
     }
 
     Notes:
@@ -170,7 +170,7 @@ class BulkTaskUpdateAPIView(APIView):
             return Response(
                 {"error": "task_ids must be a non-empty list"}, status=status.HTTP_400_BAD_REQUEST
             )
-        if action not in {"assign", "status", "priority"}:
+        if action not in {"assign", "status", "priority", "project"}:
             return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         if value in (None, ""):
             return Response({"error": "value is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -189,6 +189,19 @@ class BulkTaskUpdateAPIView(APIView):
                 employee_obj = Employee.objects.get(pk=value)
             except Exception:
                 failed.append({"value": str(value), "reason": "Employee not found"})
+                return Response(
+                    {"updated": [], "failed": failed, "missing": missing, "action": action},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Pre-fetch project if needed
+        project_obj = None
+        if action == "project":
+            try:
+                from core.models import Project
+                project_obj = Project.objects.get(pk=value)
+            except Exception:
+                failed.append({"value": str(value), "reason": "Project not found"})
                 return Response(
                     {"updated": [], "failed": failed, "missing": missing, "action": action},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -217,6 +230,8 @@ class BulkTaskUpdateAPIView(APIView):
                         task.status = value
                     elif action == "priority":
                         task.priority = value
+                    elif action == "project":
+                        task.project = project_obj
                     task.save()  # triggers model validation & signals
                     updated.append(task.id)
             except Exception as e:
@@ -230,6 +245,7 @@ class BulkTaskUpdateAPIView(APIView):
                 "updated": updated,
                 "failed": failed,
                 "missing": missing,
+                "success": len(updated) > 0,
             },
             status=status.HTTP_200_OK,
         )

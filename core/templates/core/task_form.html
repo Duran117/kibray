@@ -183,18 +183,72 @@
             <small class="form-text text-muted">{{ form.due_date.help_text }}</small>
           </div>
 
-          <!-- ACTIVITY 1: Dependencies (Q11.7) -->
+          <!-- Gantt Item Link -->
+          <div class="col-12 col-md-6">
+            <label for="{{ form.schedule_item_v2.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-calendar-week me-1"></i>
+              {% trans "Gantt Item" %}
+            </label>
+            <select 
+              name="{{ form.schedule_item_v2.name }}" 
+              id="{{ form.schedule_item_v2.id_for_label }}"
+              class="form-select"
+              style="min-height: 50px; font-size: 16px;"
+              onchange="toggleContributionPercent(this)"
+            >
+              <option value="">{% trans 'Select Gantt item (optional)' %}</option>
+              {% for item in form.schedule_item_v2.field.queryset %}
+                <option value="{{ item.pk }}" 
+                        {% if form.schedule_item_v2.value|stringformat:"s" == item.pk|stringformat:"s" %}selected{% endif %}
+                        data-progress="{{ item.progress }}">
+                  {{ item.phase.name }} → {{ item.name }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if form.schedule_item_v2.errors %}
+              <div class="invalid-feedback d-block">{{ form.schedule_item_v2.errors }}</div>
+            {% endif %}
+            <small class="form-text text-muted">{% trans "Link this task to a Gantt calendar item" %}</small>
+          </div>
+
+          <!-- Contribution Percentage (shown when Gantt item selected) -->
+          <div class="col-12 col-md-6" id="contributionPercentContainer" style="{% if not form.schedule_item_v2.value %}display:none;{% endif %}">
+            <label for="{{ form.contribution_percent.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-percent me-1"></i>
+              {% trans "Contribution %" %}
+              <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <input 
+                type="number" 
+                name="{{ form.contribution_percent.name }}" 
+                id="{{ form.contribution_percent.id_for_label }}"
+                class="form-control"
+                value="{{ form.contribution_percent.value|default:0 }}"
+                min="0"
+                max="100"
+                style="min-height: 50px; font-size: 16px;"
+              >
+              <span class="input-group-text">%</span>
+            </div>
+            {% if form.contribution_percent.errors %}
+              <div class="invalid-feedback d-block">{{ form.contribution_percent.errors }}</div>
+            {% endif %}
+            <small class="form-text text-muted" id="availablePercentText">{% trans "Percentage this task contributes to the Gantt item" %}</small>
+          </div>
+
+          <!-- Task Dependencies -->
           <div class="col-12">
             <label for="{{ form.dependencies.id_for_label }}" class="form-label fw-semibold">
               <i class="bi bi-diagram-3 me-1"></i>
-              {{ form.dependencies.label }}
+              {% trans "Task Dependencies" %}
             </label>
             <select 
               name="{{ form.dependencies.name }}" 
               id="{{ form.dependencies.id_for_label }}"
               class="form-select"
               multiple
-              size="5"
+              size="4"
               style="font-size: 16px;"
             >
               {% for value, text in form.dependencies.field.choices %}
@@ -310,5 +364,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// Toggle contribution percent field based on Gantt item selection
+function toggleContributionPercent(selectEl) {
+  const container = document.getElementById('contributionPercentContainer');
+  const percentInput = document.getElementById('{{ form.contribution_percent.id_for_label }}');
+  
+  if (selectEl.value) {
+    container.style.display = 'block';
+    // Optionally load available percentage via API
+  } else {
+    container.style.display = 'none';
+    percentInput.value = 0;
+  }
+}
+
+// Dynamic project change to reload Gantt items
+const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
+if (projectSelect) {
+  projectSelect.addEventListener('change', function() {
+    const ganttSelect = document.getElementById('{{ form.schedule_item_v2.id_for_label }}');
+    const projectId = this.value;
+    
+    if (!projectId) {
+      ganttSelect.innerHTML = '<option value="">{% trans "Select Gantt item (optional)" %}</option>';
+      return;
+    }
+    
+    // Fetch Gantt items for selected project
+    fetch(`/api/v1/schedule/v2/items/?project=${projectId}`)
+      .then(r => r.json())
+      .then(data => {
+        let html = '<option value="">{% trans "Select Gantt item (optional)" %}</option>';
+        if (data.results) {
+          data.results.forEach(item => {
+            html += `<option value="${item.id}">${item.phase_name || 'Phase'} → ${item.name}</option>`;
+          });
+        }
+        ganttSelect.innerHTML = html;
+      })
+      .catch(err => console.error('Error loading Gantt items:', err));
+  });
+}
 </script>
 {% endblock %}
