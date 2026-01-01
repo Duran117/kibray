@@ -11,7 +11,7 @@
         <ol class="breadcrumb small mb-0">
           <li class="breadcrumb-item"><a href="{% url 'task_command_center' %}" class="text-decoration-none">{% trans 'Tareas' %}</a></li>
           {% if task.project %}
-          <li class="breadcrumb-item"><a href="{% url 'project_detail' task.project.id %}" class="text-decoration-none">{{ task.project.name }}</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'project_overview' task.project.id %}" class="text-decoration-none">{{ task.project.name }}</a></li>
           {% endif %}
           <li class="breadcrumb-item active" aria-current="page">{{ task.title|truncatewords:5 }}</li>
         </ol>
@@ -247,7 +247,7 @@
               <span class="text-muted"><i class="bi bi-folder me-2"></i>{% trans 'Proyecto' %}</span>
               <span class="fw-medium">
                 {% if task.project %}
-                <a href="{% url 'project_detail' task.project.id %}" class="text-decoration-none">{{ task.project.name }}</a>
+                <a href="{% url 'project_overview' task.project.id %}" class="text-decoration-none">{{ task.project.name }}</a>
                 {% else %}—{% endif %}
               </span>
             </li>
@@ -326,13 +326,8 @@
             <i class="bi bi-pencil me-1"></i> {% trans 'Editar tarea' %}
           </a>
           {% if task.project %}
-          <a href="{% url 'project_detail' task.project.id %}" class="btn btn-outline-secondary">
+          <a href="{% url 'project_overview' task.project.id %}" class="btn btn-outline-secondary">
             <i class="bi bi-folder me-1"></i> {% trans 'Ver proyecto' %}
-          </a>
-          {% endif %}
-          {% if task.assigned_to %}
-          <a href="{% url 'employee_detail' task.assigned_to.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-person me-1"></i> {% trans 'Ver empleado' %}
           </a>
           {% endif %}
         </div>
