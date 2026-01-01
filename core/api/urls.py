@@ -25,7 +25,7 @@ from core.views_health import (
 )
 
 from . import schedule_api, sop_api
-from .bulk_views import BulkTaskUpdateAPIView
+from .bulk_views import BulkTaskUpdateAPIView, BulkTaskAssignAPIView, TaskDetailAPIView
 from .dashboard_extra import ClientDashboardView, ProjectDashboardView
 from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet
 from .views import (
@@ -252,8 +252,10 @@ urlpatterns = [
         update_changeorder_photo_image,
         name="update_photo_image",
     ),
-    # API routes
+    # API routes - Task operations
     path("tasks/bulk-update/", BulkTaskUpdateAPIView.as_view(), name="tasks-bulk-update"),
+    path("tasks/bulk-assign/", BulkTaskAssignAPIView.as_view(), name="tasks-bulk-assign"),
+    path("tasks/<int:task_id>/detail/", TaskDetailAPIView.as_view(), name="task-detail-api"),
     # Include router URLs
     path("", include(router.urls)),
     # Ensure gantt endpoint resolves under router and direct mapping

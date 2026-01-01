@@ -831,6 +831,7 @@ urlpatterns = [
     # Task detail & my tasks (added to fix broken dashboard links)
     path("tasks/<int:task_id>/", views.task_detail, name="task_detail"),
     path("tasks/my/", views.task_list_all, name="task_list_all"),
+    path("tasks/command-center/", views.task_command_center, name="task_command_center"),
     # ACTIVITY 1: Task time tracking (Q11.13)
     path(
         "tasks/<int:task_id>/start-tracking/", views.task_start_tracking, name="task_start_tracking"

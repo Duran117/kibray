@@ -6361,34 +6361,152 @@ def task_delete_view(request, task_id: int):
 
 @login_required
 def task_list_all(request):
-    """Listado agrupado de tareas.
-    - Staff / PM: todas las tareas agrupadas por proyecto.
-    - Empleado: solo sus tareas asignadas.
+    """DEPRECATED: Redirect to Task Command Center."""
+    return redirect("task_command_center")
+
+
+@login_required
+def task_command_center(request):
     """
-    if not Task:
-        tasks = []
-    elif request.user.is_staff or request.user.is_superuser:
-        tasks = (
-            Task.objects.select_related("project", "assigned_to")
-            .prefetch_related("dependencies")
-            .order_by("project__name", "-id")
+    Task Command Center - Centro de control unificado de tareas.
+    
+    Features:
+    - Selector de proyecto con filtrado
+    - Estadísticas en tiempo real
+    - Filtros avanzados (estado, prioridad, asignado, búsqueda)
+    - Creación de tareas via modal
+    - Acciones bulk (asignar, cambiar estado/prioridad)
+    - Vista detallada de tareas con pines/touchups integrados
+    
+    Permisos:
+    - Staff/Admin: Ve todas las tareas, puede crear/editar/asignar
+    - Empleado: Solo ve sus tareas asignadas, puede actualizar estado
+    """
+    from django.db.models import Count, Q
+    from core.notifications import notify_task_created
+    
+    is_staff = request.user.is_staff or request.user.is_superuser
+    today = timezone.localdate()
+    
+    # Get current employee if exists
+    current_employee = Employee.objects.filter(user=request.user).first()
+    current_employee_id = current_employee.id if current_employee else None
+    
+    # Handle POST - Create Task
+    if request.method == "POST" and request.POST.get("action") == "create":
+        project_id = request.POST.get("project")
+        title = request.POST.get("title", "").strip()
+        
+        if not project_id or not title:
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"error": gettext("Project and title are required")}, status=400)
+            messages.error(request, gettext("Project and title are required"))
+            return redirect("task_command_center")
+        
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"error": gettext("Project not found")}, status=404)
+            messages.error(request, gettext("Project not found"))
+            return redirect("task_command_center")
+        
+        # Create task
+        task = Task.objects.create(
+            project=project,
+            title=title,
+            description=request.POST.get("description", ""),
+            priority=request.POST.get("priority", "medium"),
+            due_date=request.POST.get("due_date") or None,
+            is_touchup=request.POST.get("is_touchup") == "true",
+            created_by=request.user,
+            status="Pendiente",
         )
+        
+        # Handle image upload
+        if request.FILES.get("image"):
+            task.image = request.FILES["image"]
+            task.save()
+        
+        # Assign employee if provided (staff only)
+        if is_staff and request.POST.get("assigned_to"):
+            try:
+                emp = Employee.objects.get(id=request.POST.get("assigned_to"))
+                task.assigned_to = emp
+                task.save()
+                # Send notification
+                notify_task_created(task, request.user)
+            except Employee.DoesNotExist:
+                pass
+        
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({"success": True, "task_id": task.id})
+        
+        messages.success(request, gettext("Task created successfully"))
+        return redirect("task_command_center")
+    
+    # Get projects for selector
+    if is_staff:
+        projects = Project.objects.filter(is_archived=False).order_by("name")
     else:
-        tasks = (
-            Task.objects.filter(assigned_to=request.user)
-            .select_related("project", "assigned_to")
-            .prefetch_related("dependencies")
-            .order_by("project__name", "-id")
-        )
-
-    can_manage = request.user.is_staff or request.user.is_superuser
-
+        # Employees see projects where they have assignments or tasks
+        projects = Project.objects.filter(
+            Q(tasks__assigned_to=current_employee) |
+            Q(resource_assignments__employee=current_employee)
+        ).distinct().filter(is_archived=False).order_by("name")
+    
+    # Selected project filter
+    selected_project_id = request.GET.get("project")
+    selected_project = None
+    if selected_project_id:
+        try:
+            selected_project = Project.objects.get(id=selected_project_id)
+        except Project.DoesNotExist:
+            pass
+    
+    # Base queryset
+    tasks_qs = Task.objects.select_related("project", "assigned_to").prefetch_related("dependencies")
+    
+    # Apply permissions filter
+    if is_staff:
+        # Staff sees all tasks
+        if selected_project:
+            tasks_qs = tasks_qs.filter(project=selected_project)
+    else:
+        # Employees see only their assigned tasks
+        tasks_qs = tasks_qs.filter(assigned_to=current_employee)
+        if selected_project:
+            tasks_qs = tasks_qs.filter(project=selected_project)
+    
+    tasks = tasks_qs.order_by("-created_at")
+    
+    # Calculate statistics
+    stats = {
+        "total": tasks.count(),
+        "pending": tasks.filter(status="Pendiente").count(),
+        "in_progress": tasks.filter(status="En Progreso").count(),
+        "completed": tasks.filter(status="Completada").count(),
+        "overdue": tasks.filter(due_date__lt=today).exclude(status__in=["Completada", "Cancelada"]).count(),
+        "unassigned": tasks.filter(assigned_to__isnull=True).count() if is_staff else 0,
+        "touchups": tasks.filter(is_touchup=True).count(),
+        "my_tasks": tasks.filter(assigned_to=current_employee).count() if current_employee else 0,
+    }
+    
+    # Get employees for assignment dropdown (staff only)
+    employees = Employee.objects.filter(is_active=True).order_by("first_name") if is_staff else []
+    
     return render(
         request,
-        "core/task_list_all.html",
+        "core/task_command_center.html",
         {
             "tasks": tasks,
-            "can_manage": can_manage,
+            "projects": projects,
+            "selected_project": selected_project,
+            "stats": stats,
+            "employees": employees,
+            "is_staff": is_staff,
+            "today": today,
+            "current_employee_id": current_employee_id,
         },
     )
 
