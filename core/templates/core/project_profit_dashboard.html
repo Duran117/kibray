@@ -1,181 +1,539 @@
 {% extends "core/base_modern.html" %}
 {% load i18n %}
 {% load static %}
-{% load core_extras %}
 
-{% block title %}Dashboard de Profit - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Profit Dashboard" %} - {{ project.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Profit Dashboard Styles */
+.profit-dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+/* Header */
+.profit-header {
+    margin-bottom: 2rem;
+}
+.profit-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.25rem 0;
+}
+.profit-header .subtitle {
+    color: #64748b;
+    font-size: 0.95rem;
+}
+.profit-header .subtitle strong {
+    color: #334155;
+}
+
+/* Alerts */
+.profit-alerts {
+    margin-bottom: 1.5rem;
+}
+.profit-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.profit-alert.danger {
+    background: #fef2f2;
+    color: #dc2626;
+    border-left: 4px solid #dc2626;
+}
+.profit-alert.warning {
+    background: #fffbeb;
+    color: #d97706;
+    border-left: 4px solid #d97706;
+}
+.profit-alert i {
+    font-size: 1.1rem;
+}
+
+/* KPI Cards Row */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+@media (max-width: 992px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 576px) {
+    .kpi-row { grid-template-columns: 1fr; }
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
+}
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+.kpi-card.primary::before { background: #6366f1; }
+.kpi-card.danger::before { background: #ef4444; }
+.kpi-card.success::before { background: #22c55e; }
+.kpi-card.warning::before { background: #f59e0b; }
+
+.kpi-card .kpi-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+.kpi-card.primary .kpi-icon { background: #eef2ff; color: #6366f1; }
+.kpi-card.danger .kpi-icon { background: #fef2f2; color: #ef4444; }
+.kpi-card.success .kpi-icon { background: #f0fdf4; color: #22c55e; }
+.kpi-card.warning .kpi-icon { background: #fffbeb; color: #f59e0b; }
+
+.kpi-card .kpi-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+.kpi-card .kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+}
+.kpi-card.danger .kpi-value.negative { color: #ef4444; }
+.kpi-card.success .kpi-value.positive { color: #22c55e; }
+
+.kpi-card .kpi-meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+}
+
+/* Detail Cards */
+.detail-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+@media (max-width: 768px) {
+    .detail-row { grid-template-columns: 1fr; }
+}
+
+.detail-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+.detail-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.detail-card-header i {
+    font-size: 1rem;
+}
+.detail-card-header h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+.detail-card-header.blue { background: #f0f9ff; color: #0369a1; }
+.detail-card-header.red { background: #fef2f2; color: #dc2626; }
+.detail-card-header.green { background: #f0fdf4; color: #16a34a; }
+
+.detail-card-body {
+    padding: 0;
+}
+.detail-table {
+    width: 100%;
+}
+.detail-table tr {
+    border-bottom: 1px solid #f1f5f9;
+}
+.detail-table tr:last-child {
+    border-bottom: none;
+}
+.detail-table td {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+}
+.detail-table td:first-child {
+    color: #64748b;
+}
+.detail-table td:last-child {
+    text-align: right;
+    font-weight: 600;
+    color: #1e293b;
+}
+.detail-table tr.highlight {
+    background: #f8fafc;
+}
+.detail-table tr.highlight td {
+    font-weight: 700;
+}
+.detail-table tr.variance-positive td:last-child { color: #16a34a; }
+.detail-table tr.variance-negative td:last-child { color: #dc2626; }
+
+/* Cost Breakdown */
+.cost-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+.cost-item:last-child { border-bottom: none; }
+.cost-item .cost-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.875rem;
+    font-size: 1rem;
+}
+.cost-item .cost-icon.labor { background: #dbeafe; color: #2563eb; }
+.cost-item .cost-icon.material { background: #fef3c7; color: #d97706; }
+.cost-item .cost-info { flex: 1; }
+.cost-item .cost-label {
+    font-size: 0.9rem;
+    color: #1e293b;
+    font-weight: 500;
+}
+.cost-item .cost-meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+.cost-item .cost-amount {
+    text-align: right;
+}
+.cost-item .cost-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.cost-item .cost-pct {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* Progress Bar */
+.cost-progress {
+    padding: 0.75rem 1.25rem 1.25rem;
+}
+.progress-bar-custom {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+}
+.progress-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+.progress-segment.labor { background: #3b82f6; }
+.progress-segment.material { background: #f59e0b; }
+.progress-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.75rem;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+.legend-dot.labor { background: #3b82f6; }
+.legend-dot.material { background: #f59e0b; }
+
+/* Collection Status */
+.collection-status {
+    padding: 1.25rem;
+}
+.collection-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.collection-item {
+    text-align: center;
+    flex: 1;
+}
+.collection-item:not(:last-child) {
+    border-right: 1px solid #e2e8f0;
+}
+.collection-label {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+.collection-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+.collection-value.success { color: #16a34a; }
+.collection-value.warning { color: #d97706; }
+
+.collection-progress {
+    margin-top: 1rem;
+}
+.collection-progress-bar {
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+}
+.collection-segment {
+    height: 100%;
+}
+.collection-segment.collected { background: #22c55e; }
+.collection-segment.pending { background: #f59e0b; }
+.collection-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Actions */
+.profit-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.profit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+.profit-btn.primary {
+    background: #6366f1;
+    color: white;
+}
+.profit-btn.primary:hover {
+    background: #4f46e5;
+}
+.profit-btn.outline {
+    background: white;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+.profit-btn.outline:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+.profit-btn.success {
+    background: #22c55e;
+    color: white;
+}
+.profit-btn.success:hover {
+    background: #16a34a;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2>📊 Dashboard de Profit & Margen</h2>
-            <p class="text-muted">Proyecto: <strong>{{ project.name }}</strong> - {{ project.client }}</p>
-        </div>
+<div class="profit-dashboard">
+    <!-- Header -->
+    <div class="profit-header">
+        <h1>{% trans "Profit & Margin Dashboard" %}</h1>
+        <p class="subtitle">
+            {% trans "Project" %}: <strong>{{ project.name }}</strong>
+            {% if project.client %} — {{ project.client }}{% endif %}
+        </p>
     </div>
 
-    <!-- ALERTS -->
+    <!-- Alerts -->
     {% if alerts %}
-    <div class="row mb-3">
-        <div class="col-12">
-            {% for alert in alerts %}
-            <div class="alert alert-{{ alert.type }} alert-dismissible fade show" role="alert">
-                {{ alert.message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
+    <div class="profit-alerts">
+        {% for alert in alerts %}
+        <div class="profit-alert {{ alert.type }}">
+            <i class="bi bi-{% if alert.type == 'danger' %}exclamation-triangle-fill{% else %}info-circle-fill{% endif %}"></i>
+            {{ alert.message }}
         </div>
+        {% endfor %}
     </div>
     {% endif %}
 
-    <!-- KEY METRICS -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center {% if profit > 0 %}border-success{% else %}border-danger{% endif %}">
-                <div class="card-body">
-                    <h6 class="text-muted">💰 Profit</h6>
-                    <h2 class="{% if profit > 0 %}text-success{% else %}text-danger{% endif %}">${{ profit|floatformat:2 }}</h2>
-                </div>
-            </div>
+    <!-- KPI Cards -->
+    <div class="kpi-row">
+        <!-- Total Revenue -->
+        <div class="kpi-card primary">
+            <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+            <div class="kpi-label">{% trans "Total Budgeted" %}</div>
+            <div class="kpi-value">${{ budgeted_revenue|floatformat:2 }}</div>
+            <div class="kpi-meta">{% trans "Estimate + Change Orders" %}</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center {% if margin_pct >= 25 %}border-success{% elif margin_pct >= 10 %}border-warning{% else %}border-danger{% endif %}">
-                <div class="card-body">
-                    <h6 class="text-muted">📈 Margen %</h6>
-                    <h2 class="{% if margin_pct >= 25 %}text-success{% elif margin_pct >= 10 %}text-warning{% else %}text-danger{% endif %}">{{ margin_pct|floatformat:1 }}%</h2>
-                    <small class="text-muted">Meta: >25%</small>
-                </div>
-            </div>
+
+        <!-- Total Costs -->
+        <div class="kpi-card danger">
+            <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="kpi-label">{% trans "Total Costs" %}</div>
+            <div class="kpi-value">${{ total_actual_cost|floatformat:2 }}</div>
+            <div class="kpi-meta">{% trans "Labor + Materials" %}</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center border-primary">
-                <div class="card-body">
-                    <h6 class="text-muted">💵 Cobrado</h6>
-                    <h2 class="text-primary">${{ collected_amount|floatformat:2 }}</h2>
-                    <small class="text-muted">de ${{ billed_amount|floatformat:2 }}</small>
-                </div>
+
+        <!-- Profit -->
+        <div class="kpi-card {% if profit >= 0 %}success{% else %}danger{% endif %}">
+            <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="kpi-label">{% trans "Net Profit" %}</div>
+            <div class="kpi-value {% if profit >= 0 %}positive{% else %}negative{% endif %}">
+                {% if profit >= 0 %}+{% endif %}${{ profit|floatformat:2 }}
             </div>
+            <div class="kpi-meta">{% trans "Billed - Costs" %}</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center border-warning">
-                <div class="card-body">
-                    <h6 class="text-muted">⏳ Pendiente</h6>
-                    <h2 class="text-warning">${{ outstanding|floatformat:2 }}</h2>
-                </div>
-            </div>
+
+        <!-- Margin -->
+        <div class="kpi-card {% if margin_pct >= 25 %}success{% elif margin_pct >= 10 %}warning{% else %}danger{% endif %}">
+            <div class="kpi-icon"><i class="bi bi-percent"></i></div>
+            <div class="kpi-label">{% trans "Profit Margin" %}</div>
+            <div class="kpi-value">{{ margin_pct|floatformat:1 }}%</div>
+            <div class="kpi-meta">{% trans "Target" %}: >25%</div>
         </div>
     </div>
 
-    <!-- REVENUE BREAKDOWN -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">💰 Presupuesto & Facturación</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table">
-                        <tbody>
-                            <tr>
-                                <td>Estimado Base</td>
-                                <td class="text-end"><strong>${{ estimate_revenue|floatformat:2 }}</strong></td>
-                            </tr>
-                            <tr>
-                                <td>{% trans "Change Orders" %}</td>
-                                <td class="text-end"><strong>${{ cos_revenue|floatformat:2 }}</strong></td>
-                            </tr>
-                            <tr class="table-active">
-                                <td><strong>Total Presupuestado</strong></td>
-                                <td class="text-end"><strong>${{ budgeted_revenue|floatformat:2 }}</strong></td>
-                            </tr>
-                            <tr>
-                                <td>Facturado Real</td>
-                                <td class="text-end"><strong>${{ billed_amount|floatformat:2 }}</strong></td>
-                            </tr>
-                            <tr class="{% if budget_variance >= 0 %}table-success{% else %}table-danger{% endif %}">
-                                <td><strong>Varianza</strong></td>
-                                <td class="text-end">
-                                    <strong>
-                                        {% if budget_variance >= 0 %}+{% endif %}${{ budget_variance|floatformat:2 }}
-                                        ({{ budget_variance_pct|floatformat:1 }}%)
-                                    </strong>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Detail Cards Row -->
+    <div class="detail-row">
+        <!-- Budget & Billing Card -->
+        <div class="detail-card">
+            <div class="detail-card-header blue">
+                <i class="bi bi-clipboard-data"></i>
+                <h3>{% trans "Budget & Billing" %}</h3>
+            </div>
+            <div class="detail-card-body">
+                <table class="detail-table">
+                    <tr>
+                        <td>{% trans "Base Estimate" %}</td>
+                        <td>${{ estimate_revenue|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>{% trans "Change Orders" %}</td>
+                        <td>${{ cos_revenue|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>{% trans "Total Budgeted" %}</td>
+                        <td>${{ budgeted_revenue|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>{% trans "Billed Amount" %}</td>
+                        <td>${{ billed_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="{% if budget_variance >= 0 %}variance-positive{% else %}variance-negative{% endif %}">
+                        <td>{% trans "Variance" %}</td>
+                        <td>
+                            {% if budget_variance >= 0 %}+{% endif %}${{ budget_variance|floatformat:2 }}
+                            ({{ budget_variance_pct|floatformat:1 }}%)
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">📉 Costos Reales</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table">
-                        <tbody>
-                            <tr>
-                                <td>👷 Labor (Tiempo)</td>
-                                <td class="text-end"><strong>${{ labor_cost|floatformat:2 }}</strong></td>
-                                <td class="text-end">{{ labor_cost|floatformat:0|add:"0"|mul:100|div:total_actual_cost|default:"0" }}%</td>
-                            </tr>
-                            <tr>
-                                <td>🛠️ Materiales (Gastos)</td>
-                                <td class="text-end"><strong>${{ material_cost|floatformat:2 }}</strong></td>
-                                <td class="text-end">{{ material_cost|floatformat:0|add:"0"|mul:100|div:total_actual_cost|default:"0" }}%</td>
-                            </tr>
-                            <tr class="table-active">
-                                <td><strong>Total Costos</strong></td>
-                                <td class="text-end"><strong>${{ total_actual_cost|floatformat:2 }}</strong></td>
-                                <td class="text-end"><strong>100%</strong></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <!-- Simple Pie Chart with CSS -->
-                    <div class="mt-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <div style="width:100%; height:30px; background: linear-gradient(to right, #0d6efd 0%, #0d6efd {{ labor_cost|floatformat:0|add:"0"|mul:100|div:total_actual_cost|default:"0" }}%, #dc3545 {{ labor_cost|floatformat:0|add:"0"|mul:100|div:total_actual_cost|default:"0" }}%, #dc3545 100%); border-radius: 5px;"></div>
-                        </div>
-                        <small class="text-muted">
-                            <span class="badge bg-primary">Labor</span>
-                            <span class="badge bg-danger">Materiales</span>
-                        </small>
+        <!-- Cost Breakdown Card -->
+        <div class="detail-card">
+            <div class="detail-card-header red">
+                <i class="bi bi-pie-chart"></i>
+                <h3>{% trans "Cost Breakdown" %}</h3>
+            </div>
+            <div class="detail-card-body">
+                <!-- Labor -->
+                <div class="cost-item">
+                    <div class="cost-icon labor"><i class="bi bi-person-workspace"></i></div>
+                    <div class="cost-info">
+                        <div class="cost-label">{% trans "Labor" %}</div>
+                        <div class="cost-meta">{% trans "Time entries" %}</div>
+                    </div>
+                    <div class="cost-amount">
+                        <div class="cost-value">${{ labor_cost|floatformat:2 }}</div>
+                        <div class="cost-pct">{{ labor_pct|floatformat:1 }}%</div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- CASH FLOW -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">💵 Estado de Cobros</h5>
+                <!-- Materials -->
+                <div class="cost-item">
+                    <div class="cost-icon material"><i class="bi bi-box-seam"></i></div>
+                    <div class="cost-info">
+                        <div class="cost-label">{% trans "Materials & Expenses" %}</div>
+                        <div class="cost-meta">{% trans "Purchases & receipts" %}</div>
+                    </div>
+                    <div class="cost-amount">
+                        <div class="cost-value">${{ material_cost|floatformat:2 }}</div>
+                        <div class="cost-pct">{{ material_pct|floatformat:1 }}%</div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                            <h6 class="text-muted">Total Facturado</h6>
-                            <h3>${{ billed_amount|floatformat:2 }}</h3>
+                <!-- Total -->
+                <div class="cost-item" style="background: #f8fafc;">
+                    <div class="cost-icon" style="background: #e2e8f0; color: #475569;"><i class="bi bi-calculator"></i></div>
+                    <div class="cost-info">
+                        <div class="cost-label" style="font-weight: 700;">{% trans "Total Costs" %}</div>
+                    </div>
+                    <div class="cost-amount">
+                        <div class="cost-value">${{ total_actual_cost|floatformat:2 }}</div>
+                        <div class="cost-pct">100%</div>
+                    </div>
+                </div>
+                <!-- Progress Bar -->
+                <div class="cost-progress">
+                    <div class="progress-bar-custom">
+                        <div class="progress-segment labor" style="width: {{ labor_pct|floatformat:0 }}%;"></div>
+                        <div class="progress-segment material" style="width: {{ material_pct|floatformat:0 }}%;"></div>
+                    </div>
+                    <div class="progress-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot labor"></div>
+                            {% trans "Labor" %} ({{ labor_pct|floatformat:1 }}%)
                         </div>
-                        <div class="col-md-4 text-center border-start">
-                            <h6 class="text-muted text-success">✅ Cobrado</h6>
-                            <h3 class="text-success">${{ collected_amount|floatformat:2 }}</h3>
-                            <div class="progress mt-2">
-                                <div class="progress-bar bg-success" style="width: {{ collected_amount|floatformat:0|add:"0"|mul:100|div:billed_amount|default:"0" }}%"></div>
-                            </div>
-                            <small class="text-muted">{{ collected_amount|floatformat:0|add:"0"|mul:100|div:billed_amount|default:"0" }}%</small>
-                        </div>
-                        <div class="col-md-4 text-center border-start">
-                            <h6 class="text-muted text-warning">⏳ Pendiente</h6>
-                            <h3 class="text-warning">${{ outstanding|floatformat:2 }}</h3>
-                            <div class="progress mt-2">
-                                <div class="progress-bar bg-warning" style="width: {{ outstanding|floatformat:0|add:"0"|mul:100|div:billed_amount|default:"0" }}%"></div>
-                            </div>
-                            <small class="text-muted">{{ outstanding|floatformat:0|add:"0"|mul:100|div:billed_amount|default:"0" }}%</small>
+                        <div class="legend-item">
+                            <div class="legend-dot material"></div>
+                            {% trans "Materials" %} ({{ material_pct|floatformat:1 }}%)
                         </div>
                     </div>
                 </div>
@@ -183,18 +541,54 @@
         </div>
     </div>
 
-    <!-- ACTIONS -->
-    <div class="row">
-        <div class="col-12">
-            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-primary">📁 Volver al Proyecto</a>
-            <a href="{% url 'invoice_builder' project.id %}" class="btn btn-success">💰 Crear Factura</a>
-            <a href="{% url 'invoice_payment_dashboard' %}" class="btn btn-warning">💵 Panel de Pagos</a>
+    <!-- Collection Status -->
+    <div class="detail-card" style="margin-bottom: 1.5rem;">
+        <div class="detail-card-header green">
+            <i class="bi bi-cash-coin"></i>
+            <h3>{% trans "Collection Status" %}</h3>
         </div>
+        <div class="collection-status">
+            <div class="collection-row">
+                <div class="collection-item">
+                    <div class="collection-label">{% trans "Total Billed" %}</div>
+                    <div class="collection-value">${{ billed_amount|floatformat:2 }}</div>
+                </div>
+                <div class="collection-item">
+                    <div class="collection-label">{% trans "Collected" %}</div>
+                    <div class="collection-value success">${{ collected_amount|floatformat:2 }}</div>
+                </div>
+                <div class="collection-item">
+                    <div class="collection-label">{% trans "Outstanding" %}</div>
+                    <div class="collection-value warning">${{ outstanding|floatformat:2 }}</div>
+                </div>
+            </div>
+            <div class="collection-progress">
+                <div class="collection-progress-bar">
+                    <div class="collection-segment collected" style="width: {{ collected_pct|floatformat:0 }}%;"></div>
+                    <div class="collection-segment pending" style="width: {{ outstanding_pct|floatformat:0 }}%;"></div>
+                </div>
+                <div class="collection-labels">
+                    <span>{% trans "Collected" %}: {{ collected_pct|floatformat:1 }}%</span>
+                    <span>{% trans "Pending" %}: {{ outstanding_pct|floatformat:1 }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="profit-actions">
+        <a href="{% url 'project_overview' project.id %}" class="profit-btn outline">
+            <i class="bi bi-arrow-left"></i>
+            {% trans "Back to Project" %}
+        </a>
+        <a href="{% url 'invoice_builder' project.id %}" class="profit-btn success">
+            <i class="bi bi-receipt"></i>
+            {% trans "Create Invoice" %}
+        </a>
+        <a href="{% url 'invoice_payment_dashboard' %}" class="profit-btn primary">
+            <i class="bi bi-credit-card"></i>
+            {% trans "Payment Dashboard" %}
+        </a>
     </div>
 </div>
-
-<script>
-// Simple calculation helpers for percentage display in template
-// (Django templates don't support complex math, but we handle most in view)
-</script>
 {% endblock %}

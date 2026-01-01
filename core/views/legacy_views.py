@@ -4270,27 +4270,31 @@ def project_profit_dashboard(request, project_id):
         (budget_variance / budgeted_revenue * 100) if budgeted_revenue > 0 else Decimal("0")
     )
 
-    # Cost breakdown for chart
-    cost_breakdown = {
-        "labor": float(labor_cost),
-        "materials": float(material_cost),
-    }
+    # 6. CALCULATE PERCENTAGES FOR DISPLAY (avoid template math)
+    labor_pct = (labor_cost / total_actual_cost * 100) if total_actual_cost > 0 else Decimal("0")
+    material_pct = (material_cost / total_actual_cost * 100) if total_actual_cost > 0 else Decimal("0")
+    collected_pct = (collected_amount / billed_amount * 100) if billed_amount > 0 else Decimal("0")
+    outstanding_pct = (outstanding / billed_amount * 100) if billed_amount > 0 else Decimal("0")
 
     # Alert flags
     alerts = []
     if margin_pct < 10:
         alerts.append(
-            {"type": "danger", "message": f"⚠️ Margen bajo: {margin_pct:.1f}% (meta: >25%)"}
+            {"type": "danger", "message": f"Margen crítico: {margin_pct:.1f}% (meta: >25%)"}
         )
-    if outstanding > budgeted_revenue * Decimal("0.3"):
+    elif margin_pct < 25:
         alerts.append(
-            {"type": "warning", "message": f"💰 Alto saldo pendiente: ${outstanding:,.2f}"}
+            {"type": "warning", "message": f"Margen bajo: {margin_pct:.1f}% (meta: >25%)"}
         )
-    if total_actual_cost > budgeted_revenue:
+    if outstanding > budgeted_revenue * Decimal("0.3") and outstanding > 0:
+        alerts.append(
+            {"type": "warning", "message": f"Alto saldo pendiente: ${outstanding:,.2f}"}
+        )
+    if total_actual_cost > budgeted_revenue and budgeted_revenue > 0:
         alerts.append(
             {
                 "type": "danger",
-                "message": f"📉 Costos exceden presupuesto: ${total_actual_cost:,.2f} > ${budgeted_revenue:,.2f}",
+                "message": f"Costos exceden presupuesto: ${total_actual_cost:,.2f} > ${budgeted_revenue:,.2f}",
             }
         )
 
@@ -4309,7 +4313,10 @@ def project_profit_dashboard(request, project_id):
         "margin_pct": margin_pct,
         "budget_variance": budget_variance,
         "budget_variance_pct": budget_variance_pct,
-        "cost_breakdown": cost_breakdown,
+        "labor_pct": labor_pct,
+        "material_pct": material_pct,
+        "collected_pct": collected_pct,
+        "outstanding_pct": outstanding_pct,
         "alerts": alerts,
     }
     return render(request, "core/project_profit_dashboard.html", context)
