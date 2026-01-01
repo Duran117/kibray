@@ -161,12 +161,35 @@ class Project(models.Model):
             self.project_code = f"PRJ-{year}-{next_seq:03d}"
             super().save(update_fields=["project_code"])
 
+    @property
+    def calculated_income(self):
+        """Sum of all Income records for this project"""
+        from django.db.models import Sum
+        total = self.incomes.aggregate(total=Sum("amount"))["total"]
+        return total or Decimal("0.00")
+
+    @property
+    def calculated_expenses(self):
+        """Sum of all Expense records for this project"""
+        from django.db.models import Sum
+        total = self.expenses.aggregate(total=Sum("amount"))["total"]
+        return total or Decimal("0.00")
+
+    @property
+    def calculated_budget(self):
+        """Sum of all BudgetLine baseline_amount for this project"""
+        from django.db.models import Sum
+        total = self.budget_lines.aggregate(total=Sum("baseline_amount"))["total"]
+        return total or self.budget_total or Decimal("0.00")
+
     def profit(self):
-        return round(self.total_income - self.total_expenses, 2)
+        """Profit = Income - Expenses (calculated from actual records)"""
+        return round(self.calculated_income - self.calculated_expenses, 2)
 
     @property
     def budget_remaining(self):
-        return round(self.budget_total - self.total_expenses, 2)
+        """Remaining budget = Total Budget - Expenses"""
+        return round(self.calculated_budget - self.calculated_expenses, 2)
 
     def __str__(self):
         return self.name

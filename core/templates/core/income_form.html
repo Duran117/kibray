@@ -428,29 +428,29 @@
       </div>
       <div class="section-body">
         {% for field in form %}
-          {% if field.name == 'receipt' or field.name == 'image' or field.name == 'proof' %}
+          {% if field.name == 'receipt' or field.name == 'image' or field.name == 'proof' or field.name == 'invoice' %}
             <div class="form-field">
               <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" accept="image/*,application/pdf" style="display: none;">
               <div class="file-upload-area" onclick="document.getElementById('{{ field.id_for_label }}').click();">
-                <i class="bi bi-cloud-arrow-up d-block"></i>
-                <p>{% trans "Drag and drop your file here, or" %} <span class="browse-link">{% trans "browse" %}</span></p>
-                <p class="text-muted small mt-2">{% trans "Supports: JPG, PNG, PDF (Max 10MB)" %}</p>
+                <i class="bi bi-cloud-arrow-up d-block" style="font-size: 2rem; color: #10b981;"></i>
+                <p class="mt-2 mb-1">{% trans "Drag and drop your file here, or" %} <span class="browse-link" style="color: #10b981; font-weight: 600; cursor: pointer;">{% trans "browse" %}</span></p>
+                <p class="text-muted small">{% trans "Supports: JPG, PNG, PDF (Max 10MB)" %}</p>
               </div>
-              <div id="filePreview" style="display: none;">
-                <div class="current-file">
-                  <i class="bi bi-file-earmark-check"></i>
+              <div id="filePreview_{{ field.name }}" class="mt-3" style="display: none;">
+                <div class="current-file d-flex align-items-center gap-2 p-3 bg-light rounded">
+                  <i class="bi bi-file-earmark-check text-success" style="font-size: 1.5rem;"></i>
                   <div>
-                    <div class="fw-semibold" id="fileName">{% trans "File selected" %}</div>
-                    <small class="text-muted" id="fileSize"></small>
+                    <div class="fw-semibold" id="fileName_{{ field.name }}">{% trans "File selected" %}</div>
+                    <small class="text-muted" id="fileSize_{{ field.name }}"></small>
                   </div>
                 </div>
               </div>
-              {% if income and income.receipt %}
-                <div class="current-file">
-                  <i class="bi bi-file-earmark-pdf"></i>
+              {% if income and income.invoice %}
+                <div class="current-file mt-3 d-flex align-items-center gap-2 p-3 bg-light rounded">
+                  <i class="bi bi-file-earmark-pdf text-danger" style="font-size: 1.5rem;"></i>
                   <div>
                     <div class="fw-semibold">{% trans "Current file" %}</div>
-                    <a href="{{ income.receipt.url }}" target="_blank" class="text-success small">{% trans "View file" %} <i class="bi bi-box-arrow-up-right"></i></a>
+                    <a href="{{ income.invoice.url }}" target="_blank" class="text-success small">{% trans "View file" %} <i class="bi bi-box-arrow-up-right"></i></a>
                   </div>
                 </div>
               {% endif %}
@@ -515,42 +515,46 @@ document.addEventListener('DOMContentLoaded', function() {
     updatePreview();
   }
   
-  // File upload preview
-  const fileInput = document.querySelector('input[type="file"]');
-  const filePreview = document.getElementById('filePreview');
-  const fileName = document.getElementById('fileName');
-  const fileSize = document.getElementById('fileSize');
-  const uploadArea = document.querySelector('.file-upload-area');
+  // File upload preview - handle invoice field
+  const fileInputs = document.querySelectorAll('input[type="file"]');
   
-  if (fileInput && uploadArea) {
-    fileInput.addEventListener('change', function() {
-      if (this.files && this.files[0]) {
-        const file = this.files[0];
-        fileName.textContent = file.name;
-        fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-        filePreview.style.display = 'block';
-        uploadArea.style.display = 'none';
-      }
-    });
+  fileInputs.forEach(function(fileInput) {
+    const fieldName = fileInput.name;
+    const filePreview = document.getElementById('filePreview_' + fieldName);
+    const fileName = document.getElementById('fileName_' + fieldName);
+    const fileSize = document.getElementById('fileSize_' + fieldName);
+    const uploadArea = fileInput.closest('.form-field').querySelector('.file-upload-area');
     
-    // Drag and drop
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
-    });
-    ['dragenter', 'dragover'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'));
-    });
-    ['dragleave', 'drop'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'));
-    });
-    uploadArea.addEventListener('drop', e => {
-      const files = e.dataTransfer.files;
-      if (files.length) {
-        fileInput.files = files;
-        fileInput.dispatchEvent(new Event('change'));
-      }
-    });
-  }
+    if (fileInput && uploadArea) {
+      fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+          const file = this.files[0];
+          if (fileName) fileName.textContent = file.name;
+          if (fileSize) fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+          if (filePreview) filePreview.style.display = 'block';
+          uploadArea.style.display = 'none';
+        }
+      });
+      
+      // Drag and drop
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
+      });
+      ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'));
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'));
+      });
+      uploadArea.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files.length) {
+          fileInput.files = files;
+          fileInput.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+  });
   
   // Initialize Flatpickr for date fields
   if (typeof flatpickr !== 'undefined') {

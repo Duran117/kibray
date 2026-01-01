@@ -725,7 +725,7 @@
           </div>
           <div>
             <div class="text-xs text-slate-500">{% trans "Ingresos" %}</div>
-            <div class="text-lg font-bold text-slate-900">${{ project.total_income|floatformat:0|default:"0" }}</div>
+            <div class="text-lg font-bold text-slate-900">${{ project.calculated_income|floatformat:0|default:"0" }}</div>
           </div>
         </div>
       </div>
@@ -736,7 +736,7 @@
           </div>
           <div>
             <div class="text-xs text-slate-500">{% trans "Gastos" %}</div>
-            <div class="text-lg font-bold text-slate-900">${{ project.total_expenses|floatformat:0|default:"0" }}</div>
+            <div class="text-lg font-bold text-slate-900">${{ project.calculated_expenses|floatformat:0|default:"0" }}</div>
           </div>
         </div>
       </div>
