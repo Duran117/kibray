@@ -423,13 +423,13 @@
         </div>
 
         <!-- Profit -->
-        <div class="kpi-card {% if profit >= 0 %}success{% else %}danger{% endif %}">
+        <div class="kpi-card {% if net_profit >= 0 %}success{% else %}danger{% endif %}">
             <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
             <div class="kpi-label">{% trans "Net Profit" %}</div>
-            <div class="kpi-value {% if profit >= 0 %}positive{% else %}negative{% endif %}">
-                {% if profit >= 0 %}+{% endif %}${{ profit|floatformat:2 }}
+            <div class="kpi-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
+                {% if net_profit >= 0 %}+{% endif %}${{ net_profit|floatformat:2 }}
             </div>
-            <div class="kpi-meta">{% trans "Billed - Costs" %}</div>
+            <div class="kpi-meta">{% trans "Budget - Costs" %}</div>
         </div>
 
         <!-- Margin -->

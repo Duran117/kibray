@@ -4264,20 +4264,22 @@ def project_profit_dashboard(request, project_id):
     ).aggregate(total=Sum("amount_paid"))["total"] or Decimal("0")
 
     # 8. CALCULATIONS
-    # Profit = Billed - Actual Costs
-    profit = billed_amount - total_actual_cost
+    # Net Profit = Budgeted Revenue - Actual Costs (projected profit based on budget)
+    # This shows how much profit you EXPECT to make once project is complete
+    net_profit = budgeted_revenue - total_actual_cost
 
-    # Margin % = (Profit / Billed) * 100
-    margin_pct = (profit / billed_amount * 100) if billed_amount > 0 else Decimal("0")
+    # Profit Margin % = (Net Profit / Budgeted Revenue) * 100
+    # Shows expected margin based on budget vs costs incurred
+    margin_pct = (net_profit / budgeted_revenue * 100) if budgeted_revenue > 0 else Decimal("0")
 
-    # Outstanding = Billed - Collected
+    # Outstanding = Billed - Collected (for cash flow tracking)
     outstanding = billed_amount - collected_amount
 
-    # Budget variance (how much billed vs budgeted)
-    budget_variance = billed_amount - budgeted_revenue
-    budget_variance_pct = (
-        (budget_variance / budgeted_revenue * 100) if budgeted_revenue > 0 else Decimal("0")
-    )
+    # Budget consumed % (how much of budget has been spent)
+    budget_consumed_pct = (total_actual_cost / budgeted_revenue * 100) if budgeted_revenue > 0 else Decimal("0")
+    
+    # Remaining budget
+    remaining_budget = budgeted_revenue - total_actual_cost
 
     # 9. CALCULATE PERCENTAGES FOR DISPLAY (avoid template math)
     labor_pct = (labor_cost / total_actual_cost * 100) if total_actual_cost > 0 else Decimal("0")
@@ -4320,10 +4322,10 @@ def project_profit_dashboard(request, project_id):
         "billed_amount": billed_amount,
         "collected_amount": collected_amount,
         "outstanding": outstanding,
-        "profit": profit,
+        "net_profit": net_profit,  # Budgeted - Costs
         "margin_pct": margin_pct,
-        "budget_variance": budget_variance,
-        "budget_variance_pct": budget_variance_pct,
+        "budget_consumed_pct": budget_consumed_pct,
+        "remaining_budget": remaining_budget,
         "labor_pct": labor_pct,
         "material_pct": material_pct,
         "collected_pct": collected_pct,
