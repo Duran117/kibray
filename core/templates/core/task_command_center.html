@@ -5,181 +5,251 @@
 
 {% block extra_css %}
 <style>
-/* Task Command Center Styles */
-.task-command-center {
-    --tcc-primary: #6366f1;
-    --tcc-success: #10b981;
-    --tcc-warning: #f59e0b;
-    --tcc-danger: #ef4444;
-    --tcc-info: #3b82f6;
-    --tcc-muted: #64748b;
+/* Task Command Center - Clean & Mobile-First Design */
+.tcc-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
 }
 
-/* Stats Cards */
-.stat-card {
-    background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
-    border-radius: 16px;
-    padding: 1.25rem;
-    color: white;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
-}
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-.stat-card.total { --bg-start: #6366f1; --bg-end: #8b5cf6; }
-.stat-card.pending { --bg-start: #f59e0b; --bg-end: #fbbf24; }
-.stat-card.progress { --bg-start: #3b82f6; --bg-end: #60a5fa; }
-.stat-card.completed { --bg-start: #10b981; --bg-end: #34d399; }
-.stat-card .stat-icon {
-    font-size: 2.5rem;
-    opacity: 0.3;
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-}
-.stat-card .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
-}
-.stat-card .stat-label {
-    font-size: 0.85rem;
-    opacity: 0.9;
-    margin-top: 0.25rem;
-}
-
-/* Project Selector */
-.project-selector {
-    background: white;
-    border-radius: 12px;
-    padding: 1rem 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    margin-bottom: 1.5rem;
-}
-.project-selector select {
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-}
-.project-selector select:focus {
-    border-color: var(--tcc-primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-/* Filter Tabs */
-.filter-tabs {
+/* Header */
+.tcc-header {
     display: flex;
-    gap: 0.5rem;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1rem;
     flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.tcc-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.tcc-header p {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin: 0;
+}
+.btn-create-task {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.btn-create-task:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    color: white;
+}
+
+/* Filter Bar - Sticky Header */
+.tcc-filter-bar {
+    background: white;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 64px;
+    z-index: 100;
+}
+
+/* Filter Tabs Row */
+.filter-tabs-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
 }
 .filter-tab {
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.85rem;
     border-radius: 20px;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
     background: #f1f5f9;
     color: #64748b;
     border: none;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 .filter-tab:hover {
     background: #e2e8f0;
 }
 .filter-tab.active {
-    background: var(--tcc-primary);
+    background: #6366f1;
     color: white;
 }
-.filter-tab .badge {
-    margin-left: 0.5rem;
+.filter-tab .count {
+    background: rgba(255,255,255,0.2);
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
     font-size: 0.7rem;
+    margin-left: 0.35rem;
+}
+.filter-tab.active .count {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Project Filter in Tabs */
+.project-filter-inline {
+    margin-left: auto;
+}
+.project-filter-inline select {
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    border: 2px solid #e2e8f0;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: white;
+    color: #475569;
+    cursor: pointer;
+    min-width: 150px;
+}
+.project-filter-inline select:focus {
+    border-color: #6366f1;
+    outline: none;
+}
+
+/* Advanced Filters Row */
+.filter-controls-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.filter-select {
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.8rem;
+    background: white;
+    color: #475569;
+    min-width: 120px;
+}
+.filter-select:focus {
+    border-color: #6366f1;
+    outline: none;
+}
+.search-input-wrapper {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+}
+.search-input-wrapper i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+.search-input {
+    width: 100%;
+    padding: 0.4rem 0.75rem 0.4rem 2rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.8rem;
+}
+.search-input:focus {
+    border-color: #6366f1;
+    outline: none;
 }
 
 /* Task Table */
-.task-table-container {
+.tcc-table-container {
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     overflow: hidden;
 }
-.task-table {
+.tcc-table {
     width: 100%;
     border-collapse: collapse;
 }
-.task-table thead {
+.tcc-table thead {
     background: #f8fafc;
 }
-.task-table th {
-    padding: 1rem;
+.tcc-table th {
+    padding: 0.75rem 1rem;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #64748b;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
     text-align: left;
+    white-space: nowrap;
 }
-.task-table td {
-    padding: 1rem;
+.tcc-table td {
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
+    font-size: 0.875rem;
 }
-.task-table tbody tr {
+.tcc-table tbody tr {
     transition: background 0.15s;
 }
-.task-table tbody tr:hover {
+.tcc-table tbody tr:hover {
     background: #f8fafc;
 }
-.task-table tbody tr.overdue {
+.tcc-table tbody tr.overdue {
     background: #fef2f2;
 }
-.task-table tbody tr.overdue:hover {
-    background: #fee2e2;
-}
 
-/* Task Title Cell */
-.task-title-cell {
+/* Task Cell */
+.task-cell {
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
-.task-title-cell .task-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+.task-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 0.9rem;
     flex-shrink: 0;
 }
 .task-icon.touchup { background: #fef3c7; color: #d97706; }
 .task-icon.regular { background: #e0e7ff; color: #4f46e5; }
-.task-title-cell .task-info h6 {
+.task-info h6 {
     margin: 0;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     color: #1e293b;
+    line-height: 1.3;
 }
-.task-title-cell .task-info small {
+.task-info small {
     color: #94a3b8;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
 }
 
 /* Priority Badge */
 .priority-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
+    gap: 0.25rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
     font-weight: 600;
 }
 .priority-badge.urgent { background: #fef2f2; color: #dc2626; }
@@ -191,10 +261,9 @@
 .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.4rem 0.85rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
     font-weight: 600;
 }
 .status-badge.pending { background: #fef3c7; color: #b45309; }
@@ -203,43 +272,79 @@
 .status-badge.completed { background: #d1fae5; color: #047857; }
 .status-badge.cancelled { background: #f1f5f9; color: #64748b; }
 
-/* Assignee */
-.assignee-cell {
+/* Inline Assignee Dropdown */
+.assignee-dropdown {
+    position: relative;
+}
+.assignee-btn {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+.assignee-btn:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+.assignee-btn.unassigned {
+    color: #94a3b8;
+    font-style: italic;
 }
 .assignee-avatar {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 600;
 }
-.assignee-cell .unassigned {
-    color: #94a3b8;
-    font-style: italic;
+.assignee-select {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 180px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+}
+.assignee-select.show {
+    display: block;
+}
+.assignee-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.15s;
+}
+.assignee-option:hover {
+    background: #f1f5f9;
 }
 
-/* Action Buttons */
+/* Actions */
 .task-actions {
     display: flex;
-    gap: 0.5rem;
-    opacity: 0.6;
-    transition: opacity 0.2s;
+    gap: 0.35rem;
 }
-.task-table tbody tr:hover .task-actions {
-    opacity: 1;
-}
-.task-action-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+.action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     border: none;
     background: #f1f5f9;
     color: #64748b;
@@ -248,199 +353,166 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
+    font-size: 0.8rem;
 }
-.task-action-btn:hover {
-    background: var(--tcc-primary);
+.action-btn:hover {
+    background: #6366f1;
     color: white;
 }
-.task-action-btn.danger:hover {
-    background: var(--tcc-danger);
+.action-btn.danger:hover {
+    background: #ef4444;
+}
+
+/* Bulk Actions Bar */
+.bulk-actions-bar {
+    background: #6366f1;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0 0 12px 12px;
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+}
+.bulk-actions-bar.show {
+    display: flex;
+}
+.bulk-actions-bar .btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.bulk-actions-bar .btn:hover {
+    background: rgba(255,255,255,0.3);
 }
 
 /* Empty State */
 .empty-state {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 3rem 1.5rem;
 }
-.empty-state-icon {
-    font-size: 4rem;
+.empty-state i {
+    font-size: 3rem;
     color: #cbd5e1;
     margin-bottom: 1rem;
 }
 .empty-state h4 {
     color: #475569;
     margin-bottom: 0.5rem;
+    font-size: 1.1rem;
 }
 .empty-state p {
     color: #94a3b8;
-    margin-bottom: 1.5rem;
-}
-
-/* Modal Styles */
-.modal-task {
-    --bs-modal-width: 600px;
-}
-.modal-task .modal-content {
-    border: none;
-    border-radius: 20px;
-    overflow: hidden;
-}
-.modal-task .modal-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
-    border: none;
-    padding: 1.5rem;
-}
-.modal-task .modal-header .btn-close {
-    filter: brightness(0) invert(1);
-}
-.modal-task .modal-body {
-    padding: 1.5rem;
-}
-.modal-task .form-label {
-    font-weight: 600;
+    margin-bottom: 1rem;
     font-size: 0.875rem;
-    color: #374151;
-    margin-bottom: 0.5rem;
-}
-.modal-task .form-control,
-.modal-task .form-select {
-    border-radius: 10px;
-    border: 2px solid #e5e7eb;
-    padding: 0.75rem 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-.modal-task .form-control:focus,
-.modal-task .form-select:focus {
-    border-color: var(--tcc-primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-.modal-task .modal-footer {
-    border: none;
-    padding: 1rem 1.5rem 1.5rem;
-    gap: 0.75rem;
 }
 
-/* Task Detail Modal */
-.task-detail-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-.task-detail-header .task-type-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-}
-.task-detail-meta {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-.task-meta-item {
-    background: #f8fafc;
-    border-radius: 12px;
-    padding: 1rem;
-}
-.task-meta-item label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #64748b;
-    margin-bottom: 0.25rem;
-    display: block;
-}
-.task-meta-item .value {
-    font-weight: 600;
-    color: #1e293b;
-}
-
-/* Pin/Touchup Image Preview */
-.task-pin-preview {
-    background: #f8fafc;
-    border-radius: 12px;
-    padding: 1rem;
-    margin-top: 1rem;
-}
-.task-pin-preview img {
-    max-width: 100%;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-.task-pin-preview img:hover {
-    transform: scale(1.02);
-}
-
-/* Responsive */
+/* Mobile Responsive */
 @media (max-width: 768px) {
-    .stat-card {
-        padding: 1rem;
+    .tcc-container {
+        padding: 0.5rem;
     }
-    .stat-card .stat-value {
-        font-size: 1.5rem;
+    .tcc-header {
+        flex-direction: column;
+        align-items: stretch;
     }
-    .task-table th,
-    .task-table td {
-        padding: 0.75rem 0.5rem;
+    .tcc-header h1 {
+        font-size: 1.25rem;
     }
-    .task-table .hide-mobile {
-        display: none;
+    .btn-create-task {
+        width: 100%;
+        justify-content: center;
     }
-    .filter-tabs {
+    .filter-tabs-row {
         overflow-x: auto;
         flex-wrap: nowrap;
         padding-bottom: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+    }
+    .project-filter-inline {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    .project-filter-inline select {
+        width: 100%;
+    }
+    .filter-controls-row {
+        flex-direction: column;
+    }
+    .filter-select, .search-input-wrapper {
+        width: 100%;
+        min-width: unset;
+    }
+    .tcc-table th, .tcc-table td {
+        padding: 0.5rem;
+    }
+    .hide-mobile {
+        display: none !important;
+    }
+    .task-info h6 {
+        font-size: 0.8rem;
+    }
+    .tcc-filter-bar {
+        top: 56px;
     }
 }
 
-/* Loading Overlay */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.8);
+/* Loading State */
+.loading-spinner {
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 10;
-    border-radius: 16px;
+    padding: 2rem;
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="task-command-center">
+<div class="tcc-container">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="tcc-header">
         <div>
-            <h1 class="h3 mb-1 fw-bold">
-                <i class="bi bi-kanban-fill text-primary"></i> {% trans "Task Command Center" %}
+            <h1>
+                <i class="bi bi-kanban-fill text-primary"></i>
+                {% trans "Task Command Center" %}
             </h1>
-            <p class="text-muted mb-0">{% trans "Manage, assign and track all tasks in one place" %}</p>
+            <p>{% trans "Manage, assign and track all tasks in one place" %}</p>
         </div>
-        <button class="btn btn-primary btn-lg rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createTaskModal">
-            <i class="bi bi-plus-lg me-2"></i>{% trans "New Task" %}
-        </button>
+        <a href="{% url 'task_create_wizard' %}" class="btn-create-task">
+            <i class="bi bi-plus-lg"></i>
+            {% trans "New Task" %}
+        </a>
     </div>
 
-    <!-- Project Selector -->
-    <div class="project-selector">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <label class="form-label fw-semibold mb-2">
-                    <i class="bi bi-folder2-open me-1"></i> {% trans "Select Project" %}
-                </label>
-                <select id="projectSelector" class="form-select form-select-lg">
-                    <option value="">{% trans "All Projects" %}</option>
+    <!-- Filter Bar (Sticky) -->
+    <div class="tcc-filter-bar">
+        <!-- Tabs Row with Project Filter -->
+        <div class="filter-tabs-row">
+            <button class="filter-tab active" data-filter="all">
+                {% trans "All" %}<span class="count">{{ stats.total }}</span>
+            </button>
+            {% if is_staff %}
+            <button class="filter-tab" data-filter="unassigned">
+                <i class="bi bi-person-x"></i> {% trans "Unassigned" %}<span class="count">{{ stats.unassigned }}</span>
+            </button>
+            {% endif %}
+            <button class="filter-tab" data-filter="my-tasks">
+                <i class="bi bi-person-check"></i> {% trans "My Tasks" %}<span class="count">{{ stats.my_tasks }}</span>
+            </button>
+            <button class="filter-tab" data-filter="overdue">
+                <i class="bi bi-exclamation-triangle"></i> {% trans "Overdue" %}<span class="count">{{ stats.overdue }}</span>
+            </button>
+            <button class="filter-tab" data-filter="touchups">
+                <i class="bi bi-brush"></i> {% trans "Touch-ups" %}<span class="count">{{ stats.touchups }}</span>
+            </button>
+            
+            <!-- Project Filter -->
+            <div class="project-filter-inline">
+                <select id="projectFilter">
+                    <option value="">�� {% trans "All Projects" %}</option>
                     {% for project in projects %}
                     <option value="{{ project.id }}" {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
                         {{ project.name }}
@@ -448,126 +520,48 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                {% if selected_project %}
-                <a href="{% url 'project_overview' selected_project.id %}" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-arrow-left me-1"></i> {% trans "View Project" %}
-                </a>
-                <a href="{% url 'touchup_board' selected_project.id %}" class="btn btn-outline-warning">
-                    <i class="bi bi-brush me-1"></i> {% trans "Touch-up Board" %}
-                </a>
-                {% endif %}
-            </div>
         </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-lg-3">
-            <div class="stat-card total position-relative" onclick="filterByStatus('')">
-                <i class="bi bi-list-task stat-icon"></i>
-                <div class="stat-value">{{ stats.total }}</div>
-                <div class="stat-label">{% trans "Total Tasks" %}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stat-card pending position-relative" onclick="filterByStatus('Pendiente')">
-                <i class="bi bi-hourglass-split stat-icon"></i>
-                <div class="stat-value">{{ stats.pending }}</div>
-                <div class="stat-label">{% trans "Pending" %}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stat-card progress position-relative" onclick="filterByStatus('En Progreso')">
-                <i class="bi bi-arrow-repeat stat-icon"></i>
-                <div class="stat-value">{{ stats.in_progress }}</div>
-                <div class="stat-label">{% trans "In Progress" %}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stat-card completed position-relative" onclick="filterByStatus('Completada')">
-                <i class="bi bi-check-circle stat-icon"></i>
-                <div class="stat-value">{{ stats.completed }}</div>
-                <div class="stat-label">{% trans "Completed" %}</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filter Tabs -->
-    <div class="filter-tabs">
-        <button class="filter-tab active" data-filter="all">
-            {% trans "All" %} <span class="badge bg-secondary">{{ stats.total }}</span>
-        </button>
-        {% if is_staff %}
-        <button class="filter-tab" data-filter="unassigned">
-            <i class="bi bi-person-x"></i> {% trans "Unassigned" %} <span class="badge bg-warning text-dark">{{ stats.unassigned }}</span>
-        </button>
-        {% endif %}
-        <button class="filter-tab" data-filter="my-tasks">
-            <i class="bi bi-person-check"></i> {% trans "My Tasks" %} <span class="badge bg-primary">{{ stats.my_tasks }}</span>
-        </button>
-        <button class="filter-tab" data-filter="overdue">
-            <i class="bi bi-exclamation-triangle"></i> {% trans "Overdue" %} <span class="badge bg-danger">{{ stats.overdue }}</span>
-        </button>
-        <button class="filter-tab" data-filter="touchups">
-            <i class="bi bi-brush"></i> {% trans "Touch-ups" %} <span class="badge bg-info">{{ stats.touchups }}</span>
-        </button>
-    </div>
-
-    <!-- Advanced Filters -->
-    <div class="card mb-3">
-        <div class="card-body py-2">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-3">
-                    <select id="filterStatus" class="form-select form-select-sm">
-                        <option value="">{% trans "All Status" %}</option>
-                        <option value="Pendiente">{% trans "Pending" %}</option>
-                        <option value="En Progreso">{% trans "In Progress" %}</option>
-                        <option value="En Revisión">{% trans "In Review" %}</option>
-                        <option value="Completada">{% trans "Completed" %}</option>
-                        <option value="Cancelada">{% trans "Cancelled" %}</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select id="filterPriority" class="form-select form-select-sm">
-                        <option value="">{% trans "All Priorities" %}</option>
-                        <option value="urgent">{% trans "Urgent" %}</option>
-                        <option value="high">{% trans "High" %}</option>
-                        <option value="medium">{% trans "Medium" %}</option>
-                        <option value="low">{% trans "Low" %}</option>
-                    </select>
-                </div>
-                {% if is_staff %}
-                <div class="col-md-3">
-                    <select id="filterAssignee" class="form-select form-select-sm">
-                        <option value="">{% trans "All Assignees" %}</option>
-                        <option value="unassigned">{% trans "Unassigned" %}</option>
-                        {% for emp in employees %}
-                        <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-                <div class="col-md-3">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" id="searchTask" class="form-control" placeholder="{% trans 'Search tasks...' %}">
-                    </div>
-                </div>
+        
+        <!-- Advanced Filters Row -->
+        <div class="filter-controls-row">
+            <select id="filterStatus" class="filter-select">
+                <option value="">{% trans "All Status" %}</option>
+                <option value="Pendiente">{% trans "Pending" %}</option>
+                <option value="En Progreso">{% trans "In Progress" %}</option>
+                <option value="En Revisión">{% trans "In Review" %}</option>
+                <option value="Completada">{% trans "Completed" %}</option>
+                <option value="Cancelada">{% trans "Cancelled" %}</option>
+            </select>
+            
+            <select id="filterPriority" class="filter-select">
+                <option value="">{% trans "All Priorities" %}</option>
+                <option value="urgent">🔴 {% trans "Urgent" %}</option>
+                <option value="high">🟠 {% trans "High" %}</option>
+                <option value="medium">🟡 {% trans "Medium" %}</option>
+                <option value="low">🟢 {% trans "Low" %}</option>
+            </select>
+            
+            {% if is_staff %}
+            <select id="filterAssignee" class="filter-select">
+                <option value="">{% trans "All Assignees" %}</option>
+                <option value="unassigned">👤 {% trans "Unassigned" %}</option>
+                {% for emp in employees %}
+                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            
+            <div class="search-input-wrapper">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchTask" class="search-input" placeholder="{% trans 'Search tasks...' %}">
             </div>
         </div>
     </div>
 
     <!-- Task Table -->
-    <div class="task-table-container position-relative">
-        <div class="loading-overlay d-none" id="loadingOverlay">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-        
+    <div class="tcc-table-container">
         {% if tasks %}
-        <table class="task-table" id="taskTable">
+        <table class="tcc-table" id="taskTable">
             <thead>
                 <tr>
                     {% if is_staff %}
@@ -579,12 +573,12 @@
                     <th class="hide-mobile">{% trans "Project" %}</th>
                     <th>{% trans "Priority" %}</th>
                     <th>{% trans "Status" %}</th>
-                    <th class="hide-mobile">{% trans "Assignee" %}</th>
-                    <th class="hide-mobile">{% trans "Due Date" %}</th>
-                    <th style="width: 120px;">{% trans "Actions" %}</th>
+                    <th>{% trans "Assignee" %}</th>
+                    <th class="hide-mobile">{% trans "Due" %}</th>
+                    <th>{% trans "Actions" %}</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="taskTableBody">
                 {% for task in tasks %}
                 <tr data-task-id="{{ task.id }}" 
                     data-status="{{ task.status }}" 
@@ -592,71 +586,102 @@
                     data-assignee="{{ task.assigned_to_id|default:'' }}"
                     data-touchup="{{ task.is_touchup|yesno:'true,false' }}"
                     data-project="{{ task.project_id }}"
+                    data-title="{{ task.title|lower }}"
                     {% if task.due_date and task.due_date < today and task.status != 'Completada' %}class="overdue"{% endif %}>
+                    
                     {% if is_staff %}
                     <td>
                         <input type="checkbox" class="form-check-input task-checkbox" value="{{ task.id }}">
                     </td>
                     {% endif %}
+                    
                     <td>
-                        <div class="task-title-cell">
+                        <div class="task-cell">
                             <div class="task-icon {% if task.is_touchup %}touchup{% else %}regular{% endif %}">
-                                {% if task.is_touchup %}<i class="bi bi-brush"></i>{% else %}<i class="bi bi-check2-square"></i>{% endif %}
+                                <i class="bi {% if task.is_touchup %}bi-brush{% else %}bi-check2-square{% endif %}"></i>
                             </div>
                             <div class="task-info">
-                                <h6>{{ task.title|truncatechars:40 }}</h6>
-                                <small>#{{ task.id }}{% if task.dependencies.exists %} • <i class="bi bi-diagram-3"></i> {{ task.dependencies.count }}{% endif %}</small>
+                                <h6>{{ task.title|truncatechars:35 }}</h6>
+                                <small>#{{ task.id }}</small>
                             </div>
                         </div>
                     </td>
+                    
                     <td class="hide-mobile">
-                        <span class="text-muted">{{ task.project.name|truncatechars:20 }}</span>
+                        <span class="text-muted" style="font-size: 0.8rem;">{{ task.project.name|truncatechars:15 }}</span>
                     </td>
+                    
                     <td>
                         <span class="priority-badge {{ task.priority }}">
-                            {% if task.priority == 'urgent' %}<i class="bi bi-exclamation-circle-fill"></i>
-                            {% elif task.priority == 'high' %}<i class="bi bi-arrow-up-circle"></i>
-                            {% elif task.priority == 'medium' %}<i class="bi bi-dash-circle"></i>
-                            {% else %}<i class="bi bi-arrow-down-circle"></i>{% endif %}
-                            {{ task.get_priority_display }}
+                            {% if task.priority == 'urgent' %}🔴{% elif task.priority == 'high' %}🟠{% elif task.priority == 'medium' %}🟡{% else %}🟢{% endif %}
+                            <span class="hide-mobile">{{ task.get_priority_display }}</span>
                         </span>
                     </td>
+                    
                     <td>
                         <span class="status-badge {% if task.status == 'Pendiente' %}pending{% elif task.status == 'En Progreso' %}in-progress{% elif task.status == 'En Revisión' %}review{% elif task.status == 'Completada' %}completed{% else %}cancelled{% endif %}">
                             {{ task.status }}
                         </span>
                     </td>
-                    <td class="hide-mobile">
-                        {% if task.assigned_to %}
-                        <div class="assignee-cell">
-                            <div class="assignee-avatar">
-                                {{ task.assigned_to.first_name|slice:":1" }}{{ task.assigned_to.last_name|slice:":1" }}
+                    
+                    <td>
+                        {% if is_staff %}
+                        <div class="assignee-dropdown" data-task-id="{{ task.id }}">
+                            <button class="assignee-btn {% if not task.assigned_to %}unassigned{% endif %}" onclick="toggleAssigneeDropdown(this)">
+                                {% if task.assigned_to %}
+                                <span class="assignee-avatar">{{ task.assigned_to.first_name|slice:":1" }}{{ task.assigned_to.last_name|slice:":1" }}</span>
+                                <span class="hide-mobile">{{ task.assigned_to.first_name }}</span>
+                                {% else %}
+                                <i class="bi bi-person-plus"></i>
+                                <span>{% trans "Assign" %}</span>
+                                {% endif %}
+                                <i class="bi bi-chevron-down" style="font-size: 0.65rem; opacity: 0.5;"></i>
+                            </button>
+                            <div class="assignee-select">
+                                <div class="assignee-option" onclick="assignTask({{ task.id }}, '')">
+                                    <i class="bi bi-x-circle text-muted"></i>
+                                    <span>{% trans "Unassign" %}</span>
+                                </div>
+                                {% for emp in employees %}
+                                <div class="assignee-option" onclick="assignTask({{ task.id }}, {{ emp.id }})">
+                                    <span class="assignee-avatar" style="width: 20px; height: 20px; font-size: 0.6rem;">{{ emp.first_name|slice:":1" }}{{ emp.last_name|slice:":1" }}</span>
+                                    <span>{{ emp.first_name }} {{ emp.last_name }}</span>
+                                </div>
+                                {% endfor %}
                             </div>
-                            <span>{{ task.assigned_to.first_name }}</span>
                         </div>
                         {% else %}
-                        <span class="text-muted unassigned">{% trans "Unassigned" %}</span>
+                        {% if task.assigned_to %}
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="assignee-avatar">{{ task.assigned_to.first_name|slice:":1" }}{{ task.assigned_to.last_name|slice:":1" }}</span>
+                            <span class="hide-mobile" style="font-size: 0.8rem;">{{ task.assigned_to.first_name }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-muted" style="font-size: 0.8rem;">—</span>
+                        {% endif %}
                         {% endif %}
                     </td>
+                    
                     <td class="hide-mobile">
                         {% if task.due_date %}
-                        <span class="{% if task.due_date < today and task.status != 'Completada' %}text-danger fw-semibold{% else %}text-muted{% endif %}">
-                            <i class="bi bi-calendar3"></i> {{ task.due_date|date:"M d" }}
+                        <span class="{% if task.due_date < today and task.status != 'Completada' %}text-danger{% else %}text-muted{% endif %}" style="font-size: 0.8rem;">
+                            {{ task.due_date|date:"M d" }}
                         </span>
                         {% else %}
                         <span class="text-muted">—</span>
                         {% endif %}
                     </td>
+                    
                     <td>
                         <div class="task-actions">
-                            <button class="task-action-btn" onclick="viewTask({{ task.id }})" title="{% trans 'View' %}">
+                            <a href="{% url 'task_detail' task.id %}" class="action-btn" title="{% trans 'View Details' %}">
                                 <i class="bi bi-eye"></i>
-                            </button>
+                            </a>
                             {% if is_staff %}
-                            <button class="task-action-btn" onclick="editTask({{ task.id }})" title="{% trans 'Edit' %}">
+                            <a href="{% url 'task_edit' task.id %}" class="action-btn" title="{% trans 'Edit' %}">
                                 <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="task-action-btn danger" onclick="confirmDeleteTask({{ task.id }})" title="{% trans 'Delete' %}">
+                            </a>
+                            <button class="action-btn danger" onclick="confirmDelete({{ task.id }})" title="{% trans 'Delete' %}">
                                 <i class="bi bi-trash"></i>
                             </button>
                             {% endif %}
@@ -667,22 +692,20 @@
             </tbody>
         </table>
         
-        <!-- Bulk Actions -->
+        <!-- Bulk Actions Bar -->
         {% if is_staff %}
-        <div class="card-footer bg-light d-none" id="bulkActionsBar">
-            <div class="d-flex justify-content-between align-items-center">
-                <span><strong id="selectedCount">0</strong> {% trans "tasks selected" %}</span>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-primary" onclick="bulkAssign()">
-                        <i class="bi bi-person-plus"></i> {% trans "Assign" %}
-                    </button>
-                    <button class="btn btn-sm btn-outline-warning" onclick="bulkChangePriority()">
-                        <i class="bi bi-exclamation-triangle"></i> {% trans "Priority" %}
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" onclick="bulkChangeStatus()">
-                        <i class="bi bi-flag"></i> {% trans "Status" %}
-                    </button>
-                </div>
+        <div class="bulk-actions-bar" id="bulkActionsBar">
+            <span><strong id="selectedCount">0</strong> {% trans "selected" %}</span>
+            <div class="d-flex gap-2">
+                <button class="btn" onclick="showBulkAssign()">
+                    <i class="bi bi-person-plus me-1"></i>{% trans "Assign" %}
+                </button>
+                <button class="btn" onclick="bulkChangePriority()">
+                    <i class="bi bi-exclamation-triangle me-1"></i>{% trans "Priority" %}
+                </button>
+                <button class="btn" onclick="bulkChangeStatus()">
+                    <i class="bi bi-flag me-1"></i>{% trans "Status" %}
+                </button>
             </div>
         </div>
         {% endif %}
@@ -690,154 +713,27 @@
         {% else %}
         <!-- Empty State -->
         <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="bi bi-inbox"></i>
-            </div>
+            <i class="bi bi-inbox"></i>
             <h4>{% trans "No tasks found" %}</h4>
-            <p>{% if selected_project %}{% trans "This project has no tasks yet. Create the first one!" %}{% else %}{% trans "Select a project or create a new task to get started." %}{% endif %}</p>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
-                <i class="bi bi-plus-lg me-2"></i>{% trans "Create Task" %}
-            </button>
+            <p>{% trans "Create your first task to get started" %}</p>
+            <a href="{% url 'task_create_wizard' %}" class="btn-create-task" style="display: inline-flex;">
+                <i class="bi bi-plus-lg"></i>
+                {% trans "Create Task" %}
+            </a>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Create Task Modal -->
-<div class="modal fade modal-task" id="createTaskModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-plus-circle me-2"></i>{% trans "Create New Task" %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="createTaskForm" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="create">
-                <div class="modal-body">
-                    <!-- Project Selection (Required) -->
-                    <div class="mb-3">
-                        <label class="form-label">{% trans "Project" %} <span class="text-danger">*</span></label>
-                        <select name="project" class="form-select" required id="createTaskProject">
-                            <option value="">{% trans "Select a project..." %}</option>
-                            {% for project in projects %}
-                            <option value="{{ project.id }}" {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
-                                {{ project.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <!-- Task Title -->
-                    <div class="mb-3">
-                        <label class="form-label">{% trans "Title" %} <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control" required placeholder="{% trans 'Enter task title...' %}">
-                    </div>
-                    
-                    <!-- Description -->
-                    <div class="mb-3">
-                        <label class="form-label">{% trans "Description" %}</label>
-                        <textarea name="description" class="form-control" rows="3" placeholder="{% trans 'Describe the task...' %}"></textarea>
-                    </div>
-                    
-                    <div class="row">
-                        <!-- Priority -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{% trans "Priority" %}</label>
-                            <select name="priority" class="form-select">
-                                <option value="medium">{% trans "Medium" %}</option>
-                                <option value="low">{% trans "Low" %}</option>
-                                <option value="high">{% trans "High" %}</option>
-                                <option value="urgent">{% trans "Urgent" %}</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Due Date -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{% trans "Due Date" %}</label>
-                            <input type="date" name="due_date" class="form-control">
-                        </div>
-                    </div>
-                    
-                    {% if is_staff %}
-                    <div class="row">
-                        <!-- Assignee -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{% trans "Assign To" %}</label>
-                            <select name="assigned_to" class="form-select">
-                                <option value="">{% trans "Unassigned" %}</option>
-                                {% for emp in employees %}
-                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <!-- Is Touch-up -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{% trans "Task Type" %}</label>
-                            <select name="is_touchup" class="form-select">
-                                <option value="false">{% trans "Regular Task" %}</option>
-                                <option value="true">{% trans "Touch-up" %}</option>
-                            </select>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Image Upload -->
-                    <div class="mb-3">
-                        <label class="form-label">{% trans "Attach Image" %}</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
-                        <small class="text-muted">{% trans "Optional: attach a reference image" %}</small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-lg me-1"></i>{% trans "Create Task" %}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- View/Edit Task Modal -->
-<div class="modal fade modal-task" id="taskDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="taskDetailTitle">
-                    <i class="bi bi-check2-square me-2"></i>{% trans "Task Details" %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="taskDetailBody">
-                <!-- Content loaded via AJAX -->
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer" id="taskDetailFooter">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{% trans "Close" %}</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Bulk Assign Modal -->
 <div class="modal fade" id="bulkAssignModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>{% trans "Assign Tasks" %}</h5>
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title"><i class="bi bi-person-plus me-2"></i>{% trans "Assign Tasks" %}</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>{% trans "Assign selected tasks to:" %}</p>
                 <select id="bulkAssignSelect" class="form-select">
                     <option value="">{% trans "Select employee..." %}</option>
                     {% for emp in employees %}
@@ -845,29 +741,29 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                <button type="button" class="btn btn-primary" onclick="executeBulkAssign()">{% trans "Assign" %}</button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="executeBulkAssign()">{% trans "Assign" %}</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteTaskModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Delete Task" %}</h5>
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0 bg-danger text-white" style="border-radius: 16px 16px 0 0;">
+                <h6 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Delete Task" %}</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>{% trans "Are you sure you want to delete this task? This action cannot be undone." %}</p>
+                <p class="mb-0">{% trans "Are you sure? This cannot be undone." %}</p>
                 <input type="hidden" id="deleteTaskId">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                <button type="button" class="btn btn-danger" onclick="executeDeleteTask()">{% trans "Delete" %}</button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="executeDelete()">{% trans "Delete" %}</button>
             </div>
         </div>
     </div>
@@ -877,12 +773,11 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Project Selector Change
-    document.getElementById('projectSelector').addEventListener('change', function() {
-        const projectId = this.value;
+    // Project Filter
+    document.getElementById('projectFilter').addEventListener('change', function() {
         const url = new URL(window.location.href);
-        if (projectId) {
-            url.searchParams.set('project', projectId);
+        if (this.value) {
+            url.searchParams.set('project', this.value);
         } else {
             url.searchParams.delete('project');
         }
@@ -904,30 +799,36 @@ document.addEventListener('DOMContentLoaded', function() {
         if (el) el.addEventListener('change', applyFilters);
     });
 
-    // Search
+    // Search with debounce
     let searchTimeout;
     document.getElementById('searchTask').addEventListener('input', function() {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(applyFilters, 300);
+        searchTimeout = setTimeout(applyFilters, 200);
     });
 
-    // Select All Checkbox
+    // Select All
     const selectAll = document.getElementById('selectAll');
     if (selectAll) {
         selectAll.addEventListener('change', function() {
             document.querySelectorAll('.task-checkbox').forEach(cb => {
-                const row = cb.closest('tr');
-                if (row.style.display !== 'none') {
+                if (cb.closest('tr').style.display !== 'none') {
                     cb.checked = this.checked;
                 }
             });
-            updateBulkActions();
+            updateBulkBar();
         });
     }
 
     // Individual checkboxes
     document.querySelectorAll('.task-checkbox').forEach(cb => {
-        cb.addEventListener('change', updateBulkActions);
+        cb.addEventListener('change', updateBulkBar);
+    });
+
+    // Close assignee dropdowns on outside click
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.assignee-dropdown')) {
+            document.querySelectorAll('.assignee-select.show').forEach(el => el.classList.remove('show'));
+        }
     });
 });
 
@@ -938,14 +839,14 @@ function applyFilters() {
     const assigneeFilter = document.getElementById('filterAssignee')?.value || '';
     const searchTerm = document.getElementById('searchTask')?.value.toLowerCase() || '';
 
-    document.querySelectorAll('#taskTable tbody tr').forEach(row => {
+    document.querySelectorAll('#taskTableBody tr').forEach(row => {
         let show = true;
         const status = row.dataset.status;
         const priority = row.dataset.priority;
         const assignee = row.dataset.assignee;
         const isTouchup = row.dataset.touchup === 'true';
         const isOverdue = row.classList.contains('overdue');
-        const title = row.querySelector('.task-info h6')?.textContent.toLowerCase() || '';
+        const title = row.dataset.title || '';
 
         // Tab filters
         if (activeTab === 'unassigned' && assignee) show = false;
@@ -966,197 +867,64 @@ function applyFilters() {
     });
 }
 
-function filterByStatus(status) {
-    const statusSelect = document.getElementById('filterStatus');
-    if (statusSelect) {
-        statusSelect.value = status;
-        applyFilters();
-    }
+function toggleAssigneeDropdown(btn) {
+    const dropdown = btn.nextElementSibling;
+    document.querySelectorAll('.assignee-select.show').forEach(el => {
+        if (el !== dropdown) el.classList.remove('show');
+    });
+    dropdown.classList.toggle('show');
 }
 
-function updateBulkActions() {
-    const checked = document.querySelectorAll('.task-checkbox:checked');
-    const bulkBar = document.getElementById('bulkActionsBar');
-    const countEl = document.getElementById('selectedCount');
-    
-    if (bulkBar) {
-        if (checked.length > 0) {
-            bulkBar.classList.remove('d-none');
-            countEl.textContent = checked.length;
-        } else {
-            bulkBar.classList.add('d-none');
-        }
-    }
-}
-
-function getSelectedTaskIds() {
-    return Array.from(document.querySelectorAll('.task-checkbox:checked')).map(cb => cb.value);
-}
-
-// View Task Detail
-function viewTask(taskId) {
-    const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
-    const body = document.getElementById('taskDetailBody');
-    
-    body.innerHTML = `
-        <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-    modal.show();
-    
-    fetch(`/api/v1/tasks/${taskId}/detail/`)
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) {
-                body.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
-                return;
-            }
-            renderTaskDetail(data, body);
-        })
-        .catch(err => {
-            body.innerHTML = `<div class="alert alert-danger">{% trans "Error loading task" %}</div>`;
-        });
-}
-
-function renderTaskDetail(task, container) {
-    const priorityColors = {
-        urgent: '#dc2626', high: '#ea580c', medium: '#ca8a04', low: '#16a34a'
-    };
-    const statusColors = {
-        'Pendiente': '#b45309', 'En Progreso': '#1d4ed8', 
-        'En Revisión': '#4338ca', 'Completada': '#047857', 'Cancelada': '#64748b'
-    };
-    
-    let html = `
-        <div class="task-detail-header">
-            <div class="task-type-icon ${task.is_touchup ? 'touchup' : 'regular'}" 
-                 style="background: ${task.is_touchup ? '#fef3c7' : '#e0e7ff'}; color: ${task.is_touchup ? '#d97706' : '#4f46e5'}">
-                <i class="bi ${task.is_touchup ? 'bi-brush' : 'bi-check2-square'}"></i>
-            </div>
-            <div class="flex-grow-1">
-                <h4 class="mb-1">${task.title}</h4>
-                <small class="text-muted">#${task.id} • ${task.project_name}</small>
-            </div>
-        </div>
-        
-        <div class="task-detail-meta">
-            <div class="task-meta-item">
-                <label>{% trans "Status" %}</label>
-                <span class="value" style="color: ${statusColors[task.status] || '#64748b'}">${task.status}</span>
-            </div>
-            <div class="task-meta-item">
-                <label>{% trans "Priority" %}</label>
-                <span class="value" style="color: ${priorityColors[task.priority] || '#64748b'}">${task.priority_display}</span>
-            </div>
-            <div class="task-meta-item">
-                <label>{% trans "Assignee" %}</label>
-                <span class="value">${task.assigned_to_name || '{% trans "Unassigned" %}'}</span>
-            </div>
-            <div class="task-meta-item">
-                <label>{% trans "Due Date" %}</label>
-                <span class="value">${task.due_date || '—'}</span>
-            </div>
-        </div>
-        
-        ${task.description ? `
-            <div class="mb-3">
-                <label class="form-label fw-semibold">{% trans "Description" %}</label>
-                <p class="mb-0">${task.description}</p>
-            </div>
-        ` : ''}
-        
-        ${task.image_url ? `
-            <div class="task-pin-preview">
-                <label class="form-label fw-semibold mb-2">{% trans "Attached Image" %}</label>
-                <img src="${task.image_url}" alt="Task image" onclick="window.open(this.src, '_blank')">
-            </div>
-        ` : ''}
-        
-        ${task.floor_plan_pin ? `
-            <div class="task-pin-preview mt-3">
-                <label class="form-label fw-semibold mb-2">
-                    <i class="bi bi-geo-alt text-danger"></i> {% trans "Location Pin" %}
-                </label>
-                <p class="small text-muted mb-2">${task.floor_plan_pin.floor_plan_name}</p>
-                <div style="position: relative; display: inline-block;">
-                    <img src="${task.floor_plan_pin.floor_plan_image}" alt="Floor plan" style="max-height: 300px;">
-                    <div style="position: absolute; left: ${task.floor_plan_pin.x_percent}%; top: ${task.floor_plan_pin.y_percent}%; transform: translate(-50%, -100%);">
-                        <i class="bi bi-geo-alt-fill text-danger" style="font-size: 24px;"></i>
-                    </div>
-                </div>
-            </div>
-        ` : ''}
-        
-        ${task.time_tracked_hours > 0 ? `
-            <div class="alert alert-info mt-3">
-                <i class="bi bi-clock"></i> {% trans "Time Tracked" %}: <strong>${task.time_tracked_hours} hrs</strong>
-            </div>
-        ` : ''}
-    `;
-    
-    container.innerHTML = html;
-    
-    // Update footer with actions
-    const footer = document.getElementById('taskDetailFooter');
-    footer.innerHTML = `
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{% trans "Close" %}</button>
-        <a href="/tasks/${task.id}/" class="btn btn-outline-primary">
-            <i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Full View" %}
-        </a>
-        {% if is_staff %}
-        <button type="button" class="btn btn-primary" onclick="editTask(${task.id}); bootstrap.Modal.getInstance(document.getElementById('taskDetailModal')).hide();">
-            <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
-        </button>
-        {% endif %}
-    `;
-}
-
-// Edit Task
-function editTask(taskId) {
-    window.location.href = `/tasks/${taskId}/edit/`;
-}
-
-// Delete Task
-function confirmDeleteTask(taskId) {
-    document.getElementById('deleteTaskId').value = taskId;
-    new bootstrap.Modal(document.getElementById('deleteTaskModal')).show();
-}
-
-function executeDeleteTask() {
-    const taskId = document.getElementById('deleteTaskId').value;
-    fetch(`/tasks/${taskId}/delete/`, {
+function assignTask(taskId, employeeId) {
+    fetch('/api/v1/tasks/bulk-assign/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ 
+            task_ids: [taskId], 
+            employee_id: employeeId || null 
+        })
     })
-    .then(r => {
-        if (r.ok) {
+    .then(r => r.json())
+    .then(data => {
+        if (data.success || data.updated_count > 0) {
             location.reload();
         } else {
-            alert('{% trans "Error deleting task" %}');
+            alert(data.error || '{% trans "Error assigning task" %}');
         }
     });
 }
 
-// Bulk Actions
-function bulkAssign() {
-    if (getSelectedTaskIds().length === 0) return;
+function updateBulkBar() {
+    const checked = document.querySelectorAll('.task-checkbox:checked');
+    const bar = document.getElementById('bulkActionsBar');
+    const count = document.getElementById('selectedCount');
+    
+    if (bar) {
+        if (checked.length > 0) {
+            bar.classList.add('show');
+            count.textContent = checked.length;
+        } else {
+            bar.classList.remove('show');
+        }
+    }
+}
+
+function getSelectedIds() {
+    return Array.from(document.querySelectorAll('.task-checkbox:checked')).map(cb => parseInt(cb.value));
+}
+
+function showBulkAssign() {
+    if (getSelectedIds().length === 0) return;
     new bootstrap.Modal(document.getElementById('bulkAssignModal')).show();
 }
 
 function executeBulkAssign() {
-    const taskIds = getSelectedTaskIds();
-    const employeeId = document.getElementById('bulkAssignSelect').value;
-    
-    if (!employeeId) {
-        alert('{% trans "Please select an employee" %}');
-        return;
-    }
+    const ids = getSelectedIds();
+    const empId = document.getElementById('bulkAssignSelect').value;
+    if (!empId) return alert('{% trans "Select an employee" %}');
     
     fetch('/api/v1/tasks/bulk-assign/', {
         method: 'POST',
@@ -1164,86 +932,51 @@ function executeBulkAssign() {
             'X-CSRFToken': '{{ csrf_token }}',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ task_ids: taskIds, employee_id: employeeId })
+        body: JSON.stringify({ task_ids: ids, employee_id: empId })
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.error || '{% trans "Error assigning tasks" %}');
-        }
+        if (data.success) location.reload();
+        else alert(data.error || '{% trans "Error" %}');
     });
 }
 
 function bulkChangePriority() {
-    const priorities = ['urgent', 'high', 'medium', 'low'];
-    const priority = prompt('{% trans "Enter priority (urgent, high, medium, low):" %}');
-    if (!priority || !priorities.includes(priority)) return;
+    const priority = prompt('{% trans "Priority" %}: urgent, high, medium, low');
+    if (!priority || !['urgent','high','medium','low'].includes(priority)) return;
     
-    const taskIds = getSelectedTaskIds();
     fetch('/api/v1/tasks/bulk-update/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ task_ids: taskIds, action: 'priority', value: priority })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.updated_count > 0) location.reload();
-        else alert(data.error || '{% trans "Error updating tasks" %}');
-    });
+        body: JSON.stringify({ task_ids: getSelectedIds(), action: 'priority', value: priority })
+    }).then(() => location.reload());
 }
 
 function bulkChangeStatus() {
-    const statuses = ['Pendiente', 'En Progreso', 'En Revisión', 'Completada'];
-    const status = prompt('{% trans "Enter status:" %}\\n' + statuses.join(', '));
-    if (!status || !statuses.includes(status)) return;
+    const status = prompt('{% trans "Status" %}: Pendiente, En Progreso, Completada');
+    if (!status) return;
     
-    const taskIds = getSelectedTaskIds();
     fetch('/api/v1/tasks/bulk-update/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ task_ids: taskIds, action: 'status', value: status })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.updated_count > 0) location.reload();
-        else alert(data.error || '{% trans "Error updating tasks" %}');
-    });
+        body: JSON.stringify({ task_ids: getSelectedIds(), action: 'status', value: status })
+    }).then(() => location.reload());
 }
 
-// Create Task Form Submit
-document.getElementById('createTaskForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch('{% url "task_command_center" %}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
-            location.reload();
-        } else {
-            alert(data.error || '{% trans "Error creating task" %}');
-        }
-    })
-    .catch(err => {
-        // If not JSON, probably a redirect - reload
-        location.reload();
-    });
-});
+function confirmDelete(taskId) {
+    document.getElementById('deleteTaskId').value = taskId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function executeDelete() {
+    const taskId = document.getElementById('deleteTaskId').value;
+    window.location.href = '/tasks/' + taskId + '/delete/';
+}
 </script>
 {% endblock %}

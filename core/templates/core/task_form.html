@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% if edit %}{% trans "Edit Task" %}{% else %}{% trans "New Task" %}{% endif %} - Kibray{% endblock %}
+{% block title %}{% if title %}{{ title }}{% elif edit %}{% trans "Edit Task" %}{% else %}{% trans "New Task" %}{% endif %} - Kibray{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-3 py-md-4" style="max-width: 900px;">
@@ -10,11 +10,11 @@
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
     <h2 class="mb-0 h3 h-md-2">
       <i class="bi bi-{% if edit %}pencil-square{% else %}plus-circle{% endif %} text-primary me-2"></i>
-      {% if edit %}{% trans 'Edit Task' %}{% else %}{% trans 'New Task' %}{% endif %}
+      {% if title %}{{ title }}{% elif edit %}{% trans 'Edit Task' %}{% else %}{% trans 'New Task' %}{% endif %}
     </h2>
-    <a href="javascript:history.back();" class="btn btn-sm btn-outline-secondary">
+    <a href="{% url 'task_command_center' %}" class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-arrow-left me-1"></i>
-      {% trans 'Back' %}
+      {% trans 'Back to Tasks' %}
     </a>
   </div>
 
@@ -22,9 +22,38 @@
     <div class="card-body p-3 p-md-4">
       <form method="post" enctype="multipart/form-data" id="taskForm">
         {% csrf_token %}
-        {{ form.project.as_hidden }}
         
         <div class="row g-3">
+          <!-- Project (show as select if not editing existing task) -->
+          {% if not edit %}
+          <div class="col-12">
+            <label for="{{ form.project.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-folder me-1"></i>
+              {% trans "Project" %}
+              <span class="text-danger">*</span>
+            </label>
+            <select 
+              name="{{ form.project.name }}" 
+              id="{{ form.project.id_for_label }}"
+              class="form-select"
+              style="min-height: 50px; font-size: 16px;"
+              required
+            >
+              <option value="">{% trans "Select a project..." %}</option>
+              {% for value, text in form.project.field.choices %}
+                {% if value %}
+                <option value="{{ value }}" {% if form.project.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+            {% if form.project.errors %}
+              <div class="invalid-feedback d-block">{{ form.project.errors }}</div>
+            {% endif %}
+          </div>
+          {% else %}
+          {{ form.project.as_hidden }}
+          {% endif %}
+          
           <!-- Title -->
           <div class="col-12">
             <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">

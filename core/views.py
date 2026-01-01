@@ -6366,6 +6366,66 @@ def task_list_all(request):
 
 
 @login_required
+def task_create_wizard(request):
+    """
+    Task Creation Wizard - Standalone page for creating tasks.
+    
+    Opens task_form.html with project selection enabled.
+    Staff-only view.
+    """
+    if not request.user.is_staff:
+        messages.error(request, gettext("You don't have permission to create tasks"))
+        return redirect("task_command_center")
+    
+    from core.forms import TaskForm
+    
+    # Get active projects
+    projects = Project.objects.filter(is_archived=False).order_by("name")
+    
+    # Handle pre-selected project from query param
+    project_id = request.GET.get("project")
+    initial_project = None
+    if project_id:
+        try:
+            initial_project = Project.objects.get(id=project_id, is_archived=False)
+        except Project.DoesNotExist:
+            pass
+    
+    if request.method == "POST":
+        form = TaskForm(request.POST, request.FILES)
+        if form.is_valid():
+            task = form.save(commit=False)
+            task.created_by = request.user
+            task.save()
+            form.save_m2m()  # Save dependencies
+            
+            messages.success(request, gettext("Task created successfully"))
+            
+            # Redirect back to command center or project task list
+            if task.project:
+                return redirect(f"/tasks/command-center/?project={task.project.id}")
+            return redirect("task_command_center")
+        else:
+            messages.error(request, gettext("Please correct the errors below"))
+    else:
+        initial = {}
+        if initial_project:
+            initial["project"] = initial_project
+        form = TaskForm(initial=initial)
+    
+    return render(
+        request,
+        "core/task_form.html",
+        {
+            "form": form,
+            "projects": projects,
+            "edit": False,
+            "title": gettext("Create New Task"),
+        },
+    )
+
+
+@login_required
 def task_command_center(request):
     """
     Task Command Center - Centro de control unificado de tareas.
