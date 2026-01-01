@@ -4211,7 +4211,13 @@ def project_profit_dashboard(request, project_id):
     """
     project = get_object_or_404(Project, pk=project_id)
 
-    # 1. BUDGETED REVENUE (Estimate + Approved COs)
+    # 1. BASE BUDGET FROM BUDGET LINES
+    # Sum all baseline_amount from BudgetLine (the actual project budget)
+    budget_lines_total = project.budget_lines.aggregate(
+        total=Sum("baseline_amount")
+    )["total"] or Decimal("0")
+
+    # 2. ESTIMATE REVENUE (if using Estimates with markup - alternative method)
     estimate_revenue = Decimal("0")
     latest_estimate = project.estimates.filter(approved=True).order_by("-version").first()
     if latest_estimate:
@@ -4225,14 +4231,17 @@ def project_profit_dashboard(request, project_id):
         ) / 100
         estimate_revenue = direct * (1 + markup_total)
 
-    # Change Orders (approved/sent, not cancelled)
+    # 3. CHANGE ORDERS (approved/sent, not cancelled)
     cos_revenue = project.change_orders.exclude(status__in=["cancelled", "pending"]).aggregate(
         total=Sum("amount")
     )["total"] or Decimal("0")
 
-    budgeted_revenue = estimate_revenue + cos_revenue
+    # 4. TOTAL BUDGETED REVENUE
+    # Use the HIGHER of: budget_lines_total or estimate_revenue, PLUS change orders
+    base_budget = max(budget_lines_total, estimate_revenue)
+    budgeted_revenue = base_budget + cos_revenue
 
-    # 2. ACTUAL COSTS (Labor + Materials/Expenses)
+    # 5. ACTUAL COSTS (Labor + Materials/Expenses)
     # Labor cost from TimeEntries (calculated in Python since labor_cost is a property)
     time_entries = TimeEntry.objects.filter(project=project)
     labor_cost = sum(entry.labor_cost for entry in time_entries)
@@ -4244,17 +4253,17 @@ def project_profit_dashboard(request, project_id):
 
     total_actual_cost = labor_cost + material_cost
 
-    # 3. BILLED AMOUNT (Sum of all invoices)
+    # 6. BILLED AMOUNT (Sum of all invoices)
     billed_amount = Invoice.objects.filter(project=project).exclude(status="CANCELLED").aggregate(
         total=Sum("total_amount")
     )["total"] or Decimal("0")
 
-    # 4. COLLECTED AMOUNT (Sum of invoice payments)
+    # 7. COLLECTED AMOUNT (Sum of invoice payments)
     collected_amount = Invoice.objects.filter(project=project).exclude(
         status="CANCELLED"
     ).aggregate(total=Sum("amount_paid"))["total"] or Decimal("0")
 
-    # 5. CALCULATIONS
+    # 8. CALCULATIONS
     # Profit = Billed - Actual Costs
     profit = billed_amount - total_actual_cost
 
@@ -4264,13 +4273,13 @@ def project_profit_dashboard(request, project_id):
     # Outstanding = Billed - Collected
     outstanding = billed_amount - collected_amount
 
-    # Budget variance
+    # Budget variance (how much billed vs budgeted)
     budget_variance = billed_amount - budgeted_revenue
     budget_variance_pct = (
         (budget_variance / budgeted_revenue * 100) if budgeted_revenue > 0 else Decimal("0")
     )
 
-    # 6. CALCULATE PERCENTAGES FOR DISPLAY (avoid template math)
+    # 9. CALCULATE PERCENTAGES FOR DISPLAY (avoid template math)
     labor_pct = (labor_cost / total_actual_cost * 100) if total_actual_cost > 0 else Decimal("0")
     material_pct = (material_cost / total_actual_cost * 100) if total_actual_cost > 0 else Decimal("0")
     collected_pct = (collected_amount / billed_amount * 100) if billed_amount > 0 else Decimal("0")
@@ -4301,7 +4310,9 @@ def project_profit_dashboard(request, project_id):
     context = {
         "project": project,
         "budgeted_revenue": budgeted_revenue,
-        "estimate_revenue": estimate_revenue,
+        "base_budget": base_budget,  # Budget Lines total or Estimate (whichever is higher)
+        "budget_lines_total": budget_lines_total,  # Sum of all BudgetLine.baseline_amount
+        "estimate_revenue": estimate_revenue,  # From approved Estimate with markup
         "cos_revenue": cos_revenue,
         "labor_cost": labor_cost,
         "material_cost": material_cost,
