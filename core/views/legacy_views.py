@@ -4020,8 +4020,65 @@ def invoice_list(request):
 
 @login_required
 def invoice_detail(request, pk):
-    invoice = get_object_or_404(Invoice, pk=pk)
-    return render(request, "core/invoice_detail.html", {"invoice": invoice})
+    """
+    Modern Invoice Detail View with full financial integration.
+    Shows invoice details, payment history, related COs, and actions.
+    """
+    invoice = get_object_or_404(
+        Invoice.objects.select_related("project")
+        .prefetch_related("lines", "payments", "change_orders"),
+        pk=pk
+    )
+    
+    # Company Info (Kibray Paint & Stain LLC)
+    company = {
+        "name": "Kibray Paint & Stain LLC",
+        "address": "P.O. BOX 25881",
+        "city_state_zip": "Silverthorne, CO 80497",
+        "phone": "(970) 555-0123",
+        "email": "info@kibraypainting.net",
+        "website": "kibraypainting.net",
+        "logo_path": "images/kibray-logo.png",
+    }
+    
+    # Payment history
+    payments = invoice.payments.all().order_by("-payment_date")
+    
+    # Related Change Orders
+    change_orders = invoice.change_orders.all()
+    
+    # Calculate days until due / overdue
+    days_until_due = None
+    is_overdue = False
+    if invoice.due_date:
+        from datetime import date
+        today = date.today()
+        days_until_due = (invoice.due_date - today).days
+        is_overdue = days_until_due < 0
+    
+    # Status color mapping for badges
+    status_colors = {
+        "DRAFT": "secondary",
+        "SENT": "primary",
+        "VIEWED": "info",
+        "APPROVED": "success",
+        "PARTIAL": "warning",
+        "PAID": "success",
+        "OVERDUE": "danger",
+        "CANCELLED": "dark",
+    }
+    status_color = status_colors.get(invoice.status, "secondary")
+    
+    context = {
+        "invoice": invoice,
+        "company": company,
+        "payments": payments,
+        "change_orders": change_orders,
+        "days_until_due": days_until_due,
+        "is_overdue": is_overdue,
+        "status_color": status_color,
+    }
+    return render(request, "core/invoice_detail.html", context)
 
 
 @login_required
@@ -4141,11 +4198,11 @@ def record_invoice_payment(request, invoice_id):
                 request,
                 f"✅ Pago de ${amount_decimal:,.2f} registrado. Status: {invoice.get_status_display()}",
             )
-            return redirect("invoice_payment_dashboard")
+            return redirect("core:invoice_payment_dashboard")
 
         except (ValueError, ValidationError) as e:
             messages.error(request, _("Error: %(error)s") % {"error": e})
-            return redirect("invoice_detail", pk=invoice.id)
+            return redirect("core:invoice_detail", pk=invoice.id)
 
     # GET: show form
     context = {
@@ -4176,7 +4233,7 @@ def invoice_mark_sent(request, invoice_id):
             _("La factura ya tiene status: %(status)s") % {"status": invoice.get_status_display()},
         )
 
-    return redirect("invoice_detail", pk=invoice.id)
+    return redirect("core:invoice_detail", pk=invoice.id)
 
 
 @login_required
@@ -4200,7 +4257,7 @@ def invoice_mark_approved(request, invoice_id):
             _("La factura ya tiene status: %(status)s") % {"status": invoice.get_status_display()},
         )
 
-    return redirect("invoice_detail", pk=invoice.id)
+    return redirect("core:invoice_detail", pk=invoice.id)
 
 
 @login_required

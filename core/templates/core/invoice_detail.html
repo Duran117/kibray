@@ -1,130 +1,1056 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends 'core/base_generic.html' %}{% extends "core/base_modern.html" %}
+
+{% load static i18n humanize %}{% load i18n %}
+
 {% load static %}
+
+{% block title %}{% trans "Invoice" %} #{{ invoice.invoice_number }} | Kibray{% endblock %}
 
 {% block title %}Factura {{ invoice.invoice_number }}{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-md-8 d-flex align-items-center">
-            <img src="{% static company.logo_path %}" alt="Logo" style="height:60px;" class="me-3"/>
-            <div>
-                <h2 class="mb-1">📄 Factura {{ invoice.invoice_number }}</h2>
-                <p class="text-muted mb-0">
-                    <strong>Proyecto:</strong> {{ invoice.project.name }} | 
-                    <strong>Cliente:</strong> {{ invoice.project.client }}
-                </p>
-                <small class="text-muted">{{ company.name }} • {{ company.phone }} • {{ company.email }}</small>
-            </div>
+{% block extra_css %}
+
+<style>{% block content %}
+
+    /* Invoice Professional Styling */<div class="container-fluid py-4">
+
+    .invoice-container {    <div class="row mb-4">
+
+        max-width: 1200px;        <div class="col-md-8 d-flex align-items-center">
+
+        margin: 0 auto;            <img src="{% static company.logo_path %}" alt="Logo" style="height:60px;" class="me-3"/>
+
+    }            <div>
+
+                    <h2 class="mb-1">📄 Factura {{ invoice.invoice_number }}</h2>
+
+    /* Header Banner */                <p class="text-muted mb-0">
+
+    .invoice-header-banner {                    <strong>Proyecto:</strong> {{ invoice.project.name }} | 
+
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);                    <strong>Cliente:</strong> {{ invoice.project.client }}
+
+        border-radius: 16px 16px 0 0;                </p>
+
+        padding: 2rem 2.5rem;                <small class="text-muted">{{ company.name }} • {{ company.phone }} • {{ company.email }}</small>
+
+        position: relative;            </div>
+
+        overflow: hidden;        </div>
+
+    }        <div class="col-md-4 text-end">
+
+                <span class="badge bg-{{ invoice.status|default:'secondary' }} fs-5">{{ invoice.get_status_display|default:'BORRADOR' }}</span>
+
+    .invoice-header-banner::before {        </div>
+
+        content: '';    </div>
+
+        position: absolute;
+
+        top: 0;    <div class="row">
+
+        left: 0;        <div class="col-md-8">
+
+        right: 0;            <div class="card mb-3">
+
+        bottom: 0;                <div class="card-header bg-primary text-white">
+
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");                    <h5 class="mb-0">📋 Líneas de Factura</h5>
+
+    }                </div>
+
+                    <div class="card-body">
+
+    .company-logo-section {                    <table class="table table-hover">
+
+        display: flex;                        <thead>
+
+        align-items: center;                            <tr>
+
+        gap: 1rem;                                <th>Descripción</th>
+
+    }                                <th class="text-end">Monto</th>
+
+                                </tr>
+
+    .company-logo {                        </thead>
+
+        width: 60px;                        <tbody>
+
+        height: 60px;                            {% for line in invoice.lines.all %}
+
+        background: white;                            <tr>
+
+        border-radius: 12px;                                <td>{{ line.description }}</td>
+
+        display: flex;                                <td class="text-end"><strong>${{ line.amount|floatformat:2 }}</strong></td>
+
+        align-items: center;                            </tr>
+
+        justify-content: center;                            {% endfor %}
+
+        font-size: 1.5rem;                        </tbody>
+
+        font-weight: 700;                        <tfoot class="table-light">
+
+        color: #1e3a5f;                            <tr>
+
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);                                <td><strong>TOTAL</strong></td>
+
+    }                                <td class="text-end"><h4 class="mb-0">${{ invoice.total_amount|floatformat:2 }}</h4></td>
+
+                                </tr>
+
+    .company-info h1 {                        </tfoot>
+
+        font-size: 1.75rem;                    </table>
+
+        font-weight: 700;                </div>
+
+        color: white;            </div>
+
+        margin: 0;        </div>
+
+        letter-spacing: -0.5px;
+
+    }        <div class="col-md-4">
+
+                <div class="card mb-3">
+
+    .company-details {                <div class="card-header bg-info text-white">
+
+        color: rgba(255,255,255,0.8);                    <h5 class="mb-0">ℹ️ Información</h5>
+
+        font-size: 0.875rem;                </div>
+
+        margin-top: 0.25rem;                <div class="card-body">
+
+    }                    <p><strong>Fecha Emisión:</strong> {{ invoice.date_issued|date:"M d, Y" }}</p>
+
+                        <p><strong>Vencimiento:</strong> {{ invoice.due_date|date:"M d, Y" }}</p>
+
+    /* Invoice Number Badge */                    <p><strong>Empresa:</strong> {{ company.name }}<br>{{ company.address_line1 }}<br>{{ company.city_state_zip }}<br>{{ company.phone }} | {{ company.email }}</p>
+
+    .invoice-number-badge {                    {% if invoice.sent_date %}
+
+        background: rgba(255,255,255,0.15);                    <p><strong>Enviada:</strong> {{ invoice.sent_date|date:"M d, Y" }}</p>
+
+        backdrop-filter: blur(10px);                    {% endif %}
+
+        border: 1px solid rgba(255,255,255,0.2);                    {% if invoice.amount_paid %}
+
+        border-radius: 12px;                    <p><strong>Pagado:</strong> ${{ invoice.amount_paid|floatformat:2 }}</p>
+
+        padding: 1rem 1.5rem;                    <p><strong>Saldo:</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
+
+        text-align: right;                    {% endif %}
+
+    }                </div>
+
+                </div>
+
+    .invoice-number-label {
+
+        font-size: 0.75rem;            <div class="card mb-3">
+
+        text-transform: uppercase;                <div class="card-header bg-dark text-white">
+
+        letter-spacing: 1px;                    <h5 class="mb-0">⚙️ Acciones</h5>
+
+        color: rgba(255,255,255,0.7);                </div>
+
+    }                <div class="card-body">
+
+                        <!-- Status Actions -->
+
+    .invoice-number-value {                    {% if invoice.status == 'DRAFT' %}
+
+        font-size: 1.5rem;                    <div class="alert alert-warning mb-3">
+
+        font-weight: 700;                        <strong>📝 Borrador</strong> - Esta factura aún no ha sido enviada al cliente.
+
+        color: white;                    </div>
+
+    }                    <form method="post" action="{% url 'invoice_mark_sent' invoice.id %}" class="d-inline">
+
+                            {% csrf_token %}
+
+    /* Status Badge */                        <button type="submit" class="btn btn-primary w-100 mb-2">
+
+    .status-badge {                            📧 Marcar como Enviada
+
+        display: inline-flex;                        </button>
+
+        align-items: center;                    </form>
+
+        gap: 0.5rem;                    {% elif invoice.status == 'SENT' or invoice.status == 'VIEWED' %}
+
+        padding: 0.5rem 1rem;                    <div class="alert alert-info mb-3">
+
+        border-radius: 50px;                        <strong>📤 Enviada</strong> - Esperando aprobación del cliente.
+
+        font-weight: 600;                    </div>
+
+        font-size: 0.875rem;                    <form method="post" action="{% url 'invoice_mark_approved' invoice.id %}" class="d-inline">
+
+    }                        {% csrf_token %}
+
+                            <button type="submit" class="btn btn-success w-100 mb-2">
+
+    .status-draft { background: #f3f4f6; color: #6b7280; }                            ✅ Marcar como Aprobada
+
+    .status-sent { background: #dbeafe; color: #1d4ed8; }                        </button>
+
+    .status-approved { background: #d1fae5; color: #047857; }                    </form>
+
+    .status-partial { background: #fef3c7; color: #d97706; }                    {% endif %}
+
+    .status-paid { background: #10b981; color: white; }                    
+
+    .status-cancelled { background: #fee2e2; color: #dc2626; }                    <div class="d-grid gap-2">
+
+                            {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' %}
+
+    /* Main Content Card */                        <a href="{% url 'record_invoice_payment' invoice.id %}" class="btn btn-success">
+
+    .invoice-main-card {                            💵 Registrar Pago
+
+        background: white;                        </a>
+
+        border-radius: 0 0 16px 16px;                        {% endif %}
+
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn btn-primary">
+
+        overflow: hidden;                            📥 Descargar PDF
+
+    }                        </a>
+
+                            <a href="{% url 'project_overview' invoice.project.id %}" class="btn btn-outline-primary">
+
+    /* Section Headers */                            📁 Ver Proyecto
+
+    .section-header {                        </a>
+
+        display: flex;                        <a href="{% url 'invoice_payment_dashboard' %}" class="btn btn-outline-warning">
+
+        align-items: center;                            💰 Panel de Pagos
+
+        gap: 0.75rem;                        </a>
+
+        font-size: 1rem;                        <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary">
+
+        font-weight: 600;                            📋 Lista de Facturas
+
+        color: #1e3a5f;                        </a>
+
+        margin-bottom: 1rem;                    </div>
+
+        padding-bottom: 0.75rem;                </div>
+
+        border-bottom: 2px solid #e5e7eb;            </div>
+
+    }        </div>
+
         </div>
-        <div class="col-md-4 text-end">
-            <span class="badge bg-{{ invoice.status|default:'secondary' }} fs-5">{{ invoice.get_status_display|default:'BORRADOR' }}</span>
+
+    .section-header i {</div>
+
+        width: 32px;{% endblock %}
+        height: 32px;
+        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.875rem;
+    }
+    
+    /* Client Info Card */
+    .client-card {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .client-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .client-detail {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Project Link */
+    .project-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .project-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+        color: white;
+    }
+    
+    /* Invoice Lines Table */
+    .invoice-lines-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .invoice-lines-table thead {
+        background: #f8fafc;
+    }
+    
+    .invoice-lines-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .invoice-lines-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    
+    .invoice-lines-table tbody tr:hover {
+        background: #f8fafc;
+    }
+    
+    .line-description {
+        font-weight: 500;
+        color: #1e293b;
+    }
+    
+    .line-notes {
+        font-size: 0.8125rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+    }
+    
+    /* Totals Section */
+    .totals-section {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        font-size: 0.9375rem;
+    }
+    
+    .total-row.subtotal {
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .total-row.grand-total {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e3a5f;
+        border-top: 2px solid #1e3a5f;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .total-label {
+        color: #64748b;
+    }
+    
+    .total-value {
+        font-weight: 600;
+        color: #1e293b;
+    }
+    
+    /* Payment Progress */
+    .payment-progress-bar {
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    
+    .payment-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981, #059669);
+        border-radius: 6px;
+        transition: width 0.5s ease;
+    }
+    
+    .payment-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .payment-stat {
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .payment-stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    .payment-stat-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .payment-stat.paid .payment-stat-value { color: #10b981; }
+    .payment-stat.remaining .payment-stat-value { color: #f59e0b; }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-primary-action {
+        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+        color: white;
+    }
+    
+    .btn-primary-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+        color: white;
+    }
+    
+    .btn-success-action {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .btn-success-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        color: white;
+    }
+    
+    .btn-warning-action {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+    
+    .btn-warning-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        color: white;
+    }
+    
+    .btn-outline-action {
+        background: white;
+        border: 2px solid #e2e8f0;
+        color: #64748b;
+    }
+    
+    .btn-outline-action:hover {
+        border-color: #1e3a5f;
+        color: #1e3a5f;
+        background: #f8fafc;
+    }
+    
+    .btn-danger-action {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+    
+    /* Change Orders Section */
+    .co-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .co-card:hover {
+        border-color: #1e3a5f;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .co-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .co-number {
+        font-weight: 600;
+        color: #1e3a5f;
+    }
+    
+    .co-amount {
+        font-weight: 700;
+        color: #10b981;
+    }
+    
+    .co-description {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+    
+    /* Payment History */
+    .payment-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .payment-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 1rem;
+    }
+    
+    .payment-details {
+        flex: 1;
+    }
+    
+    .payment-amount {
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    .payment-meta {
+        font-size: 0.8125rem;
+        color: #64748b;
+    }
+    
+    .payment-date {
+        font-size: 0.8125rem;
+        color: #64748b;
+    }
+    
+    /* Notes Section */
+    .notes-content {
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        border-radius: 10px;
+        padding: 1rem;
+        color: #92400e;
+    }
+    
+    /* PDF Preview Frame */
+    .pdf-preview-frame {
+        width: 100%;
+        height: 600px;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .invoice-header-banner {
+            padding: 1.5rem;
+        }
+        
+        .payment-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-action {
+            justify-content: center;
+        }
+    }
+    
+    /* Print Styles */
+    @media print {
+        .no-print { display: none !important; }
+        .invoice-container { max-width: 100%; }
+        .invoice-header-banner { 
+            background: #1e3a5f !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="invoice-container">
+    <!-- Header Banner -->
+    <div class="invoice-header-banner">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="company-logo-section">
+                <div class="company-logo">
+                    <i class="fas fa-paint-roller"></i>
+                </div>
+                <div class="company-info">
+                    <h1>{{ company.name }}</h1>
+                    <div class="company-details">
+                        {{ company.address }} | {{ company.website }}
+                    </div>
+                </div>
+            </div>
+            <div class="invoice-number-badge">
+                <div class="invoice-number-label">{% trans "Invoice" %}</div>
+                <div class="invoice-number-value">#{{ invoice.invoice_number }}</div>
+                <div class="mt-2">
+                    <span class="status-badge status-{{ invoice.status|lower }}">
+                        <i class="{{ status_info.icon }}"></i>
+                        {{ status_info.text }}
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">📋 Líneas de Factura</h5>
+    
+    <!-- Main Content Card -->
+    <div class="invoice-main-card">
+        <div class="p-4">
+            <!-- Quick Stats Row -->
+            <div class="row mb-4">
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="payment-stat">
+                        <div class="payment-stat-value">${{ invoice.total_amount|floatformat:2|intcomma }}</div>
+                        <div class="payment-stat-label">{% trans "Total" %}</div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Descripción</th>
-                                <th class="text-end">Monto</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for line in invoice.lines.all %}
-                            <tr>
-                                <td>{{ line.description }}</td>
-                                <td class="text-end"><strong>${{ line.amount|floatformat:2 }}</strong></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot class="table-light">
-                            <tr>
-                                <td><strong>TOTAL</strong></td>
-                                <td class="text-end"><h4 class="mb-0">${{ invoice.total_amount|floatformat:2 }}</h4></td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="payment-stat paid">
+                        <div class="payment-stat-value">${{ invoice.amount_paid|floatformat:2|intcomma }}</div>
+                        <div class="payment-stat-label">{% trans "Paid" %}</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="payment-stat remaining">
+                        <div class="payment-stat-value">${{ invoice.balance_due|floatformat:2|intcomma }}</div>
+                        <div class="payment-stat-label">{% trans "Balance Due" %}</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="payment-stat">
+                        <div class="payment-stat-value">
+                            {% widthratio invoice.amount_paid invoice.total_amount 100 as pay_pct %}
+                            {% if invoice.total_amount > 0 %}
+                                {{ pay_pct|default:"0" }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                        <div class="payment-stat-label">{% trans "Paid %" %}</div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card mb-3">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">ℹ️ Información</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Fecha Emisión:</strong> {{ invoice.date_issued|date:"M d, Y" }}</p>
-                    <p><strong>Vencimiento:</strong> {{ invoice.due_date|date:"M d, Y" }}</p>
-                    <p><strong>Empresa:</strong> {{ company.name }}<br>{{ company.address_line1 }}<br>{{ company.city_state_zip }}<br>{{ company.phone }} | {{ company.email }}</p>
-                    {% if invoice.sent_date %}
-                    <p><strong>Enviada:</strong> {{ invoice.sent_date|date:"M d, Y" }}</p>
-                    {% endif %}
-                    {% if invoice.amount_paid %}
-                    <p><strong>Pagado:</strong> ${{ invoice.amount_paid|floatformat:2 }}</p>
-                    <p><strong>Saldo:</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
-                    {% endif %}
-                </div>
+            
+            <!-- Payment Progress Bar -->
+            {% if invoice.total_amount > 0 %}
+            <div class="payment-progress-bar mb-4">
+                <div class="payment-progress-fill" style="width: {% widthratio invoice.amount_paid invoice.total_amount 100 %}%;"></div>
             </div>
-
-            <div class="card mb-3">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">⚙️ Acciones</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Status Actions -->
-                    {% if invoice.status == 'DRAFT' %}
-                    <div class="alert alert-warning mb-3">
-                        <strong>📝 Borrador</strong> - Esta factura aún no ha sido enviada al cliente.
+            {% endif %}
+            
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-lg-8">
+                    <!-- Client & Project Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="section-header">
+                                <i class="fas fa-user"></i>
+                                {% trans "Bill To" %}
+                            </div>
+                            <div class="client-card">
+                                {% if invoice.project and invoice.project.client %}
+                                <div class="client-name">
+                                    {{ invoice.project.client.company_name|default:invoice.project.client.full_name }}
+                                </div>
+                                {% if invoice.project.client.email %}
+                                <div class="client-detail">
+                                    <i class="fas fa-envelope"></i>
+                                    {{ invoice.project.client.email }}
+                                </div>
+                                {% endif %}
+                                {% if invoice.project.client.phone %}
+                                <div class="client-detail">
+                                    <i class="fas fa-phone"></i>
+                                    {{ invoice.project.client.phone }}
+                                </div>
+                                {% endif %}
+                                {% if invoice.project.client.address %}
+                                <div class="client-detail">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ invoice.project.client.address }}
+                                </div>
+                                {% endif %}
+                                {% else %}
+                                <div class="text-muted">{% trans "No client information" %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="section-header">
+                                <i class="fas fa-building"></i>
+                                {% trans "Project" %}
+                            </div>
+                            <div class="client-card">
+                                {% if invoice.project %}
+                                <div class="client-name">{{ invoice.project.name }}</div>
+                                {% if invoice.project.address %}
+                                <div class="client-detail">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ invoice.project.address }}
+                                </div>
+                                {% endif %}
+                                <div class="mt-3">
+                                    <a href="{% url 'core:project_detail' invoice.project.pk %}" class="project-link">
+                                        <i class="fas fa-external-link-alt"></i>
+                                        {% trans "View Project" %}
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="text-muted">{% trans "No project linked" %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    <form method="post" action="{% url 'invoice_mark_sent' invoice.id %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary w-100 mb-2">
-                            📧 Marcar como Enviada
-                        </button>
-                    </form>
-                    {% elif invoice.status == 'SENT' or invoice.status == 'VIEWED' %}
-                    <div class="alert alert-info mb-3">
-                        <strong>📤 Enviada</strong> - Esperando aprobación del cliente.
-                    </div>
-                    <form method="post" action="{% url 'invoice_mark_approved' invoice.id %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success w-100 mb-2">
-                            ✅ Marcar como Aprobada
-                        </button>
-                    </form>
-                    {% endif %}
                     
-                    <div class="d-grid gap-2">
-                        {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' %}
-                        <a href="{% url 'record_invoice_payment' invoice.id %}" class="btn btn-success">
-                            💵 Registrar Pago
+                    <!-- Invoice Dates -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="client-card text-center">
+                                <div class="text-muted small mb-1">{% trans "Issue Date" %}</div>
+                                <div class="fw-bold">{{ invoice.date_issued|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="client-card text-center">
+                                <div class="text-muted small mb-1">{% trans "Due Date" %}</div>
+                                <div class="fw-bold {% if invoice.status == 'OVERDUE' %}text-danger{% endif %}">
+                                    {% if invoice.due_date %}
+                                    {{ invoice.due_date|date:"M d, Y" }}
+                                    {% if invoice.status == 'OVERDUE' %}
+                                    <span class="badge bg-danger ms-1">{% trans "Overdue" %}</span>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="text-muted">{% trans "Not set" %}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoice Lines -->
+                    <div class="section-header">
+                        <i class="fas fa-list"></i>
+                        {% trans "Line Items" %}
+                    </div>
+                    <div class="table-responsive">
+                        <table class="invoice-lines-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 70%;">{% trans "Description" %}</th>
+                                    <th class="text-end">{% trans "Amount" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line in invoice.lines.all %}
+                                <tr>
+                                    <td>
+                                        <div class="line-description">{{ line.description }}</div>
+                                    </td>
+                                    <td class="text-end fw-bold">${{ line.amount|floatformat:2|intcomma }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                        {% trans "No line items" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Totals -->
+                    <div class="totals-section">
+                        <div class="total-row subtotal">
+                            <span class="total-label">{% trans "Subtotal" %}</span>
+                            <span class="total-value">${{ invoice.total_amount|floatformat:2|intcomma }}</span>
+                        </div>
+                        {% if invoice.retention_amount and invoice.retention_amount > 0 %}
+                        <div class="total-row">
+                            <span class="total-label">{% trans "Retention" %}</span>
+                            <span class="total-value text-danger">-${{ invoice.retention_amount|floatformat:2|intcomma }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="total-row grand-total">
+                            <span>{% trans "Total Due" %}</span>
+                            <span>${{ invoice.total_amount|floatformat:2|intcomma }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    {% if invoice.notes %}
+                    <div class="mt-4">
+                        <div class="section-header">
+                            <i class="fas fa-sticky-note"></i>
+                            {% trans "Notes" %}
+                        </div>
+                        <div class="notes-content">
+                            {{ invoice.notes|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Right Column - Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Actions -->
+                    <div class="section-header">
+                        <i class="fas fa-bolt"></i>
+                        {% trans "Actions" %}
+                    </div>
+                    <div class="action-buttons mb-4 no-print">
+                        <!-- PDF Download -->
+                        <a href="{% url 'core:invoice_pdf' invoice.pk %}" class="btn-action btn-primary-action w-100" target="_blank">
+                            <i class="fas fa-file-pdf"></i>
+                            {% trans "Download PDF" %}
+                        </a>
+                        
+                        <!-- Edit Invoice -->
+                        {% if invoice.status == 'DRAFT' %}
+                        <a href="{% url 'core:invoice_builder' invoice.project.pk %}?invoice_id={{ invoice.pk }}" class="btn-action btn-outline-action w-100">
+                            <i class="fas fa-edit"></i>
+                            {% trans "Edit Invoice" %}
                         </a>
                         {% endif %}
-                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn btn-primary">
-                            📥 Descargar PDF
+                        
+                        <!-- Status Actions -->
+                        {% if invoice.status == 'DRAFT' %}
+                        <form method="post" action="{% url 'core:invoice_mark_sent' invoice.pk %}" class="w-100">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-action btn-primary-action w-100">
+                                <i class="fas fa-paper-plane"></i>
+                                {% trans "Mark as Sent" %}
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if invoice.status == 'SENT' %}
+                        <form method="post" action="{% url 'core:invoice_mark_approved' invoice.pk %}" class="w-100">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-action btn-success-action w-100">
+                                <i class="fas fa-check-circle"></i>
+                                {% trans "Mark as Approved" %}
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <!-- Record Payment -->
+                        {% if invoice.status in 'SENT,APPROVED,PARTIAL' and invoice.balance_due > 0 %}
+                        <a href="{% url 'core:record_invoice_payment' invoice.pk %}" class="btn-action btn-success-action w-100">
+                            <i class="fas fa-dollar-sign"></i>
+                            {% trans "Record Payment" %}
                         </a>
-                        <a href="{% url 'project_overview' invoice.project.id %}" class="btn btn-outline-primary">
-                            📁 Ver Proyecto
-                        </a>
-                        <a href="{% url 'invoice_payment_dashboard' %}" class="btn btn-outline-warning">
-                            💰 Panel de Pagos
-                        </a>
-                        <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary">
-                            📋 Lista de Facturas
+                        {% endif %}
+                        
+                        <!-- Print -->
+                        <button onclick="window.print()" class="btn-action btn-outline-action w-100">
+                            <i class="fas fa-print"></i>
+                            {% trans "Print" %}
+                        </button>
+                        
+                        <!-- Back to List -->
+                        <a href="{% url 'core:invoice_list' %}" class="btn-action btn-outline-action w-100">
+                            <i class="fas fa-arrow-left"></i>
+                            {% trans "Back to Invoices" %}
                         </a>
                     </div>
+                    
+                    <!-- Change Orders -->
+                    {% if related_cos %}
+                    <div class="section-header">
+                        <i class="fas fa-exchange-alt"></i>
+                        {% trans "Change Orders Included" %}
+                    </div>
+                    <div class="mb-4">
+                        {% for co in related_cos %}
+                        <div class="co-card">
+                            <div class="co-header">
+                                <span class="co-number">
+                                    <i class="fas fa-file-invoice me-1"></i>
+                                    CO-{{ co.co_number }}
+                                </span>
+                                <span class="co-amount">+${{ co.total_price|floatformat:2|intcomma }}</span>
+                            </div>
+                            <div class="co-description">{{ co.title|truncatewords:10 }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Payment History -->
+                    {% if payments %}
+                    <div class="section-header">
+                        <i class="fas fa-history"></i>
+                        {% trans "Payment History" %}
+                    </div>
+                    <div class="mb-4">
+                        {% for payment in payments %}
+                        <div class="payment-item">
+                            <div class="payment-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-amount">${{ payment.amount|floatformat:2|intcomma }}</div>
+                                <div class="payment-meta">
+                                    {{ payment.get_payment_method_display }}
+                                    {% if payment.reference %}
+                                    · {{ payment.reference }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="payment-date">{{ payment.payment_date|date:"M d" }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Project Financial Summary -->
+                    {% if invoice.project %}
+                    <div class="section-header">
+                        <i class="fas fa-chart-pie"></i>
+                        {% trans "Project Financials" %}
+                    </div>
+                    <div class="client-card">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% trans "Project Budget" %}</span>
+                            <span class="fw-bold">${{ invoice.project.calculated_budget|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% trans "Total Income" %}</span>
+                            <span class="fw-bold text-success">${{ invoice.project.calculated_income|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% trans "Total Expenses" %}</span>
+                            <span class="fw-bold text-danger">${{ invoice.project.calculated_expenses|floatformat:2|intcomma }}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Current Profit" %}</span>
+                            <span class="fw-bold {% if invoice.project.profit >= 0 %}text-success{% else %}text-danger{% endif %}">${{ invoice.project.profit|floatformat:2|intcomma }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- PDF Preview Modal -->
+<div class="modal fade" id="pdfPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Invoice Preview" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe src="{% url 'core:invoice_pdf' invoice.pk %}" class="pdf-preview-frame"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh status indicators
+    const statusBadge = document.querySelector('.status-badge');
+    
+    // Confirmation for payment actions
+    const paymentForms = document.querySelectorAll('form[action*="payment"]');
+    paymentForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('{% trans "Are you sure you want to proceed with this action?" %}')) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Print functionality
+    window.addEventListener('beforeprint', function() {
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+    });
+    
+    window.addEventListener('afterprint', function() {
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+    });
+});
+</script>
 {% endblock %}
