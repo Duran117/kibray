@@ -94,15 +94,114 @@
         {% if open_entry %}
         <i class="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
         <h4 class="text-xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
+        {% if open_entry.change_order %}
+        <p class="text-orange-600 text-sm font-medium mb-1">📝 {{ open_entry.change_order.title }}</p>
+        {% endif %}
         <p class="text-slate-600 mb-4">{% trans "Clock in" %}: {{ open_entry.start_time|date:"g:i A" }}</p>
-        <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="clock_out">
-            <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
-                <i class="bi bi-box-arrow-right mr-2"></i>
-                {% trans "Clock Out" %}
-            </button>
-        </form>
+        
+        <div class="flex flex-wrap justify-center gap-3 mb-4">
+            <form method="post" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="clock_out">
+                <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
+                    <i class="bi bi-box-arrow-right mr-2"></i>
+                    {% trans "Clock Out" %}
+                </button>
+            </form>
+        </div>
+        
+        <!-- Switch Context Buttons -->
+        <div class="border-t border-slate-200 pt-4 mt-4">
+            <p class="text-sm text-slate-600 mb-3">{% trans "Switch Context" %}:</p>
+            <div class="flex flex-wrap justify-center gap-2">
+                
+                {% if switch_options.can_switch_to_base %}
+                <!-- Switch to Base Work -->
+                <form method="post" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="switch_context">
+                    <input type="hidden" name="switch_type" value="base">
+                    <input type="hidden" name="target_id" value="{{ open_entry.project.id }}">
+                    <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg border border-slate-300 transition">
+                        <i class="bi bi-arrow-return-left mr-1"></i>
+                        {% trans "Back to Base" %}
+                    </button>
+                </form>
+                {% endif %}
+                
+                {% if switch_options.current_project_cos %}
+                <!-- Switch to CO Dropdown -->
+                <div class="relative inline-block switch-dropdown-pm">
+                    <button type="button" onclick="toggleDropdownPM(this)" class="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-medium rounded-lg border border-orange-300 transition flex items-center gap-1">
+                        <i class="bi bi-file-earmark-text mr-1"></i>
+                        {% trans "Switch CO" %}
+                        <i class="bi bi-chevron-down text-xs"></i>
+                    </button>
+                    <div class="dropdown-menu-pm hidden absolute left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 z-50">
+                        {% for co in switch_options.current_project_cos %}
+                        <form method="post" class="block">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="switch_context">
+                            <input type="hidden" name="switch_type" value="co">
+                            <input type="hidden" name="target_id" value="{{ co.id }}">
+                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-orange-50 text-sm border-b border-slate-100 last:border-0">
+                                <span class="font-medium">{{ co.title }}</span>
+                                <span class="text-xs text-slate-500 ml-1">({{ co.pricing_type }})</span>
+                            </button>
+                        </form>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if switch_options.other_projects %}
+                <!-- Switch to Other Project Dropdown -->
+                <div class="relative inline-block switch-dropdown-pm">
+                    <button type="button" onclick="toggleDropdownPM(this)" class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-sm font-medium rounded-lg border border-indigo-300 transition flex items-center gap-1">
+                        <i class="bi bi-folder mr-1"></i>
+                        {% trans "Switch Project" %}
+                        <i class="bi bi-chevron-down text-xs"></i>
+                    </button>
+                    <div class="dropdown-menu-pm hidden absolute left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 z-50 max-h-64 overflow-y-auto">
+                        {% for proj in switch_options.other_projects %}
+                        <form method="post" class="block">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="switch_context">
+                            <input type="hidden" name="switch_type" value="project">
+                            <input type="hidden" name="target_id" value="{{ proj.id }}">
+                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-indigo-50 text-sm border-b border-slate-100 last:border-0">
+                                {{ proj.name }}
+                            </button>
+                        </form>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+            </div>
+        </div>
+        
+        <script>
+        function toggleDropdownPM(btn) {
+            // Close all other dropdowns
+            document.querySelectorAll('.switch-dropdown-pm .dropdown-menu-pm').forEach(menu => {
+                if (menu !== btn.nextElementSibling) {
+                    menu.classList.add('hidden');
+                }
+            });
+            // Toggle this dropdown
+            btn.nextElementSibling.classList.toggle('hidden');
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.switch-dropdown-pm')) {
+                document.querySelectorAll('.switch-dropdown-pm .dropdown-menu-pm').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+        </script>
         {% else %}
         <i class="bi bi-clock text-indigo-500 text-5xl mb-3"></i>
         <h4 class="text-xl font-bold text-slate-900 mb-4">{% trans "Clock In" %}</h4>

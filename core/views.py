@@ -439,6 +439,81 @@ def dashboard_admin(request):
             )
             return redirect("dashboard_admin")
 
+        elif action == "switch_context":
+            # === SWITCH CONTEXT: Cambiar entre proyecto base, CO, u otro proyecto ===
+            if not open_entry:
+                messages.warning(request, _("No tienes una entrada abierta para hacer switch."))
+                return redirect("dashboard_admin")
+            
+            switch_type = request.POST.get("switch_type")  # 'project', 'co', 'base'
+            target_id = request.POST.get("target_id")
+            
+            if not switch_type or not target_id:
+                messages.error(request, _("Datos de switch incompletos."))
+                return redirect("dashboard_admin")
+            
+            # Cerrar entrada actual
+            open_entry.end_time = now.time()
+            open_entry.save()
+            hours_closed = open_entry.hours_worked or Decimal("0")
+            
+            # Crear nueva entrada según el tipo de switch
+            new_project = None
+            new_co = None
+            
+            if switch_type == "project":
+                # Switch a otro proyecto (trabajo base) - Admin puede ver todos
+                new_project = Project.objects.filter(id=target_id, is_archived=False).first()
+                if not new_project:
+                    messages.error(request, _("Proyecto no encontrado."))
+                    return redirect("dashboard_admin")
+                    
+            elif switch_type == "co":
+                # Switch a un Change Order del proyecto actual
+                co = ChangeOrder.objects.filter(
+                    id=target_id,
+                    project=open_entry.project,
+                    status__in=['pending', 'approved', 'sent']
+                ).first()
+                if not co:
+                    messages.error(request, _("Change Order no encontrado o no disponible."))
+                    return redirect("dashboard_admin")
+                new_project = open_entry.project
+                new_co = co
+                
+            elif switch_type == "base":
+                # Switch a trabajo base del proyecto actual
+                new_project = open_entry.project
+                new_co = None
+            else:
+                messages.error(request, _("Tipo de switch no válido."))
+                return redirect("dashboard_admin")
+            
+            # Crear nueva entrada
+            new_entry = TimeEntry.objects.create(
+                employee=employee,
+                project=new_project,
+                change_order=new_co,
+                date=today,
+                start_time=now.time(),
+                end_time=None,
+                notes=f"Switch desde {open_entry.project.name}" + (f" CO-{open_entry.change_order.id}" if open_entry.change_order else ""),
+            )
+            
+            # Mensaje de éxito
+            if new_co:
+                switch_msg = _("✓ Cambiado a %(co)s (%(project)s)") % {
+                    "co": new_co.title,
+                    "project": new_project.name
+                }
+            else:
+                switch_msg = _("✓ Cambiado a trabajo base en %(project)s") % {
+                    "project": new_project.name
+                }
+            
+            messages.success(request, switch_msg)
+            return redirect("dashboard_admin")
+
     # Proyectos disponibles (admin puede ver todos)
     available_projects = Project.objects.all()
     available_projects_count = available_projects.count()
@@ -477,6 +552,29 @@ def dashboard_admin(request):
         .count()
     )
 
+    # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
+    switch_options = {"other_projects": [], "current_project_cos": [], "can_switch_to_base": False}
+    if open_entry:
+        # Otros proyectos (Admin puede ver todos, excluir el actual)
+        other_projects = Project.objects.filter(is_archived=False).exclude(id=open_entry.project_id)[:10]
+        switch_options["other_projects"] = [
+            {"id": p.id, "name": p.name}
+            for p in other_projects
+        ]
+        
+        # COs del proyecto actual (disponibles para trabajo)
+        current_project_cos = ChangeOrder.objects.filter(
+            project=open_entry.project,
+            status__in=['pending', 'approved', 'sent']
+        ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
+        switch_options["current_project_cos"] = [
+            {"id": co.id, "title": co.title, "pricing_type": co.pricing_type}
+            for co in current_project_cos
+        ]
+        
+        # Puede volver a base si actualmente está en un CO
+        switch_options["can_switch_to_base"] = open_entry.change_order is not None
+
     # ---- Render ----
     # Always use the modern template, but allow hiding the sidebar when legacy mode is requested.
     context = {
@@ -495,6 +593,7 @@ def dashboard_admin(request):
         "unassigned_time_hours": unassigned_time_hours,
         "pending_client_requests": pending_client_requests,
         "pending_payroll": pending_payroll,
+        "switch_options": switch_options,
         "legacy_shell": legacy_shell,
     }
 
@@ -5781,6 +5880,80 @@ def dashboard_pm(request):
             )
             return redirect("dashboard_pm")
 
+        elif action == "switch_context":
+            # === SWITCH CONTEXT: Cambiar entre proyecto base, CO, u otro proyecto ===
+            if not open_entry:
+                messages.warning(request, _("No tienes una entrada abierta para hacer switch."))
+                return redirect("dashboard_pm")
+            
+            switch_type = request.POST.get("switch_type")  # 'project', 'co', 'base'
+            target_id = request.POST.get("target_id")
+            
+            if not switch_type or not target_id:
+                messages.error(request, _("Datos de switch incompletos."))
+                return redirect("dashboard_pm")
+            
+            # Cerrar entrada actual
+            open_entry.end_time = now.time()
+            open_entry.save()
+            
+            # Crear nueva entrada según el tipo de switch
+            new_project = None
+            new_co = None
+            
+            if switch_type == "project":
+                # Switch a otro proyecto (trabajo base) - PM puede ver todos
+                new_project = Project.objects.filter(id=target_id, is_archived=False).first()
+                if not new_project:
+                    messages.error(request, _("Proyecto no encontrado."))
+                    return redirect("dashboard_pm")
+                    
+            elif switch_type == "co":
+                # Switch a un Change Order del proyecto actual
+                co = ChangeOrder.objects.filter(
+                    id=target_id,
+                    project=open_entry.project,
+                    status__in=['pending', 'approved', 'sent']
+                ).first()
+                if not co:
+                    messages.error(request, _("Change Order no encontrado o no disponible."))
+                    return redirect("dashboard_pm")
+                new_project = open_entry.project
+                new_co = co
+                
+            elif switch_type == "base":
+                # Switch a trabajo base del proyecto actual
+                new_project = open_entry.project
+                new_co = None
+            else:
+                messages.error(request, _("Tipo de switch no válido."))
+                return redirect("dashboard_pm")
+            
+            # Crear nueva entrada
+            new_entry = TimeEntry.objects.create(
+                employee=employee,
+                project=new_project,
+                change_order=new_co,
+                date=today,
+                start_time=now.time(),
+                end_time=None,
+                notes=f"Switch desde {open_entry.project.name}" + (f" CO-{open_entry.change_order.id}" if open_entry.change_order else ""),
+            )
+            
+            # Mensaje de éxito
+            if new_co:
+                switch_msg = _("✓ Cambiado a %(co)s (%(project)s)") % {
+                    "co": new_co.title,
+                    "project": new_project.name
+                }
+            else:
+                switch_msg = _("✓ Cambiado a trabajo base en %(project)s") % {
+                    "project": new_project.name
+                }
+            
+            messages.success(request, switch_msg)
+            return redirect("dashboard_pm")
+
     # Form para clock in
     form = ClockInForm() if employee else None
 
@@ -5933,6 +6106,31 @@ def dashboard_pm(request):
         # Badges for notifications
         "badges": {"unread_notifications_count": 0},  # Placeholder
     }
+
+    # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
+    switch_options = {"other_projects": [], "current_project_cos": [], "can_switch_to_base": False}
+    if open_entry:
+        # Otros proyectos (PM puede ver todos, excluir el actual)
+        other_projects = Project.objects.filter(is_archived=False).exclude(id=open_entry.project_id)[:10]
+        switch_options["other_projects"] = [
+            {"id": p.id, "name": p.name}
+            for p in other_projects
+        ]
+        
+        # COs del proyecto actual (disponibles para trabajo)
+        current_project_cos = ChangeOrder.objects.filter(
+            project=open_entry.project,
+            status__in=['pending', 'approved', 'sent']
+        ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
+        switch_options["current_project_cos"] = [
+            {"id": co.id, "title": co.title, "pricing_type": co.pricing_type}
+            for co in current_project_cos
+        ]
+        
+        # Puede volver a base si actualmente está en un CO
+        switch_options["can_switch_to_base"] = open_entry.change_order is not None
+    
+    context["switch_options"] = switch_options
 
     # Use clean template by default; legacy only when explicitly requested
     use_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
