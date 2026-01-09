@@ -617,6 +617,30 @@ def dashboard_admin(request):
     )
     english_mode = str(active_lang or "").lower().startswith("en")
 
+    # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
+    switch_options = {"other_projects": [], "current_project_cos": [], "can_switch_to_base": False}
+    if open_entry:
+        # Otros proyectos (Admin puede ver todos, excluir el actual)
+        other_projects = Project.objects.filter(is_archived=False).exclude(id=open_entry.project_id)[:10]
+        switch_options["other_projects"] = [
+            {"id": p.id, "name": p.name}
+            for p in other_projects
+        ]
+        
+        # COs del proyecto actual (disponibles para trabajo)
+        # Incluir draft, pending, approved, sent, billed (excluir solo 'paid' que ya está cerrado)
+        current_project_cos = ChangeOrder.objects.filter(
+            project=open_entry.project,
+            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+        ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
+        switch_options["current_project_cos"] = [
+            {"id": co.id, "title": co.title, "pricing_type": co.pricing_type}
+            for co in current_project_cos
+        ]
+        
+        # Puede volver a base si actualmente está en un CO
+        switch_options["can_switch_to_base"] = open_entry.change_order is not None
+
     context = {
         # Financiero
         "total_income": total_income,
@@ -655,6 +679,7 @@ def dashboard_admin(request):
         "employee": employee,
         "open_entry": open_entry,
         "form": form,
+        "switch_options": switch_options,
         "active_lang": active_lang,
         "session_lang": session_lang,
         "english_mode": english_mode,
@@ -5860,6 +5885,68 @@ def dashboard_employee(request):
             )
             return redirect("dashboard_employee")
 
+        elif action == "switch_context" and open_entry:
+            # Cambiar contexto de trabajo sin cerrar la entrada
+            switch_type = request.POST.get("switch_type")
+            
+            if switch_type == "base":
+                # Volver a trabajo base (sin CO)
+                old_co = open_entry.change_order
+                open_entry.change_order = None
+                open_entry.save()
+                messages.success(
+                    request,
+                    _("✓ Cambiado a trabajo base (sin Change Order). Anteriormente: %(co)s")
+                    % {"co": old_co.title if old_co else "N/A"},
+                )
+            elif switch_type == "co":
+                # Cambiar a otro CO del mismo proyecto
+                target_id = request.POST.get("target_id") or request.POST.get("co_id")
+                if target_id:
+                    try:
+                        new_co = ChangeOrder.objects.get(
+                            id=target_id,
+                            project=open_entry.project,
+                            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+                        )
+                        old_co = open_entry.change_order
+                        open_entry.change_order = new_co
+                        open_entry.save()
+                        messages.success(
+                            request,
+                            _("✓ Cambiado a %(co)s (%(type)s)")
+                            % {"co": new_co.title, "type": new_co.get_pricing_type_display()},
+                        )
+                    except ChangeOrder.DoesNotExist:
+                        messages.error(request, _("Change Order no encontrado o no disponible."))
+            elif switch_type == "project":
+                # Para empleados: solo pueden cambiar a proyectos asignados hoy
+                target_id = request.POST.get("target_id") or request.POST.get("project_id")
+                if target_id:
+                    try:
+                        # Verificar que el empleado esté asignado a este proyecto hoy
+                        is_assigned = ResourceAssignment.objects.filter(
+                            employee=employee,
+                            project_id=target_id,
+                            date=today,
+                        ).exists()
+                        if not is_assigned:
+                            messages.error(request, _("No estás asignado a ese proyecto hoy."))
+                        else:
+                            new_project = Project.objects.get(id=target_id)
+                            old_project = open_entry.project
+                            open_entry.project = new_project
+                            open_entry.change_order = None
+                            open_entry.save()
+                            messages.success(
+                                request,
+                                _("✓ Cambiado a proyecto %(proj)s. Anteriormente: %(old)s")
+                                % {"proj": new_project.name, "old": old_project.name},
+                            )
+                    except Project.DoesNotExist:
+                        messages.error(request, _("Proyecto no encontrado."))
+            return redirect("dashboard_employee")
+
     # ✅ Obtener proyectos donde está asignado HOY (SOURCE OF TRUTH: ResourceAssignment)
     # Nota: DailyPlan NO define asignación de proyectos; solo planificación.
     my_projects_today = Project.objects.filter(
@@ -5949,6 +6036,37 @@ def dashboard_employee(request):
     available_projects_count = my_projects_today.count()
     available_projects_preview = list(my_projects_today[:5])
 
+    # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
+    switch_options = None
+    if open_entry:
+        # Otros proyectos (Employee solo ve los asignados hoy, excluir el actual)
+        other_projects = list(my_projects_today.exclude(id=open_entry.project_id))
+        
+        # COs del proyecto actual (disponibles para trabajo)
+        # Incluir draft, pending, approved, sent, billed (excluir solo 'paid' que ya está cerrado)
+        current_project_cos = ChangeOrder.objects.filter(
+            project=open_entry.project,
+            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+        ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
+        
+        available_cos = [
+            {
+                "id": co.id, 
+                "title": co.title, 
+                "pricing_type": co.pricing_type,
+                "pricing_label": f"${co.amount}" if co.pricing_type == 'fixed' else "T&M"
+            }
+            for co in current_project_cos
+        ]
+        
+        switch_options = {
+            "other_projects": [{"id": p.id, "name": p.name} for p in other_projects],
+            "other_projects_count": len(other_projects),
+            "available_cos": available_cos,
+            "current_project": {"id": open_entry.project.id, "name": open_entry.project.name},
+            "can_switch_to_base": open_entry.change_order is not None,
+        }
+
     context = {
         "employee": employee,
         "open_entry": open_entry,
@@ -5968,6 +6086,7 @@ def dashboard_employee(request):
         "assignments_today": assignments_today,
         "available_projects_count": available_projects_count,
         "available_projects_preview": available_projects_preview,
+        "switch_options": switch_options,
     }
 
     # Use legacy template (stable version)
@@ -6045,6 +6164,59 @@ def dashboard_pm(request):
                 request,
                 f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}",
             )
+            return redirect("dashboard_pm")
+
+        elif action == "switch_context" and open_entry:
+            # Cambiar contexto de trabajo sin cerrar la entrada
+            switch_type = request.POST.get("switch_type")
+            
+            if switch_type == "base":
+                # Volver a trabajo base (sin CO)
+                old_co = open_entry.change_order
+                open_entry.change_order = None
+                open_entry.save()
+                messages.success(
+                    request,
+                    _("✓ Cambiado a trabajo base (sin Change Order). Anteriormente: %(co)s")
+                    % {"co": old_co.title if old_co else "N/A"},
+                )
+            elif switch_type == "co":
+                # Cambiar a otro CO del mismo proyecto
+                co_id = request.POST.get("co_id")
+                if co_id:
+                    try:
+                        new_co = ChangeOrder.objects.get(
+                            id=co_id,
+                            project=open_entry.project,
+                            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+                        )
+                        old_co = open_entry.change_order
+                        open_entry.change_order = new_co
+                        open_entry.save()
+                        messages.success(
+                            request,
+                            _("✓ Cambiado a %(co)s (%(type)s)")
+                            % {"co": new_co.title, "type": new_co.get_pricing_type_display()},
+                        )
+                    except ChangeOrder.DoesNotExist:
+                        messages.error(request, _("Change Order no encontrado o no disponible."))
+            elif switch_type == "project":
+                # Cambiar a otro proyecto
+                project_id = request.POST.get("project_id")
+                if project_id:
+                    try:
+                        new_project = Project.objects.get(id=project_id)
+                        old_project = open_entry.project
+                        open_entry.project = new_project
+                        open_entry.change_order = None
+                        open_entry.save()
+                        messages.success(
+                            request,
+                            _("✓ Cambiado a proyecto %(proj)s. Anteriormente: %(old)s")
+                            % {"proj": new_project.name, "old": old_project.name},
+                        )
+                    except Project.DoesNotExist:
+                        messages.error(request, _("Proyecto no encontrado."))
             return redirect("dashboard_pm")
 
     # Form para clock in
@@ -6173,6 +6345,30 @@ def dashboard_pm(request):
             item for item in morning_briefing if item.get("category") == "approvals"
         ]
 
+    # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
+    switch_options = {"other_projects": [], "current_project_cos": [], "can_switch_to_base": False}
+    if open_entry:
+        # Otros proyectos (PM puede ver todos, excluir el actual)
+        other_projects = Project.objects.filter(is_archived=False).exclude(id=open_entry.project_id)[:10]
+        switch_options["other_projects"] = [
+            {"id": p.id, "name": p.name}
+            for p in other_projects
+        ]
+        
+        # COs del proyecto actual (disponibles para trabajo)
+        # Incluir draft, pending, approved, sent, billed (excluir solo 'paid' que ya está cerrado)
+        current_project_cos = ChangeOrder.objects.filter(
+            project=open_entry.project,
+            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+        ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
+        switch_options["current_project_cos"] = [
+            {"id": co.id, "title": co.title, "pricing_type": co.pricing_type}
+            for co in current_project_cos
+        ]
+        
+        # Puede volver a base si actualmente está en un CO
+        switch_options["can_switch_to_base"] = open_entry.change_order is not None
+
     context = {
         # Alertas
         "unassigned_time_count": unassigned_time_count,
@@ -6196,6 +6392,7 @@ def dashboard_pm(request):
         "employee": employee,
         "open_entry": open_entry,
         "form": form,
+        "switch_options": switch_options,
         # Badges for notifications
         "badges": {"unread_notifications_count": 0},  # Placeholder
     }
