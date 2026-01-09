@@ -190,30 +190,58 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         </style>
         {% else %}
-        <i class="bi bi-clock text-indigo-500 text-5xl mb-3"></i>
-        <h4 class="text-xl font-bold text-slate-900 mb-4">{% trans "Clock In" %}</h4>
-        <form method="post" class="max-w-3xl mx-auto">
+        <!-- Clock In Title -->
+        <div class="flex items-center justify-center gap-3 mb-4">
+            <i class="bi bi-clock text-indigo-500 text-3xl"></i>
+            <h4 class="text-xl font-bold text-slate-900">{% trans "Clock In" %}</h4>
+            <span class="text-sm text-slate-500" id="current-time-pm"></span>
+        </div>
+        
+        <!-- Clock In Form -->
+        <form method="post" class="max-w-4xl mx-auto">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Project" %}:</label>
+            
+            <!-- Compact Form Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Project" %}</label>
                     {{ form.project }}
                 </div>
-                <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Change Order" %}:</label>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Change Order" %}</label>
                     {{ form.change_order }}
                 </div>
-                <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Cost Code" %}:</label>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Budget Line" %}</label>
+                    {{ form.budget_line }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Cost Code" %}</label>
                     {{ form.cost_code }}
                 </div>
             </div>
-            <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
-                <i class="bi bi-box-arrow-in-right mr-2"></i>
-                {% trans "Clock In" %}
+            
+            <!-- Notes Row -->
+            <div class="mb-4">
+                <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Notes" %} <span class="text-slate-400">({% trans "optional" %})</span></label>
+                {{ form.notes }}
+            </div>
+            
+            <!-- Submit Button -->
+            <button type="submit" class="w-full md:w-auto px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all">
+                <i class="bi bi-box-arrow-in-right mr-2"></i>{% trans "Clock In" %}
             </button>
         </form>
+        
+        <script>
+        function updateTimePM() {
+            const now = new Date();
+            document.getElementById('current-time-pm').textContent = now.toLocaleTimeString();
+        }
+        updateTimePM();
+        setInterval(updateTimePM, 1000);
+        </script>
         {% endif %}
     </div>
 </div>

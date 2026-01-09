@@ -23,15 +23,6 @@
 <!-- Clock In/Out para Admin (si está vinculado a un empleado) -->
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
     <div class="text-center">
-        <div class="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-3 mb-4 text-xs text-slate-600 text-left">
-            <strong>Debug:</strong> Proyectos disponibles (máx 5):
-            <ul class="list-disc list-inside">
-                {% for p in available_projects_preview %}
-                <li>{{ p.id }} · {{ p.name }}</li>
-                {% endfor %}
-            </ul>
-            <div class="mt-1">Total: {{ available_projects_count }}</div>
-        </div>
         {% if open_entry %}
         <i class="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
         <h4 class="text-xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
@@ -131,62 +122,66 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         </style>
         {% else %}
-        <i class="bi bi-clock text-indigo-500 text-5xl mb-3"></i>
-        <h4 class="text-xl font-bold text-slate-900 mb-4">{% trans "Clock In" %}</h4>
-        <form method="post" class="max-w-4xl mx-auto" id="clockInForm">
+        <!-- Clock In Form -->
+        <div class="flex items-center justify-center gap-3 mb-4">
+            <i class="bi bi-clock text-indigo-500 text-4xl"></i>
+            <h4 class="text-xl font-bold text-slate-900">{% trans "Clock In" %}</h4>
+        </div>
+        
+        <form method="post" class="max-w-2xl mx-auto" id="clockInForm">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
             
-            <!-- Fila 1: Proyecto -->
+            <!-- Proyecto (Requerido) -->
             <div class="mb-4 text-left">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Project" %} <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                    <i class="bi bi-building mr-1"></i> {% trans "Project" %} <span class="text-red-500">*</span>
+                </label>
                 {{ form.project }}
             </div>
             
-            <!-- Fila 2: Tipo de trabajo -->
-            <div class="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <label class="block text-sm font-semibold text-slate-700 mb-3">{% trans "Work Type" %}:</label>
-                <div class="flex gap-4 mb-3">
-                    <label class="flex items-center gap-2 cursor-pointer">
+            <!-- Tipo de trabajo: Base vs CO -->
+            <div class="mb-4 p-4 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-lg border border-slate-200">
+                <label class="block text-sm font-semibold text-slate-700 mb-3">
+                    <i class="bi bi-briefcase mr-1"></i> {% trans "Work Type" %}:
+                </label>
+                <div class="flex flex-wrap gap-4 mb-3">
+                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-indigo-400 transition">
                         <input type="radio" name="work_type" value="base" checked class="w-4 h-4 text-indigo-600" id="workTypeBase">
                         <span class="text-sm font-medium text-slate-700">📋 {% trans "Contract Base" %}</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-orange-400 transition">
                         <input type="radio" name="work_type" value="co" class="w-4 h-4 text-orange-600" id="workTypeCO">
-                        <span class="text-sm font-medium text-slate-700">📝 {% trans "Change Order" %} ({% trans "Extra" %})</span>
+                        <span class="text-sm font-medium text-slate-700">📝 {% trans "Change Order" %}</span>
                     </label>
                 </div>
                 
-                <!-- Si es contrato base: Budget Line -->
+                <!-- Budget Line (para trabajo base) -->
                 <div id="budgetLineSection" class="mt-3">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Phase/Budget Item" %}:</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Phase/Budget Item" %}:</label>
                     {{ form.budget_line }}
-                    <p class="text-xs text-slate-500 mt-1">{% trans "Select the phase to measure vs estimate" %}</p>
                 </div>
                 
-                <!-- Si es CO -->
+                <!-- Change Order selector -->
                 <div id="changeOrderSection" class="mt-3 hidden">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Change Order" %}:</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Change Order" %}:</label>
                     {{ form.change_order }}
-                    <p class="text-xs text-orange-600 mt-1">⚠️ {% trans "CO hours are billed separately as extras" %}</p>
+                    <p class="text-xs text-orange-600 mt-1">⚠️ {% trans "CO hours billed separately" %}</p>
                 </div>
             </div>
             
-            <!-- Fila 3: Cost Code y Notas -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Cost Code" %}:</label>
-                    {{ form.cost_code }}
-                </div>
-                <div class="text-left">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Notes" %} ({% trans "optional" %}):</label>
-                    {{ form.notes }}
-                </div>
+            <!-- Cost Code (opcional) -->
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                    <i class="bi bi-tag mr-1"></i> {% trans "Cost Code" %} <span class="text-slate-400 text-xs">({% trans "optional" %})</span>
+                </label>
+                {{ form.cost_code }}
             </div>
             
-            <button type="submit" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition text-lg">
-                <i class="bi bi-box-arrow-in-right mr-2"></i>
-                {% trans "Clock In" %}
+            <!-- Botón Clock In -->
+            <button type="submit" class="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition text-lg">
+                <i class="bi bi-play-circle mr-2"></i>
+                {% trans "Start Working" %}
             </button>
         </form>
         
