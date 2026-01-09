@@ -4162,8 +4162,32 @@ def invoice_edit(request, pk):
 @login_required
 def changeorders_ajax(request):
     project_id = request.GET.get("project_id")
-    qs = ChangeOrder.objects.filter(project_id=project_id).order_by("id")
-    data = [{"id": co.id, "description": co.description, "amount": float(co.amount)} for co in qs]
+    status_filter = request.GET.get("status", "all")
+    
+    qs = ChangeOrder.objects.filter(project_id=project_id)
+    
+    # Filter by status if requested
+    # "active" = COs where work can be tracked (excludes only 'paid')
+    if status_filter == "active":
+        qs = qs.filter(status__in=["draft", "pending", "approved", "sent", "billed"])
+    elif status_filter != "all":
+        qs = qs.filter(status=status_filter)
+    
+    qs = qs.order_by("-date_created")
+    
+    data = []
+    for co in qs:
+        pricing_label = "T&M" if co.pricing_type == "T_AND_M" else f"${co.amount}"
+        data.append({
+            "id": co.id,
+            "title": co.title or f"CO #{co.id}",
+            "description": co.description or "",
+            "amount": float(co.amount),
+            "pricing_type": co.pricing_type,
+            "pricing_label": pricing_label,
+            "status": co.status,
+        })
+    
     return JsonResponse({"change_orders": data})
 
 
