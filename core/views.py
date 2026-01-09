@@ -3808,8 +3808,9 @@ def changeorders_ajax(request):
     qs = ChangeOrder.objects.filter(project_id=project_id)
     
     # Filter by status if requested
+    # "active" = COs where work can be tracked (excludes only 'paid')
     if status_filter == "active":
-        qs = qs.filter(status__in=["pending", "approved", "sent"])
+        qs = qs.filter(status__in=["draft", "pending", "approved", "sent", "billed"])
     elif status_filter != "all":
         qs = qs.filter(status=status_filter)
     
