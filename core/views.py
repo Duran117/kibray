@@ -473,7 +473,7 @@ def dashboard_admin(request):
                 co = ChangeOrder.objects.filter(
                     id=target_id,
                     project=open_entry.project,
-                    status__in=['pending', 'approved', 'sent']
+                    status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                 ).first()
                 if not co:
                     messages.error(request, _("Change Order no encontrado o no disponible."))
@@ -563,9 +563,10 @@ def dashboard_admin(request):
         ]
         
         # COs del proyecto actual (disponibles para trabajo)
+        # Incluir draft, pending, approved, sent, billed (excluir solo 'paid' que ya está cerrado)
         current_project_cos = ChangeOrder.objects.filter(
             project=open_entry.project,
-            status__in=['pending', 'approved', 'sent']
+            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
         ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
         switch_options["current_project_cos"] = [
             {"id": co.id, "title": co.title, "pricing_type": co.pricing_type}
@@ -5611,7 +5612,7 @@ def dashboard_employee(request):
                 co = ChangeOrder.objects.filter(
                     id=target_id,
                     project=open_entry.project,  # CO debe ser del proyecto actual
-                    status__in=['pending', 'approved', 'sent']
+                    status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                 ).first()
                 if not co:
                     messages.error(request, _("Change Order no encontrado o no disponible."))
@@ -5725,9 +5726,10 @@ def dashboard_employee(request):
         current_co = open_entry.change_order
         
         # COs disponibles del proyecto ACTUAL (no de otros proyectos)
+        # Incluir draft, pending, approved, sent, billed (excluir solo 'paid' que ya está cerrado)
         available_cos = ChangeOrder.objects.filter(
             project=current_project,
-            status__in=['pending', 'approved', 'sent']
+            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
         ).exclude(
             id=current_co.id if current_co else 0
         ).order_by('id')
@@ -5913,7 +5915,7 @@ def dashboard_pm(request):
                 co = ChangeOrder.objects.filter(
                     id=target_id,
                     project=open_entry.project,
-                    status__in=['pending', 'approved', 'sent']
+                    status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                 ).first()
                 if not co:
                     messages.error(request, _("Change Order no encontrado o no disponible."))
@@ -6118,9 +6120,10 @@ def dashboard_pm(request):
         ]
         
         # COs del proyecto actual (disponibles para trabajo)
+        # Incluir draft, pending, approved, sent, billed (excluir solo 'paid' que ya está cerrado)
         current_project_cos = ChangeOrder.objects.filter(
             project=open_entry.project,
-            status__in=['pending', 'approved', 'sent']
+            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
         ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
         switch_options["current_project_cos"] = [
             {"id": co.id, "title": co.title, "pricing_type": co.pricing_type}
