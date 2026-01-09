@@ -444,6 +444,59 @@ def dashboard_admin(request):
             )
             return redirect("dashboard_admin")
 
+        elif action == "switch_context" and open_entry:
+            # Cambiar contexto de trabajo sin cerrar la entrada
+            switch_type = request.POST.get("switch_type")
+            
+            if switch_type == "base":
+                # Volver a trabajo base (sin CO)
+                old_co = open_entry.change_order
+                open_entry.change_order = None
+                open_entry.save()
+                messages.success(
+                    request,
+                    _("✓ Cambiado a trabajo base (sin Change Order). Anteriormente: %(co)s")
+                    % {"co": old_co.title if old_co else "N/A"},
+                )
+            elif switch_type == "co":
+                # Cambiar a otro CO del mismo proyecto
+                target_id = request.POST.get("target_id") or request.POST.get("co_id")
+                if target_id:
+                    try:
+                        new_co = ChangeOrder.objects.get(
+                            id=target_id,
+                            project=open_entry.project,
+                            status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+                        )
+                        old_co = open_entry.change_order
+                        open_entry.change_order = new_co
+                        open_entry.save()
+                        messages.success(
+                            request,
+                            _("✓ Cambiado a %(co)s (%(type)s)")
+                            % {"co": new_co.title, "type": new_co.get_pricing_type_display()},
+                        )
+                    except ChangeOrder.DoesNotExist:
+                        messages.error(request, _("Change Order no encontrado o no disponible."))
+            elif switch_type == "project":
+                # Cambiar a otro proyecto (Admin puede cambiar a cualquier proyecto)
+                target_id = request.POST.get("target_id") or request.POST.get("project_id")
+                if target_id:
+                    try:
+                        new_project = Project.objects.get(id=target_id)
+                        old_project = open_entry.project
+                        open_entry.project = new_project
+                        open_entry.change_order = None
+                        open_entry.save()
+                        messages.success(
+                            request,
+                            _("✓ Cambiado a proyecto %(proj)s. Anteriormente: %(old)s")
+                            % {"proj": new_project.name, "old": old_project.name},
+                        )
+                    except Project.DoesNotExist:
+                        messages.error(request, _("Proyecto no encontrado."))
+            return redirect("dashboard_admin")
+
     # Form para clock in
     form = ClockInForm() if employee else None
 
@@ -6182,11 +6235,11 @@ def dashboard_pm(request):
                 )
             elif switch_type == "co":
                 # Cambiar a otro CO del mismo proyecto
-                co_id = request.POST.get("co_id")
-                if co_id:
+                target_id = request.POST.get("target_id") or request.POST.get("co_id")
+                if target_id:
                     try:
                         new_co = ChangeOrder.objects.get(
-                            id=co_id,
+                            id=target_id,
                             project=open_entry.project,
                             status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                         )
@@ -6202,10 +6255,10 @@ def dashboard_pm(request):
                         messages.error(request, _("Change Order no encontrado o no disponible."))
             elif switch_type == "project":
                 # Cambiar a otro proyecto
-                project_id = request.POST.get("project_id")
-                if project_id:
+                target_id = request.POST.get("target_id") or request.POST.get("project_id")
+                if target_id:
                     try:
-                        new_project = Project.objects.get(id=project_id)
+                        new_project = Project.objects.get(id=target_id)
                         old_project = open_entry.project
                         open_entry.project = new_project
                         open_entry.change_order = None
