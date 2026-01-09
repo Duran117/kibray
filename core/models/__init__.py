@@ -2151,8 +2151,13 @@ class ChangeOrder(models.Model):
 
     @property
     def title(self) -> str:
-        """Synthetic title used by API/tests. Falls back to reference_code or formatted ID."""
-        return self.reference_code or f"CO: {self.id}"
+        """Synthetic title used by API/tests. Falls back to reference_code, description, or formatted ID."""
+        if self.reference_code:
+            return self.reference_code
+        if self.description:
+            # Truncate description to 50 chars for title
+            return self.description[:50] + ('...' if len(self.description) > 50 else '')
+        return f"CO #{self.id}"
 
 
 class ChangeOrderPhoto(models.Model):

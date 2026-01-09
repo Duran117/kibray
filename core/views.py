@@ -5415,14 +5415,22 @@ def dashboard_employee(request):
                     cost_code=form.cleaned_data.get("cost_code"),
                 )
                 # Debug: adicionamos info para confirmar la creación en prod
-                messages.success(
-                    request,
-                    _("✓ Entrada registrada a las %(time)s en %(project)s")
-                    % {"time": now.strftime("%H:%M"), "project": te.project.name},
-                )
+                co = form.cleaned_data.get("change_order")
+                if co:
+                    success_msg = _("✓ Entrada registrada a las %(time)s en %(project)s - %(co)s") % {
+                        "time": now.strftime("%H:%M"),
+                        "project": te.project.name,
+                        "co": co.title,
+                    }
+                else:
+                    success_msg = _("✓ Entrada registrada a las %(time)s en %(project)s") % {
+                        "time": now.strftime("%H:%M"),
+                        "project": te.project.name,
+                    }
+                messages.success(request, success_msg)
                 try:
                     logger.info(
-                        f"TimeEntry created id={te.id} employee={employee.id} project={selected_project.id}"
+                        f"TimeEntry created id={te.id} employee={employee.id} project={selected_project.id} co={co.id if co else None}"
                     )
                 except Exception:
                     logger.exception("Failed to log TimeEntry debug info")
