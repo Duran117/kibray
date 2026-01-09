@@ -3703,8 +3703,31 @@ def invoice_edit(request, pk):
 @login_required
 def changeorders_ajax(request):
     project_id = request.GET.get("project_id")
-    qs = ChangeOrder.objects.filter(project_id=project_id).order_by("id")
-    data = [{"id": co.id, "description": co.description, "amount": float(co.amount)} for co in qs]
+    status_filter = request.GET.get("status", "all")
+    
+    qs = ChangeOrder.objects.filter(project_id=project_id)
+    
+    # Filter by status if requested
+    if status_filter == "active":
+        qs = qs.filter(status__in=["pending", "approved", "sent"])
+    elif status_filter != "all":
+        qs = qs.filter(status=status_filter)
+    
+    qs = qs.order_by("-date_created")
+    
+    data = []
+    for co in qs:
+        pricing_label = "T&M" if co.pricing_type == "T_AND_M" else f"${co.amount}"
+        data.append({
+            "id": co.id,
+            "title": co.title or f"CO #{co.id}",
+            "description": co.description or "",
+            "amount": float(co.amount),
+            "pricing_type": co.pricing_type,
+            "pricing_label": pricing_label,
+            "status": co.status,
+        })
+    
     return JsonResponse({"change_orders": data})
 
 
@@ -5220,7 +5243,7 @@ def dashboard_employee(request):
     employee = Employee.objects.filter(user=request.user).first()
     if not employee:
         messages.error(request, "Tu usuario no está vinculado a un empleado.")
-        return render(request, "core/dashboard_employee_clean.html", {"employee": None})
+        return render(request, "core/dashboard_employee.html", {"employee": None})
 
     today = timezone.localdate()
     now = timezone.localtime()
@@ -5439,6 +5462,89 @@ def dashboard_employee(request):
                 f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}",
             )
             return redirect("dashboard_employee")
+        
+        elif action == "switch_context":
+            # === SWITCH CONTEXT: Cambiar entre proyecto base, CO, u otro proyecto ===
+            if not open_entry:
+                messages.warning(request, _("No tienes una entrada abierta para hacer switch."))
+                return redirect("dashboard_employee")
+            
+            switch_type = request.POST.get("switch_type")  # 'project', 'co', 'base'
+            target_id = request.POST.get("target_id")
+            
+            if not switch_type or not target_id:
+                messages.error(request, _("Datos de switch incompletos."))
+                return redirect("dashboard_employee")
+            
+            # Cerrar entrada actual
+            open_entry.end_time = now.time()
+            open_entry.save()
+            hours_closed = open_entry.hours_worked or Decimal("0")
+            
+            logger.info(f"[Switch] Closed TimeEntry {open_entry.id} with {hours_closed}h")
+            
+            # Crear nueva entrada según el tipo de switch
+            new_project = None
+            new_co = None
+            
+            if switch_type == "project":
+                # Switch a otro proyecto (trabajo base)
+                new_project = Project.objects.filter(id=target_id, is_archived=False).first()
+                if not new_project:
+                    messages.error(request, _("Proyecto no encontrado."))
+                    return redirect("dashboard_employee")
+                
+                # Verificar que el empleado tiene acceso al proyecto
+                if new_project not in available_projects:
+                    messages.error(request, _("No tienes acceso a ese proyecto."))
+                    return redirect("dashboard_employee")
+                    
+            elif switch_type == "co":
+                # Switch a un Change Order del proyecto actual
+                co = ChangeOrder.objects.filter(
+                    id=target_id,
+                    project=open_entry.project,  # CO debe ser del proyecto actual
+                    status__in=['pending', 'approved', 'sent']
+                ).first()
+                if not co:
+                    messages.error(request, _("Change Order no encontrado o no disponible."))
+                    return redirect("dashboard_employee")
+                new_project = open_entry.project
+                new_co = co
+                
+            elif switch_type == "base":
+                # Switch a trabajo base del proyecto actual
+                new_project = open_entry.project
+                new_co = None
+            else:
+                messages.error(request, _("Tipo de switch no válido."))
+                return redirect("dashboard_employee")
+            
+            # Crear nueva entrada
+            new_entry = TimeEntry.objects.create(
+                employee=employee,
+                project=new_project,
+                change_order=new_co,
+                date=today,
+                start_time=now.time(),
+                end_time=None,
+                notes=f"Switch desde {open_entry.project.name}" + (f" CO-{open_entry.change_order.id}" if open_entry.change_order else ""),
+            )
+            
+            # Mensaje de éxito
+            if new_co:
+                switch_msg = _("✓ Cambiado a %(co)s (%(project)s)") % {
+                    "co": new_co.title,
+                    "project": new_project.name
+                }
+            else:
+                switch_msg = _("✓ Cambiado a trabajo base en %(project)s") % {
+                    "project": new_project.name
+                }
+            
+            messages.success(request, switch_msg)
+            logger.info(f"[Switch] Created TimeEntry {new_entry.id} - Project: {new_project.id}, CO: {new_co.id if new_co else 'None'}")
+            return redirect("dashboard_employee")
     else:
         # GET
         form = ClockInForm(available_projects=available_projects)
@@ -5504,6 +5610,58 @@ def dashboard_employee(request):
     # Historial reciente (últimas 5 entradas)
     recent = TimeEntry.objects.filter(employee=employee).order_by("-date", "-start_time")[:5]
 
+    # === SWITCH CONTEXT OPTIONS ===
+    # Solo mostrar opciones de switch si hay una entrada abierta
+    switch_options = None
+    if open_entry:
+        current_project = open_entry.project
+        current_co = open_entry.change_order
+        
+        # COs disponibles del proyecto ACTUAL (no de otros proyectos)
+        available_cos = ChangeOrder.objects.filter(
+            project=current_project,
+            status__in=['pending', 'approved', 'sent']
+        ).exclude(
+            id=current_co.id if current_co else 0
+        ).order_by('id')
+        
+        # Otros proyectos disponibles (sin el proyecto actual)
+        other_projects = available_projects.exclude(id=current_project.id)
+        
+        # Determinar si está en modo CO o Base
+        is_on_co = current_co is not None
+        
+        switch_options = {
+            'current_project': {
+                'id': current_project.id,
+                'name': current_project.name,
+            },
+            'current_co': {
+                'id': current_co.id,
+                'title': current_co.title,
+                'pricing_type': current_co.pricing_type,
+            } if current_co else None,
+            'is_on_co': is_on_co,
+            'available_cos': [
+                {
+                    'id': co.id,
+                    'title': co.title,
+                    'pricing_type': co.pricing_type,
+                    'pricing_label': 'T&M' if co.pricing_type == 'T_AND_M' else f'${co.amount}',
+                }
+                for co in available_cos
+            ],
+            'can_switch_to_base': is_on_co,  # Solo si está en un CO
+            'other_projects': [
+                {
+                    'id': p.id,
+                    'name': p.name,
+                }
+                for p in other_projects[:5]  # Limitar a 5 proyectos
+            ],
+            'other_projects_count': other_projects.count(),
+        }
+
     context = {
         "employee": employee,
         "open_entry": open_entry,
@@ -5533,13 +5691,14 @@ def dashboard_employee(request):
         "available_projects_preview": available_projects_preview,
         "clock_in_mode": clock_in_mode,  # ← Nuevo: indica el modo de clock-in
         "allow_all_projects": allow_override,
+        "switch_options": switch_options,  # ← Opciones de Switch Context
         "disable_notification_center": True,  # Desactivar React NotificationCenter en esta página
         "form_errors": form.errors if request.method == "POST" else None,
     }
 
     # Always use the modern (clean) employee dashboard.
     # The legacy template is intentionally not used.
-    return render(request, "core/dashboard_employee_clean.html", context)
+    return render(request, "core/dashboard_employee.html", context)
 
 
 # --- DASHBOARD PM ---

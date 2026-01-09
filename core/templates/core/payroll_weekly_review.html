@@ -487,6 +487,55 @@
     width: 20px;
     text-align: right;
 }
+
+/* Hours breakdown for Base vs CO */
+.hours-display.has-co {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+    border: 1px dashed var(--payroll-primary);
+}
+
+.hours-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    font-size: 9px;
+    margin-top: 4px;
+}
+
+.hours-breakdown .base-hours {
+    color: var(--payroll-gray-600);
+}
+
+.hours-breakdown .co-hours {
+    color: #7c3aed;
+    font-weight: 600;
+}
+
+.entry-count-badge {
+    font-size: 8px;
+    background: var(--payroll-gray-200);
+    color: var(--payroll-gray-600);
+    padding: 2px 6px;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* Employee hours breakdown */
+.employee-hours-breakdown {
+    font-size: 11px;
+    color: var(--payroll-gray-600);
+    margin-top: 2px;
+}
+
+.employee-hours-breakdown .base {
+    color: var(--payroll-gray-700);
+}
+
+.employee-hours-breakdown .co {
+    color: #7c3aed;
+    font-weight: 600;
+}
 </style>
 {% endblock %}
 
@@ -597,24 +646,47 @@
                                         <input type="time" 
                                                name="start_{{ data.employee.id }}_{{ forloop.counter0 }}" 
                                                value="{{ day_entry.start }}"
-                                               class="time-input">
+                                               class="time-input"
+                                               {% if day_entry.entry_count > 1 %}disabled title="{% trans 'Multiple entries - edit in TimeEntry' %}"{% endif %}>
                                     </div>
                                     <div class="time-row">
                                         <span class="time-label">Out:</span>
                                         <input type="time" 
                                                name="end_{{ data.employee.id }}_{{ forloop.counter0 }}" 
                                                value="{{ day_entry.end }}"
-                                               class="time-input">
+                                               class="time-input"
+                                               {% if day_entry.entry_count > 1 %}disabled title="{% trans 'Multiple entries - edit in TimeEntry' %}"{% endif %}>
                                     </div>
                                     <div class="time-row">
                                         <span class="time-label">Hrs:</span>
-                                        <span class="hours-display">{{ day_entry.hours|floatformat:1|default:"-" }}</span>
+                                        <span class="hours-display {% if day_entry.co_hours > 0 %}has-co{% endif %}">
+                                            {{ day_entry.hours|floatformat:1|default:"-" }}
+                                        </span>
                                     </div>
+                                    {% if day_entry.co_hours > 0 %}
+                                    <div class="hours-breakdown">
+                                        <span class="base-hours" title="{% trans 'Base hours' %}">🏠 {{ day_entry.base_hours|floatformat:1 }}</span>
+                                        <span class="co-hours" title="{% trans 'CO hours' %}">📋 {{ day_entry.co_hours|floatformat:1 }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if day_entry.entry_count > 1 %}
+                                    <div class="entry-count-badge" title="{{ day_entry.entry_count }} {% trans 'time entries' %}">
+                                        {{ day_entry.entry_count }} entries
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </td>
                             {% endfor %}
                             
-                            <td class="total-hours-cell">{{ data.calculated_hours|floatformat:2 }}</td>
+                            <td class="total-hours-cell">
+                                {{ data.calculated_hours|floatformat:2 }}
+                                {% if data.co_hours > 0 %}
+                                <div class="employee-hours-breakdown">
+                                    <span class="base">🏠 {{ data.base_hours|floatformat:1 }}</span>
+                                    <span class="co">📋 {{ data.co_hours|floatformat:1 }}</span>
+                                </div>
+                                {% endif %}
+                            </td>
                             
                             <td>
                                 <input type="number" 

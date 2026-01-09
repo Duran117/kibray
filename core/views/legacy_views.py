@@ -1444,30 +1444,66 @@ def payroll_weekly_review(request):
             },
         )
 
-        # Obtener entradas de tiempo para cada día de la semana
+        # Obtener TODAS las entradas de tiempo para cada día (incluyendo CO)
         day_entries = []
         calculated_hours = Decimal("0.00")
+        base_hours = Decimal("0.00")
+        co_hours = Decimal("0.00")
         
         for i in range(7):
             day = week_start + timedelta(days=i)
-            entry = TimeEntry.objects.filter(
-                employee=emp, date=day, change_order__isnull=True
-            ).first()
+            # Obtener TODAS las entradas del día (base + CO)
+            entries = TimeEntry.objects.filter(
+                employee=emp, date=day
+            ).select_related('change_order', 'project').order_by('start_time')
             
-            if entry:
-                start_str = entry.start_time.strftime("%H:%M") if entry.start_time else ""
-                end_str = entry.end_time.strftime("%H:%M") if entry.end_time else ""
-                hours = entry.hours_worked or Decimal("0")
-                calculated_hours += Decimal(str(hours)) if hours else Decimal("0")
-            else:
-                start_str = ""
-                end_str = ""
-                hours = None
+            day_total_hours = Decimal("0.00")
+            day_base_hours = Decimal("0.00")
+            day_co_hours = Decimal("0.00")
+            first_start = None
+            last_end = None
+            entry_details = []
+            
+            for entry in entries:
+                hours = Decimal(str(entry.hours_worked)) if entry.hours_worked else Decimal("0")
+                day_total_hours += hours
+                
+                if entry.change_order:
+                    day_co_hours += hours
+                    entry_details.append({
+                        'type': 'CO',
+                        'co_id': entry.change_order.id,
+                        'co_title': entry.change_order.title,
+                        'hours': float(hours),
+                    })
+                else:
+                    day_base_hours += hours
+                    entry_details.append({
+                        'type': 'BASE',
+                        'project': entry.project.name if entry.project else '',
+                        'hours': float(hours),
+                    })
+                
+                # Track first start and last end for display
+                if entry.start_time:
+                    if first_start is None or entry.start_time < first_start:
+                        first_start = entry.start_time
+                if entry.end_time:
+                    if last_end is None or entry.end_time > last_end:
+                        last_end = entry.end_time
+            
+            calculated_hours += day_total_hours
+            base_hours += day_base_hours
+            co_hours += day_co_hours
             
             day_entries.append({
-                'start': start_str,
-                'end': end_str,
-                'hours': hours,
+                'start': first_start.strftime("%H:%M") if first_start else "",
+                'end': last_end.strftime("%H:%M") if last_end else "",
+                'hours': day_total_hours if day_total_hours > 0 else None,
+                'base_hours': day_base_hours,
+                'co_hours': day_co_hours,
+                'details': entry_details,
+                'entry_count': len(entries),
             })
         
         # Actualizar record con horas calculadas si es diferente
@@ -1484,6 +1520,8 @@ def payroll_weekly_review(request):
             "employee": emp,
             "record": record,
             "calculated_hours": calculated_hours,
+            "base_hours": base_hours,
+            "co_hours": co_hours,
             "day_entries": day_entries,
             "last_payment": last_payment,
         })

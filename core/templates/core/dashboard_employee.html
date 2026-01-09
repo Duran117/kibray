@@ -273,6 +273,40 @@
     margin-bottom: 8px;
 }
 
+.clock-form label small {
+    font-weight: 400;
+}
+
+.co-help-text {
+    font-size: 12px;
+    color: var(--emp-gray-500);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.co-help-text i {
+    color: var(--emp-primary);
+}
+
+#change-order-group {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #7dd3fc;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+#change-order-group label {
+    color: #0369a1;
+}
+
+#change-order-group select {
+    background: white;
+    border-color: #7dd3fc;
+}
+
 .clock-form select,
 .clock-form textarea {
     width: 100%;
@@ -570,9 +604,14 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .emp-dashboard {
+        padding: 12px;
+    }
+    
     .emp-header {
         flex-direction: column;
         text-align: center;
+        padding: 20px;
     }
     
     .emp-greeting {
@@ -585,6 +624,217 @@
     
     .emp-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .clock-card {
+        padding: 20px;
+    }
+    
+    .clock-btn {
+        padding: 14px 32px;
+        font-size: 16px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .weekly-hours-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .weekly-pay-estimate {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .stat-card {
+        padding: 16px;
+    }
+    
+    .stat-card .stat-info h3 {
+        font-size: 20px;
+    }
+}
+
+/* ===== SWITCH CONTEXT STYLES ===== */
+.switch-context-section {
+    margin-top: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 16px;
+    border: 1px solid #7dd3fc;
+}
+
+.switch-context-section h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0369a1;
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.switch-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.switch-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.switch-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.switch-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+}
+
+.switch-btn:hover {
+    border-color: var(--emp-primary);
+    background: #f8fafc;
+    transform: translateY(-1px);
+}
+
+.switch-btn.co-btn {
+    border-left: 4px solid #8b5cf6;
+}
+
+.switch-btn.co-btn:hover {
+    border-color: #8b5cf6;
+    background: #faf5ff;
+}
+
+.switch-btn.project-btn {
+    border-left: 4px solid #10b981;
+}
+
+.switch-btn.project-btn:hover {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.switch-btn.base-btn {
+    border-left: 4px solid #6366f1;
+}
+
+.switch-btn.base-btn:hover {
+    border-color: #6366f1;
+    background: #eef2ff;
+}
+
+.switch-btn .switch-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.switch-btn.co-btn .switch-icon {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.switch-btn.project-btn .switch-icon {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.switch-btn.base-btn .switch-icon {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+.switch-btn .switch-label {
+    flex: 1;
+    text-align: left;
+}
+
+.switch-btn .switch-label .name {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.switch-btn .switch-label .type {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.switch-btn .switch-arrow {
+    color: #94a3b8;
+    font-size: 18px;
+}
+
+/* Current context badge */
+.current-context-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.current-context-badge.on-base {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.current-context-badge.on-co {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+@media (max-width: 768px) {
+    .switch-context-section {
+        margin-top: 16px;
+        padding: 16px;
+    }
+    
+    .switch-options {
+        flex-direction: column;
+    }
+    
+    .switch-group {
+        min-width: 100%;
+    }
+    
+    .switch-btn {
+        padding: 14px;
     }
 }
 </style>
@@ -630,8 +880,21 @@
             <div class="clock-project">
                 <i class="bi bi-building"></i>
                 {{ open_entry.project.name }}
+                {% if open_entry.change_order %}
+                <span class="current-context-badge on-co">
+                    <i class="bi bi-file-text"></i>
+                    {{ open_entry.change_order.title }}
+                </span>
+                {% else %}
+                <span class="current-context-badge on-base">
+                    <i class="bi bi-house"></i>
+                    {% trans "Base Work" %}
+                </span>
+                {% endif %}
             </div>
         </div>
+        
+        <!-- Clock Out Button -->
         <form method="post" style="margin-top: 24px;">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_out">
@@ -640,6 +903,82 @@
                 {% trans "Clock Out" %}
             </button>
         </form>
+        
+        <!-- Switch Context Section -->
+        {% if switch_options %}
+        <div class="switch-context-section">
+            <h4><i class="bi bi-arrow-left-right"></i> {% trans "Switch Context" %}</h4>
+            
+            <div class="switch-options">
+                <!-- Change Orders del proyecto actual -->
+                {% if switch_options.available_cos %}
+                <div class="switch-group">
+                    <div class="switch-group-title">📋 {% trans "Change Orders" %} ({{ switch_options.current_project.name }})</div>
+                    {% for co in switch_options.available_cos %}
+                    <form method="post" style="display: contents;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="switch_context">
+                        <input type="hidden" name="switch_type" value="co">
+                        <input type="hidden" name="target_id" value="{{ co.id }}">
+                        <button type="submit" class="switch-btn co-btn">
+                            <div class="switch-icon"><i class="bi bi-file-earmark-text"></i></div>
+                            <div class="switch-label">
+                                <div class="name">{{ co.title }}</div>
+                                <div class="type">{{ co.pricing_label }}</div>
+                            </div>
+                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Volver a trabajo base (solo si está en CO) -->
+                {% if switch_options.can_switch_to_base %}
+                <div class="switch-group">
+                    <div class="switch-group-title">🏠 {% trans "Base Work" %}</div>
+                    <form method="post" style="display: contents;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="switch_context">
+                        <input type="hidden" name="switch_type" value="base">
+                        <input type="hidden" name="target_id" value="{{ switch_options.current_project.id }}">
+                        <button type="submit" class="switch-btn base-btn">
+                            <div class="switch-icon"><i class="bi bi-house"></i></div>
+                            <div class="switch-label">
+                                <div class="name">{{ switch_options.current_project.name }}</div>
+                                <div class="type">{% trans "Contract Base Work" %}</div>
+                            </div>
+                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+                
+                <!-- Otros proyectos -->
+                {% if switch_options.other_projects %}
+                <div class="switch-group">
+                    <div class="switch-group-title">🏗️ {% trans "Other Projects" %} ({{ switch_options.other_projects_count }})</div>
+                    {% for proj in switch_options.other_projects %}
+                    <form method="post" style="display: contents;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="switch_context">
+                        <input type="hidden" name="switch_type" value="project">
+                        <input type="hidden" name="target_id" value="{{ proj.id }}">
+                        <button type="submit" class="switch-btn project-btn">
+                            <div class="switch-icon"><i class="bi bi-building"></i></div>
+                            <div class="switch-label">
+                                <div class="name">{{ proj.name }}</div>
+                                <div class="type">{% trans "Base Work" %}</div>
+                            </div>
+                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
         {% else %}
         <!-- Not Working -->
         <div class="clock-status not-working">
@@ -664,13 +1003,25 @@
         </div>
         {% endif %}
         
-        <form method="post" class="clock-form">
+        <form method="post" class="clock-form" id="clock-in-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
             
             <div class="form-group">
                 <label>{% trans "Project" %}</label>
                 {{ form.project }}
+            </div>
+            
+            <div class="form-group" id="change-order-group" style="display: none;">
+                <label>
+                    <i class="bi bi-file-earmark-text"></i>
+                    {% trans "Change Order" %} <small style="color: #94a3b8;">({% trans "Optional" %})</small>
+                </label>
+                {{ form.change_order }}
+                <div class="co-help-text">
+                    <i class="bi bi-info-circle"></i>
+                    {% trans "Select if working on a Change Order. Leave empty for base contract work." %}
+                </div>
             </div>
             
             <div class="form-group">
@@ -690,6 +1041,55 @@
                 </button>
             </div>
         </form>
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const projectSelect = document.getElementById('id_project');
+            const coSelect = document.getElementById('id_change_order');
+            const coGroup = document.getElementById('change-order-group');
+            
+            if (!projectSelect || !coSelect || !coGroup) return;
+            
+            function updateChangeOrders() {
+                const selectedProjectId = projectSelect.value;
+                
+                if (!selectedProjectId) {
+                    coGroup.style.display = 'none';
+                    return;
+                }
+                
+                // Show the CO group
+                coGroup.style.display = 'block';
+                
+                // Clear and rebuild options
+                coSelect.innerHTML = '<option value="">-- {% trans "None (base work)" %} --</option>';
+                
+                // Fetch active COs for this project via AJAX
+                fetch(`{% url 'changeorders_ajax' %}?project_id=${selectedProjectId}&status=active`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.change_orders && data.change_orders.length > 0) {
+                            data.change_orders.forEach(co => {
+                                const option = document.createElement('option');
+                                option.value = co.id;
+                                option.textContent = `${co.title} (${co.pricing_label})`;
+                                coSelect.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.log('Could not fetch COs:', err);
+                    });
+            }
+            
+            projectSelect.addEventListener('change', updateChangeOrders);
+            
+            // Initial state
+            if (projectSelect.value) {
+                updateChangeOrders();
+            }
+        });
+        </script>
         {% endif %}
     </div>
     
