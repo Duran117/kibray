@@ -102,17 +102,22 @@ app.conf.update(
     # Task execution
     task_always_eager=False,  # Set True for testing without Redis
     task_eager_propagates=True,
-    # Results backend
-    result_expires=3600,  # 1 hour
+    # Results backend - Memory optimized
+    result_expires=1800,  # 30 minutes (reduced from 1 hour)
+    result_backend_transport_options={
+        "retry_policy": {"max_retries": 3},
+    },
     # Task routes
     task_routes={
         "core.tasks.send_email_*": {"queue": "emails"},
         "core.tasks.generate_*": {"queue": "reports"},
         "core.tasks.calculate_*": {"queue": "analytics"},
     },
-    # Worker settings
-    worker_prefetch_multiplier=4,
-    worker_max_tasks_per_child=1000,
+    # Worker settings - Memory optimized
+    worker_prefetch_multiplier=1,  # Reduced from 4 - less memory per worker
+    worker_max_tasks_per_child=200,  # Reduced from 1000 - more aggressive restart
+    worker_concurrency=2,  # Limit concurrent tasks
+    broker_pool_limit=3,  # Limit Redis connections
 )
 
 

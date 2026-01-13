@@ -59,8 +59,9 @@ else:
 
 DATABASES = {
     "default": dj_database_url.config(
-        conn_max_age=600,
+        conn_max_age=60,  # Reduced from 600 - shorter lived connections save memory
         ssl_require=True,
+        conn_health_checks=True,  # Enable health checks
     )
 }
 
@@ -161,24 +162,23 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [REDIS_URL],
-            "capacity": 1500,
+            "capacity": 500,  # Reduced from 1500
             "expiry": 10,
             "symmetric_encryption_keys": [SECRET_KEY],
             "connection_kwargs": {
-                "max_connections": 50,
+                "max_connections": 10,  # Reduced from 50
                 "retry_on_timeout": True,
-                # Removed socket_keepalive options that may cause "Invalid argument" errors in Railway
             },
             "group_expiry": 86400,
             "channel_capacity": {
-                "chat.*": 2000,
-                "notifications.*": 500,
+                "chat.*": 500,  # Reduced from 2000
+                "notifications.*": 200,  # Reduced from 500
             },
         },
     },
 }
 
-# Cache - Redis with compression
+# Cache - Redis with compression (Memory Optimized)
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -186,16 +186,13 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {
-                "max_connections": 50,
+                "max_connections": 10,  # Reduced from 50
                 "retry_on_timeout": True,
-                # Removed socket_keepalive options that may cause "Invalid argument" errors
             },
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             "COMPRESS_MIN_LENGTH": 100,
-            # PARSER_CLASS removed - HiredisParser attribute doesn't exist in redis.connection
-            # Using default PythonParser instead (hiredis package provides performance if installed)
-            "IGNORE_EXCEPTIONS": False,  # Fail loud in production
+            "IGNORE_EXCEPTIONS": False,
         },
         "KEY_PREFIX": "kibray_prod",
         "TIMEOUT": 300,

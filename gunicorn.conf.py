@@ -1,24 +1,27 @@
 """
 Gunicorn configuration file for Kibray production deployment
+Optimized for Railway's memory constraints
 """
 
-import multiprocessing
 import os
 
 # Server Socket
 bind = f"0.0.0.0:{os.getenv('PORT', '8000')}"
-backlog = 2048
+backlog = 512  # Reduced for memory savings
 
-# Worker Processes
-workers = int(os.getenv("WEB_CONCURRENCY", multiprocessing.cpu_count() * 2 + 1))
-worker_class = "sync"  # Use 'gthread' for threading support
-threads = 2  # Threads per worker (only if worker_class='gthread')
-worker_connections = 1000
-max_requests = 1000  # Restart workers after this many requests (prevents memory leaks)
-max_requests_jitter = 50  # Randomize max_requests to avoid all workers restarting simultaneously
-timeout = 30  # Workers silent for more than this many seconds are killed and restarted
-graceful_timeout = 30  # Timeout for graceful workers restart
-keepalive = 2  # The number of seconds to wait for requests on a Keep-Alive connection
+# Worker Processes - OPTIMIZED FOR RAILWAY
+# Railway free tier has ~512MB RAM, Pro has ~8GB
+# Each Django worker can use 150-300MB
+# Use WEB_CONCURRENCY env var for control, default to 2 workers
+workers = int(os.getenv("WEB_CONCURRENCY", 2))  # Fixed 2 workers by default
+worker_class = "sync"  # Sync is more memory efficient than gevent/eventlet
+threads = 1  # Reduce threads per worker
+worker_connections = 100  # Reduced from 1000
+max_requests = 500  # More aggressive restart to prevent memory leaks
+max_requests_jitter = 50  # Randomize to avoid simultaneous restarts
+timeout = 30  # Workers silent for more than this many seconds are killed
+graceful_timeout = 30
+keepalive = 2
 
 # Security
 limit_request_line = 4094
