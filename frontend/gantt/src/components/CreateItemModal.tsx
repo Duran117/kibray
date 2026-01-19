@@ -172,8 +172,16 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
 
   const handleCreateStage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newStageName.trim()) return;
+    console.log('[CreateItemModal] handleCreateStage called');
+    console.log('[CreateItemModal] newStageName:', newStageName);
+    console.log('[CreateItemModal] projectId:', projectId);
+    
+    if (!newStageName.trim()) {
+      console.log('[CreateItemModal] ERROR: Stage name is empty');
+      return;
+    }
     if (!projectId) {
+      console.log('[CreateItemModal] ERROR: projectId is missing');
       alert('Project ID not available.');
       return;
     }
@@ -212,9 +220,10 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
       console.log('[CreateItemModal] Calling onStageCreated callback...');
       onStageCreated?.(newCat);
       console.log('[CreateItemModal] onStageCreated callback completed');
-    } catch (err) {
-      console.error('Failed to create stage:', err);
-      alert('Failed to create stage. Check console for details.');
+    } catch (err: any) {
+      console.error('[CreateItemModal] Failed to create stage:', err);
+      console.error('[CreateItemModal] Error details:', err.message);
+      alert(`Failed to create stage: ${err.message}`);
     } finally {
       setCreatingStage(false);
     }
