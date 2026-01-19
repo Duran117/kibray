@@ -1,171 +1,569 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
-{% load static %}
+{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
 
-{% block title %}Panel de Pagos - Facturas{% endblock %}
+{% load i18n %}{% load i18n %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
+{% load static %}{% load static %}
+
+
+
+{% block title %}{% trans "Payment Dashboard" %} - {% trans "Invoices" %}{% endblock %}{% block title %}Panel de Pagos - Facturas{% endblock %}
+
+
+
+{% block extra_css %}{% block content %}
+
+<style><div class="container-fluid py-4">
+
+.payment-hero {    <div class="row mb-4">
+
+    background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);        <div class="col-12">
+
+    padding: 1.5rem;            <h2>💰 Panel de Pagos de Facturas</h2>
+
+    border-radius: 1rem;            <p class="text-muted">Registra pagos de clientes (cheques, transferencias, etc.)</p>
+
+    margin-bottom: 1.5rem;        </div>
+
+    color: white;    </div>
+
+}
+
+.payment-hero h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }    <!-- PENDING INVOICES -->
+
+.payment-hero p { margin: 0.5rem 0 0; opacity: 0.9; font-size: 0.95rem; }    <div class="row">
+
         <div class="col-12">
-            <h2>💰 Panel de Pagos de Facturas</h2>
-            <p class="text-muted">Registra pagos de clientes (cheques, transferencias, etc.)</p>
-        </div>
-    </div>
 
-    <!-- PENDING INVOICES -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">📋 Facturas Pendientes de Pago ({{ pending_invoices.count }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if pending_invoices %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Factura #</th>
-                                    <th>Proyecto</th>
-                                    <th>Cliente</th>
-                                    <th>Fecha Emisión</th>
-                                    <th>Vencimiento</th>
-                                    <th>Total</th>
-                                    <th>Pagado</th>
-                                    <th>Saldo</th>
-                                    <th>Status</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for invoice in pending_invoices %}
-                                <tr class="{% if invoice.status == 'OVERDUE' %}table-danger{% elif invoice.status == 'PARTIAL' %}table-warning{% endif %}">
-                                    <td><strong>{{ invoice.invoice_number }}</strong></td>
-                                    <td>{{ invoice.project.name|truncatewords:5 }}</td>
-                                    <td>{{ invoice.project.client|truncatewords:3 }}</td>
-                                    <td>{{ invoice.date_issued|date:"M d, Y" }}</td>
-                                    <td>{{ invoice.due_date|date:"M d, Y" }}</td>
+.stats-grid {            <div class="card mb-4">
+
+    display: grid;                <div class="card-header bg-warning text-dark">
+
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));                    <h5 class="mb-0">📋 Facturas Pendientes de Pago ({{ pending_invoices.count }})</h5>
+
+    gap: 1rem;                </div>
+
+    margin-bottom: 1.5rem;                <div class="card-body">
+
+}                    {% if pending_invoices %}
+
+.stat-card {                    <div class="table-responsive">
+
+    background: white;                        <table class="table table-hover">
+
+    border-radius: 0.75rem;                            <thead>
+
+    padding: 1.25rem;                                <tr>
+
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);                                    <th>Factura #</th>
+
+    display: flex;                                    <th>Proyecto</th>
+
+    align-items: center;                                    <th>Cliente</th>
+
+    gap: 1rem;                                    <th>Fecha Emisión</th>
+
+}                                    <th>Vencimiento</th>
+
+.stat-icon {                                    <th>Total</th>
+
+    width: 48px;                                    <th>Pagado</th>
+
+    height: 48px;                                    <th>Saldo</th>
+
+    border-radius: 0.5rem;                                    <th>Status</th>
+
+    display: flex;                                    <th>Acción</th>
+
+    align-items: center;                                </tr>
+
+    justify-content: center;                            </thead>
+
+    font-size: 1.25rem;                            <tbody>
+
+}                                {% for invoice in pending_invoices %}
+
+.stat-icon.pending { background: #fef3c7; color: #d97706; }                                <tr class="{% if invoice.status == 'OVERDUE' %}table-danger{% elif invoice.status == 'PARTIAL' %}table-warning{% endif %}">
+
+.stat-icon.overdue { background: #fee2e2; color: #dc2626; }                                    <td><strong>{{ invoice.invoice_number }}</strong></td>
+
+.stat-icon.partial { background: #e0e7ff; color: #4f46e5; }                                    <td>{{ invoice.project.name|truncatewords:5 }}</td>
+
+.stat-icon.paid { background: #d1fae5; color: #059669; }                                    <td>{{ invoice.project.client|truncatewords:3 }}</td>
+
+.stat-content .label { font-size: 0.85rem; color: #6b7280; }                                    <td>{{ invoice.date_issued|date:"M d, Y" }}</td>
+
+.stat-content .value { font-size: 1.5rem; font-weight: 700; color: #111827; }                                    <td>{{ invoice.due_date|date:"M d, Y" }}</td>
+
                                     <td class="text-end">${{ invoice.total_amount|floatformat:2 }}</td>
-                                    <td class="text-end text-success">${{ invoice.amount_paid|floatformat:2 }}</td>
-                                    <td class="text-end"><strong>${{ invoice.balance_due|floatformat:2 }}</strong></td>
-                                    <td><span class="badge bg-{{ invoice.status|lower }}" style="
-                                        {% if invoice.status == 'SENT' %}background-color: #0d6efd !important;{% endif %}
-                                        {% if invoice.status == 'PARTIAL' %}background-color: #ffc107 !important;{% endif %}
-                                        {% if invoice.status == 'OVERDUE' %}background-color: #dc3545 !important;{% endif %}
-                                        {% if invoice.status == 'APPROVED' %}background-color: #198754 !important;{% endif %}
-                                    ">{{ invoice.get_status_display }}</span></td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal{{ invoice.id }}">
-                                            💵 Registrar Pago
-                                        </button>
-                                        <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-sm btn-outline-secondary">Ver</a>
-                                    </td>
-                                </tr>
-                                
-                                <!-- Payment Modal -->
-                                <div class="modal fade" id="paymentModal{{ invoice.id }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form method="post" action="{% url 'record_invoice_payment' invoice.id %}">
-                                                {% csrf_token %}
-                                                <div class="modal-header bg-success text-white">
-                                                    <h5 class="modal-title">💵 Registrar Pago - {{ invoice.invoice_number }}</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p><strong>Saldo pendiente:</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Monto Recibido *</label>
-                                                        <input type="number" step="0.01" name="amount" class="form-control" value="{{ invoice.balance_due }}" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Fecha de Pago *</label>
-                                                        <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Método de Pago *</label>
-                                                        <select name="payment_method" class="form-select" required>
-                                                            <option value="CHECK">Cheque</option>
-                                                            <option value="TRANSFER">Transferencia</option>
-                                                            <option value="CASH">Efectivo</option>
-                                                            <option value="CARD">Tarjeta</option>
-                                                            <option value="OTHER">Otro</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Referencia (Check #, Transfer ID, etc.)</label>
-                                                        <input type="text" name="reference" class="form-control" placeholder="Ej: Check #12345">
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Notas</label>
-                                                        <textarea name="notes" class="form-control" rows="2"></textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                    <button type="submit" class="btn btn-success">✅ Registrar Pago</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted">✅ No hay facturas pendientes de pago.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- RECENTLY PAID -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">✅ Pagadas Recientemente (últimas 10)</h5>
-                </div>
-                <div class="card-body">
+.section-card {                                    <td class="text-end text-success">${{ invoice.amount_paid|floatformat:2 }}</td>
+
+    background: white;                                    <td class="text-end"><strong>${{ invoice.balance_due|floatformat:2 }}</strong></td>
+
+    border-radius: 1rem;                                    <td><span class="badge bg-{{ invoice.status|lower }}" style="
+
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);                                        {% if invoice.status == 'SENT' %}background-color: #0d6efd !important;{% endif %}
+
+    margin-bottom: 1.5rem;                                        {% if invoice.status == 'PARTIAL' %}background-color: #ffc107 !important;{% endif %}
+
+    overflow: hidden;                                        {% if invoice.status == 'OVERDUE' %}background-color: #dc3545 !important;{% endif %}
+
+}                                        {% if invoice.status == 'APPROVED' %}background-color: #198754 !important;{% endif %}
+
+.section-header {                                    ">{{ invoice.get_status_display }}</span></td>
+
+    padding: 1rem 1.25rem;                                    <td>
+
+    border-bottom: 1px solid #e5e7eb;                                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal{{ invoice.id }}">
+
+    display: flex;                                            💵 Registrar Pago
+
+    align-items: center;                                        </button>
+
+    gap: 0.75rem;                                        <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+
+}                                    </td>
+
+.section-header.pending { background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%); }                                </tr>
+
+.section-header.paid { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }                                
+
+.section-header h5 { margin: 0; font-size: 1rem; font-weight: 600; color: #374151; }                                <!-- Payment Modal -->
+
+                                <div class="modal fade" id="paymentModal{{ invoice.id }}" tabindex="-1">
+
+.invoice-table { width: 100%; border-collapse: collapse; }                                    <div class="modal-dialog">
+
+.invoice-table th {                                         <div class="modal-content">
+
+    background: #f9fafb;                                             <form method="post" action="{% url 'record_invoice_payment' invoice.id %}">
+
+    padding: 0.75rem 1rem;                                                 {% csrf_token %}
+
+    text-align: left;                                                 <div class="modal-header bg-success text-white">
+
+    font-size: 0.8rem;                                                     <h5 class="modal-title">💵 Registrar Pago - {{ invoice.invoice_number }}</h5>
+
+    font-weight: 600;                                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+
+    color: #6b7280;                                                </div>
+
+    text-transform: uppercase;                                                <div class="modal-body">
+
+    letter-spacing: 0.025em;                                                    <p><strong>Saldo pendiente:</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
+
+}                                                    <div class="mb-3">
+
+.invoice-table td {                                                         <label class="form-label">Monto Recibido *</label>
+
+    padding: 0.875rem 1rem;                                                         <input type="number" step="0.01" name="amount" class="form-control" value="{{ invoice.balance_due }}" required>
+
+    border-top: 1px solid #f3f4f6;                                                    </div>
+
+    font-size: 0.9rem;                                                    <div class="mb-3">
+
+}                                                        <label class="form-label">Fecha de Pago *</label>
+
+.invoice-table tr:hover { background: #f9fafb; }                                                        <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+
+.invoice-table tr.overdue { background: #fef2f2; }                                                    </div>
+
+.invoice-table tr.partial { background: #fefce8; }                                                    <div class="mb-3">
+
+                                                        <label class="form-label">Método de Pago *</label>
+
+.status-badge {                                                        <select name="payment_method" class="form-select" required>
+
+    display: inline-flex;                                                            <option value="CHECK">Cheque</option>
+
+    align-items: center;                                                            <option value="TRANSFER">Transferencia</option>
+
+    gap: 0.35rem;                                                            <option value="CASH">Efectivo</option>
+
+    padding: 0.35rem 0.75rem;                                                            <option value="CARD">Tarjeta</option>
+
+    border-radius: 999px;                                                            <option value="OTHER">Otro</option>
+
+    font-size: 0.75rem;                                                        </select>
+
+    font-weight: 600;                                                    </div>
+
+}                                                    <div class="mb-3">
+
+.status-badge.sent { background: #dbeafe; color: #1d4ed8; }                                                        <label class="form-label">Referencia (Check #, Transfer ID, etc.)</label>
+
+.status-badge.approved { background: #d1fae5; color: #059669; }                                                        <input type="text" name="reference" class="form-control" placeholder="Ej: Check #12345">
+
+.status-badge.partial { background: #fef3c7; color: #d97706; }                                                    </div>
+
+.status-badge.overdue { background: #fee2e2; color: #dc2626; }                                                    <div class="mb-3">
+
+.status-badge.paid { background: #d1fae5; color: #065f46; }                                                        <label class="form-label">Notas</label>
+
+                                                        <textarea name="notes" class="form-control" rows="2"></textarea>
+
+.btn-pay {                                                    </div>
+
+    background: #059669;                                                </div>
+
+    color: white;                                                <div class="modal-footer">
+
+    border: none;                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+    padding: 0.5rem 1rem;                                                    <button type="submit" class="btn btn-success">✅ Registrar Pago</button>
+
+    border-radius: 0.5rem;                                                </div>
+
+    font-size: 0.85rem;                                            </form>
+
+    font-weight: 500;                                        </div>
+
+    cursor: pointer;                                    </div>
+
+    display: inline-flex;                                </div>
+
+    align-items: center;                                {% endfor %}
+
+    gap: 0.35rem;                            </tbody>
+
+    transition: all 0.2s;                        </table>
+
+}                    </div>
+
+.btn-pay:hover { background: #047857; color: white; }                    {% else %}
+
+                    <p class="text-muted">✅ No hay facturas pendientes de pago.</p>
+
+.btn-view {                    {% endif %}
+
+    background: #f3f4f6;                </div>
+
+    color: #374151;            </div>
+
+    border: none;        </div>
+
+    padding: 0.5rem 0.75rem;    </div>
+
+    border-radius: 0.5rem;
+
+    font-size: 0.85rem;    <!-- RECENTLY PAID -->
+
+    cursor: pointer;    <div class="row">
+
+    text-decoration: none;        <div class="col-12">
+
+    display: inline-flex;            <div class="card">
+
+    align-items: center;                <div class="card-header bg-success text-white">
+
+    gap: 0.25rem;                    <h5 class="mb-0">✅ Pagadas Recientemente (últimas 10)</h5>
+
+}                </div>
+
+.btn-view:hover { background: #e5e7eb; color: #111827; }                <div class="card-body">
+
                     {% if recently_paid %}
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Factura #</th>
+
+.action-buttons {                    <div class="table-responsive">
+
+    display: flex;                        <table class="table table-sm">
+
+    gap: 0.5rem;                            <thead>
+
+    flex-wrap: wrap;                                <tr>
+
+}                                    <th>Factura #</th>
+
                                     <th>Proyecto</th>
-                                    <th>Cliente</th>
-                                    <th>Total</th>
-                                    <th>Fecha Pago</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+
+.empty-state {                                    <th>Cliente</th>
+
+    padding: 2rem;                                    <th>Total</th>
+
+    text-align: center;                                    <th>Fecha Pago</th>
+
+    color: #6b7280;                                </tr>
+
+}                            </thead>
+
+.empty-state i { font-size: 2rem; opacity: 0.5; margin-bottom: 0.5rem; }                            <tbody>
+
                                 {% for invoice in recently_paid %}
-                                <tr>
-                                    <td>{{ invoice.invoice_number }}</td>
-                                    <td>{{ invoice.project.name|truncatewords:5 }}</td>
-                                    <td>{{ invoice.project.client|truncatewords:3 }}</td>
-                                    <td>${{ invoice.total_amount|floatformat:2 }}</td>
-                                    <td>{{ invoice.paid_date|date:"M d, Y" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted">No hay facturas pagadas recientemente.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+
+.bottom-actions {                                <tr>
+
+    display: flex;                                    <td>{{ invoice.invoice_number }}</td>
+
+    gap: 0.75rem;                                    <td>{{ invoice.project.name|truncatewords:5 }}</td>
+
+    flex-wrap: wrap;                                    <td>{{ invoice.project.client|truncatewords:3 }}</td>
+
+}                                    <td>${{ invoice.total_amount|floatformat:2 }}</td>
+
+.btn-outline {                                    <td>{{ invoice.paid_date|date:"M d, Y" }}</td>
+
+    padding: 0.625rem 1.25rem;                                </tr>
+
+    border-radius: 0.5rem;                                {% endfor %}
+
+    font-weight: 500;                            </tbody>
+
+    text-decoration: none;                        </table>
+
+    display: inline-flex;                    </div>
+
+    align-items: center;                    {% else %}
+
+    gap: 0.5rem;                    <p class="text-muted">No hay facturas pagadas recientemente.</p>
+
+    transition: all 0.2s;                    {% endif %}
+
+}                </div>
+
+.btn-outline.primary { background: white; color: #2563eb; border: 1px solid #2563eb; }            </div>
+
+.btn-outline.primary:hover { background: #2563eb; color: white; }        </div>
+
+.btn-outline.secondary { background: white; color: #6b7280; border: 1px solid #d1d5db; }    </div>
+
+.btn-outline.secondary:hover { background: #f3f4f6; color: #374151; }
 
     <div class="mt-3">
-        <a href="{% url 'invoice_list' %}" class="btn btn-outline-primary">📋 Ver Todas las Facturas</a>
-        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">🏠 Dashboard</a>
+
+/* Modal Improvements */        <a href="{% url 'invoice_list' %}" class="btn btn-outline-primary">📋 Ver Todas las Facturas</a>
+
+.modal-content { border-radius: 1rem; border: none; }        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">🏠 Dashboard</a>
+
+.modal-header.success { background: linear-gradient(135deg, #059669 0%, #047857 100%); }    </div>
+
+.modal-header.success .modal-title { color: white; }</div>
+
+{% endblock %}
+
+@media (max-width: 768px) {
+    .payment-hero { padding: 1rem; }
+    .payment-hero h2 { font-size: 1.25rem; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .stat-card { padding: 1rem; flex-direction: column; text-align: center; }
+    .stat-content .value { font-size: 1.25rem; }
+    .invoice-table { display: block; overflow-x: auto; }
+    .action-buttons { flex-direction: column; }
+    .bottom-actions { flex-direction: column; }
+    .btn-outline { justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 py-md-4">
+    <!-- Hero Section -->
+    <div class="payment-hero">
+        <h2><i class="bi bi-wallet2 me-2"></i>{% trans "Payment Dashboard" %}</h2>
+        <p>{% trans "Record client payments (checks, transfers, etc.)" %}</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon pending"><i class="bi bi-clock"></i></div>
+            <div class="stat-content">
+                <div class="label">{% trans "Pending" %}</div>
+                <div class="value">{{ pending_invoices.count }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon overdue"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-content">
+                <div class="label">{% trans "Overdue" %}</div>
+                <div class="value">{{ overdue_count|default:0 }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon partial"><i class="bi bi-pie-chart"></i></div>
+            <div class="stat-content">
+                <div class="label">{% trans "Partial" %}</div>
+                <div class="value">{{ partial_count|default:0 }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon paid"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-content">
+                <div class="label">{% trans "Recently Paid" %}</div>
+                <div class="value">{{ recently_paid.count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Invoices -->
+    <div class="section-card">
+        <div class="section-header pending">
+            <i class="bi bi-receipt" style="color:#d97706;font-size:1.25rem;"></i>
+            <h5>{% trans "Pending Invoices" %} ({{ pending_invoices.count }})</h5>
+        </div>
+        {% if pending_invoices %}
+        <div class="table-responsive">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Invoice" %} #</th>
+                        <th>{% trans "Project" %}</th>
+                        <th>{% trans "Client" %}</th>
+                        <th class="d-none d-md-table-cell">{% trans "Issued" %}</th>
+                        <th class="d-none d-lg-table-cell">{% trans "Due Date" %}</th>
+                        <th class="text-end">{% trans "Total" %}</th>
+                        <th class="text-end d-none d-md-table-cell">{% trans "Paid" %}</th>
+                        <th class="text-end">{% trans "Balance" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in pending_invoices %}
+                    <tr class="{% if invoice.status == 'OVERDUE' %}overdue{% elif invoice.status == 'PARTIAL' %}partial{% endif %}">
+                        <td><strong>{{ invoice.invoice_number }}</strong></td>
+                        <td>{{ invoice.project.name|truncatewords:4 }}</td>
+                        <td>{{ invoice.project.client|truncatewords:3 }}</td>
+                        <td class="d-none d-md-table-cell">{{ invoice.date_issued|date:"M d, Y" }}</td>
+                        <td class="d-none d-lg-table-cell">{{ invoice.due_date|date:"M d, Y" }}</td>
+                        <td class="text-end">${{ invoice.total_amount|floatformat:2 }}</td>
+                        <td class="text-end text-success d-none d-md-table-cell">${{ invoice.amount_paid|floatformat:2 }}</td>
+                        <td class="text-end"><strong>${{ invoice.balance_due|floatformat:2 }}</strong></td>
+                        <td>
+                            <span class="status-badge {% if invoice.status == 'SENT' %}sent{% elif invoice.status == 'APPROVED' %}approved{% elif invoice.status == 'PARTIAL' %}partial{% elif invoice.status == 'OVERDUE' %}overdue{% endif %}">
+                                {% if invoice.status == 'OVERDUE' %}<i class="bi bi-exclamation-circle"></i>{% endif %}
+                                {{ invoice.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button type="button" class="btn-pay" data-bs-toggle="modal" data-bs-target="#paymentModal{{ invoice.id }}">
+                                    <i class="bi bi-currency-dollar"></i> {% trans "Pay" %}
+                                </button>
+                                <a href="{% url 'invoice_detail' invoice.id %}" class="btn-view">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Payment Modal -->
+                    <div class="modal fade" id="paymentModal{{ invoice.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'record_invoice_payment' invoice.id %}">
+                                    {% csrf_token %}
+                                    <div class="modal-header success">
+                                        <h5 class="modal-title"><i class="bi bi-currency-dollar me-2"></i>{% trans "Record Payment" %} - {{ invoice.invoice_number }}</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="alert alert-light mb-3">
+                                            <strong>{% trans "Balance Due" %}:</strong> 
+                                            <span class="fs-5 fw-bold text-success">${{ invoice.balance_due|floatformat:2 }}</span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">{% trans "Amount Received" %} *</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" step="0.01" name="amount" class="form-control" value="{{ invoice.balance_due }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">{% trans "Payment Date" %} *</label>
+                                            <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">{% trans "Payment Method" %} *</label>
+                                            <select name="payment_method" class="form-select" required>
+                                                <option value="CHECK">{% trans "Check" %}</option>
+                                                <option value="TRANSFER">{% trans "Wire Transfer" %}</option>
+                                                <option value="CASH">{% trans "Cash" %}</option>
+                                                <option value="CARD">{% trans "Credit Card" %}</option>
+                                                <option value="OTHER">{% trans "Other" %}</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">{% trans "Reference" %} ({% trans "Check #, Transfer ID, etc." %})</label>
+                                            <input type="text" name="reference" class="form-control" placeholder="{% trans "e.g. Check" %} #12345">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">{% trans "Notes" %}</label>
+                                            <textarea name="notes" class="form-control" rows="2" placeholder="{% trans "Optional notes about this payment" %}"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-check-lg me-1"></i> {% trans "Record Payment" %}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-check-circle-fill d-block text-success"></i>
+            <p>{% trans "No pending invoices!" %}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recently Paid -->
+    <div class="section-card">
+        <div class="section-header paid">
+            <i class="bi bi-check-circle-fill" style="color:#059669;font-size:1.25rem;"></i>
+            <h5>{% trans "Recently Paid" %} ({% trans "last 10" %})</h5>
+        </div>
+        {% if recently_paid %}
+        <div class="table-responsive">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Invoice" %} #</th>
+                        <th>{% trans "Project" %}</th>
+                        <th>{% trans "Client" %}</th>
+                        <th class="text-end">{% trans "Total" %}</th>
+                        <th>{% trans "Date Paid" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in recently_paid %}
+                    <tr>
+                        <td><a href="{% url 'invoice_detail' invoice.id %}">{{ invoice.invoice_number }}</a></td>
+                        <td>{{ invoice.project.name|truncatewords:4 }}</td>
+                        <td>{{ invoice.project.client|truncatewords:3 }}</td>
+                        <td class="text-end">${{ invoice.total_amount|floatformat:2 }}</td>
+                        <td>
+                            <span class="status-badge paid">
+                                <i class="bi bi-check"></i> {{ invoice.paid_date|date:"M d, Y" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox d-block"></i>
+            <p>{% trans "No recently paid invoices." %}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="bottom-actions">
+        <a href="{% url 'invoice_list' %}" class="btn-outline primary">
+            <i class="bi bi-receipt"></i> {% trans "All Invoices" %}
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn-outline secondary">
+            <i class="bi bi-house"></i> {% trans "Dashboard" %}
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -4346,9 +4346,15 @@ def invoice_payment_dashboard(request):
         Invoice.objects.filter(status="PAID").select_related("project").order_by("-paid_date")[:10]
     )
 
+    # Calculate stats for the dashboard
+    overdue_count = pending_invoices.filter(status="OVERDUE").count()
+    partial_count = pending_invoices.filter(status="PARTIAL").count()
+
     context = {
         "pending_invoices": pending_invoices,
         "recently_paid": recently_paid,
+        "overdue_count": overdue_count,
+        "partial_count": partial_count,
     }
     return render(request, "core/invoice_payment_dashboard.html", context)
 
