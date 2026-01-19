@@ -116,6 +116,13 @@ img {
       <div class="progress mt-3" style="height: 10px; background:#233; opacity:.35">
         <div class="progress-bar bg-success" role="progressbar" style="width: {{ data.progress_pct }}%"></div>
       </div>
+      {% if data.gantt_progress.total_items > 0 %}
+      <div class="d-flex gap-3 mt-2 opacity-75" style="font-size: 0.8rem;">
+        <span><i class="bi bi-check-circle-fill text-success"></i> {{ data.gantt_progress.completed_items }} completados</span>
+        <span><i class="bi bi-arrow-repeat text-warning"></i> {{ data.gantt_progress.in_progress_items }} en progreso</span>
+        <span><i class="bi bi-circle text-secondary"></i> {{ data.gantt_progress.planned_items }} pendientes</span>
+      </div>
+      {% endif %}
     </div>
 
     <div class="card-body">
