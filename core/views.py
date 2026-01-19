@@ -996,6 +996,60 @@ def dashboard_client(request):
     return render(request, template_name, context)
 
 
+@login_required
+def dashboard_client_debug(request):
+    """Debug endpoint to see client project data"""
+    from core.models import SchedulePhaseV2, ScheduleItemV2, ClientProjectAccess
+    from core.services.schedule_unified import get_project_progress, get_project_schedule_data
+    
+    profile = getattr(request.user, "profile", None)
+    
+    debug_info = {
+        "user": request.user.username,
+        "user_id": request.user.id,
+        "profile_role": profile.role if profile else "NO PROFILE",
+        "projects": []
+    }
+    
+    # Get projects same way as dashboard_client
+    access_projects = Project.objects.filter(client_accesses__user=request.user)
+    legacy_projects = Project.objects.filter(client=request.user.username)
+    projects = access_projects.union(legacy_projects).order_by("-start_date")
+    
+    debug_info["access_projects_count"] = access_projects.count()
+    debug_info["legacy_projects_count"] = legacy_projects.count()
+    debug_info["total_projects"] = projects.count()
+    
+    for project in projects:
+        # Check V2 data
+        v2_phases = SchedulePhaseV2.objects.filter(project=project)
+        v2_items = ScheduleItemV2.objects.filter(project=project)
+        
+        gantt_progress = get_project_progress(project)
+        
+        proj_debug = {
+            "id": project.id,
+            "name": project.name,
+            "v2_phases_count": v2_phases.count(),
+            "v2_items_count": v2_items.count(),
+            "gantt_progress": gantt_progress,
+            "items_detail": []
+        }
+        
+        for item in v2_items[:10]:
+            proj_debug["items_detail"].append({
+                "id": item.id,
+                "name": item.name,
+                "status": item.status,
+                "progress_field": item.progress,
+                "calculated_progress": item.calculated_progress,
+            })
+        
+        debug_info["projects"].append(proj_debug)
+    
+    return JsonResponse(debug_info, json_dumps_params={'indent': 2})
+
+
 # --- EXECUTIVE BI DASHBOARD (Module 21) ---
 @login_required
 def executive_bi_dashboard(request):

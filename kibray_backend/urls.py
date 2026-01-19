@@ -132,6 +132,7 @@ urlpatterns = [
     path("dashboard/pm/", views.dashboard_pm, name="dashboard_pm"),
     path("dashboard/pm/select/<str:action>/", views.pm_select_project, name="pm_select_project"),
     path("dashboard/client/", views.dashboard_client, name="dashboard_client"),
+    path("dashboard/client/debug/", views.dashboard_client_debug, name="dashboard_client_debug"),
     path("dashboard/designer/", views.dashboard_designer, name="dashboard_designer"),
     path(
         "dashboard/superintendent/", views.dashboard_superintendent, name="dashboard_superintendent"
