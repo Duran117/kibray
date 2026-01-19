@@ -1,739 +1,1475 @@
-{% extends 'core/base_generic.html' %}{% extends "core/base_modern.html" %}
+{% extends "core/base_modern.html" %}{% extends 'core/base_generic.html' %}{% extends "core/base_modern.html" %}
+
+{% load static i18n humanize %}
 
 {% load static i18n humanize %}{% load i18n %}
 
-{% load static %}
-
 {% block title %}{% trans "Invoice" %} #{{ invoice.invoice_number }} | Kibray{% endblock %}
 
-{% block title %}Factura {{ invoice.invoice_number }}{% endblock %}
+{% load static %}
 
 {% block extra_css %}
 
-<style>{% block content %}
+<style>{% block title %}{% trans "Invoice" %} #{{ invoice.invoice_number }} | Kibray{% endblock %}
 
-    /* Invoice Professional Styling */<div class="container-fluid py-4">
+    /* Invoice Professional Styling */
 
-    .invoice-container {    <div class="row mb-4">
+    .invoice-container {{% block title %}Factura {{ invoice.invoice_number }}{% endblock %}
 
-        max-width: 1200px;        <div class="col-md-8 d-flex align-items-center">
+        max-width: 1200px;
 
-        margin: 0 auto;            <img src="{% static company.logo_path %}" alt="Logo" style="height:60px;" class="me-3"/>
+        margin: 0 auto;{% block extra_css %}
 
-    }            <div>
+        padding: 24px;
 
-                    <h2 class="mb-1">📄 Factura {{ invoice.invoice_number }}</h2>
+    }<style>{% block content %}
 
-    /* Header Banner */                <p class="text-muted mb-0">
 
-    .invoice-header-banner {                    <strong>Proyecto:</strong> {{ invoice.project.name }} | 
 
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);                    <strong>Cliente:</strong> {{ invoice.project.client }}
+    /* Header Banner */    /* Invoice Professional Styling */<div class="container-fluid py-4">
 
-        border-radius: 16px 16px 0 0;                </p>
+    .invoice-header-banner {
 
-        padding: 2rem 2.5rem;                <small class="text-muted">{{ company.name }} • {{ company.phone }} • {{ company.email }}</small>
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);    .invoice-container {    <div class="row mb-4">
 
-        position: relative;            </div>
+        border-radius: 16px 16px 0 0;
 
-        overflow: hidden;        </div>
+        padding: 2rem 2.5rem;        max-width: 1200px;        <div class="col-md-8 d-flex align-items-center">
 
-    }        <div class="col-md-4 text-end">
+        position: relative;
 
-                <span class="badge bg-{{ invoice.status|default:'secondary' }} fs-5">{{ invoice.get_status_display|default:'BORRADOR' }}</span>
+        overflow: hidden;        margin: 0 auto;            <img src="{% static company.logo_path %}" alt="Logo" style="height:60px;" class="me-3"/>
 
-    .invoice-header-banner::before {        </div>
+        color: white;
 
-        content: '';    </div>
+    }    }            <div>
 
-        position: absolute;
 
-        top: 0;    <div class="row">
 
-        left: 0;        <div class="col-md-8">
+    .invoice-header-banner::before {                    <h2 class="mb-1">📄 Factura {{ invoice.invoice_number }}</h2>
 
-        right: 0;            <div class="card mb-3">
+        content: '';
 
-        bottom: 0;                <div class="card-header bg-primary text-white">
+        position: absolute;    /* Header Banner */                <p class="text-muted mb-0">
 
-        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");                    <h5 class="mb-0">📋 Líneas de Factura</h5>
+        top: 0;
 
-    }                </div>
+        left: 0;    .invoice-header-banner {                    <strong>Proyecto:</strong> {{ invoice.project.name }} | 
 
-                    <div class="card-body">
+        right: 0;
 
-    .company-logo-section {                    <table class="table table-hover">
+        bottom: 0;        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);                    <strong>Cliente:</strong> {{ invoice.project.client }}
 
-        display: flex;                        <thead>
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 
-        align-items: center;                            <tr>
+    }        border-radius: 16px 16px 0 0;                </p>
 
-        gap: 1rem;                                <th>Descripción</th>
 
-    }                                <th class="text-end">Monto</th>
 
-                                </tr>
+    .company-logo-section {        padding: 2rem 2.5rem;                <small class="text-muted">{{ company.name }} • {{ company.phone }} • {{ company.email }}</small>
 
-    .company-logo {                        </thead>
+        display: flex;
 
-        width: 60px;                        <tbody>
+        align-items: center;        position: relative;            </div>
 
-        height: 60px;                            {% for line in invoice.lines.all %}
+        gap: 1rem;
 
-        background: white;                            <tr>
+        position: relative;        overflow: hidden;        </div>
 
-        border-radius: 12px;                                <td>{{ line.description }}</td>
+        z-index: 1;
 
-        display: flex;                                <td class="text-end"><strong>${{ line.amount|floatformat:2 }}</strong></td>
+    }    }        <div class="col-md-4 text-end">
 
-        align-items: center;                            </tr>
 
-        justify-content: center;                            {% endfor %}
 
-        font-size: 1.5rem;                        </tbody>
+    .company-logo {                <span class="badge bg-{{ invoice.status|default:'secondary' }} fs-5">{{ invoice.get_status_display|default:'BORRADOR' }}</span>
 
-        font-weight: 700;                        <tfoot class="table-light">
+        width: 60px;
 
-        color: #1e3a5f;                            <tr>
+        height: 60px;    .invoice-header-banner::before {        </div>
 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);                                <td><strong>TOTAL</strong></td>
+        background: white;
 
-    }                                <td class="text-end"><h4 class="mb-0">${{ invoice.total_amount|floatformat:2 }}</h4></td>
+        border-radius: 12px;        content: '';    </div>
 
-                                </tr>
+        display: flex;
 
-    .company-info h1 {                        </tfoot>
+        align-items: center;        position: absolute;
 
-        font-size: 1.75rem;                    </table>
+        justify-content: center;
 
-        font-weight: 700;                </div>
+        font-size: 1.5rem;        top: 0;    <div class="row">
 
-        color: white;            </div>
+        font-weight: 700;
 
-        margin: 0;        </div>
+        color: #1e3a5f;        left: 0;        <div class="col-md-8">
+
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+
+    }        right: 0;            <div class="card mb-3">
+
+
+
+    .company-info h1 {        bottom: 0;                <div class="card-header bg-primary text-white">
+
+        font-size: 1.75rem;
+
+        font-weight: 700;        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");                    <h5 class="mb-0">📋 Líneas de Factura</h5>
+
+        color: white;
+
+        margin: 0;    }                </div>
 
         letter-spacing: -0.5px;
 
-    }        <div class="col-md-4">
+    }                    <div class="card-body">
 
-                <div class="card mb-3">
 
-    .company-details {                <div class="card-header bg-info text-white">
+
+    .company-details {    .company-logo-section {                    <table class="table table-hover">
+
+        color: rgba(255,255,255,0.8);
+
+        font-size: 0.875rem;        display: flex;                        <thead>
+
+        margin-top: 0.25rem;
+
+    }        align-items: center;                            <tr>
+
+
+
+    /* Invoice Number Badge */        gap: 1rem;                                <th>Descripción</th>
+
+    .invoice-number-badge {
+
+        background: rgba(255,255,255,0.15);    }                                <th class="text-end">Monto</th>
+
+        backdrop-filter: blur(10px);
+
+        border: 1px solid rgba(255,255,255,0.2);                                </tr>
+
+        border-radius: 12px;
+
+        padding: 1rem 1.5rem;    .company-logo {                        </thead>
+
+        text-align: right;
+
+        position: relative;        width: 60px;                        <tbody>
+
+        z-index: 1;
+
+    }        height: 60px;                            {% for line in invoice.lines.all %}
+
+
+
+    .invoice-number-label {        background: white;                            <tr>
+
+        font-size: 0.75rem;
+
+        text-transform: uppercase;        border-radius: 12px;                                <td>{{ line.description }}</td>
+
+        letter-spacing: 1px;
+
+        color: rgba(255,255,255,0.7);        display: flex;                                <td class="text-end"><strong>${{ line.amount|floatformat:2 }}</strong></td>
+
+    }
+
+        align-items: center;                            </tr>
+
+    .invoice-number-value {
+
+        font-size: 1.5rem;        justify-content: center;                            {% endfor %}
+
+        font-weight: 700;
+
+        color: white;        font-size: 1.5rem;                        </tbody>
+
+    }
+
+        font-weight: 700;                        <tfoot class="table-light">
+
+    /* Status Badge */
+
+    .status-badge {        color: #1e3a5f;                            <tr>
+
+        display: inline-flex;
+
+        align-items: center;        box-shadow: 0 4px 15px rgba(0,0,0,0.2);                                <td><strong>TOTAL</strong></td>
+
+        gap: 0.5rem;
+
+        padding: 0.5rem 1rem;    }                                <td class="text-end"><h4 class="mb-0">${{ invoice.total_amount|floatformat:2 }}</h4></td>
+
+        border-radius: 50px;
+
+        font-weight: 600;                                </tr>
+
+        font-size: 0.875rem;
+
+    }    .company-info h1 {                        </tfoot>
+
+
+
+    .status-draft { background: #f3f4f6; color: #6b7280; }        font-size: 1.75rem;                    </table>
+
+    .status-sent { background: #dbeafe; color: #1d4ed8; }
+
+    .status-viewed { background: #e0e7ff; color: #4338ca; }        font-weight: 700;                </div>
+
+    .status-approved { background: #d1fae5; color: #047857; }
+
+    .status-partial { background: #fef3c7; color: #d97706; }        color: white;            </div>
+
+    .status-paid { background: #10b981; color: white; }
+
+    .status-overdue { background: #fee2e2; color: #dc2626; }        margin: 0;        </div>
+
+    .status-cancelled { background: #f3f4f6; color: #6b7280; }
+
+        letter-spacing: -0.5px;
+
+    /* Main Content Card */
+
+    .invoice-main-card {    }        <div class="col-md-4">
+
+        background: white;
+
+        border-radius: 0 0 16px 16px;                <div class="card mb-3">
+
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+
+        overflow: hidden;    .company-details {                <div class="card-header bg-info text-white">
+
+    }
 
         color: rgba(255,255,255,0.8);                    <h5 class="mb-0">ℹ️ Información</h5>
 
-        font-size: 0.875rem;                </div>
+    /* Section Headers */
 
-        margin-top: 0.25rem;                <div class="card-body">
+    .section-header {        font-size: 0.875rem;                </div>
 
-    }                    <p><strong>Fecha Emisión:</strong> {{ invoice.date_issued|date:"M d, Y" }}</p>
+        display: flex;
 
-                        <p><strong>Vencimiento:</strong> {{ invoice.due_date|date:"M d, Y" }}</p>
+        align-items: center;        margin-top: 0.25rem;                <div class="card-body">
 
-    /* Invoice Number Badge */                    <p><strong>Empresa:</strong> {{ company.name }}<br>{{ company.address_line1 }}<br>{{ company.city_state_zip }}<br>{{ company.phone }} | {{ company.email }}</p>
+        gap: 0.75rem;
 
-    .invoice-number-badge {                    {% if invoice.sent_date %}
+        font-size: 1rem;    }                    <p><strong>Fecha Emisión:</strong> {{ invoice.date_issued|date:"M d, Y" }}</p>
 
-        background: rgba(255,255,255,0.15);                    <p><strong>Enviada:</strong> {{ invoice.sent_date|date:"M d, Y" }}</p>
+        font-weight: 600;
 
-        backdrop-filter: blur(10px);                    {% endif %}
+        color: #1e3a5f;                        <p><strong>Vencimiento:</strong> {{ invoice.due_date|date:"M d, Y" }}</p>
 
-        border: 1px solid rgba(255,255,255,0.2);                    {% if invoice.amount_paid %}
+        margin-bottom: 1rem;
 
-        border-radius: 12px;                    <p><strong>Pagado:</strong> ${{ invoice.amount_paid|floatformat:2 }}</p>
+        padding-bottom: 0.75rem;    /* Invoice Number Badge */                    <p><strong>Empresa:</strong> {{ company.name }}<br>{{ company.address_line1 }}<br>{{ company.city_state_zip }}<br>{{ company.phone }} | {{ company.email }}</p>
 
-        padding: 1rem 1.5rem;                    <p><strong>Saldo:</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
+        border-bottom: 2px solid #e5e7eb;
 
-        text-align: right;                    {% endif %}
+    }    .invoice-number-badge {                    {% if invoice.sent_date %}
 
-    }                </div>
 
-                </div>
 
-    .invoice-number-label {
+    .section-header i {        background: rgba(255,255,255,0.15);                    <p><strong>Enviada:</strong> {{ invoice.sent_date|date:"M d, Y" }}</p>
 
-        font-size: 0.75rem;            <div class="card mb-3">
+        width: 32px;
 
-        text-transform: uppercase;                <div class="card-header bg-dark text-white">
+        height: 32px;        backdrop-filter: blur(10px);                    {% endif %}
 
-        letter-spacing: 1px;                    <h5 class="mb-0">⚙️ Acciones</h5>
+        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
 
-        color: rgba(255,255,255,0.7);                </div>
+        border-radius: 8px;        border: 1px solid rgba(255,255,255,0.2);                    {% if invoice.amount_paid %}
+
+        display: flex;
+
+        align-items: center;        border-radius: 12px;                    <p><strong>Pagado:</strong> ${{ invoice.amount_paid|floatformat:2 }}</p>
+
+        justify-content: center;
+
+        color: white;        padding: 1rem 1.5rem;                    <p><strong>Saldo:</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
+
+        font-size: 0.875rem;
+
+    }        text-align: right;                    {% endif %}
+
+
+
+    /* Client Info Card */    }                </div>
+
+    .client-card {
+
+        background: #f8fafc;                </div>
+
+        border-radius: 12px;
+
+        padding: 1.5rem;    .invoice-number-label {
+
+        border: 1px solid #e2e8f0;
+
+    }        font-size: 0.75rem;            <div class="card mb-3">
+
+
+
+    .client-name {        text-transform: uppercase;                <div class="card-header bg-dark text-white">
+
+        font-size: 1.125rem;
+
+        font-weight: 600;        letter-spacing: 1px;                    <h5 class="mb-0">⚙️ Acciones</h5>
+
+        color: #1e293b;
+
+        margin-bottom: 0.5rem;        color: rgba(255,255,255,0.7);                </div>
+
+    }
 
     }                <div class="card-body">
 
-                        <!-- Status Actions -->
+    .client-detail {
 
-    .invoice-number-value {                    {% if invoice.status == 'DRAFT' %}
+        display: flex;                        <!-- Status Actions -->
 
-        font-size: 1.5rem;                    <div class="alert alert-warning mb-3">
+        align-items: center;
 
-        font-weight: 700;                        <strong>📝 Borrador</strong> - Esta factura aún no ha sido enviada al cliente.
+        gap: 0.5rem;    .invoice-number-value {                    {% if invoice.status == 'DRAFT' %}
 
-        color: white;                    </div>
+        color: #64748b;
 
-    }                    <form method="post" action="{% url 'invoice_mark_sent' invoice.id %}" class="d-inline">
+        font-size: 0.875rem;        font-size: 1.5rem;                    <div class="alert alert-warning mb-3">
 
-                            {% csrf_token %}
+        margin-bottom: 0.25rem;
 
-    /* Status Badge */                        <button type="submit" class="btn btn-primary w-100 mb-2">
+    }        font-weight: 700;                        <strong>📝 Borrador</strong> - Esta factura aún no ha sido enviada al cliente.
 
-    .status-badge {                            📧 Marcar como Enviada
+
+
+    /* Line Items Table */        color: white;                    </div>
+
+    .invoice-table {
+
+        width: 100%;    }                    <form method="post" action="{% url 'invoice_mark_sent' invoice.id %}" class="d-inline">
+
+        border-collapse: collapse;
+
+    }                            {% csrf_token %}
+
+
+
+    .invoice-table thead {    /* Status Badge */                        <button type="submit" class="btn btn-primary w-100 mb-2">
+
+        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+
+        color: white;    .status-badge {                            📧 Marcar como Enviada
+
+    }
 
         display: inline-flex;                        </button>
 
-        align-items: center;                    </form>
+    .invoice-table th {
 
-        gap: 0.5rem;                    {% elif invoice.status == 'SENT' or invoice.status == 'VIEWED' %}
+        padding: 1rem;        align-items: center;                    </form>
 
-        padding: 0.5rem 1rem;                    <div class="alert alert-info mb-3">
+        text-align: left;
 
-        border-radius: 50px;                        <strong>📤 Enviada</strong> - Esperando aprobación del cliente.
+        font-weight: 600;        gap: 0.5rem;                    {% elif invoice.status == 'SENT' or invoice.status == 'VIEWED' %}
 
-        font-weight: 600;                    </div>
+        font-size: 0.875rem;
+
+    }        padding: 0.5rem 1rem;                    <div class="alert alert-info mb-3">
+
+
+
+    .invoice-table td {        border-radius: 50px;                        <strong>📤 Enviada</strong> - Esperando aprobación del cliente.
+
+        padding: 1rem;
+
+        border-bottom: 1px solid #e5e7eb;        font-weight: 600;                    </div>
+
+    }
 
         font-size: 0.875rem;                    <form method="post" action="{% url 'invoice_mark_approved' invoice.id %}" class="d-inline">
 
-    }                        {% csrf_token %}
+    .invoice-table tbody tr:hover {
+
+        background: #f8fafc;    }                        {% csrf_token %}
+
+    }
 
                             <button type="submit" class="btn btn-success w-100 mb-2">
 
-    .status-draft { background: #f3f4f6; color: #6b7280; }                            ✅ Marcar como Aprobada
+    .invoice-table tfoot {
 
-    .status-sent { background: #dbeafe; color: #1d4ed8; }                        </button>
+        background: #f8fafc;    .status-draft { background: #f3f4f6; color: #6b7280; }                            ✅ Marcar como Aprobada
 
-    .status-approved { background: #d1fae5; color: #047857; }                    </form>
+        font-weight: 600;
 
-    .status-partial { background: #fef3c7; color: #d97706; }                    {% endif %}
+    }    .status-sent { background: #dbeafe; color: #1d4ed8; }                        </button>
+
+
+
+    .invoice-table tfoot td {    .status-approved { background: #d1fae5; color: #047857; }                    </form>
+
+        padding: 1rem;
+
+        border-top: 2px solid #e5e7eb;    .status-partial { background: #fef3c7; color: #d97706; }                    {% endif %}
+
+    }
 
     .status-paid { background: #10b981; color: white; }                    
 
-    .status-cancelled { background: #fee2e2; color: #dc2626; }                    <div class="d-grid gap-2">
+    /* Summary Cards */
 
-                            {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' %}
+    .summary-card {    .status-cancelled { background: #fee2e2; color: #dc2626; }                    <div class="d-grid gap-2">
 
-    /* Main Content Card */                        <a href="{% url 'record_invoice_payment' invoice.id %}" class="btn btn-success">
+        background: white;
 
-    .invoice-main-card {                            💵 Registrar Pago
+        border: 1px solid #e5e7eb;                            {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' %}
 
-        background: white;                        </a>
+        border-radius: 12px;
 
-        border-radius: 0 0 16px 16px;                        {% endif %}
+        padding: 1.25rem;    /* Main Content Card */                        <a href="{% url 'record_invoice_payment' invoice.id %}" class="btn btn-success">
 
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn btn-primary">
+        margin-bottom: 1rem;
 
-        overflow: hidden;                            📥 Descargar PDF
+    }    .invoice-main-card {                            💵 Registrar Pago
 
-    }                        </a>
 
-                            <a href="{% url 'project_overview' invoice.project.id %}" class="btn btn-outline-primary">
 
-    /* Section Headers */                            📁 Ver Proyecto
+    .summary-row {        background: white;                        </a>
+
+        display: flex;
+
+        justify-content: space-between;        border-radius: 0 0 16px 16px;                        {% endif %}
+
+        padding: 0.5rem 0;
+
+    }        box-shadow: 0 10px 40px rgba(0,0,0,0.1);                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn btn-primary">
+
+
+
+    .summary-label {        overflow: hidden;                            📥 Descargar PDF
+
+        color: #64748b;
+
+    }    }                        </a>
+
+
+
+    .summary-value {                            <a href="{% url 'project_overview' invoice.project.id %}" class="btn btn-outline-primary">
+
+        font-weight: 600;
+
+        color: #1e293b;    /* Section Headers */                            📁 Ver Proyecto
+
+    }
 
     .section-header {                        </a>
 
-        display: flex;                        <a href="{% url 'invoice_payment_dashboard' %}" class="btn btn-outline-warning">
+    .summary-total {
 
-        align-items: center;                            💰 Panel de Pagos
+        border-top: 2px solid #e5e7eb;        display: flex;                        <a href="{% url 'invoice_payment_dashboard' %}" class="btn btn-outline-warning">
+
+        padding-top: 1rem;
+
+        margin-top: 0.5rem;        align-items: center;                            💰 Panel de Pagos
+
+    }
 
         gap: 0.75rem;                        </a>
 
-        font-size: 1rem;                        <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary">
+    .summary-total .summary-value {
 
-        font-weight: 600;                            📋 Lista de Facturas
+        font-size: 1.5rem;        font-size: 1rem;                        <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary">
 
-        color: #1e3a5f;                        </a>
-
-        margin-bottom: 1rem;                    </div>
-
-        padding-bottom: 0.75rem;                </div>
-
-        border-bottom: 2px solid #e5e7eb;            </div>
-
-    }        </div>
-
-        </div>
-
-    .section-header i {</div>
-
-        width: 32px;{% endblock %}
-        height: 32px;
-        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 0.875rem;
-    }
-    
-    /* Client Info Card */
-    .client-card {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 1.5rem;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .client-name {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 0.5rem;
-    }
-    
-    .client-detail {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #64748b;
-        font-size: 0.875rem;
-        margin-bottom: 0.25rem;
-    }
-    
-    /* Project Link */
-    .project-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-    
-    .project-link:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
-        color: white;
-    }
-    
-    /* Invoice Lines Table */
-    .invoice-lines-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    .invoice-lines-table thead {
-        background: #f8fafc;
-    }
-    
-    .invoice-lines-table th {
-        padding: 1rem;
-        text-align: left;
-        font-weight: 600;
-        color: #64748b;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border-bottom: 2px solid #e2e8f0;
-    }
-    
-    .invoice-lines-table td {
-        padding: 1rem;
-        border-bottom: 1px solid #f1f5f9;
-        vertical-align: middle;
-    }
-    
-    .invoice-lines-table tbody tr:hover {
-        background: #f8fafc;
-    }
-    
-    .line-description {
-        font-weight: 500;
-        color: #1e293b;
-    }
-    
-    .line-notes {
-        font-size: 0.8125rem;
-        color: #64748b;
-        margin-top: 0.25rem;
-    }
-    
-    /* Totals Section */
-    .totals-section {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-top: 1.5rem;
-    }
-    
-    .total-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem 0;
-        font-size: 0.9375rem;
-    }
-    
-    .total-row.subtotal {
-        border-bottom: 1px solid #e2e8f0;
-        padding-bottom: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .total-row.grand-total {
-        font-size: 1.25rem;
-        font-weight: 700;
         color: #1e3a5f;
-        border-top: 2px solid #1e3a5f;
-        padding-top: 1rem;
-        margin-top: 0.5rem;
-    }
-    
-    .total-label {
-        color: #64748b;
-    }
-    
-    .total-value {
-        font-weight: 600;
-        color: #1e293b;
-    }
-    
-    /* Payment Progress */
-    .payment-progress-bar {
-        height: 12px;
-        background: #e5e7eb;
-        border-radius: 6px;
-        overflow: hidden;
-        margin: 1rem 0;
-    }
-    
-    .payment-progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #10b981, #059669);
-        border-radius: 6px;
-        transition: width 0.5s ease;
-    }
-    
-    .payment-stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .payment-stat {
-        padding: 1rem;
-        background: white;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .payment-stat-value {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1e293b;
-    }
-    
-    .payment-stat-label {
-        font-size: 0.75rem;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .payment-stat.paid .payment-stat-value { color: #10b981; }
-    .payment-stat.remaining .payment-stat-value { color: #f59e0b; }
-    
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
-    
+
+    }        font-weight: 600;                            📋 Lista de Facturas
+
+
+
+    /* Action Buttons */        color: #1e3a5f;                        </a>
+
     .btn-action {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.25rem;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 0.875rem;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-    }
-    
-    .btn-primary-action {
-        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
-        color: white;
-    }
-    
-    .btn-primary-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
-        color: white;
-    }
-    
-    .btn-success-action {
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-    }
-    
-    .btn-success-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        color: white;
-    }
-    
-    .btn-warning-action {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: white;
-    }
-    
-    .btn-warning-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-        color: white;
-    }
-    
-    .btn-outline-action {
-        background: white;
-        border: 2px solid #e2e8f0;
-        color: #64748b;
-    }
-    
-    .btn-outline-action:hover {
-        border-color: #1e3a5f;
-        color: #1e3a5f;
-        background: #f8fafc;
-    }
-    
-    .btn-danger-action {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        color: white;
-    }
-    
-    /* Change Orders Section */
-    .co-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-        transition: all 0.3s ease;
-    }
-    
-    .co-card:hover {
-        border-color: #1e3a5f;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
-    
-    .co-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-    
-    .co-number {
-        font-weight: 600;
-        color: #1e3a5f;
-    }
-    
-    .co-amount {
-        font-weight: 700;
-        color: #10b981;
-    }
-    
-    .co-description {
-        font-size: 0.875rem;
-        color: #64748b;
-    }
-    
-    /* Payment History */
-    .payment-item {
-        display: flex;
-        align-items: center;
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 10px;
-        margin-bottom: 0.75rem;
-    }
-    
-    .payment-icon {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        margin-right: 1rem;
-    }
-    
-    .payment-details {
-        flex: 1;
-    }
-    
-    .payment-amount {
-        font-weight: 700;
-        color: #1e293b;
-    }
-    
-    .payment-meta {
-        font-size: 0.8125rem;
-        color: #64748b;
-    }
-    
-    .payment-date {
-        font-size: 0.8125rem;
-        color: #64748b;
-    }
-    
-    /* Notes Section */
-    .notes-content {
-        background: #fffbeb;
-        border: 1px solid #fcd34d;
-        border-radius: 10px;
-        padding: 1rem;
-        color: #92400e;
-    }
-    
-    /* PDF Preview Frame */
-    .pdf-preview-frame {
-        width: 100%;
-        height: 600px;
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .invoice-header-banner {
-            padding: 1.5rem;
-        }
-        
-        .payment-stats {
-            grid-template-columns: 1fr;
-        }
-        
-        .action-buttons {
-            flex-direction: column;
-        }
-        
-        .btn-action {
-            justify-content: center;
-        }
-    }
-    
-    /* Print Styles */
-    @media print {
-        .no-print { display: none !important; }
-        .invoice-container { max-width: 100%; }
-        .invoice-header-banner { 
-            background: #1e3a5f !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-    }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="invoice-container">
-    <!-- Header Banner -->
-    <div class="invoice-header-banner">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="company-logo-section">
-                <div class="company-logo">
-                    <i class="fas fa-paint-roller"></i>
-                </div>
-                <div class="company-info">
-                    <h1>{{ company.name }}</h1>
-                    <div class="company-details">
-                        {{ company.address }} | {{ company.website }}
-                    </div>
-                </div>
-            </div>
-            <div class="invoice-number-badge">
-                <div class="invoice-number-label">{% trans "Invoice" %}</div>
-                <div class="invoice-number-value">#{{ invoice.invoice_number }}</div>
-                <div class="mt-2">
-                    <span class="status-badge status-{{ invoice.status|lower }}">
-                        <i class="{{ status_info.icon }}"></i>
-                        {{ status_info.text }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+        display: flex;        margin-bottom: 1rem;                    </div>
+
+        align-items: center;
+
+        justify-content: center;        padding-bottom: 0.75rem;                </div>
+
+        gap: 0.5rem;
+
+        padding: 0.75rem 1rem;        border-bottom: 2px solid #e5e7eb;            </div>
+
+        border-radius: 8px;
+
+        font-weight: 600;    }        </div>
+
+        font-size: 0.875rem;
+
+        text-decoration: none;        </div>
+
+        transition: all 0.2s;
+
+        border: none;    .section-header i {</div>
+
+        cursor: pointer;
+
+    }        width: 32px;{% endblock %}
+
+        height: 32px;
+
+    .btn-primary-action {        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+
+        background: linear-gradient(135deg, #1e3a5f, #2d5a87);        border-radius: 8px;
+
+        color: white;        display: flex;
+
+    }        align-items: center;
+
+        justify-content: center;
+
+    .btn-primary-action:hover {        color: white;
+
+        background: linear-gradient(135deg, #2d5a87, #1e3a5f);        font-size: 0.875rem;
+
+        color: white;    }
+
+        transform: translateY(-1px);    
+
+    }    /* Client Info Card */
+
+    .client-card {
+
+    .btn-success-action {        background: #f8fafc;
+
+        background: linear-gradient(135deg, #059669, #10b981);        border-radius: 12px;
+
+        color: white;        padding: 1.5rem;
+
+    }        border: 1px solid #e2e8f0;
+
+    }
+
+    .btn-success-action:hover {    
+
+        background: linear-gradient(135deg, #10b981, #059669);    .client-name {
+
+        color: white;        font-size: 1.125rem;
+
+        transform: translateY(-1px);        font-weight: 600;
+
+    }        color: #1e293b;
+
+        margin-bottom: 0.5rem;
+
+    .btn-outline-action {    }
+
+        background: white;    
+
+        border: 1px solid #e5e7eb;    .client-detail {
+
+        color: #64748b;        display: flex;
+
+    }        align-items: center;
+
+        gap: 0.5rem;
+
+    .btn-outline-action:hover {        color: #64748b;
+
+        background: #f8fafc;        font-size: 0.875rem;
+
+        color: #1e293b;        margin-bottom: 0.25rem;
+
+    }    }
+
     
-    <!-- Main Content Card -->
-    <div class="invoice-main-card">
-        <div class="p-4">
-            <!-- Quick Stats Row -->
-            <div class="row mb-4">
-                <div class="col-md-3 col-6 mb-3">
-                    <div class="payment-stat">
+
+    /* Payment History */    /* Project Link */
+
+    .payment-item {    .project-link {
+
+        display: flex;        display: inline-flex;
+
+        align-items: center;        align-items: center;
+
+        gap: 1rem;        gap: 0.5rem;
+
+        padding: 0.75rem;        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+
+        background: #f8fafc;        color: white;
+
+        border-radius: 8px;        padding: 0.5rem 1rem;
+
+        margin-bottom: 0.5rem;        border-radius: 8px;
+
+    }        font-weight: 500;
+
+        text-decoration: none;
+
+    .payment-icon {        transition: all 0.3s ease;
+
+        width: 36px;    }
+
+        height: 36px;    
+
+        background: #10b981;    .project-link:hover {
+
+        border-radius: 50%;        transform: translateY(-2px);
+
+        display: flex;        box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+
+        align-items: center;        color: white;
+
+        justify-content: center;    }
+
+        color: white;    
+
+    }    /* Invoice Lines Table */
+
+    .invoice-lines-table {
+
+    .payment-details {        width: 100%;
+
+        flex: 1;        border-collapse: collapse;
+
+    }    }
+
+    
+
+    .payment-amount {    .invoice-lines-table thead {
+
+        font-weight: 600;        background: #f8fafc;
+
+        color: #1e293b;    }
+
+    }    
+
+    .invoice-lines-table th {
+
+    .payment-meta {        padding: 1rem;
+
+        font-size: 0.75rem;        text-align: left;
+
+        color: #64748b;        font-weight: 600;
+
+    }        color: #64748b;
+
+        font-size: 0.75rem;
+
+    .payment-date {        text-transform: uppercase;
+
+        font-size: 0.875rem;        letter-spacing: 0.5px;
+
+        color: #64748b;        border-bottom: 2px solid #e2e8f0;
+
+    }    }
+
+    
+
+    /* Responsive */    .invoice-lines-table td {
+
+    @media (max-width: 768px) {        padding: 1rem;
+
+        .invoice-header-banner {        border-bottom: 1px solid #f1f5f9;
+
+            padding: 1.5rem;        vertical-align: middle;
+
+        }    }
+
+            
+
+        .invoice-container {    .invoice-lines-table tbody tr:hover {
+
+            padding: 12px;        background: #f8fafc;
+
+        }    }
+
+    }    
+
+    .line-description {
+
+    /* Print Styles */        font-weight: 500;
+
+    @media print {        color: #1e293b;
+
+        .no-print { display: none !important; }    }
+
+        .invoice-container { padding: 0; max-width: 100%; }    
+
+        .invoice-header-banner { border-radius: 0; }    .line-notes {
+
+        .invoice-main-card { border-radius: 0; box-shadow: none; }        font-size: 0.8125rem;
+
+    }        color: #64748b;
+
+</style>        margin-top: 0.25rem;
+
+{% endblock %}    }
+
+    
+
+{% block content %}    /* Totals Section */
+
+<div class="invoice-container">    .totals-section {
+
+    <!-- Header Banner -->        background: #f8fafc;
+
+    <div class="invoice-header-banner">        border-radius: 12px;
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">        padding: 1.5rem;
+
+            <div class="company-logo-section">        margin-top: 1.5rem;
+
+                <div class="company-logo">    }
+
+                    <img src="{% static 'images/kibray-logo.png' %}" alt="Logo" style="max-width: 50px; max-height: 50px;" onerror="this.style.display='none'; this.parentNode.innerHTML='K';">    
+
+                </div>    .total-row {
+
+                <div class="company-info">        display: flex;
+
+                    <h1>{{ company.name }}</h1>        justify-content: space-between;
+
+                    <div class="company-details">        padding: 0.5rem 0;
+
+                        {{ company.address }} · {{ company.city_state_zip }}<br>        font-size: 0.9375rem;
+
+                        {{ company.phone }} · {{ company.email }}    }
+
+                    </div>    
+
+                </div>    .total-row.subtotal {
+
+            </div>        border-bottom: 1px solid #e2e8f0;
+
+            <div class="invoice-number-badge">        padding-bottom: 1rem;
+
+                <div class="invoice-number-label">{% trans "Invoice" %}</div>        margin-bottom: 0.5rem;
+
+                <div class="invoice-number-value">#{{ invoice.invoice_number }}</div>    }
+
+                <div class="mt-2">    
+
+                    <span class="status-badge status-{{ invoice.status|lower }}">    .total-row.grand-total {
+
+                        {{ invoice.get_status_display }}        font-size: 1.25rem;
+
+                    </span>        font-weight: 700;
+
+                </div>        color: #1e3a5f;
+
+            </div>        border-top: 2px solid #1e3a5f;
+
+        </div>        padding-top: 1rem;
+
+    </div>        margin-top: 0.5rem;
+
+    }
+
+    <!-- Main Content -->    
+
+    <div class="invoice-main-card">    .total-label {
+
+        <div class="row g-0">        color: #64748b;
+
+            <!-- Left Column - Invoice Details -->    }
+
+            <div class="col-lg-8 p-4">    
+
+                <!-- Client & Project Info -->    .total-value {
+
+                <div class="row mb-4">        font-weight: 600;
+
+                    <div class="col-md-6 mb-3 mb-md-0">        color: #1e293b;
+
+                        <div class="section-header">    }
+
+                            <i class="bi bi-person"></i>    
+
+                            {% trans "Bill To" %}    /* Payment Progress */
+
+                        </div>    .payment-progress-bar {
+
+                        <div class="client-card">        height: 12px;
+
+                            {% if invoice.project.client %}        background: #e5e7eb;
+
+                            <div class="client-name">{{ invoice.project.client.name }}</div>        border-radius: 6px;
+
+                            {% if invoice.project.client.email %}        overflow: hidden;
+
+                            <div class="client-detail">        margin: 1rem 0;
+
+                                <i class="bi bi-envelope"></i> {{ invoice.project.client.email }}    }
+
+                            </div>    
+
+                            {% endif %}    .payment-progress-fill {
+
+                            {% if invoice.project.client.phone %}        height: 100%;
+
+                            <div class="client-detail">        background: linear-gradient(90deg, #10b981, #059669);
+
+                                <i class="bi bi-phone"></i> {{ invoice.project.client.phone }}        border-radius: 6px;
+
+                            </div>        transition: width 0.5s ease;
+
+                            {% endif %}    }
+
+                            {% else %}    
+
+                            <div class="client-name">{{ invoice.project.name }}</div>    .payment-stats {
+
+                            {% endif %}        display: grid;
+
+                        </div>        grid-template-columns: repeat(3, 1fr);
+
+                    </div>        gap: 1rem;
+
+                    <div class="col-md-6">        text-align: center;
+
+                        <div class="section-header">    }
+
+                            <i class="bi bi-building"></i>    
+
+                            {% trans "Project" %}    .payment-stat {
+
+                        </div>        padding: 1rem;
+
+                        <div class="client-card">        background: white;
+
+                            <div class="client-name">{{ invoice.project.name }}</div>        border-radius: 8px;
+
+                            {% if invoice.project.address %}        border: 1px solid #e2e8f0;
+
+                            <div class="client-detail">    }
+
+                                <i class="bi bi-geo-alt"></i> {{ invoice.project.address }}    
+
+                            </div>    .payment-stat-value {
+
+                            {% endif %}        font-size: 1.25rem;
+
+                            <a href="{% url 'project_overview' invoice.project.id %}" class="btn btn-sm btn-outline-primary mt-2">        font-weight: 700;
+
+                                <i class="bi bi-box-arrow-up-right"></i> {% trans "View Project" %}        color: #1e293b;
+
+                            </a>    }
+
+                        </div>    
+
+                    </div>    .payment-stat-label {
+
+                </div>        font-size: 0.75rem;
+
+        color: #64748b;
+
+                <!-- Invoice Dates -->        text-transform: uppercase;
+
+                <div class="row mb-4">        letter-spacing: 0.5px;
+
+                    <div class="col-md-4">    }
+
+                        <div class="summary-card">    
+
+                            <div class="text-muted small mb-1">{% trans "Issue Date" %}</div>    .payment-stat.paid .payment-stat-value { color: #10b981; }
+
+                            <div class="fw-bold">{{ invoice.date_issued|date:"M d, Y" }}</div>    .payment-stat.remaining .payment-stat-value { color: #f59e0b; }
+
+                        </div>    
+
+                    </div>    /* Action Buttons */
+
+                    <div class="col-md-4">    .action-buttons {
+
+                        <div class="summary-card {% if is_overdue %}border-danger{% endif %}">        display: flex;
+
+                            <div class="text-muted small mb-1">{% trans "Due Date" %}</div>        flex-wrap: wrap;
+
+                            <div class="fw-bold {% if is_overdue %}text-danger{% endif %}">        gap: 0.75rem;
+
+                                {{ invoice.due_date|date:"M d, Y" }}    }
+
+                                {% if is_overdue %}    
+
+                                <span class="badge bg-danger ms-1">{% trans "Overdue" %}</span>    .btn-action {
+
+                                {% endif %}        display: inline-flex;
+
+                            </div>        align-items: center;
+
+                        </div>        gap: 0.5rem;
+
+                    </div>        padding: 0.75rem 1.25rem;
+
+                    <div class="col-md-4">        border-radius: 10px;
+
+                        <div class="summary-card">        font-weight: 600;
+
+                            <div class="text-muted small mb-1">{% trans "Status" %}</div>        font-size: 0.875rem;
+
+                            <div>        text-decoration: none;
+
+                                <span class="status-badge status-{{ invoice.status|lower }}">        transition: all 0.3s ease;
+
+                                    {{ invoice.get_status_display }}        border: none;
+
+                                </span>        cursor: pointer;
+
+                            </div>    }
+
+                        </div>    
+
+                    </div>    .btn-primary-action {
+
+                </div>        background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+
+        color: white;
+
+                <!-- Line Items -->    }
+
+                <div class="section-header">    
+
+                    <i class="bi bi-list-ul"></i>    .btn-primary-action:hover {
+
+                    {% trans "Line Items" %}        transform: translateY(-2px);
+
+                </div>        box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+
+                <div class="table-responsive mb-4">        color: white;
+
+                    <table class="invoice-table">    }
+
+                        <thead>    
+
+                            <tr>    .btn-success-action {
+
+                                <th style="width: 60%;">{% trans "Description" %}</th>        background: linear-gradient(135deg, #10b981, #059669);
+
+                                <th class="text-end">{% trans "Amount" %}</th>        color: white;
+
+                            </tr>    }
+
+                        </thead>    
+
+                        <tbody>    .btn-success-action:hover {
+
+                            {% for line in invoice.lines.all %}        transform: translateY(-2px);
+
+                            <tr>        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+
+                                <td>        color: white;
+
+                                    <div class="fw-medium">{{ line.description }}</div>    }
+
+                                    {% if line.notes %}    
+
+                                    <div class="text-muted small">{{ line.notes }}</div>    .btn-warning-action {
+
+                                    {% endif %}        background: linear-gradient(135deg, #f59e0b, #d97706);
+
+                                </td>        color: white;
+
+                                <td class="text-end">${{ line.amount|floatformat:2|intcomma }}</td>    }
+
+                            </tr>    
+
+                            {% empty %}    .btn-warning-action:hover {
+
+                            <tr>        transform: translateY(-2px);
+
+                                <td colspan="2" class="text-center text-muted py-4">        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>        color: white;
+
+                                    {% trans "No line items" %}    }
+
+                                </td>    
+
+                            </tr>    .btn-outline-action {
+
+                            {% endfor %}        background: white;
+
+                        </tbody>        border: 2px solid #e2e8f0;
+
+                        <tfoot>        color: #64748b;
+
+                            <tr>    }
+
+                                <td class="text-end"><strong>{% trans "Subtotal" %}</strong></td>    
+
+                                <td class="text-end"><strong>${{ invoice.total_amount|floatformat:2|intcomma }}</strong></td>    .btn-outline-action:hover {
+
+                            </tr>        border-color: #1e3a5f;
+
+                            {% if invoice.amount_paid > 0 %}        color: #1e3a5f;
+
+                            <tr>        background: #f8fafc;
+
+                                <td class="text-end text-success">{% trans "Amount Paid" %}</td>    }
+
+                                <td class="text-end text-success">-${{ invoice.amount_paid|floatformat:2|intcomma }}</td>    
+
+                            </tr>    .btn-danger-action {
+
+                            <tr>        background: linear-gradient(135deg, #ef4444, #dc2626);
+
+                                <td class="text-end"><strong>{% trans "Balance Due" %}</strong></td>        color: white;
+
+                                <td class="text-end fs-4"><strong>${{ invoice.balance_due|floatformat:2|intcomma }}</strong></td>    }
+
+                            </tr>    
+
+                            {% else %}    /* Change Orders Section */
+
+                            <tr>    .co-card {
+
+                                <td class="text-end"><strong>{% trans "Total Due" %}</strong></td>        background: white;
+
+                                <td class="text-end fs-4"><strong>${{ invoice.total_amount|floatformat:2|intcomma }}</strong></td>        border: 1px solid #e2e8f0;
+
+                            </tr>        border-radius: 10px;
+
+                            {% endif %}        padding: 1rem;
+
+                        </tfoot>        margin-bottom: 0.75rem;
+
+                    </table>        transition: all 0.3s ease;
+
+                </div>    }
+
+    
+
+                <!-- Notes -->    .co-card:hover {
+
+                {% if invoice.notes %}        border-color: #1e3a5f;
+
+                <div class="section-header">        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+
+                    <i class="bi bi-chat-left-text"></i>    }
+
+                    {% trans "Notes" %}    
+
+                </div>    .co-header {
+
+                <div class="client-card mb-4">        display: flex;
+
+                    {{ invoice.notes|linebreaks }}        justify-content: space-between;
+
+                </div>        align-items: center;
+
+                {% endif %}        margin-bottom: 0.5rem;
+
+    }
+
+                <!-- Change Orders -->    
+
+                {% if change_orders %}    .co-number {
+
+                <div class="section-header">        font-weight: 600;
+
+                    <i class="bi bi-file-diff"></i>        color: #1e3a5f;
+
+                    {% trans "Change Orders Included" %}    }
+
+                </div>    
+
+                <div class="row g-3 mb-4">    .co-amount {
+
+                    {% for co in change_orders %}        font-weight: 700;
+
+                    <div class="col-md-6">        color: #10b981;
+
+                        <div class="summary-card">    }
+
+                            <div class="d-flex justify-content-between align-items-center">    
+
+                                <span class="fw-bold">CO-{{ co.co_number }}</span>    .co-description {
+
+                                <span class="text-success fw-bold">+${{ co.total_price|floatformat:2|intcomma }}</span>        font-size: 0.875rem;
+
+                            </div>        color: #64748b;
+
+                            <div class="text-muted small mt-1">{{ co.title|truncatewords:8 }}</div>    }
+
+                        </div>    
+
+                    </div>    /* Payment History */
+
+                    {% endfor %}    .payment-item {
+
+                </div>        display: flex;
+
+                {% endif %}        align-items: center;
+
+            </div>        padding: 1rem;
+
+        background: #f8fafc;
+
+            <!-- Right Column - Actions & Summary -->        border-radius: 10px;
+
+            <div class="col-lg-4 bg-light p-4">        margin-bottom: 0.75rem;
+
+                <!-- Summary -->    }
+
+                <div class="section-header">    
+
+                    <i class="bi bi-calculator"></i>    .payment-icon {
+
+                    {% trans "Summary" %}        width: 40px;
+
+                </div>        height: 40px;
+
+                <div class="summary-card mb-4">        background: linear-gradient(135deg, #10b981, #059669);
+
+                    <div class="summary-row">        border-radius: 10px;
+
+                        <span class="summary-label">{% trans "Subtotal" %}</span>        display: flex;
+
+                        <span class="summary-value">${{ invoice.total_amount|floatformat:2|intcomma }}</span>        align-items: center;
+
+                    </div>        justify-content: center;
+
+                    {% if invoice.amount_paid > 0 %}        color: white;
+
+                    <div class="summary-row">        margin-right: 1rem;
+
+                        <span class="summary-label text-success">{% trans "Paid" %}</span>    }
+
+                        <span class="summary-value text-success">-${{ invoice.amount_paid|floatformat:2|intcomma }}</span>    
+
+                    </div>    .payment-details {
+
+                    {% endif %}        flex: 1;
+
+                    <div class="summary-row summary-total">    }
+
+                        <span class="summary-label">{% trans "Balance Due" %}</span>    
+
+                        <span class="summary-value">${{ invoice.balance_due|floatformat:2|intcomma }}</span>    .payment-amount {
+
+                    </div>        font-weight: 700;
+
+                </div>        color: #1e293b;
+
+    }
+
+                <!-- Quick Actions -->    
+
+                <div class="section-header no-print">    .payment-meta {
+
+                    <i class="bi bi-lightning"></i>        font-size: 0.8125rem;
+
+                    {% trans "Actions" %}        color: #64748b;
+
+                </div>    }
+
+                <div class="d-grid gap-2 mb-4 no-print">    
+
+                    <!-- Status-dependent actions -->    .payment-date {
+
+                    {% if invoice.status == 'DRAFT' %}        font-size: 0.8125rem;
+
+                    <div class="alert alert-warning mb-3 small">        color: #64748b;
+
+                        <i class="bi bi-pencil me-1"></i>    }
+
+                        {% trans "This invoice is a draft and has not been sent to the client." %}    
+
+                    </div>    /* Notes Section */
+
+                    <form method="post" action="{% url 'invoice_mark_sent' invoice.id %}">    .notes-content {
+
+                        {% csrf_token %}        background: #fffbeb;
+
+                        <button type="submit" class="btn-action btn-primary-action w-100">        border: 1px solid #fcd34d;
+
+                            <i class="bi bi-send"></i>        border-radius: 10px;
+
+                            {% trans "Mark as Sent" %}        padding: 1rem;
+
+                        </button>        color: #92400e;
+
+                    </form>    }
+
+                    {% elif invoice.status == 'SENT' or invoice.status == 'VIEWED' %}    
+
+                    <div class="alert alert-info mb-3 small">    /* PDF Preview Frame */
+
+                        <i class="bi bi-clock me-1"></i>    .pdf-preview-frame {
+
+                        {% trans "Waiting for client approval." %}        width: 100%;
+
+                    </div>        height: 600px;
+
+                    <form method="post" action="{% url 'invoice_mark_approved' invoice.id %}">        border: none;
+
+                        {% csrf_token %}        border-radius: 12px;
+
+                        <button type="submit" class="btn-action btn-success-action w-100">        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+                            <i class="bi bi-check-circle"></i>    }
+
+                            {% trans "Mark as Approved" %}    
+
+                        </button>    /* Responsive */
+
+                    </form>    @media (max-width: 768px) {
+
+                    {% elif invoice.status == 'PAID' %}        .invoice-header-banner {
+
+                    <div class="alert alert-success mb-3 small">            padding: 1.5rem;
+
+                        <i class="bi bi-check-circle-fill me-1"></i>        }
+
+                        {% trans "This invoice has been paid in full." %}        
+
+                    </div>        .payment-stats {
+
+                    {% endif %}            grid-template-columns: 1fr;
+
+        }
+
+                    <!-- Record Payment (if not fully paid) -->        
+
+                    {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' and invoice.balance_due > 0 %}        .action-buttons {
+
+                    <a href="{% url 'record_invoice_payment' invoice.id %}" class="btn-action btn-success-action">            flex-direction: column;
+
+                        <i class="bi bi-currency-dollar"></i>        }
+
+                        {% trans "Record Payment" %}        
+
+                    </a>        .btn-action {
+
+                    {% endif %}            justify-content: center;
+
+        }
+
+                    <!-- Download PDF -->    }
+
+                    <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn-action btn-primary-action">    
+
+                        <i class="bi bi-file-pdf"></i>    /* Print Styles */
+
+                        {% trans "Download PDF" %}    @media print {
+
+                    </a>        .no-print { display: none !important; }
+
+        .invoice-container { max-width: 100%; }
+
+                    <!-- Print -->        .invoice-header-banner { 
+
+                    <button onclick="window.print()" class="btn-action btn-outline-action">            background: #1e3a5f !important;
+
+                        <i class="bi bi-printer"></i>            -webkit-print-color-adjust: exact;
+
+                        {% trans "Print" %}            print-color-adjust: exact;
+
+                    </button>        }
+
+    }
+
+                    <!-- Edit Invoice --></style>
+
+                    {% if invoice.status == 'DRAFT' %}{% endblock %}
+
+                    <a href="{% url 'invoice_edit' invoice.id %}" class="btn-action btn-outline-action">
+
+                        <i class="bi bi-pencil"></i>{% block content %}
+
+                        {% trans "Edit Invoice" %}<div class="invoice-container">
+
+                    </a>    <!-- Header Banner -->
+
+                    {% endif %}    <div class="invoice-header-banner">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                    <!-- Back to List -->            <div class="company-logo-section">
+
+                    <a href="{% url 'invoice_list' %}" class="btn-action btn-outline-action">                <div class="company-logo">
+
+                        <i class="bi bi-arrow-left"></i>                    <i class="fas fa-paint-roller"></i>
+
+                        {% trans "Back to Invoices" %}                </div>
+
+                    </a>                <div class="company-info">
+
+                </div>                    <h1>{{ company.name }}</h1>
+
+                    <div class="company-details">
+
+                <!-- Payment History -->                        {{ company.address }} | {{ company.website }}
+
+                {% if payments %}                    </div>
+
+                <div class="section-header">                </div>
+
+                    <i class="bi bi-clock-history"></i>            </div>
+
+                    {% trans "Payment History" %}            <div class="invoice-number-badge">
+
+                </div>                <div class="invoice-number-label">{% trans "Invoice" %}</div>
+
+                <div class="mb-4">                <div class="invoice-number-value">#{{ invoice.invoice_number }}</div>
+
+                    {% for payment in payments %}                <div class="mt-2">
+
+                    <div class="payment-item">                    <span class="status-badge status-{{ invoice.status|lower }}">
+
+                        <div class="payment-icon">                        <i class="{{ status_info.icon }}"></i>
+
+                            <i class="bi bi-check"></i>                        {{ status_info.text }}
+
+                        </div>                    </span>
+
+                        <div class="payment-details">                </div>
+
+                            <div class="payment-amount">${{ payment.amount|floatformat:2|intcomma }}</div>            </div>
+
+                            <div class="payment-meta">        </div>
+
+                                {{ payment.get_payment_method_display }}    </div>
+
+                                {% if payment.reference %}· {{ payment.reference }}{% endif %}    
+
+                            </div>    <!-- Main Content Card -->
+
+                        </div>    <div class="invoice-main-card">
+
+                        <div class="payment-date">{{ payment.payment_date|date:"M d" }}</div>        <div class="p-4">
+
+                    </div>            <!-- Quick Stats Row -->
+
+                    {% endfor %}            <div class="row mb-4">
+
+                </div>                <div class="col-md-3 col-6 mb-3">
+
+                {% endif %}                    <div class="payment-stat">
+
                         <div class="payment-stat-value">${{ invoice.total_amount|floatformat:2|intcomma }}</div>
-                        <div class="payment-stat-label">{% trans "Total" %}</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-3">
-                    <div class="payment-stat paid">
-                        <div class="payment-stat-value">${{ invoice.amount_paid|floatformat:2|intcomma }}</div>
-                        <div class="payment-stat-label">{% trans "Paid" %}</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-3">
-                    <div class="payment-stat remaining">
-                        <div class="payment-stat-value">${{ invoice.balance_due|floatformat:2|intcomma }}</div>
-                        <div class="payment-stat-label">{% trans "Balance Due" %}</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-3">
-                    <div class="payment-stat">
-                        <div class="payment-stat-value">
-                            {% widthratio invoice.amount_paid invoice.total_amount 100 as pay_pct %}
-                            {% if invoice.total_amount > 0 %}
-                                {{ pay_pct|default:"0" }}%
-                            {% else %}
-                                0%
-                            {% endif %}
-                        </div>
-                        <div class="payment-stat-label">{% trans "Paid %" %}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Payment Progress Bar -->
-            {% if invoice.total_amount > 0 %}
-            <div class="payment-progress-bar mb-4">
+
+                <!-- Project Summary -->                        <div class="payment-stat-label">{% trans "Total" %}</div>
+
+                {% if invoice.project %}                    </div>
+
+                <div class="section-header">                </div>
+
+                    <i class="bi bi-pie-chart"></i>                <div class="col-md-3 col-6 mb-3">
+
+                    {% trans "Project Financials" %}                    <div class="payment-stat paid">
+
+                </div>                        <div class="payment-stat-value">${{ invoice.amount_paid|floatformat:2|intcomma }}</div>
+
+                <div class="client-card">                        <div class="payment-stat-label">{% trans "Paid" %}</div>
+
+                    <div class="d-flex justify-content-between mb-2 small">                    </div>
+
+                        <span class="text-muted">{% trans "Budget" %}</span>                </div>
+
+                        <span class="fw-bold">${{ invoice.project.calculated_budget|floatformat:0|intcomma }}</span>                <div class="col-md-3 col-6 mb-3">
+
+                    </div>                    <div class="payment-stat remaining">
+
+                    <div class="d-flex justify-content-between mb-2 small">                        <div class="payment-stat-value">${{ invoice.balance_due|floatformat:2|intcomma }}</div>
+
+                        <span class="text-muted">{% trans "Income" %}</span>                        <div class="payment-stat-label">{% trans "Balance Due" %}</div>
+
+                        <span class="fw-bold text-success">${{ invoice.project.calculated_income|floatformat:0|intcomma }}</span>                    </div>
+
+                    </div>                </div>
+
+                    <div class="d-flex justify-content-between mb-2 small">                <div class="col-md-3 col-6 mb-3">
+
+                        <span class="text-muted">{% trans "Expenses" %}</span>                    <div class="payment-stat">
+
+                        <span class="fw-bold text-danger">${{ invoice.project.calculated_expenses|floatformat:0|intcomma }}</span>                        <div class="payment-stat-value">
+
+                    </div>                            {% widthratio invoice.amount_paid invoice.total_amount 100 as pay_pct %}
+
+                    <hr class="my-2">                            {% if invoice.total_amount > 0 %}
+
+                    <div class="d-flex justify-content-between small">                                {{ pay_pct|default:"0" }}%
+
+                        <span class="text-muted">{% trans "Profit" %}</span>                            {% else %}
+
+                        <span class="fw-bold {% if invoice.project.profit >= 0 %}text-success{% else %}text-danger{% endif %}">                                0%
+
+                            ${{ invoice.project.profit|floatformat:0|intcomma }}                            {% endif %}
+
+                        </span>                        </div>
+
+                    </div>                        <div class="payment-stat-label">{% trans "Paid %" %}</div>
+
+                </div>                    </div>
+
+                {% endif %}                </div>
+
+            </div>            </div>
+
+        </div>            
+
+    </div>            <!-- Payment Progress Bar -->
+
+</div>            {% if invoice.total_amount > 0 %}
+
+{% endblock %}            <div class="payment-progress-bar mb-4">
+
                 <div class="payment-progress-fill" style="width: {% widthratio invoice.amount_paid invoice.total_amount 100 %}%;"></div>
-            </div>
-            {% endif %}
-            
-            <div class="row">
-                <!-- Left Column -->
-                <div class="col-lg-8">
-                    <!-- Client & Project Info -->
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <div class="section-header">
-                                <i class="fas fa-user"></i>
-                                {% trans "Bill To" %}
-                            </div>
-                            <div class="client-card">
+
+{% block extra_js %}            </div>
+
+<script>            {% endif %}
+
+document.addEventListener('DOMContentLoaded', function() {            
+
+    // Confirmation for status change actions            <div class="row">
+
+    const actionForms = document.querySelectorAll('form[action*="mark"]');                <!-- Left Column -->
+
+    actionForms.forEach(form => {                <div class="col-lg-8">
+
+        form.addEventListener('submit', function(e) {                    <!-- Client & Project Info -->
+
+            const button = form.querySelector('button[type="submit"]');                    <div class="row mb-4">
+
+            const action = button ? button.textContent.trim() : 'proceed';                        <div class="col-md-6 mb-3 mb-md-0">
+
+            if (!confirm(`{% trans "Are you sure you want to" %} ${action}?`)) {                            <div class="section-header">
+
+                e.preventDefault();                                <i class="fas fa-user"></i>
+
+            }                                {% trans "Bill To" %}
+
+        });                            </div>
+
+    });                            <div class="client-card">
+
                                 {% if invoice.project and invoice.project.client %}
-                                <div class="client-name">
-                                    {{ invoice.project.client.company_name|default:invoice.project.client.full_name }}
-                                </div>
-                                {% if invoice.project.client.email %}
+
+    // Print functionality                                  <div class="client-name">
+
+    window.addEventListener('beforeprint', function() {                                    {{ invoice.project.client.company_name|default:invoice.project.client.full_name }}
+
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');                                </div>
+
+    });                                {% if invoice.project.client.email %}
+
                                 <div class="client-detail">
-                                    <i class="fas fa-envelope"></i>
-                                    {{ invoice.project.client.email }}
-                                </div>
-                                {% endif %}
-                                {% if invoice.project.client.phone %}
-                                <div class="client-detail">
+
+    window.addEventListener('afterprint', function() {                                    <i class="fas fa-envelope"></i>
+
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = '');                                    {{ invoice.project.client.email }}
+
+    });                                </div>
+
+});                                {% endif %}
+
+</script>                                {% if invoice.project.client.phone %}
+
+{% endblock %}                                <div class="client-detail">
+
                                     <i class="fas fa-phone"></i>
                                     {{ invoice.project.client.phone }}
                                 </div>
