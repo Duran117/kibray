@@ -35,19 +35,8 @@ export const GanttStageBar: React.FC<GanttStageBarProps> = ({
   const barHeight = Math.max(6, Math.floor(rowHeight * 0.18));
   const top = headerHeight + rowIndex * rowHeight + (rowHeight - barHeight) / 2;
 
-  console.log(`[GanttStageBar] Rendering stage ${category.id} (${category.name}):`, {
-    left, width, top, barHeight,
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    dateRangeStart: dateRange.start.toISOString(),
-    dayWidth: config.dayWidth
-  });
-
   // Don't render if bar is invisible
-  if (width <= 0) {
-    console.log(`[GanttStageBar] Stage ${category.id} has width <= 0, not rendering`);
-    return null;
-  }
+  if (width <= 0) return null;
 
   return (
     <div

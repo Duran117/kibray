@@ -172,16 +172,9 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
 
   const handleCreateStage = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[CreateItemModal] handleCreateStage called');
-    console.log('[CreateItemModal] newStageName:', newStageName);
-    console.log('[CreateItemModal] projectId:', projectId);
     
-    if (!newStageName.trim()) {
-      console.log('[CreateItemModal] ERROR: Stage name is empty');
-      return;
-    }
+    if (!newStageName.trim()) return;
     if (!projectId) {
-      console.log('[CreateItemModal] ERROR: projectId is missing');
       alert('Project ID not available.');
       return;
     }
@@ -193,14 +186,6 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
       const effectiveStartDate = stageStartDate || startDate || null;
       const effectiveEndDate = stageEndDate || endDate || null;
       
-      console.log('[CreateItemModal] Creating stage with:', {
-        projectId,
-        name: newStageName.trim(),
-        color: newStageColor,
-        startDate: effectiveStartDate,
-        endDate: effectiveEndDate
-      });
-      
       const newCat = await api.createCategory({
         project_id: projectId,
         name: newStageName.trim(),
@@ -209,20 +194,12 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
         end_date: effectiveEndDate,
       });
       
-      console.log('[CreateItemModal] Stage created successfully:', newCat);
-      console.log('[CreateItemModal] newCat.start_date:', newCat.start_date);
-      console.log('[CreateItemModal] newCat.end_date:', newCat.end_date);
-      
       setLocalCategories(prev => [...prev, newCat]);
       setCategoryId(newCat.id);
       setShowStageModal(false);
-      
-      console.log('[CreateItemModal] Calling onStageCreated callback...');
       onStageCreated?.(newCat);
-      console.log('[CreateItemModal] onStageCreated callback completed');
     } catch (err: any) {
-      console.error('[CreateItemModal] Failed to create stage:', err);
-      console.error('[CreateItemModal] Error details:', err.message);
+      console.error('Failed to create stage:', err);
       alert(`Failed to create stage: ${err.message}`);
     } finally {
       setCreatingStage(false);
@@ -436,10 +413,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                       </button>
                       <button
                         type="button"
-                        onClick={(e) => {
-                          console.log('[CreateStageBtn] Button clicked!');
-                          handleCreateStage(e as any);
-                        }}
+                        onClick={handleCreateStage}
                         className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
                         disabled={!newStageName.trim() || creatingStage}
                       >
