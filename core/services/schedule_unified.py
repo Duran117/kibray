@@ -51,8 +51,11 @@ def _get_v2_schedule_data(project: Project, phases) -> Dict[str, Any]:
         items_data = []
         
         for item in items:
-            # Use calculated_progress (from tasks) if available, otherwise use manual progress
+            # Use calculated_progress - handles status='done' as 100%
             item_progress = item.calculated_progress
+            # Double check: if status is done, ensure progress is 100
+            if item.status == 'done':
+                item_progress = 100
             item_data = {
                 'id': item.id,
                 'title': item.name,
@@ -60,7 +63,7 @@ def _get_v2_schedule_data(project: Project, phases) -> Dict[str, Any]:
                 'start_date': item.start_date,
                 'end_date': item.end_date,
                 'status': item.status,
-                'progress': item_progress,  # Use calculated progress
+                'progress': item_progress,
                 'weight_percent': float(item.weight_percent),
                 'is_milestone': item.is_milestone,
                 'assigned_to': item.assigned_to,

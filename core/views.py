@@ -833,12 +833,37 @@ def dashboard_client(request):
 
         recent_photos = SitePhoto.objects.filter(project=project).order_by("-created_at")[:6]
 
-        # Schedule próximo
-        next_schedule = (
-            Schedule.objects.filter(project=project, start_datetime__gte=timezone.now())
-            .order_by("start_datetime")
-            .first()
-        )
+        # Schedule próximo - buscar en Gantt V2 primero, luego Schedule legacy
+        from core.models import SchedulePhaseV2, ScheduleItemV2
+        
+        next_schedule = None
+        today = timezone.localdate()
+        
+        # Buscar en items del Gantt V2 (próximos items no completados)
+        next_gantt_item = ScheduleItemV2.objects.filter(
+            phase__project=project,
+            start_date__gte=today,
+            status__in=['planned', 'in_progress']
+        ).order_by('start_date').first()
+        
+        if next_gantt_item:
+            # Crear objeto compatible con template
+            class NextEventProxy:
+                def __init__(self, item):
+                    self.title = item.name
+                    self.description = item.description
+                    # Convertir date a datetime para el template
+                    self.start_datetime = timezone.make_aware(
+                        datetime.combine(item.start_date, datetime.min.time())
+                    ) if item.start_date else None
+            next_schedule = NextEventProxy(next_gantt_item)
+        else:
+            # Fallback al Schedule legacy
+            next_schedule = (
+                Schedule.objects.filter(project=project, start_datetime__gte=timezone.now())
+                .order_by("start_datetime")
+                .first()
+            )
 
         # Solicitudes cliente
         from core.models import ClientRequest

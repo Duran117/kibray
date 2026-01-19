@@ -980,8 +980,12 @@ class ScheduleItemV2(models.Model):
     def calculated_progress(self):
         """
         Calcula el progreso del item basado en sus tareas.
-        Si no hay tareas, usa el campo progress manual.
+        Si no hay tareas, usa el campo progress manual o 100 si está done.
         """
+        # If status is done, always return 100
+        if self.status == 'done':
+            return 100
+        
         tasks = self.tasks.all()
         if not tasks.exists():
             return self.progress
