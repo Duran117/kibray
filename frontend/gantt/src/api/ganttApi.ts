@@ -106,6 +106,7 @@ export class GanttApi {
       weight_percent: parseFloat(apiItem.weight_percent) || 0,
       calculated_progress: apiItem.calculated_progress || 0,
       remaining_weight_percent: apiItem.remaining_weight_percent || 100,
+      phase_remaining_weight_percent: apiItem.phase_remaining_weight_percent,
       is_milestone: apiItem.is_milestone || false,
       is_personal: false,
       assigned_to: apiItem.assigned_to,

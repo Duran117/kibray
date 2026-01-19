@@ -88,6 +88,7 @@ export interface GanttItem {
   weight_percent?: number;
   calculated_progress?: number;
   remaining_weight_percent?: number;
+  phase_remaining_weight_percent?: number; // Remaining weight available in the parent phase/stage
   is_milestone: boolean;
   is_personal: boolean;
   assigned_to?: number | null;

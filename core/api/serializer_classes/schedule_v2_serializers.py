@@ -66,6 +66,7 @@ class ScheduleItemV2Serializer(serializers.ModelSerializer):
     allow_sunday_effective = serializers.SerializerMethodField()
     calculated_progress = serializers.ReadOnlyField()
     remaining_weight_percent = serializers.ReadOnlyField()
+    phase_remaining_weight_percent = serializers.SerializerMethodField()
 
     class Meta:
         model = ScheduleItemV2
@@ -86,6 +87,7 @@ class ScheduleItemV2Serializer(serializers.ModelSerializer):
             "weight_percent",
             "calculated_progress",
             "remaining_weight_percent",
+            "phase_remaining_weight_percent",
             "order",
             "is_milestone",
             "allow_sunday_override",
@@ -105,6 +107,12 @@ class ScheduleItemV2Serializer(serializers.ModelSerializer):
         if obj.allow_sunday_override:
             return True
         return bool(obj.phase and obj.phase.allow_sunday)
+
+    def get_phase_remaining_weight_percent(self, obj):
+        """Return the remaining weight percent available in the phase."""
+        if obj.phase:
+            return obj.phase.remaining_weight_percent
+        return 100
 
 
 class SchedulePhaseV2Serializer(serializers.ModelSerializer):

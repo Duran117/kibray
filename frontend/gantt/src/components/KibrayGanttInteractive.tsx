@@ -403,8 +403,15 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       order: items.length,
     };
 
-    // Optimistic update
+    // Optimistic update - add item and update category's remaining weight
     setItems(prev => [...prev, tempItem]);
+    if (newItem.category_id && newItem.weight_percent > 0) {
+      setLocalCategories(prev => prev.map(cat => 
+        cat.id === newItem.category_id 
+          ? { ...cat, remaining_weight_percent: Math.max(0, (cat.remaining_weight_percent ?? 100) - newItem.weight_percent) }
+          : cat
+      ));
+    }
     setIsCreateModalOpen(false);
 
     if (onItemCreate) {
@@ -414,8 +421,23 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
         setItems(prev => prev.map(i => 
           i.id === tempItem.id ? createdItem : i
         ));
+        // Update category with actual remaining weight from the phase
+        if (createdItem.category_id && createdItem.phase_remaining_weight_percent !== undefined) {
+          setLocalCategories(prev => prev.map(cat => 
+            cat.id === createdItem.category_id 
+              ? { ...cat, remaining_weight_percent: createdItem.phase_remaining_weight_percent }
+              : cat
+          ));
+        }
       } catch (error) {
-        // Revert on error
+        // Revert on error - restore category weight and remove item
+        if (newItem.category_id && newItem.weight_percent > 0) {
+          setLocalCategories(prev => prev.map(cat => 
+            cat.id === newItem.category_id 
+              ? { ...cat, remaining_weight_percent: (cat.remaining_weight_percent ?? 0) + newItem.weight_percent }
+              : cat
+          ));
+        }
         setItems(prev => prev.filter(i => i.id !== tempItem.id));
         console.error('Failed to create item:', error);
       }
