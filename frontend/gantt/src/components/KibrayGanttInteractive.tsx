@@ -239,6 +239,9 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
 
   // Build visible rows
   const visibleRows = useMemo(() => {
+    console.log('[KibrayGantt] === COMPUTING VISIBLE ROWS ===');
+    console.log('[KibrayGantt] localCategories for rows:', localCategories.map(c => ({ id: c.id, name: c.name })));
+    
     const rows: { type: 'category' | 'item'; data: GanttCategory | GanttItem }[] = [];
     
     const sortedCategories = [...localCategories].sort((a, b) => a.order - b.order);
@@ -246,6 +249,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
 
     sortedCategories.forEach(category => {
       rows.push({ type: 'category', data: category });
+      console.log(`[KibrayGantt] Added category row: ${category.id} (${category.name})`);
 
       if (!collapsedCategories.has(category.id)) {
         const categoryItems = items
@@ -267,6 +271,8 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       });
     }
 
+    console.log('[KibrayGantt] Total rows:', rows.length);
+    console.log('[KibrayGantt] Category rows:', rows.filter(r => r.type === 'category').length);
     return rows;
   }, [localCategories, items, collapsedCategories, projectId]);
 
