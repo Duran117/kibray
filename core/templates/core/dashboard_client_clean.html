@@ -118,18 +118,35 @@
                 {% endif %}
             </div>
 
-            <!-- Next Event -->
+            <!-- Next Event / Recent Activity -->
             <div>
                 <h5 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                     <i class="bi bi-calendar-check text-indigo-600"></i>
+                    {% if data.next_schedule.status == 'done' %}
+                    {% trans "Latest Completed" %}
+                    {% elif data.next_schedule.status == 'in_progress' %}
+                    {% trans "Currently In Progress" %}
+                    {% else %}
                     {% trans "Next Event" %}
+                    {% endif %}
                 </h5>
                 {% if data.next_schedule %}
-                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h6 class="font-semibold text-slate-900 mb-2">{{ data.next_schedule.title }}</h6>
+                <div class="p-4 {% if data.next_schedule.status == 'done' %}bg-green-50 border-green-200{% elif data.next_schedule.status == 'in_progress' %}bg-yellow-50 border-yellow-200{% else %}bg-blue-50 border-blue-200{% endif %} border rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <h6 class="font-semibold text-slate-900">{{ data.next_schedule.title }}</h6>
+                        {% if data.next_schedule.status == 'done' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <i class="bi bi-check-circle mr-1"></i> {% trans "Completed" %}
+                        </span>
+                        {% elif data.next_schedule.status == 'in_progress' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <i class="bi bi-play-circle mr-1"></i> {% trans "In Progress" %}
+                        </span>
+                        {% endif %}
+                    </div>
                     <p class="text-sm text-slate-700 mb-2 flex items-center gap-2">
                         <i class="bi bi-clock"></i>
-                        {{ data.next_schedule.start_datetime|date:"D, M d 'at' g:i A" }}
+                        {{ data.next_schedule.start_datetime|date:"D, M d" }}
                     </p>
                     {% if data.next_schedule.description %}
                     <p class="text-sm text-slate-600">{{ data.next_schedule.description }}</p>
