@@ -91,8 +91,9 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   }, [categories]);
 
   const categoryDateRanges = useMemo(() => {
-    console.log('[KibrayGantt] Computing categoryDateRanges');
-    console.log('[KibrayGantt] localCategories:', localCategories);
+    console.log('[KibrayGantt] === COMPUTING DATE RANGES ===');
+    console.log('[KibrayGantt] localCategories count:', localCategories.length);
+    console.log('[KibrayGantt] items count:', items.length);
     
     const itemsByCategory = new Map<number, GanttItem[]>();
     items.forEach(item => {
@@ -101,12 +102,16 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       list.push(item);
       itemsByCategory.set(item.category_id, list);
     });
+    
+    console.log('[KibrayGantt] itemsByCategory:', Array.from(itemsByCategory.entries()).map(([id, items]) => ({ categoryId: id, itemCount: items.length })));
 
     const ranges = new Map<number, { start: Date; end: Date }>();
     localCategories.forEach(category => {
       console.log(`[KibrayGantt] Processing category ${category.id} (${category.name}):`, {
         start_date: category.start_date,
-        end_date: category.end_date
+        end_date: category.end_date,
+        start_date_type: typeof category.start_date,
+        end_date_type: typeof category.end_date
       });
       
       if (category.id < 0) return;
@@ -657,12 +662,17 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateItem}
         onStageCreated={(category) => {
-          console.log('[KibrayGantt] onStageCreated called with:', category);
-          console.log('[KibrayGantt] category.start_date:', category.start_date);
-          console.log('[KibrayGantt] category.end_date:', category.end_date);
+          console.log('[KibrayGantt] === STAGE CREATED ===');
+          console.log('[KibrayGantt] category received:', JSON.stringify(category, null, 2));
+          console.log('[KibrayGantt] category.id:', category.id);
+          console.log('[KibrayGantt] category.name:', category.name);
+          console.log('[KibrayGantt] category.start_date:', category.start_date, '| type:', typeof category.start_date);
+          console.log('[KibrayGantt] category.end_date:', category.end_date, '| type:', typeof category.end_date);
           setLocalCategories(prev => {
+            console.log('[KibrayGantt] Previous categories count:', prev.length);
             const newCategories = [...prev, category];
-            console.log('[KibrayGantt] New localCategories:', newCategories);
+            console.log('[KibrayGantt] New categories count:', newCategories.length);
+            console.log('[KibrayGantt] All categories:', newCategories.map(c => ({ id: c.id, name: c.name, start: c.start_date, end: c.end_date })));
             return newCategories;
           });
         }}
