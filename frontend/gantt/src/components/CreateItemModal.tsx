@@ -185,6 +185,14 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
       const effectiveStartDate = stageStartDate || startDate || null;
       const effectiveEndDate = stageEndDate || endDate || null;
       
+      console.log('[CreateItemModal] Creating stage with:', {
+        projectId,
+        name: newStageName.trim(),
+        color: newStageColor,
+        startDate: effectiveStartDate,
+        endDate: effectiveEndDate
+      });
+      
       const newCat = await api.createCategory({
         project_id: projectId,
         name: newStageName.trim(),
@@ -192,10 +200,18 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
         start_date: effectiveStartDate,
         end_date: effectiveEndDate,
       });
+      
+      console.log('[CreateItemModal] Stage created successfully:', newCat);
+      console.log('[CreateItemModal] newCat.start_date:', newCat.start_date);
+      console.log('[CreateItemModal] newCat.end_date:', newCat.end_date);
+      
       setLocalCategories(prev => [...prev, newCat]);
       setCategoryId(newCat.id);
       setShowStageModal(false);
+      
+      console.log('[CreateItemModal] Calling onStageCreated callback...');
       onStageCreated?.(newCat);
+      console.log('[CreateItemModal] onStageCreated callback completed');
     } catch (err) {
       console.error('Failed to create stage:', err);
       alert('Failed to create stage. Check console for details.');
