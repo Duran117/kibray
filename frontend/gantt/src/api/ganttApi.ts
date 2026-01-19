@@ -299,10 +299,9 @@ export class GanttApi {
       headers: this.getHeaders(),
       credentials: 'same-origin',
       body: JSON.stringify({
-        predecessor_id: predecessorId,
-        successor_id: successorId,
-        type,
-        lag_days: lagDays,
+        source_item: predecessorId,  // Backend uses source_item
+        target_item: successorId,    // Backend uses target_item
+        dependency_type: type,       // Backend uses dependency_type
       }),
     });
 
@@ -337,8 +336,9 @@ export class GanttApi {
       headers: this.getHeaders(),
       credentials: 'same-origin',
       body: JSON.stringify({
-        schedule_item_id: scheduleItemId,
-        ...task,
+        item: scheduleItemId,  // Backend expects 'item' not 'schedule_item_id'
+        title: task.title,
+        assigned_to: task.assigned_to,
       }),
     });
 
