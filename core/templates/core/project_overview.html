@@ -831,7 +831,7 @@
             <div class="text-center py-8 text-slate-400">
               <i class="bi bi-calendar-x text-3xl mb-2 block"></i>
               <span class="text-sm">{% trans "Sin tareas próximas" %}</span>
-              <a href="{% url 'project_schedule_gantt_react' project.id %}" class="block mt-2 text-indigo-600 hover:text-indigo-800 text-sm">
+              <a href="{% url 'schedule_gantt_react' project.id %}" class="block mt-2 text-indigo-600 hover:text-indigo-800 text-sm">
                 <i class="bi bi-plus-circle"></i> {% trans "Crear en Gantt" %}
               </a>
             </div>
@@ -848,7 +848,7 @@
           </h3>
         </div>
         <div class="p-4 grid grid-cols-2 gap-4">
-          <a href="{% url 'project_schedule_gantt_react' project.id %}" class="text-center p-4 bg-slate-50 rounded-lg hover:bg-indigo-50 hover:shadow transition cursor-pointer block no-underline">
+          <a href="{% url 'schedule_gantt_react' project.id %}" class="text-center p-4 bg-slate-50 rounded-lg hover:bg-indigo-50 hover:shadow transition cursor-pointer block no-underline">
             <div class="text-3xl font-bold text-indigo-600">{{ gantt_progress.total_items|default:"0" }}</div>
             <div class="text-xs text-slate-500 mt-1">{% trans "Items Gantt" %}</div>
           </a>
