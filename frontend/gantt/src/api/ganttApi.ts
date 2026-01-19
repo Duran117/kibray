@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { GanttData, GanttItem, GanttCategory, GanttDependency, GanttMode } from '../types/gantt';
+import { toV2ItemPayload } from './adapters';
 
 const DEFAULT_BASE_URL = '/api/v1';
 
@@ -89,31 +90,77 @@ export class GanttApi {
   // ---------------------------------------------------------------------------
 
   /**
+   * Transform API item response to internal GanttItem format
+   */
+  private transformItemResponse(apiItem: any): GanttItem {
+    return {
+      id: apiItem.id,
+      title: apiItem.name,
+      description: apiItem.description || '',
+      category_id: apiItem.phase,
+      project_id: apiItem.project,
+      start_date: apiItem.start_date,
+      end_date: apiItem.end_date,
+      status: this.mapStatusFromApi(apiItem.status),
+      percent_complete: apiItem.progress || 0,
+      weight_percent: parseFloat(apiItem.weight_percent) || 0,
+      calculated_progress: apiItem.calculated_progress || 0,
+      remaining_weight_percent: apiItem.remaining_weight_percent || 100,
+      is_milestone: apiItem.is_milestone || false,
+      is_personal: false,
+      assigned_to: apiItem.assigned_to,
+      assigned_to_name: apiItem.assigned_to_name,
+      tasks: apiItem.tasks || [],
+      order: apiItem.order || 0,
+      notes: '',
+      created_at: apiItem.created_at,
+      updated_at: apiItem.updated_at,
+    };
+  }
+
+  /**
+   * Map API status to internal ItemStatus
+   */
+  private mapStatusFromApi(status: string): 'not_started' | 'in_progress' | 'completed' | 'done' | 'blocked' | 'on_hold' {
+    const statusMap: Record<string, 'not_started' | 'in_progress' | 'completed' | 'done' | 'blocked' | 'on_hold'> = {
+      'planned': 'not_started',
+      'in_progress': 'in_progress',
+      'done': 'done',
+      'blocked': 'blocked',
+    };
+    return statusMap[status] || 'not_started';
+  }
+
+  /**
    * Create a new schedule item
    */
   async createItem(item: Partial<GanttItem>): Promise<GanttItem> {
+    const payload = toV2ItemPayload(item);
     const response = await fetch(`${this.baseUrl}/gantt/v2/items/`, {
       method: 'POST',
       headers: this.getHeaders(),
       credentials: 'same-origin',
-      body: JSON.stringify(item),
+      body: JSON.stringify(payload),
     });
 
-    return this.handleResponse<GanttItem>(response);
+    const apiItem = await this.handleResponse<any>(response);
+    return this.transformItemResponse(apiItem);
   }
 
   /**
    * Update an existing schedule item
    */
   async updateItem(itemId: number, updates: Partial<GanttItem>): Promise<GanttItem> {
+    const payload = toV2ItemPayload(updates);
     const response = await fetch(`${this.baseUrl}/gantt/v2/items/${itemId}/`, {
       method: 'PATCH',
       headers: this.getHeaders(),
       credentials: 'same-origin',
-      body: JSON.stringify(updates),
+      body: JSON.stringify(payload),
     });
 
-    return this.handleResponse<GanttItem>(response);
+    const apiItem = await this.handleResponse<any>(response);
+    return this.transformItemResponse(apiItem);
   }
 
   /**

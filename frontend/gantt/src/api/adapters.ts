@@ -123,6 +123,7 @@ function transformTaskV2(task: any): GanttTask {
  */
 function mapStatusV2(status: string): ItemStatus {
   const statusMap: Record<string, ItemStatus> = {
+    'planned': 'not_started',
     'not_started': 'not_started',
     'pending': 'not_started',
     'in_progress': 'in_progress',
@@ -154,6 +155,21 @@ function mapDependencyType(type: string): 'FS' | 'SS' | 'FF' | 'SF' {
 }
 
 /**
+ * Map internal status to V2 API status
+ */
+function mapStatusToV2(status: string | undefined): string {
+  const statusMap: Record<string, string> = {
+    'not_started': 'planned',
+    'in_progress': 'in_progress',
+    'completed': 'done',
+    'done': 'done',
+    'blocked': 'blocked',
+    'on_hold': 'blocked', // No hay on_hold en V2, usar blocked
+  };
+  return statusMap[status || 'not_started'] || 'planned';
+}
+
+/**
  * Transform internal GanttItem to V2 API format for saving
  */
 export function toV2ItemPayload(item: Partial<GanttItem>): any {
@@ -165,7 +181,7 @@ export function toV2ItemPayload(item: Partial<GanttItem>): any {
     start_date: item.start_date,
     end_date: item.end_date,
     assigned_to: item.assigned_to,
-    status: item.status,
+    status: mapStatusToV2(item.status),
     progress: item.percent_complete,
     weight_percent: item.weight_percent,
     order: item.order,

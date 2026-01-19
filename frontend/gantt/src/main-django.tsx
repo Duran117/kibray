@@ -6,7 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { KibrayGantt, CalendarView, ViewSwitcher, ViewMode } from './components';
 import { GanttMode, GanttItem, GanttCategory, GanttDependency } from './types/gantt';
-import { transformV2Response, toV2ItemPayload, toV2TaskPayload } from './api/adapters';
+import { transformV2Response, toV2TaskPayload } from './api/adapters';
 import { GanttApi } from './api/ganttApi';
 import './index.css';
 
@@ -107,8 +107,8 @@ const KibrayGanttApp: React.FC<KibrayGanttAppConfig> = ({
     if (!apiRef.current || !item.id) return;
 
     try {
-      const payload = toV2ItemPayload(item);
-      await apiRef.current.updateItem(item.id, payload);
+      // Pass frontend format - ganttApi.updateItem handles transformation
+      await apiRef.current.updateItem(item.id, item);
       setState(prev => ({
         ...prev,
         items: prev.items.map(i => i.id === item.id ? { ...i, ...item } : i),
@@ -124,11 +124,11 @@ const KibrayGanttApp: React.FC<KibrayGanttAppConfig> = ({
     if (!apiRef.current) throw new Error('API not initialized');
 
     try {
-      const payload = toV2ItemPayload({
+      // Pass frontend format with project_id - ganttApi.createItem handles transformation
+      const createdItem = await apiRef.current.createItem({
         ...item,
         project_id: projectId,
       });
-      const createdItem = await apiRef.current.createItem(payload);
       setState(prev => ({
         ...prev,
         items: [...prev.items, createdItem],
