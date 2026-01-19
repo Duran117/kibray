@@ -23,9 +23,10 @@ from .models import (
     PMBlockedDay,
     Profile,
     Project,
-    ScheduleItem,
     Task,
 )
+
+from .services.schedule_unified import get_upcoming_milestones, get_project_progress
 
 
 @login_required
@@ -143,29 +144,19 @@ def pm_calendar_view(request):
             }
         )
 
-    # Schedule milestones (next 30 days)
-    milestones = (
-        ScheduleItem.objects.filter(
-            project__pm_assignments__pm=user,
-            is_milestone=True,
-            planned_start__gte=today,
-            planned_start__lte=today + timedelta(days=30),
-            status__in=["NOT_STARTED", "IN_PROGRESS"],
-        )
-        .select_related("project", "category")
-        .order_by("planned_start")[:10]
-    )
+    # Schedule milestones (next 30 days) - using unified service
+    milestones = get_upcoming_milestones(user=user, days_ahead=30)[:10]
 
     for milestone in milestones:
-        days_until = (milestone.planned_start - today).days
+        days_until = (milestone['date'] - today).days
         urgency = "danger" if days_until <= 3 else "warning" if days_until <= 7 else "info"
 
         upcoming_deadlines.append(
             {
-                "date": milestone.planned_start,
-                "title": f"Milestone: {milestone.title}",
-                "project": milestone.project.name,
-                "project_id": milestone.project.id,
+                "date": milestone['date'],
+                "title": f"Milestone: {milestone['title']}",
+                "project": milestone['project_name'],
+                "project_id": milestone['project'].id,
                 "type": "milestone",
                 "icon": "🚧",
                 "urgency": urgency,
@@ -226,13 +217,8 @@ def pm_calendar_view(request):
         priority__in=["high", "urgent"],
         status__in=["Pendiente", "En Progreso"],
     ).count()
-    upcoming_milestone_count = ScheduleItem.objects.filter(
-        project__pm_assignments__pm=user,
-        is_milestone=True,
-        planned_start__gte=today,
-        planned_start__lte=today + timedelta(days=7),
-        status__in=["NOT_STARTED", "IN_PROGRESS"],
-    ).count()
+    # Use unified service for milestones count
+    upcoming_milestone_count = len(get_upcoming_milestones(user=user, days_ahead=7))
 
     workload_score = min(
         (active_count * 20) + (urgent_task_count * 5) + (upcoming_milestone_count * 10), 100
@@ -420,38 +406,41 @@ def pm_calendar_api_data(request):
             }
         )
 
-    # Project milestones
-    milestones = ScheduleItem.objects.filter(
-        project__pm_assignments__pm=user,
-        is_milestone=True,
-        planned_start__gte=start_date,
-        planned_start__lte=end_date,
-    ).select_related("project")
+    # Project milestones - using unified service
+    from .services.schedule_unified import get_schedule_items_for_date_range
+    
+    milestone_items = get_schedule_items_for_date_range(
+        start_date=start_date,
+        end_date=end_date,
+        user=user,
+    )
+    milestones = [m for m in milestone_items if m.get('is_milestone')]
 
     for milestone in milestones:
+        status = milestone.get('status', 'planned')
         color = (
             "#ffc107"
-            if milestone.status == "NOT_STARTED"
+            if status == "planned"
             else "#17a2b8"
-            if milestone.status == "IN_PROGRESS"
+            if status == "in_progress"
             else "#28a745"
         )
 
         events.append(
             {
-                "id": f"milestone-{milestone.id}",
-                "title": f"🚧 {milestone.title}",
-                "start": str(milestone.planned_start),
-                "end": str(milestone.planned_end or milestone.planned_start),
+                "id": f"milestone-{milestone['source']}-{milestone['id']}",
+                "title": f"🚧 {milestone['title']}",
+                "start": str(milestone['start_date']),
+                "end": str(milestone.get('end_date') or milestone['start_date']),
                 "backgroundColor": color,
                 "borderColor": color,
                 "textColor": "#ffffff",
                 "extendedProps": {
                     "type": "milestone",
-                    "project": milestone.project.name,
-                    "project_id": milestone.project.id,
-                    "status": milestone.status,
-                    "percent_complete": milestone.percent_complete,
+                    "project": milestone['project_name'],
+                    "project_id": milestone['project'].id,
+                    "status": status,
+                    "percent_complete": milestone.get('progress', 0),
                 },
             }
         )
