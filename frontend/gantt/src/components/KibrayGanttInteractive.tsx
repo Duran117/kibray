@@ -116,6 +116,13 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       let start = category.start_date ? new Date(category.start_date) : minItemStart;
       let end = category.end_date ? new Date(category.end_date) : maxItemEnd;
 
+      // If stage has no dates and no items, use default range (today + 2 weeks)
+      if (!start && !end) {
+        const today = new Date();
+        start = today;
+        end = addDays(today, 14);
+      }
+
       if (start && !end) end = start;
       if (end && !start) start = end;
 

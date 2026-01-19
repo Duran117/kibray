@@ -181,12 +181,16 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     setCreatingStage(true);
     try {
       const api = getGanttApi();
+      // Use current item dates as default if stage dates not provided
+      const effectiveStartDate = stageStartDate || startDate || null;
+      const effectiveEndDate = stageEndDate || endDate || null;
+      
       const newCat = await api.createCategory({
         project_id: projectId,
         name: newStageName.trim(),
         color: newStageColor,
-        start_date: stageStartDate || null,
-        end_date: stageEndDate || null,
+        start_date: effectiveStartDate,
+        end_date: effectiveEndDate,
       });
       setLocalCategories(prev => [...prev, newCat]);
       setCategoryId(newCat.id);
