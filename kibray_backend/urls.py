@@ -870,6 +870,12 @@ urlpatterns = [
         views.client_assign_project,
         name="client_assign_project",
     ),
+    # ===== GESTIÓN DE ORGANIZACIONES DE CLIENTES =====
+    path("organizations/", views.organization_list, name="organization_list"),
+    path("organizations/create/", views.organization_create, name="organization_create"),
+    path("organizations/<int:org_id>/", views.organization_detail, name="organization_detail"),
+    path("organizations/<int:org_id>/edit/", views.organization_edit, name="organization_edit"),
+    path("organizations/<int:org_id>/delete/", views.organization_delete, name="organization_delete"),
     # ===== REMOVED: Custom Admin Panel (Phase 2 Cleanup) =====
     # Previously: path("admin-panel/", include("core.urls_admin"))
     # Reason: Redundant with Django's built-in admin at /admin/

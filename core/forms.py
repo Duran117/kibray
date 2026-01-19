@@ -1729,20 +1729,34 @@ class ClientCreationForm(forms.ModelForm):
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "(123) 456-7890"}),
         label="Teléfono",
     )
-    company = forms.CharField(
+    # Campo de organización (opcional - para clientes corporativos)
+    organization = forms.ModelChoiceField(
+        queryset=None,  # Se inicializa en __init__
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Organización (Compañía)",
+        help_text="Selecciona una organización existente o deja vacío para cliente individual",
+        empty_label="-- Cliente Individual (Sin organización) --",
+    )
+    # Rol dentro de la organización
+    client_role = forms.ChoiceField(
+        choices=[
+            ("project_lead", "Project Lead"),
+            ("observer", "Observer"),
+            ("accounting", "Accounting"),
+            ("executive", "Executive"),
+            ("owner", "Owner"),
+        ],
+        initial="project_lead",
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Rol en la Organización",
+    )
+    job_title = forms.CharField(
         max_length=100,
         required=False,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Nombre de la empresa"}
-        ),
-        label="Empresa",
-    )
-    address = forms.CharField(
-        required=False,
-        widget=forms.Textarea(
-            attrs={"class": "form-control", "rows": 2, "placeholder": "Dirección completa"}
-        ),
-        label="Dirección",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Director de Operaciones"}),
+        label="Cargo/Título",
     )
     language = forms.ChoiceField(
         choices=[("en", "English"), ("es", "Español")],
@@ -1760,6 +1774,17 @@ class ClientCreationForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["email", "first_name", "last_name"]
+
+    def __init__(self, *args, **kwargs):
+        # Extraer organization_id si viene en la URL (para preseleccionar)
+        initial_org = kwargs.pop("initial_organization", None)
+        super().__init__(*args, **kwargs)
+        
+        from core.models import ClientOrganization
+        self.fields["organization"].queryset = ClientOrganization.objects.filter(is_active=True).order_by("name")
+        
+        if initial_org:
+            self.fields["organization"].initial = initial_org
 
     def clean_email(self):
         """Validación estricta de email con normalización y verificación de duplicados"""
@@ -1831,6 +1856,29 @@ class ClientCreationForm(forms.ModelForm):
                 profile.language = self.cleaned_data.get("language", "en")
                 profile.save()
 
+            # Crear ClientContact si se seleccionó una organización
+            organization = self.cleaned_data.get("organization")
+            if organization:
+                from core.models import ClientContact
+                
+                client_role = self.cleaned_data.get("client_role", "project_lead")
+                phone = self.cleaned_data.get("phone", "")
+                job_title = self.cleaned_data.get("job_title", "")
+                
+                ClientContact.objects.create(
+                    user=user,
+                    organization=organization,
+                    role=client_role,
+                    job_title=job_title,
+                    phone_direct=phone,
+                    can_approve_change_orders=(client_role in ["project_lead", "accounting", "owner"]),
+                    can_view_financials=(client_role in ["project_lead", "accounting", "owner", "executive"]),
+                    can_create_tasks=(client_role == "project_lead"),
+                    can_approve_colors=(client_role in ["project_lead", "owner"]),
+                    receive_daily_reports=(client_role == "project_lead"),
+                    receive_invoice_notifications=(client_role in ["project_lead", "accounting", "owner"]),
+                )
+
             # Guardar información adicional en sesión para email
             self.temp_password = temp_password
 
@@ -1871,6 +1919,35 @@ class ClientEditForm(forms.ModelForm):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
         label="Usuario Activo",
     )
+    
+    # Campos de organización
+    organization = forms.ModelChoiceField(
+        queryset=None,  # Se inicializa en __init__
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Organización (Compañía)",
+        help_text="Selecciona una organización o deja vacío para cliente individual",
+        empty_label="-- Cliente Individual (Sin organización) --",
+    )
+    client_role = forms.ChoiceField(
+        choices=[
+            ("project_lead", "Project Lead"),
+            ("observer", "Observer"),
+            ("accounting", "Accounting"),
+            ("executive", "Executive"),
+            ("owner", "Owner"),
+        ],
+        initial="project_lead",
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Rol en la Organización",
+    )
+    job_title = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Director de Operaciones"}),
+        label="Cargo/Título",
+    )
 
     class Meta:
         model = User
@@ -1883,9 +1960,76 @@ class ClientEditForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk and hasattr(self.instance, "profile"):
+        
+        from core.models import ClientOrganization, ClientContact
+        
+        # Inicializar queryset de organizaciones
+        self.fields["organization"].queryset = ClientOrganization.objects.filter(is_active=True).order_by("name")
+        
+        if self.instance and self.instance.pk:
             # Cargar datos del perfil si existe
-            self.fields["language"].initial = self.instance.profile.language
+            if hasattr(self.instance, "profile"):
+                self.fields["language"].initial = self.instance.profile.language
+            
+            # Cargar datos de ClientContact si existe
+            contact = ClientContact.objects.filter(user=self.instance).first()
+            if contact:
+                self.fields["organization"].initial = contact.organization
+                self.fields["client_role"].initial = contact.role
+                self.fields["job_title"].initial = contact.job_title
+                self.fields["phone"].initial = contact.phone_direct
+    
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+        
+        if commit:
+            from core.models import ClientContact
+            
+            organization = self.cleaned_data.get("organization")
+            client_role = self.cleaned_data.get("client_role", "project_lead")
+            job_title = self.cleaned_data.get("job_title", "")
+            phone = self.cleaned_data.get("phone", "")
+            
+            # Buscar ClientContact existente
+            contact = ClientContact.objects.filter(user=user).first()
+            
+            if organization:
+                # Si hay organización, crear o actualizar ClientContact
+                if contact:
+                    # Actualizar existente
+                    contact.organization = organization
+                    contact.role = client_role
+                    contact.job_title = job_title
+                    contact.phone_direct = phone
+                    contact.can_approve_change_orders = (client_role in ["project_lead", "accounting", "owner"])
+                    contact.can_view_financials = (client_role in ["project_lead", "accounting", "owner", "executive"])
+                    contact.can_create_tasks = (client_role == "project_lead")
+                    contact.can_approve_colors = (client_role in ["project_lead", "owner"])
+                    contact.receive_daily_reports = (client_role == "project_lead")
+                    contact.receive_invoice_notifications = (client_role in ["project_lead", "accounting", "owner"])
+                    contact.save()
+                else:
+                    # Crear nuevo
+                    ClientContact.objects.create(
+                        user=user,
+                        organization=organization,
+                        role=client_role,
+                        job_title=job_title,
+                        phone_direct=phone,
+                        can_approve_change_orders=(client_role in ["project_lead", "accounting", "owner"]),
+                        can_view_financials=(client_role in ["project_lead", "accounting", "owner", "executive"]),
+                        can_create_tasks=(client_role == "project_lead"),
+                        can_approve_colors=(client_role in ["project_lead", "owner"]),
+                        receive_daily_reports=(client_role == "project_lead"),
+                        receive_invoice_notifications=(client_role in ["project_lead", "accounting", "owner"]),
+                    )
+            else:
+                # Sin organización = cliente individual
+                # Si había un ClientContact, eliminarlo
+                if contact:
+                    contact.delete()
+        
+        return user
 
 
 class ClientPasswordResetForm(forms.Form):
@@ -1916,15 +2060,125 @@ class ClientPasswordResetForm(forms.Form):
         return cleaned_data
 
 
+# ===== GESTIÓN DE ORGANIZACIONES DE CLIENTES =====
+class ClientOrganizationForm(forms.ModelForm):
+    """Formulario para crear/editar una organización de cliente (compañía)"""
+
+    class Meta:
+        from core.models import ClientOrganization
+        model = ClientOrganization
+        fields = [
+            "name",
+            "legal_name",
+            "tax_id",
+            "billing_address",
+            "billing_city",
+            "billing_state",
+            "billing_zip",
+            "billing_email",
+            "billing_phone",
+            "payment_terms_days",
+            "website",
+            "notes",
+            "is_active",
+        ]
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre de la compañía"}
+            ),
+            "legal_name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre legal (para facturas)"}
+            ),
+            "tax_id": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "EIN / Tax ID"}
+            ),
+            "billing_address": forms.Textarea(
+                attrs={"class": "form-control", "rows": 2, "placeholder": "Dirección de facturación"}
+            ),
+            "billing_city": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ciudad"}
+            ),
+            "billing_state": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Estado"}
+            ),
+            "billing_zip": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Código postal"}
+            ),
+            "billing_email": forms.EmailInput(
+                attrs={"class": "form-control", "placeholder": "email@empresa.com"}
+            ),
+            "billing_phone": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "(123) 456-7890"}
+            ),
+            "payment_terms_days": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "30"}
+            ),
+            "website": forms.URLInput(
+                attrs={"class": "form-control", "placeholder": "https://www.empresa.com"}
+            ),
+            "notes": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3, "placeholder": "Notas internas"}
+            ),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+        labels = {
+            "name": "Nombre de la Compañía",
+            "legal_name": "Nombre Legal",
+            "tax_id": "Tax ID / EIN",
+            "billing_address": "Dirección de Facturación",
+            "billing_city": "Ciudad",
+            "billing_state": "Estado",
+            "billing_zip": "Código Postal",
+            "billing_email": "Email de Facturación",
+            "billing_phone": "Teléfono",
+            "payment_terms_days": "Términos de Pago (días)",
+            "website": "Sitio Web",
+            "notes": "Notas Internas",
+            "is_active": "Organización Activa",
+        }
+
+    def clean_billing_email(self):
+        email = self.cleaned_data.get("billing_email")
+        if email:
+            email = email.lower().strip()
+        return email
+
+    def clean_name(self):
+        name = self.cleaned_data.get("name")
+        if not name or not name.strip():
+            raise ValidationError("El nombre de la compañía es obligatorio.")
+        return name.strip()
+
+
 # ===== GESTIÓN DE PROYECTOS =====
 class ProjectCreateForm(forms.ModelForm):
     """Formulario para crear un nuevo proyecto"""
+    
+    # Campos de organización de cliente
+    billing_organization = forms.ModelChoiceField(
+        queryset=None,  # Se inicializa en __init__
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Organización de Facturación",
+        help_text="Selecciona la empresa cliente para facturación",
+        empty_label="-- Sin organización (cliente individual) --",
+    )
+    project_lead = forms.ModelChoiceField(
+        queryset=None,  # Se inicializa en __init__
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Contacto Principal (Project Lead)",
+        help_text="Contacto principal del cliente para este proyecto",
+        empty_label="-- Seleccionar contacto --",
+    )
 
     class Meta:
         model = Project
         fields = [
             "name",
             "client",
+            "billing_organization",
+            "project_lead",
             "address",
             "start_date",
             "end_date",
@@ -1997,6 +2251,26 @@ class ProjectCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        from core.models import ClientOrganization, ClientContact
+        
+        # Inicializar querysets de organización y contactos
+        self.fields["billing_organization"].queryset = ClientOrganization.objects.filter(
+            is_active=True
+        ).order_by("name")
+        
+        # Si hay una instancia y tiene organización, filtrar contactos de esa org
+        if self.instance and self.instance.pk and self.instance.billing_organization:
+            self.fields["project_lead"].queryset = ClientContact.objects.filter(
+                organization=self.instance.billing_organization,
+                is_active=True
+            ).select_related("user").order_by("user__first_name")
+        else:
+            # Mostrar todos los contactos activos
+            self.fields["project_lead"].queryset = ClientContact.objects.filter(
+                is_active=True
+            ).select_related("user", "organization").order_by("organization__name", "user__first_name")
+        
         # Campos opcionales
         self.fields["end_date"].required = False
         self.fields["description"].required = False
@@ -2006,6 +2280,8 @@ class ProjectCreateForm(forms.ModelForm):
         self.fields["paint_codes"].required = False
         self.fields["stains_or_finishes"].required = False
         self.fields["number_of_rooms_or_areas"].required = False
+        self.fields["billing_organization"].required = False
+        self.fields["project_lead"].required = False
 
     def clean(self):
         cleaned_data = super().clean()

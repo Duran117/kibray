@@ -134,6 +134,85 @@
                     </dl>
                 </div>
             </div>
+            
+            <!-- Organización (si aplica) -->
+            {% if organization %}
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>
+                        {% trans "Organización" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">
+                            <i class="bi bi-building me-1"></i> {% trans "Empresa:" %}
+                        </dt>
+                        <dd class="col-sm-7">
+                            <a href="{% url 'organization_detail' organization.id %}">
+                                <strong>{{ organization.name }}</strong>
+                            </a>
+                        </dd>
+                        
+                        {% if client_contact.role %}
+                        <dt class="col-sm-5">
+                            <i class="bi bi-person-badge me-1"></i> {% trans "Rol:" %}
+                        </dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-primary">{{ client_contact.get_role_display }}</span>
+                        </dd>
+                        {% endif %}
+                        
+                        {% if client_contact.job_title %}
+                        <dt class="col-sm-5">
+                            <i class="bi bi-briefcase me-1"></i> {% trans "Cargo:" %}
+                        </dt>
+                        <dd class="col-sm-7">{{ client_contact.job_title }}</dd>
+                        {% endif %}
+                        
+                        {% if client_contact.phone_direct %}
+                        <dt class="col-sm-5">
+                            <i class="bi bi-telephone me-1"></i> {% trans "Teléfono:" %}
+                        </dt>
+                        <dd class="col-sm-7">{{ client_contact.phone_direct }}</dd>
+                        {% endif %}
+                    </dl>
+                    
+                    <!-- Permisos -->
+                    <hr class="my-3">
+                    <h6 class="text-muted mb-2">{% trans "Permisos" %}</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% if client_contact.can_approve_change_orders %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> {% trans "Aprobar Change Orders" %}</span>
+                        {% endif %}
+                        {% if client_contact.can_view_financials %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> {% trans "Ver Financieros" %}</span>
+                        {% endif %}
+                        {% if client_contact.can_create_tasks %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> {% trans "Crear Tareas" %}</span>
+                        {% endif %}
+                        {% if client_contact.can_approve_colors %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> {% trans "Aprobar Colores" %}</span>
+                        {% endif %}
+                        {% if client_contact.receive_daily_reports %}
+                            <span class="badge bg-info"><i class="bi bi-envelope"></i> {% trans "Reportes Diarios" %}</span>
+                        {% endif %}
+                        {% if client_contact.receive_invoice_notifications %}
+                            <span class="badge bg-info"><i class="bi bi-receipt"></i> {% trans "Notif. Facturas" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow-sm mt-3 border-warning">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-person-fill text-warning" style="font-size: 2rem;"></i>
+                    <p class="mb-1 mt-2"><strong>{% trans "Cliente Individual" %}</strong></p>
+                    <small class="text-muted">{% trans "No pertenece a ninguna organización" %}</small>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Proyectos Asignados -->
@@ -218,6 +297,38 @@
                     {% endif %}
                 </div>
             </div>
+            
+            <!-- Proyectos de la Organización (si aplica) -->
+            {% if organization_projects %}
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>
+                        {% trans "Otros Proyectos de" %} {{ organization.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {% trans "Proyectos facturados a la organización pero sin acceso directo asignado a este contacto" %}
+                    </p>
+                    <div class="list-group list-group-flush">
+                        {% for project in organization_projects %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <strong>{{ project.name }}</strong>
+                                <br><small class="text-muted">{{ project.address }}</small>
+                            </div>
+                            <a href="{% url 'client_assign_project' client.id %}?project={{ project.id }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-circle me-1"></i> {% trans "Dar Acceso" %}
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 

@@ -11428,7 +11428,7 @@ El equipo de Kibray
 @staff_member_required
 def client_detail(request, user_id):
     """Detalle de un cliente con sus proyectos asignados"""
-    from core.models import ClientProjectAccess
+    from core.models import ClientProjectAccess, ClientContact
 
     client = get_object_or_404(User, id=user_id)
 
@@ -11437,8 +11437,21 @@ def client_detail(request, user_id):
         messages.error(request, "Este usuario no es un cliente.")
         return redirect("client_list")
 
+    # Obtener ClientContact si existe (cliente corporativo)
+    client_contact = ClientContact.objects.filter(user=client).select_related("organization").first()
+    
     # Obtener proyectos asignados
     project_accesses = ClientProjectAccess.objects.filter(user=client).select_related("project")
+    
+    # Si tiene organización, obtener también proyectos de la organización
+    organization_projects = []
+    if client_contact and client_contact.organization:
+        from core.models import Project
+        organization_projects = Project.objects.filter(
+            billing_organization=client_contact.organization
+        ).exclude(
+            id__in=project_accesses.values_list("project_id", flat=True)
+        ).order_by("-created_at")[:10]
 
     # Actividad reciente
     recent_comments = (
@@ -11461,7 +11474,10 @@ def client_detail(request, user_id):
 
     context = {
         "client": client,
+        "client_contact": client_contact,
+        "organization": client_contact.organization if client_contact else None,
         "project_accesses": project_accesses,
+        "organization_projects": organization_projects,
         "recent_comments": recent_comments,
         "recent_tasks": recent_tasks,
         "recent_requests": recent_requests,
@@ -11688,6 +11704,172 @@ def client_assign_project(request, user_id):
     }
 
     return render(request, "core/client_assign_project.html", context)
+
+
+# ========================================
+# GESTIÓN DE ORGANIZACIONES DE CLIENTES
+# ========================================
+
+
+@login_required
+@staff_member_required
+def organization_list(request):
+    """Lista de todas las organizaciones de clientes"""
+    from core.models import ClientOrganization
+
+    organizations = ClientOrganization.objects.all().order_by("name")
+
+    # Búsqueda
+    search_query = request.GET.get("search", "").strip()
+    if search_query:
+        organizations = organizations.filter(
+            Q(name__icontains=search_query)
+            | Q(legal_name__icontains=search_query)
+            | Q(billing_email__icontains=search_query)
+            | Q(tax_id__icontains=search_query)
+        )
+
+    # Filtro por estado
+    status_filter = request.GET.get("status", "")
+    if status_filter == "active":
+        organizations = organizations.filter(is_active=True)
+    elif status_filter == "inactive":
+        organizations = organizations.filter(is_active=False)
+
+    # Paginación
+    paginator = Paginator(organizations, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "page_obj": page_obj,
+        "search_query": search_query,
+        "status_filter": status_filter,
+        "total_organizations": ClientOrganization.objects.count(),
+    }
+
+    return render(request, "core/organization_list.html", context)
+
+
+@login_required
+@staff_member_required
+def organization_create(request):
+    """Crear nueva organización de cliente"""
+    from core.forms import ClientOrganizationForm
+
+    if request.method == "POST":
+        form = ClientOrganizationForm(request.POST)
+        if form.is_valid():
+            org = form.save(commit=False)
+            org.created_by = request.user
+            org.save()
+            messages.success(request, f'Organización "{org.name}" creada exitosamente.')
+            return redirect("organization_detail", org_id=org.id)
+    else:
+        form = ClientOrganizationForm()
+
+    return render(request, "core/organization_form.html", {"form": form, "is_create": True})
+
+
+@login_required
+@staff_member_required
+def organization_detail(request, org_id):
+    """Detalle de una organización con sus contactos y proyectos"""
+    from core.models import ClientOrganization, ClientContact
+
+    org = get_object_or_404(ClientOrganization, id=org_id)
+
+    # Contactos de esta organización
+    contacts = ClientContact.objects.filter(organization=org).select_related("user")
+
+    # Proyectos vinculados a esta organización
+    projects = Project.objects.filter(billing_organization=org).order_by("-created_at")
+
+    context = {
+        "organization": org,
+        "contacts": contacts,
+        "projects": projects,
+    }
+
+    return render(request, "core/organization_detail.html", context)
+
+
+@login_required
+@staff_member_required
+def organization_edit(request, org_id):
+    """Editar organización existente"""
+    from core.models import ClientOrganization
+    from core.forms import ClientOrganizationForm
+
+    org = get_object_or_404(ClientOrganization, id=org_id)
+
+    if request.method == "POST":
+        form = ClientOrganizationForm(request.POST, instance=org)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Organización "{org.name}" actualizada exitosamente.')
+            return redirect("organization_detail", org_id=org.id)
+    else:
+        form = ClientOrganizationForm(instance=org)
+
+    return render(
+        request, "core/organization_form.html", {"form": form, "organization": org, "is_create": False}
+    )
+
+
+@login_required
+@staff_member_required
+def organization_delete(request, org_id):
+    """Desactivar o eliminar una organización"""
+    from core.models import ClientOrganization, ClientContact
+
+    org = get_object_or_404(ClientOrganization, id=org_id)
+
+    if request.method == "POST":
+        action = request.POST.get("action", "deactivate")
+
+        # Logging de auditoría
+        import logging
+        audit_logger = logging.getLogger("django")
+        audit_logger.warning(
+            f"ORGANIZATION_DELETE_ATTEMPT | Actor: {request.user.username} (ID:{request.user.id}) | "
+            f"Target: {org.name} (ID:{org.id}) | Action: {action} | "
+            f"IP: {request.META.get('REMOTE_ADDR')}"
+        )
+
+        if action == "deactivate":
+            org.is_active = False
+            org.save()
+            messages.success(request, f'Organización "{org.name}" desactivada exitosamente.')
+        elif action == "delete":
+            # Verificar dependencias
+            contact_count = ClientContact.objects.filter(organization=org).count()
+            project_count = Project.objects.filter(billing_organization=org).count()
+
+            if contact_count > 0 or project_count > 0:
+                messages.error(
+                    request,
+                    f"❌ No se puede eliminar esta organización porque tiene: "
+                    f"{contact_count} contactos y {project_count} proyectos vinculados. "
+                    f'Usa "Desactivar" para preservar la integridad de los datos.',
+                )
+                return redirect("organization_detail", org_id=org.id)
+
+            org_name = org.name
+            org.delete()
+            messages.success(request, f'Organización "{org_name}" eliminada permanentemente.')
+            return redirect("organization_list")
+
+        return redirect("organization_detail", org_id=org.id)
+
+    # GET: Mostrar estadísticas para confirmar
+    context = {
+        "organization": org,
+        "contact_count": ClientContact.objects.filter(organization=org).count(),
+        "project_count": Project.objects.filter(billing_organization=org).count(),
+    }
+
+    return render(request, "core/organization_delete_confirm.html", context)
 
 
 # ========================================

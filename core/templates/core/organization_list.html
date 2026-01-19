@@ -1,0 +1,222 @@
+{% extends "core/base_modern.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Gestión de Organizaciones" %} - Kibray{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item active">{% trans "Organizaciones" %}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Header con botón de crear -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-building text-primary me-2"></i>
+                        {% trans "Organizaciones de Clientes" %}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {% trans "Total:" %} <strong>{{ total_organizations }}</strong> {% trans "organizaciones" %}
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'client_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-people me-1"></i>
+                        {% trans "Ver Clientes" %}
+                    </a>
+                    <a href="{% url 'organization_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        {% trans "Nueva Organización" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <i class="bi bi-search me-1"></i>
+                        {% trans "Buscar" %}
+                    </label>
+                    <input 
+                        type="text" 
+                        name="search" 
+                        class="form-control" 
+                        placeholder="{% trans 'Nombre, email, Tax ID...' %}"
+                        value="{{ search_query }}"
+                    >
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">
+                        <i class="bi bi-funnel me-1"></i>
+                        {% trans "Estado" %}
+                    </label>
+                    <select name="status" class="form-select">
+                        <option value="">{% trans "Todos" %}</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>
+                            {% trans "Activas" %}
+                        </option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>
+                            {% trans "Inactivas" %}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="bi bi-filter me-1"></i>
+                        {% trans "Filtrar" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de organizaciones -->
+    {% if page_obj %}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Organización" %}</th>
+                            <th>{% trans "Email Facturación" %}</th>
+                            <th>{% trans "Términos Pago" %}</th>
+                            <th>{% trans "Proyectos" %}</th>
+                            <th>{% trans "Saldo Pendiente" %}</th>
+                            <th>{% trans "Estado" %}</th>
+                            <th class="text-end">{% trans "Acciones" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for org in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if org.logo %}
+                                        <img src="{{ org.logo.url }}" alt="{{ org.name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-building"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'organization_detail' org_id=org.id %}" class="text-decoration-none fw-semibold">
+                                            {{ org.name }}
+                                        </a>
+                                        {% if org.legal_name and org.legal_name != org.name %}
+                                        <br><small class="text-muted">{{ org.legal_name }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if org.billing_email %}
+                                <a href="mailto:{{ org.billing_email }}" class="text-decoration-none">
+                                    {{ org.billing_email }}
+                                </a>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">Net {{ org.payment_terms_days }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ org.active_projects_count }}</span>
+                            </td>
+                            <td>
+                                {% if org.outstanding_balance > 0 %}
+                                <span class="text-danger fw-semibold">${{ org.outstanding_balance|floatformat:2 }}</span>
+                                {% else %}
+                                <span class="text-success">$0.00</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if org.is_active %}
+                                <span class="badge bg-success">{% trans "Activa" %}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{% trans "Inactiva" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'organization_detail' org_id=org.id %}" class="btn btn-outline-primary" title="{% trans 'Ver detalle' %}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'organization_edit' org_id=org.id %}" class="btn btn-outline-secondary" title="{% trans 'Editar' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="bi bi-building display-6 d-block mb-2"></i>
+                                {% trans "No hay organizaciones registradas" %}
+                                <br>
+                                <a href="{% url 'organization_create' %}" class="btn btn-primary btn-sm mt-2">
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    {% trans "Crear primera organización" %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            {% trans "Página" %} {{ page_obj.number }} {% trans "de" %} {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

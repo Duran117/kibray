@@ -1,0 +1,112 @@
+{% extends "core/base_modern.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Eliminar Organización" %} - {{ organization.name }} - Kibray{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'organization_list' %}">{% trans "Organizaciones" %}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'organization_detail' org_id=organization.id %}">{{ organization.name }}</a></li>
+                    <li class="breadcrumb-item active">{% trans "Eliminar" %}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        {% trans "Eliminar Organización" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        {% if organization.logo %}
+                        <img src="{{ organization.logo.url }}" alt="{{ organization.name }}" class="rounded mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        {% endif %}
+                        <h4>{{ organization.name }}</h4>
+                        {% if organization.legal_name and organization.legal_name != organization.name %}
+                        <p class="text-muted">{{ organization.legal_name }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Estadísticas de datos asociados -->
+                    <div class="alert {% if contact_count > 0 or project_count > 0 %}alert-warning{% else %}alert-info{% endif %}">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {% trans "Datos asociados" %}
+                        </h6>
+                        <ul class="mb-0">
+                            <li>
+                                <strong>{{ contact_count }}</strong> {% trans "contactos" %}
+                                {% if contact_count > 0 %}
+                                <span class="badge bg-warning text-dark ms-1">{% trans "Bloqueante" %}</span>
+                                {% endif %}
+                            </li>
+                            <li>
+                                <strong>{{ project_count }}</strong> {% trans "proyectos vinculados" %}
+                                {% if project_count > 0 %}
+                                <span class="badge bg-warning text-dark ms-1">{% trans "Bloqueante" %}</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+
+                    {% if contact_count > 0 or project_count > 0 %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-x-circle me-1"></i>
+                        {% trans "No se puede eliminar esta organización porque tiene datos asociados. Solo puedes desactivarla." %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="d-grid gap-2">
+                            <!-- Desactivar siempre disponible -->
+                            <button type="submit" name="action" value="deactivate" class="btn btn-warning">
+                                <i class="bi bi-pause-circle me-1"></i>
+                                {% trans "Desactivar Organización" %}
+                            </button>
+                            
+                            <!-- Eliminar solo si no hay datos asociados -->
+                            {% if contact_count == 0 and project_count == 0 %}
+                            <button type="submit" name="action" value="delete" class="btn btn-danger"
+                                onclick="return confirm('{% trans "¿Estás seguro de eliminar permanentemente esta organización? Esta acción no se puede deshacer." %}')">
+                                <i class="bi bi-trash me-1"></i>
+                                {% trans "Eliminar Permanentemente" %}
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-outline-danger" disabled>
+                                <i class="bi bi-trash me-1"></i>
+                                {% trans "Eliminar Permanentemente" %}
+                                <small class="d-block">{% trans "(Primero elimina los datos asociados)" %}</small>
+                            </button>
+                            {% endif %}
+                            
+                            <a href="{% url 'organization_detail' org_id=organization.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                {% trans "Cancelar" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

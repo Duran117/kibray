@@ -1,0 +1,215 @@
+{% extends "core/base_modern.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+{% if is_create %}{% trans "Nueva Organización" %}{% else %}{% trans "Editar Organización" %}{% endif %} - Kibray
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'organization_list' %}">{% trans "Organizaciones" %}</a></li>
+                    {% if is_create %}
+                    <li class="breadcrumb-item active">{% trans "Nueva" %}</li>
+                    {% else %}
+                    <li class="breadcrumb-item"><a href="{% url 'organization_detail' org_id=organization.id %}">{{ organization.name }}</a></li>
+                    <li class="breadcrumb-item active">{% trans "Editar" %}</li>
+                    {% endif %}
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-1">
+                <i class="bi bi-building text-primary me-2"></i>
+                {% if is_create %}
+                {% trans "Nueva Organización" %}
+                {% else %}
+                {% trans "Editar:" %} {{ organization.name }}
+                {% endif %}
+            </h1>
+            <p class="text-muted mb-0">
+                {% if is_create %}
+                {% trans "Crea una nueva compañía cliente para agrupar contactos y proyectos" %}
+                {% else %}
+                {% trans "Modifica la información de esta organización" %}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Información Básica -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {% trans "Información Básica" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="id_name" class="form-label">{{ form.name.label }} <span class="text-danger">*</span></label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.name.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_legal_name" class="form-label">{{ form.legal_name.label }}</label>
+                                {{ form.legal_name }}
+                                <small class="text-muted">{% trans "Dejar vacío si es igual al nombre" %}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_tax_id" class="form-label">{{ form.tax_id.label }}</label>
+                                {{ form.tax_id }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_website" class="form-label">{{ form.website.label }}</label>
+                                {{ form.website }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Facturación -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-receipt me-2"></i>
+                            {% trans "Información de Facturación" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="id_billing_email" class="form-label">{{ form.billing_email.label }} <span class="text-danger">*</span></label>
+                                {{ form.billing_email }}
+                                {% if form.billing_email.errors %}
+                                <div class="invalid-feedback d-block">{{ form.billing_email.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_billing_phone" class="form-label">{{ form.billing_phone.label }}</label>
+                                {{ form.billing_phone }}
+                            </div>
+                            <div class="col-12">
+                                <label for="id_billing_address" class="form-label">{{ form.billing_address.label }} <span class="text-danger">*</span></label>
+                                {{ form.billing_address }}
+                                {% if form.billing_address.errors %}
+                                <div class="invalid-feedback d-block">{{ form.billing_address.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="id_billing_city" class="form-label">{{ form.billing_city.label }}</label>
+                                {{ form.billing_city }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="id_billing_state" class="form-label">{{ form.billing_state.label }}</label>
+                                {{ form.billing_state }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="id_billing_zip" class="form-label">{{ form.billing_zip.label }}</label>
+                                {{ form.billing_zip }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="id_payment_terms_days" class="form-label">{{ form.payment_terms_days.label }}</label>
+                                {{ form.payment_terms_days }}
+                                <small class="text-muted">{% trans "Ej: 30 para Net 30" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notas y Estado -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-journal-text me-2"></i>
+                            {% trans "Notas y Estado" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="id_notes" class="form-label">{{ form.notes.label }}</label>
+                                {{ form.notes }}
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="id_is_active">
+                                        {{ form.is_active.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% if is_create %}{% url 'organization_list' %}{% else %}{% url 'organization_detail' org_id=organization.id %}{% endif %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        {% trans "Cancelar" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>
+                        {% if is_create %}{% trans "Crear Organización" %}{% else %}{% trans "Guardar Cambios" %}{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar con ayuda -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        {% trans "Ayuda" %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3">
+                        {% trans "Las organizaciones agrupan múltiples contactos y proyectos bajo una misma compañía cliente." %}
+                    </p>
+                    <ul class="small text-muted mb-0">
+                        <li class="mb-2">
+                            <strong>{% trans "Nombre:" %}</strong> 
+                            {% trans "El nombre comercial de la compañía" %}
+                        </li>
+                        <li class="mb-2">
+                            <strong>{% trans "Nombre Legal:" %}</strong> 
+                            {% trans "Para facturas oficiales (si es diferente)" %}
+                        </li>
+                        <li class="mb-2">
+                            <strong>{% trans "Tax ID:" %}</strong> 
+                            {% trans "EIN o número de identificación fiscal" %}
+                        </li>
+                        <li class="mb-2">
+                            <strong>{% trans "Términos de Pago:" %}</strong> 
+                            {% trans "Net 30, Net 60, etc." %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

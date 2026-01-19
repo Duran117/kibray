@@ -422,6 +422,31 @@
                         {% if form.client.errors %}
                             <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.client.errors.0 }}</span>
                         {% endif %}
+                        <small class="text-muted">{% trans "Nombre del cliente (texto libre)" %}</small>
+                    </div>
+                </div>
+                
+                <!-- Organización y Contacto del Cliente -->
+                <div class="form-row cols-2">
+                    <div class="form-field">
+                        <label for="{{ form.billing_organization.id_for_label }}">
+                            <i class="bi bi-building me-1"></i> {{ form.billing_organization.label }}
+                        </label>
+                        {{ form.billing_organization }}
+                        {% if form.billing_organization.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.billing_organization.errors.0 }}</span>
+                        {% endif %}
+                        <small class="text-muted">{% trans "Empresa para facturación" %}</small>
+                    </div>
+                    <div class="form-field">
+                        <label for="{{ form.project_lead.id_for_label }}">
+                            <i class="bi bi-person-badge me-1"></i> {{ form.project_lead.label }}
+                        </label>
+                        {{ form.project_lead }}
+                        {% if form.project_lead.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.project_lead.errors.0 }}</span>
+                        {% endif %}
+                        <small class="text-muted">{% trans "Contacto principal del cliente" %}</small>
                     </div>
                 </div>
                 
