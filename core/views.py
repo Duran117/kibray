@@ -839,12 +839,25 @@ def dashboard_client(request):
         next_schedule = None
         today = timezone.localdate()
         
-        # Buscar en items del Gantt V2 (próximos items no completados)
+        # Buscar en items del Gantt V2 - prioridad:
+        # 1. Próximo item futuro no completado
+        # 2. Item actual (hoy) no completado  
+        # 3. Próximo item pasado no completado (más reciente primero)
+        from core.models import ScheduleItemV2
+        
+        # Intentar encontrar item futuro primero
         next_gantt_item = ScheduleItemV2.objects.filter(
-            phase__project=project,
+            project=project,
             start_date__gte=today,
             status__in=['planned', 'in_progress']
         ).order_by('start_date').first()
+        
+        # Si no hay futuro, buscar el más reciente no completado
+        if not next_gantt_item:
+            next_gantt_item = ScheduleItemV2.objects.filter(
+                project=project,
+                status__in=['planned', 'in_progress']
+            ).order_by('-start_date').first()
         
         if next_gantt_item:
             # Crear objeto compatible con template
