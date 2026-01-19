@@ -286,6 +286,19 @@ export class GanttApi {
   // ---------------------------------------------------------------------------
 
   /**
+   * Transform API dependency response to internal GanttDependency format
+   */
+  private transformDependencyResponse(apiDep: any): GanttDependency {
+    return {
+      id: apiDep.id,
+      predecessor_id: apiDep.source_item,
+      successor_id: apiDep.target_item,
+      link_type: apiDep.dependency_type || 'FS',
+      lag: 0,
+    };
+  }
+
+  /**
    * Create a new dependency
    */
   async createDependency(
@@ -299,13 +312,14 @@ export class GanttApi {
       headers: this.getHeaders(),
       credentials: 'same-origin',
       body: JSON.stringify({
-        source_item: predecessorId,  // Backend uses source_item
-        target_item: successorId,    // Backend uses target_item
-        dependency_type: type,       // Backend uses dependency_type
+        source_item: predecessorId,
+        target_item: successorId,
+        dependency_type: type,
       }),
     });
 
-    return this.handleResponse<GanttDependency>(response);
+    const apiDep = await this.handleResponse<any>(response);
+    return this.transformDependencyResponse(apiDep);
   }
 
   /**
