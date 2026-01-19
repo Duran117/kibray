@@ -33,6 +33,11 @@
             <div class="text-right">
                 <div class="text-5xl font-bold mb-1">{{ data.progress_pct }}%</div>
                 <div class="text-sm text-white/80">{% trans "Progress" %}</div>
+                {% if data.gantt_progress %}
+                <div class="text-xs text-white/60 mt-1">
+                    {{ data.gantt_progress.completed_items }}/{{ data.gantt_progress.total_items }} items ({{ data.gantt_progress.source }})
+                </div>
+                {% endif %}
             </div>
         </div>
         <div class="w-full bg-white/20 rounded-full h-3 overflow-hidden">
