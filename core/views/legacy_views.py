@@ -4125,13 +4125,64 @@ def invoice_create_view(request):
 
 @login_required
 def invoice_list(request):
+    """
+    Invoice list view with filtering by status and project.
+    """
     invoices = (
-        Invoice.objects.select_related("project")
-        .prefetch_related("lines")
+        Invoice.objects.select_related("project", "project__client")
+        .prefetch_related("lines", "payments")
         .order_by("-date_issued", "-id")
     )
+    
+    # Apply filters
+    status_filter = request.GET.get("status", "")
+    project_filter = request.GET.get("project", "")
+    
+    if status_filter:
+        if status_filter == "pending":
+            # Pending = not PAID and not CANCELLED
+            invoices = invoices.exclude(status__in=["PAID", "CANCELLED"])
+        elif status_filter == "paid":
+            invoices = invoices.filter(status="PAID")
+        elif status_filter == "overdue":
+            from datetime import date
+            invoices = invoices.filter(
+                due_date__lt=date.today()
+            ).exclude(status__in=["PAID", "CANCELLED"])
+        else:
+            invoices = invoices.filter(status=status_filter)
+    
+    if project_filter:
+        invoices = invoices.filter(project_id=project_filter)
+    
+    # Get summary stats
+    from django.db.models import Sum, Count
+    stats = {
+        "total_count": Invoice.objects.count(),
+        "draft_count": Invoice.objects.filter(status="DRAFT").count(),
+        "pending_count": Invoice.objects.exclude(status__in=["PAID", "CANCELLED", "DRAFT"]).count(),
+        "paid_count": Invoice.objects.filter(status="PAID").count(),
+        "total_pending_amount": Invoice.objects.exclude(
+            status__in=["PAID", "CANCELLED"]
+        ).aggregate(total=Sum("total_amount"))["total"] or 0,
+        "total_paid_amount": Invoice.objects.filter(status="PAID").aggregate(
+            total=Sum("total_amount")
+        )["total"] or 0,
+    }
+    
     projects = Project.objects.filter(is_archived=False).order_by("name")
-    return render(request, "core/invoice_list.html", {"invoices": invoices, "projects": projects})
+    
+    # Status choices for filter dropdown
+    status_choices = Invoice.STATUS_CHOICES
+    
+    return render(request, "core/invoice_list.html", {
+        "invoices": invoices,
+        "projects": projects,
+        "status_filter": status_filter,
+        "project_filter": project_filter,
+        "status_choices": status_choices,
+        "stats": stats,
+    })
 
 
 @login_required
@@ -4397,7 +4448,86 @@ def invoice_mark_approved(request, invoice_id):
             _("La factura ya tiene status: %(status)s") % {"status": invoice.get_status_display()},
         )
 
-    return redirect("core:invoice_detail", pk=invoice.id)
+    return redirect("invoice_detail", pk=invoice.id)
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def invoice_delete(request, invoice_id):
+    """
+    Delete an invoice. Only allowed for DRAFT or CANCELLED invoices.
+    """
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
+    
+    # Only allow deletion of DRAFT or CANCELLED invoices
+    if invoice.status not in ["DRAFT", "CANCELLED"]:
+        messages.error(
+            request,
+            _("⚠️ Solo se pueden eliminar facturas en estado BORRADOR o CANCELADA. "
+              "Estado actual: %(status)s") % {"status": invoice.get_status_display()},
+        )
+        return redirect("invoice_list")
+    
+    # Check if there are payments
+    if invoice.payments.exists():
+        messages.error(
+            request,
+            _("⚠️ No se puede eliminar la factura porque tiene pagos registrados."),
+        )
+        return redirect("invoice_detail", pk=invoice.id)
+    
+    invoice_number = invoice.invoice_number
+    project_name = invoice.project.name
+    
+    # Delete related lines first
+    invoice.lines.all().delete()
+    
+    # Delete the invoice
+    invoice.delete()
+    
+    messages.success(
+        request,
+        _("✅ Factura %(invoice_number)s del proyecto %(project)s eliminada correctamente.")
+        % {"invoice_number": invoice_number, "project": project_name},
+    )
+    
+    return redirect("invoice_list")
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def invoice_cancel(request, invoice_id):
+    """
+    Cancel an invoice. Changes status to CANCELLED.
+    """
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
+    
+    if invoice.status == "PAID":
+        messages.error(
+            request,
+            _("⚠️ No se puede cancelar una factura que ya está PAGADA."),
+        )
+        return redirect("invoice_detail", pk=invoice.id)
+    
+    if invoice.status == "CANCELLED":
+        messages.warning(
+            request,
+            _("La factura ya está cancelada."),
+        )
+        return redirect("invoice_detail", pk=invoice.id)
+    
+    invoice.status = "CANCELLED"
+    invoice.save()
+    
+    messages.success(
+        request,
+        _("✅ Factura %(invoice_number)s cancelada correctamente.")
+        % {"invoice_number": invoice.invoice_number},
+    )
+    
+    return redirect("invoice_detail", pk=invoice.id)
 
 
 @login_required

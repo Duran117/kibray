@@ -132,6 +132,25 @@
                     {% endif %}
                     <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn-action btn-primary-action"><i class="bi bi-file-pdf"></i> {% trans "Download PDF" %}</a>
                     <button onclick="window.print()" class="btn-action btn-outline-action"><i class="bi bi-printer"></i> {% trans "Print" %}</button>
+                    
+                    {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' %}
+                    <form method="post" action="{% url 'invoice_cancel' invoice.id %}" onsubmit="return confirm('{% trans "Are you sure you want to cancel this invoice?" %}');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-action w-100" style="background:#fef3c7;color:#d97706;border:1px solid #fcd34d;">
+                            <i class="bi bi-x-circle"></i> {% trans "Cancel Invoice" %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if invoice.status == 'DRAFT' or invoice.status == 'CANCELLED' %}
+                    <form method="post" action="{% url 'invoice_delete' invoice.id %}" onsubmit="return confirm('{% trans "Are you sure you want to DELETE this invoice? This cannot be undone." %}');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-action w-100" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;">
+                            <i class="bi bi-trash"></i> {% trans "Delete Invoice" %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    
                     <a href="{% url 'invoice_list' %}" class="btn-action btn-outline-action"><i class="bi bi-arrow-left"></i> {% trans "Back to Invoices" %}</a>
                 </div>
 

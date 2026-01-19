@@ -462,6 +462,8 @@ urlpatterns = [
         views.invoice_mark_approved,
         name="invoice_mark_approved",
     ),
+    path("invoices/<int:invoice_id>/delete/", views.invoice_delete, name="invoice_delete"),
+    path("invoices/<int:invoice_id>/cancel/", views.invoice_cancel, name="invoice_cancel"),
     path("invoices/<int:pk>/", views.invoice_detail, name="invoice_detail"),
     # path("invoices/<int:pk>/edit/", views.invoice_edit, name="invoice_edit"),  # DEPRECATED: Edit from invoice_detail if needed
     path("invoices/<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),
