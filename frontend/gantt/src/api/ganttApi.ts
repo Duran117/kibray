@@ -207,6 +207,8 @@ export class GanttApi {
       end_date: category.end_date,
     };
 
+    console.log('[GanttApi] Creating category with payload:', payload);
+
     const response = await fetch(`${this.baseUrl}/gantt/v2/phases/`, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -215,7 +217,9 @@ export class GanttApi {
     });
 
     const created = await this.handleResponse<any>(response);
-    return {
+    console.log('[GanttApi] API response:', created);
+    
+    const result = {
       id: created.id,
       name: created.name,
       color: created.color,
@@ -228,6 +232,8 @@ export class GanttApi {
       calculated_progress: created.calculated_progress ?? 0,
       remaining_weight_percent: created.remaining_weight_percent ?? 100,
     };
+    console.log('[GanttApi] Returning category:', result);
+    return result;
   }
 
   /**

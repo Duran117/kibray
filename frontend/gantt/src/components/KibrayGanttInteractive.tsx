@@ -91,6 +91,9 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   }, [categories]);
 
   const categoryDateRanges = useMemo(() => {
+    console.log('[KibrayGantt] Computing categoryDateRanges');
+    console.log('[KibrayGantt] localCategories:', localCategories);
+    
     const itemsByCategory = new Map<number, GanttItem[]>();
     items.forEach(item => {
       if (item.category_id == null) return;
@@ -101,6 +104,11 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
 
     const ranges = new Map<number, { start: Date; end: Date }>();
     localCategories.forEach(category => {
+      console.log(`[KibrayGantt] Processing category ${category.id} (${category.name}):`, {
+        start_date: category.start_date,
+        end_date: category.end_date
+      });
+      
       if (category.id < 0) return;
       const categoryItems = itemsByCategory.get(category.id) || [];
       let minItemStart: Date | null = null;
@@ -121,16 +129,21 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
         const today = new Date();
         start = today;
         end = addDays(today, 14);
+        console.log(`[KibrayGantt] Category ${category.id} has no dates, using default range`);
       }
 
       if (start && !end) end = start;
       if (end && !start) start = end;
 
       if (start && end) {
+        console.log(`[KibrayGantt] Category ${category.id} range:`, { start, end });
         ranges.set(category.id, { start, end });
+      } else {
+        console.log(`[KibrayGantt] Category ${category.id} has NO range!`);
       }
     });
 
+    console.log('[KibrayGantt] Final ranges:', ranges);
     return ranges;
   }, [localCategories, items]);
 
@@ -640,7 +653,14 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateItem}
         onStageCreated={(category) => {
-          setLocalCategories(prev => [...prev, category]);
+          console.log('[KibrayGantt] onStageCreated called with:', category);
+          console.log('[KibrayGantt] category.start_date:', category.start_date);
+          console.log('[KibrayGantt] category.end_date:', category.end_date);
+          setLocalCategories(prev => {
+            const newCategories = [...prev, category];
+            console.log('[KibrayGantt] New localCategories:', newCategories);
+            return newCategories;
+          });
         }}
       />
 
