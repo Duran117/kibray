@@ -231,18 +231,53 @@ export class GanttApi {
   }
 
   /**
-   * Update category collapse state
+   * Update an existing category
    */
-  async updateCategoryCollapse(categoryId: number, isCollapsed: boolean): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/schedule/categories/${categoryId}/`, {
+  async updateCategory(categoryId: number, updates: Partial<GanttCategory>): Promise<GanttCategory> {
+    const payload: any = {};
+    if (updates.name !== undefined) payload.name = updates.name;
+    if (updates.color !== undefined) payload.color = updates.color;
+    if (updates.order !== undefined) payload.order = updates.order;
+    if (updates.weight_percent !== undefined) payload.weight_percent = updates.weight_percent;
+    if (updates.start_date !== undefined) payload.start_date = updates.start_date;
+    if (updates.end_date !== undefined) payload.end_date = updates.end_date;
+
+    const response = await fetch(`${this.baseUrl}/gantt/v2/phases/${categoryId}/`, {
       method: 'PATCH',
       headers: this.getHeaders(),
       credentials: 'same-origin',
-      body: JSON.stringify({ is_collapsed: isCollapsed }),
+      body: JSON.stringify(payload),
+    });
+
+    const updated = await this.handleResponse<any>(response);
+    return {
+      id: updated.id,
+      name: updated.name,
+      color: updated.color,
+      order: updated.order,
+      is_collapsed: false,
+      project_id: updated.project,
+      start_date: updated.start_date ?? null,
+      end_date: updated.end_date ?? null,
+      weight_percent: updated.weight_percent ?? 0,
+      calculated_progress: updated.calculated_progress ?? 0,
+      remaining_weight_percent: updated.remaining_weight_percent ?? 100,
+    };
+  }
+
+  /**
+   * Delete a category
+   */
+  async deleteCategory(categoryId: number): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/gantt/v2/phases/${categoryId}/`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      credentials: 'same-origin',
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update category');
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      throw new Error(error.detail || `HTTP ${response.status}`);
     }
   }
 

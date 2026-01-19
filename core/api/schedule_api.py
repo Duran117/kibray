@@ -454,12 +454,17 @@ def create_schedule_phase_v2(request):
     return Response(SchedulePhaseV2Serializer(phase).data, status=201)
 
 
-@api_view(["PATCH"])
+@api_view(["PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def update_schedule_phase_v2(request, phase_id: int):
     phase = SchedulePhaseV2.objects.filter(id=phase_id).first()
     if not phase:
         return Response({"error": "phase not found"}, status=404)
+    
+    if request.method == "DELETE":
+        phase.delete()
+        return Response(status=204)
+    
     serializer = SchedulePhaseV2WriteSerializer(phase, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     phase = serializer.save()
@@ -475,12 +480,17 @@ def create_schedule_item_v2(request):
     return Response(ScheduleItemV2Serializer(item).data, status=201)
 
 
-@api_view(["PATCH"])
+@api_view(["PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def update_schedule_item_v2(request, item_id: int):
     item = ScheduleItemV2.objects.filter(id=item_id).first()
     if not item:
         return Response({"error": "item not found"}, status=404)
+    
+    if request.method == "DELETE":
+        item.delete()
+        return Response(status=204)
+    
     serializer = ScheduleItemV2WriteSerializer(item, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     item = serializer.save()
@@ -496,12 +506,17 @@ def create_schedule_task_v2(request):
     return Response(ScheduleTaskV2Serializer(task).data, status=201)
 
 
-@api_view(["PATCH"])
+@api_view(["PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def update_schedule_task_v2(request, task_id: int):
     task = ScheduleTaskV2.objects.filter(id=task_id).first()
     if not task:
         return Response({"error": "task not found"}, status=404)
+    
+    if request.method == "DELETE":
+        task.delete()
+        return Response(status=204)
+    
     serializer = ScheduleTaskV2WriteSerializer(task, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     task = serializer.save()

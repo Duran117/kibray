@@ -192,7 +192,7 @@ export function useGanttData(options: UseGanttDataOptions): UseGanttDataReturn {
     }
   }, [api, projectId]);
 
-  // Toggle category collapse (local only, optional persist)
+  // Toggle category collapse (local state only - not persisted to backend)
   const toggleCategoryCollapse = useCallback((categoryId: number) => {
     setLocalCategories(prev => 
       prev.map(cat => 
@@ -201,15 +201,8 @@ export function useGanttData(options: UseGanttDataOptions): UseGanttDataReturn {
           : cat
       )
     );
-    
-    // Optionally persist to backend
-    const category = localCategories.find(c => c.id === categoryId);
-    if (category) {
-      api.updateCategoryCollapse(categoryId, !category.is_collapsed).catch(() => {
-        // Silent fail for collapse state
-      });
-    }
-  }, [api, localCategories]);
+    // Note: is_collapsed is UI-only state, not persisted to backend
+  }, []);
 
   // Create dependency
   const createDependency = useCallback(async (
