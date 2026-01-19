@@ -1849,18 +1849,23 @@ def client_project_view(request, project_id):
     total_invoiced = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
     total_paid = invoices.aggregate(paid=Sum("amount_paid"))["paid"] or Decimal("0")
 
-    # === PROGRESO DEL PROYECTO ===
-    progress_pct = 0
-    try:
-        metrics = compute_project_ev(project)
-        if metrics and metrics.get("PV") and metrics["PV"] > 0:
-            progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
-    except Exception:
-        # Fallback: progreso basado en fechas
-        if project.start_date and project.end_date:
-            total_days = (project.end_date - project.start_date).days
-            elapsed_days = (timezone.localdate() - project.start_date).days
-            progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
+    # === PROGRESO DEL PROYECTO (usando Gantt V2/V1) ===
+    from core.services.schedule_unified import get_project_progress
+    gantt_progress = get_project_progress(project)
+    progress_pct = gantt_progress.get('progress_percent', 0)
+    
+    # Fallback si no hay items en el Gantt
+    if gantt_progress.get('total_items', 0) == 0:
+        try:
+            metrics = compute_project_ev(project)
+            if metrics and metrics.get("PV") and metrics["PV"] > 0:
+                progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
+        except Exception:
+            # Fallback: progreso basado en fechas
+            if project.start_date and project.end_date:
+                total_days = (project.end_date - project.start_date).days
+                elapsed_days = (timezone.localdate() - project.start_date).days
+                progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
 
     context = {
         "project": project,
@@ -1877,6 +1882,7 @@ def client_project_view(request, project_id):
         "total_paid": total_paid,
         "balance": total_invoiced - total_paid,
         "progress_pct": int(progress_pct),
+        "gantt_progress": gantt_progress,
         "color_samples": color_samples,
     }
     return render(request, "core/client_project_view.html", context)
@@ -6521,23 +6527,30 @@ def dashboard_pm(request):
                 hours_by_project[proj_name] = Decimal("0")
             hours_by_project[proj_name] += Decimal(entry.hours_worked or 0)
 
-    # === PROYECTOS CON PROGRESO ===
+    # === PROYECTOS CON PROGRESO (usando Gantt V2/V1) ===
+    from core.services.schedule_unified import get_project_progress
+    
     active_projects = Project.objects.filter(end_date__isnull=True).order_by("name")
     project_summary = []
     for project in active_projects:
-        # Calcular progreso simple
-        try:
-            metrics = compute_project_ev(project, as_of=today)
-            progress_pct = 0
-            if metrics and metrics.get("PV") and metrics["PV"] > 0:
-                progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
-        except Exception:
-            progress_pct = 0
+        # Calcular progreso usando Gantt V2/V1
+        gantt_progress = get_project_progress(project)
+        progress_pct = gantt_progress.get('progress_percent', 0)
+        
+        # Fallback si no hay Gantt data
+        if gantt_progress.get('total_items', 0) == 0:
+            try:
+                metrics = compute_project_ev(project, as_of=today)
+                if metrics and metrics.get("PV") and metrics["PV"] > 0:
+                    progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
+            except Exception:
+                pass
 
         project_summary.append(
             {
                 "project": project,
                 "progress_pct": int(progress_pct),
+                "gantt_progress": gantt_progress,
                 "hours_today": hours_by_project.get(project.name, 0),
             }
         )
@@ -6747,6 +6760,10 @@ def project_overview(request, project_id: int):
         return redirect("dashboard_employee")
 
     project = get_object_or_404(Project, pk=project_id)
+
+    # Get Gantt progress first (used for progress bar)
+    from core.services.schedule_unified import get_project_progress
+    gantt_progress = get_project_progress(project)
 
     # Imports opcionales por si no existen algunos modelos
     # Nota: algunos modelos están importados a nivel de módulo (Task/Schedule/Issue/DailyLog);
@@ -6960,6 +6977,8 @@ def project_overview(request, project_id: int):
             "recent_logs": recent_logs,
             "files": files,
             "leftovers": leftovers,
+            # Gantt Progress
+            "gantt_progress": gantt_progress,
             # Floor Plans
             "floor_plans": floor_plans,
             "total_floor_plans": total_floor_plans,

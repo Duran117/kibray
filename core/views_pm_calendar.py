@@ -55,6 +55,9 @@ def pm_calendar_view(request):
 
     today = timezone.localdate()
 
+    # Import Gantt progress service
+    from core.services.schedule_unified import get_project_progress
+
     # Get PM assigned projects (active)
     assigned_projects = (
         Project.objects.filter(pm_assignments__pm=user, is_archived=False)
@@ -67,20 +70,17 @@ def pm_calendar_view(request):
         .order_by("-start_date")
     )
 
-    # Calculate progress for each project
+    # Calculate progress for each project using Gantt V2
     for project in assigned_projects:
-        if project.task_count > 0:
-            project.progress_pct = int((project.completed_tasks / project.task_count) * 100)
-        else:
-            # Try to get progress from schedule items
-            schedule_items = project.schedule_items.all()
-            if schedule_items.exists():
-                avg_pct = sum(item.percent_complete for item in schedule_items) / len(
-                    schedule_items
-                )
-                project.progress_pct = int(avg_pct)
-            else:
-                project.progress_pct = 0
+        # Use Gantt V2/V1 progress
+        gantt_progress = get_project_progress(project)
+        project.progress_pct = int(gantt_progress.get('progress_percent', 0))
+        project.gantt_progress = gantt_progress
+        
+        # Fallback to tasks if no Gantt data
+        if gantt_progress.get('total_items', 0) == 0:
+            if project.task_count > 0:
+                project.progress_pct = int((project.completed_tasks / project.task_count) * 100)
 
         # Add status badge color
         if project.progress_pct >= 100:

@@ -41,9 +41,6 @@ def get_project_schedule_data(project: Project) -> Dict[str, Any]:
 
 def _get_v2_schedule_data(project: Project, phases) -> Dict[str, Any]:
     """Get schedule data from V2 models."""
-    import logging
-    logger = logging.getLogger(__name__)
-    
     phases_data = []
     all_items = []
     total_weight = 0
@@ -59,8 +56,6 @@ def _get_v2_schedule_data(project: Project, phases) -> Dict[str, Any]:
             # Double check: if status is done, ensure progress is 100
             if item.status == 'done':
                 item_progress = 100
-            
-            logger.info(f"[V2 Progress Debug] Item '{item.name}': status={item.status}, progress_field={item.progress}, calculated={item_progress}")
             
             item_data = {
                 'id': item.id,
@@ -99,8 +94,6 @@ def _get_v2_schedule_data(project: Project, phases) -> Dict[str, Any]:
             'source': 'v2',
         })
         
-        logger.info(f"[V2 Progress Debug] Phase '{phase.name}': weight={phase.weight_percent}, progress={phase_progress}")
-        
         # Accumulate for project-level weighted progress
         phase_weight = float(phase.weight_percent)
         total_weight += phase_weight
@@ -111,14 +104,11 @@ def _get_v2_schedule_data(project: Project, phases) -> Dict[str, Any]:
     if total_weight > 0:
         # Use weighted average if weights are assigned
         avg_progress = weighted_progress
-        logger.info(f"[V2 Progress Debug] Using weighted avg: total_weight={total_weight}, weighted_progress={weighted_progress}, avg={avg_progress}")
     elif total_items > 0:
         # Fall back to simple average
         avg_progress = sum(i['progress'] for i in all_items) / total_items
-        logger.info(f"[V2 Progress Debug] Using simple avg: total_items={total_items}, sum={sum(i['progress'] for i in all_items)}, avg={avg_progress}")
     else:
         avg_progress = 0
-        logger.info(f"[V2 Progress Debug] No items, avg=0")
     
     return {
         'phases': phases_data,

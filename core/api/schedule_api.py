@@ -88,10 +88,19 @@ def get_master_schedule_data(request):
         "#84cc16",
     ]
 
+    # Import Gantt progress service
+    from core.services.schedule_unified import get_project_progress
+
     for idx, project in enumerate(active_projects):
-        total_tasks = project.tasks.count()
-        completed_tasks = project.tasks.filter(status="Completada").count()
-        progress_pct = int(completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+        # Use Gantt V2/V1 progress
+        gantt_progress = get_project_progress(project)
+        progress_pct = int(gantt_progress.get('progress_percent', 0))
+        
+        # Fallback to tasks if no Gantt data
+        if gantt_progress.get('total_items', 0) == 0:
+            total_tasks = project.tasks.count()
+            completed_tasks = project.tasks.filter(status="Completada").count()
+            progress_pct = int(completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
         pm_name = "No PM assigned"
         client_name = project.client or "No Client"
@@ -109,6 +118,7 @@ def get_master_schedule_data(request):
                 if project.start_date
                 else (today + timedelta(days=90)).isoformat(),
                 "progress_pct": progress_pct,
+                "gantt_progress": gantt_progress,
                 "color": colors[idx % len(colors)],
                 "pm_name": pm_name,
                 "client_name": client_name,
