@@ -33,6 +33,7 @@ import { CalendarView } from './CalendarView';
 
 // Constants
 const SIDEBAR_WIDTH = 280;
+const SIDEBAR_WIDTH_MOBILE = 260;
 const ROW_HEIGHT = 48;
 const HEADER_HEIGHT = 80;
 
@@ -143,7 +144,28 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   const [createModalDate, setCreateModalDate] = useState<Date>(new Date());
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [taskModalItem, setTaskModalItem] = useState<GanttItem | null>(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { zoom, setZoom } = useZoom(initialZoom);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Mobile sidebar handlers
+  const handleMobileSidebarClose = useCallback(() => {
+    setIsMobileSidebarOpen(false);
+  }, []);
+
+  const handleMobileSidebarToggle = useCallback(() => {
+    setIsMobileSidebarOpen(prev => !prev);
+  }, []);
 
   // Update selectedItem when items change (to reflect new tasks)
   useEffect(() => {
@@ -502,26 +524,45 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
         onAddClick={canEdit ? handleAddClick : undefined}
         canEdit={canEdit}
         projectName={projectName}
+        onMenuClick={isMobile ? handleMobileSidebarToggle : undefined}
+        showMenuButton={isMobile}
       />
 
-      {/* Main content area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <GanttSidebar
-          categories={localCategories}
-          items={items}
-          rowHeight={ROW_HEIGHT}
-          width={SIDEBAR_WIDTH}
-          collapsedCategories={collapsedCategories}
-          onToggleCategory={handleToggleCategory}
-          onItemClick={handleItemClick}
-          canEdit={canEdit}
+      {/* Mobile sidebar overlay */}
+      {isMobile && isMobileSidebarOpen && (
+        <div 
+          className="gantt-sidebar-overlay visible"
+          onClick={handleMobileSidebarClose}
         />
+      )}
+
+      {/* Main content area */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Sidebar - Desktop: always visible, Mobile: slide-in */}
+        <div className={`
+          ${isMobile ? 'gantt-sidebar' : ''}
+          ${isMobile && isMobileSidebarOpen ? 'open' : ''}
+          ${!isMobile ? 'flex-shrink-0' : ''}
+        `}>
+          <GanttSidebar
+            categories={localCategories}
+            items={items}
+            rowHeight={ROW_HEIGHT}
+            width={isMobile ? SIDEBAR_WIDTH_MOBILE : SIDEBAR_WIDTH}
+            collapsedCategories={collapsedCategories}
+            onToggleCategory={handleToggleCategory}
+            onItemClick={(item) => {
+              handleItemClick(item);
+              if (isMobile) setIsMobileSidebarOpen(false);
+            }}
+            canEdit={canEdit}
+          />
+        </div>
 
         {/* Timeline area */}
         <div 
           ref={timelineRef}
-          className="flex-1 overflow-auto relative"
+          className="gantt-timeline-wrapper flex-1 overflow-auto relative"
         >
           <div 
             className="relative"

@@ -3,6 +3,9 @@
    Includes Tailwind-like utility classes for the Gantt components
    ============================================================================= */
 
+/* Import mobile responsive styles */
+@import './mobile.css';
+
 /* CSS Reset */
 *,
 *::before,

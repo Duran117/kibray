@@ -1,0 +1,426 @@
+/* =============================================================================
+   Kibray Gantt - Mobile Responsive Styles
+   ============================================================================= */
+
+/* ============================================================================
+   Mobile-First Responsive Design
+   ============================================================================ */
+
+/* Base mobile styles */
+@media (max-width: 768px) {
+  /* App container */
+  .app-container {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  }
+
+  /* Header row */
+  .header-row {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .mode-selector {
+    display: none; /* Hide demo mode selector on mobile */
+  }
+
+  /* Content wrapper */
+  .content-wrapper {
+    flex: 1;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Gantt wrapper */
+  .gantt-wrapper {
+    padding: 8px;
+    height: 100%;
+  }
+
+  /* Gantt main container */
+  .kibray-gantt {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Gantt toolbar */
+  .gantt-toolbar {
+    flex-shrink: 0;
+    padding: 8px !important;
+    gap: 8px !important;
+  }
+
+  .gantt-toolbar-left {
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+
+  .gantt-toolbar-right {
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+
+  /* Zoom buttons - smaller on mobile */
+  .zoom-btn {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+
+  /* Hide zoom label on mobile */
+  .zoom-label {
+    display: none;
+  }
+
+  /* Today button - icon only on mobile */
+  .today-btn-text {
+    display: none;
+  }
+
+  /* Gantt content area */
+  .gantt-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Sidebar - Collapsible on mobile */
+  .gantt-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 280px !important;
+    max-width: 85vw;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .gantt-sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Sidebar overlay */
+  .gantt-sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+  }
+
+  .gantt-sidebar-overlay.visible {
+    display: block;
+  }
+
+  /* Mobile sidebar toggle */
+  .mobile-sidebar-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+  }
+
+  /* Timeline - Full width on mobile */
+  .gantt-timeline-wrapper {
+    flex: 1;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+
+  /* Gantt header cells */
+  .gantt-header-cell {
+    min-width: 40px !important;
+  }
+
+  /* Gantt bars - Touch-friendly */
+  .gantt-bar {
+    min-height: 32px !important;
+    cursor: pointer;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  /* Bar content - smaller text */
+  .gantt-bar-content {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+  }
+
+  /* Resize handles - larger for touch */
+  .gantt-bar-resize-handle {
+    width: 20px !important;
+    opacity: 1 !important;
+  }
+
+  /* Row height */
+  .gantt-row {
+    min-height: 40px;
+  }
+
+  /* Grid row names - truncate */
+  .gantt-row-name {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Slide over panel - Full screen on mobile */
+  .slide-over-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .slide-over-content {
+    padding: 12px !important;
+  }
+
+  /* Calendar view */
+  .calendar-wrapper {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .calendar-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .calendar-header {
+    flex-shrink: 0;
+    padding: 8px 12px !important;
+  }
+
+  .calendar-grid {
+    flex: 1;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Calendar day cells */
+  .calendar-day {
+    min-height: 60px !important;
+    padding: 4px !important;
+  }
+
+  .calendar-day-number {
+    font-size: 14px !important;
+  }
+
+  .calendar-event {
+    font-size: 10px !important;
+    padding: 2px 4px !important;
+    margin-bottom: 2px !important;
+  }
+
+  /* Hide desktop-only elements */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Show mobile-only elements */
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .gantt-sidebar {
+    width: 220px !important;
+  }
+
+  .slide-over-panel {
+    width: 400px !important;
+  }
+
+  .zoom-btn {
+    padding: 6px 12px !important;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  .mobile-sidebar-toggle {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   Touch-specific improvements
+   ============================================================================ */
+
+@media (pointer: coarse) {
+  /* Larger touch targets */
+  .gantt-bar {
+    min-height: 36px !important;
+  }
+
+  .gantt-bar-resize-handle {
+    width: 24px !important;
+  }
+
+  button,
+  .btn,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better tap feedback */
+  .gantt-bar:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+
+  .gantt-row:active {
+    background-color: #f3f4f6;
+  }
+}
+
+/* ============================================================================
+   Landscape mobile optimization
+   ============================================================================ */
+
+@media (max-width: 896px) and (orientation: landscape) {
+  .gantt-toolbar {
+    padding: 4px 8px !important;
+  }
+
+  .gantt-row {
+    min-height: 36px;
+  }
+
+  .gantt-bar {
+    min-height: 28px !important;
+  }
+
+  .slide-over-panel {
+    width: 50% !important;
+  }
+}
+
+/* ============================================================================
+   Safe area insets for notched devices
+   ============================================================================ */
+
+@supports (padding: env(safe-area-inset-top)) {
+  .app-container {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .gantt-sidebar {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .slide-over-panel {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* ============================================================================
+   Animation improvements for mobile
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .gantt-sidebar,
+  .slide-over-panel,
+  .gantt-bar {
+    transition: none !important;
+  }
+}
+
+/* Smooth scrolling on supported devices */
+.gantt-timeline-wrapper,
+.calendar-grid,
+.gantt-sidebar {
+  scroll-behavior: smooth;
+}
+
+/* Momentum scrolling for iOS */
+.gantt-timeline-wrapper,
+.calendar-grid {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================================
+   Loading states
+   ============================================================================ */
+
+.gantt-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #6b7280;
+}
+
+.gantt-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   Empty state
+   ============================================================================ */
+
+.gantt-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.gantt-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.gantt-empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.gantt-empty-text {
+  font-size: 14px;
+  max-width: 300px;
+}

@@ -6776,6 +6776,47 @@ def project_overview(request, project_id: int):
         else []
     )
 
+    # Load Gantt V2 items for upcoming tasks display
+    upcoming_gantt_items = []
+    try:
+        from core.models import ScheduleItemV2, SchedulePhaseV2
+        from datetime import date, timedelta
+        
+        today = date.today()
+        # Get items from today onwards, sorted by start_date
+        gantt_items = (
+            ScheduleItemV2.objects
+            .filter(project=project, start_date__gte=today)
+            .select_related('phase', 'assigned_to')
+            .order_by('start_date', 'order')[:10]
+        )
+        
+        # If no future items, get recent/current items
+        if not gantt_items.exists():
+            gantt_items = (
+                ScheduleItemV2.objects
+                .filter(project=project)
+                .select_related('phase', 'assigned_to')
+                .order_by('-start_date', 'order')[:10]
+            )
+        
+        for item in gantt_items:
+            upcoming_gantt_items.append({
+                'id': item.id,
+                'title': item.name,
+                'start_date': item.start_date,
+                'end_date': item.end_date,
+                'status': item.status,
+                'progress': item.progress,
+                'is_milestone': item.is_milestone,
+                'phase_name': item.phase.name if item.phase else None,
+                'phase_color': item.phase.color if item.phase else '#6366f1',
+                'assigned_to': item.assigned_to.get_full_name() if item.assigned_to else None,
+            })
+    except Exception as e:
+        # If ScheduleItemV2 doesn't exist or any error, keep empty list
+        pass
+
     # Floor Plans data
     try:
         from core.models import FloorPlan, PlanPin
@@ -6852,6 +6893,7 @@ def project_overview(request, project_id: int):
             "show_sidebar": False,  # Hide global sidebar, use project-specific Asana-style sidebar
             "colors": colors,
             "upcoming_schedules": upcoming_schedules,
+            "upcoming_gantt_items": upcoming_gantt_items,
             "recent_tasks": recent_tasks,
             "recent_issues": recent_issues,
             "recent_logs": recent_logs,
