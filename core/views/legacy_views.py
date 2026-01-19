@@ -756,6 +756,9 @@ def dashboard_client(request):
         messages.error(request, "Acceso solo para clientes.")
         return redirect("dashboard")
 
+    # Import unified schedule service for Gantt data
+    from core.services.schedule_unified import get_project_progress
+
     # Proyectos del cliente: por vínculo directo (legacy) o por asignación granular
     access_projects = Project.objects.filter(client_accesses__user=request.user)
     legacy_projects = Project.objects.filter(client=request.user.username)
@@ -769,30 +772,69 @@ def dashboard_client(request):
         total_invoiced = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
         total_paid = invoices.aggregate(paid=Sum("amount_paid"))["paid"] or Decimal("0")
 
-        # Progreso (usando EV si disponible, sino estimado simple)
-        progress_pct = 0
-        try:
-            metrics = compute_project_ev(project)
-            if metrics and metrics.get("PV") and metrics["PV"] > 0:
-                progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
-        except Exception:
-            # Fallback: progreso basado en fechas
-            if project.start_date and project.end_date:
-                total_days = (project.end_date - project.start_date).days
-                elapsed_days = (timezone.localdate() - project.start_date).days
-                progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
+        # Progreso - usar sistema de Gantt V2/V1
+        gantt_progress = get_project_progress(project)
+        progress_pct = gantt_progress.get('progress_percent', 0)
+        
+        # Fallback si no hay items en el Gantt
+        if gantt_progress.get('total_items', 0) == 0:
+            try:
+                metrics = compute_project_ev(project)
+                if metrics and metrics.get("PV") and metrics["PV"] > 0:
+                    progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
+            except Exception:
+                # Fallback: progreso basado en fechas
+                if project.start_date and project.end_date:
+                    total_days = (project.end_date - project.start_date).days
+                    elapsed_days = (timezone.localdate() - project.start_date).days
+                    progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
 
         # Fotos recientes
         from core.models import SitePhoto
 
         recent_photos = SitePhoto.objects.filter(project=project).order_by("-created_at")[:6]
 
-        # Schedule próximo
-        next_schedule = (
-            Schedule.objects.filter(project=project, start_datetime__gte=timezone.now())
-            .order_by("start_datetime")
-            .first()
-        )
+        # Schedule próximo - buscar en Gantt V2 primero, luego Schedule legacy
+        from core.models import ScheduleItemV2
+        
+        next_schedule = None
+        today = timezone.localdate()
+        
+        # Buscar en items del Gantt V2 - prioridad:
+        # 1. Próximo item futuro no completado
+        # 2. Item actual (hoy) no completado  
+        # 3. Próximo item pasado no completado (más reciente primero)
+        next_gantt_item = ScheduleItemV2.objects.filter(
+            project=project,
+            start_date__gte=today,
+            status__in=['planned', 'in_progress']
+        ).order_by('start_date').first()
+        
+        # Si no hay futuro, buscar el más reciente no completado
+        if not next_gantt_item:
+            next_gantt_item = ScheduleItemV2.objects.filter(
+                project=project,
+                status__in=['planned', 'in_progress']
+            ).order_by('-start_date').first()
+        
+        if next_gantt_item:
+            # Crear objeto compatible con template
+            class NextEventProxy:
+                def __init__(self, item):
+                    self.title = item.name
+                    self.description = item.description
+                    # Convertir date a datetime para el template
+                    self.start_datetime = timezone.make_aware(
+                        datetime.combine(item.start_date, datetime.min.time())
+                    ) if item.start_date else None
+            next_schedule = NextEventProxy(next_gantt_item)
+        else:
+            # Fallback al Schedule legacy
+            next_schedule = (
+                Schedule.objects.filter(project=project, start_datetime__gte=timezone.now())
+                .order_by("start_datetime")
+                .first()
+            )
 
         # Solicitudes cliente
         from core.models import ClientRequest
@@ -807,6 +849,7 @@ def dashboard_client(request):
                 "total_paid": total_paid,
                 "balance": total_invoiced - total_paid,
                 "progress_pct": int(progress_pct),
+                "gantt_progress": gantt_progress,  # Full progress data from Gantt
                 "recent_photos": recent_photos,
                 "next_schedule": next_schedule,
                 "client_requests": client_requests,
