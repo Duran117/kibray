@@ -579,7 +579,11 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
               if (row.type !== 'category') return null;
               const category = row.data as GanttCategory;
               const range = categoryDateRanges.get(category.id);
-              if (!range) return null;
+              console.log(`[Render] Stage ${category.id} (${category.name}) - range:`, range);
+              if (!range) {
+                console.log(`[Render] Stage ${category.id} has NO range - skipping render`);
+                return null;
+              }
 
               return (
                 <GanttStageBar
