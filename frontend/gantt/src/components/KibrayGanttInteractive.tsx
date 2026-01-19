@@ -29,6 +29,7 @@ import { GanttDependencyLines } from './GanttDependencyLines';
 import { SlideOverPanel } from './SlideOverPanel';
 import { CreateItemModal } from './CreateItemModal';
 import { CreateTaskModal } from './CreateTaskModal';
+import { CalendarView } from './CalendarView';
 
 // Constants
 const SIDEBAR_WIDTH = 280;
@@ -398,7 +399,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Calendar view placeholder
+  // Calendar view - use real CalendarView component
   if (viewMode === 'calendar') {
     return (
       <div className="kibray-gantt flex flex-col h-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -413,15 +414,67 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
           canEdit={canEdit}
           projectName={projectName}
         />
-        <div className="flex-1 flex items-center justify-center text-gray-500">
-          <div className="text-center">
-            <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-lg font-medium">Calendar View</p>
-            <p className="text-sm">Coming in Phase 3</p>
-          </div>
+        <div className="flex-1 overflow-hidden">
+          <CalendarView
+            items={items}
+            categories={localCategories}
+            onItemClick={handleItemClick}
+            onDayClick={(date) => {
+              setCreateModalDate(date);
+              setIsCreateModalOpen(true);
+            }}
+            canEdit={canEdit}
+          />
         </div>
+        
+        {/* Slide-over panel for editing from calendar */}
+        <SlideOverPanel
+          isOpen={isPanelOpen}
+          item={selectedItem}
+          categories={localCategories}
+          onClose={handlePanelClose}
+          onSave={handleItemSave}
+          onDelete={handleItemDelete}
+          onCreateTask={(itemId) => {
+            const item = items.find(i => i.id === itemId);
+            if (item) {
+              setTaskModalItem(item);
+              setIsCreateTaskModalOpen(true);
+            }
+          }}
+          canEdit={canEdit}
+        />
+
+        {/* Create item modal */}
+        <CreateItemModal
+          isOpen={isCreateModalOpen}
+          initialDate={createModalDate}
+          categories={localCategories}
+          projectId={projectId}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreate={handleCreateItem}
+          onStageCreated={(category) => {
+            setLocalCategories(prev => [...prev, category]);
+          }}
+        />
+
+        {/* Create task modal */}
+        <CreateTaskModal
+          isOpen={isCreateTaskModalOpen}
+          item={taskModalItem}
+          onClose={() => {
+            setIsCreateTaskModalOpen(false);
+            setTaskModalItem(null);
+          }}
+          onCreate={async (task) => {
+            if (onTaskCreate) {
+              await onTaskCreate(task);
+            }
+            setIsCreateTaskModalOpen(false);
+            setTaskModalItem(null);
+          }}
+          teamMembers={teamMembers}
+        />
       </div>
     );
   }

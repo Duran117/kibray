@@ -9,8 +9,9 @@ import { getBarColor } from '../utils/colorUtils';
 
 export interface CalendarViewProps {
   items: GanttItem[];
-  categories: GanttCategory[];
+  categories: GanttCategory[];  // Kept for future category filtering
   onItemClick?: (item: GanttItem) => void;
+  onDayClick?: (date: Date) => void;
   canEdit: boolean;
   initialDate?: Date;
 }
@@ -55,17 +56,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   items,
   categories,
   onItemClick,
+  onDayClick,
   canEdit,
   initialDate = new Date(),
 }) => {
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
-
-  const categoryMap = useMemo(() => {
-    const map = new Map<number, GanttCategory>();
-    categories.forEach(cat => map.set(cat.id, cat));
-    return map;
-  }, [categories]);
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
@@ -110,6 +106,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   const handleDayClick = (day: CalendarDay) => setSelectedDay(day);
+
+  const handleCreateClick = (day: CalendarDay, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (canEdit && onDayClick) {
+      onDayClick(day.date);
+    }
+  };
 
   const handleItemClick = (item: GanttItem, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -172,13 +175,32 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{selectedDay.date.toLocaleDateString('es-ES', { weekday: 'long' })}</div>
               <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>{selectedDay.date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</div>
             </div>
-            <button onClick={() => setSelectedDay(null)} style={{ width: '28px', height: '28px', border: 'none', background: '#f3f4f6', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>X</button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {canEdit && onDayClick && (
+                <button 
+                  onClick={(e) => handleCreateClick(selectedDay, e)} 
+                  style={{ width: '28px', height: '28px', border: 'none', background: '#3b82f6', color: '#fff', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: '500' }}
+                  title="Crear item en este día"
+                >
+                  +
+                </button>
+              )}
+              <button onClick={() => setSelectedDay(null)} style={{ width: '28px', height: '28px', border: 'none', background: '#f3f4f6', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>X</button>
+            </div>
           </div>
           <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
             {selectedDay.items.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 16px' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📅</div>
                 <div>No hay items para este dia</div>
+                {canEdit && onDayClick && (
+                  <button
+                    onClick={(e) => handleCreateClick(selectedDay, e)}
+                    style={{ marginTop: '12px', padding: '8px 16px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '500' }}
+                  >
+                    + Crear Item
+                  </button>
+                )}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

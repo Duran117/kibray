@@ -1,11 +1,11 @@
 // =============================================================================
 // Kibray Gantt - CreateItemModal Component
-// Modal for creating new items on click-to-create
+// Modal for creating new items (groups of activities)
 // =============================================================================
 
 import React, { useEffect, useRef, useState } from 'react';
 import { getGanttApi } from '../api/ganttApi';
-import { GanttCategory, ItemStatus, ItemType } from '../types/gantt';
+import { GanttCategory, ItemStatus } from '../types/gantt';
 import { addDays, formatDate } from '../utils/dateUtils';
 
 interface CreateItemModalProps {
@@ -28,12 +28,6 @@ interface CreateItemModalProps {
   onStageCreated?: (category: GanttCategory) => void;
 }
 
-const ITEM_TYPES: { value: ItemType; label: string; icon: string; color: string }[] = [
-  { value: 'task', label: 'Task', icon: '📋', color: 'blue' },
-  { value: 'milestone', label: 'Milestone', icon: '🎯', color: 'violet' },
-  { value: 'personal', label: 'Personal', icon: '👤', color: 'amber' },
-];
-
 export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   isOpen,
   initialDate,
@@ -46,7 +40,8 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
-  const [itemType, setItemType] = useState<ItemType>('task');
+  // Item is always a group/bar, milestone is a flag within item
+  const [isMilestone, setIsMilestone] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -72,11 +67,10 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   }, [categories]);
 
   useEffect(() => {
-    if (itemType === 'personal') return;
     if (categoryId && !localCategories.some(cat => cat.id === categoryId)) {
       setCategoryId(localCategories[0]?.id ?? null);
     }
-  }, [localCategories, categoryId, itemType]);
+  }, [localCategories, categoryId]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -84,7 +78,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     const start = formatDate(initialDate);
     const end = formatDate(addDays(initialDate, 7));
 
-    setItemType('task');
+    setIsMilestone(false);
     setTitle('');
     setDescription('');
     setStartDate(start);
@@ -103,23 +97,16 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   }, [isOpen, initialDate, categories]);
 
   useEffect(() => {
-    if (itemType === 'personal') {
-      setCategoryId(null);
-      setWeightPercent(0);
-    }
-  }, [itemType]);
-
-  useEffect(() => {
-    if (itemType === 'milestone') {
+    if (isMilestone) {
       setEndDate(startDate);
     }
-  }, [itemType, startDate]);
+  }, [isMilestone, startDate]);
 
   useEffect(() => {
-    if (itemType !== 'milestone' && endDate && startDate && endDate < startDate) {
+    if (!isMilestone && endDate && startDate && endDate < startDate) {
       setEndDate(startDate);
     }
-  }, [itemType, startDate, endDate]);
+  }, [isMilestone, startDate, endDate]);
 
   useEffect(() => {
     if (weightPercent > remainingWeight) {
@@ -160,8 +147,6 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
-    const isMilestone = itemType === 'milestone';
-    const isPersonal = itemType === 'personal';
     const normalizedEndDate = isMilestone ? startDate : endDate;
 
     setIsSubmitting(true);
@@ -172,10 +157,10 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
         start_date: startDate,
         end_date: normalizedEndDate,
         status,
-        category_id: isPersonal ? null : categoryId,
-        weight_percent: isPersonal ? 0 : weightPercent,
+        category_id: categoryId,
+        weight_percent: weightPercent,
         is_milestone: isMilestone,
-        is_personal: isPersonal,
+        is_personal: false,
       });
       onClose();
     } catch (err) {
@@ -208,7 +193,8 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
       setShowStageModal(false);
       onStageCreated?.(newCat);
     } catch (err) {
-      alert('Failed to create stage.');
+      console.error('Failed to create stage:', err);
+      alert('Failed to create stage. Check console for details.');
     } finally {
       setCreatingStage(false);
     }
@@ -249,36 +235,6 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {/* Item Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-              <div className="flex gap-2">
-                {ITEM_TYPES.map(type => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => setItemType(type.value)}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
-                      itemType === type.value
-                        ? `border-${type.color}-500 bg-${type.color}-50 text-${type.color}-700`
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                    }`}
-                    style={{
-                      borderColor: itemType === type.value
-                        ? (type.color === 'blue' ? '#3b82f6' : type.color === 'violet' ? '#8b5cf6' : '#f59e0b')
-                        : undefined,
-                      backgroundColor: itemType === type.value
-                        ? (type.color === 'blue' ? '#eff6ff' : type.color === 'violet' ? '#f5f3ff' : '#fffbeb')
-                        : undefined,
-                    }}
-                  >
-                    <span>{type.icon}</span>
-                    <span className="text-sm font-medium">{type.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -308,9 +264,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {itemType === 'milestone' ? 'Date' : 'Start Date'}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                 <input
                   type="date"
                   value={startDate}
@@ -319,61 +273,71 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                   required
                 />
               </div>
-              {itemType !== 'milestone' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  disabled={isMilestone}
+                />
+              </div>
+            </div>
+
+            {/* Milestone toggle */}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isMilestone}
+                  onChange={(e) => setIsMilestone(e.target.checked)}
+                  className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500"
+                />
+                <span className="text-sm font-medium text-gray-700">🎯 Mark as Milestone</span>
+              </label>
             </div>
 
             {/* Category (Stage) */}
-            {itemType !== 'personal' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Stage
-                  {selectedCategory && (
-                    <span className="ml-2 text-xs text-gray-500">
-                      ({selectedCategory.calculated_progress || 0}% complete)
-                    </span>
-                  )}
-                </label>
-                <select
-                  value={categoryId || ''}
-                  onChange={(e) => {
-                    if (e.target.value === '__create__') {
-                      setShowStageModal(true);
-                      setNewStageName('');
-                      setNewStageColor('#1F2937');
-                      return;
-                    }
-                    setCategoryId(e.target.value ? parseInt(e.target.value) : null);
-                    setWeightPercent(0);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {localCategories.length === 0 && <option value="">No stages yet</option>}
-                  {localCategories.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name} ({cat.remaining_weight_percent ?? 100}% available)
-                    </option>
-                  ))}
-                  <option value="__create__">+ Create new Stage...</option>
-                </select>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Stage
+                {selectedCategory && (
+                  <span className="ml-2 text-xs text-gray-500">
+                    ({selectedCategory.calculated_progress || 0}% complete)
+                  </span>
+                )}
+              </label>
+              <select
+                value={categoryId || ''}
+                onChange={(e) => {
+                  if (e.target.value === '__create__') {
+                    setShowStageModal(true);
+                    setNewStageName('');
+                    setNewStageColor('#1F2937');
+                    return;
+                  }
+                  setCategoryId(e.target.value ? parseInt(e.target.value) : null);
+                  setWeightPercent(0);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {localCategories.length === 0 && <option value="">No stages yet</option>}
+                {localCategories.map(cat => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name} ({cat.remaining_weight_percent ?? 100}% available)
+                  </option>
+                ))}
+                <option value="__create__">+ Create new Stage...</option>
+              </select>
+            </div>
 
             {/* Stage Creation Modal */}
             {showStageModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-xs p-6 relative">
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
                   <button
                     onClick={() => setShowStageModal(false)}
                     className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded"
@@ -383,6 +347,9 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                     </svg>
                   </button>
                   <h3 className="text-lg font-semibold mb-3 text-gray-800">Create New Stage</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Stages group related items (e.g., "Interior Painting", "Flooring")
+                  </p>
                   <form onSubmit={handleCreateStage} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Stage Name *</label>
@@ -390,18 +357,23 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                         type="text"
                         value={newStageName}
                         onChange={e => setNewStageName(e.target.value)}
+                        placeholder="e.g., Interior Painting"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required
+                        autoFocus
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                      <input
-                        type="color"
-                        value={newStageColor}
-                        onChange={e => setNewStageColor(e.target.value)}
-                        className="w-12 h-8 p-0 border-0 bg-transparent"
-                      />
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={newStageColor}
+                          onChange={e => setNewStageColor(e.target.value)}
+                          className="w-12 h-10 p-1 border border-gray-300 rounded-lg cursor-pointer"
+                        />
+                        <span className="text-sm text-gray-500">{newStageColor}</span>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -428,17 +400,17 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setShowStageModal(false)}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+                        className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
                         disabled={creatingStage}
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
                         disabled={!newStageName.trim() || creatingStage}
                       >
-                        {creatingStage ? 'Creating...' : 'Create'}
+                        {creatingStage ? 'Creating...' : 'Create Stage'}
                       </button>
                     </div>
                   </form>
@@ -447,7 +419,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
             )}
 
             {/* Weight Percent */}
-            {itemType !== 'personal' && categoryId && (
+            {categoryId && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Weight in Stage (%)

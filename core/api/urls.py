@@ -258,9 +258,8 @@ urlpatterns = [
     path("tasks/<int:task_id>/detail/", TaskDetailAPIView.as_view(), name="task-detail-api"),
     # Include router URLs
     path("", include(router.urls)),
-    # Ensure gantt endpoint resolves under router and direct mapping
+    # Task Gantt endpoint
     path("tasks/gantt/", TaskGanttView.as_view(), name="tasks-gantt"),
-    path("tasks/gantt/", TaskViewSet.as_view({"get": "gantt"}), name="tasks-gantt-router"),
     # Dashboards (UI)
     path(
         "dashboards/projects/<int:project_id>/",
