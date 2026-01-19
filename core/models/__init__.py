@@ -6834,6 +6834,38 @@ class ProjectMinute(models.Model):
     def __str__(self):
         return f"{self.project.name} - {self.get_event_type_display()} - {self.title}"
 
+    def get_short_description(self, max_length=80):
+        """Return truncated description for timeline view."""
+        if not self.description:
+            return ""
+        if len(self.description) <= max_length:
+            return self.description
+        return self.description[:max_length].rsplit(' ', 1)[0] + "..."
+
+
+class MinuteComment(models.Model):
+    """
+    Comentarios en minutas del proyecto.
+    Permite discusión y seguimiento de decisiones.
+    """
+    minute = models.ForeignKey(
+        ProjectMinute, on_delete=models.CASCADE, related_name="comments"
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="minute_comments"
+    )
+    content = models.TextField(help_text="Contenido del comentario")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "Minute Comment"
+        verbose_name_plural = "Minute Comments"
+
+    def __str__(self):
+        return f"Comment by {self.author} on {self.minute.title[:30]}"
+
 
 # ===========================
 # EARNED VALUE SNAPSHOTS

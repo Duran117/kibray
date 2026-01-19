@@ -799,6 +799,10 @@ urlpatterns = [
         name="project_minute_create",
     ),
     path("minutes/<int:minute_id>/", views.project_minute_detail, name="project_minute_detail"),
+    path("minutes/<int:minute_id>/edit/", views.project_minute_edit, name="project_minute_edit"),
+    path("minutes/<int:minute_id>/delete/", views.project_minute_delete, name="project_minute_delete"),
+    path("minutes/<int:minute_id>/comment/", views.minute_comment_add, name="minute_comment_add"),
+    path("minutes/comment/<int:comment_id>/delete/", views.minute_comment_delete, name="minute_comment_delete"),
     # Notifications
     path("notifications/", notif_views.notifications_list, name="notifications_list"),
     path(
