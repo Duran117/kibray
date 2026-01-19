@@ -4395,11 +4395,11 @@ def record_invoice_payment(request, invoice_id):
                 request,
                 f"✅ Pago de ${amount_decimal:,.2f} registrado. Status: {invoice.get_status_display()}",
             )
-            return redirect("core:invoice_payment_dashboard")
+            return redirect("invoice_payment_dashboard")
 
         except (ValueError, ValidationError) as e:
             messages.error(request, _("Error: %(error)s") % {"error": e})
-            return redirect("core:invoice_detail", pk=invoice.id)
+            return redirect("invoice_detail", pk=invoice.id)
 
     # GET: show form
     context = {
@@ -4430,7 +4430,7 @@ def invoice_mark_sent(request, invoice_id):
             _("La factura ya tiene status: %(status)s") % {"status": invoice.get_status_display()},
         )
 
-    return redirect("core:invoice_detail", pk=invoice.id)
+    return redirect("invoice_detail", pk=invoice.id)
 
 
 @login_required
