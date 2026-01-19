@@ -386,6 +386,124 @@ def has_v2_schedule(project: Project) -> bool:
     return SchedulePhaseV2.objects.filter(project=project).exists()
 
 
+def get_upcoming_gantt_items(
+    project: Project,
+    days_ahead: int = 14,
+    limit: int = 10,
+) -> List[Dict[str, Any]]:
+    """
+    Get upcoming Gantt items (stages/items) for a project.
+    Returns items with start_date in the next N days.
+    This is for the project overview "Próximos Eventos" section.
+    
+    Args:
+        project: The project to get items for
+        days_ahead: How many days to look ahead (default 14)
+        limit: Maximum number of items to return (default 10)
+    """
+    today = date.today()
+    end_date = today + timedelta(days=days_ahead)
+    items = []
+    
+    # Check if project has V2 data
+    v2_phases = SchedulePhaseV2.objects.filter(project=project)
+    
+    if v2_phases.exists():
+        # Get V2 items
+        v2_items = ScheduleItemV2.objects.filter(
+            project=project,
+            start_date__gte=today,
+            start_date__lte=end_date,
+        ).select_related('phase', 'assigned_to').order_by('start_date')[:limit]
+        
+        for item in v2_items:
+            items.append({
+                'id': item.id,
+                'title': item.name,
+                'start_date': item.start_date,
+                'end_date': item.end_date,
+                'phase_name': item.phase.name if item.phase else None,
+                'phase_color': item.phase.color if item.phase else item.color,
+                'status': item.status,
+                'progress': item.progress,
+                'is_milestone': item.is_milestone,
+                'assigned_to': item.assigned_to,
+                'color': item.color,
+                'source': 'v2_gantt',
+            })
+        
+        # If no items found in date range, get the next N items regardless of date
+        if not items:
+            v2_items_future = ScheduleItemV2.objects.filter(
+                project=project,
+                start_date__gt=today,
+            ).select_related('phase', 'assigned_to').order_by('start_date')[:limit]
+            
+            for item in v2_items_future:
+                items.append({
+                    'id': item.id,
+                    'title': item.name,
+                    'start_date': item.start_date,
+                    'end_date': item.end_date,
+                    'phase_name': item.phase.name if item.phase else None,
+                    'phase_color': item.phase.color if item.phase else item.color,
+                    'status': item.status,
+                    'progress': item.progress,
+                    'is_milestone': item.is_milestone,
+                    'assigned_to': item.assigned_to,
+                    'color': item.color,
+                    'source': 'v2_gantt',
+                })
+    else:
+        # Fall back to V1 items
+        v1_items = ScheduleItem.objects.filter(
+            project=project,
+            planned_start__gte=today,
+            planned_start__lte=end_date,
+        ).select_related('category', 'assigned_to').order_by('planned_start')[:limit]
+        
+        for item in v1_items:
+            items.append({
+                'id': item.id,
+                'title': item.title,
+                'start_date': item.planned_start,
+                'end_date': item.planned_end,
+                'phase_name': item.category.name if item.category else None,
+                'phase_color': item.category.color if item.category else '#6B7280',
+                'status': _map_v1_status(item.status),
+                'progress': item.percent_complete or 0,
+                'is_milestone': item.is_milestone,
+                'assigned_to': item.assigned_to,
+                'color': item.color or '#6B7280',
+                'source': 'v1_gantt',
+            })
+        
+        # If no items found, get future items
+        if not items:
+            v1_items_future = ScheduleItem.objects.filter(
+                project=project,
+                planned_start__gt=today,
+            ).select_related('category', 'assigned_to').order_by('planned_start')[:limit]
+            
+            for item in v1_items_future:
+                items.append({
+                    'id': item.id,
+                    'title': item.title,
+                    'start_date': item.planned_start,
+                    'end_date': item.planned_end,
+                    'phase_name': item.category.name if item.category else None,
+                    'phase_color': item.category.color if item.category else '#6B7280',
+                    'status': _map_v1_status(item.status),
+                    'progress': item.percent_complete or 0,
+                    'is_milestone': item.is_milestone,
+                    'assigned_to': item.assigned_to,
+                    'color': item.color or '#6B7280',
+                    'source': 'v1_gantt',
+                })
+    
+    return items
+
+
 def migrate_v1_to_v2(project: Project, dry_run: bool = True) -> Dict[str, Any]:
     """
     Migrate V1 schedule data to V2 for a project.

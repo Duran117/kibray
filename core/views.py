@@ -6222,6 +6222,9 @@ def project_overview(request, project_id: int):
 
     project = get_object_or_404(Project, pk=project_id)
 
+    # Import unified schedule service for Gantt data
+    from core.services.schedule_unified import get_project_progress, get_upcoming_gantt_items
+
     # Imports opcionales por si no existen algunos modelos
     try:
         from core.models import Task as TaskModel
@@ -6282,6 +6285,14 @@ def project_overview(request, project_id: int):
     }
 
     colors = color_model.objects.filter(project=project).order_by("name") if color_model else []
+    
+    # Get upcoming Gantt items (stages/tasks from V2 or V1 schedule)
+    upcoming_gantt_items = get_upcoming_gantt_items(project, days_ahead=14, limit=10)
+    
+    # Get project progress from Gantt (V2 or V1)
+    gantt_progress = get_project_progress(project)
+    
+    # Also keep calendar events (Schedule model) separate for backwards compatibility
     upcoming_schedules = (
         schedule_model.objects.filter(project=project).order_by("start_datetime")[:10]
         if schedule_model
@@ -6383,6 +6394,9 @@ def project_overview(request, project_id: int):
             "legacy_shell": True,   # Hide backdrop and disable global nav scripts
             "colors": colors,
             "upcoming_schedules": upcoming_schedules,
+            # Gantt data (V2 or V1)
+            "upcoming_gantt_items": upcoming_gantt_items,
+            "gantt_progress": gantt_progress,
             "recent_tasks": recent_tasks,
             "recent_issues": recent_issues,
             "recent_logs": recent_logs,
