@@ -750,84 +750,89 @@ def dashboard_admin(request):
 # --- DASHBOARD CLIENTE (VISUAL Y ESTÉTICO) ---
 @login_required
 def dashboard_client(request):
-    """Dashboard visual para clientes con progreso, fotos, facturas"""
+    """Client visual dashboard with progress, photos, invoices"""
     profile = getattr(request.user, "profile", None)
     if not profile or profile.role != "client":
-        messages.error(request, "Acceso solo para clientes.")
+        messages.error(request, "Access restricted to clients only.")
         return redirect("dashboard")
+
+    # Activate user's preferred language
+    from django.utils import translation
+    user_language = getattr(profile, 'language', None) or 'en'
+    translation.activate(user_language)
 
     # Import unified schedule service for Gantt data
     from core.services.schedule_unified import get_project_progress
 
-    # Proyectos del cliente: por vínculo directo (legacy) o por asignación granular
+    # Client projects: via direct link (legacy) or granular assignment
     access_projects = Project.objects.filter(client_accesses__user=request.user)
     legacy_projects = Project.objects.filter(client=request.user.username)
     projects = access_projects.union(legacy_projects).order_by("-start_date")
 
-    # Para cada proyecto, calcular métricas visuales
+    # For each project, calculate visual metrics
     project_data = []
     for project in projects:
-        # Facturas
+        # Invoices
         invoices = project.invoices.all().order_by("-date_issued")[:5]
         total_invoiced = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
         total_paid = invoices.aggregate(paid=Sum("amount_paid"))["paid"] or Decimal("0")
 
-        # Progreso - usar sistema de Gantt V2/V1
+        # Progress - use Gantt V2/V1 system
         gantt_progress = get_project_progress(project)
         progress_pct = gantt_progress.get('progress_percent', 0)
         
-        # Fallback si no hay items en el Gantt
+        # Fallback if no items in Gantt
         if gantt_progress.get('total_items', 0) == 0:
             try:
                 metrics = compute_project_ev(project)
                 if metrics and metrics.get("PV") and metrics["PV"] > 0:
                     progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
             except Exception:
-                # Fallback: progreso basado en fechas
+                # Fallback: date-based progress
                 if project.start_date and project.end_date:
                     total_days = (project.end_date - project.start_date).days
                     elapsed_days = (timezone.localdate() - project.start_date).days
                     progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
 
-        # Fotos recientes
+        # Recent photos
         from core.models import SitePhoto
 
         recent_photos = SitePhoto.objects.filter(project=project).order_by("-created_at")[:6]
 
-        # Schedule próximo - buscar en Gantt V2 primero, luego Schedule legacy
+        # Next schedule - search in Gantt V2 first, then legacy Schedule
         from core.models import ScheduleItemV2
         
         next_schedule = None
         today = timezone.localdate()
         
-        # Buscar en items del Gantt V2 - prioridad:
-        # 1. Próximo item futuro no completado
-        # 2. Item en progreso (cualquier fecha)
-        # 3. Próximo item futuro (incluso completado)
-        # 4. Último item completado (más reciente)
+        # Search in Gantt V2 items - priority:
+        # 1. Next future item not completed
+        # 2. Item in progress (any date)
+        # 3. Next future item (even if completed)
+        # 4. Last completed item (most recent)
         
-        # 1. Próximo item futuro no completado
+        # 1. Next future item not completed
         next_gantt_item = ScheduleItemV2.objects.filter(
             project=project,
             start_date__gte=today,
             status__in=['planned', 'in_progress']
         ).order_by('start_date').first()
         
-        # 2. Item en progreso (cualquier fecha)
+        # 2. Item in progress (any date)
         if not next_gantt_item:
             next_gantt_item = ScheduleItemV2.objects.filter(
                 project=project,
                 status='in_progress'
             ).order_by('-start_date').first()
         
-        # 3. Próximo item futuro (incluso completado) 
+        # 3. Next future item (even if completed)
         if not next_gantt_item:
             next_gantt_item = ScheduleItemV2.objects.filter(
                 project=project,
                 start_date__gte=today
             ).order_by('start_date').first()
         
-        # 4. Último item completado (más reciente) - para mostrar el último logro
+        # 4. Last completed item (most recent) - to show latest achievement
         if not next_gantt_item:
             next_gantt_item = ScheduleItemV2.objects.filter(
                 project=project,
@@ -835,29 +840,52 @@ def dashboard_client(request):
             ).order_by('-end_date', '-start_date').first()
         
         if next_gantt_item:
-            # Crear objeto compatible con template
+            # Create template-compatible object
             class NextEventProxy:
                 def __init__(self, item):
                     self.title = item.name
                     self.description = item.description or f"Status: {item.get_status_display()}"
-                    # Convertir date a datetime para el template
+                    # Convert date to datetime for template
                     self.start_datetime = timezone.make_aware(
                         datetime.combine(item.start_date, datetime.min.time())
                     ) if item.start_date else None
                     self.status = item.status
             next_schedule = NextEventProxy(next_gantt_item)
         else:
-            # Fallback al Schedule legacy
+            # Fallback to legacy Schedule
             next_schedule = (
                 Schedule.objects.filter(project=project, start_datetime__gte=timezone.now())
                 .order_by("start_datetime")
                 .first()
             )
 
-        # Solicitudes cliente
+        # Client requests
         from core.models import ClientRequest
 
         client_requests = ClientRequest.objects.filter(project=project).order_by("-created_at")[:5]
+
+        # Change Orders pending client signature
+        from core.models import ChangeOrder
+        pending_change_orders = ChangeOrder.objects.filter(
+            project=project,
+            status__in=['pending', 'sent', 'approved'],
+        ).filter(
+            Q(signature_image__isnull=True) | Q(signature_image='')
+        ).order_by('-date_created')[:5]
+        
+        # Recently signed Change Orders
+        signed_change_orders = ChangeOrder.objects.filter(
+            project=project,
+        ).exclude(
+            Q(signature_image__isnull=True) | Q(signature_image='')
+        ).order_by('-signed_at')[:3]
+        
+        # Color Samples pending approval
+        from core.models import ColorSample
+        pending_color_samples = ColorSample.objects.filter(
+            project=project,
+            status__in=['proposed', 'review']
+        ).order_by('-created_at')[:5]
 
         project_data.append(
             {
@@ -871,13 +899,16 @@ def dashboard_client(request):
                 "recent_photos": recent_photos,
                 "next_schedule": next_schedule,
                 "client_requests": client_requests,
+                "pending_change_orders": pending_change_orders,
+                "signed_change_orders": signed_change_orders,
+                "pending_color_samples": pending_color_samples,
             }
         )
 
     # === MORNING BRIEFING (Categorized alerts for client) ===
     morning_briefing = []
 
-    # Category: Updates (nuevas fotos, comentarios)
+    # Category: Updates (new photos, comments)
     latest_photos = []
     for proj_data in project_data:
         latest_photos.extend(proj_data["recent_photos"][:2])
@@ -885,15 +916,15 @@ def dashboard_client(request):
     if latest_photos:
         morning_briefing.append(
             {
-                "text": f"Hay {len(latest_photos)} nuevas fotos de tu proyecto",
+                "text": f"There are {len(latest_photos)} new photos from your project",
                 "severity": "info",
                 "action_url": "#",
-                "action_label": "Ver fotos",
+                "action_label": "View photos",
                 "category": "updates",
             }
         )
 
-    # Category: Payments (facturas pendientes)
+    # Category: Payments (pending invoices)
     overdue_invoices = []
     for proj_data in project_data:
         for inv in proj_data["invoices"]:
@@ -904,7 +935,7 @@ def dashboard_client(request):
         total_due = sum(inv.total_amount - inv.amount_paid for inv in overdue_invoices)
         morning_briefing.append(
             {
-                "text": f"Tienes ${total_due:,.2f} en facturas pendientes de pago",
+                "text": f"You have ${total_due:,.2f} in pending invoices",
                 "severity": "warning",
                 "action_url": reverse("client_invoices")
                 if "client_invoices"
@@ -915,12 +946,12 @@ def dashboard_client(request):
                     .url_patterns
                 ]
                 else "#",
-                "action_label": "Pagar ahora",
+                "action_label": "Pay now",
                 "category": "payments",
             }
         )
 
-    # Category: Schedule (próximas actividades)
+    # Category: Schedule (upcoming activities)
     upcoming_schedules = []
     for proj_data in project_data:
         if proj_data["next_schedule"]:
@@ -930,10 +961,10 @@ def dashboard_client(request):
         next_date = upcoming_schedules[0].start_datetime
         morning_briefing.append(
             {
-                "text": f"Próxima actividad programada para {next_date.strftime('%d/%m/%Y')}",
+                "text": f"Next activity scheduled for {next_date.strftime('%m/%d/%Y')}",
                 "severity": "info",
                 "action_url": "#",
-                "action_label": "Ver cronograma",
+                "action_label": "View schedule",
                 "category": "schedule",
             }
         )
@@ -945,7 +976,7 @@ def dashboard_client(request):
             item for item in morning_briefing if item.get("category") == active_filter
         ]
 
-    # Mostrar nombre asignado al usuario (preferir display_name del perfil, luego nombre completo, luego username)
+    # Get display name (prefer profile display_name, then full name, then username)
     display_name = None
     try:
         prof = getattr(request.user, "profile", None)
@@ -964,12 +995,8 @@ def dashboard_client(request):
         "active_filter": active_filter,
     }
 
-    # Always serve clean modern template; legacy can be enabled manually if needed
-    force_legacy = request.GET.get("legacy", "false").lower() == "true"
-    template_name = (
-        "core/dashboard_client.html" if force_legacy else "core/dashboard_client_clean.html"
-    )
-    return render(request, template_name, context)
+    # Use premium template (unified design)
+    return render(request, "core/dashboard_client_premium.html", context)
 
 
 # --- EXECUTIVE BI DASHBOARD (Module 21) ---

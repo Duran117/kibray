@@ -274,9 +274,9 @@ class ColorApproval(models.Model):
     """Aprobación/rechazo de muestras de color con evidencia de firma digital."""
 
     STATUS_CHOICES = [
-        ("PENDING", "Pendiente"),
-        ("APPROVED", "Aprobado"),
-        ("REJECTED", "Rechazado"),
+        ("PENDING", _("Pending")),
+        ("APPROVED", _("Approved")),
+        ("REJECTED", _("Rejected")),
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="color_approvals")
@@ -1033,19 +1033,19 @@ class ScheduleTaskV2(models.Model):
     """
 
     STATUS_CHOICES = [
-        ("pending", _("Pendiente")),
-        ("in_progress", _("En progreso")),
-        ("blocked", _("Bloqueada")),
-        ("done", _("Completada")),
+        ("pending", _("Pending")),
+        ("in_progress", _("In Progress")),
+        ("blocked", _("Blocked")),
+        ("done", _("Completed")),
     ]
 
     item = models.ForeignKey(ScheduleItemV2, on_delete=models.CASCADE, related_name="tasks")
     title = models.CharField(max_length=200)
-    description = models.TextField(blank=True, help_text=_("Descripción detallada de la tarea"))
+    description = models.TextField(blank=True, help_text=_("Detailed task description"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     weight_percent = models.DecimalField(
         max_digits=5, decimal_places=2, default=0,
-        help_text=_("Porcentaje que esta tarea representa del item (0-100)")
+        help_text=_("Percentage this task represents of the item (0-100)")
     )
     assigned_to = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name="gantt_tasks"
@@ -1229,10 +1229,10 @@ class Task(models.Model):
     """
 
     PRIORITY_CHOICES = [
-        ("low", _("Baja")),
-        ("medium", _("Media")),
-        ("high", _("Alta")),
-        ("urgent", _("Urgente")),
+        ("low", _("Low")),
+        ("medium", _("Medium")),
+        ("high", _("High")),
+        ("urgent", _("Urgent")),
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks")
@@ -1240,23 +1240,23 @@ class Task(models.Model):
     description = models.TextField(blank=True)
     status = models.CharField(
         max_length=50,
-        default="Pendiente",
+        default="Pending",
         choices=[
-            ("Pendiente", _("Pendiente")),
-            ("En Progreso", _("En Progreso")),
-            ("En Revisión", _("En Revisión")),
-            ("Completada", _("Completada")),
-            ("Cancelada", _("Cancelada")),
+            ("Pending", _("Pending")),
+            ("In Progress", _("In Progress")),
+            ("Under Review", _("Under Review")),
+            ("Completed", _("Completed")),
+            ("Cancelled", _("Cancelled")),
         ],
     )
     is_visible_to_client = models.BooleanField(default=False)
 
-    # Q11.6: Priorización
+    # Q11.6: Prioritization
     priority = models.CharField(
         max_length=20,
         choices=PRIORITY_CHOICES,
         default="medium",
-        help_text=_("Prioridad de la tarea"),
+        help_text=_("Task priority"),
     )
 
     created_by = models.ForeignKey(
@@ -2067,12 +2067,12 @@ class ChangeOrder(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
-            ("draft", "Borrador"),
-            ("pending", "Pendiente"),
-            ("approved", "Aprobado"),
-            ("sent", "Enviado"),
-            ("billed", "Facturado"),
-            ("paid", "Pagado"),
+            ("draft", _("Draft")),
+            ("pending", _("Pending")),
+            ("approved", _("Approved")),
+            ("sent", _("Sent")),
+            ("billed", _("Billed")),
+            ("paid", _("Paid")),
         ],
         default="draft",
     )
@@ -2230,10 +2230,10 @@ class PayrollPeriod(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
-            ("draft", "Borrador"),
-            ("under_review", "En Revisión"),
-            ("approved", "Aprobado"),
-            ("paid", "Pagado"),
+            ("draft", _("Draft")),
+            ("under_review", _("Under Review")),
+            ("approved", _("Approved")),
+            ("paid", _("Paid")),
         ],
         default="draft",
     )
