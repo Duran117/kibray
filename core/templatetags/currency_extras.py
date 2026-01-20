@@ -26,4 +26,11 @@ def currency_es(value, places=2):
     return f"${localized}"
 
 
-__all__ = ["currency_es"]
+# Alias for compatibility
+@register.filter
+def currency(value, places=2):
+    """Alias for currency_es filter."""
+    return currency_es(value, places)
+
+
+__all__ = ["currency_es", "currency"]
