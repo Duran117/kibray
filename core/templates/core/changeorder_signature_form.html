@@ -1,556 +1,1109 @@
-{% load static currency_extras i18n %}{% load static currency_extras i18n %}{% load static currency_extras %}
+{% load static currency_extras i18n %}{% load static currency_extras i18n %}{% load static currency_extras i18n %}{% load static currency_extras %}
 
 <!DOCTYPE html>
 
-<html lang="en"><!DOCTYPE html><!DOCTYPE html>
+<html lang="en"><!DOCTYPE html>
 
 <head>
 
-    <meta charset="UTF-8"><html lang="en"><html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
+    <meta charset="UTF-8"><html lang="en"><!DOCTYPE html><!DOCTYPE html>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{% trans "Sign Change Order" %} - CO-{{ changeorder.id|stringformat:"04d" }}</title><head><head>
+    <title>{% trans "Sign Change Order" %} - CO-{{ changeorder.id|stringformat:"04d" }}</title><head>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">    <meta charset="UTF-8">    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">    <meta charset="UTF-8"><html lang="en"><html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
 
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
-    <style>    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         :root {
 
-            --primary-color: #667eea;    <title>{% trans "Sign Change Order" %} - CO-{{ changeorder.id|stringformat:"04d" }}</title>    <title>Firma de Change Order - CO-{{ changeorder.id|stringformat:"04d" }}</title>
+            --primary-color: #667eea;    <title>{% trans "Sign Change Order" %} - CO-{{ changeorder.id|stringformat:"04d" }}</title><head><head>
 
             --success-color: #059669;
 
-            --danger-color: #dc2626;    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            --danger-color: #dc2626;    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
             --info-color: #0284c7;
 
-        }    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
-        body {
-
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-
-            min-height: 100vh;    <style>    <style>
-
-            padding: 2rem 1rem;
-
-        }        :root {        :root {
-
-        .co-container {
-
-            max-width: 900px;            --primary-color: #667eea;            --primary-color: #667eea;
-
-            margin: 0 auto;
-
-        }            --success-color: #059669;            --success-color: #059669;
-
-        .co-card {
-
-            background: white;            --danger-color: #dc2626;            --danger-color: #dc2626;
-
-            border-radius: 16px;
-
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);            --info-color: #0284c7;            --info-color: #0284c7;
-
-            overflow: hidden;
-
-            margin-bottom: 1.5rem;        }        }
+            --warning-color: #d97706;    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">    <meta charset="UTF-8">    <meta charset="UTF-8">
 
         }
 
-        .co-header {
+        body {    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
-            color: white;        body {        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);    <style>    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-            padding: 2rem;
+            min-height: 100vh;
 
-            text-align: center;            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-
-        }
-
-        .co-header h1 {            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-            font-size: 1.75rem;
-
-            font-weight: 700;            min-height: 100vh;            min-height: 100vh;
-
-            margin-bottom: 0.5rem;
-
-        }            padding: 1rem;            padding: 1rem;
-
-        .co-header .co-number {
-
-            font-size: 1.1rem;        }        }
-
-            opacity: 0.9;
+            padding: 2rem 1rem;        :root {
 
         }
 
-        .co-body {
+        .co-container {            --primary-color: #667eea;    <title>{% trans "Sign Change Order" %} - CO-{{ changeorder.id|stringformat:"04d" }}</title>    <title>Firma de Change Order - CO-{{ changeorder.id|stringformat:"04d" }}</title>
 
-            padding: 2rem;        .signature-container {        .signature-container {
+            max-width: 900px;
 
-        }
-
-        .info-section {            max-width: 800px;            max-width: 800px;
-
-            margin-bottom: 2rem;
-
-        }            margin: 0 auto;            margin: 0 auto;
-
-        .info-section h3 {
-
-            font-size: 1rem;            background: white;            background: white;
-
-            font-weight: 600;
-
-            color: #374151;            border-radius: 16px;            border-radius: 16px;
-
-            margin-bottom: 1rem;
-
-            display: flex;            box-shadow: 0 20px 60px rgba(0,0,0,0.3);            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-
-            align-items: center;
-
-            gap: 0.5rem;            overflow: hidden;            overflow: hidden;
+            margin: 0 auto;            --success-color: #059669;
 
         }
 
-        .info-section h3 i {        }        }
-
-            color: var(--primary-color);
-
-        }
-
-        .info-grid {
-
-            display: grid;        .header {        .header {
-
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-
-            gap: 1rem;            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-        }
-
-        .info-item {            color: white;            color: white;
-
-            background: #f9fafb;
-
-            padding: 1rem;            padding: 2rem;            padding: 2rem;
-
-            border-radius: 8px;
-
-        }            text-align: center;            text-align: center;
-
-        .info-item label {
-
-            font-size: 0.75rem;        }        }
-
-            text-transform: uppercase;
-
-            color: #6b7280;
-
-            margin-bottom: 0.25rem;
-
-            display: block;        .header h1 {        .header h1 {
-
-        }
-
-        .info-item span {            margin: 0;            margin: 0;
-
-            font-size: 1rem;
-
-            font-weight: 600;            font-size: 1.8rem;            font-size: 1.8rem;
-
-            color: #111827;
-
-        }            font-weight: 700;            font-weight: 700;
-
-        .line-items-table {
-
-            width: 100%;        }        }
-
-            border-collapse: collapse;
-
-        }
-
-        .line-items-table th {
-
-            background: #f3f4f6;        .header .co-number {        .header .co-number {
-
-            padding: 0.75rem 1rem;
-
-            text-align: left;            font-size: 2.5rem;            font-size: 2.5rem;
-
-            font-size: 0.8rem;
-
-            text-transform: uppercase;            font-weight: 800;            font-weight: 800;
-
-            color: #6b7280;
-
-            border-bottom: 2px solid #e5e7eb;            margin: 0.5rem 0;            margin: 0.5rem 0;
-
-        }
-
-        .line-items-table td {        }        }
-
-            padding: 0.75rem 1rem;
-
-            border-bottom: 1px solid #e5e7eb;
-
-        }
-
-        .totals-section {        .content {        .content {
-
-            background: #f9fafb;
-
-            padding: 1.5rem;            padding: 2rem;            padding: 2rem;
-
-            border-radius: 8px;
-
-            margin-top: 1rem;        }        }
-
-        }
-
-        .totals-row {
-
-            display: flex;
-
-            justify-content: space-between;        .section {        .section {
-
-            padding: 0.5rem 0;
-
-        }            margin-bottom: 2rem;            margin-bottom: 2rem;
-
-        .totals-row.grand-total {
-
-            border-top: 2px solid #e5e7eb;            padding-bottom: 2rem;            padding-bottom: 2rem;
-
-            margin-top: 0.5rem;
-
-            padding-top: 1rem;            border-bottom: 2px solid #e2e8f0;            border-bottom: 2px solid #e2e8f0;
-
-            font-size: 1.25rem;
-
-            font-weight: 700;        }        }
-
-            color: #111827;
-
-        }
-
-        .signature-section {
-
-            background: #fefce8;        .section:last-child {        .section:last-child {
-
-            border: 2px dashed #facc15;
-
-            border-radius: 12px;            border-bottom: none;            border-bottom: none;
-
-            padding: 2rem;
-
-            text-align: center;        }        }
-
-        }
-
-        .signature-section h3 {
-
-            margin-bottom: 1rem;
-
-        }        .section-title {        .section-title {
-
-        .signature-canvas-wrapper {
-
-            background: white;            font-size: 1.3rem;            font-size: 1.3rem;
-
-            border: 1px solid #d1d5db;
-
-            border-radius: 8px;            font-weight: 700;            font-weight: 700;
-
-            margin: 1rem auto;
-
-            max-width: 500px;            color: #1e293b;            color: #1e293b;
-
-        }
-
-        #signatureCanvas {            margin-bottom: 1rem;            margin-bottom: 1rem;
-
-            width: 100%;
-
-            height: 200px;            display: flex;            display: flex;
-
-            cursor: crosshair;
-
-        }            align-items: center;            align-items: center;
-
-        .signature-actions {
-
-            display: flex;            gap: 0.5rem;            gap: 0.5rem;
-
-            gap: 1rem;
-
-            justify-content: center;        }        }
-
-            margin-top: 1rem;
-
-        }
-
-        .btn-clear {
-
-            background: #f3f4f6;        .info-grid {        .info-grid {
-
-            border: 1px solid #d1d5db;
-
-            color: #374151;            display: grid;            display: grid;
-
-            padding: 0.5rem 1.5rem;
-
-            border-radius: 8px;            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-
-            cursor: pointer;
-
-            transition: all 0.2s;            gap: 1rem;            gap: 1rem;
-
-        }
-
-        .btn-clear:hover {            margin-bottom: 1rem;            margin-bottom: 1rem;
-
-            background: #e5e7eb;
-
-        }        }        }
-
-        .btn-submit {
-
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-
-            color: white;
-
-            border: none;        .info-item {        .info-item {
-
-            padding: 1rem 2rem;
-
-            border-radius: 8px;            background: #f8fafc;            background: #f8fafc;
-
-            font-size: 1rem;
-
-            font-weight: 600;            padding: 1rem;            padding: 1rem;
-
-            cursor: pointer;
-
-            transition: all 0.2s;            border-radius: 8px;            border-radius: 8px;
-
-            display: inline-flex;
-
-            align-items: center;            border-left: 4px solid var(--primary-color);            border-left: 4px solid var(--primary-color);
-
-            gap: 0.5rem;
-
-        }        }        }
-
-        .btn-submit:hover {
-
-            transform: translateY(-2px);
-
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-
-        }        .info-label {        .info-label {
-
-        .btn-submit:disabled {
-
-            opacity: 0.6;            font-size: 0.85rem;            font-size: 0.85rem;
-
-            cursor: not-allowed;
-
-            transform: none;            color: #64748b;            color: #64748b;
-
-        }
-
-        .already-signed {            font-weight: 600;            font-weight: 600;
-
-            background: #ecfdf5;
-
-            border: 2px solid #10b981;            text-transform: uppercase;            text-transform: uppercase;
-
-            border-radius: 12px;
-
-            padding: 2rem;            letter-spacing: 0.5px;            letter-spacing: 0.5px;
-
-            text-align: center;
-
-        }            margin-bottom: 0.3rem;            margin-bottom: 0.3rem;
-
-        .already-signed i {
-
-            font-size: 3rem;        }        }
-
-            color: #10b981;
-
-            margin-bottom: 1rem;
-
-        }
-
-        .already-signed h3 {        .info-value {        .info-value {
-
-            color: #065f46;
-
-            margin-bottom: 0.5rem;            font-size: 1.1rem;            font-size: 1.1rem;
-
-        }
-
-        .signature-image {            color: #1e293b;            color: #1e293b;
-
-            max-width: 300px;
-
-            margin: 1rem auto;            font-weight: 600;            font-weight: 600;
-
-            border: 1px solid #d1d5db;
-
-            border-radius: 8px;        }        }
-
-            padding: 1rem;
+        .co-card {            --danger-color: #dc2626;    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
             background: white;
 
+            border-radius: 16px;            --info-color: #0284c7;
+
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+
+            overflow: hidden;        }    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+            margin-bottom: 1.5rem;
+
+        }        body {
+
+        .co-header {
+
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+
+            color: white;
+
+            padding: 2rem;            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+
+            text-align: center;
+
+        }            min-height: 100vh;    <style>    <style>
+
+        .co-header h1 {
+
+            font-size: 1.75rem;            padding: 2rem 1rem;
+
+            font-weight: 700;
+
+            margin-bottom: 0.5rem;        }        :root {        :root {
+
         }
 
-        .signature-image img {        .amount-display {        .amount-display {
+        .co-header .co-number {        .co-container {
 
-            width: 100%;
+            font-size: 1.1rem;
 
-            height: auto;            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            opacity: 0.9;            max-width: 900px;            --primary-color: #667eea;            --primary-color: #667eea;
 
         }
 
-        .status-badge {            border: 3px solid var(--success-color);            border: 3px solid var(--success-color);
+        .co-body {            margin: 0 auto;
 
-            display: inline-flex;
+            padding: 2rem;
 
-            align-items: center;            border-radius: 12px;            border-radius: 12px;
+        }        }            --success-color: #059669;            --success-color: #059669;
 
-            gap: 0.375rem;
+        .info-section {
 
-            padding: 0.375rem 0.75rem;            padding: 1.5rem;            padding: 1.5rem;
+            margin-bottom: 2rem;        .co-card {
 
-            border-radius: 9999px;
+        }
 
-            font-size: 0.8rem;            text-align: center;            text-align: center;
+        .info-section h3 {            background: white;            --danger-color: #dc2626;            --danger-color: #dc2626;
+
+            font-size: 1rem;
+
+            font-weight: 600;            border-radius: 16px;
+
+            color: #374151;
+
+            margin-bottom: 1rem;            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);            --info-color: #0284c7;            --info-color: #0284c7;
+
+            display: flex;
+
+            align-items: center;            overflow: hidden;
+
+            gap: 0.5rem;
+
+        }            margin-bottom: 1.5rem;        }        }
+
+        .info-section h3 i {
+
+            color: var(--primary-color);        }
+
+        }
+
+        .info-grid {        .co-header {
+
+            display: grid;
+
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+            gap: 1rem;
+
+        }            color: white;        body {        body {
+
+        .info-item {
+
+            background: #f9fafb;            padding: 2rem;
+
+            padding: 1rem;
+
+            border-radius: 8px;            text-align: center;            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+        }
+
+        .info-item label {        }
+
+            font-size: 0.75rem;
+
+            text-transform: uppercase;        .co-header h1 {            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+            color: #6b7280;
+
+            margin-bottom: 0.25rem;            font-size: 1.75rem;
+
+            display: block;
+
+        }            font-weight: 700;            min-height: 100vh;            min-height: 100vh;
+
+        .info-item span {
+
+            font-size: 1rem;            margin-bottom: 0.5rem;
 
             font-weight: 600;
 
-        }            margin: 1.5rem 0;            margin: 1.5rem 0;
-
-        .status-badge.pending {
-
-            background: #fef3c7;        }        }
-
-            color: #92400e;
+            color: #111827;        }            padding: 1rem;            padding: 1rem;
 
         }
 
-        .status-badge.approved {
+        .pricing-badge {        .co-header .co-number {
 
-            background: #d1fae5;        .amount-label {        .amount-label {
+            display: inline-flex;
+
+            align-items: center;            font-size: 1.1rem;        }        }
+
+            gap: 0.5rem;
+
+            padding: 0.5rem 1rem;            opacity: 0.9;
+
+            border-radius: 8px;
+
+            font-weight: 600;        }
+
+            font-size: 0.9rem;
+
+        }        .co-body {
+
+        .pricing-badge.fixed {
+
+            background: #dbeafe;            padding: 2rem;        .signature-container {        .signature-container {
+
+            color: #1e40af;
+
+        }        }
+
+        .pricing-badge.tm {
+
+            background: #fef3c7;        .info-section {            max-width: 800px;            max-width: 800px;
+
+            color: #92400e;
+
+        }            margin-bottom: 2rem;
+
+        .pricing-highlight {
+
+            background: #f0fdf4;        }            margin: 0 auto;            margin: 0 auto;
+
+            border: 2px solid #22c55e;
+
+            border-radius: 12px;        .info-section h3 {
+
+            padding: 1.5rem;
+
+            margin-bottom: 1.5rem;            font-size: 1rem;            background: white;            background: white;
+
+        }
+
+        .pricing-highlight h4 {            font-weight: 600;
+
+            color: #166534;
+
+            margin-bottom: 0.5rem;            color: #374151;            border-radius: 16px;            border-radius: 16px;
+
+            display: flex;
+
+            align-items: center;            margin-bottom: 1rem;
+
+            gap: 0.5rem;
+
+        }            display: flex;            box-shadow: 0 20px 60px rgba(0,0,0,0.3);            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+
+        .pricing-highlight p {
+
+            color: #15803d;            align-items: center;
+
+            margin: 0;
+
+        }            gap: 0.5rem;            overflow: hidden;            overflow: hidden;
+
+        .line-items-table {
+
+            width: 100%;        }
+
+            border-collapse: collapse;
+
+        }        .info-section h3 i {        }        }
+
+        .line-items-table th {
+
+            background: #f3f4f6;            color: var(--primary-color);
+
+            padding: 0.75rem 1rem;
+
+            text-align: left;        }
+
+            font-size: 0.8rem;
+
+            text-transform: uppercase;        .info-grid {
+
+            color: #6b7280;
+
+            border-bottom: 2px solid #e5e7eb;            display: grid;        .header {        .header {
+
+        }
+
+        .line-items-table td {            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+            padding: 0.75rem 1rem;
+
+            border-bottom: 1px solid #e5e7eb;            gap: 1rem;            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        }
+
+        .totals-section {        }
+
+            background: #f9fafb;
+
+            padding: 1.5rem;        .info-item {            color: white;            color: white;
+
+            border-radius: 8px;
+
+            margin-top: 1rem;            background: #f9fafb;
+
+        }
+
+        .totals-row {            padding: 1rem;            padding: 2rem;            padding: 2rem;
+
+            display: flex;
+
+            justify-content: space-between;            border-radius: 8px;
+
+            padding: 0.5rem 0;
+
+        }        }            text-align: center;            text-align: center;
+
+        .totals-row.grand-total {
+
+            border-top: 2px solid #e5e7eb;        .info-item label {
+
+            margin-top: 0.5rem;
+
+            padding-top: 1rem;            font-size: 0.75rem;        }        }
+
+            font-size: 1.25rem;
+
+            font-weight: 700;            text-transform: uppercase;
+
+            color: #111827;
+
+        }            color: #6b7280;
+
+        .signature-section {
+
+            background: #fefce8;            margin-bottom: 0.25rem;
+
+            border: 2px dashed #facc15;
+
+            border-radius: 12px;            display: block;        .header h1 {        .header h1 {
+
+            padding: 2rem;
+
+            text-align: center;        }
+
+        }
+
+        .signature-section h3 {        .info-item span {            margin: 0;            margin: 0;
+
+            margin-bottom: 1rem;
+
+        }            font-size: 1rem;
+
+        .signature-canvas-wrapper {
+
+            background: white;            font-weight: 600;            font-size: 1.8rem;            font-size: 1.8rem;
+
+            border: 1px solid #d1d5db;
+
+            border-radius: 8px;            color: #111827;
+
+            margin: 1rem auto;
+
+            max-width: 500px;        }            font-weight: 700;            font-weight: 700;
+
+        }
+
+        #signatureCanvas {        .line-items-table {
+
+            width: 100%;
+
+            height: 200px;            width: 100%;        }        }
+
+            cursor: crosshair;
+
+        }            border-collapse: collapse;
+
+        .signature-actions {
+
+            display: flex;        }
+
+            gap: 1rem;
+
+            justify-content: center;        .line-items-table th {
+
+            margin-top: 1rem;
+
+        }            background: #f3f4f6;        .header .co-number {        .header .co-number {
+
+        .btn-clear {
+
+            background: #f3f4f6;            padding: 0.75rem 1rem;
+
+            border: 1px solid #d1d5db;
+
+            color: #374151;            text-align: left;            font-size: 2.5rem;            font-size: 2.5rem;
+
+            padding: 0.5rem 1.5rem;
+
+            border-radius: 8px;            font-size: 0.8rem;
+
+            cursor: pointer;
+
+            transition: all 0.2s;            text-transform: uppercase;            font-weight: 800;            font-weight: 800;
+
+        }
+
+        .btn-clear:hover {            color: #6b7280;
+
+            background: #e5e7eb;
+
+        }            border-bottom: 2px solid #e5e7eb;            margin: 0.5rem 0;            margin: 0.5rem 0;
+
+        .btn-submit {
+
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);        }
+
+            color: white;
+
+            border: none;        .line-items-table td {        }        }
+
+            padding: 1rem 2rem;
+
+            border-radius: 8px;            padding: 0.75rem 1rem;
+
+            font-size: 1rem;
+
+            font-weight: 600;            border-bottom: 1px solid #e5e7eb;
+
+            cursor: pointer;
+
+            transition: all 0.2s;        }
+
+            display: inline-flex;
+
+            align-items: center;        .totals-section {        .content {        .content {
+
+            gap: 0.5rem;
+
+        }            background: #f9fafb;
+
+        .btn-submit:hover {
+
+            transform: translateY(-2px);            padding: 1.5rem;            padding: 2rem;            padding: 2rem;
+
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+
+        }            border-radius: 8px;
+
+        .btn-submit:disabled {
+
+            opacity: 0.6;            margin-top: 1rem;        }        }
+
+            cursor: not-allowed;
+
+            transform: none;        }
+
+        }
+
+        .already-signed {        .totals-row {
+
+            background: #ecfdf5;
+
+            border: 2px solid #10b981;            display: flex;
+
+            border-radius: 12px;
+
+            padding: 2rem;            justify-content: space-between;        .section {        .section {
+
+            text-align: center;
+
+        }            padding: 0.5rem 0;
+
+        .already-signed i {
+
+            font-size: 3rem;        }            margin-bottom: 2rem;            margin-bottom: 2rem;
+
+            color: #10b981;
+
+            margin-bottom: 1rem;        .totals-row.grand-total {
+
+        }
+
+        .already-signed h3 {            border-top: 2px solid #e5e7eb;            padding-bottom: 2rem;            padding-bottom: 2rem;
 
             color: #065f46;
 
-        }            font-size: 0.9rem;            font-size: 0.9rem;
+            margin-bottom: 0.5rem;            margin-top: 0.5rem;
+
+        }
+
+        .signature-image {            padding-top: 1rem;            border-bottom: 2px solid #e2e8f0;            border-bottom: 2px solid #e2e8f0;
+
+            max-width: 300px;
+
+            margin: 1rem auto;            font-size: 1.25rem;
+
+            border: 1px solid #d1d5db;
+
+            border-radius: 8px;            font-weight: 700;        }        }
+
+            padding: 1rem;
+
+            background: white;            color: #111827;
+
+        }
+
+        .signature-image img {        }
+
+            width: 100%;
+
+            height: auto;        .signature-section {
+
+        }
+
+        .status-badge {            background: #fefce8;        .section:last-child {        .section:last-child {
+
+            display: inline-flex;
+
+            align-items: center;            border: 2px dashed #facc15;
+
+            gap: 0.375rem;
+
+            padding: 0.375rem 0.75rem;            border-radius: 12px;            border-bottom: none;            border-bottom: none;
+
+            border-radius: 9999px;
+
+            font-size: 0.8rem;            padding: 2rem;
+
+            font-weight: 600;
+
+        }            text-align: center;        }        }
+
+        .status-badge.pending {
+
+            background: #fef3c7;        }
+
+            color: #92400e;
+
+        }        .signature-section h3 {
+
+        .status-badge.approved {
+
+            background: #d1fae5;            margin-bottom: 1rem;
+
+            color: #065f46;
+
+        }        }        .section-title {        .section-title {
+
+        .acknowledgment-box {
+
+            background: #fff7ed;        .signature-canvas-wrapper {
+
+            border: 2px solid #fdba74;
+
+            border-radius: 12px;            background: white;            font-size: 1.3rem;            font-size: 1.3rem;
+
+            padding: 1.5rem;
+
+            margin-bottom: 1.5rem;            border: 1px solid #d1d5db;
+
+        }
+
+        .acknowledgment-box h4 {            border-radius: 8px;            font-weight: 700;            font-weight: 700;
+
+            color: #9a3412;
+
+            margin-bottom: 1rem;            margin: 1rem auto;
+
+            display: flex;
+
+            align-items: center;            max-width: 500px;            color: #1e293b;            color: #1e293b;
+
+            gap: 0.5rem;
+
+        }        }
+
+        .acknowledgment-box p {
+
+            color: #c2410c;        #signatureCanvas {            margin-bottom: 1rem;            margin-bottom: 1rem;
+
+            margin-bottom: 0.5rem;
+
+        }            width: 100%;
+
+        .acknowledgment-box ul {
+
+            color: #c2410c;            height: 200px;            display: flex;            display: flex;
+
+            margin-left: 1.5rem;
+
+        }            cursor: crosshair;
 
         @media (max-width: 640px) {
 
-            body { padding: 1rem 0.5rem; }            color: #065f46;            color: #065f46;
+            body { padding: 1rem 0.5rem; }        }            align-items: center;            align-items: center;
 
             .co-header { padding: 1.5rem 1rem; }
 
-            .co-body { padding: 1rem; }            font-weight: 600;            font-weight: 600;
+            .co-body { padding: 1rem; }        .signature-actions {
 
             .info-grid { grid-template-columns: 1fr; }
 
-            .line-items-table { font-size: 0.875rem; }            text-transform: uppercase;            text-transform: uppercase;
+            .line-items-table { font-size: 0.875rem; }            display: flex;            gap: 0.5rem;            gap: 0.5rem;
 
             .signature-actions { flex-direction: column; }
 
-        }            margin-bottom: 0.5rem;            margin-bottom: 0.5rem;
+        }            gap: 1rem;
 
     </style>
 
-</head>        }        }
+</head>            justify-content: center;        }        }
 
 <body>
 
-    <div class="co-container">
+    <div class="co-container">            margin-top: 1rem;
 
         <!-- Header -->
 
-        <div class="co-card">        .amount-value {        .amount-value {
+        <div class="co-card">        }
 
             <div class="co-header">
 
-                <h1><i class="bi bi-file-earmark-text me-2"></i>{% trans "Change Order" %}</h1>            font-size: 3rem;            font-size: 3rem;
+                <h1><i class="bi bi-file-earmark-text me-2"></i>{% trans "Change Order" %}</h1>        .btn-clear {
 
                 <div class="co-number">CO-{{ changeorder.id|stringformat:"04d" }}</div>
 
-            </div>            font-weight: 800;            font-weight: 800;
+            </div>            background: #f3f4f6;        .info-grid {        .info-grid {
 
             
 
-            <div class="co-body">            color: #047857;            color: #047857;
+            <div class="co-body">            border: 1px solid #d1d5db;
 
-                <!-- Project Information -->
+                <!-- Pricing Type Highlight - Important for client -->
 
-                <div class="info-section">        }        }
+                <div class="pricing-highlight">            color: #374151;            display: grid;            display: grid;
 
-                    <h3><i class="bi bi-building"></i> {% trans "Project Information" %}</h3>
+                    <h4>
+
+                        <i class="bi bi-info-circle-fill"></i>            padding: 0.5rem 1.5rem;
+
+                        {% trans "Pricing Type" %}
+
+                    </h4>            border-radius: 8px;            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+
+                    {% if changeorder.pricing_type == 'T_AND_M' %}
+
+                    <div class="pricing-badge tm">            cursor: pointer;
+
+                        <i class="bi bi-clock-history"></i>
+
+                        {% trans "Time & Materials (T&M)" %}            transition: all 0.2s;            gap: 1rem;            gap: 1rem;
+
+                    </div>
+
+                    <p class="mt-2">        }
+
+                        {% trans "This change order will be billed based on actual time worked and materials used." %}
+
+                        {% if changeorder.labor_rate_override %}        .btn-clear:hover {            margin-bottom: 1rem;            margin-bottom: 1rem;
+
+                        <br><strong>{% trans "Hourly Rate" %}:</strong> {{ changeorder.labor_rate_override|currency }}
+
+                        {% endif %}            background: #e5e7eb;
+
+                        {% if changeorder.material_markup_percent %}
+
+                        <br><strong>{% trans "Material Markup" %}:</strong> {{ changeorder.material_markup_percent }}%        }        }        }
+
+                        {% endif %}
+
+                    </p>        .btn-submit {
+
+                    {% else %}
+
+                    <div class="pricing-badge fixed">            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+
+                        <i class="bi bi-tag-fill"></i>
+
+                        {% trans "Fixed Price" %}            color: white;
+
+                    </div>
+
+                    <p class="mt-2">            border: none;        .info-item {        .info-item {
+
+                        {% trans "This change order has a fixed total price of" %} <strong>{{ changeorder.amount|currency }}</strong>.
+
+                    </p>            padding: 1rem 2rem;
+
+                    {% endif %}
+
+                </div>            border-radius: 8px;            background: #f8fafc;            background: #f8fafc;
+
+
+
+                <!-- Project Information -->            font-size: 1rem;
+
+                <div class="info-section">
+
+                    <h3><i class="bi bi-building"></i> {% trans "Project Information" %}</h3>            font-weight: 600;            padding: 1rem;            padding: 1rem;
 
                     <div class="info-grid">
 
-                        <div class="info-item">
+                        <div class="info-item">            cursor: pointer;
 
-                            <label>{% trans "Project" %}</label>        .rates-display {        .rates-display {
+                            <label>{% trans "Project" %}</label>
 
-                            <span>{{ changeorder.project.name }}</span>
+                            <span>{{ changeorder.project.name }}</span>            transition: all 0.2s;            border-radius: 8px;            border-radius: 8px;
 
-                        </div>            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                        </div>
 
-                        <div class="info-item">
+                        <div class="info-item">            display: inline-flex;
 
-                            <label>{% trans "Address" %}</label>            border: 3px solid var(--info-color);            border: 3px solid var(--info-color);
+                            <label>{% trans "Address" %}</label>
 
-                            <span>{{ changeorder.project.address|default:"—" }}</span>
+                            <span>{{ changeorder.project.address|default:"—" }}</span>            align-items: center;            border-left: 4px solid var(--primary-color);            border-left: 4px solid var(--primary-color);
 
-                        </div>            border-radius: 12px;            border-radius: 12px;
+                        </div>
 
-                        <div class="info-item">
+                        <div class="info-item">            gap: 0.5rem;
 
-                            <label>{% trans "Date" %}</label>            padding: 1.5rem;            padding: 1.5rem;
+                            <label>{% trans "Date" %}</label>
 
-                            <span>{{ changeorder.created_at|date:"M d, Y" }}</span>
+                            <span>{{ changeorder.created_at|date:"M d, Y" }}</span>        }        }        }
 
-                        </div>            margin: 1.5rem 0;            margin: 1.5rem 0;
+                        </div>
 
-                        <div class="info-item">
+                        <div class="info-item">        .btn-submit:hover {
 
-                            <label>{% trans "Status" %}</label>        }        }
+                            <label>{% trans "Status" %}</label>
 
-                            <span class="status-badge {% if changeorder.status == 'approved' %}approved{% else %}pending{% endif %}">
+                            <span class="status-badge {% if changeorder.status == 'approved' %}approved{% else %}pending{% endif %}">            transform: translateY(-2px);
 
                                 {% if changeorder.status == 'approved' %}
 
-                                <i class="bi bi-check-circle"></i> {% trans "Approved" %}
+                                <i class="bi bi-check-circle"></i> {% trans "Approved" %}            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 
-                                {% else %}        .rate-item {        .rate-item {
+                                {% else %}
 
-                                <i class="bi bi-clock"></i> {% trans "Pending Signature" %}
+                                <i class="bi bi-clock"></i> {% trans "Pending Signature" %}        }        .info-label {        .info-label {
 
-                                {% endif %}            display: flex;            display: flex;
+                                {% endif %}
+
+                            </span>        .btn-submit:disabled {
+
+                        </div>
+
+                    </div>            opacity: 0.6;            font-size: 0.85rem;            font-size: 0.85rem;
+
+                </div>
+
+            cursor: not-allowed;
+
+                <!-- Description -->
+
+                {% if changeorder.description %}            transform: none;            color: #64748b;            color: #64748b;
+
+                <div class="info-section">
+
+                    <h3><i class="bi bi-card-text"></i> {% trans "Description" %}</h3>        }
+
+                    <p>{{ changeorder.description }}</p>
+
+                </div>        .already-signed {            font-weight: 600;            font-weight: 600;
+
+                {% endif %}
+
+            background: #ecfdf5;
+
+                <!-- Line Items (for Fixed Price) -->
+
+                {% if changeorder.pricing_type != 'T_AND_M' and changeorder.line_items.exists %}            border: 2px solid #10b981;            text-transform: uppercase;            text-transform: uppercase;
+
+                <div class="info-section">
+
+                    <h3><i class="bi bi-list-ul"></i> {% trans "Line Items" %}</h3>            border-radius: 12px;
+
+                    <div class="table-responsive">
+
+                        <table class="line-items-table">            padding: 2rem;            letter-spacing: 0.5px;            letter-spacing: 0.5px;
+
+                            <thead>
+
+                                <tr>            text-align: center;
+
+                                    <th>{% trans "Description" %}</th>
+
+                                    <th class="text-center">{% trans "Qty" %}</th>        }            margin-bottom: 0.3rem;            margin-bottom: 0.3rem;
+
+                                    <th class="text-end">{% trans "Unit Price" %}</th>
+
+                                    <th class="text-end">{% trans "Total" %}</th>        .already-signed i {
+
+                                </tr>
+
+                            </thead>            font-size: 3rem;        }        }
+
+                            <tbody>
+
+                                {% for item in changeorder.line_items.all %}            color: #10b981;
+
+                                <tr>
+
+                                    <td>{{ item.description }}</td>            margin-bottom: 1rem;
+
+                                    <td class="text-center">{{ item.quantity }}</td>
+
+                                    <td class="text-end">{{ item.unit_price|currency }}</td>        }
+
+                                    <td class="text-end">{{ item.line_total|currency }}</td>
+
+                                </tr>        .already-signed h3 {        .info-value {        .info-value {
+
+                                {% empty %}
+
+                                <tr>            color: #065f46;
+
+                                    <td colspan="4" class="text-center text-muted py-3">{% trans "No line items" %}</td>
+
+                                </tr>            margin-bottom: 0.5rem;            font-size: 1.1rem;            font-size: 1.1rem;
+
+                                {% endfor %}
+
+                            </tbody>        }
+
+                        </table>
+
+                    </div>        .signature-image {            color: #1e293b;            color: #1e293b;
+
+                </div>
+
+                {% endif %}            max-width: 300px;
+
+
+
+                <!-- Totals -->            margin: 1rem auto;            font-weight: 600;            font-weight: 600;
+
+                <div class="totals-section">
+
+                    {% if changeorder.pricing_type == 'T_AND_M' %}            border: 1px solid #d1d5db;
+
+                    <div class="totals-row">
+
+                        <span>{% trans "Pricing Method" %}</span>            border-radius: 8px;        }        }
+
+                        <span>{% trans "Time & Materials" %}</span>
+
+                    </div>            padding: 1rem;
+
+                    <div class="totals-row">
+
+                        <span>{% trans "Estimated Total" %}</span>            background: white;
+
+                        <span>{% trans "To be determined based on actual work" %}</span>
+
+                    </div>        }
+
+                    {% else %}
+
+                    <div class="totals-row grand-total">        .signature-image img {        .amount-display {        .amount-display {
+
+                        <span>{% trans "Total Amount" %}</span>
+
+                        <span>{{ changeorder.amount|currency }}</span>            width: 100%;
+
+                    </div>
+
+                    {% endif %}            height: auto;            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+
+                </div>
+
+        }
+
+                <!-- Acknowledgment Section -->
+
+                <div class="acknowledgment-box">        .status-badge {            border: 3px solid var(--success-color);            border: 3px solid var(--success-color);
+
+                    <h4>
+
+                        <i class="bi bi-exclamation-triangle-fill"></i>            display: inline-flex;
+
+                        {% trans "Please Read Before Signing" %}
+
+                    </h4>            align-items: center;            border-radius: 12px;            border-radius: 12px;
+
+                    {% if changeorder.pricing_type == 'T_AND_M' %}
+
+                    <p>{% trans "By signing this Time & Materials change order, you acknowledge:" %}</p>            gap: 0.375rem;
+
+                    <ul>
+
+                        <li>{% trans "The final cost will be based on actual hours worked and materials used" %}</li>            padding: 0.375rem 0.75rem;            padding: 1.5rem;            padding: 1.5rem;
+
+                        <li>{% trans "You will receive detailed invoices for labor and materials" %}</li>
+
+                        {% if changeorder.labor_rate_override %}            border-radius: 9999px;
+
+                        <li>{% trans "Labor will be billed at" %} {{ changeorder.labor_rate_override|currency }} {% trans "per hour" %}</li>
+
+                        {% endif %}            font-size: 0.8rem;            text-align: center;            text-align: center;
+
+                        {% if changeorder.material_markup_percent %}
+
+                        <li>{% trans "Materials will include a" %} {{ changeorder.material_markup_percent }}% {% trans "markup" %}</li>            font-weight: 600;
+
+                        {% endif %}
+
+                    </ul>        }            margin: 1.5rem 0;            margin: 1.5rem 0;
+
+                    {% else %}
+
+                    <p>{% trans "By signing this Fixed Price change order, you acknowledge:" %}</p>        .status-badge.pending {
+
+                    <ul>
+
+                        <li>{% trans "The total amount is" %} {{ changeorder.amount|currency }}</li>            background: #fef3c7;        }        }
+
+                        <li>{% trans "This amount covers all work described above" %}</li>
+
+                        <li>{% trans "Additional scope changes may require a separate change order" %}</li>            color: #92400e;
+
+                    </ul>
+
+                    {% endif %}        }
+
+                </div>
+
+        .status-badge.approved {
+
+                <!-- Signature Section -->
+
+                {% if changeorder.client_signature %}            background: #d1fae5;        .amount-label {        .amount-label {
+
+                <!-- Already Signed -->
+
+                <div class="already-signed">            color: #065f46;
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <h3>{% trans "Already Signed" %}</h3>        }            font-size: 0.9rem;            font-size: 0.9rem;
+
+                    <p class="text-muted">{% trans "This change order was signed on" %} {{ changeorder.signed_at|date:"M d, Y 'at' g:i A" }}</p>
+
+                    <div class="signature-image">        @media (max-width: 640px) {
+
+                        <img src="{{ changeorder.client_signature.url }}" alt="{% trans 'Client Signature' %}">
+
+                    </div>            body { padding: 1rem 0.5rem; }            color: #065f46;            color: #065f46;
+
+                </div>
+
+                {% else %}            .co-header { padding: 1.5rem 1rem; }
+
+                <!-- Signature Pad -->
+
+                <div class="signature-section">            .co-body { padding: 1rem; }            font-weight: 600;            font-weight: 600;
+
+                    <h3><i class="bi bi-pencil-square me-2"></i>{% trans "Digital Signature" %}</h3>
+
+                    <p class="text-muted mb-3">{% trans "Please sign below to approve this change order" %}</p>            .info-grid { grid-template-columns: 1fr; }
+
+                    
+
+                    <form method="post" id="signatureForm">            .line-items-table { font-size: 0.875rem; }            text-transform: uppercase;            text-transform: uppercase;
+
+                        {% csrf_token %}
+
+                        <input type="hidden" name="signature_data" id="signatureData">            .signature-actions { flex-direction: column; }
+
+                        
+
+                        <div class="signature-canvas-wrapper">        }            margin-bottom: 0.5rem;            margin-bottom: 0.5rem;
+
+                            <canvas id="signatureCanvas"></canvas>
+
+                        </div>    </style>
+
+                        
+
+                        <div class="signature-actions"></head>        }        }
+
+                            <button type="button" class="btn-clear" id="clearBtn">
+
+                                <i class="bi bi-eraser"></i> {% trans "Clear" %}<body>
+
+                            </button>
+
+                            <button type="submit" class="btn-submit" id="submitBtn" disabled>    <div class="co-container">
+
+                                <i class="bi bi-check-circle"></i> {% trans "Sign and Approve Change Order" %}
+
+                            </button>        <!-- Header -->
+
+                        </div>
+
+                    </form>        <div class="co-card">        .amount-value {        .amount-value {
+
+                </div>
+
+                {% endif %}            <div class="co-header">
+
+            </div>
+
+        </div>                <h1><i class="bi bi-file-earmark-text me-2"></i>{% trans "Change Order" %}</h1>            font-size: 3rem;            font-size: 3rem;
+
+
+
+        <!-- Back Link -->                <div class="co-number">CO-{{ changeorder.id|stringformat:"04d" }}</div>
+
+        <div class="text-center">
+
+            <a href="{% url 'client_project_view' changeorder.project.id %}" class="text-decoration-none">            </div>            font-weight: 800;            font-weight: 800;
+
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
+
+            </a>            
+
+        </div>
+
+    </div>            <div class="co-body">            color: #047857;            color: #047857;
+
+
+
+    <script>                <!-- Project Information -->
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const canvas = document.getElementById('signatureCanvas');                <div class="info-section">        }        }
+
+            if (!canvas) return;
+
+                                <h3><i class="bi bi-building"></i> {% trans "Project Information" %}</h3>
+
+            const signaturePad = new SignaturePad(canvas, {
+
+                backgroundColor: 'rgb(255, 255, 255)',                    <div class="info-grid">
+
+                penColor: 'rgb(0, 0, 0)'
+
+            });                        <div class="info-item">
+
+            
+
+            // Resize canvas                            <label>{% trans "Project" %}</label>        .rates-display {        .rates-display {
+
+            function resizeCanvas() {
+
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);                            <span>{{ changeorder.project.name }}</span>
+
+                const wrapper = canvas.parentElement;
+
+                canvas.width = wrapper.offsetWidth * ratio;                        </div>            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+
+                canvas.height = 200 * ratio;
+
+                canvas.getContext('2d').scale(ratio, ratio);                        <div class="info-item">
+
+                signaturePad.clear();
+
+            }                            <label>{% trans "Address" %}</label>            border: 3px solid var(--info-color);            border: 3px solid var(--info-color);
+
+            
+
+            window.addEventListener('resize', resizeCanvas);                            <span>{{ changeorder.project.address|default:"—" }}</span>
+
+            resizeCanvas();
+
+                                    </div>            border-radius: 12px;            border-radius: 12px;
+
+            // Clear button
+
+            document.getElementById('clearBtn').addEventListener('click', function() {                        <div class="info-item">
+
+                signaturePad.clear();
+
+                document.getElementById('submitBtn').disabled = true;                            <label>{% trans "Date" %}</label>            padding: 1.5rem;            padding: 1.5rem;
+
+            });
+
+                                        <span>{{ changeorder.created_at|date:"M d, Y" }}</span>
+
+            // Enable submit when signed
+
+            signaturePad.addEventListener('endStroke', function() {                        </div>            margin: 1.5rem 0;            margin: 1.5rem 0;
+
+                document.getElementById('submitBtn').disabled = signaturePad.isEmpty();
+
+            });                        <div class="info-item">
+
+            
+
+            // Form submission                            <label>{% trans "Status" %}</label>        }        }
+
+            document.getElementById('signatureForm').addEventListener('submit', function(e) {
+
+                if (signaturePad.isEmpty()) {                            <span class="status-badge {% if changeorder.status == 'approved' %}approved{% else %}pending{% endif %}">
+
+                    e.preventDefault();
+
+                    alert('{% trans "Please provide a signature" %}');                                {% if changeorder.status == 'approved' %}
+
+                    return false;
+
+                }                                <i class="bi bi-check-circle"></i> {% trans "Approved" %}
+
+                document.getElementById('signatureData').value = signaturePad.toDataURL('image/png');
+
+            });                                {% else %}        .rate-item {        .rate-item {
+
+        });
+
+    </script>                                <i class="bi bi-clock"></i> {% trans "Pending Signature" %}
+
+</body>
+
+</html>                                {% endif %}            display: flex;            display: flex;
+
 
                             </span>
 

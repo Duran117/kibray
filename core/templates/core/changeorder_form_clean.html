@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}{% if is_edit %}{% trans "Editar" %}{% else %}{% trans "Crear" %}{% endif %} Change Order - Kibray{% endblock %}
+{% block title %}{% if is_edit %}{% trans "Edit" %}{% else %}{% trans "Create" %}{% endif %} Change Order - Kibray{% endblock %}
 
 {% block page_header %}
 <div class="flex items-center justify-between">
@@ -13,16 +13,16 @@
         <div>
             <h1 class="text-2xl font-bold text-slate-900">
                 {% if is_edit %}
-                    {% blocktrans with co_id=changeorder.id %}Editar Change Order #{{ co_id }}{% endblocktrans %}
+                    {% blocktrans with co_id=changeorder.id %}Edit Change Order #{{ co_id }}{% endblocktrans %}
                 {% else %}
-                    {% trans "Nuevo Change Order" %}
+                    {% trans "New Change Order" %}
                 {% endif %}
             </h1>
             <p class="text-sm text-slate-600 mt-1">
                 {% if is_edit %}
-                    {% trans "Actualice los campos necesarios del change order" %}
+                    {% trans "Update the change order fields as needed" %}
                 {% else %}
-                    {% trans "Complete la información del change order" %}
+                    {% trans "Fill in the change order information" %}
                 {% endif %}
             </p>
         </div>
@@ -32,7 +32,7 @@
     <a href="{% url 'changeorder_detail' changeorder.id %}"
        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition">
         <i class="bi bi-arrow-left"></i>
-        <span class="hidden sm:inline">{% trans "Volver al CO" %}</span>
+        <span class="hidden sm:inline">{% trans "Back to CO" %}</span>
     </a>
     {% endif %}
 </div>
@@ -42,14 +42,20 @@
 <form method="post" enctype="multipart/form-data" class="max-w-5xl mx-auto space-y-8">
     {% csrf_token %}
     
-    <!-- Basic Information -->
-    {% include "core/components/form_section.html" with icon="info-circle-fill" title=_("Información Básica") %}
+    <!-- Basic Information Section -->
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5">
+        <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <i class="bi bi-info-circle-fill text-indigo-600 text-lg"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">{% trans "Basic Information" %}</h3>
+        </div>
         <div class="space-y-6">
             <!-- Project Selection -->
             {% if not is_edit or user.is_staff %}
             <div>
                 <label for="{{ form.project.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
-                    {% trans "Proyecto" %} <span class="text-red-600">*</span>
+                    {% trans "Project" %} <span class="text-red-600">*</span>
                 </label>
                 {{ form.project }}
                 {% if form.project.errors %}
@@ -63,7 +69,7 @@
             <!-- Description -->
             <div>
                 <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
-                    {% trans "Descripción" %} <span class="text-red-600">*</span>
+                    {% trans "Description" %} <span class="text-red-600">*</span>
                 </label>
                 {{ form.description }}
                 {% if form.description.errors %}
@@ -76,13 +82,13 @@
             <!-- Pricing Type / Amount / Status -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Tipo de Precio" %} <span class="text-red-600">*</span></label>
+                    <label for="id_pricing_type" class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Pricing Type" %} <span class="text-red-600">*</span></label>
                     {{ form.pricing_type }}
-                    <p class="mt-1 text-xs text-slate-500">{% trans "Seleccione Fijo o Tiempo y Materiales" %}</p>
+                    <p class="mt-1 text-xs text-slate-500">{% trans "Select Fixed Price or Time & Materials" %}</p>
                 </div>
                 <div id="fixedAmountWrapper">
                     <label for="{{ form.amount.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
-                        {% trans "Monto" %} <span class="text-red-600">*</span>
+                        {% trans "Amount" %} <span class="text-red-600">*</span>
                     </label>
                     {{ form.amount }}
                     {% if form.amount.errors %}
@@ -93,7 +99,7 @@
                 </div>
                 <div>
                     <label for="{{ form.status.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
-                        {% trans "Estado" %} <span class="text-red-600">*</span>
+                        {% trans "Status" %} <span class="text-red-600">*</span>
                     </label>
                     {{ form.status }}
                     {% if form.status.errors %}
@@ -107,21 +113,21 @@
             <!-- T&M Specific Fields -->
             <div id="tmFields" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" style="display:none;">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Tarifa Facturación (Hora)" %}</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Billing Hourly Rate" %}</label>
                     {{ form.billing_hourly_rate }}
-                    <p class="mt-1 text-xs text-slate-500">{% trans "Tarifa de venta al cliente por hora trabajada" %}</p>
+                    <p class="mt-1 text-xs text-slate-500">{% trans "Rate charged to client per hour worked" %}</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Markup Materiales (%)" %}</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Material Markup (%)" %}</label>
                     {{ form.material_markup_pct }}
-                    <p class="mt-1 text-xs text-slate-500">{% trans "Porcentaje adicional sobre el costo de materiales" %}</p>
+                    <p class="mt-1 text-xs text-slate-500">{% trans "Additional percentage on material costs" %}</p>
                 </div>
             </div>
             
             <!-- Notes -->
             <div>
                 <label for="{{ form.notes.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
-                    {% trans "Notas" %}
+                    {% trans "Notes" %}
                 </label>
                 {{ form.notes }}
                 {% if form.notes.errors %}
@@ -131,20 +137,26 @@
                 {% endif %}
             </div>
         </div>
-    {% include "core/components/form_section.html" with close_section=True only %}
+    </div>
     
-    <!-- Color Selection -->
-    {% include "core/components/form_section.html" with icon="palette-fill" title=_("Selección de Color") %}
+    <!-- Color Selection Section -->
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5">
+        <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <i class="bi bi-palette-fill text-indigo-600 text-lg"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">{% trans "Color Selection" %}</h3>
+        </div>
         <div class="space-y-6">
             <!-- Approved Colors Dropdown (populated via JavaScript) -->
             <div id="approvedColorsGroup" style="{% if approved_colors %}display:block;{% else %}display:none;{% endif %}">
                 <label for="approvedColorSelect" class="block text-sm font-semibold text-slate-700 mb-2">
-                    {% trans "Colores Aprobados del Proyecto" %}
+                    {% trans "Approved Project Colors" %}
                 </label>
                 <select id="approvedColorSelect" 
                         class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                         onchange="selectApprovedColor(this)">
-                    <option value="">{% trans "-- Seleccionar color aprobado --" %}</option>
+                    <option value="">{% trans "-- Select approved color --" %}</option>
                     {% for color_sample in approved_colors %}
                     <option value="{{ color_sample.code }}" 
                             data-brand="{{ color_sample.brand }}"
@@ -155,7 +167,7 @@
                     {% endfor %}
                 </select>
                 <p class="mt-1 text-xs text-slate-500">
-                    {% trans "Seleccione un color aprobado para este proyecto" %}
+                    {% trans "Select an approved color for this project" %}
                 </p>
             </div>
             
@@ -164,8 +176,8 @@
                 <div class="flex gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <i class="bi bi-info-circle text-yellow-600 text-lg flex-shrink-0 mt-0.5"></i>
                     <div class="text-sm text-yellow-800">
-                        <strong>{% trans "Este proyecto no tiene colores aprobados." %}</strong><br>
-                        {% trans "Puede usar el selector de color manual a continuación." %}
+                        <strong>{% trans "This project has no approved colors." %}</strong><br>
+                        {% trans "You can use the manual color picker below." %}
                     </div>
                 </div>
             </div>
@@ -179,7 +191,7 @@
                         </label>
                         {{ form.color }}
                         <p class="mt-1 text-xs text-slate-500">
-                            {% trans "Escriba un código hex manualmente (ej: #FF5733)" %}
+                            {% trans "Enter a hex code manually (e.g., #FF5733)" %}
                         </p>
                         {% if form.color.errors %}
                             <div class="mt-2 text-sm text-red-600">
@@ -190,11 +202,11 @@
                     
                     <div>
                         <label for="{{ form.reference_code.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
-                            {% trans "Código de Referencia o Material" %}
+                            {% trans "Reference Code or Material" %}
                         </label>
                         {{ form.reference_code }}
                         <p class="mt-1 text-xs text-slate-500">
-                            {% trans "Para hacer match con madera, metal u otro material (ej: \"Madera X\", \"Metal Z\")" %}
+                            {% trans "To match with wood, metal, or other material (e.g., \"Wood X\", \"Metal Z\")" %}
                         </p>
                         {% if form.reference_code.errors %}
                             <div class="mt-2 text-sm text-red-600">
@@ -209,29 +221,35 @@
                      class="w-20 h-20 rounded-xl border-2 border-slate-300 cursor-pointer hover:scale-105 transition shadow-md"
                      style="background: linear-gradient(135deg, #ffffff, #f1f5f9);"
                      onclick="document.getElementById('{{ form.color.id_for_label }}').click()"
-                     title="{% trans 'Clic para seleccionar color' %}">
+                     title="{% trans 'Click to select color' %}">
                 </div>
             </div>
         </div>
-    {% include "core/components/form_section.html" with close_section=True only %}
+    </div>
     
     <!-- Photos Section -->
-    {% include "core/components/form_section.html" with icon="camera-fill" title=_("Fotos del Proyecto") %}
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5">
+        <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <i class="bi bi-camera-fill text-indigo-600 text-lg"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">{% trans "Project Photos" %}</h3>
+        </div>
         <!-- Instructions -->
         <div class="flex gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
             <i class="bi bi-info-circle-fill text-blue-600 text-lg flex-shrink-0 mt-0.5"></i>
             <div class="text-sm text-blue-900">
-                <strong>{% trans "Cómo subir fotos:" %}</strong>
+                <strong>{% trans "How to upload photos:" %}</strong>
                 <ol class="mt-2 ml-4 space-y-1 list-decimal">
-                    <li>{% trans "Haga clic en el área azul para seleccionar fotos" %}</li>
-                    <li>{% trans "Verá miniaturas de las fotos seleccionadas" %}</li>
-                    <li>{% trans "Opcional: Haga clic en \"Editar\" para anotar/dibujar sobre una foto" %}</li>
-                    <li>{% trans "Opcional: Agregue descripciones en los campos de texto" %}</li>
+                    <li>{% trans "Click on the blue area to select photos" %}</li>
+                    <li>{% trans "You will see thumbnails of selected photos" %}</li>
+                    <li>{% trans "Optional: Click \"Edit\" to annotate/draw on a photo" %}</li>
+                    <li>{% trans "Optional: Add descriptions in the text fields" %}</li>
                     <li>
                         {% if is_edit %}
-                            {% blocktrans %}Haga clic en <strong>"Guardar Cambios"</strong> al final del formulario para subir las fotos{% endblocktrans %}
+                            {% blocktrans %}Click <strong>"Save Changes"</strong> at the bottom of the form to upload the photos{% endblocktrans %}
                         {% else %}
-                            {% blocktrans %}Haga clic en <strong>"Crear Change Order"</strong> al final del formulario para subir las fotos{% endblocktrans %}
+                            {% blocktrans %}Click <strong>"Create Change Order"</strong> at the bottom of the form to upload the photos{% endblocktrans %}
                         {% endif %}
                     </li>
                 </ol>
@@ -272,22 +290,22 @@
         <!-- Photo Count Badge -->
         <div id="photoCountBadge" class="hidden mt-6 px-4 py-3 bg-indigo-50 border border-indigo-300 rounded-lg text-center font-semibold text-indigo-700 flex items-center justify-center gap-2">
             <i class="bi bi-check-circle-fill text-green-600"></i>
-            <span id="photoCountText">0 {% trans "fotos" %}</span> 
-            {% trans "seleccionadas - Haga clic en \"Guardar\" al final para subirlas" %}
+            <span id="photoCountText">0 {% trans "photos" %}</span> 
+            {% trans "selected - Click \"Save\" at the bottom to upload them" %}
         </div>
-    {% include "core/components/form_section.html" with close_section=True only %}
+    </div>
     
     <!-- Form Actions -->
     <div class="flex flex-col sm:flex-row gap-4 pt-8 border-t border-slate-200">
         <a href="{% if is_edit %}{% url 'changeorder_detail' changeorder.id %}{% else %}{% url 'changeorder_board' %}{% endif %}"
            class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 px-6 py-3 text-sm font-semibold shadow-sm transition">
             <i class="bi bi-x-circle mr-2"></i> 
-            {% trans "Cancelar" %}
+            {% trans "Cancel" %}
         </a>
         <button type="submit" 
                 class="inline-flex items-center justify-center rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-sm font-semibold shadow-sm transition flex-1 sm:flex-initial">
             <i class="bi bi-check-circle-fill mr-2"></i> 
-            {% if is_edit %}{% trans "Guardar Cambios" %}{% else %}{% trans "Crear Change Order" %}{% endif %}
+            {% if is_edit %}{% trans "Save Changes" %}{% else %}{% trans "Create Change Order" %}{% endif %}
         </button>
     </div>
 </form>

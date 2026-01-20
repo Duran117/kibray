@@ -661,9 +661,49 @@ class TaskForm(forms.ModelForm):
 
 
 class ChangeOrderForm(forms.ModelForm):
+    PRICING_TYPE_CHOICES = [
+        ('FIXED', 'Fixed Price'),
+        ('T_AND_M', 'Time & Materials'),
+    ]
+    
+    pricing_type = forms.ChoiceField(
+        choices=PRICING_TYPE_CHOICES,
+        initial='FIXED',
+        widget=forms.Select(attrs={
+            "class": "form-control",
+            "id": "pricing_type"
+        }),
+        label="Pricing Type"
+    )
+    
+    billing_hourly_rate = forms.DecimalField(
+        required=False,
+        min_value=0,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "step": "0.01",
+            "placeholder": "0.00"
+        }),
+        label="Billing Hourly Rate"
+    )
+    
+    material_markup_pct = forms.DecimalField(
+        required=False,
+        min_value=0,
+        max_value=100,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "step": "0.01",
+            "placeholder": "0"
+        }),
+        label="Material Markup %"
+    )
+    
     class Meta:
         model = ChangeOrder
-        fields = ["project", "description", "amount", "status", "notes", "color", "reference_code"]
+        fields = ["project", "description", "pricing_type", "amount", "status", "notes", "color", "reference_code", "billing_hourly_rate", "material_markup_pct"]
         widgets = {
             "project": forms.Select(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
@@ -672,9 +712,34 @@ class ChangeOrderForm(forms.ModelForm):
             "notes": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
             "color": forms.TextInput(attrs={"type": "color", "class": "form-control"}),
             "reference_code": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Código de referencia del color"}
+                attrs={"class": "form-control", "placeholder": "Color reference code"}
             ),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set initial values from instance if editing
+        if self.instance and self.instance.pk:
+            self.fields['pricing_type'].initial = self.instance.pricing_type
+            if hasattr(self.instance, 'labor_rate_override') and self.instance.labor_rate_override:
+                self.fields['billing_hourly_rate'].initial = self.instance.labor_rate_override
+            if hasattr(self.instance, 'material_markup_percent'):
+                self.fields['material_markup_pct'].initial = self.instance.material_markup_percent
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Save pricing type
+        instance.pricing_type = self.cleaned_data.get('pricing_type', 'FIXED')
+        # Save T&M fields
+        billing_rate = self.cleaned_data.get('billing_hourly_rate')
+        if billing_rate:
+            instance.labor_rate_override = billing_rate
+        markup = self.cleaned_data.get('material_markup_pct')
+        if markup is not None:
+            instance.material_markup_percent = markup
+        if commit:
+            instance.save()
+        return instance
 
 
 class ChangeOrderPhotoForm(forms.ModelForm):
