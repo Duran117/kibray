@@ -126,30 +126,30 @@
             </div>
             {% endif %}
 
-            <!-- Información adicional -->
+            <!-- Additional Information -->
             <div class="alert alert-info mt-4" role="alert">
                 <h6 class="alert-heading">
                     <i class="bi bi-info-circle me-2"></i>
-                    {% trans "Información sobre Acceso a Proyectos" %}
+                    {% trans "Project Access Information" %}
                 </h6>
                 <ul class="mb-0">
-                    <li>{% trans "El cliente podrá ver el dashboard del proyecto y su progreso" %}</li>
-                    <li>{% trans "Tendrá permiso para crear solicitudes de cambio (Client Requests)" %}</li>
-                    <li>{% trans "Podrá ver y comentar en tareas asignadas" %}</li>
-                    <li>{% trans "Recibirá notificaciones sobre actualizaciones del proyecto" %}</li>
-                    <li>{% trans "Puedes remover el acceso en cualquier momento desde el perfil del cliente" %}</li>
+                    <li>{% trans "The client will be able to see the project dashboard and progress" %}</li>
+                    <li>{% trans "They will have permission to create change requests (Client Requests)" %}</li>
+                    <li>{% trans "They will be able to view and comment on assigned tasks" %}</li>
+                    <li>{% trans "They will receive notifications about project updates" %}</li>
+                    <li>{% trans "You can remove access at any time from the client profile" %}</li>
                 </ul>
             </div>
 
-            <!-- Botón volver -->
+            <!-- Back button -->
             <div class="d-flex justify-content-between mt-4">
                 <a href="{% url 'client_detail' client.id %}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left me-2"></i>
-                    {% trans "Volver al Perfil del Cliente" %}
+                    {% trans "Back to Client Profile" %}
                 </a>
                 <a href="{% url 'client_list' %}" class="btn btn-outline-secondary">
                     <i class="bi bi-list-ul me-2"></i>
-                    {% trans "Ver Todos los Clientes" %}
+                    {% trans "View All Clients" %}
                 </a>
             </div>
         </div>
