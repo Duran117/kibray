@@ -398,13 +398,13 @@
                 <div>
                     <h1>
                         <i class="bi bi-calendar-event"></i>
-                        {% trans "Cronograma del Proyecto" %}
+                        {% trans "Project Schedule" %}
                     </h1>
                     <p class="project-subtitle">{{ project.name }}</p>
                 </div>
                 <a href="{% url 'client_project_view' project.id %}" class="btn btn-outline-primary">
                     <i class="bi bi-arrow-left"></i>
-                    {% trans "Volver al Proyecto" %}
+                    {% trans "Back to Project" %}
                 </a>
             </div>
             
@@ -413,32 +413,32 @@
                 <div class="stat-card">
                     <div class="stat-icon">📊</div>
                     <div class="stat-value">{{ overall_progress }}%</div>
-                    <div class="stat-label">{% trans "Progreso Total" %}</div>
+                    <div class="stat-label">{% trans "Total Progress" %}</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-icon">✅</div>
                     <div class="stat-value">{{ completed_items }}</div>
-                    <div class="stat-label">{% trans "Completadas" %}</div>
+                    <div class="stat-label">{% trans "Completed" %}</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-icon">🚧</div>
                     <div class="stat-value">{{ in_progress_items }}</div>
-                    <div class="stat-label">{% trans "En Progreso" %}</div>
+                    <div class="stat-label">{% trans "In Progress" %}</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-icon">📋</div>
                     <div class="stat-value">{{ total_items }}</div>
-                    <div class="stat-label">{% trans "Total de Actividades" %}</div>
+                    <div class="stat-label">{% trans "Total Activities" %}</div>
                 </div>
                 
                 {% if days_remaining %}
                 <div class="stat-card">
                     <div class="stat-icon">⏱️</div>
                     <div class="stat-value">{{ days_remaining }}</div>
-                    <div class="stat-label">{% trans "Días Restantes" %}</div>
+                    <div class="stat-label">{% trans "Days Remaining" %}</div>
                 </div>
                 {% endif %}
             </div>
@@ -446,7 +446,7 @@
             <!-- Progress Bar -->
             <div class="progress-section">
                 <div class="progress-label">
-                    <span>{% trans "Progreso General" %}</span>
+                    <span>{% trans "Overall Progress" %}</span>
                     <span>{{ overall_progress }}%</span>
                 </div>
                 <div class="progress-bar-custom">
@@ -464,30 +464,30 @@
                 <div class="view-toggle-buttons">
                     <button class="view-btn active" data-view="calendar">
                         <i class="bi bi-calendar3"></i>
-                        {% trans "Vista Calendario" %}
+                        {% trans "Calendar View" %}
                     </button>
                     <button class="view-btn" data-view="timeline">
                         <i class="bi bi-list-task"></i>
-                        {% trans "Vista Timeline" %}
+                        {% trans "Timeline View" %}
                     </button>
                 </div>
                 
                 <div class="legend">
                     <div class="legend-item">
                         <div class="legend-color" style="background: #28a745;"></div>
-                        <span>{% trans "Completado" %}</span>
+                        <span>{% trans "Completed" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background: #ffc107;"></div>
-                        <span>{% trans "En Progreso" %}</span>
+                        <span>{% trans "In Progress" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background: #6c757d;"></div>
-                        <span>{% trans "Pendiente" %}</span>
+                        <span>{% trans "Pending" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background: #dc3545;"></div>
-                        <span>{% trans "Bloqueado" %}</span>
+                        <span>{% trans "Blocked" %}</span>
                     </div>
                 </div>
             </div>
@@ -590,10 +590,10 @@ document.addEventListener('DOMContentLoaded', function() {
             right: 'dayGridMonth,timeGridWeek,listMonth'
         },
         buttonText: {
-            today: '{% trans "Hoy" %}',
-            month: '{% trans "Mes" %}',
-            week: '{% trans "Semana" %}',
-            list: '{% trans "Lista" %}'
+            today: '{% trans "Today" %}',
+            month: '{% trans "Month" %}',
+            week: '{% trans "Week" %}',
+            list: '{% trans "List" %}'
         },
         events: function(info, successCallback, failureCallback) {
             // Load events from API
@@ -632,16 +632,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 let html = `
                     <div class="mb-3">
-                        <h6>{% trans "Descripción" %}</h6>
-                        <p>${data.description || '{% trans "Sin descripción" %}'}</p>
+                        <h6>{% trans "Description" %}</h6>
+                        <p>${data.description || '{% trans "No description" %}'}</p>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <h6>{% trans "Estado" %}</h6>
+                            <h6>{% trans "Status" %}</h6>
                             <span class="badge bg-${getStatusColor(data.status)}">${data.status}</span>
                         </div>
                         <div class="col-md-6">
-                            <h6>{% trans "Progreso" %}</h6>
+                            <h6>{% trans "Progress" %}</h6>
                             <div class="progress">
                                 <div class="progress-bar" style="width: ${data.progress}%">${data.progress}%</div>
                             </div>
@@ -649,11 +649,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <h6>{% trans "Inicio Planeado" %}</h6>
+                            <h6>{% trans "Planned Start" %}</h6>
                             <p>${formatDate(data.planned_start)}</p>
                         </div>
                         <div class="col-md-6">
-                            <h6>{% trans "Fin Planeado" %}</h6>
+                            <h6>{% trans "Planned End" %}</h6>
                             <p>${formatDate(data.planned_end)}</p>
                         </div>
                     </div>
@@ -662,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.tasks && data.tasks.length > 0) {
                     html += `
                         <div class="mb-3">
-                            <h6>{% trans "Tareas Asociadas" %} (${data.tasks_count})</h6>
+                            <h6>{% trans "Associated Tasks" %} (${data.tasks_count})</h6>
                             <ul class="list-group">
                                 ${data.tasks.map(task => `
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -683,7 +683,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error loading milestone detail:', error);
-                alert('{% trans "Error al cargar los detalles" %}');
+                alert('{% trans "Error loading details" %}');
             });
     }
     
@@ -692,14 +692,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const colors = {
             'Completado': 'success',
             'En Progreso': 'warning',
-            'No Iniciado': 'secondary',
-            'Bloqueado': 'danger'
+            'Not Started': 'secondary',
+            'Blocked': 'danger'
         };
         return colors[status] || 'secondary';
     }
     
     function formatDate(dateString) {
-        if (!dateString) return '{% trans "Sin fecha" %}';
+        if (!dateString) return '{% trans "No date" %}';
         const date = new Date(dateString);
         return date.toLocaleDateString('{{ LANGUAGE_CODE }}', {
             year: 'numeric',
