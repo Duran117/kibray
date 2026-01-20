@@ -106,3 +106,37 @@ def notification_badges(request):
         pass
 
     return {"badges": badges}
+
+
+def recent_projects(request):
+    """Provides recent projects filtered by user role for sidebar navigation.
+    
+    - Clients: Only see projects they have access to
+    - Staff/Admin/PM: See all recent projects
+    """
+    if not request.user.is_authenticated:
+        return {"recent_projects": []}
+
+    try:
+        from core.models import Project
+
+        profile = getattr(request.user, "profile", None)
+        
+        # If user is a client, only show their projects
+        if profile and profile.role == "client":
+            # Get projects via ClientProjectAccess
+            access_projects = Project.objects.filter(client_accesses__user=request.user)
+            # Get projects via legacy client field
+            legacy_projects = Project.objects.filter(client=request.user.username)
+            # Combine both querysets and get recent ones
+            projects = list(access_projects.union(legacy_projects).order_by("-start_date")[:5])
+        else:
+            # Staff, admin, PM - show recent active projects
+            projects = list(
+                Project.objects.filter(is_archived=False)
+                .order_by("-start_date")[:5]
+            )
+        
+        return {"recent_projects": projects}
+    except Exception:
+        return {"recent_projects": []}

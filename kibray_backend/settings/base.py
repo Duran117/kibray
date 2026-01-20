@@ -67,6 +67,7 @@ TEMPLATES = [
                 "core.context_processors.company",
                 "core.context_processors.notification_badges",
                 "core.context_processors.legacy_shell",
+                "core.context_processors.recent_projects",
             ],
         },
     },
