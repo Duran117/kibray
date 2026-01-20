@@ -1,420 +1,838 @@
-{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
+{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
 
 {% load static %}
 
-{% load i18n %}{% load static %}{% load static %}
+{% load i18n %}{% load static %}
 
 {% load humanize %}
 
-{% load i18n %}{% load i18n %}
+{% load i18n %}{% load static %}{% load static %}
 
 {% block content %}
 
 <div class="container-fluid py-4">{% load humanize %}
 
-  <!-- Breadcrumbs -->
 
-  <nav aria-label="breadcrumb" class="mb-3">{% block content %}
 
-    <ol class="breadcrumb">
+  <!-- Breadcrumbs -->{% load i18n %}{% load i18n %}
 
-      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a></li>{% block content %}<div class="container-fluid py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
 
-      <li class="breadcrumb-item active">{{ project.name }}</li>
+    <ol class="breadcrumb">{% block content %}
 
-    </ol><div class="container-fluid py-4">  <!-- Breadcrumbs -->
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a></li>
 
-  </nav>
+      <li class="breadcrumb-item active">{{ project.name }}</li><div class="container-fluid py-4">{% load humanize %}
 
-  <!-- Breadcrumbs -->  <nav aria-label="breadcrumb" class="mb-3">
+    </ol>
 
-  <!-- Project Header -->
+  </nav>  <!-- Breadcrumbs -->
 
-  <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">  <nav aria-label="breadcrumb" class="mb-3">    <ol class="breadcrumb">
 
-    <div class="card-body text-white">
 
-      <div class="row align-items-center">    <ol class="breadcrumb">      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">Mis Proyectos</a></li>
+  <!-- Project Header -->  <nav aria-label="breadcrumb" class="mb-3">{% block content %}
 
-        <div class="col-lg-8">
+  <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
 
-          <h2 class="mb-2"><i class="bi bi-building"></i> {{ project.name }}</h2>      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a></li>      <li class="breadcrumb-item active">{{ project.name }}</li>
+    <div class="card-body text-white">    <ol class="breadcrumb">
 
-          <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ project.address|default:"—" }}</p>
+      <div class="row align-items-center">
 
-          <p class="mb-0 opacity-75">      <li class="breadcrumb-item active">{{ project.name }}</li>    </ol>
+        <div class="col-lg-8">      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a></li>{% block content %}<div class="container-fluid py-4">
 
-            <i class="bi bi-calendar3"></i> 
+          <h2 class="mb-2"><i class="bi bi-building"></i> {{ project.name }}</h2>
 
-            {{ project.start_date|date:"M d, Y" }} - {{ project.end_date|date:"M d, Y"|default_if_none:"In Progress" }}    </ol>  </nav>
+          <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ project.address|default:"—" }}</p>      <li class="breadcrumb-item active">{{ project.name }}</li>
 
-          </p>
+          <p class="mb-0 opacity-75">
 
-        </div>  </nav>
+            <i class="bi bi-calendar3"></i>     </ol><div class="container-fluid py-4">  <!-- Breadcrumbs -->
 
-        <div class="col-lg-4 text-end mt-3 mt-lg-0">
+            {{ project.start_date|date:"M d, Y" }} - {{ project.end_date|date:"M d, Y"|default_if_none:"In Progress" }}
 
-          <div class="h1 mb-0">{{ progress_pct }}%</div>  <!-- Header del Proyecto -->
-
-          <small>{% trans "Project Progress" %}</small>
-
-          <div class="progress mt-2" style="height: 10px;">  <!-- Project Header -->  <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-
-            <div class="progress-bar bg-success" style="width: {{ progress_pct }}%"></div>
-
-          </div>  <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">    <div class="card-body text-white">
+          </p>  </nav>
 
         </div>
 
-      </div>    <div class="card-body text-white">      <div class="row align-items-center">
+        <div class="col-lg-4 text-end mt-3 mt-lg-0">  <!-- Breadcrumbs -->  <nav aria-label="breadcrumb" class="mb-3">
 
-    </div>
+          <div class="h1 mb-0">{{ progress_pct }}%</div>
 
-  </div>      <div class="row align-items-center">        <div class="col-lg-8">
+          <small>{% trans "Project Progress" %}</small>  <!-- Project Header -->
 
+          <div class="progress mt-2" style="height: 10px;">
 
+            <div class="progress-bar bg-success" style="width: {{ progress_pct }}%"></div>  <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">  <nav aria-label="breadcrumb" class="mb-3">    <ol class="breadcrumb">
 
-  <!-- Pending Notifications -->        <div class="col-lg-8">          <h2 class="mb-2"><i class="bi bi-building"></i> {{ project.name }}</h2>
+          </div>
 
-  {% if pending_requests %}
-
-  <div class="alert alert-warning alert-dismissible fade show" role="alert">          <h2 class="mb-2"><i class="bi bi-building"></i> {{ project.name }}</h2>          <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ project.address|default:"—" }}</p>
-
-    <h5 class="alert-heading"><i class="bi bi-bell"></i> {% trans "Pending Requests" %}</h5>
-
-    <p class="mb-0">{% trans "You have" %} {{ pending_requests|length }} {% trans "pending request(s) awaiting PM response." %}</p>          <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ project.address|default:"—" }}</p>          <p class="mb-0 opacity-75">
-
-    <hr>
-
-    <a href="#my-requests" class="alert-link">{% trans "View details below" %}</a>          <p class="mb-0 opacity-75">            <i class="bi bi-calendar3"></i> 
-
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-
-  </div>            <i class="bi bi-calendar3"></i>             {{ project.start_date|date:"M d, Y" }} - {{ project.end_date|date:"M d, Y"|default:"En Progreso" }}
-
-  {% endif %}
-
-            {{ project.start_date|date:"M d, Y" }} - {{ project.end_date|date:"M d, Y"|default_if_none:"In Progress" }}          </p>
-
-  <!-- Key Metrics -->
-
-  <div class="row g-3 mb-4">          </p>        </div>
-
-    <div class="col-md-4">
-
-      <div class="card border-0 shadow-sm h-100">        </div>        <div class="col-lg-4 text-end mt-3 mt-lg-0">
-
-        <div class="card-body text-center">
-
-          <i class="bi bi-receipt text-primary fs-1"></i>        <div class="col-lg-4 text-end mt-3 mt-lg-0">          <div class="h1 mb-0">{{ progress_pct }}%</div>
-
-          <h4 class="mt-2 mb-0">${{ total_invoiced|floatformat:2|intcomma }}</h4>
-
-          <small class="text-muted">{% trans "Total Invoiced" %}</small>          <div class="h1 mb-0">{{ progress_pct }}%</div>          <small>Progreso del Proyecto</small>
-
-        </div>
-
-      </div>          <small>{% trans "Project Progress" %}</small>          <div class="progress mt-2" style="height: 10px;">
-
-    </div>
-
-    <div class="col-md-4">          <div class="progress mt-2" style="height: 10px;">            <div class="progress-bar bg-success" style="width: {{ progress_pct }}%"></div>
-
-      <div class="card border-0 shadow-sm h-100">
-
-        <div class="card-body text-center">            <div class="progress-bar bg-success" style="width: {{ progress_pct }}%"></div>          </div>
-
-          <i class="bi bi-check-circle text-success fs-1"></i>
-
-          <h4 class="mt-2 mb-0">${{ total_paid|floatformat:2|intcomma }}</h4>          </div>        </div>
-
-          <small class="text-muted">{% trans "Paid" %}</small>
-
-        </div>        </div>      </div>
+        </div>    <div class="card-body text-white">
 
       </div>
 
-    </div>      </div>    </div>
+    </div>      <div class="row align-items-center">    <ol class="breadcrumb">      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">Mis Proyectos</a></li>
+
+  </div>
+
+        <div class="col-lg-8">
+
+  <!-- Pending Notifications -->
+
+  {% if pending_requests %}          <h2 class="mb-2"><i class="bi bi-building"></i> {{ project.name }}</h2>      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a></li>      <li class="breadcrumb-item active">{{ project.name }}</li>
+
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+
+    <h5 class="alert-heading"><i class="bi bi-bell"></i> {% trans "Pending Requests" %}</h5>          <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ project.address|default:"—" }}</p>
+
+    <p class="mb-0">{% trans "You have" %} {{ pending_requests|length }} {% trans "pending request(s) awaiting PM response." %}</p>
+
+    <hr>          <p class="mb-0 opacity-75">      <li class="breadcrumb-item active">{{ project.name }}</li>    </ol>
+
+    <a href="#my-requests" class="alert-link">{% trans "View details below" %}</a>
+
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>            <i class="bi bi-calendar3"></i> 
+
+  </div>
+
+  {% endif %}            {{ project.start_date|date:"M d, Y" }} - {{ project.end_date|date:"M d, Y"|default_if_none:"In Progress" }}    </ol>  </nav>
+
+
+
+  <!-- Key Metrics -->          </p>
+
+  <div class="row g-3 mb-4">
+
+    <div class="col-md-4">        </div>  </nav>
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-body text-center">        <div class="col-lg-4 text-end mt-3 mt-lg-0">
+
+          <i class="bi bi-receipt text-primary fs-1"></i>
+
+          <h4 class="mt-2 mb-0">${{ total_invoiced|floatformat:2|intcomma }}</h4>          <div class="h1 mb-0">{{ progress_pct }}%</div>  <!-- Header del Proyecto -->
+
+          <small class="text-muted">{% trans "Total Invoiced" %}</small>
+
+        </div>          <small>{% trans "Project Progress" %}</small>
+
+      </div>
+
+    </div>          <div class="progress mt-2" style="height: 10px;">  <!-- Project Header -->  <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
 
     <div class="col-md-4">
 
-      <div class="card border-0 shadow-sm h-100">    </div>  </div>
+      <div class="card border-0 shadow-sm h-100">            <div class="progress-bar bg-success" style="width: {{ progress_pct }}%"></div>
 
         <div class="card-body text-center">
 
-          <i class="bi bi-hourglass-split text-warning fs-1"></i>  </div>
+          <i class="bi bi-credit-card text-success fs-1"></i>          </div>  <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">    <div class="card-body text-white">
+
+          <h4 class="mt-2 mb-0">${{ total_paid|floatformat:2|intcomma }}</h4>
+
+          <small class="text-muted">{% trans "Total Paid" %}</small>        </div>
+
+        </div>
+
+      </div>      </div>    <div class="card-body text-white">      <div class="row align-items-center">
+
+    </div>
+
+    <div class="col-md-4">    </div>
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-body text-center">  </div>      <div class="row align-items-center">        <div class="col-lg-8">
+
+          <i class="bi bi-wallet2 text-danger fs-1"></i>
 
           <h4 class="mt-2 mb-0">${{ balance|floatformat:2|intcomma }}</h4>
 
-          <small class="text-muted">{% trans "Outstanding Balance" %}</small>  <!-- Notificaciones Pendientes -->
+          <small class="text-muted">{% trans "Outstanding Balance" %}</small>
 
-        </div>
+        </div>  <!-- Pending Notifications -->        <div class="col-lg-8">          <h2 class="mb-2"><i class="bi bi-building"></i> {{ project.name }}</h2>
 
-      </div>  <!-- Pending Notifications -->  {% if pending_requests %}
+      </div>
+
+    </div>  {% if pending_requests %}
+
+  </div>
+
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">          <h2 class="mb-2"><i class="bi bi-building"></i> {{ project.name }}</h2>          <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ project.address|default:"—" }}</p>
+
+  <!-- Quick Actions -->
+
+  <div class="row g-3 mb-4">    <h5 class="alert-heading"><i class="bi bi-bell"></i> {% trans "Pending Requests" %}</h5>
+
+    <div class="col-md-3">
+
+      <a href="{% url 'client_project_calendar' project.id %}" class="btn btn-outline-primary w-100">    <p class="mb-0">{% trans "You have" %} {{ pending_requests|length }} {% trans "pending request(s) awaiting PM response." %}</p>          <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ project.address|default:"—" }}</p>          <p class="mb-0 opacity-75">
+
+        <i class="bi bi-calendar3"></i> {% trans "View Calendar" %}
+
+      </a>    <hr>
 
     </div>
 
-  </div>  {% if pending_requests %}  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <div class="col-md-3">    <a href="#my-requests" class="alert-link">{% trans "View details below" %}</a>          <p class="mb-0 opacity-75">            <i class="bi bi-calendar3"></i> 
 
+      <a href="{% url 'site_photo_list' project.id %}" class="btn btn-outline-secondary w-100">
 
+        <i class="bi bi-images"></i> {% trans "Photo Gallery" %}    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 
-  <div class="row g-4">  <div class="alert alert-warning alert-dismissible fade show" role="alert">    <h5 class="alert-heading"><i class="bi bi-bell"></i> Solicitudes Pendientes de Respuesta</h5>
+      </a>
 
-    <!-- === REQUESTS & TOUCH-UPS === -->
+    </div>  </div>            <i class="bi bi-calendar3"></i>             {{ project.start_date|date:"M d, Y" }} - {{ project.end_date|date:"M d, Y"|default:"En Progreso" }}
 
-    <div class="col-lg-6">    <h5 class="alert-heading"><i class="bi bi-bell"></i> {% trans "Pending Requests" %}</h5>    <p class="mb-0">Tienes {{ pending_requests|length }} solicitud(es) pendiente(s) de ser atendidas por el PM.</p>
+    <div class="col-md-3">
 
-      <div class="card border-0 shadow-sm h-100" id="my-requests">
+      <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-outline-info w-100">  {% endif %}
 
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">    <p class="mb-0">{% trans "You have" %} {{ pending_requests|length }} {% trans "pending request(s) awaiting PM response." %}</p>    <hr>
+        <i class="bi bi-journal-text"></i> {% trans "Minutes" %}
 
-          <span><i class="bi bi-chat-left-dots"></i> {% trans "My Requests / Touch-ups" %}</span>
+      </a>            {{ project.start_date|date:"M d, Y" }} - {{ project.end_date|date:"M d, Y"|default_if_none:"In Progress" }}          </p>
 
-          <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#newTaskModal">    <hr>    <a href="#mis-solicitudes" class="alert-link">Ver detalles abajo</a>
+    </div>
 
-            <i class="bi bi-plus-circle"></i> {% trans "New Request" %}
+    <div class="col-md-3">  <!-- Key Metrics -->
 
-          </button>    <a href="#my-requests" class="alert-link">{% trans "View details below" %}</a>    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#newRequestModal">
+
+        <i class="bi bi-plus-circle"></i> {% trans "New Request" %}  <div class="row g-3 mb-4">          </p>        </div>
+
+      </button>
+
+    </div>    <div class="col-md-4">
+
+  </div>
+
+      <div class="card border-0 shadow-sm h-100">        </div>        <div class="col-lg-4 text-end mt-3 mt-lg-0">
+
+  <div class="row g-4">
+
+            <div class="card-body text-center">
+
+    <!-- My Requests Section -->
+
+    <div class="col-lg-6" id="my-requests">          <i class="bi bi-receipt text-primary fs-1"></i>        <div class="col-lg-4 text-end mt-3 mt-lg-0">          <div class="h1 mb-0">{{ progress_pct }}%</div>
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">          <h4 class="mt-2 mb-0">${{ total_invoiced|floatformat:2|intcomma }}</h4>
+
+          <span><i class="bi bi-chat-left-dots"></i> {% trans "My Requests" %}</span>
+
+          <a href="{% url 'client_requests_list' project.id %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>          <small class="text-muted">{% trans "Total Invoiced" %}</small>          <div class="h1 mb-0">{{ progress_pct }}%</div>          <small>Progreso del Proyecto</small>
 
         </div>
 
-        <div class="card-body">    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>  </div>
+        <div class="card-body">        </div>
 
-          {% if pending_tasks %}
+          {% if completed_tasks or pending_tasks %}
 
-          <h6 class="text-warning"><i class="bi bi-clock-history"></i> {% trans "Pending" %} ({{ pending_tasks|length }})</h6>  </div>  {% endif %}
+            {% if pending_tasks %}      </div>          <small>{% trans "Project Progress" %}</small>          <div class="progress mt-2" style="height: 10px;">
 
-          <div class="list-group list-group-flush mb-3">
+            <h6 class="text-warning"><i class="bi bi-clock-history"></i> {% trans "Pending" %} ({{ pending_tasks|length }})</h6>
 
-            {% for task in pending_tasks %}  {% endif %}
+            <div class="list-group list-group-flush mb-3">    </div>
 
-            <div class="list-group-item border-0 px-0">
+              {% for task in pending_tasks|slice:":3" %}
 
-              <div class="d-flex justify-content-between align-items-start">  <!-- Métricas Clave -->
+              <div class="list-group-item px-0">    <div class="col-md-4">          <div class="progress mt-2" style="height: 10px;">            <div class="progress-bar bg-success" style="width: {{ progress_pct }}%"></div>
 
-                <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
 
-                  <h6 class="mb-1">{{ task.title }}</h6>  <!-- Key Metrics -->  <div class="row g-3 mb-4">
+                  <div>      <div class="card border-0 shadow-sm h-100">
 
-                  <p class="mb-1 small text-muted">{{ task.description|default_if_none:"No description" }}</p>
+                    <strong>{{ task.title }}</strong>
 
-                  <small class="text-muted">  <div class="row g-3 mb-4">    <div class="col-md-4">
+                    <br><small class="text-muted">{{ task.created_at|date:"M d, Y" }}</small>        <div class="card-body text-center">            <div class="progress-bar bg-success" style="width: {{ progress_pct }}%"></div>          </div>
 
-                    <i class="bi bi-calendar"></i> {{ task.created_at|date:"M d, Y" }}
+                  </div>
 
-                    {% if task.assigned_to %}    <div class="col-md-4">      <div class="card border-0 shadow-sm h-100">
-
-                    · <i class="bi bi-person-check"></i> {% trans "Assigned to" %}: {{ task.assigned_to.name }}
-
-                    {% endif %}      <div class="card border-0 shadow-sm h-100">        <div class="card-body text-center">
-
-                  </small>
-
-                  {% if task.image %}        <div class="card-body text-center">          <i class="bi bi-receipt text-primary fs-1"></i>
-
-                  <br><a href="{{ task.image.url }}" target="_blank" class="small"><i class="bi bi-image"></i> {% trans "View photo" %}</a>
-
-                  {% endif %}          <i class="bi bi-receipt text-primary fs-1"></i>          <h4 class="mt-2 mb-0">${{ total_invoiced|floatformat:2 }}</h4>
+                  <span class="badge bg-warning text-dark">{{ task.get_status_display }}</span>          <i class="bi bi-check-circle text-success fs-1"></i>
 
                 </div>
 
-                <span class="badge bg-warning">{{ task.status }}</span>          <h4 class="mt-2 mb-0">${{ total_invoiced|floatformat:2|intcomma }}</h4>          <small class="text-muted">Total Facturado</small>
+              </div>          <h4 class="mt-2 mb-0">${{ total_paid|floatformat:2|intcomma }}</h4>          </div>        </div>
 
-              </div>
+              {% endfor %}
 
-            </div>          <small class="text-muted">{% trans "Total Invoiced" %}</small>        </div>
+            </div>          <small class="text-muted">{% trans "Paid" %}</small>
 
-            {% endfor %}
+            {% endif %}
 
-          </div>        </div>      </div>
+            {% if completed_tasks %}        </div>        </div>      </div>
 
-          {% endif %}
+            <h6 class="text-success"><i class="bi bi-check-circle"></i> {% trans "Completed" %} ({{ completed_tasks|length }})</h6>
 
-      </div>    </div>
+            <div class="list-group list-group-flush">      </div>
 
-          {% if completed_tasks %}
+              {% for task in completed_tasks|slice:":3" %}
 
-          <h6 class="text-success"><i class="bi bi-check-circle"></i> {% trans "Recently Completed" %}</h6>    </div>    <div class="col-md-4">
+              <div class="list-group-item px-0">    </div>      </div>    </div>
 
-          <div class="list-group list-group-flush">
+                <div class="d-flex justify-content-between align-items-start">
 
-            {% for task in completed_tasks %}    <div class="col-md-4">      <div class="card border-0 shadow-sm h-100">
+                  <div>    <div class="col-md-4">
 
-            <div class="list-group-item border-0 px-0">
+                    <strong>{{ task.title }}</strong>
 
-              <div class="d-flex justify-content-between align-items-start">      <div class="card border-0 shadow-sm h-100">        <div class="card-body text-center">
+                    <br><small class="text-muted">{{ task.created_at|date:"M d, Y" }}</small>      <div class="card border-0 shadow-sm h-100">    </div>  </div>
 
-                <div>
+                  </div>
 
-                  <h6 class="mb-1 text-decoration-line-through">{{ task.title }}</h6>        <div class="card-body text-center">          <i class="bi bi-check-circle text-success fs-1"></i>
+                  <span class="badge bg-success">{{ task.get_status_display }}</span>        <div class="card-body text-center">
 
-                  <small class="text-muted">
+                </div>
 
-                    <i class="bi bi-check2"></i> {{ task.completed_at|date:"M d, Y"|default:task.created_at|date:"M d, Y" }}          <i class="bi bi-check-circle text-success fs-1"></i>          <h4 class="mt-2 mb-0">${{ total_paid|floatformat:2 }}</h4>
+              </div>          <i class="bi bi-hourglass-split text-warning fs-1"></i>  </div>
 
-                  </small>
+              {% endfor %}
 
-                </div>          <h4 class="mt-2 mb-0">${{ total_paid|floatformat:2|intcomma }}</h4>          <small class="text-muted">Pagado</small>
+            </div>          <h4 class="mt-2 mb-0">${{ balance|floatformat:2|intcomma }}</h4>
 
-                <span class="badge bg-success">{% trans "Completed" %}</span>
+            {% endif %}
 
-              </div>          <small class="text-muted">{% trans "Paid" %}</small>        </div>
+          {% else %}          <small class="text-muted">{% trans "Outstanding Balance" %}</small>  <!-- Notificaciones Pendientes -->
 
-            </div>
+          <div class="text-center py-4">
 
-            {% endfor %}        </div>      </div>
+            <i class="bi bi-clipboard-check fs-1 opacity-25"></i>        </div>
 
-          </div>
+            <p class="mt-2">{% trans "No requests yet" %}</p>
 
-          {% endif %}      </div>    </div>
+            <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#newRequestModal">      </div>  <!-- Pending Notifications -->  {% if pending_requests %}
 
+              {% trans "Create First Request" %}
 
-
-          {% if not pending_tasks and not completed_tasks %}    </div>    <div class="col-md-4">
-
-          <div class="text-center py-4 text-muted">
-
-            <i class="bi bi-clipboard-check fs-1 opacity-25"></i>    <div class="col-md-4">      <div class="card border-0 shadow-sm h-100">
-
-            <p class="mt-2">{% trans "No tasks registered" %}</p>
-
-            <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#newTaskModal">      <div class="card border-0 shadow-sm h-100">        <div class="card-body text-center">
-
-              {% trans "Create First Task" %}
-
-            </button>        <div class="card-body text-center">          <i class="bi bi-hourglass-split text-warning fs-1"></i>
+            </button>    </div>
 
           </div>
 
-          {% endif %}          <i class="bi bi-hourglass-split text-warning fs-1"></i>          <h4 class="mt-2 mb-0">${{ balance|floatformat:2 }}</h4>
+          {% endif %}  </div>  {% if pending_requests %}  <div class="alert alert-warning alert-dismissible fade show" role="alert">
 
         </div>
 
-      </div>          <h4 class="mt-2 mb-0">${{ balance|floatformat:2|intcomma }}</h4>          <small class="text-muted">Balance Pendiente</small>
+      </div>
 
     </div>
 
-          <small class="text-muted">{% trans "Outstanding Balance" %}</small>        </div>
+  <div class="row g-4">  <div class="alert alert-warning alert-dismissible fade show" role="alert">    <h5 class="alert-heading"><i class="bi bi-bell"></i> Solicitudes Pendientes de Respuesta</h5>
 
-    <!-- === MINUTES & COMMUNICATION === -->
+    <!-- Minutes Section -->
 
-    <div class="col-lg-6">        </div>      </div>
+    <div class="col-lg-6">    <!-- === REQUESTS & TOUCH-UPS === -->
 
       <div class="card border-0 shadow-sm h-100">
 
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">      </div>    </div>
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">    <div class="col-lg-6">    <h5 class="alert-heading"><i class="bi bi-bell"></i> {% trans "Pending Requests" %}</h5>    <p class="mb-0">Tienes {{ pending_requests|length }} solicitud(es) pendiente(s) de ser atendidas por el PM.</p>
 
           <span><i class="bi bi-journal-text"></i> {% trans "Project Minutes" %}</span>
 
-          <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>    </div>  </div>
+          <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>      <div class="card border-0 shadow-sm h-100" id="my-requests">
 
         </div>
 
-        <div class="card-body">  </div>
+        <div class="card-body">        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">    <p class="mb-0">{% trans "You have" %} {{ pending_requests|length }} {% trans "pending request(s) awaiting PM response." %}</p>    <hr>
 
-          {% if project_minutes %}
+          {% if minutes %}
 
-          <div class="timeline">  <div class="row g-4">
+          <div class="table-responsive">          <span><i class="bi bi-chat-left-dots"></i> {% trans "My Requests / Touch-ups" %}</span>
 
-            {% for minute in project_minutes %}
+            <table class="table table-sm">
 
-            <div class="d-flex mb-3">  <div class="row g-4">    <!-- === SOLICITUDES Y TOUCH-UPS === -->
+              <thead>          <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#newTaskModal">    <hr>    <a href="#mis-solicitudes" class="alert-link">Ver detalles abajo</a>
 
-              <div class="flex-shrink-0">
+                <tr>
 
-                <span class="badge bg-{% if minute.event_type == 'decision' %}success{% elif minute.event_type == 'change' %}warning{% elif minute.event_type == 'milestone' %}info{% else %}secondary{% endif %} rounded-circle p-2">    <!-- === REQUESTS & TOUCH-UPS === -->    <div class="col-lg-6">
+                  <th>{% trans "Number" %}</th>            <i class="bi bi-plus-circle"></i> {% trans "New Request" %}
 
-                  <i class="bi bi-{% if minute.event_type == 'decision' %}check-circle{% elif minute.event_type == 'change' %}arrow-repeat{% elif minute.event_type == 'milestone' %}flag{% else %}dot{% endif %}"></i>
+                  <th>{% trans "Date" %}</th>
 
-                </span>    <div class="col-lg-6">      <div class="card border-0 shadow-sm h-100" id="mis-solicitudes">
+                  <th>{% trans "Status" %}</th>          </button>    <a href="#my-requests" class="alert-link">{% trans "View details below" %}</a>    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 
-              </div>
+                </tr>
 
-              <div class="flex-grow-1 ms-3">      <div class="card border-0 shadow-sm h-100" id="my-requests">        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+              </thead>        </div>
 
-                <h6 class="mb-1">{{ minute.title }}</h6>
+              <tbody>
 
-                <p class="mb-1 small">{{ minute.description|truncatewords:20 }}</p>        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">          <span><i class="bi bi-chat-left-dots"></i> Mis Solicitudes / Touch-ups</span>
+                {% for m in minutes|slice:":5" %}        <div class="card-body">    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>  </div>
 
-                <small class="text-muted">
+                <tr>
 
-                  <i class="bi bi-calendar"></i> {{ minute.event_date|date:"M d, Y" }}          <span><i class="bi bi-chat-left-dots"></i> {% trans "My Requests / Touch-ups" %}</span>          <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#nuevaTareaModal">
+                  <td><a href="{% url 'minute_detail' m.id %}">{{ m.minute_number }}</a></td>          {% if pending_tasks %}
 
-                  · {{ minute.get_event_type_display }}
+                  <td>{{ m.date|date:"M d, Y" }}</td>
 
-                </small>          <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#newTaskModal">            <i class="bi bi-plus-circle"></i> Nueva Solicitud
+                  <td><span class="badge text-bg-secondary">{{ m.get_status_display }}</span></td>          <h6 class="text-warning"><i class="bi bi-clock-history"></i> {% trans "Pending" %} ({{ pending_tasks|length }})</h6>  </div>  {% endif %}
 
-              </div>
+                </tr>
 
-            </div>            <i class="bi bi-plus-circle"></i> {% trans "New Request" %}          </button>
+                {% endfor %}          <div class="list-group list-group-flush mb-3">
 
-            {% endfor %}
+              </tbody>
 
-          </div>          </button>        </div>
-
-          {% else %}
-
-          <div class="text-center py-4 text-muted">        </div>        <div class="card-body">
-
-            <i class="bi bi-journal fs-1 opacity-25"></i>
-
-            <p class="mt-2">{% trans "No minutes available" %}</p>        <div class="card-body">          {% if pending_tasks %}
+            </table>            {% for task in pending_tasks %}  {% endif %}
 
           </div>
 
-          {% endif %}          {% if pending_tasks %}          <h6 class="text-warning"><i class="bi bi-clock-history"></i> Pendientes ({{ pending_tasks|length }})</h6>
+          {% else %}            <div class="list-group-item border-0 px-0">
 
-        </div>
+          <div class="text-center py-4">
 
-      </div>          <h6 class="text-warning"><i class="bi bi-clock-history"></i> {% trans "Pending" %} ({{ pending_tasks|length }})</h6>          <div class="list-group list-group-flush mb-3">
+            <i class="bi bi-journal fs-1 opacity-25"></i>              <div class="d-flex justify-content-between align-items-start">  <!-- Métricas Clave -->
 
-    </div>
+            <p class="mt-2">{% trans "No minutes available" %}</p>
 
-          <div class="list-group list-group-flush mb-3">            {% for task in pending_tasks %}
+          </div>                <div class="flex-grow-1">
 
-    <!-- === UPCOMING EVENTS === -->
+          {% endif %}
 
-    <div class="col-lg-6">            {% for task in pending_tasks %}            <div class="list-group-item border-0 px-0">
+        </div>                  <h6 class="mb-1">{{ task.title }}</h6>  <!-- Key Metrics -->  <div class="row g-3 mb-4">
 
-      <div class="card border-0 shadow-sm h-100">
+      </div>
 
-        <div class="card-header bg-white border-bottom">            <div class="list-group-item border-0 px-0">              <div class="d-flex justify-content-between align-items-start">
+    </div>                  <p class="mb-1 small text-muted">{{ task.description|default_if_none:"No description" }}</p>
 
-          <i class="bi bi-calendar-event"></i> {% trans "Upcoming Events" %}
 
-        </div>              <div class="d-flex justify-content-between align-items-start">                <div class="flex-grow-1">
+
+    <!-- Events Section -->                  <small class="text-muted">  <div class="row g-3 mb-4">    <div class="col-md-4">
+
+    <div class="col-lg-6">
+
+      <div class="card border-0 shadow-sm h-100">                    <i class="bi bi-calendar"></i> {{ task.created_at|date:"M d, Y" }}
+
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+
+          <span><i class="bi bi-calendar-event"></i> {% trans "Upcoming Events" %}</span>                    {% if task.assigned_to %}    <div class="col-md-4">      <div class="card border-0 shadow-sm h-100">
+
+          <a href="{% url 'client_project_calendar' project.id %}" class="btn btn-sm btn-outline-primary">{% trans "View Calendar" %}</a>
+
+        </div>                    · <i class="bi bi-person-check"></i> {% trans "Assigned to" %}: {{ task.assigned_to.name }}
 
         <div class="card-body">
 
-          {% if upcoming_schedules %}                <div class="flex-grow-1">                  <h6 class="mb-1">{{ task.title }}</h6>
+          {% if upcoming_events %}                    {% endif %}      <div class="card border-0 shadow-sm h-100">        <div class="card-body text-center">
 
           <div class="list-group list-group-flush">
 
-            {% for schedule in upcoming_schedules %}                  <h6 class="mb-1">{{ task.title }}</h6>                  <p class="mb-1 small text-muted">{{ task.description|default:"Sin descripción" }}</p>
+            {% for event in upcoming_events|slice:":3" %}                  </small>
 
-            <div class="list-group-item border-0 px-0">
+            <div class="list-group-item px-0">
 
-              <div class="d-flex align-items-start">                  <p class="mb-1 small text-muted">{{ task.description|default_if_none:"No description" }}</p>                  <small class="text-muted">
+              <div class="d-flex justify-content-between align-items-center">                  {% if task.image %}        <div class="card-body text-center">          <i class="bi bi-receipt text-primary fs-1"></i>
 
-                <i class="bi bi-clock text-primary fs-4 me-3"></i>
+                <div>
 
-                <div class="flex-grow-1">                  <small class="text-muted">                    <i class="bi bi-calendar"></i> {{ task.created_at|date:"M d, Y" }}
+                  <strong>{{ event.title }}</strong>                  <br><a href="{{ task.image.url }}" target="_blank" class="small"><i class="bi bi-image"></i> {% trans "View photo" %}</a>
 
-                  <h6 class="mb-1">{{ schedule.title }}</h6>
+                  <br><small class="text-muted">{{ event.start_datetime|date:"D, M d, Y - g:i A" }}</small>
 
-                  <p class="mb-1 small text-muted">                    <i class="bi bi-calendar"></i> {{ task.created_at|date:"M d, Y" }}                    {% if task.assigned_to %}
+                </div>                  {% endif %}          <i class="bi bi-receipt text-primary fs-1"></i>          <h4 class="mt-2 mb-0">${{ total_invoiced|floatformat:2 }}</h4>
 
-                    <i class="bi bi-calendar3"></i> {{ schedule.start_datetime|date:"D, M d 'at' g:i A" }}
+              </div>
 
-                  </p>                    {% if task.assigned_to %}                    · <i class="bi bi-person-check"></i> Asignado a: {{ task.assigned_to.name }}
+            </div>                </div>
 
-                  {% if schedule.description %}
+            {% endfor %}
 
-                  <small class="text-muted">{{ schedule.description }}</small>                    · <i class="bi bi-person-check"></i> {% trans "Assigned to" %}: {{ task.assigned_to.name }}                    {% endif %}
+          </div>                <span class="badge bg-warning">{{ task.status }}</span>          <h4 class="mt-2 mb-0">${{ total_invoiced|floatformat:2|intcomma }}</h4>          <small class="text-muted">Total Facturado</small>
 
-                  {% endif %}
+          {% else %}
+
+          <div class="text-center py-4">              </div>
+
+            <i class="bi bi-calendar-x fs-1 opacity-25"></i>
+
+            <p class="mt-2">{% trans "No upcoming events" %}</p>            </div>          <small class="text-muted">{% trans "Total Invoiced" %}</small>        </div>
+
+          </div>
+
+          {% endif %}            {% endfor %}
+
+        </div>
+
+      </div>          </div>        </div>      </div>
+
+    </div>
+
+          {% endif %}
+
+    <!-- Photos Section -->
+
+    <div class="col-lg-6">      </div>    </div>
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">          {% if completed_tasks %}
+
+          <span><i class="bi bi-images"></i> {% trans "Recent Photos" %}</span>
+
+          <a href="{% url 'site_photo_list' project.id %}" class="btn btn-sm btn-outline-primary">{% trans "View Gallery" %}</a>          <h6 class="text-success"><i class="bi bi-check-circle"></i> {% trans "Recently Completed" %}</h6>    </div>    <div class="col-md-4">
+
+        </div>
+
+        <div class="card-body">          <div class="list-group list-group-flush">
+
+          {% if recent_photos %}
+
+          <div class="row g-2">            {% for task in completed_tasks %}    <div class="col-md-4">      <div class="card border-0 shadow-sm h-100">
+
+            {% for photo in recent_photos|slice:":6" %}
+
+            <div class="col-4">            <div class="list-group-item border-0 px-0">
+
+              <a href="{{ photo.image.url }}" target="_blank">
+
+                <img src="{{ photo.image.url }}" class="img-fluid rounded" alt="{% trans 'Site photo' %}" style="height: 80px; width: 100%; object-fit: cover;">              <div class="d-flex justify-content-between align-items-start">      <div class="card border-0 shadow-sm h-100">        <div class="card-body text-center">
+
+              </a>
+
+            </div>                <div>
+
+            {% endfor %}
+
+          </div>                  <h6 class="mb-1 text-decoration-line-through">{{ task.title }}</h6>        <div class="card-body text-center">          <i class="bi bi-check-circle text-success fs-1"></i>
+
+          {% else %}
+
+          <div class="text-center py-4">                  <small class="text-muted">
+
+            <i class="bi bi-images fs-1 opacity-25"></i>
+
+            <p class="mt-2">{% trans "No photos yet" %}</p>                    <i class="bi bi-check2"></i> {{ task.completed_at|date:"M d, Y"|default:task.created_at|date:"M d, Y" }}          <i class="bi bi-check-circle text-success fs-1"></i>          <h4 class="mt-2 mb-0">${{ total_paid|floatformat:2 }}</h4>
+
+          </div>
+
+          {% endif %}                  </small>
+
+        </div>
+
+      </div>                </div>          <h4 class="mt-2 mb-0">${{ total_paid|floatformat:2|intcomma }}</h4>          <small class="text-muted">Pagado</small>
+
+    </div>
+
+                <span class="badge bg-success">{% trans "Completed" %}</span>
+
+    <!-- Colors Section -->
+
+    <div class="col-lg-6">              </div>          <small class="text-muted">{% trans "Paid" %}</small>        </div>
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-header bg-white border-0">            </div>
+
+          <span><i class="bi bi-palette"></i> {% trans "Approved Colors" %}</span>
+
+        </div>            {% endfor %}        </div>      </div>
+
+        <div class="card-body">
+
+          {% if approved_colors %}          </div>
+
+          <div class="list-group list-group-flush">
+
+            {% for color in approved_colors|slice:":5" %}          {% endif %}      </div>    </div>
+
+            <div class="list-group-item px-0 d-flex align-items-center">
+
+              <div style="width: 24px; height: 24px; background-color: {{ color.hex_code|default:'#ccc' }}; border-radius: 4px; border: 1px solid #ddd;" class="me-2"></div>
+
+              <div>
+
+                <strong>{{ color.name }}</strong>          {% if not pending_tasks and not completed_tasks %}    </div>    <div class="col-md-4">
+
+                <br><small class="text-muted">{{ color.brand }} - {{ color.room }}</small>
+
+              </div>          <div class="text-center py-4 text-muted">
+
+            </div>
+
+            {% endfor %}            <i class="bi bi-clipboard-check fs-1 opacity-25"></i>    <div class="col-md-4">      <div class="card border-0 shadow-sm h-100">
+
+          </div>
+
+          {% else %}            <p class="mt-2">{% trans "No tasks registered" %}</p>
+
+          <div class="text-center py-4">
+
+            <i class="bi bi-palette fs-1 opacity-25"></i>            <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#newTaskModal">      <div class="card border-0 shadow-sm h-100">        <div class="card-body text-center">
+
+            <p class="mt-2">{% trans "No colors approved yet" %}</p>
+
+          </div>              {% trans "Create First Task" %}
+
+          {% endif %}
+
+        </div>            </button>        <div class="card-body text-center">          <i class="bi bi-hourglass-split text-warning fs-1"></i>
+
+      </div>
+
+    </div>          </div>
+
+
+
+    <!-- Invoices Section -->          {% endif %}          <i class="bi bi-hourglass-split text-warning fs-1"></i>          <h4 class="mt-2 mb-0">${{ balance|floatformat:2 }}</h4>
+
+    <div class="col-lg-6">
+
+      <div class="card border-0 shadow-sm h-100">        </div>
+
+        <div class="card-header bg-white border-0">
+
+          <span><i class="bi bi-receipt"></i> {% trans "Recent Invoices" %}</span>      </div>          <h4 class="mt-2 mb-0">${{ balance|floatformat:2|intcomma }}</h4>          <small class="text-muted">Balance Pendiente</small>
+
+        </div>
+
+        <div class="card-body">    </div>
+
+          {% if invoices %}
+
+          <div class="table-responsive">          <small class="text-muted">{% trans "Outstanding Balance" %}</small>        </div>
+
+            <table class="table table-sm">
+
+              <thead>    <!-- === MINUTES & COMMUNICATION === -->
+
+                <tr>
+
+                  <th>{% trans "Invoice" %}</th>    <div class="col-lg-6">        </div>      </div>
+
+                  <th>{% trans "Amount" %}</th>
+
+                  <th>{% trans "Status" %}</th>      <div class="card border-0 shadow-sm h-100">
+
+                </tr>
+
+              </thead>        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">      </div>    </div>
+
+              <tbody>
+
+                {% for inv in invoices|slice:":5" %}          <span><i class="bi bi-journal-text"></i> {% trans "Project Minutes" %}</span>
+
+                <tr>
+
+                  <td>{{ inv.invoice_number }}</td>          <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>    </div>  </div>
+
+                  <td>${{ inv.total_amount|floatformat:2 }}</td>
+
+                  <td><span class="badge bg-{{ inv.status }}">{{ inv.get_status_display }}</span></td>        </div>
+
+                </tr>
+
+                {% endfor %}        <div class="card-body">  </div>
+
+              </tbody>
+
+            </table>          {% if project_minutes %}
+
+          </div>
+
+          {% else %}          <div class="timeline">  <div class="row g-4">
+
+          <div class="text-center py-4">
+
+            <i class="bi bi-receipt fs-1 opacity-25"></i>            {% for minute in project_minutes %}
+
+            <p class="mt-2">{% trans "No invoices yet" %}</p>
+
+          </div>            <div class="d-flex mb-3">  <div class="row g-4">    <!-- === SOLICITUDES Y TOUCH-UPS === -->
+
+          {% endif %}
+
+        </div>              <div class="flex-shrink-0">
+
+      </div>
+
+    </div>                <span class="badge bg-{% if minute.event_type == 'decision' %}success{% elif minute.event_type == 'change' %}warning{% elif minute.event_type == 'milestone' %}info{% else %}secondary{% endif %} rounded-circle p-2">    <!-- === REQUESTS & TOUCH-UPS === -->    <div class="col-lg-6">
+
+
+
+    <!-- Comments Section -->                  <i class="bi bi-{% if minute.event_type == 'decision' %}check-circle{% elif minute.event_type == 'change' %}arrow-repeat{% elif minute.event_type == 'milestone' %}flag{% else %}dot{% endif %}"></i>
+
+    <div class="col-12">
+
+      <div class="card border-0 shadow-sm">                </span>    <div class="col-lg-6">      <div class="card border-0 shadow-sm h-100" id="mis-solicitudes">
+
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+
+          <span><i class="bi bi-chat-dots"></i> {% trans "Comments" %}</span>              </div>
+
+          <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newCommentModal">
+
+            <i class="bi bi-plus"></i> {% trans "Add Comment" %}              <div class="flex-grow-1 ms-3">      <div class="card border-0 shadow-sm h-100" id="my-requests">        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+
+          </button>
+
+        </div>                <h6 class="mb-1">{{ minute.title }}</h6>
+
+        <div class="card-body">
+
+          {% if comments %}                <p class="mb-1 small">{{ minute.description|truncatewords:20 }}</p>        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">          <span><i class="bi bi-chat-left-dots"></i> Mis Solicitudes / Touch-ups</span>
+
+          <div class="list-group list-group-flush">
+
+            {% for comment in comments|slice:":5" %}                <small class="text-muted">
+
+            <div class="list-group-item px-0">
+
+              <div class="d-flex justify-content-between align-items-start">                  <i class="bi bi-calendar"></i> {{ minute.event_date|date:"M d, Y" }}          <span><i class="bi bi-chat-left-dots"></i> {% trans "My Requests / Touch-ups" %}</span>          <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#nuevaTareaModal">
+
+                <div>
+
+                  <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>                  · {{ minute.get_event_type_display }}
+
+                  <br>{{ comment.content }}
+
+                </div>                </small>          <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#newTaskModal">            <i class="bi bi-plus-circle"></i> Nueva Solicitud
+
+                <small class="text-muted">{{ comment.created_at|date:"M d, Y" }}</small>
+
+              </div>              </div>
+
+            </div>
+
+            {% endfor %}            </div>            <i class="bi bi-plus-circle"></i> {% trans "New Request" %}          </button>
+
+          </div>
+
+          {% else %}            {% endfor %}
+
+          <div class="text-center py-4">
+
+            <i class="bi bi-chat-dots fs-1 opacity-25"></i>          </div>          </button>        </div>
+
+            <p class="mt-2">{% trans "No comments yet" %}</p>
+
+          </div>          {% else %}
+
+          {% endif %}
+
+        </div>          <div class="text-center py-4 text-muted">        </div>        <div class="card-body">
+
+      </div>
+
+    </div>            <i class="bi bi-journal fs-1 opacity-25"></i>
+
+
+
+  </div>            <p class="mt-2">{% trans "No minutes available" %}</p>        <div class="card-body">          {% if pending_tasks %}
+
+</div>
+
+          </div>
+
+<!-- New Request Modal -->
+
+<div class="modal fade" id="newRequestModal" tabindex="-1">          {% endif %}          {% if pending_tasks %}          <h6 class="text-warning"><i class="bi bi-clock-history"></i> Pendientes ({{ pending_tasks|length }})</h6>
+
+  <div class="modal-dialog">
+
+    <div class="modal-content">        </div>
+
+      <div class="modal-header">
+
+        <h5 class="modal-title"><i class="bi bi-plus-circle"></i> {% trans "New Request" %}</h5>      </div>          <h6 class="text-warning"><i class="bi bi-clock-history"></i> {% trans "Pending" %} ({{ pending_tasks|length }})</h6>          <div class="list-group list-group-flush mb-3">
+
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+      </div>    </div>
+
+      <form method="post" action="{% url 'client_request_create' project.id %}">
+
+        {% csrf_token %}          <div class="list-group list-group-flush mb-3">            {% for task in pending_tasks %}
+
+        <div class="modal-body">
+
+          <div class="mb-3">    <!-- === UPCOMING EVENTS === -->
+
+            <label for="title" class="form-label">{% trans "Title" %} <span class="text-danger">*</span></label>
+
+            <input type="text" class="form-control" id="title" name="title" required maxlength="200">    <div class="col-lg-6">            {% for task in pending_tasks %}            <div class="list-group-item border-0 px-0">
+
+          </div>
+
+          <div class="mb-3">      <div class="card border-0 shadow-sm h-100">
+
+            <label for="description" class="form-label">{% trans "Description" %}</label>
+
+            <textarea class="form-control" id="description" name="description" rows="4" maxlength="2000"></textarea>        <div class="card-header bg-white border-bottom">            <div class="list-group-item border-0 px-0">              <div class="d-flex justify-content-between align-items-start">
+
+          </div>
+
+        </div>          <i class="bi bi-calendar-event"></i> {% trans "Upcoming Events" %}
+
+        <div class="modal-footer">
+
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>        </div>              <div class="d-flex justify-content-between align-items-start">                <div class="flex-grow-1">
+
+          <button type="submit" class="btn btn-success">{% trans "Submit Request" %}</button>
+
+        </div>        <div class="card-body">
+
+      </form>
+
+    </div>          {% if upcoming_schedules %}                <div class="flex-grow-1">                  <h6 class="mb-1">{{ task.title }}</h6>
+
+  </div>
+
+</div>          <div class="list-group list-group-flush">
+
+
+
+<!-- New Comment Modal -->            {% for schedule in upcoming_schedules %}                  <h6 class="mb-1">{{ task.title }}</h6>                  <p class="mb-1 small text-muted">{{ task.description|default:"Sin descripción" }}</p>
+
+<div class="modal fade" id="newCommentModal" tabindex="-1">
+
+  <div class="modal-dialog">            <div class="list-group-item border-0 px-0">
+
+    <div class="modal-content">
+
+      <div class="modal-header">              <div class="d-flex align-items-start">                  <p class="mb-1 small text-muted">{{ task.description|default_if_none:"No description" }}</p>                  <small class="text-muted">
+
+        <h5 class="modal-title"><i class="bi bi-chat-dots"></i> {% trans "Add Comment" %}</h5>
+
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>                <i class="bi bi-clock text-primary fs-4 me-3"></i>
+
+      </div>
+
+      <form method="post" action="{% url 'project_comment_create' project.id %}">                <div class="flex-grow-1">                  <small class="text-muted">                    <i class="bi bi-calendar"></i> {{ task.created_at|date:"M d, Y" }}
+
+        {% csrf_token %}
+
+        <div class="modal-body">                  <h6 class="mb-1">{{ schedule.title }}</h6>
+
+          <div class="mb-3">
+
+            <label for="comment_content" class="form-label">{% trans "Your Comment" %}</label>                  <p class="mb-1 small text-muted">                    <i class="bi bi-calendar"></i> {{ task.created_at|date:"M d, Y" }}                    {% if task.assigned_to %}
+
+            <textarea class="form-control" id="comment_content" name="content" rows="4" required></textarea>
+
+          </div>                    <i class="bi bi-calendar3"></i> {{ schedule.start_datetime|date:"D, M d 'at' g:i A" }}
+
+        </div>
+
+        <div class="modal-footer">                  </p>                    {% if task.assigned_to %}                    · <i class="bi bi-person-check"></i> Asignado a: {{ task.assigned_to.name }}
+
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+
+          <button type="submit" class="btn btn-primary">{% trans "Post Comment" %}</button>                  {% if schedule.description %}
+
+        </div>
+
+      </form>                  <small class="text-muted">{{ schedule.description }}</small>                    · <i class="bi bi-person-check"></i> {% trans "Assigned to" %}: {{ task.assigned_to.name }}                    {% endif %}
+
+    </div>
+
+  </div>                  {% endif %}
+
+</div>
 
                 </div>                    {% endif %}                  </small>
+
+{% endblock %}
 
               </div>
 

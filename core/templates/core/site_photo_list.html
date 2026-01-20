@@ -1,32 +1,86 @@
-```html
-// filepath: c:\Users\jesus\Kibray\core\templates\core\site_photo_list.html
+{% extends "core/base_modern.html" %}```html
+
+{% load i18n %}// filepath: c:\Users\jesus\Kibray\core\templates\core\site_photo_list.html
+
 {% extends "core/base_modern.html" %}
-{% block content %}
-<div class="container py-3">
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h4>Fotos del proyecto · {{ project.name }}</h4>
-    <a class="btn btn-primary" href="{% url 'site_photo_create' project.id %}">Nueva foto</a>
-  </div>
-  {% if photos %}
-    <div class="row g-3">
-      {% for p in photos %}
-        <div class="col-md-4">
-          <div class="card h-100">
-            <img src="{{ p.image.url }}" class="card-img-top" alt="foto pared">
-            <div class="card-body">
-              <div class="small text-muted">{{ p.room }} · {{ p.wall_ref }}</div>
-              <div>{{ p.approved_color|default:p.color_text }}</div>
-              <div class="small">{{ p.brand }} {{ p.finish }} {{ p.gloss }}</div>
-              <div class="small">Capas: {{ p.coats }} · Especial: {{ p.special_finish|yesno:"Sí,No" }}</div>
-              <p class="small mb-0">{{ p.notes|default:"" }}</p>
+
+{% block content %}{% block content %}
+
+<div class="container py-3"><div class="container py-3">
+
+  <div class="d-flex justify-content-between align-items-center mb-2">  <div class="d-flex justify-content-between align-items-center mb-2">
+
+    <h4>{% trans "Project Photos" %} · {{ project.name }}</h4>    <h4>Fotos del proyecto · {{ project.name }}</h4>
+
+    {% if not is_client_user %}    <a class="btn btn-primary" href="{% url 'site_photo_create' project.id %}">Nueva foto</a>
+
+    <a class="btn btn-primary" href="{% url 'site_photo_create' project.id %}">{% trans "New Photo" %}</a>  </div>
+
+    {% endif %}  {% if photos %}
+
+  </div>    <div class="row g-3">
+
+        {% for p in photos %}
+
+  {% if photos %}        <div class="col-md-4">
+
+    <div class="row g-3">          <div class="card h-100">
+
+      {% for p in photos %}            <img src="{{ p.image.url }}" class="card-img-top" alt="foto pared">
+
+        <div class="col-md-4">            <div class="card-body">
+
+          <div class="card h-100">              <div class="small text-muted">{{ p.room }} · {{ p.wall_ref }}</div>
+
+            <a href="{{ p.image.url }}" target="_blank">              <div>{{ p.approved_color|default:p.color_text }}</div>
+
+              <img src="{{ p.image.url }}" class="card-img-top" alt="{% trans 'Site photo' %}" style="height: 200px; object-fit: cover;">              <div class="small">{{ p.brand }} {{ p.finish }} {{ p.gloss }}</div>
+
+            </a>              <div class="small">Capas: {{ p.coats }} · Especial: {{ p.special_finish|yesno:"Sí,No" }}</div>
+
+            <div class="card-body">              <p class="small mb-0">{{ p.notes|default:"" }}</p>
+
+              <div class="small text-muted">{{ p.room }} · {{ p.wall_ref }}</div>            </div>
+
+              <div>{{ p.approved_color|default:p.color_text }}</div>          </div>
+
+              <div class="small">{{ p.brand }} {{ p.finish }} {{ p.gloss }}</div>        </div>
+
+              <div class="small">{% trans "Coats" %}: {{ p.coats }} · {% trans "Special" %}: {{ p.special_finish|yesno:"Yes,No" }}</div>      {% endfor %}
+
+              {% if p.notes %}    </div>
+
+              <p class="small mb-0 mt-2">{{ p.notes }}</p>  {% else %}
+
+              {% endif %}    <p class="text-muted">Sin fotos aún.</p>
+
+            </div>  {% endif %}
+
+            {% if not is_client_user %}</div>
+
+            <div class="card-footer bg-transparent">{% endblock %}
+
+              <div class="d-flex gap-2">```
+                <a href="{% url 'site_photo_update' p.id %}" class="btn btn-sm btn-outline-primary">{% trans "Edit" %}</a>
+                <a href="{% url 'site_photo_delete' p.id %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</a>
+              </div>
             </div>
+            {% endif %}
           </div>
         </div>
       {% endfor %}
     </div>
   {% else %}
-    <p class="text-muted">Sin fotos aún.</p>
+    <div class="text-center py-5">
+      <i class="bi bi-images display-1 text-muted"></i>
+      <p class="text-muted mt-3">{% trans "No photos yet." %}</p>
+    </div>
   {% endif %}
+  
+  <div class="mt-4">
+    <a href="{% url 'client_project_view' project.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
+    </a>
+  </div>
 </div>
 {% endblock %}
-```
