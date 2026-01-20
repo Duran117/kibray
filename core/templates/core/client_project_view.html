@@ -24,14 +24,10 @@
     }
     .stat-card:hover { transform: translateY(-3px); }
     .stat-card .stat-icon {
-        width: 50px;
-        height: 50px;
+        width: 50px; height: 50px;
         border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 15px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; margin-bottom: 15px;
     }
     .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: #2c3e50; }
     .stat-card .stat-label { color: #7f8c8d; font-size: 0.9rem; }
@@ -50,79 +46,51 @@
     }
     .section-card .card-body { padding: 20px; }
     .progress-section { margin-bottom: 20px; }
-    .progress-label {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 0.9rem;
-    }
-    .progress { height: 10px; border-radius: 5px; }
-    .change-order-item {
+    .progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+    .progress { height: 12px; border-radius: 6px; background: #e9ecef; }
+    .progress-bar { border-radius: 6px; }
+    .list-item {
         border: 1px solid #eee;
         border-radius: 10px;
         padding: 15px;
         margin-bottom: 10px;
         transition: all 0.2s;
     }
-    .change-order-item:hover { border-color: #667eea; background: #f8f9ff; }
-    .co-status {
+    .list-item:hover { border-color: #667eea; background: #f8f9ff; }
+    .status-badge {
         padding: 4px 12px;
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 600;
     }
-    .co-status.pending { background: #fff3cd; color: #856404; }
-    .co-status.approved { background: #d4edda; color: #155724; }
-    .co-status.rejected { background: #f8d7da; color: #721c24; }
-    .document-item {
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        border: 1px solid #eee;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        transition: all 0.2s;
-    }
-    .document-item:hover { background: #f8f9fa; }
-    .document-item i { font-size: 1.5rem; margin-right: 15px; color: #667eea; }
-    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d4edda; color: #155724; }
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-in-progress { background: #cce5ff; color: #004085; }
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
     .photo-item {
         aspect-ratio: 1;
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
         cursor: pointer;
         transition: transform 0.2s;
     }
     .photo-item:hover { transform: scale(1.05); }
     .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-    .timeline-item {
-        display: flex;
-        padding: 15px 0;
-        border-bottom: 1px solid #eee;
-    }
-    .timeline-item:last-child { border-bottom: none; }
-    .timeline-date {
-        min-width: 100px;
-        font-weight: 600;
-        color: #667eea;
-    }
-    .timeline-content { flex: 1; }
+    .schedule-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+    .schedule-item:last-child { border-bottom: none; }
+    .schedule-date { min-width: 80px; font-weight: 600; color: #667eea; font-size: 0.9rem; }
     .btn-action {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.2s;
+        color: white; border: none;
+        padding: 8px 16px; border-radius: 8px;
+        font-weight: 600; transition: all 0.2s;
     }
     .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); color: white; }
-    .empty-state {
-        text-align: center;
-        padding: 40px;
-        color: #7f8c8d;
-    }
-    .empty-state i { font-size: 3rem; margin-bottom: 15px; opacity: 0.5; }
+    .empty-state { text-align: center; padding: 30px; color: #7f8c8d; }
+    .empty-state i { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
+    .financial-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+    .financial-row:last-child { border-bottom: none; font-weight: 700; }
 </style>
 {% endblock %}
 
@@ -164,17 +132,17 @@
                 <div class="stat-icon" style="background: #e8f5e9; color: #27ae60;">
                     <i class="fas fa-percentage"></i>
                 </div>
-                <div class="stat-value">{{ project.progress|default:0 }}%</div>
+                <div class="stat-value">{{ progress_pct }}%</div>
                 <div class="stat-label">{% trans "Progress" %}</div>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon" style="background: #e3f2fd; color: #3498db;">
-                    <i class="fas fa-file-invoice-dollar"></i>
+                    <i class="fas fa-tasks"></i>
                 </div>
-                <div class="stat-value">{{ change_orders_count|default:0 }}</div>
-                <div class="stat-label">{% trans "Change Orders" %}</div>
+                <div class="stat-value">{{ pending_tasks.count }}</div>
+                <div class="stat-label">{% trans "Pending Tasks" %}</div>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
@@ -182,17 +150,17 @@
                 <div class="stat-icon" style="background: #fff3e0; color: #f39c12;">
                     <i class="fas fa-images"></i>
                 </div>
-                <div class="stat-value">{{ photos_count|default:0 }}</div>
+                <div class="stat-value">{{ recent_photos.count }}</div>
                 <div class="stat-label">{% trans "Photos" %}</div>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon" style="background: #fce4ec; color: #e74c3c;">
-                    <i class="fas fa-folder-open"></i>
+                    <i class="fas fa-calendar-alt"></i>
                 </div>
-                <div class="stat-value">{{ documents_count|default:0 }}</div>
-                <div class="stat-label">{% trans "Documents" %}</div>
+                <div class="stat-value">{{ upcoming_schedules.count }}</div>
+                <div class="stat-label">{% trans "Upcoming Events" %}</div>
             </div>
         </div>
     </div>
@@ -203,19 +171,27 @@
             <!-- Progress Section -->
             <div class="section-card">
                 <div class="card-header">
-                    <i class="fas fa-tasks me-2"></i>{% trans "Project Progress" %}
+                    <i class="fas fa-chart-line me-2"></i>{% trans "Project Progress" %}
                 </div>
                 <div class="card-body">
                     <div class="progress-section">
                         <div class="progress-label">
                             <span>{% trans "Overall Completion" %}</span>
-                            <span>{{ project.progress|default:0 }}%</span>
+                            <span class="fw-bold">{{ progress_pct }}%</span>
                         </div>
                         <div class="progress">
                             <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: {{ project.progress|default:0 }}%"></div>
+                                 style="width: {{ progress_pct }}%"></div>
                         </div>
                     </div>
+                    {% if gantt_progress.completed_items or gantt_progress.total_items %}
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                {{ gantt_progress.completed_items|default:0 }} {% trans "of" %} 
+                                {{ gantt_progress.total_items|default:0 }} {% trans "items completed" %}
+                            </small>
+                        </div>
+                    {% endif %}
                     {% if project.start_date or project.end_date %}
                         <div class="row mt-4">
                             {% if project.start_date %}
@@ -235,45 +211,63 @@
                 </div>
             </div>
             
-            <!-- Change Orders Section -->
+            <!-- Pending Requests Section -->
+            {% if pending_requests %}
             <div class="section-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-file-signature me-2"></i>{% trans "Change Orders" %}</span>
-                    {% if pending_change_orders_count %}
-                        <span class="badge bg-warning text-dark">{{ pending_change_orders_count }} {% trans "pending" %}</span>
+                    <span><i class="fas fa-inbox me-2"></i>{% trans "My Requests" %}</span>
+                    <span class="badge bg-warning text-dark">{{ pending_requests.count }} {% trans "pending" %}</span>
+                </div>
+                <div class="card-body">
+                    {% for req in pending_requests %}
+                        <div class="list-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ req.title }}</h6>
+                                    <small class="text-muted">{{ req.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <span class="status-badge status-pending">{% trans "Pending" %}</span>
+                            </div>
+                            {% if req.description %}
+                                <p class="mb-0 mt-2 text-muted small">{{ req.description|truncatewords:20 }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Tasks Section -->
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-tasks me-2"></i>{% trans "Tasks & Touch-ups" %}</span>
+                    {% if pending_tasks %}
+                        <span class="badge bg-primary">{{ pending_tasks.count }} {% trans "active" %}</span>
                     {% endif %}
                 </div>
                 <div class="card-body">
-                    {% if change_orders %}
-                        {% for co in change_orders %}
-                            <div class="change-order-item">
+                    {% if pending_tasks %}
+                        {% for task in pending_tasks|slice:":5" %}
+                            <div class="list-item">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <h6 class="mb-1">{{ co.title }}</h6>
+                                        <h6 class="mb-1">{{ task.title }}</h6>
                                         <small class="text-muted">
-                                            #{{ co.change_order_number }} • {{ co.created_at|date:"M d, Y" }}
+                                            {% if task.assigned_to %}
+                                                <i class="fas fa-user me-1"></i>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                                            {% endif %}
                                         </small>
                                     </div>
-                                    <div class="text-end">
-                                        <span class="co-status {% if co.status == 'PENDING' %}pending{% elif co.status == 'APPROVED' %}approved{% else %}rejected{% endif %}">
-                                            {{ co.get_status_display }}
-                                        </span>
-                                        <div class="mt-1 fw-bold">{{ co.total_amount|currency }}</div>
-                                    </div>
+                                    <span class="status-badge {% if task.status == 'En Progreso' %}status-in-progress{% else %}status-pending{% endif %}">
+                                        {{ task.status }}
+                                    </span>
                                 </div>
-                                {% if co.status == 'PENDING' and not co.client_signed %}
-                                    <div class="mt-3">
-                                        <a href="{% url 'changeorder_customer_signature' co.pk %}" class="btn btn-sm btn-action">
-                                            <i class="fas fa-signature me-1"></i>{% trans "Sign" %}
-                                        </a>
-                                    </div>
-                                {% endif %}
                             </div>
                         {% endfor %}
                     {% else %}
                         <div class="empty-state">
-                            <i class="fas fa-file-alt"></i>
-                            <p>{% trans "No change orders yet" %}</p>
+                            <i class="fas fa-check-circle"></i>
+                            <p>{% trans "No pending tasks" %}</p>
                         </div>
                     {% endif %}
                 </div>
@@ -283,18 +277,13 @@
             <div class="section-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-camera me-2"></i>{% trans "Recent Photos" %}</span>
-                    {% if photos %}
-                        <a href="{% url 'client_project_photos' project.pk %}" class="btn btn-sm btn-outline-primary">
-                            {% trans "View All" %}
-                        </a>
-                    {% endif %}
                 </div>
                 <div class="card-body">
-                    {% if photos %}
+                    {% if recent_photos %}
                         <div class="photo-grid">
-                            {% for photo in photos|slice:":8" %}
+                            {% for photo in recent_photos|slice:":8" %}
                                 <div class="photo-item" data-bs-toggle="modal" data-bs-target="#photoModal" 
-                                     data-photo-url="{{ photo.image.url }}">
+                                     data-photo-url="{{ photo.image.url }}" data-photo-desc="{{ photo.description|default:'' }}">
                                     <img src="{{ photo.image.url }}" alt="{{ photo.description|default:'Photo' }}">
                                 </div>
                             {% endfor %}
@@ -318,47 +307,102 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'client_project_calendar' project.pk %}" class="btn btn-outline-primary">
+                        <a href="{% url 'client_project_calendar' project.pk %}" class="btn btn-action">
                             <i class="fas fa-calendar me-2"></i>{% trans "View Calendar" %}
                         </a>
-                        {% if photos %}
-                            <a href="{% url 'client_project_photos' project.pk %}" class="btn btn-outline-primary">
-                                <i class="fas fa-images me-2"></i>{% trans "View Photos" %}
-                            </a>
-                        {% endif %}
-                        {% if documents %}
-                            <a href="#documentsSection" class="btn btn-outline-primary">
-                                <i class="fas fa-folder me-2"></i>{% trans "Documents" %}
-                            </a>
-                        {% endif %}
                     </div>
                 </div>
             </div>
             
-            <!-- Documents Section -->
-            <div class="section-card" id="documentsSection">
+            <!-- Upcoming Schedule -->
+            <div class="section-card">
                 <div class="card-header">
-                    <i class="fas fa-folder-open me-2"></i>{% trans "Documents" %}
+                    <i class="fas fa-calendar-alt me-2"></i>{% trans "Upcoming Schedule" %}
                 </div>
                 <div class="card-body">
-                    {% if documents %}
-                        {% for doc in documents %}
-                            <a href="{{ doc.file.url }}" target="_blank" class="document-item text-decoration-none text-dark">
-                                <i class="fas fa-file-pdf"></i>
-                                <div>
-                                    <div class="fw-bold">{{ doc.title }}</div>
-                                    <small class="text-muted">{{ doc.created_at|date:"M d, Y" }}</small>
+                    {% if upcoming_schedules %}
+                        {% for schedule in upcoming_schedules %}
+                            <div class="schedule-item">
+                                <div class="schedule-date">
+                                    {{ schedule.start_datetime|date:"M d" }}
                                 </div>
-                            </a>
+                                <div>
+                                    <div class="fw-bold">{{ schedule.title }}</div>
+                                    <small class="text-muted">{{ schedule.start_datetime|time:"g:i A" }}</small>
+                                </div>
+                            </div>
                         {% endfor %}
                     {% else %}
                         <div class="empty-state">
-                            <i class="fas fa-folder-open"></i>
-                            <p>{% trans "No documents yet" %}</p>
+                            <i class="fas fa-calendar-check"></i>
+                            <p>{% trans "No upcoming events" %}</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
+            
+            <!-- Financial Summary -->
+            {% if invoices %}
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-dollar-sign me-2"></i>{% trans "Financial Summary" %}
+                </div>
+                <div class="card-body">
+                    <div class="financial-row">
+                        <span>{% trans "Total Invoiced" %}</span>
+                        <span>{{ total_invoiced|currency }}</span>
+                    </div>
+                    <div class="financial-row">
+                        <span>{% trans "Total Paid" %}</span>
+                        <span class="text-success">{{ total_paid|currency }}</span>
+                    </div>
+                    <div class="financial-row">
+                        <span>{% trans "Balance Due" %}</span>
+                        <span class="{% if balance > 0 %}text-danger{% else %}text-success{% endif %}">{{ balance|currency }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Color Samples -->
+            {% if color_samples %}
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-palette me-2"></i>{% trans "Color Samples" %}
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        {% for sample in color_samples %}
+                            <div class="col-6">
+                                <div class="p-2 border rounded">
+                                    {% if sample.color_code %}
+                                        <div style="width: 100%; height: 40px; background: {{ sample.color_code }}; border-radius: 4px;"></div>
+                                    {% endif %}
+                                    <small class="d-block mt-1">{{ sample.name|truncatewords:3 }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Project Minutes -->
+            {% if project_minutes %}
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-clipboard-list me-2"></i>{% trans "Recent Updates" %}
+                </div>
+                <div class="card-body">
+                    {% for minute in project_minutes|slice:":5" %}
+                        <div class="mb-3 pb-3 border-bottom">
+                            <small class="text-muted">{{ minute.event_date|date:"M d, Y" }}</small>
+                            <p class="mb-0">{{ minute.content|truncatewords:15 }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             
             <!-- Project Info -->
             <div class="section-card">
@@ -367,19 +411,19 @@
                 </div>
                 <div class="card-body">
                     {% if project.description %}
-                        <p class="text-muted">{{ project.description|truncatewords:50 }}</p>
+                        <p class="text-muted small">{{ project.description|truncatewords:30 }}</p>
                     {% endif %}
-                    <ul class="list-unstyled mb-0">
+                    <ul class="list-unstyled mb-0 small">
                         {% if project.project_manager %}
                             <li class="mb-2">
-                                <small class="text-muted d-block">{% trans "Project Manager" %}</small>
-                                <span>{{ project.project_manager.get_full_name|default:project.project_manager.username }}</span>
+                                <span class="text-muted">{% trans "Project Manager" %}:</span><br>
+                                <span class="fw-bold">{{ project.project_manager.get_full_name|default:project.project_manager.username }}</span>
                             </li>
                         {% endif %}
                         {% if project.company %}
                             <li class="mb-2">
-                                <small class="text-muted d-block">{% trans "Company" %}</small>
-                                <span>{{ project.company.name }}</span>
+                                <span class="text-muted">{% trans "Company" %}:</span><br>
+                                <span class="fw-bold">{{ project.company.name }}</span>
                             </li>
                         {% endif %}
                     </ul>
@@ -393,10 +437,11 @@
 <div class="modal fade" id="photoModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-body p-0">
+            <div class="modal-body p-0 position-relative">
                 <button type="button" class="btn-close position-absolute top-0 end-0 m-3 bg-white rounded-circle p-2" 
                         data-bs-dismiss="modal"></button>
                 <img src="" id="modalPhoto" class="img-fluid w-100" alt="Photo">
+                <div id="modalPhotoDesc" class="p-3 bg-light"></div>
             </div>
         </div>
     </div>
@@ -406,13 +451,20 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Photo modal
     const photoModal = document.getElementById('photoModal');
     if (photoModal) {
         photoModal.addEventListener('show.bs.modal', function(event) {
             const button = event.relatedTarget;
             const photoUrl = button.getAttribute('data-photo-url');
+            const photoDesc = button.getAttribute('data-photo-desc');
             document.getElementById('modalPhoto').src = photoUrl;
+            const descEl = document.getElementById('modalPhotoDesc');
+            if (photoDesc) {
+                descEl.textContent = photoDesc;
+                descEl.style.display = 'block';
+            } else {
+                descEl.style.display = 'none';
+            }
         });
     }
 });
