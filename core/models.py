@@ -1635,6 +1635,31 @@ class ChangeOrder(models.Model):
     )
     # Compatibilidad: PDF firmado generado por flujo de firmas
     signed_pdf = models.FileField(upload_to="changeorders/signed_pdfs/", null=True, blank=True)
+    
+    # Pricing type: Fixed or Time & Materials
+    PRICING_TYPE_CHOICES = [
+        ('FIXED', 'Fixed Price'),
+        ('TM', 'Time & Materials'),
+    ]
+    pricing_type = models.CharField(
+        max_length=10,
+        choices=PRICING_TYPE_CHOICES,
+        default='FIXED',
+        help_text="Fixed Price: Total amount is fixed. T&M: Billed by hours + materials."
+    )
+    billing_hourly_rate = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Hourly rate for T&M billing"
+    )
+    material_markup_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text="Material markup percentage for T&M billing"
+    )
 
     def __str__(self):
         return f"CO {self.id} | {self.project.name} | ${self.amount:.2f}"

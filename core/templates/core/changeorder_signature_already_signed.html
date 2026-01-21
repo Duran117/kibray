@@ -1,139 +1,108 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Change Order Ya Firmado - CO-{{ changeorder.id|stringformat:"04d" }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <title>{% trans "Change Order Already Signed" %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
+            padding: 2rem;
         }
-
-        .message-container {
-            max-width: 600px;
+        .container {
             background: white;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             padding: 3rem;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
-
-        .icon-circle {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 2rem;
+        .icon-check {
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 1.5rem;
         }
-
-        .icon-circle i {
-            font-size: 3rem;
-            color: #92400e;
-        }
-
         h1 {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 700;
             color: #1e293b;
             margin-bottom: 1rem;
         }
-
         .co-number {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #667eea;
+            font-size: 1.25rem;
+            color: #4F46E5;
+            font-weight: 600;
             margin-bottom: 1.5rem;
         }
-
+        p {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
         .info-box {
             background: #f8fafc;
-            border-left: 4px solid #667eea;
+            border-radius: 12px;
             padding: 1.5rem;
-            border-radius: 8px;
             margin: 1.5rem 0;
             text-align: left;
         }
-
         .info-row {
             display: flex;
             justify-content: space-between;
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
             border-bottom: 1px solid #e2e8f0;
         }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
+        .info-row:last-child { border-bottom: none; }
         .info-label {
             font-weight: 600;
-            color: #64748b;
+            color: #475569;
         }
-
         .info-value {
-            font-weight: 700;
             color: #1e293b;
         }
-
         .signature-preview {
-            background: white;
-            border: 3px solid #cbd5e1;
-            border-radius: 8px;
+            margin-top: 1.5rem;
             padding: 1rem;
-            margin: 1.5rem 0;
+            background: #f8fafc;
+            border-radius: 8px;
         }
-
         .signature-preview img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-
-        p {
-            color: #475569;
-            line-height: 1.6;
-            margin: 1rem 0;
+            max-width: 200px;
+            max-height: 100px;
         }
     </style>
 </head>
 <body>
-    <div class="message-container">
-        <div class="icon-circle">
-            <i class="bi bi-check-circle-fill"></i>
-        </div>
-
-        <h1>Change Order Ya Firmado</h1>
+    <div class="container">
+        <i class="bi bi-check-circle-fill icon-check"></i>
+        <h1>{% trans "Already Signed" %}</h1>
         <div class="co-number">CO-{{ changeorder.id|stringformat:"04d" }}</div>
 
         <p>
-            Este Change Order ya ha sido firmado y aprobado anteriormente. 
-            No es necesario firmarlo nuevamente.
+            {% trans "This Change Order has already been signed and approved. No further action is required." %}
         </p>
 
         <div class="info-box">
             <div class="info-row">
-                <span class="info-label">Firmado por:</span>
+                <span class="info-label">{% trans "Signed by" %}:</span>
                 <span class="info-value">{{ changeorder.signed_by }}</span>
             </div>
             <div class="info-row">
-                <span class="info-label">Fecha de firma:</span>
-                <span class="info-value">{{ changeorder.signed_at|date:"d/m/Y H:i" }}</span>
+                <span class="info-label">{% trans "Signature Date" %}:</span>
+                <span class="info-value">{{ changeorder.signed_at|date:"M d, Y H:i" }}</span>
             </div>
             <div class="info-row">
-                <span class="info-label">Estado:</span>
+                <span class="info-label">{% trans "Status" %}:</span>
                 <span class="info-value">{{ changeorder.get_status_display }}</span>
             </div>
         </div>
@@ -141,15 +110,15 @@
         {% if changeorder.signature_image %}
         <div class="signature-preview">
             <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem;">
-                <strong>Firma Digital:</strong>
+                <strong>{% trans "Digital Signature" %}:</strong>
             </p>
-            <img src="{{ changeorder.signature_image.url }}" alt="Firma Digital">
+            <img src="{{ changeorder.signature_image.url }}" alt="{% trans 'Digital Signature' %}">
         </div>
         {% endif %}
 
         <p style="font-size: 0.9rem; color: #64748b; font-style: italic; margin-top: 2rem;">
             <i class="bi bi-info-circle"></i>
-            Si tiene preguntas, por favor contacte al contratista.
+            {% trans "If you have any questions, please contact the contractor." %}
         </p>
     </div>
 </body>

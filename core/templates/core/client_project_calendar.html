@@ -690,7 +690,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Helper functions
     function getStatusColor(status) {
         const colors = {
+            'Completed': 'success',
             'Completado': 'success',
+            'In Progress': 'warning',
             'En Progreso': 'warning',
             'Not Started': 'secondary',
             'Blocked': 'danger'

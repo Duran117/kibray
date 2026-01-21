@@ -663,7 +663,7 @@ class TaskForm(forms.ModelForm):
 class ChangeOrderForm(forms.ModelForm):
     PRICING_TYPE_CHOICES = [
         ('FIXED', 'Fixed Price'),
-        ('T_AND_M', 'Time & Materials'),
+        ('TM', 'Time & Materials'),
     ]
     
     pricing_type = forms.ChoiceField(
@@ -722,9 +722,9 @@ class ChangeOrderForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['pricing_type'].initial = self.instance.pricing_type
             if hasattr(self.instance, 'labor_rate_override') and self.instance.labor_rate_override:
-                self.fields['billing_hourly_rate'].initial = self.instance.labor_rate_override
-            if hasattr(self.instance, 'material_markup_percent'):
-                self.fields['material_markup_pct'].initial = self.instance.material_markup_percent
+                self.fields['billing_hourly_rate'].initial = self.instance.billing_hourly_rate
+            if hasattr(self.instance, 'material_markup_pct'):
+                self.fields['material_markup_pct'].initial = self.instance.material_markup_pct
     
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -733,10 +733,10 @@ class ChangeOrderForm(forms.ModelForm):
         # Save T&M fields
         billing_rate = self.cleaned_data.get('billing_hourly_rate')
         if billing_rate:
-            instance.labor_rate_override = billing_rate
+            instance.billing_hourly_rate = billing_rate
         markup = self.cleaned_data.get('material_markup_pct')
         if markup is not None:
-            instance.material_markup_percent = markup
+            instance.material_markup_pct = markup
         if commit:
             instance.save()
         return instance

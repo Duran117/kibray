@@ -1,641 +1,93 @@
-{% extends 'base_modern.html' %}{% extends "core/base_modern.html" %}
-
-{% load i18n %}{% load i18n %}
-
-
-
-{% block title %}{% block content %}
-
-{% if minute %}{% trans "Edit Minute" %}{% else %}{% trans "New Minute" %}{% endif %} - {{ project.name }}<div class="container py-4">
-
-{% endblock %}  <div class="mb-4">
-
-    <h3><i class="bi bi-plus-circle"></i> Nueva Minuta</h3>
-
-{% block extra_css %}    <p class="text-muted mb-0">{{ project.name }}</p>
-
-<style>  </div>
-
-    /* Modern Form Styling */
-
-    .form-page {  <div class="row">
-
-        min-height: 100vh;    <div class="col-lg-8">
-
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);      <div class="card">
-
-        padding: 2rem 0;        <div class="card-body">
-
-    }          <form method="post" enctype="multipart/form-data">
-
-                {% csrf_token %}
-
-    .form-container {            
-
-        max-width: 800px;            <div class="mb-3">
-
-        margin: 0 auto;              <label class="form-label"><strong>Tipo de Evento *</strong></label>
-
-    }              <select name="event_type" class="form-select" required>
-
-                    {% for value, label in event_types %}
-
-    /* Header */                <option value="{{ value }}">{{ label }}</option>
-
-    .form-header {                {% endfor %}
-
-        display: flex;              </select>
-
-        align-items: center;              <small class="text-muted">Selecciona el tipo de evento o comunicación</small>
-
-        gap: 1rem;            </div>
-
-        margin-bottom: 2rem;
-
-    }            <div class="mb-3">
-
-                  <label class="form-label"><strong>Título *</strong></label>
-
-    .back-btn {              <input type="text" name="title" class="form-control" placeholder="Ej: Aprobación de cambio en diseño de cocina" required maxlength="200">
-
-        width: 48px;              <small class="text-muted">Resumen breve del evento</small>
-
-        height: 48px;            </div>
-
-        border-radius: 12px;
-
-        background: white;            <div class="mb-3">
-
-        border: none;              <label class="form-label"><strong>Fecha y Hora del Evento *</strong></label>
-
-        display: flex;              <input type="datetime-local" name="event_date" class="form-control" 
-
-        align-items: center;                     value="{{ today|date:'Y-m-d' }}T{{ today|date:'H:i' }}" required>
-
-        justify-content: center;              <small class="text-muted">Cuándo ocurrió este evento</small>
-
-        font-size: 1.25rem;            </div>
-
-        color: #64748b;
-
-        transition: all 0.2s ease;            <div class="mb-3">
-
-        text-decoration: none;              <label class="form-label"><strong>Descripción Detallada</strong></label>
-
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);              <textarea name="description" class="form-control" rows="6" 
-
-    }                        placeholder="Describe los detalles, decisiones tomadas, acuerdos alcanzados, etc."></textarea>
-
-                </div>
-
-    .back-btn:hover {
-
-        color: #3b82f6;            <div class="mb-3">
-
-        transform: translateX(-4px);              <label class="form-label"><strong>Participantes</strong></label>
-
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);              <input type="text" name="participants" class="form-control" 
-
-    }                     placeholder="Ej: John Doe, Jane Smith, Cliente">
-
-                  <small class="text-muted">Personas involucradas en llamada/reunión (opcional)</small>
-
-    .form-title-section h1 {            </div>
-
-        font-size: 1.75rem;
-
-        font-weight: 700;            <div class="mb-3">
-
-        color: #1e293b;              <label class="form-label"><strong>Archivo Adjunto</strong></label>
-
-        margin: 0;              <input type="file" name="attachment" class="form-control">
-
-    }              <small class="text-muted">PDF, foto, correo escaneado, etc. (opcional)</small>
-
-                </div>
-
-    .form-title-section p {
-
-        color: #64748b;            <div class="mb-3">
-
-        margin: 0.25rem 0 0 0;              <div class="form-check">
-
-        font-size: 0.95rem;                <input type="checkbox" name="visible_to_client" class="form-check-input" id="visible" checked>
-
-    }                <label class="form-check-label" for="visible">
-
-                      <strong>Visible para el cliente</strong>
-
-    /* Form Card */                  <small class="text-muted d-block">Si desmarcas esto, solo Admin/PM podrán ver esta minuta</small>
-
-    .form-card {                </label>
-
-        background: white;              </div>
-
-        border-radius: 20px;            </div>
-
-        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-
-        overflow: hidden;            <div class="d-flex gap-2">
-
-    }              <button type="submit" class="btn btn-primary">
-
-                    <i class="bi bi-check-circle"></i> Guardar Minuta
-
-    .form-body {              </button>
-
-        padding: 2.5rem;              <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-outline-secondary">
-
-    }                Cancelar
-
-                  </a>
-
-    /* Form Groups */            </div>
-
-    .form-group {          </form>
-
-        margin-bottom: 1.75rem;        </div>
-
-    }      </div>
-
-        </div>
-
-    .form-group label {
-
-        display: block;    <div class="col-lg-4">
-
-        font-weight: 600;      <div class="card bg-light">
-
-        color: #374151;        <div class="card-body">
-
-        margin-bottom: 0.5rem;          <h6><i class="bi bi-info-circle"></i> Guía de Tipos</h6>
-
-        font-size: 0.95rem;          <ul class="small mb-0">
-
-    }            <li><strong>Decisión:</strong> Decisiones importantes del proyecto</li>
-
-                <li><strong>Llamada:</strong> Llamadas telefónicas</li>
-
-    .form-group label .required {            <li><strong>Correo:</strong> Correos electrónicos importantes</li>
-
-        color: #ef4444;            <li><strong>Reunión:</strong> Reuniones presenciales o virtuales</li>
-
-        margin-left: 2px;            <li><strong>Aprobación:</strong> Aprobaciones formales</li>
-
-    }            <li><strong>Cambio/Modificación:</strong> Cambios en scope o diseño</li>
-
-                <li><strong>Problema:</strong> Problemas o issues relevantes</li>
-
-    .form-group input[type="text"],            <li><strong>Hito:</strong> Hitos alcanzados</li>
-
-    .form-group input[type="date"],            <li><strong>Nota:</strong> Notas generales</li>
-
-    .form-group input[type="file"],          </ul>
-
-    .form-group textarea,        </div>
-
-    .form-group select {      </div>
-
-        width: 100%;
-
-        padding: 0.875rem 1rem;      <div class="card mt-3">
-
-        border: 2px solid #e5e7eb;        <div class="card-body">
-
-        border-radius: 12px;          <h6><i class="bi bi-lightbulb"></i> Mejores Prácticas</h6>
-
-        font-size: 1rem;          <ul class="small mb-0">
-
-        transition: all 0.2s ease;            <li>Registra las minutas lo antes posible</li>
-
-        background: #f9fafb;            <li>Sé específico y conciso</li>
-
-    }            <li>Incluye nombres de participantes</li>
-
-                <li>Adjunta evidencia cuando sea posible</li>
-
-    .form-group input:focus,            <li>Marca como privado info sensible</li>
-
-    .form-group textarea:focus,          </ul>
-
-    .form-group select:focus {        </div>
-
-        outline: none;      </div>
-
-        border-color: #3b82f6;    </div>
-
-        background: white;  </div>
-
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);</div>
-
-    }{% endblock %}
-
-    
-    .form-group textarea {
-        min-height: 160px;
-        resize: vertical;
-    }
-    
-    .form-help {
-        font-size: 0.85rem;
-        color: #6b7280;
-        margin-top: 0.5rem;
-    }
-    
-    /* Event Type Cards */
-    .event-type-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 1rem;
-    }
-    
-    .event-type-option {
-        position: relative;
-    }
-    
-    .event-type-option input {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
-    }
-    
-    .event-type-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 1.25rem 1rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        background: #f9fafb;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-align: center;
-    }
-    
-    .event-type-card:hover {
-        border-color: #d1d5db;
-        background: white;
-    }
-    
-    .event-type-option input:checked + .event-type-card {
-        border-color: var(--type-color, #3b82f6);
-        background: var(--type-bg, #eff6ff);
-        box-shadow: 0 0 0 4px var(--type-shadow, rgba(59, 130, 246, 0.15));
-    }
-    
-    .event-type-card .type-icon {
-        font-size: 1.75rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .event-type-card .type-label {
-        font-weight: 600;
-        font-size: 0.85rem;
-        color: #374151;
-    }
-    
-    /* Type colors */
-    .type-meeting { --type-color: #3b82f6; --type-bg: #eff6ff; --type-shadow: rgba(59, 130, 246, 0.15); }
-    .type-call { --type-color: #10b981; --type-bg: #ecfdf5; --type-shadow: rgba(16, 185, 129, 0.15); }
-    .type-email { --type-color: #8b5cf6; --type-bg: #f5f3ff; --type-shadow: rgba(139, 92, 246, 0.15); }
-    .type-visit { --type-color: #f59e0b; --type-bg: #fffbeb; --type-shadow: rgba(245, 158, 11, 0.15); }
-    .type-note { --type-color: #64748b; --type-bg: #f1f5f9; --type-shadow: rgba(100, 116, 139, 0.15); }
-    
-    /* Row layout */
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-    }
-    
-    @media (max-width: 640px) {
-        .form-row {
-            grid-template-columns: 1fr;
-        }
-    }
-    
-    /* Checkbox styling */
-    .checkbox-group {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem;
-        background: #f0f9ff;
-        border-radius: 12px;
-        border: 2px solid #bae6fd;
-    }
-    
-    .checkbox-group input[type="checkbox"] {
-        width: 1.25rem;
-        height: 1.25rem;
-        accent-color: #3b82f6;
-    }
-    
-    .checkbox-group label {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    /* File Upload */
-    .file-upload-area {
-        border: 2px dashed #d1d5db;
-        border-radius: 12px;
-        padding: 2rem;
-        text-align: center;
-        background: #f9fafb;
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    
-    .file-upload-area:hover {
-        border-color: #3b82f6;
-        background: #eff6ff;
-    }
-    
-    .file-upload-area i {
-        font-size: 2.5rem;
-        color: #9ca3af;
-        margin-bottom: 0.75rem;
-    }
-    
-    .file-upload-area p {
-        color: #6b7280;
-        margin: 0;
-    }
-    
-    .file-upload-area input {
-        display: none;
-    }
-    
-    .current-file {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem;
-        background: #f1f5f9;
-        border-radius: 8px;
-        margin-top: 0.75rem;
-    }
-    
-    .current-file i {
-        color: #3b82f6;
-        font-size: 1.25rem;
-    }
-    
-    .current-file a {
-        color: #3b82f6;
-        text-decoration: none;
-        font-weight: 500;
-    }
-    
-    .current-file a:hover {
-        text-decoration: underline;
-    }
-    
-    /* Form Actions */
-    .form-actions {
-        display: flex;
-        gap: 1rem;
-        padding: 2rem 2.5rem;
-        background: #f8fafc;
-        border-top: 1px solid #e5e7eb;
-    }
-    
-    .btn-cancel {
-        padding: 0.875rem 1.5rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        background: white;
-        color: #64748b;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .btn-cancel:hover {
-        border-color: #d1d5db;
-        color: #374151;
-    }
-    
-    .btn-submit {
-        flex: 1;
-        padding: 0.875rem 1.5rem;
-        border: none;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: white;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
-    }
-    
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
-    }
-    
-    /* Error states */
-    .form-group.has-error input,
-    .form-group.has-error textarea,
-    .form-group.has-error select {
-        border-color: #ef4444;
-    }
-    
-    .error-message {
-        color: #ef4444;
-        font-size: 0.85rem;
-        margin-top: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-</style>
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
+
+{% block title %}
+{% if minute %}{% trans "Edit Minute" %}{% else %}{% trans "New Minute" %}{% endif %} - {{ project.name }}
 {% endblock %}
 
 {% block content %}
-<div class="form-page">
-    <div class="form-container">
-        <!-- Header -->
-        <div class="form-header">
-            <a href="{% url 'project_minutes' project.id %}" class="back-btn">
-                <i class="bi bi-arrow-left"></i>
-            </a>
-            <div class="form-title-section">
-                <h1>
-                    {% if minute %}
-                        <i class="bi bi-pencil-square me-2"></i>{% trans "Edit Minute" %}
-                    {% else %}
-                        <i class="bi bi-plus-lg me-2"></i>{% trans "New Minute" %}
-                    {% endif %}
-                </h1>
-                <p>{{ project.name }}</p>
-            </div>
-        </div>
-        
-        <!-- Form Card -->
-        <div class="form-card">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <div class="form-body">
-                    <!-- Event Type Selection -->
-                    <div class="form-group">
-                        <label>{% trans "Event Type" %} <span class="required">*</span></label>
-                        <div class="event-type-grid">
-                            <div class="event-type-option type-meeting">
-                                <input type="radio" name="event_type" value="meeting" id="type_meeting" 
-                                    {% if minute.event_type == 'meeting' or not minute %}checked{% endif %} required>
-                                <label for="type_meeting" class="event-type-card">
-                                    <span class="type-icon">👥</span>
-                                    <span class="type-label">{% trans "Meeting" %}</span>
-                                </label>
-                            </div>
-                            <div class="event-type-option type-call">
-                                <input type="radio" name="event_type" value="call" id="type_call"
-                                    {% if minute.event_type == 'call' %}checked{% endif %}>
-                                <label for="type_call" class="event-type-card">
-                                    <span class="type-icon">📞</span>
-                                    <span class="type-label">{% trans "Call" %}</span>
-                                </label>
-                            </div>
-                            <div class="event-type-option type-email">
-                                <input type="radio" name="event_type" value="email" id="type_email"
-                                    {% if minute.event_type == 'email' %}checked{% endif %}>
-                                <label for="type_email" class="event-type-card">
-                                    <span class="type-icon">📧</span>
-                                    <span class="type-label">{% trans "Email" %}</span>
-                                </label>
-                            </div>
-                            <div class="event-type-option type-visit">
-                                <input type="radio" name="event_type" value="site_visit" id="type_visit"
-                                    {% if minute.event_type == 'site_visit' %}checked{% endif %}>
-                                <label for="type_visit" class="event-type-card">
-                                    <span class="type-icon">🏗️</span>
-                                    <span class="type-label">{% trans "Site Visit" %}</span>
-                                </label>
-                            </div>
-                            <div class="event-type-option type-note">
-                                <input type="radio" name="event_type" value="other" id="type_other"
-                                    {% if minute.event_type == 'other' %}checked{% endif %}>
-                                <label for="type_other" class="event-type-card">
-                                    <span class="type-icon">📝</span>
-                                    <span class="type-label">{% trans "Note" %}</span>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        {% if minute %}{% trans "Edit Minute" %}{% else %}{% trans "New Minute" %}{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Event Type" %} *</label>
+                            <select name="event_type" class="form-select" required>
+                                <option value="">{% trans "Select type..." %}</option>
+                                {% for value, label in event_types %}
+                                    <option value="{{ value }}" {% if minute.event_type == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Title" %} *</label>
+                            <input type="text" name="title" class="form-control" 
+                                   value="{{ minute.title|default:'' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Description" %}</label>
+                            <textarea name="description" class="form-control" rows="5">{{ minute.description|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Event Date" %}</label>
+                            <input type="date" name="event_date" class="form-control" 
+                                   value="{{ minute.event_date|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Participants" %}</label>
+                            <input type="text" name="participants" class="form-control" 
+                                   value="{{ minute.participants|default:'' }}"
+                                   placeholder="{% trans 'Comma-separated names' %}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Attachment" %}</label>
+                            <input type="file" name="attachment" class="form-control">
+                            {% if minute.attachment %}
+                                <small class="text-muted">
+                                    {% trans "Current:" %} <a href="{{ minute.attachment.url }}" target="_blank">{{ minute.attachment.name }}</a>
+                                </small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" name="visible_to_client" class="form-check-input" 
+                                       id="visible_to_client" {% if minute.visible_to_client %}checked{% endif %}>
+                                <label class="form-check-label" for="visible_to_client">
+                                    {% trans "Visible to client" %}
                                 </label>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Title and Date -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="title">{% trans "Title" %} <span class="required">*</span></label>
-                            <input type="text" id="title" name="title" 
-                                value="{{ minute.title|default:'' }}" 
-                                placeholder="{% trans 'Enter a descriptive title' %}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="event_date">{% trans "Date" %} <span class="required">*</span></label>
-                            <input type="date" id="event_date" name="event_date" 
-                                value="{% if minute %}{{ minute.event_date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}" required>
-                        </div>
-                    </div>
-                    
-                    <!-- Participants -->
-                    <div class="form-group">
-                        <label for="participants">{% trans "Participants" %}</label>
-                        <input type="text" id="participants" name="participants" 
-                            value="{{ minute.participants|default:'' }}"
-                            placeholder="{% trans 'John Doe, Jane Smith, ...' %}">
-                        <p class="form-help">{% trans "Separate names with commas" %}</p>
-                    </div>
-                    
-                    <!-- Description -->
-                    <div class="form-group">
-                        <label for="description">{% trans "Description" %} <span class="required">*</span></label>
-                        <textarea id="description" name="description" 
-                            placeholder="{% trans 'Describe the key points, decisions, and action items...' %}" required>{{ minute.description|default:'' }}</textarea>
-                    </div>
-                    
-                    <!-- File Attachment -->
-                    <div class="form-group">
-                        <label>{% trans "Attachment" %}</label>
-                        <div class="file-upload-area" onclick="document.getElementById('attachment').click()">
-                            <i class="bi bi-cloud-arrow-up"></i>
-                            <p><strong>{% trans "Click to upload" %}</strong> {% trans "or drag and drop" %}</p>
-                            <p style="font-size: 0.8rem; margin-top: 0.5rem;">PDF, DOC, DOCX, XLS, XLSX, PNG, JPG</p>
-                            <input type="file" id="attachment" name="attachment" 
-                                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
-                        </div>
-                        {% if minute.attachment %}
-                        <div class="current-file">
-                            <i class="bi bi-file-earmark"></i>
-                            <span>{% trans "Current file:" %}</span>
-                            <a href="{{ minute.attachment.url }}" target="_blank">
-                                {{ minute.attachment.name|cut:"minute_attachments/" }}
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{% trans "Save" %}
+                            </button>
+                            <a href="{% url 'project_minutes_list' project.id %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
                             </a>
                         </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Visibility -->
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="visible_to_client" name="visible_to_client"
-                                {% if minute.visible_to_client %}checked{% endif %}>
-                            <label for="visible_to_client">
-                                <i class="bi bi-eye"></i>
-                                {% trans "Visible to client" %}
-                            </label>
-                        </div>
-                    </div>
+                    </form>
                 </div>
-                
-                <!-- Actions -->
-                <div class="form-actions">
-                    <a href="{% url 'project_minutes' project.id %}" class="btn-cancel">
-                        <i class="bi bi-x-lg"></i>
-                        {% trans "Cancel" %}
-                    </a>
-                    <button type="submit" class="btn-submit">
-                        <i class="bi bi-check-lg"></i>
-                        {% if minute %}
-                            {% trans "Save Changes" %}
-                        {% else %}
-                            {% trans "Create Minute" %}
-                        {% endif %}
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
-
-<script>
-    // File upload preview
-    document.getElementById('attachment').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const uploadArea = document.querySelector('.file-upload-area');
-            uploadArea.innerHTML = `
-                <i class="bi bi-file-earmark-check" style="color: #10b981;"></i>
-                <p><strong>${file.name}</strong></p>
-                <p style="font-size: 0.8rem; margin-top: 0.5rem;">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-            `;
-        }
-    });
-</script>
 {% endblock %}

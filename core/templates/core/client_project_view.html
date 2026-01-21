@@ -258,8 +258,8 @@
                                             {% endif %}
                                         </small>
                                     </div>
-                                    <span class="status-badge {% if task.status == 'En Progreso' %}status-in-progress{% else %}status-pending{% endif %}">
-                                        {{ task.status }}
+                                    <span class="status-badge {% if task.status == 'In Progress' or task.status == 'En Progreso' %}status-in-progress{% else %}status-pending{% endif %}">
+                                        {{ task.get_status_display|default:task.status }}
                                     </span>
                                 </div>
                             </div>

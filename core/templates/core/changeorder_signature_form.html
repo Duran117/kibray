@@ -236,7 +236,7 @@
                             <div class="amount">{{ changeorder.total_amount|currency }}</div>
                         </div>
                         
-                    {% elif changeorder.pricing_type == 'T_AND_M' %}
+                    {% elif changeorder.pricing_type == 'TM' %}
                         <div class="pricing-highlight time-materials">
                             <h3><i class="fas fa-clock me-2"></i>Pricing Type</h3>
                             <div class="pricing-type">
@@ -318,7 +318,7 @@
                             <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="agree-checkbox" required>
                                 <label class="form-check-label" for="agree-checkbox">
-                                    {% if changeorder.pricing_type == 'T_AND_M' %}
+                                    {% if changeorder.pricing_type == 'TM' %}
                                         I understand this is a TIME & MATERIALS change order and agree to the billing rates shown above.
                                     {% else %}
                                         I have reviewed and agree to this change order.
