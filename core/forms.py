@@ -887,22 +887,22 @@ class ClockInForm(forms.Form):
             project_id = getattr(self.initial.get("project"), "id", self.initial.get("project"))
 
         if project_id:
-            # Change Orders activos del proyecto
+            # Change Orders activos del proyecto - incluir draft para permitir tracking temprano
             self.fields["change_order"].queryset = ChangeOrder.objects.filter(
-                project_id=project_id, status__in=["pending", "approved", "sent"]
+                project_id=project_id, status__in=["draft", "pending", "approved", "sent"]
             ).order_by("-date_created")
-            self.fields["change_order"].empty_label = "-- Ninguno (trabajo base) --"
+            self.fields["change_order"].empty_label = "-- None (base work) --"
             
             # Budget Lines del proyecto (para trabajo del contrato base)
             self.fields["budget_line"].queryset = BudgetLine.objects.filter(
                 project_id=project_id
             ).select_related("cost_code").order_by("cost_code__code")
-            self.fields["budget_line"].empty_label = "-- Selecciona fase --"
+            self.fields["budget_line"].empty_label = "-- Select phase --"
         else:
             self.fields["change_order"].queryset = ChangeOrder.objects.none()
-            self.fields["change_order"].empty_label = "-- Primero selecciona proyecto --"
+            self.fields["change_order"].empty_label = "-- First select a project --"
             self.fields["budget_line"].queryset = BudgetLine.objects.none()
-            self.fields["budget_line"].empty_label = "-- Primero selecciona proyecto --"
+            self.fields["budget_line"].empty_label = "-- First select a project --"
 
     def clean_project(self):
         """Validación explícita del campo project"""

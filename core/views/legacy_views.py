@@ -411,7 +411,7 @@ def dashboard_admin(request):
 
         if action == "clock_in":
             if open_entry:
-                messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
+                messages.warning(request, _("You already have an open entry. Clock out first."))
                 return redirect("dashboard_admin")
             form = ClockInForm(request.POST)
             if form.is_valid():
@@ -428,38 +428,54 @@ def dashboard_admin(request):
                 )
                 messages.success(
                     request,
-                    _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime("%H:%M")},
+                    _("✓ Clocked in at %(time)s.") % {"time": now.strftime("%H:%M")},
                 )
                 return redirect("dashboard_admin")
 
         elif action == "clock_out":
             if not open_entry:
-                messages.warning(request, "No tienes una entrada abierta.")
+                messages.warning(request, _("You don't have an open entry."))
                 return redirect("dashboard_admin")
             open_entry.end_time = now.time()
             open_entry.save()
             messages.success(
                 request,
-                f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}",
+                _("✓ Clocked out at %(time)s. Hours: %(hours)s") % {"time": now.strftime("%H:%M"), "hours": open_entry.hours_worked},
             )
             return redirect("dashboard_admin")
 
         elif action == "switch_context" and open_entry:
-            # Cambiar contexto de trabajo sin cerrar la entrada
+            # CORRECCIÓN: Cerrar entrada actual y crear nueva para registrar tiempo correctamente
             switch_type = request.POST.get("switch_type")
+            current_time = now.time()
+            
+            # Guardar datos de la entrada actual
+            old_project = open_entry.project
+            old_co = open_entry.change_order
             
             if switch_type == "base":
-                # Volver a trabajo base (sin CO)
-                old_co = open_entry.change_order
-                open_entry.change_order = None
+                # Cerrar entrada actual y crear nueva sin CO
+                open_entry.end_time = current_time
                 open_entry.save()
+                
+                TimeEntry.objects.create(
+                    employee=employee,
+                    project=old_project,
+                    change_order=None,
+                    budget_line=open_entry.budget_line,
+                    date=today,
+                    start_time=current_time,
+                    end_time=None,
+                    notes=f"Switched from CO: {old_co.title if old_co else 'N/A'}",
+                    cost_code=open_entry.cost_code,
+                )
                 messages.success(
                     request,
-                    _("✓ Cambiado a trabajo base (sin Change Order). Anteriormente: %(co)s")
-                    % {"co": old_co.title if old_co else "N/A"},
+                    _("✓ Entry closed (%(hours)s hrs). Now on base work. Previously: %(co)s")
+                    % {"hours": open_entry.hours_worked, "co": old_co.title if old_co else "N/A"},
                 )
+                
             elif switch_type == "co":
-                # Cambiar a otro CO del mismo proyecto
                 target_id = request.POST.get("target_id") or request.POST.get("co_id")
                 if target_id:
                     try:
@@ -468,33 +484,55 @@ def dashboard_admin(request):
                             project=open_entry.project,
                             status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                         )
-                        old_co = open_entry.change_order
-                        open_entry.change_order = new_co
+                        open_entry.end_time = current_time
                         open_entry.save()
+                        
+                        TimeEntry.objects.create(
+                            employee=employee,
+                            project=old_project,
+                            change_order=new_co,
+                            budget_line=None,
+                            date=today,
+                            start_time=current_time,
+                            end_time=None,
+                            notes=f"Switched from: {old_co.title if old_co else 'Base work'}",
+                            cost_code=open_entry.cost_code,
+                        )
                         messages.success(
                             request,
-                            _("✓ Cambiado a %(co)s (%(type)s)")
-                            % {"co": new_co.title, "type": new_co.get_pricing_type_display()},
+                            _("✓ Entry closed (%(hours)s hrs). Now on %(co)s (%(type)s)")
+                            % {"hours": open_entry.hours_worked, "co": new_co.title, "type": new_co.get_pricing_type_display()},
                         )
                     except ChangeOrder.DoesNotExist:
-                        messages.error(request, _("Change Order no encontrado o no disponible."))
+                        messages.error(request, _("Change Order not found or not available."))
+                        
             elif switch_type == "project":
-                # Cambiar a otro proyecto (Admin puede cambiar a cualquier proyecto)
                 target_id = request.POST.get("target_id") or request.POST.get("project_id")
                 if target_id:
                     try:
                         new_project = Project.objects.get(id=target_id)
-                        old_project = open_entry.project
-                        open_entry.project = new_project
-                        open_entry.change_order = None
+                        
+                        open_entry.end_time = current_time
                         open_entry.save()
+                        
+                        TimeEntry.objects.create(
+                            employee=employee,
+                            project=new_project,
+                            change_order=None,
+                            budget_line=None,
+                            date=today,
+                            start_time=current_time,
+                            end_time=None,
+                            notes=f"Switched from project: {old_project.name}",
+                            cost_code=None,
+                        )
                         messages.success(
                             request,
-                            _("✓ Cambiado a proyecto %(proj)s. Anteriormente: %(old)s")
-                            % {"proj": new_project.name, "old": old_project.name},
+                            _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
+                            % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
                         )
                     except Project.DoesNotExist:
-                        messages.error(request, _("Proyecto no encontrado."))
+                        messages.error(request, _("Project not found."))
             return redirect("dashboard_admin")
 
     # Form para clock in
@@ -6137,7 +6175,7 @@ def dashboard_employee(request):
 
         if action == "clock_in":
             if open_entry:
-                messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
+                messages.warning(request, _("You already have an open entry. Clock out first."))
                 return redirect("dashboard_employee")
             form = ClockInForm(request.POST)
             if form.is_valid():
@@ -6154,8 +6192,7 @@ def dashboard_employee(request):
                 if not is_assigned_today:
                     messages.error(
                         request,
-                        f"❌ No estás asignado a '{project.name}' hoy. "
-                        f"Contacta a tu PM si hay un error.",
+                        _("❌ You are not assigned to '%(project)s' today. Contact your PM if this is an error.") % {"project": project.name},
                     )
                     return redirect("dashboard_employee")
 
@@ -6172,38 +6209,56 @@ def dashboard_employee(request):
                 )
                 messages.success(
                     request,
-                    _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime("%H:%M")},
+                    _("✓ Clocked in at %(time)s.") % {"time": now.strftime("%H:%M")},
                 )
                 return redirect("dashboard_employee")
 
         elif action == "clock_out":
             if not open_entry:
-                messages.warning(request, "No tienes una entrada abierta.")
+                messages.warning(request, _("You don't have an open entry."))
                 return redirect("dashboard_employee")
             open_entry.end_time = now.time()
             open_entry.save()  # recalcula hours_worked con tu lógica (almuerzo 12:30)
             messages.success(
                 request,
-                f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}",
+                _("✓ Clocked out at %(time)s. Hours: %(hours)s") % {"time": now.strftime("%H:%M"), "hours": open_entry.hours_worked},
             )
             return redirect("dashboard_employee")
 
         elif action == "switch_context" and open_entry:
-            # Cambiar contexto de trabajo sin cerrar la entrada
+            # CORRECCIÓN: Cerrar entrada actual y crear nueva para registrar tiempo correctamente
             switch_type = request.POST.get("switch_type")
+            current_time = now.time()
+            
+            # Guardar datos de la entrada actual antes de cerrarla
+            old_project = open_entry.project
+            old_co = open_entry.change_order
             
             if switch_type == "base":
-                # Volver a trabajo base (sin CO)
-                old_co = open_entry.change_order
-                open_entry.change_order = None
+                # Cerrar entrada actual y crear nueva sin CO
+                open_entry.end_time = current_time
                 open_entry.save()
+                
+                # Crear nueva entrada sin CO
+                TimeEntry.objects.create(
+                    employee=employee,
+                    project=old_project,
+                    change_order=None,
+                    budget_line=open_entry.budget_line,
+                    date=today,
+                    start_time=current_time,
+                    end_time=None,
+                    notes=f"Switched from CO: {old_co.title if old_co else 'N/A'}",
+                    cost_code=open_entry.cost_code,
+                )
                 messages.success(
                     request,
-                    _("✓ Cambiado a trabajo base (sin Change Order). Anteriormente: %(co)s")
-                    % {"co": old_co.title if old_co else "N/A"},
+                    _("✓ Entry closed (%(hours)s hrs). Now on base work (no Change Order). Previously: %(co)s")
+                    % {"hours": open_entry.hours_worked, "co": old_co.title if old_co else "N/A"},
                 )
+                
             elif switch_type == "co":
-                # Cambiar a otro CO del mismo proyecto
+                # Cerrar entrada actual y crear nueva con diferente CO
                 target_id = request.POST.get("target_id") or request.POST.get("co_id")
                 if target_id:
                     try:
@@ -6212,18 +6267,32 @@ def dashboard_employee(request):
                             project=open_entry.project,
                             status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                         )
-                        old_co = open_entry.change_order
-                        open_entry.change_order = new_co
+                        # Cerrar entrada actual
+                        open_entry.end_time = current_time
                         open_entry.save()
+                        
+                        # Crear nueva entrada con el nuevo CO
+                        TimeEntry.objects.create(
+                            employee=employee,
+                            project=old_project,
+                            change_order=new_co,
+                            budget_line=None,  # CO work doesn't use budget lines
+                            date=today,
+                            start_time=current_time,
+                            end_time=None,
+                            notes=f"Switched from: {old_co.title if old_co else 'Base work'}",
+                            cost_code=open_entry.cost_code,
+                        )
                         messages.success(
                             request,
-                            _("✓ Cambiado a %(co)s (%(type)s)")
-                            % {"co": new_co.title, "type": new_co.get_pricing_type_display()},
+                            _("✓ Entry closed (%(hours)s hrs). Now on %(co)s (%(type)s)")
+                            % {"hours": open_entry.hours_worked, "co": new_co.title, "type": new_co.get_pricing_type_display()},
                         )
                     except ChangeOrder.DoesNotExist:
-                        messages.error(request, _("Change Order no encontrado o no disponible."))
+                        messages.error(request, _("Change Order not found or not available."))
+                        
             elif switch_type == "project":
-                # Para empleados: solo pueden cambiar a proyectos asignados hoy
+                # Cerrar entrada actual y crear nueva en otro proyecto
                 target_id = request.POST.get("target_id") or request.POST.get("project_id")
                 if target_id:
                     try:
@@ -6234,20 +6303,33 @@ def dashboard_employee(request):
                             date=today,
                         ).exists()
                         if not is_assigned:
-                            messages.error(request, _("No estás asignado a ese proyecto hoy."))
+                            messages.error(request, _("You're not assigned to that project today."))
                         else:
                             new_project = Project.objects.get(id=target_id)
-                            old_project = open_entry.project
-                            open_entry.project = new_project
-                            open_entry.change_order = None
+                            
+                            # Cerrar entrada actual
+                            open_entry.end_time = current_time
                             open_entry.save()
+                            
+                            # Crear nueva entrada en el nuevo proyecto
+                            TimeEntry.objects.create(
+                                employee=employee,
+                                project=new_project,
+                                change_order=None,
+                                budget_line=None,
+                                date=today,
+                                start_time=current_time,
+                                end_time=None,
+                                notes=f"Switched from project: {old_project.name}",
+                                cost_code=None,
+                            )
                             messages.success(
                                 request,
-                                _("✓ Cambiado a proyecto %(proj)s. Anteriormente: %(old)s")
-                                % {"proj": new_project.name, "old": old_project.name},
+                                _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
+                                % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
                             )
                     except Project.DoesNotExist:
-                        messages.error(request, _("Proyecto no encontrado."))
+                        messages.error(request, _("Project not found."))
             return redirect("dashboard_employee")
 
     # ✅ Obtener proyectos donde está asignado HOY (SOURCE OF TRUTH: ResourceAssignment)
@@ -6437,7 +6519,7 @@ def dashboard_pm(request):
 
         if action == "clock_in":
             if open_entry:
-                messages.warning(request, "Ya tienes una entrada abierta. Marca salida primero.")
+                messages.warning(request, _("You already have an open entry. Clock out first."))
                 return redirect("dashboard_pm")
             form = ClockInForm(request.POST)
             if form.is_valid():
@@ -6454,38 +6536,52 @@ def dashboard_pm(request):
                 )
                 messages.success(
                     request,
-                    _("✓ Entrada registrada a las %(time)s.") % {"time": now.strftime("%H:%M")},
+                    _("✓ Clocked in at %(time)s.") % {"time": now.strftime("%H:%M")},
                 )
                 return redirect("dashboard_pm")
 
         elif action == "clock_out":
             if not open_entry:
-                messages.warning(request, "No tienes una entrada abierta.")
+                messages.warning(request, _("You don't have an open entry."))
                 return redirect("dashboard_pm")
             open_entry.end_time = now.time()
             open_entry.save()
             messages.success(
                 request,
-                f"✓ Salida registrada a las {now.strftime('%H:%M')}. Horas: {open_entry.hours_worked}",
+                _("✓ Clocked out at %(time)s. Hours: %(hours)s") % {"time": now.strftime("%H:%M"), "hours": open_entry.hours_worked},
             )
             return redirect("dashboard_pm")
 
         elif action == "switch_context" and open_entry:
-            # Cambiar contexto de trabajo sin cerrar la entrada
+            # CORRECCIÓN: Cerrar entrada actual y crear nueva para registrar tiempo correctamente
             switch_type = request.POST.get("switch_type")
+            current_time = now.time()
+            
+            old_project = open_entry.project
+            old_co = open_entry.change_order
             
             if switch_type == "base":
-                # Volver a trabajo base (sin CO)
-                old_co = open_entry.change_order
-                open_entry.change_order = None
+                open_entry.end_time = current_time
                 open_entry.save()
+                
+                TimeEntry.objects.create(
+                    employee=employee,
+                    project=old_project,
+                    change_order=None,
+                    budget_line=open_entry.budget_line,
+                    date=today,
+                    start_time=current_time,
+                    end_time=None,
+                    notes=f"Switched from CO: {old_co.title if old_co else 'N/A'}",
+                    cost_code=open_entry.cost_code,
+                )
                 messages.success(
                     request,
-                    _("✓ Cambiado a trabajo base (sin Change Order). Anteriormente: %(co)s")
-                    % {"co": old_co.title if old_co else "N/A"},
+                    _("✓ Entry closed (%(hours)s hrs). Now on base work. Previously: %(co)s")
+                    % {"hours": open_entry.hours_worked, "co": old_co.title if old_co else "N/A"},
                 )
+                
             elif switch_type == "co":
-                # Cambiar a otro CO del mismo proyecto
                 target_id = request.POST.get("target_id") or request.POST.get("co_id")
                 if target_id:
                     try:
@@ -6494,33 +6590,55 @@ def dashboard_pm(request):
                             project=open_entry.project,
                             status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                         )
-                        old_co = open_entry.change_order
-                        open_entry.change_order = new_co
+                        open_entry.end_time = current_time
                         open_entry.save()
+                        
+                        TimeEntry.objects.create(
+                            employee=employee,
+                            project=old_project,
+                            change_order=new_co,
+                            budget_line=None,
+                            date=today,
+                            start_time=current_time,
+                            end_time=None,
+                            notes=f"Switched from: {old_co.title if old_co else 'Base work'}",
+                            cost_code=open_entry.cost_code,
+                        )
                         messages.success(
                             request,
-                            _("✓ Cambiado a %(co)s (%(type)s)")
-                            % {"co": new_co.title, "type": new_co.get_pricing_type_display()},
+                            _("✓ Entry closed (%(hours)s hrs). Now on %(co)s (%(type)s)")
+                            % {"hours": open_entry.hours_worked, "co": new_co.title, "type": new_co.get_pricing_type_display()},
                         )
                     except ChangeOrder.DoesNotExist:
-                        messages.error(request, _("Change Order no encontrado o no disponible."))
+                        messages.error(request, _("Change Order not found or not available."))
+                        
             elif switch_type == "project":
-                # Cambiar a otro proyecto
                 target_id = request.POST.get("target_id") or request.POST.get("project_id")
                 if target_id:
                     try:
                         new_project = Project.objects.get(id=target_id)
-                        old_project = open_entry.project
-                        open_entry.project = new_project
-                        open_entry.change_order = None
+                        
+                        open_entry.end_time = current_time
                         open_entry.save()
+                        
+                        TimeEntry.objects.create(
+                            employee=employee,
+                            project=new_project,
+                            change_order=None,
+                            budget_line=None,
+                            date=today,
+                            start_time=current_time,
+                            end_time=None,
+                            notes=f"Switched from project: {old_project.name}",
+                            cost_code=None,
+                        )
                         messages.success(
                             request,
-                            _("✓ Cambiado a proyecto %(proj)s. Anteriormente: %(old)s")
-                            % {"proj": new_project.name, "old": old_project.name},
+                            _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
+                            % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
                         )
                     except Project.DoesNotExist:
-                        messages.error(request, _("Proyecto no encontrado."))
+                        messages.error(request, _("Project not found."))
             return redirect("dashboard_pm")
 
     # Form para clock in

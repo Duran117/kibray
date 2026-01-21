@@ -241,6 +241,45 @@
         }
         updateTimePM();
         setInterval(updateTimePM, 1000);
+        
+        // Load Change Orders dynamically when project is selected
+        document.addEventListener('DOMContentLoaded', function() {
+            const projectSelect = document.getElementById('id_project');
+            const coSelect = document.getElementById('id_change_order');
+            
+            if (!projectSelect || !coSelect) return;
+            
+            function updateChangeOrders() {
+                const selectedProjectId = projectSelect.value;
+                
+                // Clear Change Orders
+                coSelect.innerHTML = '<option value="">-- {% trans "None (base work)" %} --</option>';
+                
+                if (!selectedProjectId) return;
+                
+                // Fetch active COs for this project via AJAX
+                fetch(`{% url 'changeorders_ajax' %}?project_id=${selectedProjectId}&status=active`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.change_orders && data.change_orders.length > 0) {
+                            data.change_orders.forEach(co => {
+                                const option = document.createElement('option');
+                                option.value = co.id;
+                                option.textContent = `${co.title} (${co.pricing_label})`;
+                                coSelect.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(err => console.error('Error loading change orders:', err));
+            }
+            
+            projectSelect.addEventListener('change', updateChangeOrders);
+            
+            // Initial load if project is already selected
+            if (projectSelect.value) {
+                updateChangeOrders();
+            }
+        });
         </script>
         {% endif %}
     </div>
