@@ -7835,7 +7835,16 @@ def site_photo_list(request, project_id):
 
     project = get_object_or_404(Project, pk=project_id)
     photos = SitePhoto.objects.filter(project=project).order_by("-created_at")
-    return render(request, "core/site_photo_list.html", {"project": project, "photos": photos})
+    
+    # Determine if user is a client
+    profile = getattr(request.user, "profile", None)
+    is_client_user = profile and profile.role == "client"
+    
+    return render(request, "core/site_photo_list.html", {
+        "project": project, 
+        "photos": photos,
+        "is_client_user": is_client_user,
+    })
 
 
 @login_required

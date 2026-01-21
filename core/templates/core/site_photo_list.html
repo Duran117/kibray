@@ -1,86 +1,220 @@
-{% extends "core/base_modern.html" %}```html
-
-{% load i18n %}// filepath: c:\Users\jesus\Kibray\core\templates\core\site_photo_list.html
-
 {% extends "core/base_modern.html" %}
+{% load i18n static %}
 
-{% block content %}{% block content %}
+{% block title %}{% trans "Project Photos" %} - {{ project.name }}{% endblock %}
 
-<div class="container py-3"><div class="container py-3">
+{% block extra_css %}
+<style>
+    .photo-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 25px;
+        color: white;
+        margin-bottom: 25px;
+    }
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    .photo-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .photo-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .photo-card .photo-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+    .photo-card .photo-info {
+        padding: 15px;
+    }
+    .photo-card .photo-date {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+    }
+    .photo-card .photo-description {
+        margin-top: 8px;
+        font-size: 0.9rem;
+        color: #2c3e50;
+    }
+    .photo-card .photo-location {
+        margin-top: 5px;
+        font-size: 0.85rem;
+        color: #95a5a6;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: #bdc3c7;
+        margin-bottom: 20px;
+    }
+    .btn-add {
+        background: white;
+        color: #667eea;
+        border: 2px solid white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-add:hover {
+        background: transparent;
+        color: white;
+    }
+    .btn-back {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+    }
+    .btn-back:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+</style>
+{% endblock %}
 
-  <div class="d-flex justify-content-between align-items-center mb-2">  <div class="d-flex justify-content-between align-items-center mb-2">
-
-    <h4>{% trans "Project Photos" %} · {{ project.name }}</h4>    <h4>Fotos del proyecto · {{ project.name }}</h4>
-
-    {% if not is_client_user %}    <a class="btn btn-primary" href="{% url 'site_photo_create' project.id %}">Nueva foto</a>
-
-    <a class="btn btn-primary" href="{% url 'site_photo_create' project.id %}">{% trans "New Photo" %}</a>  </div>
-
-    {% endif %}  {% if photos %}
-
-  </div>    <div class="row g-3">
-
-        {% for p in photos %}
-
-  {% if photos %}        <div class="col-md-4">
-
-    <div class="row g-3">          <div class="card h-100">
-
-      {% for p in photos %}            <img src="{{ p.image.url }}" class="card-img-top" alt="foto pared">
-
-        <div class="col-md-4">            <div class="card-body">
-
-          <div class="card h-100">              <div class="small text-muted">{{ p.room }} · {{ p.wall_ref }}</div>
-
-            <a href="{{ p.image.url }}" target="_blank">              <div>{{ p.approved_color|default:p.color_text }}</div>
-
-              <img src="{{ p.image.url }}" class="card-img-top" alt="{% trans 'Site photo' %}" style="height: 200px; object-fit: cover;">              <div class="small">{{ p.brand }} {{ p.finish }} {{ p.gloss }}</div>
-
-            </a>              <div class="small">Capas: {{ p.coats }} · Especial: {{ p.special_finish|yesno:"Sí,No" }}</div>
-
-            <div class="card-body">              <p class="small mb-0">{{ p.notes|default:"" }}</p>
-
-              <div class="small text-muted">{{ p.room }} · {{ p.wall_ref }}</div>            </div>
-
-              <div>{{ p.approved_color|default:p.color_text }}</div>          </div>
-
-              <div class="small">{{ p.brand }} {{ p.finish }} {{ p.gloss }}</div>        </div>
-
-              <div class="small">{% trans "Coats" %}: {{ p.coats }} · {% trans "Special" %}: {{ p.special_finish|yesno:"Yes,No" }}</div>      {% endfor %}
-
-              {% if p.notes %}    </div>
-
-              <p class="small mb-0 mt-2">{{ p.notes }}</p>  {% else %}
-
-              {% endif %}    <p class="text-muted">Sin fotos aún.</p>
-
-            </div>  {% endif %}
-
-            {% if not is_client_user %}</div>
-
-            <div class="card-footer bg-transparent">{% endblock %}
-
-              <div class="d-flex gap-2">```
-                <a href="{% url 'site_photo_update' p.id %}" class="btn btn-sm btn-outline-primary">{% trans "Edit" %}</a>
-                <a href="{% url 'site_photo_delete' p.id %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</a>
-              </div>
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="photo-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{% url 'client_project_view' project.id %}" class="btn btn-back mb-2">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Project" %}
+                </a>
+                <h2 class="mb-1">{% trans "Project Photos" %}</h2>
+                <p class="mb-0 opacity-75">{{ project.name }}</p>
             </div>
+            {% if not is_client_user and perms.core.add_sitephoto %}
+                <a href="{% url 'site_photo_create' project.id %}" class="btn btn-add">
+                    <i class="fas fa-plus me-2"></i>{% trans "Add Photo" %}
+                </a>
             {% endif %}
-          </div>
         </div>
-      {% endfor %}
     </div>
-  {% else %}
-    <div class="text-center py-5">
-      <i class="bi bi-images display-1 text-muted"></i>
-      <p class="text-muted mt-3">{% trans "No photos yet." %}</p>
+    
+    <!-- Photo Count -->
+    <div class="mb-4">
+        <span class="text-muted">
+            <i class="fas fa-images me-2"></i>
+            {{ photos.count }} {% trans "photos" %}
+        </span>
     </div>
-  {% endif %}
-  
-  <div class="mt-4">
-    <a href="{% url 'client_project_view' project.id %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
-    </a>
-  </div>
+    
+    {% if photos %}
+        <!-- Photo Grid -->
+        <div class="photo-grid">
+            {% for photo in photos %}
+                <div class="photo-card">
+                    <img src="{{ photo.image.url }}" 
+                         alt="{{ photo.description|default:'Photo' }}" 
+                         class="photo-image"
+                         data-bs-toggle="modal" 
+                         data-bs-target="#photoModal"
+                         data-photo-url="{{ photo.image.url }}"
+                         data-photo-desc="{{ photo.description|default:'' }}"
+                         data-photo-date="{{ photo.created_at|date:'M d, Y' }}"
+                         data-photo-location="{{ photo.location|default:'' }}">
+                    <div class="photo-info">
+                        <div class="photo-date">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            {{ photo.created_at|date:"M d, Y" }}
+                        </div>
+                        {% if photo.description %}
+                            <div class="photo-description">{{ photo.description|truncatewords:10 }}</div>
+                        {% endif %}
+                        {% if photo.location %}
+                            <div class="photo-location">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ photo.location }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <i class="fas fa-camera"></i>
+            <h4>{% trans "No Photos Yet" %}</h4>
+            <p class="text-muted">{% trans "Photos of this project will appear here." %}</p>
+            {% if not is_client_user and perms.core.add_sitephoto %}
+                <a href="{% url 'site_photo_create' project.id %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-plus me-2"></i>{% trans "Add First Photo" %}
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
+
+<!-- Photo Modal -->
+<div class="modal fade" id="photoModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <div>
+                    <h5 class="modal-title" id="modalPhotoTitle"></h5>
+                    <small class="text-muted" id="modalPhotoDate"></small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img src="" id="modalPhoto" class="img-fluid" style="max-height: 70vh;" alt="Photo">
+            </div>
+            <div class="modal-footer border-0">
+                <span id="modalPhotoLocation" class="text-muted me-auto"></span>
+                <a href="" id="modalPhotoDownload" class="btn btn-outline-primary" download>
+                    <i class="fas fa-download me-2"></i>{% trans "Download" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const photoModal = document.getElementById('photoModal');
+    if (photoModal) {
+        photoModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const photoUrl = button.getAttribute('data-photo-url');
+            const photoDesc = button.getAttribute('data-photo-desc');
+            const photoDate = button.getAttribute('data-photo-date');
+            const photoLocation = button.getAttribute('data-photo-location');
+            
+            document.getElementById('modalPhoto').src = photoUrl;
+            document.getElementById('modalPhotoTitle').textContent = photoDesc || 'Photo';
+            document.getElementById('modalPhotoDate').textContent = photoDate || '';
+            document.getElementById('modalPhotoDownload').href = photoUrl;
+            
+            const locationEl = document.getElementById('modalPhotoLocation');
+            if (photoLocation) {
+                locationEl.innerHTML = '<i class="fas fa-map-marker-alt me-1"></i>' + photoLocation;
+                locationEl.style.display = 'block';
+            } else {
+                locationEl.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
