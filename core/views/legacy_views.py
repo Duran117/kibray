@@ -1808,6 +1808,7 @@ def payroll_payment_history(request, employee_id=None):
 
 
 # --- CLIENTE: Vista de proyecto y formularios ---
+@login_required
 def client_project_view(request, project_id):
     """
     Dashboard completo de UN proyecto individual para el cliente.
@@ -1826,14 +1827,14 @@ def client_project_view(request, project_id):
     if profile and profile.role == "client":
         # Permitir si está asignado por acceso granular o si coincide el nombre de cliente (legacy)
         if not (has_explicit_access or project.client == request.user.username):
-            messages.error(request, "No tienes acceso a este proyecto.")
+            messages.error(request, "You don't have access to this project.")
             return redirect("dashboard_client")
     else:
         # Permitir staff; si es PM externo (no staff), permitir solo si tiene acceso granular
         if request.user.is_staff or has_explicit_access:
             pass
         else:
-            messages.error(request, "Acceso denegado.")
+            messages.error(request, "Access denied.")
             return redirect("dashboard")
 
     # === SOLICITUDES Y COMUNICACIÓN ===
