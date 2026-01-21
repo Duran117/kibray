@@ -483,16 +483,16 @@
     <div class="d-flex justify-content-between align-items-center">
       <div>
         <a href="{% url 'project_overview' project.id %}" class="btn-back">
-          <i class="bi bi-arrow-left"></i> Volver al Proyecto
+          <i class="bi bi-arrow-left"></i> Back to Project
         </a>
         <h2 class="mt-2">
-          <i class="bi bi-clock-history me-2"></i>Timeline de Decisiones
+          <i class="bi bi-clock-history me-2"></i>Decision Timeline
         </h2>
         <p class="project-name mb-0">{{ project.name }}</p>
       </div>
       {% if user.is_staff or user.is_superuser %}
       <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
-        <i class="bi bi-plus-lg"></i> Nueva Minuta
+        <i class="bi bi-plus-lg"></i> New Minute
       </a>
       {% endif %}
     </div>
@@ -500,7 +500,7 @@
 
   <!-- Filters -->
   <div class="timeline-filters">
-    <span class="text-muted small me-2">Filtrar:</span>
+    <span class="text-muted small me-2">Filter:</span>
     <a href="{% url 'project_minutes_list' project.id %}" 
        class="filter-chip {% if not request.GET.type %}active{% endif %}">
       Todos
@@ -527,7 +527,7 @@
         <a href="{% url 'project_minute_detail' minute.id %}" class="text-decoration-none">
           <div class="node-card">
             {% if not minute.visible_to_client %}
-            <span class="private-badge"><i class="bi bi-eye-slash"></i> Privado</span>
+            <span class="private-badge"><i class="bi bi-eye-slash"></i> Private</span>
             {% endif %}
             
             <div class="node-card-header">
@@ -560,7 +560,7 @@
         <form action="{% url 'minute_comment_add' minute.id %}" method="post" class="quick-comment-form" onclick="event.stopPropagation();">
           {% csrf_token %}
           <input type="hidden" name="next" value="timeline">
-          <textarea name="content" class="quick-comment-input" rows="2" placeholder="Agregar comentario rápido..."></textarea>
+          <textarea name="content" class="quick-comment-input" rows="2" placeholder="Add quick comment..."></textarea>
           <button type="submit" class="quick-comment-submit">
             <i class="bi bi-send"></i> Comentar
           </button>
@@ -572,10 +572,10 @@
 
   <!-- Navigation -->
   <div class="timeline-nav">
-    <button class="timeline-nav-btn" onclick="scrollTimeline(-400)" title="Anterior">
+    <button class="timeline-nav-btn" onclick="scrollTimeline(-400)" title="Previous">
       <i class="bi bi-chevron-left"></i>
     </button>
-    <button class="timeline-nav-btn" onclick="scrollTimeline(400)" title="Siguiente">
+    <button class="timeline-nav-btn" onclick="scrollTimeline(400)" title="Next">
       <i class="bi bi-chevron-right"></i>
     </button>
   </div>
@@ -586,11 +586,11 @@
     <div class="timeline-empty-icon">
       <i class="bi bi-journal-text"></i>
     </div>
-    <h3>No hay minutas registradas</h3>
-    <p>Las minutas te ayudan a mantener un registro histórico de decisiones y comunicaciones del proyecto.</p>
+    <h3>No minutes recorded</h3>
+    <p>Minutes help you maintain a historical record of project decisions and communications.</p>
     {% if user.is_staff or user.is_superuser %}
     <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
-      <i class="bi bi-plus-lg"></i> Crear Primera Minuta
+      <i class="bi bi-plus-lg"></i> Create First Minute
     </a>
     {% endif %}
   </div>

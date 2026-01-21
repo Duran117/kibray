@@ -6615,15 +6615,15 @@ class ProjectMinute(models.Model):
     """
 
     EVENT_TYPE_CHOICES = [
-        ("decision", "Decisión"),
-        ("call", "Llamada"),
-        ("email", "Correo"),
-        ("meeting", "Reunión"),
-        ("approval", "Aprobación"),
-        ("change", "Cambio/Modificación"),
-        ("issue", "Problema"),
-        ("milestone", "Hito"),
-        ("note", "Nota"),
+        ("decision", "Decision"),
+        ("call", "Call"),
+        ("email", "Email"),
+        ("meeting", "Meeting"),
+        ("approval", "Approval"),
+        ("change", "Change/Modification"),
+        ("issue", "Issue"),
+        ("milestone", "Milestone"),
+        ("note", "Note"),
     ]
 
     if TYPE_CHECKING:
@@ -6631,8 +6631,8 @@ class ProjectMinute(models.Model):
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="minutes")
     event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES, default="note")
-    title = models.CharField(max_length=200, help_text="Resumen breve del evento")
-    description = models.TextField(blank=True, help_text="Detalles completos")
+    title = models.CharField(max_length=200, help_text="Brief event summary")
+    description = models.TextField(blank=True, help_text="Complete details")
 
     # Quién y cuándo
     created_by = models.ForeignKey(
