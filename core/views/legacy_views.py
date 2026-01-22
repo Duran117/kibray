@@ -7969,9 +7969,11 @@ def site_photo_list(request, project_id):
 @login_required
 def site_photo_create(request, project_id):
     from core.forms import SitePhotoForm
-    from core.models import Project
+    from core.models import Project, FloorPlan
 
     project = get_object_or_404(Project, pk=project_id)
+    floor_plans = FloorPlan.objects.filter(project=project, is_current_version=True).order_by("name")
+    
     if request.method == "POST":
         form = SitePhotoForm(request.POST, request.FILES, project=project)
         if form.is_valid():
@@ -7983,11 +7985,15 @@ def site_photo_create(request, project_id):
             except Exception:
                 obj.annotations = {}
             obj.save()
-            messages.success(request, "Foto y anotaciones guardadas.")
+            messages.success(request, _("Photo and annotations saved."))
             return redirect("site_photo_list", project_id=project.id)
     else:
         form = SitePhotoForm(project=project)
-    return render(request, "core/site_photo_form.html", {"project": project, "form": form})
+    return render(request, "core/site_photo_form.html", {
+        "project": project, 
+        "form": form,
+        "floor_plans": floor_plans,
+    })
 
 
 @login_required

@@ -1,51 +1,73 @@
 // filepath: c:\Users\jesus\Kibray\core\templates\core\site_photo_form.html
 {% extends "core/base_modern.html" %}
+{% load i18n %}
 {% block content %}
 <div class="container py-3">
-  <h4>Nueva foto · {{ project.name }}</h4>
+  <h4>{% trans "New Photo" %} · {{ project.name }}</h4>
   {% for m in messages %}<div class="alert alert-{{ m.tags }}">{{ m }}</div>{% endfor %}
   <form method="post" enctype="multipart/form-data" class="card card-body">
     {% csrf_token %}
     <div class="row g-3">
-      <div class="col-md-3"><label class="form-label">Cuarto/Habitación</label>{{ form.room }}</div>
-      <div class="col-md-3"><label class="form-label">Pared/Ubicación</label>{{ form.wall_ref }}</div>
-      <div class="col-md-6"><label class="form-label">Imagen</label>{{ form.image }}</div>
+      <div class="col-md-3"><label class="form-label">{% trans "Room" %}</label>{{ form.room }}</div>
+      <div class="col-md-3"><label class="form-label">{% trans "Wall/Location" %}</label>{{ form.wall_ref }}</div>
+      <div class="col-md-6"><label class="form-label">{% trans "Image" %}</label>{{ form.image }}</div>
 
-      <div class="col-md-4"><label class="form-label">Color aprobado</label>{{ form.approved_color }}</div>
-      <div class="col-md-4"><label class="form-label">Color (texto)</label>{{ form.color_text }}</div>
-      <div class="col-md-4"><label class="form-label">Marca</label>{{ form.brand }}</div>
-
-      <div class="col-md-3"><label class="form-label">Acabado</label>{{ form.finish }}</div>
-      <div class="col-md-3"><label class="form-label">Brillo</label>{{ form.gloss }}</div>
-      <div class="col-md-3 form-check d-flex align-items-end">
-        <label class="form-check-label me-2" for="id_special_finish">Acabado especial</label>{{ form.special_finish }}
+      <!-- Location on Floor Plan -->
+      <div class="col-md-8">
+        <label class="form-label">
+          <i class="bi bi-geo-alt"></i> {% trans "Location on Floor Plan" %}
+        </label>
+        {{ form.plan_pin }}
+        <div class="form-text">{% trans "Select an existing pin to mark where this photo was taken." %}</div>
       </div>
-      <div class="col-md-3"><label class="form-label">Capas</label>{{ form.coats }}</div>
+      <div class="col-md-4 d-flex align-items-end">
+        {% if floor_plans %}
+        <a href="{% url 'floor_plan_detail' floor_plans.0.id %}?mode=edit&return_to=site_photo_create&project_id={{ project.id }}" 
+           class="btn btn-outline-primary w-100" target="_blank">
+          <i class="bi bi-pin-map"></i> {% trans "Create New Pin" %}
+        </a>
+        {% else %}
+        <a href="{% url 'floor_plan_upload' project.id %}" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-upload"></i> {% trans "Upload Floor Plan First" %}
+        </a>
+        {% endif %}
+      </div>
 
-      <div class="col-12"><label class="form-label">Notas</label>{{ form.notes }}</div>
+      <div class="col-md-4"><label class="form-label">{% trans "Approved Color" %}</label>{{ form.approved_color }}</div>
+      <div class="col-md-4"><label class="form-label">{% trans "Color (text)" %}</label>{{ form.color_text }}</div>
+      <div class="col-md-4"><label class="form-label">{% trans "Brand" %}</label>{{ form.brand }}</div>
+
+      <div class="col-md-3"><label class="form-label">{% trans "Finish" %}</label>{{ form.finish }}</div>
+      <div class="col-md-3"><label class="form-label">{% trans "Gloss" %}</label>{{ form.gloss }}</div>
+      <div class="col-md-3 form-check d-flex align-items-end">
+        <label class="form-check-label me-2" for="id_special_finish">{% trans "Special Finish" %}</label>{{ form.special_finish }}
+      </div>
+      <div class="col-md-3"><label class="form-label">{% trans "Coats" %}</label>{{ form.coats }}</div>
+
+      <div class="col-12"><label class="form-label">{% trans "Notes" %}</label>{{ form.notes }}</div>
 
       {{ form.annotations }} <!-- hidden -->
 
       <div class="col-12">
         <div class="border rounded p-2 mb-2">
           <div class="d-flex gap-2 mb-2">
-            <button type="button" id="tool-pen" class="btn btn-sm btn-outline-secondary">Pluma</button>
-            <button type="button" id="tool-text" class="btn btn-sm btn-outline-secondary">Texto</button>
-            <button type="button" id="tool-rect" class="btn btn-sm btn-outline-secondary">Rectángulo</button>
-            <button type="button" id="tool-undo" class="btn btn-sm btn-outline-secondary">Deshacer</button>
-            <button type="button" id="tool-clear" class="btn btn-sm btn-outline-danger">Limpiar</button>
+            <button type="button" id="tool-pen" class="btn btn-sm btn-outline-secondary">{% trans "Pen" %}</button>
+            <button type="button" id="tool-text" class="btn btn-sm btn-outline-secondary">{% trans "Text" %}</button>
+            <button type="button" id="tool-rect" class="btn btn-sm btn-outline-secondary">{% trans "Rectangle" %}</button>
+            <button type="button" id="tool-undo" class="btn btn-sm btn-outline-secondary">{% trans "Undo" %}</button>
+            <button type="button" id="tool-clear" class="btn btn-sm btn-outline-danger">{% trans "Clear" %}</button>
           </div>
           <div id="canvas-wrap" style="position:relative; max-width:100%; overflow:auto;">
             <img id="photo-preview" alt="preview" style="max-width:100%; display:none;">
             <canvas id="annot-canvas" style="position:absolute; left:0; top:0; display:none;"></canvas>
           </div>
-          <div class="form-text">Puedes dibujar indicaciones sobre la imagen (marcar detalles a cubrir, zonas a cuidar, etc.).</div>
+          <div class="form-text">{% trans "You can draw annotations on the image (mark details, areas to cover, etc.)." %}</div>
         </div>
       </div>
 
       <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary">Guardar</button>
-        <a class="btn btn-secondary" href="{% url 'site_photo_list' project.id %}">Cancelar</a>
+        <button class="btn btn-primary">{% trans "Save" %}</button>
+        <a class="btn btn-secondary" href="{% url 'site_photo_list' project.id %}">{% trans "Cancel" %}</a>
       </div>
     </div>
   </form>

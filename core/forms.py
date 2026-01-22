@@ -1034,6 +1034,7 @@ class SitePhotoForm(forms.ModelForm):
             "annotations",
             "location_lat",
             "location_lng",
+            "plan_pin",
         ]
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 3}),
@@ -1042,11 +1043,15 @@ class SitePhotoForm(forms.ModelForm):
             "caption": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Caption/title"}
             ),
+            "plan_pin": forms.Select(attrs={"class": "form-select"}),
         }
 
     def __init__(self, *args, project=None, **kwargs):
         super().__init__(*args, **kwargs)
-        choices = [("", "— Seleccionar —")]
+        self.project = project
+        
+        # Color choices
+        choices = [("", "— Select —")]
         try:
             Color = apps.get_model("core", "Color")
             qs = Color.objects.all()
@@ -1068,8 +1073,29 @@ class SitePhotoForm(forms.ModelForm):
         except Exception:
             pass
         self.fields["approved_color"] = forms.ChoiceField(
-            choices=choices, required=False, label="Color aprobado"
+            choices=choices, required=False, label="Approved Color"
         )
+        
+        # Plan Pin choices - filter by project's floor plans
+        if project:
+            try:
+                PlanPin = apps.get_model("core", "PlanPin")
+                self.fields["plan_pin"].queryset = PlanPin.objects.filter(
+                    plan__project=project,
+                    status="active"
+                ).select_related("plan").order_by("plan__name", "title")
+                self.fields["plan_pin"].label_from_instance = lambda obj: f"{obj.plan.name} → {obj.title or f'Pin ({obj.x:.2f}, {obj.y:.2f})'}"
+            except Exception:
+                pass
+        else:
+            try:
+                PlanPin = apps.get_model("core", "PlanPin")
+                self.fields["plan_pin"].queryset = PlanPin.objects.none()
+            except Exception:
+                pass
+        
+        self.fields["plan_pin"].required = False
+        self.fields["plan_pin"].empty_label = "— No location (or create new) —"
 
     def save(self, commit=True):
         inst: SitePhoto = super().save(commit=False)

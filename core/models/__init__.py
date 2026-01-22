@@ -4153,6 +4153,15 @@ class SitePhoto(models.Model):
         blank=True,
         help_text="Auto-generated thumbnail",
     )
+    # Link to floor plan pin for location reference
+    plan_pin = models.ForeignKey(
+        "PlanPin",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="site_photos",
+        help_text="Pin on floor plan showing photo location",
+    )
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
