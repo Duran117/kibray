@@ -865,6 +865,7 @@ def dashboard_client(request):
                 def __init__(self, item):
                     self.title = item.name
                     self.description = item.description
+                    self.status = item.status  # done, in_progress, blocked, planned
                     # Convertir date a datetime para el template
                     self.start_datetime = timezone.make_aware(
                         datetime.combine(item.start_date, datetime.min.time())
@@ -883,6 +884,29 @@ def dashboard_client(request):
 
         client_requests = ClientRequest.objects.filter(project=project).order_by("-created_at")[:5]
 
+        # Change Orders pendientes de firma del cliente
+        from core.models import ChangeOrder
+        pending_change_orders = ChangeOrder.objects.filter(
+            project=project,
+            status__in=['pending', 'sent', 'approved'],
+        ).filter(
+            Q(signature_image__isnull=True) | Q(signature_image='')
+        ).order_by('-date_created')[:5]
+        
+        # Change Orders firmados recientemente
+        signed_change_orders = ChangeOrder.objects.filter(
+            project=project,
+        ).exclude(
+            Q(signature_image__isnull=True) | Q(signature_image='')
+        ).order_by('-signed_at')[:3]
+        
+        # Color Samples pendientes de aprobación
+        from core.models import ColorSample
+        pending_color_samples = ColorSample.objects.filter(
+            project=project,
+            status__in=['proposed', 'review']
+        ).order_by('-created_at')[:5]
+
         project_data.append(
             {
                 "project": project,
@@ -895,6 +919,9 @@ def dashboard_client(request):
                 "recent_photos": recent_photos,
                 "next_schedule": next_schedule,
                 "client_requests": client_requests,
+                "pending_change_orders": pending_change_orders,
+                "pending_color_samples": pending_color_samples,
+                "signed_change_orders": signed_change_orders,
             }
         )
 
