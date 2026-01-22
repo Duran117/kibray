@@ -27,7 +27,7 @@
           <i class="bi bi-pin-map"></i> {% trans "Create New Pin" %}
         </a>
         {% else %}
-        <a href="{% url 'floor_plan_upload' project.id %}" class="btn btn-outline-secondary w-100">
+        <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-outline-secondary w-100">
           <i class="bi bi-upload"></i> {% trans "Upload Floor Plan First" %}
         </a>
         {% endif %}
