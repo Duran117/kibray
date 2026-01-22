@@ -159,7 +159,7 @@
                 <div class="stat-icon" style="background: #fce4ec; color: #e74c3c;">
                     <i class="fas fa-calendar-alt"></i>
                 </div>
-                <div class="stat-value">{{ upcoming_schedules.count }}</div>
+                <div class="stat-value">{{ upcoming_schedules|length }}</div>
                 <div class="stat-label">{% trans "Upcoming Events" %}</div>
             </div>
         </div>
@@ -328,7 +328,13 @@
                                 </div>
                                 <div>
                                     <div class="fw-bold">{{ schedule.title }}</div>
-                                    <small class="text-muted">{{ schedule.start_datetime|time:"g:i A" }}</small>
+                                    {% if schedule.status %}
+                                    <small class="text-muted">
+                                        {% if schedule.status == 'done' %}✓ {% trans "Completed" %}
+                                        {% elif schedule.status == 'in_progress' %}↻ {% trans "In Progress" %}
+                                        {% else %}○ {% trans "Upcoming" %}{% endif %}
+                                    </small>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}

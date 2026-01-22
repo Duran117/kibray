@@ -1617,10 +1617,29 @@ def client_project_view(request, project_id):
     # === MUESTRAS DE COLOR ===
     color_samples = project.color_samples.all().order_by("-created_at")[:8]
 
-    # === SCHEDULE PRÓXIMO ===
-    upcoming_schedules = Schedule.objects.filter(
-        project=project, start_datetime__gte=timezone.now()
-    ).order_by("start_datetime")[:5]
+    # === SCHEDULE PRÓXIMO (V2 Gantt) ===
+    from core.models import ScheduleItemV2
+    today = timezone.localdate()
+    
+    upcoming_schedules = []
+    # Buscar próximas tareas del Gantt V2
+    upcoming_items = ScheduleItemV2.objects.filter(
+        project=project,
+        start_date__gte=today,
+        status__in=['planned', 'in_progress']
+    ).order_by('start_date')[:5]
+    
+    for item in upcoming_items:
+        # Crear proxy compatible con Schedule para el template
+        class ScheduleProxy:
+            def __init__(self, gantt_item):
+                self.title = gantt_item.name
+                self.description = gantt_item.description
+                self.status = gantt_item.status
+                self.start_datetime = timezone.make_aware(
+                    datetime.combine(gantt_item.start_date, datetime.min.time())
+                ) if gantt_item.start_date else None
+        upcoming_schedules.append(ScheduleProxy(item))
 
     # === TAREAS Y TOUCH-UPS ===
     # Tasks incluyen touch-ups que el cliente puede agregar
@@ -1636,18 +1655,23 @@ def client_project_view(request, project_id):
     total_invoiced = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
     total_paid = invoices.aggregate(paid=Sum("amount_paid"))["paid"] or Decimal("0")
 
-    # === PROGRESO DEL PROYECTO ===
-    progress_pct = 0
-    try:
-        metrics = compute_project_ev(project)
-        if metrics and metrics.get("PV") and metrics["PV"] > 0:
-            progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
-    except Exception:
-        # Fallback: progreso basado en fechas
-        if project.start_date and project.end_date:
-            total_days = (project.end_date - project.start_date).days
-            elapsed_days = (timezone.localdate() - project.start_date).days
-            progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
+    # === PROGRESO DEL PROYECTO (Gantt V2) ===
+    from core.services.schedule_unified import get_project_progress
+    gantt_progress = get_project_progress(project)
+    progress_pct = gantt_progress.get('progress_percent', 0)
+    
+    # Fallback si no hay items en Gantt
+    if gantt_progress.get('total_items', 0) == 0:
+        try:
+            metrics = compute_project_ev(project)
+            if metrics and metrics.get("PV") and metrics["PV"] > 0:
+                progress_pct = min(100, (metrics.get("EV", 0) / metrics["PV"]) * 100)
+        except Exception:
+            # Fallback: progreso basado en fechas
+            if project.start_date and project.end_date:
+                total_days = (project.end_date - project.start_date).days
+                elapsed_days = (timezone.localdate() - project.start_date).days
+                progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
 
     context = {
         "project": project,
@@ -1664,6 +1688,7 @@ def client_project_view(request, project_id):
         "total_paid": total_paid,
         "balance": total_invoiced - total_paid,
         "progress_pct": int(progress_pct),
+        "gantt_progress": gantt_progress,
         "color_samples": color_samples,
     }
     return render(request, "core/client_project_view.html", context)
