@@ -201,6 +201,29 @@
         </div>
         {% endif %}
         
+        {# ===== CLIENT SECTION ===== #}
+        {% if role == 'client' %}
+        <div>
+            <div class="sidebar-section-title">{% trans "My Projects" %}</div>
+            <div class="space-y-1">
+                <a href="{% url 'dashboard_client' %}" class="sidebar-item {% if request.resolver_match.url_name == 'dashboard_client' %}active{% endif %}">
+                    <i class="bi bi-house-heart"></i>
+                    <span>{% trans "Dashboard" %}</span>
+                </a>
+            </div>
+        </div>
+        
+        <div>
+            <div class="sidebar-section-title">{% trans "Documents" %}</div>
+            <div class="space-y-1">
+                <a href="{% url 'client_requests_list_all' %}" class="sidebar-item">
+                    <i class="bi bi-chat-square-text"></i>
+                    <span>{% trans "My Requests" %}</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
         {# ===== DESIGNER SECTION ===== #}
         {% if role == 'designer' %}
         <div>
