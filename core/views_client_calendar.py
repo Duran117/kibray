@@ -131,18 +131,18 @@ def client_calendar_api_data(request, project_id):
     events = []
 
     for item in schedule_items:
-        # Color según estado
+        # Color según estado - Premium palette
         if item.status == "done":
-            color = "#28a745"  # Verde - Completado
+            color = "#10b981"  # Emerald - Completado
             text_color = "white"
         elif item.status == "in_progress":
-            color = "#ffc107"  # Amarillo - En progreso
+            color = "#f59e0b"  # Amber - En progreso
             text_color = "#000"
         elif item.status == "blocked":
-            color = "#dc3545"  # Rojo - Bloqueado
+            color = "#ef4444"  # Red - Bloqueado
             text_color = "white"
         else:  # planned
-            color = "#6c757d"  # Gris - Planificado
+            color = "#64748b"  # Slate - Planificado
             text_color = "white"
 
         # Icono según si es milestone

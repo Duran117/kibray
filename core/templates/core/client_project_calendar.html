@@ -7,171 +7,215 @@
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 <style>
-    /* Client Calendar - unified admin style */
+    /* ═══════════════════════════════════════════════════════════════
+       PREMIUM CLIENT CALENDAR - Sophisticated Dark Theme
+       ═══════════════════════════════════════════════════════════════ */
+    
+    :root {
+        --premium-bg: #0f172a;
+        --premium-surface: #1e293b;
+        --premium-surface-light: #334155;
+        --premium-border: rgba(148, 163, 184, 0.1);
+        --premium-text: #f8fafc;
+        --premium-text-muted: #94a3b8;
+        --premium-accent: #3b82f6;
+        --premium-accent-glow: rgba(59, 130, 246, 0.15);
+        --status-done: #10b981;
+        --status-progress: #f59e0b;
+        --status-pending: #64748b;
+        --status-blocked: #ef4444;
+    }
+    
     .client-calendar-wrapper {
-        background: #f5f5f7;
+        background: linear-gradient(135deg, var(--premium-bg) 0%, #1a1f35 100%);
         min-height: 100vh;
         padding: 2rem 0;
     }
     
+    /* Header Card */
     .calendar-header {
-        background: #ffffffcc;
-        border-radius: 18px;
+        background: var(--premium-surface);
+        border-radius: 16px;
         padding: 2rem;
-        margin-bottom: 2rem;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 18px 36px rgba(0,0,0,0.07);
-        backdrop-filter: blur(8px);
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--premium-border);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.2);
     }
     
     .calendar-header h1 {
-        color: #111827;
-        font-weight: 700;
-        margin-bottom: 0.35rem;
-        font-size: 1.85rem;
-        letter-spacing: -0.02em;
+        color: var(--premium-text);
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        font-size: 1.5rem;
+        letter-spacing: -0.025em;
+    }
+    
+    .calendar-header h1 i {
+        color: var(--premium-accent);
+        margin-right: 0.5rem;
     }
     
     .project-subtitle {
-        color: #6b7280;
-        font-size: 1rem;
-        margin-bottom: 1.25rem;
+        color: var(--premium-text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 0;
     }
     
-    /* Stats Cards */
+    .btn-back {
+        background: transparent;
+        border: 1px solid var(--premium-border);
+        color: var(--premium-text-muted);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    
+    .btn-back:hover {
+        background: var(--premium-surface-light);
+        color: var(--premium-text);
+        border-color: var(--premium-accent);
+    }
+    
+    /* Stats Cards - Minimal Design */
     .stats-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 1rem;
-        margin-top: 1.25rem;
+        margin-top: 1.5rem;
     }
     
     .stat-card {
-        background: #fff;
-        border-radius: 14px;
+        background: var(--premium-surface-light);
+        border-radius: 12px;
         padding: 1.25rem;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 12px 25px rgba(0,0,0,0.06);
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        border: 1px solid var(--premium-border);
+        transition: all 0.2s ease;
     }
     
     .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.08);
-        border-color: rgba(10,132,255,0.25);
+        border-color: var(--premium-accent);
+        box-shadow: 0 0 20px var(--premium-accent-glow);
     }
     
     .stat-icon {
-        font-size: 1.75rem;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.7;
     }
     
     .stat-value {
-        font-size: 1.6rem;
+        font-size: 1.75rem;
         font-weight: 700;
-        color: #0b1a33;
-        line-height: 1.1;
+        color: var(--premium-text);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
     }
     
     .stat-label {
-        font-size: 0.9rem;
-        color: #6b7280;
+        font-size: 0.7rem;
+        color: var(--premium-text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.1em;
+        margin-top: 0.35rem;
     }
     
-    /* Progress Bar */
+    /* Progress Bar - Sleek Design */
     .progress-section {
-        margin-top: 1.75rem;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--premium-border);
     }
     
     .progress-label {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.35rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .progress-label span:first-child {
+        color: var(--premium-text-muted);
+    }
+    
+    .progress-label span:last-child {
+        color: var(--premium-text);
         font-weight: 600;
-        color: #111827;
     }
     
     .progress-bar-custom {
-        height: 26px;
-        background: #e5e7eb;
-        border-radius: 999px;
+        height: 8px;
+        background: var(--premium-surface-light);
+        border-radius: 4px;
         overflow: hidden;
-        position: relative;
-        border: 1px solid rgba(0,0,0,0.04);
     }
     
     .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #34c759 0%, #ffd60a 50%, #ff3b30 100%);
-        border-radius: 999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #0b1a33;
-        font-weight: 700;
-        transition: width 0.35s ease;
+        background: linear-gradient(90deg, var(--premium-accent) 0%, #8b5cf6 100%);
+        border-radius: 4px;
+        transition: width 0.5s ease;
     }
     
     /* Calendar Container */
     .calendar-main {
-        background: #fff;
-        border-radius: 18px;
+        background: var(--premium-surface);
+        border-radius: 16px;
         padding: 1.5rem;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.07);
-        border: 1px solid rgba(0,0,0,0.04);
-        margin-bottom: 2rem;
+        border: 1px solid var(--premium-border);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.2);
     }
     
     .calendar-controls {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
         flex-wrap: wrap;
         gap: 1rem;
     }
     
+    /* View Toggle - Pill Style */
     .view-toggle-buttons {
         display: flex;
-        gap: 0.5rem;
-        background: #f3f4f6;
-        padding: 0.45rem;
-        border-radius: 12px;
-        border: 1px solid rgba(0,0,0,0.04);
+        background: var(--premium-surface-light);
+        padding: 4px;
+        border-radius: 10px;
+        border: 1px solid var(--premium-border);
     }
     
     .view-btn {
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 1.25rem;
         border: none;
         background: transparent;
-        color: #4b5563;
-        border-radius: 10px;
+        color: var(--premium-text-muted);
+        border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s ease;
-        font-weight: 600;
+        font-weight: 500;
+        font-size: 0.875rem;
         display: flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.5rem;
     }
     
     .view-btn:hover {
-        background: #e5e7eb;
-        color: #111827;
+        color: var(--premium-text);
     }
     
     .view-btn.active {
-        background: #0a84ff;
+        background: var(--premium-accent);
         color: white;
-        box-shadow: 0 8px 18px rgba(10,132,255,0.25);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
     }
     
+    /* Legend - Minimal */
     .legend {
         display: flex;
-        gap: 0.75rem;
+        gap: 1.25rem;
         flex-wrap: wrap;
     }
     
@@ -179,63 +223,99 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 0.9rem;
-        background: #f9fafb;
-        border-radius: 12px;
-        padding: 0.45rem 0.75rem;
-        border: 1px solid rgba(0,0,0,0.04);
+        font-size: 0.8rem;
+        color: var(--premium-text-muted);
     }
     
     .legend-color {
-        width: 16px;
-        height: 16px;
-        border-radius: 5px;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
     }
     
-    /* FullCalendar Customization */
+    /* FullCalendar Premium Theme */
     .fc {
+        --fc-border-color: var(--premium-border);
+        --fc-page-bg-color: transparent;
+        --fc-neutral-bg-color: var(--premium-surface-light);
+        --fc-today-bg-color: rgba(59, 130, 246, 0.1);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
-    .fc-toolbar-title {
-        color: #111827 !important;
-        font-weight: 700 !important;
-        font-size: 1.4rem !important;
+    .fc .fc-toolbar-title {
+        color: var(--premium-text) !important;
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
     }
     
-    .fc-button {
-        background: #0a84ff !important;
-        border-color: #0a84ff !important;
-        text-transform: capitalize !important;
-        border-radius: 10px !important;
-        padding: 0.45rem 0.8rem !important;
-        box-shadow: 0 10px 20px rgba(10,132,255,0.18);
+    .fc .fc-col-header-cell-cushion {
+        color: var(--premium-text-muted);
+        font-weight: 500;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
     
-    .fc-button:hover {
-        background: #0066cc !important;
-        border-color: #0066cc !important;
+    .fc .fc-daygrid-day-number {
+        color: var(--premium-text-muted);
+        font-size: 0.85rem;
     }
     
-    .fc-button-active {
-        background: #0066cc !important;
-        border-color: #0066cc !important;
-    }
-    
-    .fc-event {
-        border-radius: 8px;
-        padding: 4px 6px;
+    .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+        color: var(--premium-accent);
         font-weight: 600;
+    }
+    
+    .fc .fc-button {
+        background: var(--premium-surface-light) !important;
+        border: 1px solid var(--premium-border) !important;
+        color: var(--premium-text-muted) !important;
+        text-transform: capitalize !important;
+        border-radius: 8px !important;
+        padding: 0.4rem 0.75rem !important;
+        font-weight: 500 !important;
+        font-size: 0.8rem !important;
+        box-shadow: none !important;
+    }
+    
+    .fc .fc-button:hover {
+        background: var(--premium-accent) !important;
+        border-color: var(--premium-accent) !important;
+        color: white !important;
+    }
+    
+    .fc .fc-button-active {
+        background: var(--premium-accent) !important;
+        border-color: var(--premium-accent) !important;
+        color: white !important;
+    }
+    
+    .fc .fc-event {
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-weight: 500;
+        font-size: 0.75rem;
         cursor: pointer;
         border: none !important;
-        box-shadow: 0 8px 18px rgba(0,0,0,0.06);
     }
     
-    .fc-daygrid-event {
+    .fc .fc-daygrid-event {
         white-space: normal !important;
     }
     
-    /* Timeline View */
+    .fc .fc-daygrid-day-frame {
+        min-height: 100px;
+    }
+    
+    .fc th, .fc td {
+        border-color: var(--premium-border) !important;
+    }
+    
+    .fc .fc-scrollgrid {
+        border-color: var(--premium-border) !important;
+    }
+    
+    /* Timeline View - Premium */
     .timeline-view {
         display: none;
     }
@@ -245,77 +325,92 @@
     }
     
     .phase-section {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
     }
     
     .phase-header {
-        background: #0a84ff;
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 14px 14px 0 0;
-        font-weight: 700;
-        font-size: 1.05rem;
+        background: var(--premium-surface-light);
+        color: var(--premium-text);
+        padding: 0.875rem 1.25rem;
+        border-radius: 10px 10px 0 0;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid var(--premium-border);
+        border-bottom: none;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .phase-header::before {
+        content: '';
+        width: 4px;
+        height: 20px;
+        border-radius: 2px;
     }
     
     .phase-items {
-        background: #f9fafb;
-        border-radius: 0 0 14px 14px;
-        padding: 1rem;
-        border: 1px solid rgba(0,0,0,0.04);
+        background: rgba(30, 41, 59, 0.5);
+        border-radius: 0 0 10px 10px;
+        padding: 0.75rem;
+        border: 1px solid var(--premium-border);
         border-top: none;
     }
     
     .timeline-item {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-        border-left: 4px solid #0a84ff;
+        background: var(--premium-surface);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid var(--premium-accent);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.04);
-        border-right: 1px solid rgba(0,0,0,0.03);
+        transition: all 0.2s ease;
+        border: 1px solid var(--premium-border);
+        border-left-width: 3px;
+    }
+    
+    .timeline-item:last-child {
+        margin-bottom: 0;
     }
     
     .timeline-item:hover {
-        transform: translateX(4px);
-        box-shadow: 0 14px 28px rgba(0,0,0,0.07);
-        border-color: rgba(10,132,255,0.55);
+        background: var(--premium-surface-light);
+        border-color: var(--premium-accent);
     }
     
     .timeline-item.completed {
-        border-left-color: #28a745;
-        opacity: 0.8;
+        border-left-color: var(--status-done);
     }
     
     .timeline-item.in-progress {
-        border-left-color: #ffd60a;
+        border-left-color: var(--status-progress);
     }
     
     .timeline-item.blocked {
-        border-left-color: #ff3b30;
+        border-left-color: var(--status-blocked);
     }
     
+    /* Status Badges - Subtle */
     .status-done {
-        background: #d4edda;
-        color: #155724;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
     }
     
     .status-in_progress {
-        background: #fff5d1;
-        color: #92400e;
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
     }
     
     .status-planned {
-        background: #e2e3e5;
-        color: #383d41;
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
     }
     
     .status-blocked {
-        background: #f8d7da;
-        color: #721c24;
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
     }
     
     .item-info {
@@ -323,49 +418,99 @@
     }
     
     .item-title {
-        font-weight: 700;
-        color: #111827;
+        font-weight: 500;
+        color: var(--premium-text);
         margin-bottom: 0.25rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        font-size: 0.9rem;
     }
     
     .item-dates {
-        font-size: 0.9rem;
-        color: #6b7280;
+        font-size: 0.8rem;
+        color: var(--premium-text-muted);
+    }
+    
+    .item-dates i {
+        margin-right: 0.35rem;
     }
     
     .item-status {
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
     
-    /* Modal Styles */
+    /* Modal - Dark Theme */
     .milestone-modal .modal-content {
-        border-radius: 20px;
-        border: none;
+        background: var(--premium-surface);
+        border: 1px solid var(--premium-border);
+        border-radius: 16px;
     }
     
     .milestone-modal .modal-header {
-        background: #0a84ff;
-        color: white;
-        border-radius: 20px 20px 0 0;
-        border: none;
-        box-shadow: inset 0 -6px 0 rgba(255,255,255,0.08);
+        background: var(--premium-surface-light);
+        color: var(--premium-text);
+        border-radius: 16px 16px 0 0;
+        border-bottom: 1px solid var(--premium-border);
+        padding: 1.25rem 1.5rem;
     }
     
     .milestone-modal .modal-body {
-        padding: 2rem;
+        padding: 1.5rem;
+        color: var(--premium-text);
+    }
+    
+    .milestone-modal .modal-body h6 {
+        color: var(--premium-text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+    }
+    
+    .milestone-modal .modal-body p {
+        color: var(--premium-text);
+    }
+    
+    .milestone-modal .progress {
+        background: var(--premium-surface-light);
+        height: 6px;
+        border-radius: 3px;
+    }
+    
+    .milestone-modal .progress-bar {
+        background: linear-gradient(90deg, var(--premium-accent) 0%, #8b5cf6 100%);
+    }
+    
+    .milestone-modal .list-group-item {
+        background: var(--premium-surface-light);
+        border-color: var(--premium-border);
+        color: var(--premium-text);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: var(--premium-text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+        opacity: 0.5;
+        margin-bottom: 1rem;
+        display: block;
     }
     
     /* Responsive */
     @media (max-width: 768px) {
         .calendar-header h1 {
-            font-size: 1.45rem;
+            font-size: 1.25rem;
         }
         
         .stats-row {
@@ -383,7 +528,14 @@
         }
         
         .legend {
+            justify-content: center;
             width: 100%;
+        }
+        
+        .timeline-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
         }
     }
 </style>
@@ -397,12 +549,12 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <h1>
-                        <i class="bi bi-calendar-event"></i>
+                        <i class="bi bi-calendar3"></i>
                         {% trans "Project Schedule" %}
                     </h1>
                     <p class="project-subtitle">{{ project.name }}</p>
                 </div>
-                <a href="{% url 'client_project_view' project.id %}" class="btn btn-outline-primary">
+                <a href="{% url 'client_project_view' project.id %}" class="btn-back">
                     <i class="bi bi-arrow-left"></i>
                     {% trans "Back to Project" %}
                 </a>
@@ -412,33 +564,33 @@
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="stat-icon">📊</div>
-                    <div class="stat-value">{{ overall_progress }}%</div>
-                    <div class="stat-label">{% trans "Total Progress" %}</div>
+                    <div class="stat-value">{{ overall_progress }}<span style="font-size: 1rem; font-weight: 500;">%</span></div>
+                    <div class="stat-label">{% trans "Progress" %}</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-icon">✅</div>
+                    <div class="stat-icon">✓</div>
                     <div class="stat-value">{{ completed_items }}</div>
                     <div class="stat-label">{% trans "Completed" %}</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-icon">🚧</div>
+                    <div class="stat-icon">◐</div>
                     <div class="stat-value">{{ in_progress_items }}</div>
                     <div class="stat-label">{% trans "In Progress" %}</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-icon">📋</div>
+                    <div class="stat-icon">▢</div>
                     <div class="stat-value">{{ total_items }}</div>
-                    <div class="stat-label">{% trans "Total Activities" %}</div>
+                    <div class="stat-label">{% trans "Total" %}</div>
                 </div>
                 
-                {% if days_remaining %}
+                {% if days_remaining is not None %}
                 <div class="stat-card">
-                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-icon">⏱</div>
                     <div class="stat-value">{{ days_remaining }}</div>
-                    <div class="stat-label">{% trans "Days Remaining" %}</div>
+                    <div class="stat-label">{% trans "Days Left" %}</div>
                 </div>
                 {% endif %}
             </div>
@@ -450,9 +602,7 @@
                     <span>{{ overall_progress }}%</span>
                 </div>
                 <div class="progress-bar-custom">
-                    <div class="progress-fill" style="width: {{ overall_progress }}%;">
-                        {{ overall_progress }}%
-                    </div>
+                    <div class="progress-fill" style="width: {{ overall_progress }}%;"></div>
                 </div>
             </div>
         </div>
@@ -474,19 +624,19 @@
                 
                 <div class="legend">
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #28a745;"></div>
+                        <div class="legend-color" style="background: #10b981;"></div>
                         <span>{% trans "Completed" %}</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #ffc107;"></div>
+                        <div class="legend-color" style="background: #f59e0b;"></div>
                         <span>{% trans "In Progress" %}</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #6c757d;"></div>
+                        <div class="legend-color" style="background: #64748b;"></div>
                         <span>{% trans "Pending" %}</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #dc3545;"></div>
+                        <div class="legend-color" style="background: #ef4444;"></div>
                         <span>{% trans "Blocked" %}</span>
                     </div>
                 </div>
@@ -501,7 +651,8 @@
             <div id="timeline-view" class="timeline-view">
                 {% for phase in phases %}
                 <div class="phase-section">
-                    <div class="phase-header" style="background: {{ phase.color|default:'#0a84ff' }};">
+                    <div class="phase-header" style="--phase-color: {{ phase.color|default:'#3b82f6' }};">
+                        <span style="background: {{ phase.color|default:'#3b82f6' }}; width: 4px; height: 20px; border-radius: 2px;"></span>
                         {{ phase.name }}
                     </div>
                     <div class="phase-items">
@@ -511,17 +662,16 @@
                                  data-item-id="{{ item.id }}">
                                 <div class="item-info">
                                     <div class="item-title">
-                                        {% if item.is_milestone %}🎯{% else %}📋{% endif %}
                                         {{ item.name }}
                                     </div>
                                     <div class="item-dates">
-                                        <i class="bi bi-calendar-range"></i>
-                                        {{ item.start_date|date:"M d, Y" }} - {{ item.end_date|date:"M d, Y" }}
+                                        <i class="bi bi-calendar3"></i>
+                                        {{ item.start_date|date:"M d" }} — {{ item.end_date|date:"M d, Y" }}
                                     </div>
                                 </div>
                                 <div class="item-status status-{{ item.status }}">
-                                    {% if item.status == 'done' %}{% trans "Completed" %}
-                                    {% elif item.status == 'in_progress' %}{% trans "In Progress" %}
+                                    {% if item.status == 'done' %}{% trans "Done" %}
+                                    {% elif item.status == 'in_progress' %}{% trans "Active" %}
                                     {% elif item.status == 'blocked' %}{% trans "Blocked" %}
                                     {% else %}{% trans "Planned" %}{% endif %}
                                 </div>
@@ -531,9 +681,9 @@
                     </div>
                 </div>
                 {% empty %}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
-                    <p class="mt-3">{% trans "No schedule items found for this project." %}</p>
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <p>{% trans "No schedule items found for this project." %}</p>
                 </div>
                 {% endfor %}
             </div>
