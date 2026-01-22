@@ -7972,7 +7972,7 @@ def site_photo_create(request, project_id):
     from core.models import Project, FloorPlan
 
     project = get_object_or_404(Project, pk=project_id)
-    floor_plans = FloorPlan.objects.filter(project=project, is_current_version=True).order_by("name")
+    floor_plans = FloorPlan.objects.filter(project=project, is_current=True).order_by("name")
     
     if request.method == "POST":
         form = SitePhotoForm(request.POST, request.FILES, project=project)
