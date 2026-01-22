@@ -172,14 +172,30 @@ def client_request_create(request, project_id):
 
 
 @login_required
+@login_required
 def client_requests_list(request, project_id=None):
     from core.models import ClientRequest
 
     if project_id:
         project = get_object_or_404(Project, id=project_id)
+        
+        # Verificar acceso para clientes
+        profile = getattr(request.user, "profile", None)
+        if profile and profile.role == "client":
+            from core.models import ClientProjectAccess
+            has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
+            is_project_client = project.client and hasattr(project.client, 'user') and project.client.user == request.user
+            if not (has_access or is_project_client):
+                messages.error(request, "No tienes acceso a este proyecto.")
+                return redirect("dashboard_client")
+        
         qs = ClientRequest.objects.filter(project=project).order_by("-created_at")
     else:
         project = None
+        # Solo staff puede ver todas las solicitudes
+        if not request.user.is_staff:
+            messages.error(request, "Acceso denegado.")
+            return redirect("dashboard_client")
         qs = ClientRequest.objects.all().select_related("project").order_by("-created_at")
     return render(request, "core/client_requests_list.html", {"project": project, "requests": qs})
 
@@ -1698,6 +1714,17 @@ def client_project_view(request, project_id):
 @login_required
 def color_sample_list(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    
+    # Verificar acceso para clientes
+    profile = getattr(request.user, "profile", None)
+    if profile and profile.role == "client":
+        from core.models import ClientProjectAccess
+        has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
+        is_project_client = project.client and hasattr(project.client, 'user') and project.client.user == request.user
+        if not (has_access or is_project_client):
+            messages.error(request, "No tienes acceso a este proyecto.")
+            return redirect("dashboard_client")
+    
     samples = project.color_samples.select_related("created_by").all().order_by("-created_at")
 
     # Filters
@@ -1922,10 +1949,22 @@ def color_sample_delete(request, sample_id):
 
 # --- FLOOR PLANS ---
 @login_required
+@login_required
 def floor_plan_list(request, project_id):
     """List all floor plans for a project, grouped by level"""
 
     project = get_object_or_404(Project, id=project_id)
+    
+    # Verificar acceso para clientes
+    profile = getattr(request.user, "profile", None)
+    if profile and profile.role == "client":
+        from core.models import ClientProjectAccess
+        has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
+        is_project_client = project.client and hasattr(project.client, 'user') and project.client.user == request.user
+        if not (has_access or is_project_client):
+            messages.error(request, "No tienes acceso a este proyecto.")
+            return redirect("dashboard_client")
+    
     plans = project.floor_plans.all().order_by("level", "name")
 
     # Group plans by level
@@ -7340,10 +7379,22 @@ def project_schedule_view(request, project_id: int):
 
 
 @login_required
+@login_required
 def site_photo_list(request, project_id):
     from core.models import Project, SitePhoto
 
     project = get_object_or_404(Project, pk=project_id)
+    
+    # Verificar acceso para clientes
+    profile = getattr(request.user, "profile", None)
+    if profile and profile.role == "client":
+        from core.models import ClientProjectAccess
+        has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
+        is_project_client = project.client and hasattr(project.client, 'user') and project.client.user == request.user
+        if not (has_access or is_project_client):
+            messages.error(request, "No tienes acceso a este proyecto.")
+            return redirect("dashboard_client")
+    
     photos = SitePhoto.objects.filter(project=project).order_by("-created_at")
     return render(request, "core/site_photo_list.html", {"project": project, "photos": photos})
 
@@ -8739,11 +8790,22 @@ def sop_create_wizard(request, template_id=None):
 
 
 @login_required
+@login_required
 def project_minutes_list(request, project_id):
     """Lista todas las minutas de un proyecto (timeline horizontal)"""
     project = get_object_or_404(Project, id=project_id)
 
     from core.models import ProjectMinute
+    
+    # Verificar acceso para clientes
+    profile = getattr(request.user, "profile", None)
+    if profile and profile.role == "client":
+        from core.models import ClientProjectAccess
+        has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
+        is_project_client = project.client and hasattr(project.client, 'user') and project.client.user == request.user
+        if not (has_access or is_project_client):
+            messages.error(request, "No tienes acceso a este proyecto.")
+            return redirect("dashboard_client")
 
     # Admin ve todo, Cliente solo ve lo marcado como visible
     if request.user.is_staff or request.user.is_superuser:
