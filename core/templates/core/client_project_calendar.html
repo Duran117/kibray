@@ -298,6 +298,26 @@
         border-left-color: #ff3b30;
     }
     
+    .status-done {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-in_progress {
+        background: #fff5d1;
+        color: #92400e;
+    }
+    
+    .status-planned {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .status-blocked {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
     .item-info {
         flex: 1;
     }
@@ -322,26 +342,6 @@
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-    }
-    
-    .status-completed {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .status-in-progress {
-        background: #fff5d1;
-        color: #92400e;
-    }
-    
-    .status-not-started {
-        background: #e2e3e5;
-        color: #383d41;
-    }
-    
-    .status-blocked {
-        background: #f8d7da;
-        color: #721c24;
     }
     
     /* Modal Styles */
@@ -499,33 +499,41 @@
             
             <!-- Timeline View -->
             <div id="timeline-view" class="timeline-view">
-                {% for category in categories %}
+                {% for phase in phases %}
                 <div class="phase-section">
-                    <div class="phase-header">
-                        {{ category.name }}
+                    <div class="phase-header" style="background: {{ phase.color|default:'#0a84ff' }};">
+                        {{ phase.name }}
                     </div>
                     <div class="phase-items">
                         {% for item in schedule_items %}
-                            {% if item.category == category %}
-                            <div class="timeline-item {% if item.status == 'DONE' %}completed{% elif item.status == 'IN_PROGRESS' %}in-progress{% elif item.status == 'BLOCKED' %}blocked{% endif %}"
+                            {% if item.phase == phase %}
+                            <div class="timeline-item {% if item.status == 'done' %}completed{% elif item.status == 'in_progress' %}in-progress{% elif item.status == 'blocked' %}blocked{% endif %}"
                                  data-item-id="{{ item.id }}">
                                 <div class="item-info">
                                     <div class="item-title">
                                         {% if item.is_milestone %}🎯{% else %}📋{% endif %}
-                                        {{ item.title }}
+                                        {{ item.name }}
                                     </div>
                                     <div class="item-dates">
                                         <i class="bi bi-calendar-range"></i>
-                                        {{ item.planned_start|date:"M d, Y" }} - {{ item.planned_end|date:"M d, Y" }}
+                                        {{ item.start_date|date:"M d, Y" }} - {{ item.end_date|date:"M d, Y" }}
                                     </div>
                                 </div>
-                                <div class="item-status status-{{ item.status|lower|cut:' '|cut:'_' }}">
-                                    {{ item.get_status_display }}
+                                <div class="item-status status-{{ item.status }}">
+                                    {% if item.status == 'done' %}{% trans "Completed" %}
+                                    {% elif item.status == 'in_progress' %}{% trans "In Progress" %}
+                                    {% elif item.status == 'blocked' %}{% trans "Blocked" %}
+                                    {% else %}{% trans "Planned" %}{% endif %}
                                 </div>
                             </div>
                             {% endif %}
                         {% endfor %}
                     </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+                    <p class="mt-3">{% trans "No schedule items found for this project." %}</p>
                 </div>
                 {% endfor %}
             </div>
@@ -694,8 +702,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'Completado': 'success',
             'In Progress': 'warning',
             'En Progreso': 'warning',
-            'Not Started': 'secondary',
-            'Blocked': 'danger'
+            'Planned': 'secondary',
+            'Planificado': 'secondary',
+            'Blocked': 'danger',
+            'Bloqueado': 'danger'
         };
         return colors[status] || 'secondary';
     }

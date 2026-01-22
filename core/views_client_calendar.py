@@ -2,14 +2,16 @@
 Client Calendar View
 Dedicated calendar view for clients showing project schedule
 in a visual, clean and easy to understand format.
+Uses Gantt V2 models (SchedulePhaseV2, ScheduleItemV2).
 """
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Avg
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
-from .models import Project, ScheduleItem, ClientProjectAccess
+from .models import Project, ScheduleItemV2, SchedulePhaseV2, ClientProjectAccess
 
 
 @login_required
@@ -18,6 +20,7 @@ def client_project_calendar_view(request, project_id):
     Calendar view for clients.
     Shows project schedule in a beautiful and simple format.
     Only relevant information for clients (no costs, internal notes).
+    Uses Gantt V2 models.
     """
     project = get_object_or_404(Project, id=project_id)
 
@@ -47,29 +50,37 @@ def client_project_calendar_view(request, project_id):
     if not has_access:
         return HttpResponseForbidden("You do not have access to this calendar.")
 
-    # Obtener milestones y fases principales (información visible para cliente)
-    schedule_items = project.schedule_items.select_related("category").order_by("planned_start")
+    # Obtener items del Gantt V2 (información visible para cliente)
+    schedule_items = ScheduleItemV2.objects.filter(
+        project=project
+    ).select_related("phase", "assigned_to").order_by("start_date")
 
-    # Obtener categorías (fases del proyecto)
-    categories = project.schedule_categories.filter(
-        parent__isnull=True  # Solo categorías de nivel superior
-    ).order_by("order")
+    # Obtener fases del proyecto (Gantt V2)
+    phases = SchedulePhaseV2.objects.filter(project=project).order_by("order")
 
     # Calcular estadísticas del proyecto
     today = timezone.localdate()
     total_items = schedule_items.count()
-    completed_items = schedule_items.filter(status="DONE").count()
-    in_progress_items = schedule_items.filter(status="IN_PROGRESS").count()
+    completed_items = schedule_items.filter(status="done").count()
+    in_progress_items = schedule_items.filter(status="in_progress").count()
 
-    overall_progress = int(completed_items / total_items * 100) if total_items > 0 else 0
+    # Calcular progreso general como promedio de progreso de items
+    avg_progress = schedule_items.aggregate(avg=Avg("progress"))["avg"]
+    overall_progress = int(avg_progress) if avg_progress else 0
 
-    # Calcular días restantes
-    days_remaining = (project.end_date - today).days if project.end_date else None
+    # Calcular días restantes basado en la fecha más lejana de items
+    last_end = schedule_items.order_by("-end_date").first()
+    if last_end and last_end.end_date:
+        days_remaining = (last_end.end_date - today).days
+    elif project.end_date:
+        days_remaining = (project.end_date - today).days
+    else:
+        days_remaining = None
 
     # Preparar datos para el template
     context = {
         "project": project,
-        "categories": categories,
+        "phases": phases,  # Renamed from categories
         "schedule_items": schedule_items,
         "overall_progress": overall_progress,
         "completed_items": completed_items,
@@ -87,7 +98,7 @@ def client_project_calendar_view(request, project_id):
 def client_calendar_api_data(request, project_id):
     """
     API endpoint returning calendar data in JSON format
-    for FullCalendar.js
+    for FullCalendar.js. Uses Gantt V2 models.
     """
     project = get_object_or_404(Project, id=project_id)
 
@@ -111,45 +122,54 @@ def client_calendar_api_data(request, project_id):
     if not has_access:
         return JsonResponse({"error": "Not authorized"}, status=403)
 
-    # Get schedule items
-    schedule_items = project.schedule_items.select_related("category")
+    # Get schedule items from Gantt V2
+    schedule_items = ScheduleItemV2.objects.filter(
+        project=project
+    ).select_related("phase")
 
     # Prepare events for FullCalendar
     events = []
 
     for item in schedule_items:
         # Color según estado
-        if item.status == "DONE":
+        if item.status == "done":
             color = "#28a745"  # Verde - Completado
             text_color = "white"
-        elif item.status == "IN_PROGRESS":
+        elif item.status == "in_progress":
             color = "#ffc107"  # Amarillo - En progreso
             text_color = "#000"
-        elif item.status == "BLOCKED":
+        elif item.status == "blocked":
             color = "#dc3545"  # Rojo - Bloqueado
             text_color = "white"
-        else:  # NOT_STARTED
-            color = "#6c757d"  # Gris - No iniciado
+        else:  # planned
+            color = "#6c757d"  # Gris - Planificado
             text_color = "white"
 
         # Icono según si es milestone
         icon = "🎯" if item.is_milestone else "📋"
 
+        # Status display
+        status_display = {
+            "planned": "Planificado",
+            "in_progress": "En Progreso",
+            "blocked": "Bloqueado",
+            "done": "Completado",
+        }.get(item.status, item.status)
+
         event = {
             "id": item.id,
-            "title": f"{icon} {item.title}",
-            "start": item.planned_start.isoformat() if item.planned_start else None,
-            "end": item.planned_end.isoformat() if item.planned_end else None,
+            "title": f"{icon} {item.name}",
+            "start": item.start_date.isoformat() if item.start_date else None,
+            "end": item.end_date.isoformat() if item.end_date else None,
             "backgroundColor": color,
             "borderColor": color,
             "textColor": text_color,
             "extendedProps": {
                 "description": item.description,
-                "status": item.get_status_display(),
-                "progress": item.percent_complete,
-                "category": item.category.name if item.category else None,
+                "status": status_display,
+                "progress": item.progress,
+                "phase": item.phase.name if item.phase else None,
                 "is_milestone": item.is_milestone,
-                # NO incluir: cost_code, estimate_line, internal_notes
             },
         }
 
@@ -174,8 +194,9 @@ def client_calendar_milestone_detail(request, item_id):
     """
     AJAX view returning milestone/item details
     to display in modal or popover.
+    Uses Gantt V2 model.
     """
-    item = get_object_or_404(ScheduleItem, id=item_id)
+    item = get_object_or_404(ScheduleItemV2, id=item_id)
 
     # Verify access to project
     project = item.project
@@ -198,27 +219,32 @@ def client_calendar_milestone_detail(request, item_id):
     if not has_access:
         return JsonResponse({"error": "Not authorized"}, status=403)
 
-    # Get linked tasks (if any)
+    # Get linked tasks (if any) from Gantt V2
     tasks = item.tasks.all()
+
+    # Status display mapping
+    status_display = {
+        "planned": "Planificado",
+        "in_progress": "En Progreso",
+        "blocked": "Bloqueado",
+        "done": "Completado",
+    }.get(item.status, item.status)
 
     data = {
         "id": item.id,
-        "title": item.title,
+        "title": item.name,  # V2 uses 'name' instead of 'title'
         "description": item.description,
-        "status": item.get_status_display(),
-        "progress": item.percent_complete,
+        "status": status_display,
+        "progress": item.progress,  # V2 uses 'progress' instead of 'percent_complete'
         "is_milestone": item.is_milestone,
-        "planned_start": item.planned_start.isoformat() if item.planned_start else None,
-        "planned_end": item.planned_end.isoformat() if item.planned_end else None,
-        "actual_start": item.actual_start.isoformat() if item.actual_start else None,
-        "actual_end": item.actual_end.isoformat() if item.actual_end else None,
-        "category": item.category.name if item.category else None,
+        "planned_start": item.start_date.isoformat() if item.start_date else None,  # V2 field names
+        "planned_end": item.end_date.isoformat() if item.end_date else None,
+        "phase": item.phase.name if item.phase else None,  # V2 uses 'phase' instead of 'category'
         "tasks": [
             {
                 "id": task.id,
                 "title": task.title,
                 "status": task.status,
-                "priority": task.priority,
             }
             for task in tasks[:5]  # Maximum 5 tasks
         ],
