@@ -17,7 +17,8 @@
     {# Navigation - Scrollable Area #}
     <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6 dark-scroll">
         
-        {# ===== MAIN SECTION ===== #}
+        {# ===== MAIN SECTION (Not for clients) ===== #}
+        {% if role != 'client' %}
         <div class="space-y-1">
             <a href="{% url 'dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="bi bi-house-door"></i>
@@ -32,8 +33,10 @@
                 {% endif %}
             </a>
         </div>
+        {% endif %}
         
-        {# ===== PROJECTS SECTION ===== #}
+        {# ===== PROJECTS SECTION (Not for clients) ===== #}
+        {% if role != 'client' %}
         <div>
             <div class="sidebar-section-title">{% trans "Projects" %}</div>
             <div class="space-y-1">
@@ -53,6 +56,7 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
         
         {# ===== STAFF/PM SECTION ===== #}
         {% if user.is_staff or user.is_superuser or role == 'project_manager' or role == 'admin' %}
@@ -204,19 +208,26 @@
         {# ===== CLIENT SECTION ===== #}
         {% if role == 'client' %}
         <div>
-            <div class="sidebar-section-title">{% trans "My Projects" %}</div>
+            <div class="sidebar-section-title">{% trans "Overview" %}</div>
             <div class="space-y-1">
                 <a href="{% url 'dashboard_client' %}" class="sidebar-item {% if request.resolver_match.url_name == 'dashboard_client' %}active{% endif %}">
-                    <i class="bi bi-house-heart"></i>
-                    <span>{% trans "Dashboard" %}</span>
+                    <i class="bi bi-grid-1x2"></i>
+                    <span>{% trans "My Dashboard" %}</span>
+                </a>
+                <a href="{% url 'notifications_list' %}" class="sidebar-item {% if request.resolver_match.url_name == 'notifications_list' %}active{% endif %}">
+                    <i class="bi bi-bell"></i>
+                    <span>{% trans "Notifications" %}</span>
+                    {% if badges.unread_notifications_count|default:0 > 0 %}
+                    <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ badges.unread_notifications_count }}</span>
+                    {% endif %}
                 </a>
             </div>
         </div>
         
         <div>
-            <div class="sidebar-section-title">{% trans "Documents" %}</div>
+            <div class="sidebar-section-title">{% trans "Quick Access" %}</div>
             <div class="space-y-1">
-                <a href="{% url 'client_requests_list_all' %}" class="sidebar-item">
+                <a href="{% url 'client_requests_list_all' %}" class="sidebar-item {% if request.resolver_match.url_name == 'client_requests_list_all' %}active{% endif %}">
                     <i class="bi bi-chat-square-text"></i>
                     <span>{% trans "My Requests" %}</span>
                 </a>

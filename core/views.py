@@ -798,9 +798,9 @@ def dashboard_client(request):
     # Import unified schedule service for Gantt data
     from core.services.schedule_unified import get_project_progress
 
-    # Proyectos del cliente: por vínculo directo (legacy) o por asignación granular
+    # Proyectos del cliente: por vínculo directo (client.user) o por asignación granular (ClientProjectAccess)
     access_projects = Project.objects.filter(client_accesses__user=request.user)
-    legacy_projects = Project.objects.filter(client=request.user.username)
+    legacy_projects = Project.objects.filter(client__user=request.user)
     projects = access_projects.union(legacy_projects).order_by("-start_date")
 
     # Para cada proyecto, calcular métricas visuales
@@ -1550,9 +1550,15 @@ def client_project_view(request, project_id):
     has_explicit_access = ClientProjectAccess.objects.filter(
         user=request.user, project=project
     ).exists()
+    
+    # Verificar si el usuario es el cliente del proyecto (legacy: project.client es ClientContact)
+    is_project_client = False
+    if project.client and hasattr(project.client, 'user'):
+        is_project_client = project.client.user == request.user
+    
     if profile and profile.role == "client":
-        # Permitir si está asignado por acceso granular o si coincide el nombre de cliente (legacy)
-        if not (has_explicit_access or project.client == request.user.username):
+        # Permitir si está asignado por acceso granular o si es el cliente del proyecto
+        if not (has_explicit_access or is_project_client):
             messages.error(request, "No tienes acceso a este proyecto.")
             return redirect("dashboard_client")
     else:
