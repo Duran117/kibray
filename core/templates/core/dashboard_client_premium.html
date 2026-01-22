@@ -57,11 +57,79 @@
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         letter-spacing: -0.02em;
     }
+    /* Project Selector */
+    .project-selector {
+        position: relative;
+    }
+    .project-selector-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 240px;
+    }
+    .project-selector-btn:hover {
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .project-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 12px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        z-index: 50;
+        display: none;
+        overflow: hidden;
+    }
+    .project-dropdown.show {
+        display: block;
+        animation: dropdownFade 0.2s ease;
+    }
+    @keyframes dropdownFade {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .project-option {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+    .project-option:last-child {
+        border-bottom: none;
+    }
+    .project-option:hover {
+        background: #f8fafc;
+    }
+    .project-option.active {
+        background: #eef2ff;
+    }
+    .project-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .project-indicator.active { background: #22c55e; }
+    .project-indicator.pending { background: #f59e0b; }
+    .project-indicator.completed { background: #6366f1; }
 </style>
 {% endblock %}
 
 {% block page_header %}
-<div class="flex justify-between items-center">
+<div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
     <div class="flex items-center gap-5">
         <div class="w-14 h-14 rounded-2xl premium-gradient flex items-center justify-center text-white premium-shadow">
             <i class="bi bi-gem text-2xl"></i>
@@ -71,16 +139,49 @@
             <h1 class="text-3xl font-display font-semibold text-slate-900">{{ display_name }}</h1>
         </div>
     </div>
+    
+    {% if project_data|length > 1 %}
+    <!-- Project Selector for multiple projects -->
+    <div class="project-selector" id="projectSelector">
+        <button type="button" class="project-selector-btn" id="projectSelectorBtn">
+            <div class="project-indicator active"></div>
+            <div class="flex-1 text-left">
+                <p class="text-sm font-medium text-slate-900" id="selectedProjectName">{{ project_data.0.project.name }}</p>
+                <p class="text-xs text-slate-500">{{ project_data|length }} {% trans "projects" %}</p>
+            </div>
+            <i class="bi bi-chevron-down text-slate-400 transition-transform" id="selectorChevron"></i>
+        </button>
+        <div class="project-dropdown" id="projectDropdown">
+            {% for data in project_data %}
+            <div class="project-option {% if forloop.first %}active{% endif %}" 
+                 data-project-index="{{ forloop.counter0 }}"
+                 data-project-name="{{ data.project.name }}">
+                <div class="project-indicator {% if data.progress_pct == 100 %}completed{% elif data.progress_pct > 0 %}active{% else %}pending{% endif %}"></div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-900">{{ data.project.name }}</p>
+                    <p class="text-xs text-slate-500">{{ data.progress_pct }}% {% trans "complete" %}</p>
+                </div>
+                {% if forloop.first %}
+                <i class="bi bi-check2 text-indigo-600"></i>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
     <div class="text-right hidden md:block">
         <p class="text-sm text-slate-500">{{ today|date:"l" }}</p>
         <p class="text-lg font-medium text-slate-700">{{ today|date:"F d, Y" }}</p>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block content %}
 {% for data in project_data %}
-<div class="mb-10 animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
+<div class="project-panel mb-10 animate-fade-in {% if not forloop.first and project_data|length > 1 %}hidden{% endif %}" 
+     data-project-index="{{ forloop.counter0 }}"
+     style="animation-delay: {{ forloop.counter0 }}00ms">
     
     <!-- Urgent Actions Banner (if any) -->
     {% if data.pending_change_orders or data.balance > 0 %}
@@ -437,4 +538,71 @@
     <p class="text-slate-500 max-w-md mx-auto">{% trans "When you're assigned to a project, it will appear here." %}</p>
 </div>
 {% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selector = document.getElementById('projectSelector');
+    if (!selector) return; // Single project, no selector
+    
+    const btn = document.getElementById('projectSelectorBtn');
+    const dropdown = document.getElementById('projectDropdown');
+    const chevron = document.getElementById('selectorChevron');
+    const selectedName = document.getElementById('selectedProjectName');
+    const options = document.querySelectorAll('.project-option');
+    const panels = document.querySelectorAll('.project-panel');
+    
+    // Toggle dropdown
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+        chevron.style.transform = dropdown.classList.contains('show') ? 'rotate(180deg)' : '';
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+        dropdown.classList.remove('show');
+        chevron.style.transform = '';
+    });
+    
+    // Handle option selection
+    options.forEach(option => {
+        option.addEventListener('click', function() {
+            const index = this.dataset.projectIndex;
+            const name = this.dataset.projectName;
+            
+            // Update selected name
+            selectedName.textContent = name;
+            
+            // Update active states in dropdown
+            options.forEach(opt => {
+                opt.classList.remove('active');
+                const check = opt.querySelector('.bi-check2');
+                if (check) check.remove();
+            });
+            this.classList.add('active');
+            
+            // Add checkmark to selected
+            const checkIcon = document.createElement('i');
+            checkIcon.className = 'bi bi-check2 text-indigo-600';
+            this.appendChild(checkIcon);
+            
+            // Show/hide project panels
+            panels.forEach(panel => {
+                if (panel.dataset.projectIndex === index) {
+                    panel.classList.remove('hidden');
+                    panel.style.animation = 'fadeInUp 0.3s ease-out forwards';
+                } else {
+                    panel.classList.add('hidden');
+                }
+            });
+            
+            // Close dropdown
+            dropdown.classList.remove('show');
+            chevron.style.transform = '';
+        });
+    });
+});
+</script>
 {% endblock %}
