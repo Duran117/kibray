@@ -44,14 +44,14 @@ class TestTaskTimeTracking:
     def test_start_tracking(self, project, user):
         """start_tracking() inicia el timer y cambia status a En Progreso"""
         task = Task.objects.create(
-            project=project, title="Trackable task", status="Pendiente", created_by=user, is_touchup=False
+            project=project, title="Trackable task", status="Pending", created_by=user, is_touchup=False
         )
 
         result = task.start_tracking()
 
         assert result is True
         assert task.started_at is not None
-        assert task.status == "En Progreso"
+        assert task.status == "In Progress"
 
     def test_start_tracking_touch_up_fails(self, project, user):
         """Touch-ups no usan tracking interno, start_tracking debe fallar"""
@@ -64,7 +64,7 @@ class TestTaskTimeTracking:
 
     def test_start_tracking_with_pending_dependency_fails(self, project, user):
         """No puede iniciar tracking si hay dependencias pendientes"""
-        dep = Task.objects.create(project=project, title="Dependency", status="Pendiente", created_by=user)
+        dep = Task.objects.create(project=project, title="Dependency", status="Pending", created_by=user)
 
         task = Task.objects.create(project=project, title="Dependent task", created_by=user, is_touchup=False)
         task.dependencies.add(dep)
@@ -108,7 +108,7 @@ class TestTaskTimeTracking:
         assert first_total >= 10
 
         # Segunda sesión: 15 segundos más
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.save()
         task.start_tracking()
         task.started_at = timezone.now() - timedelta(seconds=15)
@@ -228,9 +228,9 @@ class TestTaskTimeTracking:
         # Detener antes de completar
         task.stop_tracking()
 
-        task.status = "Completada"
+        task.status = "Completed"
         task.completed_at = timezone.now()
         task.save()
 
         assert task.time_tracked_seconds >= 30
-        assert task.status == "Completada"
+        assert task.status == "Completed"

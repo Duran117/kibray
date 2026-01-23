@@ -1543,7 +1543,7 @@ class DailyLogPlanningSerializer(serializers.ModelSerializer):
         total = obj.planned_tasks.count()
         if total == 0:
             return {"total": 0, "completed": 0, "percent": 0}
-        completed = obj.planned_tasks.filter(status="Completada").count()
+        completed = obj.planned_tasks.filter(status="Completed").count()
         percent = round((completed / total) * 100, 1) if total > 0 else 0
         return {"total": total, "completed": completed, "percent": percent}
 

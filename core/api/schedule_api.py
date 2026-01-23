@@ -99,7 +99,7 @@ def get_master_schedule_data(request):
         # Fallback to tasks if no Gantt data
         if gantt_progress.get('total_items', 0) == 0:
             total_tasks = project.tasks.count()
-            completed_tasks = project.tasks.filter(status="Completada").count()
+            completed_tasks = project.tasks.filter(status="Completed").count()
             progress_pct = int(completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
         pm_name = "No PM assigned"
@@ -234,7 +234,7 @@ def get_master_schedule_data(request):
                 due_date__isnull=False,
                 due_date__gte=start_range,
                 due_date__lte=end_range,
-                status__in=["Pendiente", "En Progreso", "En Revisión"],
+                status__in=["Pending", "In Progress", "Under Review"],
             )
             .select_related("project")
             .order_by("due_date")

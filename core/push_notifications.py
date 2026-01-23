@@ -10,6 +10,7 @@ Integrates with Firebase Cloud Messaging (FCM) for push notifications:
 """
 
 import logging
+from typing import Dict, Optional
 
 from channels.db import database_sync_to_async
 from django.conf import settings
@@ -54,7 +55,7 @@ class PushNotificationService:
         user_id: int,
         title: str,
         body: str,
-        data: dict | None = None,
+        data: Optional[Dict] = None,
         category: str = "general",
         priority: str = "normal",
     ):
@@ -117,7 +118,7 @@ class PushNotificationService:
         user_ids: list[int],
         title: str,
         body: str,
-        data: dict | None = None,
+        data: Optional[Dict] = None,
         category: str = "general",
     ):
         """
@@ -149,7 +150,7 @@ class PushNotificationService:
         }
 
     async def register_device_token(
-        self, user_id: int, token: str, device_type: str = "web", device_name: str | None = None
+        self, user_id: int, token: str, device_type: str = "web", device_name: Optional[str] = None
     ):
         """
         Register device token for push notifications.
@@ -198,7 +199,7 @@ class PushNotificationService:
         return await self._save_user_preferences(user_id, preferences)
 
     def _build_payload(
-        self, title: str, body: str, data: dict | None, category: str, priority: str
+        self, title: str, body: str, data: Optional[Dict], category: str, priority: str
     ) -> dict:
         """Build FCM notification payload"""
         payload = {
@@ -304,7 +305,7 @@ class PushNotificationService:
 
     @database_sync_to_async
     def _save_device_token(
-        self, user_id: int, token: str, device_type: str, device_name: str | None
+        self, user_id: int, token: str, device_type: str, device_name: Optional[str]
     ) -> bool:
         """Save device token to database"""
         from django.utils import timezone
@@ -423,7 +424,7 @@ async def send_message_notification(user_id: int, sender: str, channel_name: str
 
 
 def send_pwa_push(
-    user, title: str, body: str, data: dict | None = None, url: str | None = None
+    user, title: str, body: str, data: Optional[Dict] = None, url: Optional[str] = None
 ) -> dict:
     """
     Send PWA push notification to user's subscribed devices

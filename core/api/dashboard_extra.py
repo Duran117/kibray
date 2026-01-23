@@ -24,11 +24,11 @@ class ProjectDashboardView(APIView):
     def get(self, request: Request, project_id: int):
         project = get_object_or_404(Project, pk=project_id)
         # Tasks (count by status separately to avoid aggregate edge cases)
-        tasks_qs = project.tasks.exclude(status="Cancelada")
-        task_pending = tasks_qs.filter(status="Pendiente").count()
-        task_in_progress = tasks_qs.filter(status="En Progreso").count()
-        task_completed = tasks_qs.filter(status="Completada").count()
-        touchups_open = tasks_qs.filter(is_touchup=True).exclude(status="Completada").count()
+        tasks_qs = project.tasks.exclude(status="Cancelled")
+        task_pending = tasks_qs.filter(status="Pending").count()
+        task_in_progress = tasks_qs.filter(status="In Progress").count()
+        task_completed = tasks_qs.filter(status="Completed").count()
+        touchups_open = tasks_qs.filter(is_touchup=True).exclude(status="Completed").count()
         task_total = task_pending + task_in_progress + task_completed
 
         # Damage Reports
@@ -153,7 +153,7 @@ class ClientDashboardView(APIView):
         for access in access_qs:
             p = access.project
             tasks_qs = p.tasks.all()
-            touchups = tasks_qs.filter(is_touchup=True).exclude(status="Completada").count()
+            touchups = tasks_qs.filter(is_touchup=True).exclude(status="Completed").count()
             colors_review = p.color_samples.filter(status="review").count()
             pending_color_reviews += colors_review
             pending_touchups += touchups

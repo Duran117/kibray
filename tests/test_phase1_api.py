@@ -139,7 +139,7 @@ class TestDailyLogPlanningAPI:
     def test_evaluate_completion(self, authenticated_client, daily_log, project, admin_user):
         """Test evaluating daily log completion"""
         # Create completed task
-        task = Task.objects.create(project=project, title="Completed Task", status="Completada", created_by=admin_user)
+        task = Task.objects.create(project=project, title="Completed Task", status="Completed", created_by=admin_user)
         daily_log.planned_tasks.add(task)
 
         url = f"/api/v1/daily-logs/{daily_log.id}/evaluate_completion/"

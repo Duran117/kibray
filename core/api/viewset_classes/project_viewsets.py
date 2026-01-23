@@ -91,8 +91,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         # Calculate statistics
         tasks = project.tasks.all()
         total_tasks = tasks.count()
-        completed_tasks = tasks.filter(status="Completada").count()
-        in_progress_tasks = tasks.filter(status="En Progreso").count()
+        completed_tasks = tasks.filter(status="Completed").count()
+        in_progress_tasks = tasks.filter(status="In Progress").count()
 
         # Budget calculations
         total_budget = float(project.budget_total or 0)

@@ -25,7 +25,7 @@ class PlannerAI:
     """AI Assistant for Strategic Planning"""
 
     @staticmethod
-    def process_brain_dump(text: str, user_context: dict | None = None) -> dict:
+    def process_brain_dump(text: str, user_context: Optional[dict] = None) -> dict:
         """
         Process brain dump text and categorize tasks into high-impact vs noise.
 
@@ -109,7 +109,7 @@ RULES:
             return {"high_impact": [], "noise": [], "summary": f"Error processing: {str(e)}"}
 
     @staticmethod
-    def suggest_frog(high_impact_items: list[dict], user_context: dict | None = None) -> dict:
+    def suggest_frog(high_impact_items: list[dict], user_context: Optional[dict] = None) -> dict:
         """
         Suggest which high-impact item should be "The Frog" (most important).
 
@@ -193,7 +193,7 @@ Return JSON:
             return {"recommended_index": 0, "reasoning": f"Error: {str(e)}", "alternative": ""}
 
     @staticmethod
-    def generate_micro_steps(frog_title: str, context: str | None = None) -> list[dict]:
+    def generate_micro_steps(frog_title: str, context: Optional[str] = None) -> list[dict]:
         """
         Generate actionable micro-steps for completing the frog.
 

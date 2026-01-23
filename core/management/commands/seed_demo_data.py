@@ -272,7 +272,7 @@ class Command(BaseCommand):
                     title=title,
                     defaults={
                         "description": f"Tarea {idx} para {p.name}",
-                        "status": random.choice(["Pendiente", "En Progreso", "Completada"]),
+                        "status": random.choice(["Pending", "In Progress", "Completed"]),
                         "created_by": users["pm"],
                         "assigned_to_id": getattr(
                             Employee.objects.filter(user__username__startswith="emp").order_by("id").first(), "id", None

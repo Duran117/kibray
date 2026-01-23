@@ -35,7 +35,7 @@ def test_task_create_with_dependencies_and_priority_due_date(api_client, user, p
 
     # Create dependency tasks
     dep1 = Task.objects.create(project=project, title="Dep 1")
-    dep2 = Task.objects.create(project=project, title="Dep 2", status="Completada")
+    dep2 = Task.objects.create(project=project, title="Dep 2", status="Completed")
 
     payload = {
         "project": project.id,
@@ -96,7 +96,7 @@ def test_task_reopen_action_increments_counter(api_client, user, project):
     task = Task.objects.create(
         project=project,
         title="Completed",
-        status="Completada",
+        status="Completed",
         completed_at=timezone.now(),
         created_by=user,
     )
@@ -106,7 +106,7 @@ def test_task_reopen_action_increments_counter(api_client, user, project):
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "ok"
-    assert data["new_status"] in ["En Progreso", "Pendiente"]
+    assert data["new_status"] in ["In Progress", "Pending"]
     assert data["reopen_events_count"] >= 1
 
 
@@ -116,7 +116,7 @@ def test_task_reopen_action_increments_counter(api_client, user, project):
 def test_task_start_stop_tracking_actions(api_client, user, project):
     api_client.force_authenticate(user=user)
 
-    task = Task.objects.create(project=project, title="Track Me", status="Pendiente")
+    task = Task.objects.create(project=project, title="Track Me", status="Pending")
 
     # Start tracking
     r1 = api_client.post(f"/api/v1/tasks/{task.id}/start_tracking/")
@@ -185,8 +185,8 @@ def test_touchup_board_structure(api_client, user, project):
 
     # Create some touch-up tasks
     Task.objects.create(project=project, title="T1", is_touchup=True)
-    Task.objects.create(project=project, title="T2", is_touchup=True, status="En Progreso")
-    Task.objects.create(project=project, title="T3", is_touchup=True, status="Completada")
+    Task.objects.create(project=project, title="T2", is_touchup=True, status="In Progress")
+    Task.objects.create(project=project, title="T3", is_touchup=True, status="Completed")
 
     r = api_client.get("/api/v1/tasks/touchup_board/")
     assert r.status_code == 200

@@ -180,7 +180,7 @@ class MeetingMinuteViewSet(viewsets.ModelViewSet):
             "project": minute.project,
             "title": text,
             "description": minute.content or "",
-            "status": "Pendiente",
+            "status": "Pending",
         }
         if any(f.name == "created_by" for f in Task._meta.fields):
             task_kwargs["created_by"] = request.user
@@ -586,7 +586,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         if project_id:
             qs = qs.filter(project_id=project_id)
         board = {}
-        for task_status in ["Pendiente", "En Progreso", "Completada", "Cancelada"]:
+        for task_status in ["Pending", "In Progress", "Completed", "Cancelled"]:
             board[task_status] = list(
                 qs.filter(status=task_status)
                 .order_by("-priority", "due_date")
@@ -684,9 +684,9 @@ class TaskViewSet(viewsets.ModelViewSet):
             task_data["auto_priority_score"] = score
 
             # Add to appropriate column
-            if task.status == "Completada":
+            if task.status == "Completed":
                 completed_tasks.append(task_data)
-            elif task.status == "En Progreso":
+            elif task.status == "In Progress":
                 in_progress_tasks.append(task_data)
             else:  # Pendiente, Cancelada
                 pending_tasks.append(task_data)
@@ -704,7 +704,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             "completed": len(completed_tasks),
             "high_priority": qs.filter(priority__in=["high", "urgent"]).count(),
             "overdue": qs.filter(
-                due_date__lt=today, status__in=["Pendiente", "En Progreso"]
+                due_date__lt=today, status__in=["Pending", "In Progress"]
             ).count(),
         }
 
@@ -723,7 +723,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def quick_status(self, request, pk=None):
         """
         Quick status update for Kanban drag-and-drop.
-        Payload: {"status": "En Progreso"}
+        Payload: {"status": "In Progress"}
         """
         task = self.get_object()
         new_status = request.data.get("status")
@@ -734,7 +734,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             )
 
         # Validate status
-        valid_statuses = ["Pendiente", "En Progreso", "Completada", "Cancelada"]
+        valid_statuses = ["Pending", "In Progress", "Completed", "Cancelled"]
         if new_status not in valid_statuses:
             return Response(
                 {
@@ -745,7 +745,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             )
 
         # Touch-up completion validation
-        if task.is_touchup and new_status == "Completada" and not task.images.exists():
+        if task.is_touchup and new_status == "Completed" and not task.images.exists():
             return Response(
                 {"error": gettext("Touch-up requires photo evidence before completion")},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -755,9 +755,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.status = new_status
 
         # Auto-timestamp tracking
-        if new_status == "En Progreso" and not task.started_at:
+        if new_status == "In Progress" and not task.started_at:
             task.started_at = timezone.now()
-        elif new_status == "Completada" and not task.completed_at:
+        elif new_status == "Completed" and not task.completed_at:
             task.completed_at = timezone.now()
 
         task.save()
@@ -950,9 +950,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         Response:
           {
             columns: [
-              {key: 'Pendiente', title: 'Pendiente', count: N, items: [...]},
-              {key: 'En Progreso', title: 'En Progreso', count: M, items: [...]},
-              {key: 'Completada', title: 'Completada', count: K, items: [...]}
+              {key: 'Pending', title: 'Pending', count: N, items: [...]},
+              {key: 'In Progress', title: 'In Progress', count: M, items: [...]},
+              {key: 'Completed', title: 'Completed', count: K, items: [...]}
             ],
             totals: { total: T, pending: N, in_progress: M, completed: K }
           }
@@ -990,18 +990,18 @@ class TaskViewSet(viewsets.ModelViewSet):
             qs = qs.filter(assigned_to=emp) if emp else qs.none()
 
         # Group by status columns
-        statuses = ["Pendiente", "En Progreso", "Completada"]
+        statuses = ["Pending", "In Progress", "Completed"]
         columns = []
         counts = {"pending": 0, "in_progress": 0, "completed": 0}
         for s in statuses:
             items_qs = qs.filter(status=s).order_by("-priority", "-created_at")
             items = self.get_serializer(items_qs, many=True).data
             count = len(items)
-            if s == "Pendiente":
+            if s == "Pending":
                 counts["pending"] = count
-            elif s == "En Progreso":
+            elif s == "In Progress":
                 counts["in_progress"] = count
-            elif s == "Completada":
+            elif s == "Completed":
                 counts["completed"] = count
             columns.append({"key": s, "title": s, "count": count, "items": items})
 
@@ -1221,7 +1221,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
 
         # Q21.6: Update auto-task status
         if report.auto_task:
-            report.auto_task.status = "Completada"
+            report.auto_task.status = "Completed"
             report.auto_task.save(update_fields=["status"])
 
         # Notify reporter
@@ -2980,7 +2980,7 @@ class DailyLogPlanningViewSet(viewsets.ModelViewSet):
                 "incomplete_reason": daily_log.incomplete_reason,
                 "summary": {
                     "total": daily_log.planned_tasks.count(),
-                    "completed": daily_log.planned_tasks.filter(status="Completada").count(),
+                    "completed": daily_log.planned_tasks.filter(status="Completed").count(),
                 },
             }
         )

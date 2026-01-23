@@ -84,7 +84,7 @@ class TestTaskReopen:
         task = Task.objects.create(
             project=project,
             title="Test Task",
-            status="Completada",
+            status="Completed",
             completed_at=timezone.now(),
             created_by=regular_user,
         )
@@ -94,26 +94,26 @@ class TestTaskReopen:
 
         assert result is True
         task.refresh_from_db()
-        assert task.status in ["En Progreso", "Pendiente"]
+        assert task.status in ["In Progress", "Pending"]
         assert task.completed_at is None
 
         # Verify TaskStatusChange was created
         changes = TaskStatusChange.objects.filter(task=task)
         assert changes.count() >= 1
-        change = changes.filter(old_status="Completada").first()
+        change = changes.filter(old_status="Completed").first()
         assert change is not None
         assert change.changed_by == regular_user
         assert "Reapertura" in change.notes or "rework" in change.notes
 
     def test_reopen_non_completed_task_fails(self, project, regular_user):
         """Test that reopening a non-completed task returns False"""
-        task = Task.objects.create(project=project, title="Pending Task", status="Pendiente", created_by=regular_user)
+        task = Task.objects.create(project=project, title="Pending Task", status="Pending", created_by=regular_user)
 
         result = task.reopen(user=regular_user)
 
         assert result is False
         task.refresh_from_db()
-        assert task.status == "Pendiente"
+        assert task.status == "Pending"
         assert TaskStatusChange.objects.filter(task=task).count() == 0
 
     def test_reopen_without_user(self, project, regular_user):
@@ -121,7 +121,7 @@ class TestTaskReopen:
         task = Task.objects.create(
             project=project,
             title="Test Task",
-            status="Completada",
+            status="Completed",
             completed_at=timezone.now(),
             created_by=regular_user,
         )
@@ -181,8 +181,8 @@ class TestDailyLogPlanning:
     def test_evaluate_completion_all_completed(self, daily_log, project, admin_user):
         """Test evaluation when all planned tasks are completed"""
         # Create and add completed tasks
-        task1 = Task.objects.create(project=project, title="Task 1", status="Completada", created_by=admin_user)
-        task2 = Task.objects.create(project=project, title="Task 2", status="Completada", created_by=admin_user)
+        task1 = Task.objects.create(project=project, title="Task 1", status="Completed", created_by=admin_user)
+        task2 = Task.objects.create(project=project, title="Task 2", status="Completed", created_by=admin_user)
         daily_log.planned_tasks.add(task1, task2)
 
         # Evaluate
@@ -195,8 +195,8 @@ class TestDailyLogPlanning:
 
     def test_evaluate_completion_partial(self, daily_log, project, admin_user):
         """Test evaluation when some tasks are incomplete"""
-        task1 = Task.objects.create(project=project, title="Task 1", status="Completada", created_by=admin_user)
-        task2 = Task.objects.create(project=project, title="Task 2", status="En Progreso", created_by=admin_user)
+        task1 = Task.objects.create(project=project, title="Task 1", status="Completed", created_by=admin_user)
+        task2 = Task.objects.create(project=project, title="Task 2", status="In Progress", created_by=admin_user)
         daily_log.planned_tasks.add(task1, task2)
 
         result = daily_log.evaluate_completion()
@@ -357,14 +357,14 @@ class TestTaskTemplate:
         assert task.priority == task_template.default_priority
         assert task.project == project
         assert task.created_by == admin_user
-        assert task.status == "Pendiente"
+        assert task.status == "Pending"
 
     def test_create_task_with_overrides(self, task_template, project, admin_user):
         """Test creating task with field overrides"""
         task = task_template.create_task(
-            project=project, created_by=admin_user, extra_fields={"status": "En Progreso", "priority": "low"}
+            project=project, created_by=admin_user, extra_fields={"status": "In Progress", "priority": "low"}
         )
 
-        assert task.status == "En Progreso"
+        assert task.status == "In Progress"
         assert task.priority == "low"
         assert task.title == task_template.title  # Still uses template title

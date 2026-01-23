@@ -57,20 +57,20 @@ class TestTaskDueDates:
         tomorrow = date.today() + timedelta(days=1)
 
         overdue1 = Task.objects.create(
-            project=project, title="Overdue 1", due_date=yesterday, status="Pendiente", created_by=user
+            project=project, title="Overdue 1", due_date=yesterday, status="Pending", created_by=user
         )
         overdue2 = Task.objects.create(
-            project=project, title="Overdue 2", due_date=last_week, status="En Progreso", created_by=user
+            project=project, title="Overdue 2", due_date=last_week, status="In Progress", created_by=user
         )
         not_overdue = Task.objects.create(
-            project=project, title="Future", due_date=tomorrow, status="Pendiente", created_by=user
+            project=project, title="Future", due_date=tomorrow, status="Pending", created_by=user
         )
         completed = Task.objects.create(
-            project=project, title="Completed", due_date=yesterday, status="Completada", created_by=user
+            project=project, title="Completed", due_date=yesterday, status="Completed", created_by=user
         )
 
         # Overdue: tareas no completadas con due_date < today
-        overdue_tasks = Task.objects.filter(due_date__lt=date.today()).exclude(status="Completada")
+        overdue_tasks = Task.objects.filter(due_date__lt=date.today()).exclude(status="Completed")
 
         assert overdue_tasks.count() == 2
         assert overdue1 in overdue_tasks
@@ -89,7 +89,7 @@ class TestTaskDueDates:
 
         # Due soon: próximos 3 días
         threshold = today + timedelta(days=3)
-        due_soon = Task.objects.filter(due_date__gte=today, due_date__lte=threshold).exclude(status="Completada")
+        due_soon = Task.objects.filter(due_date__gte=today, due_date__lte=threshold).exclude(status="Completed")
 
         assert due_soon.count() == 2
 
@@ -152,9 +152,9 @@ class TestTaskDueDates:
         past_date = date.today() - timedelta(days=5)
 
         task = Task.objects.create(
-            project=project, title="Completed past due", due_date=past_date, status="Completada", created_by=user
+            project=project, title="Completed past due", due_date=past_date, status="Completed", created_by=user
         )
 
-        overdue_tasks = Task.objects.filter(due_date__lt=date.today()).exclude(status="Completada")
+        overdue_tasks = Task.objects.filter(due_date__lt=date.today()).exclude(status="Completed")
 
         assert task not in overdue_tasks

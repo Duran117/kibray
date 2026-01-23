@@ -1904,8 +1904,8 @@ def client_project_view(request, project_id):
     # === TAREAS Y TOUCH-UPS ===
     # Tasks incluyen touch-ups que el cliente puede agregar
     tasks = Task.objects.filter(project=project).order_by("-created_at")
-    pending_tasks = tasks.filter(status__in=["Pendiente", "En Progreso"])
-    completed_tasks = tasks.filter(status="Completada")[:10]
+    pending_tasks = tasks.filter(status__in=["Pending", "In Progress"])
+    completed_tasks = tasks.filter(status="Completed")[:10]
 
     # === COMENTARIOS ===
     comments = Comment.objects.filter(project=project).order_by("-created_at")[:10]
@@ -2503,7 +2503,7 @@ def floor_plan_add_pin(request, plan_id):
                     project=plan.project,
                     title=pin.title or "Touch-up plano",
                     description=pin.description,
-                    status="Pendiente",
+                    status="Pending",
                     created_by=request.user,
                     is_touchup=True,
                 )
@@ -2576,7 +2576,7 @@ def agregar_tarea(request, project_id):
             project=project,
             title=title,
             description=description,
-            status="Pendiente",
+            status="Pending",
             created_by=request.user,
             image=image,
             is_touchup=True,
@@ -2707,7 +2707,7 @@ def touchup_quick_update(request, task_id):
         new_status = request.POST.get("status")
         if new_status in dict(Task.STATUS_CHOICES):
             task.status = new_status
-            if new_status == "Completada":
+            if new_status == "Completed":
                 task.completed_at = timezone.now()
             task.save()
             return JsonResponse({"success": True, "status": task.get_status_display()})
@@ -6135,7 +6135,7 @@ def dashboard_employee(request):
     # Touch-ups asignados
     my_touchups = (
         Task.objects.filter(
-            assigned_to=employee, is_touchup=True, status__in=["Pendiente", "En Progreso"]
+            assigned_to=employee, is_touchup=True, status__in=["Pending", "In Progress"]
         )
         .select_related("project")
         .order_by("-created_at")[:10]
@@ -7415,7 +7415,7 @@ def task_list_view(request, project_id: int):
     today = date.today()
     if overdue_filter == "yes":
         # Tasks overdue (due_date < today and not completed)
-        tasks = tasks.filter(due_date__lt=today).exclude(status="Completada")
+        tasks = tasks.filter(due_date__lt=today).exclude(status="Completed")
     elif overdue_filter == "today":
         # Tasks due today
         tasks = tasks.filter(due_date=today)
@@ -7648,7 +7648,7 @@ def task_command_center(request):
             due_date=request.POST.get("due_date") or None,
             is_touchup=request.POST.get("is_touchup") == "true",
             created_by=request.user,
-            status="Pendiente",
+            status="Pending",
         )
         
         # Handle image upload
@@ -7711,10 +7711,10 @@ def task_command_center(request):
     # Calculate statistics
     stats = {
         "total": tasks.count(),
-        "pending": tasks.filter(status="Pendiente").count(),
-        "in_progress": tasks.filter(status="En Progreso").count(),
-        "completed": tasks.filter(status="Completada").count(),
-        "overdue": tasks.filter(due_date__lt=today).exclude(status__in=["Completada", "Cancelada"]).count(),
+        "pending": tasks.filter(status="Pending").count(),
+        "in_progress": tasks.filter(status="In Progress").count(),
+        "completed": tasks.filter(status="Completed").count(),
+        "overdue": tasks.filter(due_date__lt=today).exclude(status__in=["Completed", "Cancelled"]).count(),
         "unassigned": tasks.filter(assigned_to__isnull=True).count() if is_staff else 0,
         "touchups": tasks.filter(is_touchup=True).count(),
         "my_tasks": tasks.filter(assigned_to=current_employee).count() if current_employee else 0,
@@ -10010,7 +10010,7 @@ def dashboard_superintendent(request):
     touchups = (
         (
             Task.objects.filter(
-                assigned_to=employee, is_touchup=True, status__in=["Pendiente", "En Progreso"]
+                assigned_to=employee, is_touchup=True, status__in=["Pending", "In Progress"]
             )
             .select_related("project")
             .order_by("-created_at")[:15]
@@ -10022,7 +10022,7 @@ def dashboard_superintendent(request):
     # Unassigned touch-ups (for assignment)
     unassigned_touchups = (
         Task.objects.filter(
-            project__in=projects, is_touchup=True, assigned_to__isnull=True, status="Pendiente"
+            project__in=projects, is_touchup=True, assigned_to__isnull=True, status="Pending"
         )
         .select_related("project")
         .order_by("-created_at")[:10]
@@ -12643,10 +12643,10 @@ def analytics_dashboard(request):
     
     # === TASKS METRICS ===
     total_tasks = Task.objects.count()
-    completed_tasks = Task.objects.filter(status='Completada').count()
+    completed_tasks = Task.objects.filter(status='Completed').count()
     overdue_tasks = Task.objects.filter(
         due_date__lt=today
-    ).exclude(status='Completada').exclude(status='Cancelada').count()
+    ).exclude(status='Completed').exclude(status='Cancelled').count()
     
     task_completion_rate = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0
     

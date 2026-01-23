@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import random
 import time
-from typing import Any
+from typing import Any, Optional
 
 
 @dataclass
@@ -52,7 +52,7 @@ class WeatherService:
 
 
 # Singleton accessor
-_weather_service: WeatherService | None = None
+_weather_service: Optional[WeatherService] = None
 
 
 def get_weather_service() -> WeatherService:

@@ -33,12 +33,12 @@ def get_project_health_metrics(project_id: int) -> dict[str, Any]:
     # Task metrics
     tasks = project.tasks.all()
     total_tasks = tasks.count()
-    completed = tasks.filter(status="Completada").count()
-    in_progress = tasks.filter(status="En Progreso").count()
-    pending = tasks.filter(status="Pendiente").count()
-    cancelled = tasks.filter(status="Cancelada").count()
+    completed = tasks.filter(status="Completed").count()
+    in_progress = tasks.filter(status="In Progress").count()
+    pending = tasks.filter(status="Pending").count()
+    cancelled = tasks.filter(status="Cancelled").count()
     overdue = tasks.filter(
-        Q(status__in=["Pendiente", "En Progreso"]) & Q(due_date__lt=timezone.now().date())
+        Q(status__in=["Pending", "In Progress"]) & Q(due_date__lt=timezone.now().date())
     ).count()
 
     completion_pct = (completed / total_tasks * 100) if total_tasks > 0 else 0
@@ -65,7 +65,7 @@ def get_project_health_metrics(project_id: int) -> dict[str, Any]:
 
     # Recent activity
     seven_days_ago = timezone.now() - timedelta(days=7)
-    recent_completions = tasks.filter(status="Completada", completed_at__gte=seven_days_ago).count()
+    recent_completions = tasks.filter(status="Completed", completed_at__gte=seven_days_ago).count()
 
     # Risk flags
     budget_overrun = total_expenses > budget_total
@@ -141,11 +141,11 @@ def get_touchup_analytics(project_id: int = None) -> dict[str, Any]:
     priority_dict = {item["priority"]: item["count"] for item in by_priority}
 
     # Completion rate
-    completed = status_dict.get("Completada", 0)
+    completed = status_dict.get("Completed", 0)
     completion_rate = (completed / total * 100) if total > 0 else 0
 
     # Avg resolution time (created → completed)
-    completed_tasks = qs.filter(status="Completada", completed_at__isnull=False)
+    completed_tasks = qs.filter(status="Completed", completed_at__isnull=False)
     resolution_times = []
     for task in completed_tasks:
         delta = task.completed_at - task.created_at
@@ -257,10 +257,10 @@ def get_pm_performance_analytics() -> dict[str, Any]:
         )
         tasks = Task.objects.filter(project_id__in=pm_projects)
         tasks_assigned = tasks.count()
-        tasks_completed = tasks.filter(status="Completada").count()
+        tasks_completed = tasks.filter(status="Completed").count()
         completion_rate = (tasks_completed / tasks_assigned * 100) if tasks_assigned > 0 else 0
         overdue = tasks.filter(
-            Q(status__in=["Pendiente", "En Progreso"]) & Q(due_date__lt=timezone.now().date())
+            Q(status__in=["Pending", "In Progress"]) & Q(due_date__lt=timezone.now().date())
         ).count()
 
         pm_data.append(

@@ -67,7 +67,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         total_tasks = obj.tasks.count()
         if total_tasks == 0:
             return 0
-        completed_tasks = obj.tasks.filter(status="Completada").count()
+        completed_tasks = obj.tasks.filter(status="Completed").count()
         return int((completed_tasks / total_tasks) * 100)
 
     def get_total_budget(self, obj):

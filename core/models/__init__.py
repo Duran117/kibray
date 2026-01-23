@@ -838,18 +838,18 @@ class ScheduleItem(models.Model):
         tasks_qs = getattr(self, "tasks", None)
         if tasks_qs is None:
             return self.percent_complete
-        qs = self.tasks.exclude(status="Cancelada")
+        qs = self.tasks.exclude(status="Cancelled")
         total = qs.count()
         if total == 0:
             pct = 0
         else:
-            done = qs.filter(status="Completada").count()
+            done = qs.filter(status="Completed").count()
             pct = int((done / total) * 100)
         self.percent_complete = max(0, min(100, pct))
         # Autoestado simple
         if self.percent_complete >= 100:
             self.status = "DONE"
-        elif qs.filter(status="En Progreso").exists():
+        elif qs.filter(status="In Progress").exists():
             self.status = "IN_PROGRESS"
         elif total > 0 and done == 0:
             self.status = "NOT_STARTED"
@@ -1283,7 +1283,7 @@ class Task(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-    # Progreso visual (0-100). Al alcanzar 100, pasa a "En Revisión" automáticamente.
+    # Progreso visual (0-100). Al alcanzar 100, pasa a "Under Review" automáticamente.
     progress_percent = models.IntegerField(default=0, help_text="Porcentaje de progreso (0-100)")
     is_touchup = models.BooleanField(default=False, help_text="Marcar si esta tarea es un touch-up")
     # Q17.7 / Q17.9: Client request flags (added via migration 0069, missing in model definition)
@@ -1392,7 +1392,7 @@ class Task(models.Model):
 
     def can_start(self):
         """Q11.7: Verifica si todas las dependencias están completadas"""
-        return not self.dependencies.exclude(status="Completada").exists()
+        return not self.dependencies.exclude(status="Completed").exists()
 
     def start_tracking(self):
         """Q11.13: Iniciar tracking de tiempo en la tarea"""
@@ -1401,7 +1401,7 @@ class Task(models.Model):
         # Solo iniciar si no hay tracking activo y dependencias están completas
         if not self.started_at and not self.is_touchup and self.can_start():
             self.started_at = timezone.now()
-            self.status = "En Progreso"
+            self.status = "In Progress"
             self.save()
             return True
         return False
@@ -1424,7 +1424,7 @@ class Task(models.Model):
         """Marcar tarea como completada y visible al cliente."""
         from django.utils import timezone
 
-        self.status = "Completada"
+        self.status = "Completed"
         self.progress_percent = 100
         self.is_visible_to_client = True
         self.completed_at = timezone.now()
@@ -1435,7 +1435,7 @@ class Task(models.Model):
         """Rechazar tarea, volver a En Progreso y aumentar contador de rechazos del perfil."""
         from django.db.models import F
 
-        self.status = "En Progreso"
+        self.status = "In Progress"
         self.progress_percent = 50
         self._current_user = user
         self._change_notes = reason or "Rechazada por PM"
@@ -1467,8 +1467,8 @@ class Task(models.Model):
     def reopen_events_count(self):
         """Número de veces que la tarea fue reabierta."""
         return (
-            self.status_changes.filter(old_status="Completada")
-            .exclude(new_status="Completada")
+            self.status_changes.filter(old_status="Completed")
+            .exclude(new_status="Completed")
             .count()
         )
 
@@ -1494,9 +1494,9 @@ class Task(models.Model):
 
     def reopen(self, user=None, notes: str = ""):
         """Reabrir una tarea completada (Q11.12)."""
-        if self.status != "Completada":
+        if self.status != "Completed":
             return False
-        self.status = "En Progreso" if self.can_start() else "Pendiente"
+        self.status = "In Progress" if self.can_start() else "Pending"
         self.completed_at = None
         # Preparar metadata para que la señal de post_save cree UN solo TaskStatusChange
         # y registre correctamente quién y por qué se reabrió.
@@ -1511,14 +1511,14 @@ class Task(models.Model):
         skip_validation = kwargs.pop("skip_validation", False)
         if not skip_validation:
             self.full_clean()
-        # Regla de negocio: si el progreso llega a 100 y no está completada, mover a "En Revisión"
+        # Regla de negocio: si el progreso llega a 100 y no está completada, mover a "Under Review"
         try:
             if (
                 self.progress_percent is not None
                 and int(self.progress_percent) >= 100
-                and self.status not in ("En Revisión", "Completada")
+                and self.status not in ("Under Review", "Completed")
             ):
-                self.status = "En Revisión"
+                self.status = "Under Review"
         except Exception:
             # Ignorar si el campo no existe en migraciones antiguas
             pass
@@ -1548,7 +1548,7 @@ class Task(models.Model):
             Notification.objects.create(
                 user=assigned_user,
                 notification_type="task_completed"
-                if self.status == "Completada"
+                if self.status == "Completed"
                 else "task_created",
                 title=f"Tarea actualizada: {self.title}",
                 message=f'{changed_by_name} cambió el estado de "{self.title}" de {old_status} a {self.status}',
@@ -1556,7 +1556,7 @@ class Task(models.Model):
                 related_object_id=self.id,
                 link_url=link,
             )
-        if self.status in ["Completada", "En Progreso"] or old_status == "Completada":
+        if self.status in ["Completed", "In Progress"] or old_status == "Completed":
             pms = User.objects.filter(profile__role="project_manager", is_active=True)
             for pm in pms:
                 if pm != changed_by:
@@ -1839,7 +1839,7 @@ class TaskTemplate(models.Model):
             "description": self.description,
             "priority": self.default_priority,
             "created_by": created_by,
-            "status": "Pendiente",
+            "status": "Pending",
         }
         if assigned_to:
             data["assigned_to"] = assigned_to
@@ -2712,7 +2712,7 @@ class Invoice(models.Model):
         ("PARTIAL", "Pago Parcial"),
         ("PAID", "Pagada Completa"),
         ("OVERDUE", "Vencida"),
-        ("CANCELLED", "Cancelada"),
+        ("CANCELLED", "Cancelled"),
     ]
 
     if TYPE_CHECKING:
@@ -3327,7 +3327,7 @@ class DailyLog(models.Model):
                 project=self.project,
                 created_by=created_by,
                 assigned_to=assigned_to,
-                extra_fields={"description": tpl.description, "status": "Pendiente"},
+                extra_fields={"description": tpl.description, "status": "Pending"},
             )
             self.planned_tasks.add(task)
             created.append(task)
@@ -3340,7 +3340,7 @@ class DailyLog(models.Model):
             self.is_complete = False
             self.incomplete_reason = "No tasks planned."
         else:
-            done = self.planned_tasks.filter(status="Completada").count()
+            done = self.planned_tasks.filter(status="Completed").count()
             self.is_complete = done == total
             self.incomplete_reason = (
                 "" if self.is_complete else f"{total - done} tasks remaining to complete"
@@ -3485,13 +3485,13 @@ class MaterialRequest(models.Model):
     # Status choices con transición a nombres normalizados
     STATUS_CHOICES = [
         ("draft", "Borrador"),  # Q14.4: Estado inicial
-        ("pending", "Pendiente"),  # Enviada, esperando aprobación
+        ("pending", "Pending"),  # Enviada, esperando aprobación
         ("approved", "Aprobada"),  # Q14.4: Admin aprobó
         ("submitted", "Enviada"),  # DEPRECATED: bloqueado en clean()
         ("ordered", "Ordenada"),
         ("partially_received", "Parcialmente recibida"),  # Q14.10
         ("fulfilled", "Entregada"),
-        ("cancelled", "Cancelada"),
+        ("cancelled", "Cancelled"),
         ("purchased_lead", "Compra directa (líder)"),
     ]
 
@@ -3821,7 +3821,7 @@ class ClientRequest(models.Model):
         ("info", "Información"),
     ]
     STATUS_CHOICES = [
-        ("pending", "Pendiente"),
+        ("pending", "Pending"),
         ("approved", "Aprobada"),
         ("converted", "Convertida a CO"),
         ("rejected", "Rechazada"),
@@ -4240,7 +4240,7 @@ class SitePhoto(models.Model):
 class ColorSample(models.Model):
     STATUS_CHOICES = [
         ("proposed", "Propuesto"),
-        ("review", "En Revisión"),
+        ("review", "Under Review"),
         ("approved", "Aprobado"),
         ("rejected", "Rechazado"),
         ("archived", "Archivado"),
@@ -4641,7 +4641,7 @@ class PlanPin(models.Model):
                 project=self.plan.project,
                 title=f"{self.pin_type.title()}: {self.title or 'Issue on plan'}",
                 description=f"Pin created on {self.plan.name}\nLocation: ({self.x}, {self.y})\n{self.description}",
-                status="Pendiente",
+                status="Pending",
                 created_by=self.created_by,
                 is_touchup=(self.pin_type == "touchup"),
                 priority="high" if self.pin_type == "damage" else "medium",
@@ -4759,7 +4759,7 @@ class DamageReport(models.Model):
     ]
     STATUS_CHOICES = [
         ("open", "Abierto"),
-        ("in_progress", "En Progreso"),
+        ("in_progress", "In Progress"),
         ("resolved", "Resuelto"),
     ]
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="damage_reports")
@@ -4870,7 +4870,7 @@ class DamageReport(models.Model):
                 project=self.project,
                 title=f"Repair: {self.title}",
                 description=f"Damage Report #{self.id}: {self.description}\nSeverity: {self.get_severity_display()}",
-                status="Pendiente",
+                status="Pending",
                 created_by=self.reported_by,
                 is_touchup=False,
                 priority="high" if self.severity in ["high", "critical"] else "medium",
@@ -6535,7 +6535,7 @@ class DailyPlan(models.Model):
                 project=self.project,
                 title=activity.title,
                 description=activity.description or f"From Daily Plan {self.plan_date}",
-                status="Pendiente",
+                status="Pending",
                 priority="medium",
                 created_by=user or self.created_by,
                 schedule_item=activity.schedule_item,
@@ -8458,8 +8458,8 @@ class DocumentWorkflow(models.Model):
         id: int
 
     STATUS_CHOICES = [
-        ("pending", "Pendiente"),
-        ("in_progress", "En Progreso"),
+        ("pending", "Pending"),
+        ("in_progress", "In Progress"),
         ("approved", "Aprobado"),
         ("rejected", "Rechazado"),
         ("cancelled", "Cancelado"),
@@ -8627,8 +8627,8 @@ class TouchUpPin(models.Model):
         completion_photos: "RelatedManager[TouchUpCompletionPhoto]"
 
     STATUS_CHOICES = [
-        ("pending", "Pendiente"),
-        ("in_progress", "En Progreso"),
+        ("pending", "Pending"),
+        ("in_progress", "In Progress"),
         ("completed", "Completado"),
         ("archived", "Archivado"),
     ]
@@ -9461,4 +9461,9 @@ __all__ = [
     "AIAnalysisLog",
     "AISuggestion",
     "VoiceCommand",
+    # Migrated models from old core/models.py
+    "FileAttachment",
+    "DeviceToken",
+    "NotificationPreference",
+    "DocumentRequest",
 ]

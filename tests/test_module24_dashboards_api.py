@@ -498,7 +498,7 @@ class TestAdminDashboard:
             project=p1,
             assigned_to=emp1,
             due_date=timezone.now().date(),
-            status="Pendiente",
+            status="Pending",
         )
 
         resp = client.get("/api/v1/dashboards/admin/")
@@ -602,7 +602,7 @@ class TestAdminDashboard:
             project=p,
             assigned_to=emp,
             due_date=timezone.now().date(),
-            status="Pendiente",
+            status="Pending",
         )
 
         Invoice.objects.create(

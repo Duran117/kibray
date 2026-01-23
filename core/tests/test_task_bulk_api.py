@@ -54,12 +54,12 @@ def test_bulk_task_assign_priority_status():
     # Bulk status change
     r3 = client.post(
         "/api/v1/tasks/bulk-update/",
-        {"task_ids": task_ids, "action": "status", "value": "En Progreso"},
+        {"task_ids": task_ids, "action": "status", "value": "In Progress"},
         format="json",
     )
     assert r3.status_code == 200
     for t in Task.objects.filter(id__in=task_ids):
-        assert t.status == "En Progreso"
+        assert t.status == "In Progress"
 
     # Invalid priority
     r_bad = client.post(

@@ -84,7 +84,7 @@ def task(db, project, admin_user):
         project=project,
         title="Test Task",
         description="Test description",
-        status="Pendiente",
+        status="Pending",
         priority="medium",
         created_by=admin_user,
     )
@@ -106,7 +106,7 @@ class TestTaskCRUD:
 
         assert task.pk is not None
         assert task.title == "Minimal Task"
-        assert task.status == "Pendiente"  # Default
+        assert task.status == "Pending"  # Default
         assert task.priority == "medium"  # Default
         assert task.created_at is not None
         assert task.is_touchup is False  # Default
@@ -119,7 +119,7 @@ class TestTaskCRUD:
             project=project,
             title="Full Task",
             description="Complete task with all fields",
-            status="En Progreso",
+            status="In Progress",
             priority="high",
             created_by=admin_user,
             assigned_to=employee,
@@ -142,12 +142,12 @@ class TestTaskCRUD:
     def test_update_task(self, task):
         """Test updating task fields"""
         task.title = "Updated Title"
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         retrieved = Task.objects.get(pk=task.pk)
         assert retrieved.title == "Updated Title"
-        assert retrieved.status == "Completada"
+        assert retrieved.status == "Completed"
 
     def test_delete_task(self, task):
         """Test deleting task"""
@@ -220,7 +220,7 @@ class TestTaskDependencies:
         task1 = Task.objects.create(
             project=project,
             title="Task 1",
-            status="Completada",
+            status="Completed",
             created_by=admin_user,  # Already completed
         )
         task2 = Task.objects.create(project=project, title="Task 2", created_by=admin_user)
@@ -233,7 +233,7 @@ class TestTaskDependencies:
         task1 = Task.objects.create(
             project=project,
             title="Task 1",
-            status="Pendiente",
+            status="Pending",
             created_by=admin_user,  # Not completed
         )
         task2 = Task.objects.create(project=project, title="Task 2", created_by=admin_user)
@@ -243,11 +243,11 @@ class TestTaskDependencies:
 
     def test_multiple_dependencies(self, project, admin_user):
         """Test task with multiple dependencies"""
-        task1 = Task.objects.create(project=project, title="Task 1", status="Completada", created_by=admin_user)
+        task1 = Task.objects.create(project=project, title="Task 1", status="Completed", created_by=admin_user)
         task2 = Task.objects.create(
             project=project,
             title="Task 2",
-            status="En Progreso",
+            status="In Progress",
             created_by=admin_user,  # Not completed
         )
         task3 = Task.objects.create(project=project, title="Task 3", created_by=admin_user)
@@ -258,7 +258,7 @@ class TestTaskDependencies:
         assert task3.can_start() is False
 
         # Complete task2
-        task2.status = "Completada"
+        task2.status = "Completed"
         task2.save()
 
         # Now can start
@@ -292,13 +292,13 @@ class TestTaskDueDate:
         future_date = date.today() + timedelta(days=1)
 
         Task.objects.create(
-            project=project, title="Overdue Task", due_date=past_date, status="Pendiente", created_by=admin_user
+            project=project, title="Overdue Task", due_date=past_date, status="Pending", created_by=admin_user
         )
         Task.objects.create(
-            project=project, title="Future Task", due_date=future_date, status="Pendiente", created_by=admin_user
+            project=project, title="Future Task", due_date=future_date, status="Pending", created_by=admin_user
         )
 
-        overdue = Task.objects.filter(due_date__lt=date.today(), status__in=["Pendiente", "En Progreso"])
+        overdue = Task.objects.filter(due_date__lt=date.today(), status__in=["Pending", "In Progress"])
 
         assert overdue.count() == 1
         assert overdue.first().title == "Overdue Task"
@@ -320,7 +320,7 @@ class TestTaskTimeTracking:
 
         assert result is True
         assert task.started_at is not None
-        assert task.status == "En Progreso"
+        assert task.status == "In Progress"
 
     def test_cannot_start_tracking_twice(self, task):
         """Test cannot start tracking if already started"""
@@ -427,37 +427,37 @@ class TestTaskStatusChanges:
         # For now, test the model structure
 
         old_status = task.status
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Manual creation for testing (real implementation uses signal)
         TaskStatusChange.objects.create(
-            task=task, old_status=old_status, new_status="Completada", changed_by=admin_user
+            task=task, old_status=old_status, new_status="Completed", changed_by=admin_user
         )
 
         changes = TaskStatusChange.objects.filter(task=task)
         assert changes.count() >= 1
-        assert changes.first().new_status == "Completada"
+        assert changes.first().new_status == "Completed"
 
     def test_reopen_completed_task(self, task, admin_user):
         """Test reopening completed task (Q11.12)"""
         # Complete task
-        task.status = "Completada"
+        task.status = "Completed"
         task.completed_at = timezone.now()
         task.save()
 
         # Reopen
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.completed_at = None
         task.save()
 
         # Create manual status change for testing
         TaskStatusChange.objects.create(
-            task=task, old_status="Completada", new_status="En Progreso", changed_by=admin_user, notes="Task reopened"
+            task=task, old_status="Completed", new_status="In Progress", changed_by=admin_user, notes="Task reopened"
         )
 
         changes = TaskStatusChange.objects.filter(task=task)
-        reopens = [c for c in changes if c.old_status == "Completada"]
+        reopens = [c for c in changes if c.old_status == "Completed"]
 
         assert len(reopens) >= 1
 
@@ -593,12 +593,12 @@ class TestClientRequests:
         # Client cancels
         task.client_cancelled = True
         task.cancellation_reason = "No longer needed"
-        task.status = "Cancelada"
+        task.status = "Cancelled"
         task.save()
 
         assert task.client_cancelled is True
         assert task.cancellation_reason == "No longer needed"
-        assert task.status == "Cancelada"
+        assert task.status == "Cancelled"
 
 
 # ============================================================================

@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from core.models import Employee, Task, FloorPlan
 from core.notifications import notify_task_created
 
-STATUS_CHOICES = {"Pendiente", "En Progreso", "En Revisión", "Completada", "Cancelada"}
+STATUS_CHOICES = {"Pending", "In Progress", "Under Review", "Completed", "Cancelled"}
 PRIORITY_CHOICES = {"low", "medium", "high", "urgent"}
 # Accept alias used in template prompt
 PRIORITY_ALIASES = {"normal": "medium"}

@@ -78,7 +78,7 @@ class TestTimeEntryAPI:
         api_client.force_authenticate(user=user)
         # Create a task and time entries
         task = Task.objects.create(
-            project=project, title="Paint", status="Pendiente", priority="medium", created_by=user
+            project=project, title="Paint", status="Pending", priority="medium", created_by=user
         )
         TimeEntry.objects.create(
             employee=employee,
@@ -111,7 +111,7 @@ class TestVarianceAndPlanRollup:
         act = PlannedActivity.objects.create(daily_plan=plan, title="Prep", estimated_hours=Decimal("4.00"))
         # Convert to task
         task = Task.objects.create(
-            project=project, title="Prep", status="Pendiente", priority="medium", created_by=user
+            project=project, title="Prep", status="Pending", priority="medium", created_by=user
         )
         act.converted_task = task
         act.save()
@@ -149,9 +149,9 @@ class TestVarianceAndPlanRollup:
         # Activities and tasks
         act1 = PlannedActivity.objects.create(daily_plan=plan, title="Walls", estimated_hours=Decimal("3.00"))
         act2 = PlannedActivity.objects.create(daily_plan=plan, title="Ceiling", estimated_hours=Decimal("5.00"))
-        t1 = Task.objects.create(project=project, title="Walls", status="Pendiente", priority="medium", created_by=user)
+        t1 = Task.objects.create(project=project, title="Walls", status="Pending", priority="medium", created_by=user)
         t2 = Task.objects.create(
-            project=project, title="Ceiling", status="Pendiente", priority="medium", created_by=user
+            project=project, title="Ceiling", status="Pending", priority="medium", created_by=user
         )
         act1.converted_task = t1
         act1.save()

@@ -14,9 +14,9 @@ def test_project_dashboard_basic():
     user = User.objects.create_user(username="admin", password="pass")
     project = Project.objects.create(name="Proj A", start_date="2025-01-01")
     # Seed tasks
-    Task.objects.create(project=project, title="T1", status="Pendiente")
-    Task.objects.create(project=project, title="T2", status="En Progreso")
-    Task.objects.create(project=project, title="T3", status="Completada", is_touchup=True)
+    Task.objects.create(project=project, title="T1", status="Pending")
+    Task.objects.create(project=project, title="T2", status="In Progress")
+    Task.objects.create(project=project, title="T3", status="Completed", is_touchup=True)
 
     # Color samples
     ColorSample.objects.create(project=project, code="C1", status="proposed")
@@ -46,7 +46,7 @@ def test_client_dashboard_access():
     # Grant access
     ClientProjectAccess.objects.create(user=client_user, project=project, role="client")
     # Touch-up task & color review
-    Task.objects.create(project=project, title="TouchUp", status="Pendiente", is_touchup=True)
+    Task.objects.create(project=project, title="TouchUp", status="Pending", is_touchup=True)
     ColorSample.objects.create(project=project, code="X1", status="review")
 
     api = APIClient()

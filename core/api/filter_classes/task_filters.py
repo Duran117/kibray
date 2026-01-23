@@ -16,18 +16,19 @@ class TaskFilter(django_filters.FilterSet):
     description = django_filters.CharFilter(lookup_expr="icontains")
     status = django_filters.MultipleChoiceFilter(
         choices=[
-            ("Pendiente", "Pendiente"),
-            ("En Progreso", "En Progreso"),
-            ("Completada", "Completada"),
-            ("Cancelada", "Cancelada"),
+            ("Pending", "Pending"),
+            ("In Progress", "In Progress"),
+            ("Under Review", "Under Review"),
+            ("Completed", "Completed"),
+            ("Cancelled", "Cancelled"),
         ]
     )
     priority = django_filters.MultipleChoiceFilter(
         choices=[
-            ("low", "Baja"),
-            ("medium", "Media"),
-            ("high", "Alta"),
-            ("urgent", "Urgente"),
+            ("low", "Low"),
+            ("medium", "Medium"),
+            ("high", "High"),
+            ("urgent", "Urgent"),
         ]
     )
     assigned_to = django_filters.NumberFilter(field_name="assigned_to__id")
@@ -46,8 +47,8 @@ class TaskFilter(django_filters.FilterSet):
         today = timezone.now().date()
 
         if value:
-            # Overdue: due_date < today AND status != 'Completada'
-            return queryset.filter(due_date__lt=today).exclude(status="Completada")
+            # Overdue: due_date < today AND status != 'Completed'
+            return queryset.filter(due_date__lt=today).exclude(status="Completed")
         else:
-            # Not overdue: due_date >= today OR status == 'Completada'
-            return queryset.filter(models.Q(due_date__gte=today) | models.Q(status="Completada"))
+            # Not overdue: due_date >= today OR status == 'Completed'
+            return queryset.filter(models.Q(due_date__gte=today) | models.Q(status="Completed"))

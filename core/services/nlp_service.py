@@ -12,6 +12,7 @@ Features:
 
 from dataclasses import dataclass
 import re
+from typing import Optional, Tuple
 
 from django.db.models import Q
 
@@ -53,10 +54,10 @@ class ActivityEntity:
 
     title: str
     description: str = ""
-    estimated_hours: float | None = None
+    estimated_hours: Optional[float] = None
     employees: list[str] = None  # Employee names
     materials: list[str] = None  # Material descriptions
-    template_name: str | None = None
+    template_name: Optional[str] = None
 
     def __post_init__(self):
         if self.employees is None:
@@ -161,7 +162,7 @@ class DailyPlanNLU:
         """Initialize NLU service"""
         pass
 
-    def parse_command(self, text: str, context: dict | None = None) -> ParsedCommand:
+    def parse_command(self, text: str, context: Optional[dict] = None) -> ParsedCommand:
         """
         Parse natural language command
 
@@ -276,7 +277,7 @@ class DailyPlanNLU:
 
         return entities, confidence
 
-    def _extract_activity_title(self, text: str) -> str | None:
+    def _extract_activity_title(self, text: str) -> Optional[str]:
         """Extract activity title from text"""
         text_lower = text.lower()
 
@@ -340,7 +341,7 @@ class DailyPlanNLU:
 
         return employees
 
-    def _extract_duration(self, text: str) -> float | None:
+    def _extract_duration(self, text: str) -> Optional[float]:
         """Extract duration in hours from text"""
         for pattern in self.PATTERNS["set_duration"]:
             match = re.search(pattern, text, re.IGNORECASE)
@@ -387,7 +388,7 @@ class DailyPlanNLU:
 
     def execute_command(
         self, parsed_command: ParsedCommand, daily_plan: DailyPlan, user
-    ) -> tuple[bool, str, PlannedActivity | None]:
+    ) -> Tuple[bool, str, Optional[PlannedActivity]]:
         """
         Execute a parsed command
 
@@ -409,7 +410,7 @@ class DailyPlanNLU:
 
     def _execute_add_activity(
         self, parsed_command: ParsedCommand, daily_plan: DailyPlan
-    ) -> tuple[bool, str, PlannedActivity | None]:
+    ) -> Tuple[bool, str, Optional[PlannedActivity]]:
         """Execute 'add_activity' command"""
         entities = parsed_command.entities
 

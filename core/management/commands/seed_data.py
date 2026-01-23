@@ -157,7 +157,7 @@ class Command(BaseCommand):
         # Create Tasks
         tasks = []
         self.stdout.write('Creating tasks...')
-        statuses = ['Pendiente', 'En Progreso', 'Completada', 'Cancelada']
+        statuses = ['Pending', 'In Progress', 'Completed', 'Cancelled']
         priorities = ['low', 'medium', 'high', 'urgent']
 
         for i in range(50):
@@ -176,7 +176,7 @@ class Command(BaseCommand):
                 assigned_to=random.choice(employees) if employees and random.random() > 0.3 else None,
             )
 
-            if status == 'Completada':
+            if status == 'Completed':
                 task.completed_at = timezone.now() - timedelta(days=random.randint(1, 30))
                 task.save()
 

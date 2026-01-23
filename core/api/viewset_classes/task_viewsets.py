@@ -82,18 +82,18 @@ class TaskViewSet(viewsets.ModelViewSet):
             emp = getattr(request.user, "employee_profile", None)
             qs = qs.none() if emp is None else qs.filter(assigned_to=emp)
         columns = [
-            {"key": "Pendiente", "title": "Pendiente", "items": []},
-            {"key": "En Progreso", "title": "En Progreso", "items": []},
-            {"key": "Completada", "title": "Completada", "items": []},
+            {"key": "Pending", "title": "Pending", "items": []},
+            {"key": "In Progress", "title": "In Progress", "items": []},
+            {"key": "Completed", "title": "Completed", "items": []},
         ]
         col_map = {c["key"]: c for c in columns}
         for task in qs.order_by("priority", "due_date"):
-            key = task.status if task.status in col_map else "Pendiente"
+            key = task.status if task.status in col_map else "Pending"
             col_map[key]["items"].append(TaskListSerializer(task).data)
         totals = {
-            "pending": qs.filter(status="Pendiente").count(),
-            "in_progress": qs.filter(status="En Progreso").count(),
-            "completed": qs.filter(status="Completada").count(),
+            "pending": qs.filter(status="Pending").count(),
+            "in_progress": qs.filter(status="In Progress").count(),
+            "completed": qs.filter(status="Completed").count(),
             "total": qs.count(),
         }
         return Response(
@@ -127,7 +127,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def overdue(self, request):
         """Get overdue tasks"""
         today = timezone.now().date()
-        queryset = self.get_queryset().filter(due_date__lt=today).exclude(status="Completada")
+        queryset = self.get_queryset().filter(due_date__lt=today).exclude(status="Completed")
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -146,8 +146,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         if not new_status:
             return Response({"error": "status is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate status
-        valid_statuses = ["Pendiente", "En Progreso", "Completada", "Cancelada"]
+        # Validate status (must match model choices)
+        valid_statuses = ["Pending", "In Progress", "Under Review", "Completed", "Cancelled"]
         if new_status not in valid_statuses:
             return Response(
                 {"error": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"},
@@ -155,7 +155,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             )
 
         # Touch-up rule: cannot complete without at least one image
-        if new_status == "Completada" and task.is_touchup:
+        if new_status == "Completed" and task.is_touchup:
             has_image = bool(task.image) or (hasattr(task, "images") and task.images.exists())
             if not has_image:
                 return Response(
@@ -164,7 +164,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                 )
 
         task.status = new_status
-        if new_status == "Completada":
+        if new_status == "Completed":
             task.completed_at = timezone.now()
         task.save()
 

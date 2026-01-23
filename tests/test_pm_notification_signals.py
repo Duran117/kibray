@@ -76,7 +76,7 @@ class TestProjectManagerNotifications:
             project=project,
             title="Test Task for PM Notification",
             description="Testing PM notifications",
-            status="Pendiente",
+            status="Pending",
             created_by=task_creator
         )
 
@@ -85,7 +85,7 @@ class TestProjectManagerNotifications:
 
         # Change task status (by admin)
         task._changed_by = admin_user
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.save()
 
         # Verify PM received notification
@@ -98,7 +98,7 @@ class TestProjectManagerNotifications:
 
         # Verify notification content
         notif = pm_notifications.first()
-        assert "En Progreso" in notif.message
+        assert "In Progress" in notif.message
         assert task.title in notif.message
 
     def test_multiple_pms_receive_notifications(
@@ -133,7 +133,7 @@ class TestProjectManagerNotifications:
         task = Task.objects.create(
             project=project,
             title="Multi-PM Task",
-            status="Pendiente",
+            status="Pending",
             created_by=task_creator
         )
 
@@ -142,7 +142,7 @@ class TestProjectManagerNotifications:
 
         # Change status
         task._changed_by = admin_user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify both PMs received notifications
@@ -175,7 +175,7 @@ class TestProjectManagerNotifications:
         task = Task.objects.create(
             project=project,
             title="PM Self-Change Task",
-            status="Pendiente",
+            status="Pending",
             created_by=pm_user
         )
 
@@ -184,7 +184,7 @@ class TestProjectManagerNotifications:
 
         # PM changes status themselves
         task._changed_by = pm_user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify PM did not receive notification
@@ -203,7 +203,7 @@ class TestProjectManagerNotifications:
         task = Task.objects.create(
             project=project,
             title="No PM Task",
-            status="Pendiente",
+            status="Pending",
             created_by=task_creator
         )
 
@@ -212,7 +212,7 @@ class TestProjectManagerNotifications:
 
         # Change status - should not cause error
         task._changed_by = admin_user
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.save()
 
         # Only creator should receive notification, no PM notifications
@@ -241,7 +241,7 @@ class TestProjectManagerNotifications:
         task = Task.objects.create(
             project=project,
             title="Dual Notification Task",
-            status="Pendiente",
+            status="Pending",
             created_by=task_creator
         )
 
@@ -250,7 +250,7 @@ class TestProjectManagerNotifications:
 
         # Change status (by admin, not creator or PM)
         task._changed_by = admin_user
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.save()
 
         # Verify both received notifications

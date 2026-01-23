@@ -214,7 +214,7 @@ class TestProjectActivationService:
         
         assert first_task.project == project
         assert first_task.title == first_schedule.title
-        assert first_task.status == "Pendiente"
+        assert first_task.status == "Pending"
         assert first_task.priority == "medium"
         assert first_task.due_date == first_schedule.planned_end
 

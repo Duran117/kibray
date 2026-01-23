@@ -84,7 +84,7 @@ def notification_badges(request):
             ).count()
             # Nuevas tareas creadas por clientes en estado Pendiente
             badges["new_client_tasks_count"] = Task.objects.filter(
-                status="Pendiente", created_by__profile__role="client"
+                status="Pending", created_by__profile__role="client"
             ).count()
             # Muestras de color en revisión para aprobación
             badges["color_samples_review_count"] = ColorSample.objects.filter(
@@ -98,7 +98,7 @@ def notification_badges(request):
                 recent_cutoff = timezone.now() - timezone.timedelta(days=3)
                 badges["completed_tasks_client_count"] = Task.objects.filter(
                     project__client=request.user.username,
-                    status="Completada",
+                    status="Completed",
                     completed_at__gte=recent_cutoff,
                 ).count()
     except Exception:

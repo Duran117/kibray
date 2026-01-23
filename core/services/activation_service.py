@@ -11,7 +11,7 @@ This service handles the conversion of approved estimates into operational entit
 
 from datetime import timedelta
 from decimal import Decimal
-from typing import Any
+from typing import Any, List, Optional, Tuple
 
 from django.db import transaction
 from django.utils import timezone
@@ -43,7 +43,7 @@ class ProjectActivationService:
         self.project = project
         self.estimate = estimate
 
-    def validate_estimate(self) -> tuple[bool, str | None]:
+    def validate_estimate(self) -> Tuple[bool, Optional[str]]:
         """
         Validate that estimate is ready for activation.
 
@@ -62,8 +62,8 @@ class ProjectActivationService:
     def create_schedule_from_estimate(
         self,
         start_date,
-        items_to_schedule: list[EstimateLine] | None = None,
-        selected_line_ids: list[int] | None = None,
+        items_to_schedule: Optional[List[EstimateLine]] = None,
+        selected_line_ids: Optional[List[int]] = None,
     ) -> list[ScheduleItem]:
         """
         Create ScheduleItems from EstimateLines.
@@ -194,7 +194,7 @@ class ProjectActivationService:
                 project=self.project,
                 title=schedule_item.title,
                 description=schedule_item.description or "",
-                status="Pendiente",
+                status="Pending",
                 priority="medium",
                 due_date=schedule_item.planned_end,
                 assigned_to=assigned_to,
@@ -230,7 +230,7 @@ class ProjectActivationService:
         return total
 
     @transaction.atomic
-    def create_deposit_invoice(self, deposit_percent: int, due_date=None) -> Invoice | None:
+    def create_deposit_invoice(self, deposit_percent: int, due_date=None) -> Optional[Invoice]:
         """
         Create deposit/advance invoice.
 
@@ -283,8 +283,8 @@ class ProjectActivationService:
         create_budget: bool = True,
         create_tasks: bool = False,
         deposit_percent: int = 0,
-        items_to_schedule: list[EstimateLine] | None = None,
-        selected_line_ids: list[int] | None = None,
+        items_to_schedule: Optional[List[EstimateLine]] = None,
+        selected_line_ids: Optional[List[int]] = None,
         assigned_to=None,
     ) -> dict[str, Any]:
         """

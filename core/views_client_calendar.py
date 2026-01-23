@@ -151,7 +151,7 @@ def client_calendar_api_data(request, project_id):
         # Status display
         status_display = {
             "planned": "Planificado",
-            "in_progress": "En Progreso",
+            "in_progress": "In Progress",
             "blocked": "Bloqueado",
             "done": "Completado",
         }.get(item.status, item.status)
@@ -225,7 +225,7 @@ def client_calendar_milestone_detail(request, item_id):
     # Status display mapping
     status_display = {
         "planned": "Planificado",
-        "in_progress": "En Progreso",
+        "in_progress": "In Progress",
         "blocked": "Bloqueado",
         "done": "Completado",
     }.get(item.status, item.status)

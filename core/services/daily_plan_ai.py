@@ -86,8 +86,8 @@ class ActivitySuggestion:
     estimated_hours: float
     suggested_employees: list[str]  # Employee names
     required_materials: list[str]
-    schedule_item_id: int | None = None
-    activity_template_id: int | None = None
+    schedule_item_id: Optional[int] = None
+    activity_template_id: Optional[int] = None
     confidence: float = 0.8  # 0-1
 
 

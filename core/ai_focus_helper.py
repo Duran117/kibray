@@ -8,6 +8,7 @@ Date: December 3, 2025
 
 import json
 import logging
+from typing import Dict, List, Optional
 
 from django.conf import settings
 
@@ -141,7 +142,7 @@ Be HONEST. Low scores are OK for admin work. High scores only for truly impactfu
         return _fallback_scoring(task_title, task_description, user_role)
 
 
-def recommend_one_thing_ai(tasks: list[dict], user_context: dict) -> dict | None:
+def recommend_one_thing_ai(tasks: list[dict], user_context: dict) -> Optional[Dict]:
     """
     AI analyzes all tasks and recommends THE ONE THING (Frog task)
 

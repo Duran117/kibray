@@ -46,7 +46,7 @@ def project(db):
 def task(db, project, user):
     """Basic task"""
     return Task.objects.create(
-        project=project, title="Test Task", description="Test Description", status="Pendiente", created_by=user
+        project=project, title="Test Task", description="Test Description", status="Pending", created_by=user
     )
 
 
@@ -67,7 +67,7 @@ class TestTaskStatusChangeSignal:
 
         # Change status
         task._changed_by = user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify TaskStatusChange was created (may be >=2 due to full_clean())
@@ -75,7 +75,7 @@ class TestTaskStatusChangeSignal:
         assert changes.count() >= 1
 
         # Verify at least one change has correct status transition
-        assert changes.filter(old_status="Pendiente", new_status="Completada").exists()
+        assert changes.filter(old_status="Pending", new_status="Completed").exists()
 
     def test_no_change_no_record(self, task):
         """Test that saving without status change doesn't create record"""
@@ -104,7 +104,7 @@ class TestTaskStatusNotifications:
 
         # Change status (by admin)
         task._changed_by = admin_user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify notification sent to creator (use 'user' field, not 'recipient')
@@ -114,7 +114,7 @@ class TestTaskStatusNotifications:
         assert notifications.count() >= 1
 
         notif = notifications.first()
-        assert "Completada" in notif.message
+        assert "Completed" in notif.message
 
     def test_no_self_notification(self, project, user):
         """Test user doesn't receive notification for their own status change"""
@@ -125,7 +125,7 @@ class TestTaskStatusNotifications:
 
         # Change status (by same user)
         task._changed_by = user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify no notification sent to self
@@ -204,19 +204,19 @@ class TestTimeTrackingAutoStatus:
         from core.models import TaskStatusChange
 
         # Task starts as Pendiente
-        assert task.status == "Pendiente"
+        assert task.status == "Pending"
 
         # Start tracking
         task.start_tracking()
 
         # Verify status changed
         task.refresh_from_db()
-        assert task.status == "En Progreso"
+        assert task.status == "In Progress"
 
         # Verify status change recorded (exactamente uno tras refactor)
         changes_before = TaskStatusChange.objects.filter(task=task)
         assert changes_before.count() == 1
-        assert changes_before.filter(new_status="En Progreso").exists()
+        assert changes_before.filter(new_status="In Progress").exists()
 
         task.description = "Updated description"
         task.save()
@@ -241,7 +241,7 @@ class TestTaskStatusNotifications:
 
         # Change status (by admin)
         task._changed_by = admin_user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify notification sent to creator (use 'user' field, not 'recipient')
@@ -251,7 +251,7 @@ class TestTaskStatusNotifications:
         assert notifications.count() >= 1
 
         notif = notifications.first()
-        assert "Completada" in notif.message
+        assert "Completed" in notif.message
 
     def test_no_self_notification(self, project, user):
         """Test user doesn't receive notification for their own status change"""
@@ -262,7 +262,7 @@ class TestTaskStatusNotifications:
 
         # Change status (by same user)
         task._changed_by = user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify no notification sent to self
@@ -341,19 +341,19 @@ class TestTimeTrackingAutoStatus:
         from core.models import TaskStatusChange
 
         # Task starts as Pendiente
-        assert task.status == "Pendiente"
+        assert task.status == "Pending"
 
         # Start tracking
         task.start_tracking()
 
         # Verify status changed
         task.refresh_from_db()
-        assert task.status == "En Progreso"
+        assert task.status == "In Progress"
 
         # Verify status change recorded (may be >=2 due to full_clean())
         changes = TaskStatusChange.objects.filter(task=task)
         assert changes.count() >= 1
-        assert changes.filter(new_status="En Progreso").exists()
+        assert changes.filter(new_status="In Progress").exists()
 
 
 @pytest.mark.django_db
@@ -368,7 +368,7 @@ class TestTaskStatusChangeSignal:
 
         # Change status
         task._changed_by = user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify TaskStatusChange was created
@@ -376,8 +376,8 @@ class TestTaskStatusChangeSignal:
         assert changes.count() == 1
 
         change = changes.first()
-        assert change.old_status == "Pendiente"
-        assert change.new_status == "Completada"
+        assert change.old_status == "Pending"
+        assert change.new_status == "Completed"
         assert change.changed_by == user
 
     def test_multiple_status_changes(self, task, user):
@@ -386,22 +386,22 @@ class TestTaskStatusChangeSignal:
 
         # First change
         task._changed_by = user
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.save()
 
         # Second change
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify both changes recorded
         changes = TaskStatusChange.objects.filter(task=task).order_by("changed_at")
         assert changes.count() == 2
 
-        assert changes[0].old_status == "Pendiente"
-        assert changes[0].new_status == "En Progreso"
+        assert changes[0].old_status == "Pending"
+        assert changes[0].new_status == "In Progress"
 
-        assert changes[1].old_status == "En Progreso"
-        assert changes[1].new_status == "Completada"
+        assert changes[1].old_status == "In Progress"
+        assert changes[1].new_status == "Completed"
 
     def test_no_change_no_record(self, task):
         """Test that saving without status change doesn't create record"""
@@ -441,7 +441,7 @@ class TestTaskStatusNotifications:
 
         # Change status (by admin)
         task._changed_by = admin_user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify notification sent to creator
@@ -451,7 +451,7 @@ class TestTaskStatusNotifications:
         assert notifications.count() == 1
 
         notif = notifications.first()
-        assert "Completada" in notif.message
+        assert "Completed" in notif.message
 
     def test_notify_pm_on_status_change(self, project, user, admin_user):
         """Test PM receives notification when task status changes"""
@@ -466,7 +466,7 @@ class TestTaskStatusNotifications:
 
         # Change status (by user)
         task._changed_by = user
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.save()
 
         # Verify notification sent to PM - skipping for now as PM relationship is not yet implemented
@@ -487,7 +487,7 @@ class TestTaskStatusNotifications:
 
         # Change status (by same user)
         task._changed_by = user
-        task.status = "Completada"
+        task.status = "Completed"
         task.save()
 
         # Verify no notification sent to self
@@ -566,26 +566,26 @@ class TestTimeTrackingAutoStatus:
         from core.models import TaskStatusChange
 
         # Task starts as Pendiente
-        assert task.status == "Pendiente"
+        assert task.status == "Pending"
 
         # Start tracking
         task.start_tracking()
 
         # Verify status changed
         task.refresh_from_db()
-        assert task.status == "En Progreso"
+        assert task.status == "In Progress"
 
         # Verify status change recorded
         changes = TaskStatusChange.objects.filter(task=task)
         assert changes.count() == 1
-        assert changes.first().new_status == "En Progreso"
+        assert changes.first().new_status == "In Progress"
 
     def test_already_in_progress_no_duplicate_change(self, task):
         """Test starting tracking when already in progress doesn't duplicate"""
         from core.models import TaskStatusChange
 
         # Manually set to En Progreso
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.save()
 
         # Clear status changes

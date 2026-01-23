@@ -107,25 +107,25 @@ def project_with_tasks(db, admin_user):
     Task.objects.create(
         title="Task 1",
         project=project,
-        status="Completada",
+        status="Completed",
         assigned_to=admin_user.employee_profile,
     )
     Task.objects.create(
         title="Task 2",
         project=project,
-        status="En Progreso",
+        status="In Progress",
         assigned_to=admin_user.employee_profile,
     )
     Task.objects.create(
         title="Task 3",
         project=project,
-        status="Pendiente",
+        status="Pending",
         assigned_to=admin_user.employee_profile,
     )
     Task.objects.create(
         title="Task 4 Overdue",
         project=project,
-        status="Pendiente",
+        status="Pending",
         due_date=timezone.localdate() - timedelta(days=5),
         assigned_to=admin_user.employee_profile,
     )
@@ -149,7 +149,7 @@ def project_with_touchups(db, admin_user):
             title=f"Touchup {i}",
             project=project,
             is_touchup=True,
-            status="Completada" if i < 2 else "Pendiente",
+            status="Completed" if i < 2 else "Pending",
             priority="urgent" if i == 0 else "medium",
             assigned_to=admin_user.employee_profile,
             created_at=timezone.now() - timedelta(days=i),
@@ -283,8 +283,8 @@ class TestTouchupAnalyticsDashboard:
 
         # Verify data accuracy
         assert data["total_touchups"] == 5
-        assert data["by_status"]["Completada"] == 2
-        assert data["by_status"]["Pendiente"] == 3
+        assert data["by_status"]["Completed"] == 2
+        assert data["by_status"]["Pending"] == 3
         assert data["completion_rate"] == 40.0  # 2 out of 5
 
     def test_touchup_analytics_with_project_filter(self, api_client, admin_user, project_with_touchups):
@@ -522,7 +522,7 @@ class TestAnalyticsEdgeCases:
                 title=f"Task {i}",
                 project=project,
                 is_touchup=True,
-                status="Completada" if i < 7 else "Pendiente",
+                status="Completed" if i < 7 else "Pending",
                 assigned_to=admin_user.employee_profile,
             )
 
@@ -583,7 +583,7 @@ class TestAnalyticsEdgeCases:
             Task.objects.create(
                 title=f"Task {i}",
                 project=project,
-                status="Completada" if i < 6 else "Pendiente",
+                status="Completed" if i < 6 else "Pending",
                 assigned_to=pm_user.employee_profile,
             )
 
@@ -621,7 +621,7 @@ class TestAnalyticsPerformance:
             Task.objects.create(
                 title=f"Task {i}",
                 project=project,
-                status="Completada" if i % 2 == 0 else "Pendiente",
+                status="Completed" if i % 2 == 0 else "Pending",
                 assigned_to=admin_user.employee_profile,
             )
 

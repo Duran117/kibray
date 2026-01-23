@@ -38,22 +38,22 @@ class TestTouchupBoardAPI:
         other_project = Project.objects.create(name="Other", client="X", start_date=date.today())
         # Create touch-ups for project
         t1 = Task.objects.create(
-            project=project, title="TU 1", is_touchup=True, status="Pendiente", priority="high", assigned_to=employee
+            project=project, title="TU 1", is_touchup=True, status="Pending", priority="high", assigned_to=employee
         )
         t2 = Task.objects.create(
-            project=project, title="TU 2", is_touchup=True, status="En Progreso", priority="medium"
+            project=project, title="TU 2", is_touchup=True, status="In Progress", priority="medium"
         )
-        t3 = Task.objects.create(project=project, title="TU 3", is_touchup=True, status="Completada", priority="low")
+        t3 = Task.objects.create(project=project, title="TU 3", is_touchup=True, status="Completed", priority="low")
         # Non-touchup and other project touchup
-        Task.objects.create(project=project, title="Normal", is_touchup=False, status="Pendiente")
-        Task.objects.create(project=other_project, title="Other TU", is_touchup=True, status="Pendiente")
+        Task.objects.create(project=project, title="Normal", is_touchup=False, status="Pending")
+        Task.objects.create(project=other_project, title="Other TU", is_touchup=True, status="Pending")
 
         res = api_client.get("/api/v1/tasks/touchup_board/", {"project": project.id})
         assert res.status_code == 200
         cols = res.data["columns"]
         # Expect 3 columns in fixed order
         keys = [c["key"] for c in cols]
-        assert keys == ["Pendiente", "En Progreso", "Completada"]
+        assert keys == ["Pending", "In Progress", "Completed"]
         # Counts
         totals = res.data["totals"]
         assert totals["pending"] == 1
@@ -70,9 +70,9 @@ class TestTouchupBoardAPI:
         api_client.force_authenticate(user=user)
         # Touch-ups: one assigned to employee (linked to user), one unassigned
         t1 = Task.objects.create(
-            project=project, title="Mine", is_touchup=True, status="Pendiente", assigned_to=employee
+            project=project, title="Mine", is_touchup=True, status="Pending", assigned_to=employee
         )
-        t2 = Task.objects.create(project=project, title="Not mine", is_touchup=True, status="Pendiente")
+        t2 = Task.objects.create(project=project, title="Not mine", is_touchup=True, status="Pending")
         res = api_client.get("/api/v1/tasks/touchup_board/", {"project": project.id, "assigned_to_me": "true"})
         assert res.status_code == 200
         cols = res.data["columns"]

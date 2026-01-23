@@ -44,7 +44,7 @@ def test_alert_high_priority_touchups_threshold():
 
     # Create 4 high-priority touch-ups (above threshold of 3)
     for i in range(4):
-        Task.objects.create(project=project, title=f"Touchup {i}", status="Pendiente", is_touchup=True, priority="high")
+        Task.objects.create(project=project, title=f"Touchup {i}", status="Pending", is_touchup=True, priority="high")
 
     # Run task
     from core.tasks import alert_high_priority_touchups
@@ -67,7 +67,7 @@ def test_alert_high_priority_touchups_below_threshold():
     project = Project.objects.create(name="Low Touch-up", start_date=date.today())
 
     for i in range(2):
-        Task.objects.create(project=project, title=f"Touchup {i}", status="Pendiente", is_touchup=True, priority="high")
+        Task.objects.create(project=project, title=f"Touchup {i}", status="Pending", is_touchup=True, priority="high")
 
     # Run task
     from core.tasks import alert_high_priority_touchups

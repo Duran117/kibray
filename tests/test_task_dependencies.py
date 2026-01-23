@@ -26,9 +26,9 @@ def project(db):
 
 @pytest.fixture
 def tasks(db, project, admin_user):
-    a = Task.objects.create(project=project, title="A", status="Pendiente", created_by=admin_user)
-    b = Task.objects.create(project=project, title="B", status="Pendiente", created_by=admin_user)
-    c = Task.objects.create(project=project, title="C", status="Pendiente", created_by=admin_user)
+    a = Task.objects.create(project=project, title="A", status="Pending", created_by=admin_user)
+    b = Task.objects.create(project=project, title="B", status="Pending", created_by=admin_user)
+    c = Task.objects.create(project=project, title="C", status="Pending", created_by=admin_user)
     return a, b, c
 
 

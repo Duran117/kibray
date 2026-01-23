@@ -457,7 +457,7 @@ def alert_high_priority_touchups():
         high_priority_touchups = project.tasks.filter(
             is_touchup=True,
             priority__in=["high", "urgent"],
-            status__in=["Pendiente", "En Progreso"],
+            status__in=["Pending", "In Progress"],
         )
 
         touchup_count = high_priority_touchups.count()

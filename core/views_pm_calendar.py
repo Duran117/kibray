@@ -63,7 +63,7 @@ def pm_calendar_view(request):
         Project.objects.filter(pm_assignments__pm=user, is_archived=False)
         .annotate(
             task_count=Count("tasks"),
-            completed_tasks=Count("tasks", filter=Q(tasks__status="Completada")),
+            completed_tasks=Count("tasks", filter=Q(tasks__status="Completed")),
         )
         .select_related()
         .prefetch_related("pm_assignments")
@@ -174,7 +174,7 @@ def pm_calendar_view(request):
         Task.objects.filter(
             project__pm_assignments__pm=user,
             priority__in=["high", "urgent"],
-            status__in=["Pendiente", "En Progreso"],
+            status__in=["Pending", "In Progress"],
             due_date__isnull=False,
             due_date__gte=today,
             due_date__lte=today + timedelta(days=14),
@@ -215,7 +215,7 @@ def pm_calendar_view(request):
     urgent_task_count = Task.objects.filter(
         project__pm_assignments__pm=user,
         priority__in=["high", "urgent"],
-        status__in=["Pendiente", "En Progreso"],
+        status__in=["Pending", "In Progress"],
     ).count()
     # Use unified service for milestones count
     upcoming_milestone_count = len(get_upcoming_milestones(user=user, days_ahead=7))
@@ -480,7 +480,7 @@ def pm_calendar_api_data(request):
     tasks = Task.objects.filter(
         project__pm_assignments__pm=user,
         priority__in=["high", "urgent"],
-        status__in=["Pendiente", "En Progreso"],
+        status__in=["Pending", "In Progress"],
         due_date__isnull=False,
         due_date__gte=start_date,
         due_date__lte=end_date,

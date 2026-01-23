@@ -35,28 +35,28 @@ class TestTaskReopenTracking:
     def test_reopen_completed_task(self, project, user):
         """Reabrir una tarea completada"""
         task = Task.objects.create(
-            project=project, title="Completed task", status="Completada", completed_at=timezone.now(), created_by=user
+            project=project, title="Completed task", status="Completed", completed_at=timezone.now(), created_by=user
         )
 
         result = task.reopen(user=user, notes="Necesita revisión")
 
         assert result is True
-        assert task.status == "En Progreso"
+        assert task.status == "In Progress"
         assert task.completed_at is None
 
     def test_reopen_non_completed_task_fails(self, project, user):
         """No se puede reabrir una tarea que no está completada"""
-        task = Task.objects.create(project=project, title="Pending task", status="Pendiente", created_by=user)
+        task = Task.objects.create(project=project, title="Pending task", status="Pending", created_by=user)
 
         result = task.reopen(user=user)
 
         assert result is False
-        assert task.status == "Pendiente"  # No cambió
+        assert task.status == "Pending"  # No cambió
 
     def test_reopen_creates_status_change_record(self, project, user):
         """Reabrir crea un registro en TaskStatusChange"""
         task = Task.objects.create(
-            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+            project=project, title="Task", status="Completed", completed_at=timezone.now(), created_by=user
         )
 
         # El signal ya creó un cambio al guardar como Completada
@@ -68,20 +68,20 @@ class TestTaskReopenTracking:
         assert task.status_changes.count() > initial_changes
 
         # Buscar el cambio de reopen (más reciente)
-        reopen_change = task.status_changes.filter(old_status="Completada").first()
+        reopen_change = task.status_changes.filter(old_status="Completed").first()
         assert reopen_change is not None
-        assert reopen_change.new_status in ["En Progreso", "Pendiente"]
+        assert reopen_change.new_status in ["In Progress", "Pending"]
         assert reopen_change.notes == "Reabrir por error"
 
     def test_reopen_events_count_property(self, project, user):
         """reopen_events_count cuenta cuántas veces se reabrió"""
-        task = Task.objects.create(project=project, title="Task", status="Pendiente", created_by=user)
+        task = Task.objects.create(project=project, title="Task", status="Pending", created_by=user)
 
         # Contar reaperturas desde Completada
         initial_reopen_count = task.reopen_events_count
 
         # Completar y reabrir
-        task.status = "Completada"
+        task.status = "Completed"
         task.completed_at = timezone.now()
         task.save()
         task.reopen(user=user)
@@ -89,7 +89,7 @@ class TestTaskReopenTracking:
         assert task.reopen_events_count == initial_reopen_count + 1
 
         # Completar y reabrir de nuevo
-        task.status = "Completada"
+        task.status = "Completed"
         task.completed_at = timezone.now()
         task.save()
         task.reopen(user=user)
@@ -99,14 +99,14 @@ class TestTaskReopenTracking:
     def test_multiple_reopens_by_different_users(self, project, user, user2):
         """Múltiples reaperturas por diferentes usuarios"""
         task = Task.objects.create(
-            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+            project=project, title="Task", status="Completed", completed_at=timezone.now(), created_by=user
         )
 
         # Primera reapertura por user
         task.reopen(user=user, notes="Reopen 1")
 
         # Completar de nuevo
-        task.status = "Completada"
+        task.status = "Completed"
         task.completed_at = timezone.now()
         task.save()
 
@@ -114,7 +114,7 @@ class TestTaskReopenTracking:
         task.reopen(user=user2, notes="Reopen 2")
 
         # Buscar cambios de reapertura específicamente
-        reopen_changes = task.status_changes.filter(old_status="Completada").order_by("-changed_at")
+        reopen_changes = task.status_changes.filter(old_status="Completed").order_by("-changed_at")
         assert reopen_changes.count() >= 2
         # El más reciente debe tener notas de reopen
         latest = reopen_changes.first()
@@ -122,31 +122,31 @@ class TestTaskReopenTracking:
 
     def test_reopen_with_dependencies_sets_pendiente(self, project, user):
         """Reabrir con dependencias pendientes pone status=Pendiente"""
-        dep = Task.objects.create(project=project, title="Dependency", status="Pendiente", created_by=user)
+        dep = Task.objects.create(project=project, title="Dependency", status="Pending", created_by=user)
 
         task = Task.objects.create(
-            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+            project=project, title="Task", status="Completed", completed_at=timezone.now(), created_by=user
         )
         task.dependencies.add(dep)
 
         task.reopen(user=user)
 
-        assert task.status == "Pendiente"  # No "En Progreso" porque dep no está lista
+        assert task.status == "Pending"  # No "In Progress" porque dep no está lista
 
     def test_reopen_without_dependencies_sets_en_progreso(self, project, user):
         """Reabrir sin dependencias pone status=En Progreso"""
         task = Task.objects.create(
-            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+            project=project, title="Task", status="Completed", completed_at=timezone.now(), created_by=user
         )
 
         task.reopen(user=user)
 
-        assert task.status == "En Progreso"
+        assert task.status == "In Progress"
 
     def test_task_status_change_str(self, project, user):
         """Verificar __str__ de TaskStatusChange"""
         task = Task.objects.create(
-            project=project, title="My Task", status="Completada", completed_at=timezone.now(), created_by=user
+            project=project, title="My Task", status="Completed", completed_at=timezone.now(), created_by=user
         )
 
         task.reopen(user=user, notes="Test")
@@ -157,14 +157,14 @@ class TestTaskReopenTracking:
 
     def test_status_change_ordering(self, project, user):
         """TaskStatusChange se ordena por changed_at descendente"""
-        task = Task.objects.create(project=project, title="Task", status="Pendiente", created_by=user)
+        task = Task.objects.create(project=project, title="Task", status="Pending", created_by=user)
 
         # Cambiar a En Progreso
-        task.status = "En Progreso"
+        task.status = "In Progress"
         task.save()
 
         # Cambiar a Completada
-        task.status = "Completada"
+        task.status = "Completed"
         task.completed_at = timezone.now()
         task.save()
 
@@ -175,12 +175,12 @@ class TestTaskReopenTracking:
         # Debe haber al menos 3 cambios
         assert len(changes) >= 3
         # El más reciente debe ser un cambio desde Completada
-        assert changes[0].old_status == "Completada"
+        assert changes[0].old_status == "Completed"
 
     def test_reopen_without_user(self, project, user):
         """Reabrir sin especificar usuario (changed_by=None)"""
         task = Task.objects.create(
-            project=project, title="Task", status="Completada", completed_at=timezone.now(), created_by=user
+            project=project, title="Task", status="Completed", completed_at=timezone.now(), created_by=user
         )
 
         task.reopen(user=None, notes="Sistema automático")
@@ -192,23 +192,23 @@ class TestTaskReopenTracking:
     def test_filter_tasks_with_multiple_reopens(self, project, user):
         """Filtrar tareas que han sido reabiertas múltiples veces"""
         # Tarea sin reaperturas
-        task1 = Task.objects.create(project=project, title="T1", status="Completada", created_by=user)
+        task1 = Task.objects.create(project=project, title="T1", status="Completed", created_by=user)
 
         # Tarea con 1 reapertura
-        task2 = Task.objects.create(project=project, title="T2", status="Pendiente", created_by=user)
-        task2.status = "Completada"
+        task2 = Task.objects.create(project=project, title="T2", status="Pending", created_by=user)
+        task2.status = "Completed"
         task2.save()
         task2.reopen(user=user)
-        task2.status = "Completada"
+        task2.status = "Completed"
         task2.save()
 
         # Tarea con 3 reaperturas
-        task3 = Task.objects.create(project=project, title="T3", status="Pendiente", created_by=user)
+        task3 = Task.objects.create(project=project, title="T3", status="Pending", created_by=user)
         for _ in range(3):
-            task3.status = "Completada"
+            task3.status = "Completed"
             task3.save()
             task3.reopen(user=user)
-        task3.status = "Completada"
+        task3.status = "Completed"
         task3.save()
 
         # Verificar conteo de reaperturas

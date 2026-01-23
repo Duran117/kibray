@@ -12,6 +12,7 @@ Collects and tracks real-time metrics for WebSocket connections:
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from threading import Lock
+from typing import Optional
 import time
 
 from django.core.cache import cache
@@ -70,7 +71,7 @@ class WebSocketMetrics:
     # CONNECTION TRACKING
     # ============================================================================
 
-    def connection_opened(self, connection_id: str, user_id: int, channel_id: int | None = None):
+    def connection_opened(self, connection_id: str, user_id: int, channel_id: Optional[int] = None):
         """Record new connection"""
         self.active_connections.add(connection_id)
         self.connections_by_user[user_id].add(connection_id)
@@ -137,7 +138,7 @@ class WebSocketMetrics:
     # MESSAGE TRACKING
     # ============================================================================
 
-    def message_sent(self, message_type: str, latency_ms: float | None = None):
+    def message_sent(self, message_type: str, latency_ms: Optional[float] = None):
         """Record message sent"""
         self.message_timestamps.append(time.time())
 
@@ -299,7 +300,7 @@ metrics = WebSocketMetrics()
 # ============================================================================
 
 
-def track_connection_opened(connection_id: str, user_id: int, channel_id: int | None = None):
+def track_connection_opened(connection_id: str, user_id: int, channel_id: Optional[int] = None):
     """Helper to track connection opened"""
     metrics.connection_opened(connection_id, user_id, channel_id)
 
@@ -309,7 +310,7 @@ def track_connection_closed(connection_id: str):
     metrics.connection_closed(connection_id)
 
 
-def track_message_sent(message_type: str, latency_ms: float | None = None):
+def track_message_sent(message_type: str, latency_ms: Optional[float] = None):
     """Helper to track message sent"""
     metrics.message_sent(message_type, latency_ms)
 

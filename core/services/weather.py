@@ -6,7 +6,7 @@ Provides abstraction for weather data fetching with multiple providers
 from abc import ABC, abstractmethod
 from datetime import datetime
 import os
-from typing import Any
+from typing import Any, Optional
 
 from django.utils import timezone
 
@@ -17,7 +17,7 @@ class WeatherProvider(ABC):
     """Abstract base class for weather providers"""
 
     @abstractmethod
-    def get_weather(self, latitude: float, longitude: float, date: datetime | None = None) -> dict:
+    def get_weather(self, latitude: float, longitude: float, date: Optional[datetime] = None) -> dict:
         """
         Fetch weather data for a location
 
@@ -42,7 +42,7 @@ class WeatherProvider(ABC):
 class MockWeatherProvider(WeatherProvider):
     """Mock provider for testing - returns fake data"""
 
-    def get_weather(self, latitude: float, longitude: float, date: datetime | None = None) -> dict:
+    def get_weather(self, latitude: float, longitude: float, date: Optional[datetime] = None) -> dict:
         """Returns realistic mock weather data"""
         return {
             "temperature": 22.5,
@@ -59,7 +59,7 @@ class MockWeatherProvider(WeatherProvider):
 class OpenWeatherMapProvider(WeatherProvider):
     """OpenWeatherMap API provider"""
 
-    def __init__(self, api_key: str | None = None):
+    def __init__(self, api_key: Optional[str] = None):
         """
         Initialize OpenWeatherMap provider
 
@@ -69,7 +69,7 @@ class OpenWeatherMapProvider(WeatherProvider):
         self.api_key = api_key or os.getenv("OPENWEATHERMAP_API_KEY")
         self.base_url = "https://api.openweathermap.org/data/2.5"
 
-    def get_weather(self, latitude: float, longitude: float, date: datetime | None = None) -> dict:
+    def get_weather(self, latitude: float, longitude: float, date: Optional[datetime] = None) -> dict:
         """
         Fetch weather from OpenWeatherMap API
 
@@ -263,7 +263,7 @@ class WeatherService:
         self,
         latitude: float,
         longitude: float,
-        date: datetime | None = None,
+        date: Optional[datetime] = None,
         force_refresh: bool = False,
     ) -> dict[str, Any]:
         if not self._provider:
@@ -353,7 +353,7 @@ def _safe_get(data: Any, key: str, default: Any = None, caster=None):
 
 
 def get_or_create_snapshot(
-    project: Project, latitude: float, longitude: float, date: datetime | None = None
+    project: Project, latitude: float, longitude: float, date: Optional[datetime] = None
 ) -> WeatherSnapshot:
     """Obtiene o crea un WeatherSnapshot para (project, date). Usa provider configurado.
     Refresca si snapshot está obsoleto (>6h) según lógica `is_stale()`."""

@@ -29,16 +29,16 @@ def project(db):
 def test_cannot_complete_touchup_without_photo(api_client, user, project):
     api_client.force_authenticate(user=user)
     # Create a touch-up task
-    t = Task.objects.create(project=project, title="Fix scratch", is_touchup=True, status="Pendiente", created_by=user)
+    t = Task.objects.create(project=project, title="Fix scratch", is_touchup=True, status="Pending", created_by=user)
     # Try to complete without photo
-    resp = api_client.post(f"/api/v1/tasks/{t.id}/update_status/", {"status": "Completada"}, format="json")
+    resp = api_client.post(f"/api/v1/tasks/{t.id}/update_status/", {"status": "Completed"}, format="json")
     assert resp.status_code == 400
     assert "requires a photo" in resp.data["error"]
 
 
 def test_complete_touchup_after_photo(api_client, user, project):
     api_client.force_authenticate(user=user)
-    t = Task.objects.create(project=project, title="Fix dent", is_touchup=True, status="Pendiente", created_by=user)
+    t = Task.objects.create(project=project, title="Fix dent", is_touchup=True, status="Pending", created_by=user)
     # Upload a small fake image
     image_content = SimpleUploadedFile("test.jpg", b"\xff\xd8\xff\xe0" + b"0" * 100, content_type="image/jpeg")
     up = api_client.post(
@@ -46,5 +46,5 @@ def test_complete_touchup_after_photo(api_client, user, project):
     )
     assert up.status_code in (200, 201)
     # Now complete
-    resp = api_client.post(f"/api/v1/tasks/{t.id}/update_status/", {"status": "Completada"}, format="json")
+    resp = api_client.post(f"/api/v1/tasks/{t.id}/update_status/", {"status": "Completed"}, format="json")
     assert resp.status_code == 200

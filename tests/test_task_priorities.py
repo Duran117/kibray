@@ -89,7 +89,7 @@ class TestTaskPriorities:
     def test_priority_with_dependencies(self, project, user):
         """Tareas de alta prioridad pueden tener dependencias de baja prioridad"""
         low_task = Task.objects.create(
-            project=project, title="Low priority dependency", priority="low", created_by=user, status="Completada"
+            project=project, title="Low priority dependency", priority="low", created_by=user, status="Completed"
         )
 
         high_task = Task.objects.create(project=project, title="High priority task", priority="high", created_by=user)
@@ -104,7 +104,7 @@ class TestTaskPriorities:
         Task.objects.create(project=project, title="U2", priority="urgent", created_by=user)
         Task.objects.create(project=project, title="H1", priority="high", created_by=user)
 
-        urgent_count = Task.objects.filter(priority="urgent", status="Pendiente").count()
+        urgent_count = Task.objects.filter(priority="urgent", status="Pending").count()
         assert urgent_count == 2
 
     def test_priority_choices_are_valid(self):

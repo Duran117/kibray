@@ -25,7 +25,7 @@ class TestModule11TaskAPI:
             "project": self.project,
             "title": title,
             "description": "Desc",
-            "status": "Pendiente",
+            "status": "Pending",
             "priority": "medium",
         }
         data.update(kwargs)
@@ -46,13 +46,13 @@ class TestModule11TaskAPI:
         assert parent not in child.dependencies.all()
 
     def test_reopen_creates_status_change(self):
-        task = self.create_task("Closing Task", status="Completada")
+        task = self.create_task("Closing Task", status="Completed")
         url = reverse("task-reopen", args=[task.id])
         resp = self.client.post(url, {"notes": "Need more work"}, format="json")
         assert resp.status_code == 200
         task.refresh_from_db()
-        assert task.status in ["Pendiente", "En Progreso"]
-        assert TaskStatusChange.objects.filter(task=task, old_status="Completada").exists()
+        assert task.status in ["Pending", "In Progress"]
+        assert TaskStatusChange.objects.filter(task=task, old_status="Completed").exists()
 
     def test_start_and_stop_tracking(self):
         task = self.create_task("Track Task")

@@ -52,7 +52,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
         completed_projects = Project.objects.filter(end_date__lt=timezone.now().date()).count()
 
         total_tasks = Task.objects.count()
-        completed_tasks = Task.objects.filter(status="Completada").count()
+        completed_tasks = Task.objects.filter(status="Completed").count()
 
         pending_changeorders = ChangeOrder.objects.filter(status="pending").count()
 
@@ -148,7 +148,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
                 next_month = timezone.now()
 
             tasks_completed = Task.objects.filter(
-                completed_at__gte=month_start, completed_at__lt=next_month, status="Completada"
+                completed_at__gte=month_start, completed_at__lt=next_month, status="Completed"
             ).count()
             monthly_tasks.append(tasks_completed)
 
@@ -201,9 +201,9 @@ class AnalyticsViewSet(viewsets.ViewSet):
 
         tasks_summary = {
             "total": tasks.count(),
-            "completed": tasks.filter(status="Completada").count(),
-            "in_progress": tasks.filter(status="En Progreso").count(),
-            "pending": tasks.filter(status="Pendiente").count(),
+            "completed": tasks.filter(status="Completed").count(),
+            "in_progress": tasks.filter(status="In Progress").count(),
+            "pending": tasks.filter(status="Pending").count(),
         }
 
         changeorders_summary = {

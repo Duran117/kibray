@@ -46,14 +46,14 @@ class AnalyticsAPITestCase(APITestCase):
         Task.objects.create(
             project=self.project,
             title='Task 1',
-            status='Pendiente',
+            status='Pending',
             priority='high',
             created_by=self.user
         )
         Task.objects.create(
             project=self.project,
             title='Task 2',
-            status='Completada',
+            status='Completed',
             priority='medium',
             created_by=self.user
         )

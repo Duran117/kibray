@@ -56,7 +56,7 @@ class TaskAPITestCase(APITestCase):
             project=self.project,
             title='Test Task',
             description='Test Description',
-            status='Pendiente',
+            status='Pending',
             priority='medium',
             due_date=timezone.now().date() + timezone.timedelta(days=7),
             created_by=self.user,
@@ -86,7 +86,7 @@ class TaskAPITestCase(APITestCase):
             'project': self.project.id,
             'title': 'New Task',
             'description': 'New Description',
-            'status': 'Pendiente',
+            'status': 'Pending',
             'priority': 'high',
             'due_date': (timezone.now().date() + timezone.timedelta(days=10)).isoformat(),
             'assigned_to': self.employee.id
@@ -118,15 +118,15 @@ class TaskAPITestCase(APITestCase):
     
     def test_filter_by_status(self):
         """Test filtering tasks by status"""
-        url = f"{reverse('task-list')}?status=Pendiente"
+        url = f"{reverse('task-list')}?status=Pending"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
     
     def test_update_status_action(self):
         """Test update_status action"""
         url = reverse('task-update-status', kwargs={'pk': self.task.pk})
-        data = {'status': 'Completada'}
+        data = {'status': 'Completed'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.task.refresh_from_db()
-        self.assertEqual(self.task.status, 'Completada')
+        self.assertEqual(self.task.status, 'Completed')

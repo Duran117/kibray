@@ -192,13 +192,13 @@ class TestPMPerformanceAnalytics:
         )
 
         # Crear tareas asignadas al Employee
-        Task.objects.create(title="Test Task 1", project=self.project, assigned_to=employee, status="Completada")
-        Task.objects.create(title="Test Task 2", project=self.project, assigned_to=employee, status="En Progreso")
+        Task.objects.create(title="Test Task 1", project=self.project, assigned_to=employee, status="Completed")
+        Task.objects.create(title="Test Task 2", project=self.project, assigned_to=employee, status="In Progress")
         Task.objects.create(
             title="Test Task 3",
             project=self.project,
             assigned_to=employee,
-            status="Pendiente",
+            status="Pending",
             due_date=datetime.now().date() - timedelta(days=5),  # Overdue
         )
 

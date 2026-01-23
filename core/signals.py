@@ -43,7 +43,7 @@ def task_post_save(sender, instance: Task, created, **kwargs):
     # mantenemos lógica de completed_at y recálculo de progreso.
 
     # Marcar fecha de completado
-    if instance.status == "Completada" and instance.completed_at is None:
+    if instance.status == "Completed" and instance.completed_at is None:
         # Evitar re-disparar señales y clobber de _old_status: usar update() directo
         Task.objects.filter(pk=instance.pk).update(completed_at=timezone.now())
 
@@ -101,9 +101,9 @@ def track_task_changes(sender, instance, **kwargs):
         # ====================================
         # 1. TIME TRACKING AUTO-STATUS
         # ====================================
-        # Si se acaba de iniciar tracking, cambiar status a 'En Progreso'
-        if not old_task.started_at and instance.started_at and instance.status != "En Progreso":
-            instance.status = "En Progreso"
+        # Si se acaba de iniciar tracking, cambiar status a 'In Progress'
+        if not old_task.started_at and instance.started_at and instance.status != "In Progress":
+            instance.status = "In Progress"
 
         # ====================================
         # 2. DETECT STATUS CHANGE
@@ -203,7 +203,7 @@ def send_task_status_notification(task, old_status, new_status):
             continue
 
         # Determinar el tipo de notificación según el nuevo status
-        notif_type = "task_completed" if new_status == "Completada" else "task_assigned"
+        notif_type = "task_completed" if new_status == "Completed" else "task_assigned"
 
         Notification.objects.create(
             user=user,

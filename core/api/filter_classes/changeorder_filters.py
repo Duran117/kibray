@@ -14,7 +14,7 @@ class ChangeOrderFilter(django_filters.FilterSet):
     status = django_filters.MultipleChoiceFilter(
         choices=[
             ("draft", "Borrador"),
-            ("pending", "Pendiente"),
+            ("pending", "Pending"),
             ("approved", "Aprobado"),
             ("sent", "Enviado"),
             ("billed", "Facturado"),

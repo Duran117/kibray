@@ -399,7 +399,7 @@ def test_resolve_damage(api_client, admin_user, damage_report):
 
     # Verify auto-task completed
     damage_report.refresh_from_db()
-    assert damage_report.auto_task.status == "Completada"
+    assert damage_report.auto_task.status == "Completed"
 
     # Verify notification sent to reporter
     notification = Notification.objects.filter(
@@ -646,4 +646,4 @@ def test_complete_damage_lifecycle(api_client, admin_user, assignee_user, projec
     damage = DamageReport.objects.get(id=damage_id)
     assert damage.status == "resolved"
     assert damage.assigned_to == assignee_user
-    assert damage.auto_task.status == "Completada"
+    assert damage.auto_task.status == "Completed"

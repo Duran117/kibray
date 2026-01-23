@@ -408,7 +408,7 @@ class Command(BaseCommand):
             title='Preparar paredes planta baja',
             defaults={
                 'description': 'Lijar, limpiar y aplicar primer en todas las paredes de planta baja',
-                'status': 'En Progreso',
+                'status': 'In Progress',
                 'priority': 'high',
                 'assigned_to': employee,
                 'schedule_weight': 80,
@@ -430,7 +430,7 @@ class Command(BaseCommand):
             title='Pintar sala y comedor',
             defaults={
                 'description': 'Aplicar 2 manos de pintura blanca en sala y comedor',
-                'status': 'Pendiente',
+                'status': 'Pending',
                 'priority': 'high',
                 'assigned_to': employee,
                 'schedule_weight': 90,
@@ -451,7 +451,7 @@ class Command(BaseCommand):
             title='Aprobar colores cocina',
             defaults={
                 'description': 'Cliente debe aprobar muestras de color para cocina',
-                'status': 'Pendiente',
+                'status': 'Pending',
                 'priority': 'urgent',
                 'schedule_weight': 100,
                 'is_subtask': False,

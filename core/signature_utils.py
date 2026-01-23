@@ -5,20 +5,20 @@ Gap A Resolution: Cryptographic signature verification for legal compliance
 
 import hashlib
 import json
-from typing import Any
+from typing import Any, Dict, Optional
 
 from django.db.models import Model
 
-from core.models import DigitalSignature
+from signatures.models import Signature as DigitalSignature
 
 
 def create_signature(
     entity: Model,
     signer,
-    ip_address: str | None = None,
-    signature_canvas_data: str | None = None,
-    user_agent: str | None = None,
-    geolocation: dict[str, float] | None = None,
+    ip_address: Optional[str] = None,
+    signature_canvas_data: Optional[str] = None,
+    user_agent: Optional[str] = None,
+    geolocation: Optional[Dict[str, float]] = None,
 ) -> DigitalSignature:
     """
     Generic signature creation for any signable entity.

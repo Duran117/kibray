@@ -47,7 +47,7 @@ class TaskListSerializer(serializers.ModelSerializer):
         return None
 
     def get_is_overdue(self, obj):
-        if obj.due_date and obj.status != "Completada":
+        if obj.due_date and obj.status != "Completed":
             return obj.due_date < timezone.now().date()
         return False
 
