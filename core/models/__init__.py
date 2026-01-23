@@ -3229,74 +3229,74 @@ class WeatherSnapshot(models.Model):
 
 class DailyLog(models.Model):
     """
-    Daily Log - Reporte diario del PM sobre el progreso del proyecto.
-    Muestra qué tareas se completaron hoy y el progreso general.
-    Visible para PM, diseñadores, cliente, owner (NO empleados).
+    Daily Log - Daily report by PM on project progress.
+    Shows what tasks were completed today and overall progress.
+    Visible to PM, designers, client, owner (NOT employees).
     """
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="daily_logs")
     date = models.DateField()
     weather = models.CharField(
-        max_length=120, blank=True, help_text="Condiciones climáticas del día"
+        max_length=120, blank=True, help_text="Weather conditions for the day"
     )
-    crew_count = models.PositiveIntegerField(default=0, help_text="Número de personas trabajando")
+    crew_count = models.PositiveIntegerField(default=0, help_text="Number of people working")
 
-    # Tareas completadas ese día (muchos a muchos)
+    # Tasks completed that day (many-to-many)
     completed_tasks = models.ManyToManyField(
         "Task",
         blank=True,
         related_name="daily_logs",
-        help_text="Tareas completadas o con progreso este día",
+        help_text="Tasks completed or with progress today",
     )
 
-    # Notas y detalles
-    progress_notes = models.TextField(blank=True, help_text="Notas generales de progreso")
-    accomplishments = models.TextField(blank=True, help_text="Logros específicos del día")
-    safety_incidents = models.TextField(blank=True, help_text="Incidentes de seguridad")
-    delays = models.TextField(blank=True, help_text="Retrasos o problemas encontrados")
-    next_day_plan = models.TextField(blank=True, help_text="Plan para el siguiente día")
+    # Notes and details
+    progress_notes = models.TextField(blank=True, help_text="General progress notes")
+    accomplishments = models.TextField(blank=True, help_text="Specific accomplishments of the day")
+    safety_incidents = models.TextField(blank=True, help_text="Safety incidents")
+    delays = models.TextField(blank=True, help_text="Delays or problems encountered")
+    next_day_plan = models.TextField(blank=True, help_text="Plan for the next day")
 
-    # Progreso del Schedule principal
+    # Main Schedule progress
     schedule_item = models.ForeignKey(
         "Schedule",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="daily_logs",
-        help_text="Actividad principal del schedule (ej: Cubrir y Preparar)",
+        help_text="Main schedule activity (e.g.: Cover and Prepare)",
     )
     schedule_progress_percent = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         default=0,
-        help_text="Progreso de la actividad principal (%)",
+        help_text="Main activity progress (%)",
     )
 
-    # Fotos del día
+    # Photos for the day
     photos = models.ManyToManyField("DailyLogPhoto", blank=True, related_name="logs")
 
     # Metadata
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_published = models.BooleanField(default=False, help_text="Visible para cliente/owner")
-    # --- Extensión DailyPlan ---
+    is_published = models.BooleanField(default=False, help_text="Visible to client/owner")
+    # --- Daily Plan Extension ---
     planned_templates = models.ManyToManyField(
         "TaskTemplate",
         blank=True,
         related_name="daily_logs",
-        help_text="Plantillas previstas para instanciar tareas del día",
+        help_text="Templates planned to instantiate tasks for the day",
     )
     planned_tasks = models.ManyToManyField(
         "Task",
         blank=True,
         related_name="planned_in_logs",
-        help_text="Tareas creadas desde plantillas para este día",
+        help_text="Tasks created from templates for this day",
     )
-    is_complete = models.BooleanField(default=False, help_text="Plan diario marcado como completo")
-    incomplete_reason = models.TextField(blank=True, help_text="Motivo si el plan quedó incompleto")
+    is_complete = models.BooleanField(default=False, help_text="Daily plan marked as complete")
+    incomplete_reason = models.TextField(blank=True, help_text="Reason if plan was incomplete")
     auto_weather = models.BooleanField(
-        default=True, help_text="Si se auto‑rellena el clima (Módulo 30)"
+        default=True, help_text="Auto-fill weather (Module 30)"
     )
 
     class Meta:
@@ -3310,17 +3310,17 @@ class DailyLog(models.Model):
         return f"{self.project.name} - {self.date}"
 
     def task_completion_summary(self):
-        """Resumen de tareas completadas vs total"""
+        """Summary of completed tasks vs total"""
         total_tasks = self.completed_tasks.count()
         fully_completed = self.completed_tasks.filter(status="completed").count()
         return {"total": total_tasks, "completed": fully_completed}
 
-    # --- Métodos DailyPlan ---
+    # --- Daily Plan Methods ---
     def instantiate_planned_templates(self, created_by=None, assigned_to=None):
-        """Crear Tasks desde las TaskTemplate planificadas (idempotente)."""
+        """Create Tasks from planned TaskTemplates (idempotent)."""
         created = []
         for tpl in self.planned_templates.all():
-            # Evitar duplicar si ya se creó tarea con mismo título ligada al log
+            # Avoid duplicating if task with same title linked to log already exists
             if self.planned_tasks.filter(title=tpl.title).exists():
                 continue
             task = tpl.create_task(
@@ -3334,23 +3334,23 @@ class DailyLog(models.Model):
         return created
 
     def evaluate_completion(self):
-        """Evalúa si el plan está completo (todas planned_tasks Completadas)."""
+        """Evaluates if the plan is complete (all planned_tasks Completed)."""
         total = self.planned_tasks.count()
         if total == 0:
             self.is_complete = False
-            self.incomplete_reason = "No hay tareas planificadas."
+            self.incomplete_reason = "No tasks planned."
         else:
             done = self.planned_tasks.filter(status="Completada").count()
             self.is_complete = done == total
             self.incomplete_reason = (
-                "" if self.is_complete else f"Faltan {total - done} tareas por completar"
+                "" if self.is_complete else f"{total - done} tasks remaining to complete"
             )
         self.save(update_fields=["is_complete", "incomplete_reason"])
         return self.is_complete
 
 
 class DailyLogPhoto(models.Model):
-    """Fotos adjuntas a un Daily Log"""
+    """Photos attached to a Daily Log"""
 
     image = models.ImageField(upload_to="daily_logs/photos/")
     caption = models.CharField(max_length=255, blank=True)

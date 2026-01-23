@@ -1,15 +1,15 @@
 {% extends "core/base_modern.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block content %}
 <div class="container-fluid py-4">
   <!-- Breadcrumbs -->
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard_admin' %}">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">{% trans "Projects" %}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}">Daily Logs</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}">{% trans "Daily Logs" %}</a></li>
       <li class="breadcrumb-item active">{{ log.date|date:"M d, Y" }}</li>
     </ol>
   </nav>
@@ -17,14 +17,14 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h2><i class="bi bi-journal-text"></i> Daily Log</h2>
+      <h2><i class="bi bi-journal-text"></i> {% trans "Daily Log" %}</h2>
       <h4 class="text-muted">{{ log.date|date:"l, F j, Y" }}</h4>
     </div>
     <div>
       {% if log.is_published %}
-      <span class="badge bg-success fs-6"><i class="bi bi-eye"></i> Publicado</span>
+      <span class="badge bg-success fs-6"><i class="bi bi-eye"></i> {% trans "Published" %}</span>
       {% else %}
-      <span class="badge bg-warning fs-6"><i class="bi bi-eye-slash"></i> Borrador</span>
+      <span class="badge bg-warning fs-6"><i class="bi bi-eye-slash"></i> {% trans "Draft" %}</span>
       {% endif %}
     </div>
   </div>
@@ -40,8 +40,8 @@
               <div class="d-flex align-items-center">
                 <i class="bi bi-cloud-sun fs-3 text-primary me-3"></i>
                 <div>
-                  <div class="small text-muted">Clima</div>
-                  <div class="fw-bold">{{ log.weather|default:"No especificado" }}</div>
+                  <div class="small text-muted">{% trans "Weather" %}</div>
+                  <div class="fw-bold">{{ log.weather|default:"Not specified" }}</div>
                 </div>
               </div>
             </div>
@@ -49,8 +49,8 @@
               <div class="d-flex align-items-center">
                 <i class="bi bi-people fs-3 text-info me-3"></i>
                 <div>
-                  <div class="small text-muted">Equipo</div>
-                  <div class="fw-bold">{{ log.crew_count }} persona{{ log.crew_count|pluralize }}</div>
+                  <div class="small text-muted">{% trans "Crew" %}</div>
+                  <div class="fw-bold">{{ log.crew_count }} {% trans "person" %}{{ log.crew_count|pluralize }}</div>
                 </div>
               </div>
             </div>
@@ -58,7 +58,7 @@
               <div class="d-flex align-items-center">
                 <i class="bi bi-person-circle fs-3 text-success me-3"></i>
                 <div>
-                  <div class="small text-muted">Creado por</div>
+                  <div class="small text-muted">{% trans "Created by" %}</div>
                   <div class="fw-bold">{{ log.created_by.username }}</div>
                 </div>
               </div>
@@ -71,12 +71,12 @@
       {% if log.schedule_item %}
       <div class="card mb-4 border-0 shadow-sm">
         <div class="card-header bg-success text-white">
-          <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> Progreso del Schedule</h5>
+          <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> {% trans "Schedule Progress" %}</h5>
         </div>
         <div class="card-body">
           <h4 class="mb-3">{{ log.schedule_item.title }}</h4>
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <span>Progreso de esta actividad</span>
+            <span>{% trans "Progress for this activity" %}</span>
             <span class="fs-4 fw-bold text-success">{{ log.schedule_progress_percent }}%</span>
           </div>
           <div class="progress" style="height: 30px;">
@@ -96,7 +96,7 @@
       {% if log.completed_tasks.count > 0 %}
       <div class="card mb-4 border-0 shadow-sm">
         <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-check2-square"></i> Tareas Completadas</h5>
+          <h5 class="mb-0"><i class="bi bi-check2-square"></i> {% trans "Completed Tasks" %}</h5>
           <span class="badge bg-white text-info">{{ log.completed_tasks.count }}</span>
         </div>
         <div class="card-body">
@@ -126,7 +126,7 @@
       {% if log.accomplishments %}
       <div class="card mb-4 border-0 shadow-sm">
         <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-trophy"></i> Logros del Día</h5>
+          <h5 class="mb-0"><i class="bi bi-trophy"></i> {% trans "Today's Accomplishments" %}</h5>
         </div>
         <div class="card-body">
           <p class="mb-0" style="white-space: pre-wrap;">{{ log.accomplishments }}</p>
@@ -138,7 +138,7 @@
       {% if log.photos.count > 0 %}
       <div class="card mb-4 border-0 shadow-sm">
         <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-camera"></i> Fotos del Día</h5>
+          <h5 class="mb-0"><i class="bi bi-camera"></i> {% trans "Photos" %}</h5>
           <span class="badge bg-dark">{{ log.photos.count }}</span>
         </div>
         <div class="card-body">
@@ -146,8 +146,8 @@
             {% for photo in log.photos.all %}
             <div class="col-md-6 col-lg-4">
               <div class="card h-100">
-                <img src="{{ photo.image.url }}" class="card-img-top" style="height: 250px; object-fit: cover;" 
-                     data-bs-toggle="modal" data-bs-target="#photoModal{{ photo.id }}" style="cursor: pointer;">
+                <img src="{{ photo.image.url }}" class="card-img-top" style="height: 250px; object-fit: cover; cursor: pointer;" 
+                     data-bs-toggle="modal" data-bs-target="#photoModal{{ photo.id }}">
                 {% if photo.caption %}
                 <div class="card-body p-2">
                   <small class="text-muted">{{ photo.caption }}</small>
@@ -164,7 +164,7 @@
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h5 class="modal-title">{{ photo.caption|default:"Foto" }}</h5>
+                      <h5 class="modal-title">{{ photo.caption|default:"Photo" }}</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body text-center">
@@ -180,7 +180,7 @@
           <!-- Add More Photos Form -->
           {% if can_edit %}
           <hr class="my-4">
-          <h6><i class="bi bi-camera-fill"></i> Agregar Más Fotos</h6>
+          <h6><i class="bi bi-camera-fill"></i> {% trans "Add More Photos" %}</h6>
           <form method="post" enctype="multipart/form-data" class="mt-3">
             {% csrf_token %}
             <div class="row">
@@ -189,11 +189,11 @@
               </div>
               <div class="col-md-4 mb-2">
                 <button type="submit" class="btn btn-primary w-100">
-                  <i class="bi bi-upload"></i> Subir
+                  <i class="bi bi-upload"></i> {% trans "Upload" %}
                 </button>
               </div>
             </div>
-            <input type="text" name="caption" class="form-control" placeholder="Descripción...">
+            <input type="text" name="caption" class="form-control" placeholder="{% trans 'Description...' %}">
           </form>
           {% endif %}
         </div>
@@ -207,7 +207,7 @@
       {% if log.progress_notes %}
       <div class="card mb-4 border-0 shadow-sm">
         <div class="card-header bg-white border-bottom">
-          <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> Notas de Progreso</h6>
+          <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> {% trans "Progress Notes" %}</h6>
         </div>
         <div class="card-body">
           <p class="mb-0" style="white-space: pre-wrap;">{{ log.progress_notes }}</p>
@@ -219,7 +219,7 @@
       {% if log.safety_incidents %}
       <div class="card mb-4 border-danger border-0 shadow-sm">
         <div class="card-header bg-danger text-white">
-          <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Incidentes de Seguridad</h6>
+          <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> {% trans "Safety Incidents" %}</h6>
         </div>
         <div class="card-body">
           <p class="mb-0" style="white-space: pre-wrap;">{{ log.safety_incidents }}</p>
@@ -231,7 +231,7 @@
       {% if log.delays %}
       <div class="card mb-4 border-warning border-0 shadow-sm">
         <div class="card-header bg-warning text-dark">
-          <h6 class="mb-0"><i class="bi bi-clock-history"></i> Retrasos o Problemas</h6>
+          <h6 class="mb-0"><i class="bi bi-clock-history"></i> {% trans "Delays or Issues" %}</h6>
         </div>
         <div class="card-body">
           <p class="mb-0" style="white-space: pre-wrap;">{{ log.delays }}</p>
@@ -243,7 +243,7 @@
       {% if log.next_day_plan %}
       <div class="card mb-4 border-0 shadow-sm">
         <div class="card-header bg-primary text-white">
-          <h6 class="mb-0"><i class="bi bi-calendar-plus"></i> Plan para Mañana</h6>
+          <h6 class="mb-0"><i class="bi bi-calendar-plus"></i> {% trans "Plan for Tomorrow" %}</h6>
         </div>
         <div class="card-body">
           <p class="mb-0" style="white-space: pre-wrap;">{{ log.next_day_plan }}</p>
@@ -254,24 +254,24 @@
       <!-- Metadata -->
       <div class="card mb-4 border-0 shadow-sm">
         <div class="card-header bg-white border-bottom">
-          <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información</h6>
+          <h6 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Information" %}</h6>
         </div>
         <div class="card-body">
           <div class="mb-2">
-            <small class="text-muted">Creado:</small>
+            <small class="text-muted">{% trans "Created" %}:</small>
             <div>{{ log.created_at|date:"M d, Y h:i A" }}</div>
           </div>
           <div class="mb-2">
-            <small class="text-muted">Última actualización:</small>
+            <small class="text-muted">{% trans "Last update" %}:</small>
             <div>{{ log.updated_at|date:"M d, Y h:i A" }}</div>
           </div>
           <div>
-            <small class="text-muted">Estado:</small>
+            <small class="text-muted">{% trans "Status" %}:</small>
             <div>
               {% if log.is_published %}
-              <span class="badge bg-success">Visible para Cliente/Owner</span>
+              <span class="badge bg-success">{% trans "Visible to Client/Owner" %}</span>
               {% else %}
-              <span class="badge bg-warning">Solo visible para PM/Staff</span>
+              <span class="badge bg-warning">{% trans "Only visible to PM/Staff" %}</span>
               {% endif %}
             </div>
           </div>
@@ -281,14 +281,11 @@
       <!-- Actions -->
       <div class="d-grid gap-2">
         <a href="{% url 'daily_log' project.id %}" class="btn btn-outline-secondary">
-          <i class="bi bi-arrow-left"></i> Volver a Lista
+          <i class="bi bi-arrow-left"></i> {% trans "Back to List" %}
         </a>
         {% if can_edit %}
-        <a href="#" class="btn btn-outline-primary">
-          <i class="bi bi-pencil"></i> Editar Daily Log
-        </a>
         <a href="{% url 'daily_log_delete' log.id %}" class="btn btn-outline-danger">
-          <i class="bi bi-trash"></i> Eliminar Daily Log
+          <i class="bi bi-trash"></i> {% trans "Delete Daily Log" %}
         </a>
         {% endif %}
       </div>

@@ -4468,12 +4468,11 @@ def estimate_send_email(request, estimate_id):
 
 
 @login_required
-@login_required
 def daily_log_view(request, project_id):
     """
-    Vista para gestionar Daily Logs de un proyecto.
-    PM puede crear reportes diarios seleccionando tareas completadas,
-    agregando fotos y notas. Visible para PM, diseñadores, cliente, owner.
+    View to manage Daily Logs for a project.
+    PM can create daily reports selecting completed tasks,
+    adding photos and notes. Visible to PM, designers, client, owner.
     """
     from core.forms import DailyLogForm
     from core.models import DailyLogPhoto
@@ -4493,10 +4492,10 @@ def daily_log_view(request, project_id):
             dl.created_by = request.user
             dl.save()
 
-            # Guardar relaciones many-to-many
+            # Save many-to-many relationships
             form.save_m2m()
 
-            # Procesar fotos si hay
+            # Process photos if any
             photos = request.FILES.getlist("photos")
             for photo_file in photos:
                 photo = DailyLogPhoto.objects.create(
@@ -4506,24 +4505,24 @@ def daily_log_view(request, project_id):
                 )
                 dl.photos.add(photo)
 
-            messages.success(request, _("Daily Log creado para %(date)s") % {"date": dl.date})
+            messages.success(request, _("Daily Log created for %(date)s") % {"date": dl.date})
             return redirect("daily_log_detail", log_id=dl.id)
     else:
         form = DailyLogForm(project=project) if can_create else None
 
-    # Listar logs del proyecto (ordenados por fecha)
+    # List project logs (sorted by date)
     logs = (
         project.daily_logs.select_related("created_by", "schedule_item")
         .prefetch_related("completed_tasks", "photos")
         .all()
     )
 
-    # Filtros
+    # Filters
     if not can_create and role == "employee":
-        # Empleados NO pueden ver daily logs
+        # Employees cannot view daily logs
         return redirect("dashboard_employee")
 
-    # Filtrar solo publicados para clientes
+    # Filter only published for clients
     if role == "client":
         logs = logs.filter(is_published=True)
 
@@ -4673,7 +4672,7 @@ def project_activation_view(request, project_id):
 
 @login_required
 def daily_log_detail(request, log_id):
-    """Vista detallada de un Daily Log específico"""
+    """Detailed view of a specific Daily Log"""
     from core.models import DailyLog, DailyLogPhoto
 
     log = get_object_or_404(
@@ -4683,21 +4682,21 @@ def daily_log_detail(request, log_id):
         id=log_id,
     )
 
-    # Verificar permisos
+    # Check permissions
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
 
-    # Empleados no pueden ver
+    # Employees cannot view
     if role == "employee":
-        messages.error(request, "No tienes permiso para ver Daily Logs")
+        messages.error(request, _("You don't have permission to view Daily Logs"))
         return redirect("dashboard_employee")
 
-    # Clientes solo ven publicados
+    # Clients only see published
     if role == "client" and not log.is_published:
-        messages.error(request, "Este Daily Log no está disponible")
+        messages.error(request, _("This Daily Log is not available"))
         return redirect("dashboard_client")
 
-    # POST: Agregar más fotos
+    # POST: Add more photos
     if request.method == "POST" and role in ["admin", "superuser", "project_manager"]:
         photos = request.FILES.getlist("photos")
         caption = request.POST.get("caption", "")
@@ -4706,7 +4705,7 @@ def daily_log_detail(request, log_id):
                 image=photo_file, caption=caption, uploaded_by=request.user
             )
             log.photos.add(photo)
-        messages.success(request, _("%(count)s foto(s) agregada(s)") % {"count": len(photos)})
+        messages.success(request, _("%(count)s photo(s) added") % {"count": len(photos)})
         return redirect("daily_log_detail", log_id=log.id)
 
     context = {
@@ -4720,18 +4719,18 @@ def daily_log_detail(request, log_id):
 
 @login_required
 def daily_log_create(request, project_id):
-    """Vista dedicada para crear un nuevo Daily Log"""
+    """Dedicated view to create a new Daily Log"""
 
     from core.forms import DailyLogForm
     from core.models import Schedule, Task
 
     project = get_object_or_404(Project, pk=project_id)
 
-    # Verificar permisos
+    # Check permissions
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
-        messages.error(request, "Solo PM puede crear Daily Logs")
+        messages.error(request, _("Only PM can create Daily Logs"))
         return redirect("project_overview", project_id=project.id)
 
     if request.method == "POST":
@@ -4743,7 +4742,7 @@ def daily_log_create(request, project_id):
             dl.save()
             form.save_m2m()
 
-            # Procesar fotos
+            # Process photos
             photos = request.FILES.getlist("photos")
             for photo_file in photos:
                 from core.models import DailyLogPhoto
@@ -4755,24 +4754,24 @@ def daily_log_create(request, project_id):
                 )
                 dl.photos.add(photo)
 
-            messages.success(request, "Daily Log creado exitosamente")
+            messages.success(request, _("Daily Log created successfully"))
             return redirect("daily_log_detail", log_id=dl.id)
     else:
-        # Valores por defecto
+        # Default values
         initial = {
             "date": date.today(),
             "is_published": False,
         }
         form = DailyLogForm(initial=initial, project=project)
 
-    # Obtener tareas pendientes/en progreso para sugerencias
+    # Get pending/in-progress tasks for suggestions
     pending_tasks = (
         Task.objects.filter(project=project, status__in=["pending", "in_progress"])
         .select_related("assigned_to")
         .order_by("created_at")
     )
 
-    # Obtener actividades del schedule activas
+    # Get active schedule activities
     active_schedules = Schedule.objects.filter(
         project=project, start_datetime__lte=date.today()
     ).order_by("-start_datetime")[:10]

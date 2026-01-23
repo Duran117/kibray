@@ -1,20 +1,20 @@
 {% extends "core/base_modern.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block content %}
 <div class="container-fluid py-4">
   <!-- Breadcrumbs -->
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard_admin' %}">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">{% trans "Projects" %}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}">Daily Logs</a></li>
-      <li class="breadcrumb-item active">Crear</li>
+      <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}">{% trans "Daily Logs" %}</a></li>
+      <li class="breadcrumb-item active">{% trans "Create" %}</li>
     </ol>
   </nav>
 
-  <h2 class="mb-4"><i class="bi bi-journal-plus"></i> Crear Daily Log</h2>
+  <h2 class="mb-4"><i class="bi bi-journal-plus"></i> {% trans "Create Daily Log" %}</h2>
 
   <form method="post" enctype="multipart/form-data" id="dailyLogForm">
     {% csrf_token %}
@@ -25,21 +25,20 @@
         <!-- Basic Info Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-calendar-day"></i> Información Básica</h5>
+            <h5 class="mb-0"><i class="bi bi-calendar-day"></i> {% trans "Basic Information" %}</h5>
           </div>
           <div class="card-body">
             <div class="row">
               <div class="col-md-4 mb-3">
-                <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                <label class="form-label">{% trans "Date" %} <span class="text-danger">*</span></label>
                 {{ form.date }}
-                {% if form.date.help_text %}<small class="form-text text-muted">{{ form.date.help_text }}</small>{% endif %}
               </div>
               <div class="col-md-4 mb-3">
-                <label class="form-label">Clima</label>
+                <label class="form-label">{% trans "Weather" %}</label>
                 {{ form.weather }}
               </div>
               <div class="col-md-4 mb-3">
-                <label class="form-label">Personas Trabajando</label>
+                <label class="form-label">{% trans "People Working" %}</label>
                 {{ form.crew_count }}
               </div>
             </div>
@@ -49,30 +48,28 @@
         <!-- Schedule Progress Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> Progreso del Schedule</h5>
+            <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> {% trans "Schedule Progress" %}</h5>
           </div>
           <div class="card-body">
             <p class="text-muted small">
               <i class="bi bi-info-circle"></i>
-              Selecciona la actividad principal del calendario que se trabajó hoy (ej: Cubrir y Preparar = 10% del proyecto total)
+              {% trans "Select the main calendar activity worked on today (e.g.: Cover and Prep = 10% of total project)" %}
             </p>
             <div class="row">
               <div class="col-md-8 mb-3">
-                <label class="form-label">Actividad del Schedule</label>
+                <label class="form-label">{% trans "Schedule Activity" %}</label>
                 {{ form.schedule_item }}
-                {% if form.schedule_item.help_text %}<small class="form-text text-muted">{{ form.schedule_item.help_text }}</small>{% endif %}
               </div>
               <div class="col-md-4 mb-3">
-                <label class="form-label">Progreso (%)</label>
+                <label class="form-label">{% trans "Progress (%)" %}</label>
                 {{ form.schedule_progress_percent }}
-                {% if form.schedule_progress_percent.help_text %}<small class="form-text text-muted">{{ form.schedule_progress_percent.help_text }}</small>{% endif %}
               </div>
             </div>
 
             <!-- Active Schedules Reference -->
             {% if active_schedules %}
             <div class="mt-3">
-              <h6 class="small text-muted">Actividades Recientes:</h6>
+              <h6 class="small text-muted">{% trans "Recent Activities:" %}</h6>
               <div class="list-group list-group-flush">
                 {% for sched in active_schedules|slice:":5" %}
                 <div class="list-group-item px-0 py-2 small">
@@ -89,13 +86,12 @@
         <!-- Completed Tasks Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-info text-white">
-            <h5 class="mb-0"><i class="bi bi-check2-square"></i> Tareas Completadas Hoy</h5>
+            <h5 class="mb-0"><i class="bi bi-check2-square"></i> {% trans "Tasks Completed Today" %}</h5>
           </div>
           <div class="card-body">
             <p class="text-muted small">
               <i class="bi bi-info-circle"></i>
-              Selecciona las tareas que se completaron o avanzaron significativamente hoy.
-              Estas tareas son parte de las actividades principales del schedule.
+              {% trans "Select tasks that were completed or significantly progressed today." %}
             </p>
             
             <div class="mb-3">
@@ -105,7 +101,7 @@
             <!-- Pending Tasks Reference -->
             {% if pending_tasks %}
             <div class="mt-3">
-              <h6 class="small text-muted">Tareas Activas del Proyecto:</h6>
+              <h6 class="small text-muted">{% trans "Active Project Tasks:" %}</h6>
               <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
                 {% for task in pending_tasks|slice:":10" %}
                 <div class="list-group-item px-0 py-2 small">
@@ -125,22 +121,21 @@
         <!-- Photos Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="bi bi-camera"></i> Fotos del Día</h5>
+            <h5 class="mb-0"><i class="bi bi-camera"></i> {% trans "Photos" %}</h5>
           </div>
           <div class="card-body">
             <p class="text-muted small">
               <i class="bi bi-info-circle"></i>
-              Sube fotos del progreso del día. Puedes seleccionar múltiples archivos.
+              {% trans "Upload photos of today's progress. You can select multiple files." %}
             </p>
             <div class="mb-3">
-              <label class="form-label">Fotos</label>
+              <label class="form-label">{% trans "Photos" %}</label>
               <input type="file" name="photos" class="form-control" accept="image/*" multiple>
             </div>
             <div class="mb-3">
-              <label class="form-label">Descripción de Fotos</label>
-              <input type="text" name="photo_caption" class="form-control" placeholder="Descripción general de las fotos...">
+              <label class="form-label">{% trans "Photo Description" %}</label>
+              <input type="text" name="photo_caption" class="form-control" placeholder="{% trans 'General description of the photos...' %}">
             </div>
-            <div id="photoPreview" class="row g-2"></div>
           </div>
         </div>
       </div>
@@ -150,7 +145,7 @@
         <!-- Accomplishments Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-white border-bottom">
-            <h6 class="mb-0"><i class="bi bi-trophy"></i> Logros del Día</h6>
+            <h6 class="mb-0"><i class="bi bi-trophy"></i> {% trans "Today's Accomplishments" %}</h6>
           </div>
           <div class="card-body">
             {{ form.accomplishments }}
@@ -160,7 +155,7 @@
         <!-- Progress Notes Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-white border-bottom">
-            <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> Notas de Progreso</h6>
+            <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> {% trans "Progress Notes" %}</h6>
           </div>
           <div class="card-body">
             {{ form.progress_notes }}
@@ -170,15 +165,15 @@
         <!-- Safety & Issues Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-white border-bottom">
-            <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Seguridad e Incidentes</h6>
+            <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> {% trans "Safety & Incidents" %}</h6>
           </div>
           <div class="card-body">
             <div class="mb-3">
-              <label class="form-label small">Incidentes de Seguridad</label>
+              <label class="form-label small">{% trans "Safety Incidents" %}</label>
               {{ form.safety_incidents }}
             </div>
             <div class="mb-0">
-              <label class="form-label small">Retrasos o Problemas</label>
+              <label class="form-label small">{% trans "Delays or Issues" %}</label>
               {{ form.delays }}
             </div>
           </div>
@@ -187,7 +182,7 @@
         <!-- Next Day Plan Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-white border-bottom">
-            <h6 class="mb-0"><i class="bi bi-calendar-plus"></i> Plan para Mañana</h6>
+            <h6 class="mb-0"><i class="bi bi-calendar-plus"></i> {% trans "Plan for Tomorrow" %}</h6>
           </div>
           <div class="card-body">
             {{ form.next_day_plan }}
@@ -197,58 +192,32 @@
         <!-- Publish Options Card -->
         <div class="card mb-4 border-0 shadow-sm">
           <div class="card-header bg-white border-bottom">
-            <h6 class="mb-0"><i class="bi bi-eye"></i> Visibilidad</h6>
+            <h6 class="mb-0"><i class="bi bi-eye"></i> {% trans "Visibility" %}</h6>
           </div>
           <div class="card-body">
             <div class="form-check">
               {{ form.is_published }}
               <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
-                <strong>Publicar para Cliente/Owner</strong>
-                <div class="small text-muted">Si se marca, será visible para el cliente y owner del proyecto</div>
+                {% trans "Publish for client/owner" %}
               </label>
             </div>
+            <small class="text-muted d-block mt-2">
+              {% trans "If not checked, only PM and staff will see this log." %}
+            </small>
           </div>
         </div>
 
-        <!-- Submit Button -->
+        <!-- Submit Buttons -->
         <div class="d-grid gap-2">
           <button type="submit" class="btn btn-primary btn-lg">
-            <i class="bi bi-save"></i> Crear Daily Log
+            <i class="bi bi-check-lg"></i> {% trans "Create Daily Log" %}
           </button>
           <a href="{% url 'daily_log' project.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-x-circle"></i> Cancelar
+            <i class="bi bi-x-lg"></i> {% trans "Cancel" %}
           </a>
         </div>
       </div>
     </div>
   </form>
 </div>
-
-<script>
-// Photo preview
-document.querySelector('input[name="photos"]').addEventListener('change', function(e) {
-  const previewDiv = document.getElementById('photoPreview');
-  previewDiv.innerHTML = '';
-  
-  Array.from(e.target.files).forEach(file => {
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const col = document.createElement('div');
-        col.className = 'col-6';
-        col.innerHTML = `
-          <div class="card">
-            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
-            <div class="card-body p-2">
-              <small class="text-muted">${file.name}</small>
-            </div>
-          </div>
-        `;
-        previewDiv.appendChild(col);
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-});
-</script>
 {% endblock %}

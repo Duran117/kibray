@@ -238,12 +238,15 @@ img {
 
     <!-- Footer with actions -->
     <div class="card-footer bg-light">
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 flex-wrap">
         <a href="{% url 'client_project_view' data.project.id %}" class="btn btn-outline-primary btn-sm flex-fill">
           <i class="bi bi-eye"></i> View Details
         </a>
         <a href="{% url 'site_photo_list' data.project.id %}" class="btn btn-outline-secondary btn-sm flex-fill">
           <i class="bi bi-images"></i> Gallery
+        </a>
+        <a href="{% url 'daily_log' data.project.id %}" class="btn btn-outline-warning btn-sm flex-fill">
+          <i class="bi bi-journal-bookmark"></i> Daily Logs
         </a>
         <a href="{% url 'project_minutes_list' data.project.id %}" class="btn btn-outline-info btn-sm flex-fill">
           <i class="bi bi-journal-text"></i> Minutes

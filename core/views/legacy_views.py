@@ -5248,7 +5248,7 @@ def daily_log_detail(request, log_id):
 
 @login_required
 def daily_log_delete(request, log_id):
-    """Eliminar un Daily Log (solo PM, admin, superuser)"""
+    """Delete a Daily Log (PM, admin, superuser only)"""
     from core.models import DailyLog
 
     log = get_object_or_404(DailyLog.objects.select_related("project"), id=log_id)
@@ -5258,13 +5258,13 @@ def daily_log_delete(request, log_id):
     can_delete = role in ["admin", "superuser", "project_manager"]
 
     if not can_delete:
-        messages.error(request, "No tienes permisos para eliminar Daily Logs")
+        messages.error(request, "You don't have permission to delete Daily Logs")
         return redirect("daily_log_detail", log_id=log.id)
 
     if request.method == "POST":
         project_id = log.project_id
         log.delete()
-        messages.success(request, "Daily Log eliminado correctamente")
+        messages.success(request, "Daily Log deleted successfully")
         return redirect("daily_log", project_id=project_id)
 
     return render(
@@ -5274,18 +5274,18 @@ def daily_log_delete(request, log_id):
 
 @login_required
 def daily_log_create(request, project_id):
-    """Vista dedicada para crear un nuevo Daily Log"""
+    """Dedicated view to create a new Daily Log"""
 
     from core.forms import DailyLogForm
     from core.models import Schedule, Task
 
     project = get_object_or_404(Project, pk=project_id)
 
-    # Verificar permisos
+    # Check permissions
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
-        messages.error(request, "Solo PM puede crear Daily Logs")
+        messages.error(request, "Only PM can create Daily Logs")
         return redirect("project_overview", project_id=project.id)
 
     if request.method == "POST":
@@ -5297,7 +5297,7 @@ def daily_log_create(request, project_id):
             dl.save()
             form.save_m2m()
 
-            # Procesar fotos
+            # Process photos
             photos = request.FILES.getlist("photos")
             for photo_file in photos:
                 from core.models import DailyLogPhoto
@@ -5309,24 +5309,24 @@ def daily_log_create(request, project_id):
                 )
                 dl.photos.add(photo)
 
-            messages.success(request, "Daily Log creado exitosamente")
+            messages.success(request, "Daily Log created successfully")
             return redirect("daily_log_detail", log_id=dl.id)
     else:
-        # Valores por defecto
+        # Default values
         initial = {
             "date": date.today(),
             "is_published": False,
         }
         form = DailyLogForm(initial=initial, project=project)
 
-    # Obtener tareas pendientes/en progreso para sugerencias
+    # Get pending/in-progress tasks for suggestions
     pending_tasks = (
         Task.objects.filter(project=project, status__in=["pending", "in_progress"])
         .select_related("assigned_to")
         .order_by("created_at")
     )
 
-    # Obtener actividades del schedule activas
+    # Get active schedule items
     active_schedules = Schedule.objects.filter(
         project=project, start_datetime__lte=date.today()
     ).order_by("-start_datetime")[:10]

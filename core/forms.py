@@ -341,8 +341,8 @@ class EstimateForm(forms.ModelForm):
 
 class DailyLogForm(forms.ModelForm):
     """
-    Formulario para crear/editar Daily Logs.
-    Incluye selector de tareas completadas y actividad del schedule.
+    Form to create/edit Daily Logs.
+    Includes task selector and schedule activity picker.
     """
 
     class Meta:
@@ -364,7 +364,7 @@ class DailyLogForm(forms.ModelForm):
         widgets = {
             "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "weather": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("ej: Soleado, 75°F")}
+                attrs={"class": "form-control", "placeholder": _("e.g.: Sunny, 75°F")}
             ),
             "crew_count": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
             "schedule_item": forms.Select(attrs={"class": "form-select"}),
@@ -373,35 +373,35 @@ class DailyLogForm(forms.ModelForm):
             ),
             "completed_tasks": forms.CheckboxSelectMultiple(),
             "accomplishments": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": _("Logros del día...")}
+                attrs={"class": "form-control", "rows": 3, "placeholder": _("Today's accomplishments...")}
             ),
             "progress_notes": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": _("Notas generales...")}
+                attrs={"class": "form-control", "rows": 3, "placeholder": _("General notes...")}
             ),
             "safety_incidents": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 2,
-                    "placeholder": _("Incidentes de seguridad..."),
+                    "placeholder": _("Safety incidents..."),
                 }
             ),
             "delays": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 2,
-                    "placeholder": _("Retrasos o problemas..."),
+                    "placeholder": _("Delays or issues..."),
                 }
             ),
             "next_day_plan": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": _("Plan para mañana...")}
+                attrs={"class": "form-control", "rows": 3, "placeholder": _("Plan for tomorrow...")}
             ),
             "is_published": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
         help_texts = {
-            "schedule_item": _("Actividad principal del calendario (ej: Cubrir y Preparar)"),
-            "schedule_progress_percent": _("Porcentaje de progreso de esta actividad"),
-            "completed_tasks": _("Selecciona las tareas que se completaron o avanzaron hoy"),
-            "is_published": _("Marcar para que sea visible para cliente y owner"),
+            "schedule_item": _("Main calendar activity (e.g.: Cover and Prep)"),
+            "schedule_progress_percent": _("Progress percentage for this activity"),
+            "completed_tasks": _("Select tasks that were completed or progressed today"),
+            "is_published": _("Check to make visible to client and owner"),
         }
 
     def __init__(self, *args, **kwargs):
@@ -409,12 +409,12 @@ class DailyLogForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if project:
-            # Filtrar schedule items del proyecto
+            # Filter schedule items for this project
             self.fields["schedule_item"].queryset = Schedule.objects.filter(
                 project=project
             ).order_by("start_datetime")
 
-            # Filtrar tareas del proyecto
+            # Filter tasks for this project
             self.fields["completed_tasks"].queryset = (
                 Task.objects.filter(project=project)
                 .select_related("assigned_to")
