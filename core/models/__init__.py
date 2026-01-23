@@ -5104,6 +5104,124 @@ class ChatMention(models.Model):
 
 
 # ---------------------
+# File Attachments (WebSocket Chat)
+# ---------------------
+class FileAttachment(models.Model):
+    """
+    File attachments sent through WebSocket chat.
+
+    Supports:
+    - Images (JPEG, PNG, GIF, WebP)
+    - Documents (PDF, Word, Excel)
+    - Chunked upload via WebSocket
+    - Thumbnail generation for images
+    """
+
+    FILE_TYPE_CHOICES = [
+        ("image", "Image"),
+        ("document", "Document"),
+        ("other", "Other"),
+    ]
+
+    if TYPE_CHECKING:
+        id: int
+        channel_id: int
+        user_id: int
+
+    channel = models.ForeignKey(
+        ChatChannel,
+        on_delete=models.CASCADE,
+        related_name="file_attachments",
+        help_text="Chat channel where file was shared",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="chat_uploaded_files",
+        help_text="User who uploaded the file",
+    )
+    message = models.ForeignKey(
+        ChatMessage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="attachments",
+        help_text="Associated chat message (optional)",
+    )
+
+    # File information
+    filename = models.CharField(max_length=255, help_text="Original filename")
+    file_path = models.CharField(max_length=500, help_text="Storage path")
+    file_type = models.CharField(max_length=100, help_text="MIME type")
+    file_size = models.IntegerField(help_text="Size in bytes")
+    file_category = models.CharField(
+        max_length=20, choices=FILE_TYPE_CHOICES, default="other", help_text="File category"
+    )
+
+    # Thumbnail for images
+    thumbnail_path = models.CharField(
+        max_length=500, blank=True, null=True, help_text="Thumbnail path (images only)"
+    )
+
+    # Metadata
+    upload_session_id = models.CharField(
+        max_length=100, blank=True, help_text="WebSocket upload session ID"
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    download_count = models.IntegerField(default=0, help_text="Number of downloads")
+
+    # Soft delete
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deleted_attachments",
+    )
+
+    class Meta:
+        ordering = ["-uploaded_at"]
+        indexes = [
+            models.Index(fields=["channel", "-uploaded_at"]),
+            models.Index(fields=["user", "-uploaded_at"]),
+            models.Index(fields=["file_category", "-uploaded_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.filename} in {self.channel.name}"
+
+    def get_file_url(self):
+        """Get full URL for file download"""
+        from django.core.files.storage import default_storage
+
+        return default_storage.url(self.file_path)
+
+    def get_thumbnail_url(self):
+        """Get full URL for thumbnail"""
+        if self.thumbnail_path:
+            from django.core.files.storage import default_storage
+
+            return default_storage.url(self.thumbnail_path)
+        return None
+
+    def increment_download_count(self):
+        """Increment download counter"""
+        self.download_count += 1
+        self.save(update_fields=["download_count"])
+
+    def soft_delete(self, deleted_by_user):
+        """Soft delete the attachment"""
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.deleted_by = deleted_by_user
+        self.save(update_fields=["is_deleted", "deleted_at", "deleted_by"])
+
+
+# ---------------------
 # Sistema de notificaciones
 # ---------------------
 class Notification(models.Model):
@@ -5144,6 +5262,105 @@ class Notification(models.Model):
         if not self.is_read:
             self.is_read = True
             self.save(update_fields=["is_read"])
+
+
+# ---------------------
+# Push Notification Tokens
+# ---------------------
+class DeviceToken(models.Model):
+    """
+    Store FCM device tokens for push notifications.
+
+    Supports:
+    - Web push notifications
+    - iOS push (APNs via FCM)
+    - Android push (FCM)
+    """
+
+    DEVICE_TYPE_CHOICES = [
+        ("web", "Web Browser"),
+        ("ios", "iOS"),
+        ("android", "Android"),
+    ]
+
+    if TYPE_CHECKING:
+        id: int
+        user_id: int
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="device_tokens",
+        help_text="User who owns this device",
+    )
+    token = models.CharField(max_length=255, unique=True, help_text="FCM device token")
+    device_type = models.CharField(
+        max_length=20, choices=DEVICE_TYPE_CHOICES, default="web", help_text="Type of device"
+    )
+    device_name = models.CharField(
+        max_length=100, blank=True, null=True, help_text="Device identifier (optional)"
+    )
+    is_active = models.BooleanField(default=True, help_text="Whether token is still valid")
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(auto_now=True, help_text="Last time token was used")
+
+    class Meta:
+        ordering = ["-last_used"]
+        indexes = [
+            models.Index(fields=["user", "is_active"]),
+            models.Index(fields=["token"]),
+        ]
+
+    def __str__(self):
+        return f"{self.device_type} token for {self.user.username}"
+
+
+class NotificationPreference(models.Model):
+    """
+    User preferences for push notifications.
+
+    Allows users to control which notifications they receive.
+    """
+
+    if TYPE_CHECKING:
+        id: int
+        user_id: int
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notification_preferences",
+        help_text="User who owns these preferences",
+    )
+    preferences = models.JSONField(
+        default=dict, help_text="Notification category preferences (JSON)"
+    )
+
+    push_enabled = models.BooleanField(
+        default=True, help_text="Master switch for push notifications"
+    )
+    email_enabled = models.BooleanField(
+        default=True, help_text="Master switch for email notifications"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Notification preferences"
+
+    def __str__(self):
+        return f"Preferences for {self.user.username}"
+
+    def get_preference(self, category: str, default: bool = True) -> bool:
+        """Get preference for specific notification category"""
+        if not self.push_enabled:
+            return False
+
+        return self.preferences.get(category, default)
+
+    def set_preference(self, category: str, enabled: bool):
+        """Set preference for specific notification category"""
+        self.preferences[category] = enabled
+        self.save(update_fields=["preferences", "updated_at"])
 
 
 # =============================================================================
@@ -8049,6 +8266,78 @@ class ProjectFile(models.Model):
                 return f"{size:.1f} {unit}"
             size /= 1024.0
         return f"{size:.1f} TB"
+
+
+# ========================================================================================
+# DOCUMENT REQUESTS (Odoo-style)
+# ========================================================================================
+
+
+class DocumentRequest(models.Model):
+    """Request for a document that hasn't been uploaded yet (Odoo-style)"""
+
+    if TYPE_CHECKING:
+        id: int
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("received", "Received"),
+        ("overdue", "Overdue"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="document_requests")
+    workspace = models.ForeignKey(
+        FileCategory, on_delete=models.CASCADE, related_name="document_requests"
+    )
+    name = models.CharField(max_length=255, help_text="Name of requested document")
+    description = models.TextField(blank=True)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="document_requests_made",
+    )
+    requested_from = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="document_requests_received",
+    )
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+
+    # Link to uploaded file when received
+    uploaded_file = models.ForeignKey(
+        ProjectFile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="fulfilled_request",
+    )
+
+    default_tags = models.ManyToManyField(DocumentTag, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Document Request"
+        verbose_name_plural = "Document Requests"
+
+    def __str__(self):
+        return f"Request: {self.name} (from {self.requested_from.username})"
+
+    def is_overdue(self):
+        """Check if request is past due date"""
+        if self.due_date and self.status == "pending":
+            return timezone.now().date() > self.due_date
+        return False
+
+    def mark_received(self, file):
+        """Mark request as received with uploaded file"""
+        self.status = "received"
+        self.uploaded_file = file
+        self.completed_at = timezone.now()
+        self.save()
 
 
 # ========================================================================================
