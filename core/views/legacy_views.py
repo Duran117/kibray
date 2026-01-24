@@ -925,6 +925,13 @@ def dashboard_client(request):
             status__in=['proposed', 'review']
         ).order_by('-created_at')[:5]
 
+        # Recent Daily Logs (only published ones for clients)
+        from core.models import DailyLog
+        recent_daily_logs = DailyLog.objects.filter(
+            project=project,
+            is_published=True
+        ).select_related('created_by').order_by('-date')[:3]
+
         project_data.append(
             {
                 "project": project,
@@ -940,6 +947,7 @@ def dashboard_client(request):
                 "pending_change_orders": pending_change_orders,
                 "signed_change_orders": signed_change_orders,
                 "pending_color_samples": pending_color_samples,
+                "recent_daily_logs": recent_daily_logs,
             }
         )
 
@@ -6836,7 +6844,7 @@ def dashboard_pm(request):
 @login_required
 def pm_select_project(request, action: str):
     if not request.user.is_staff:
-        messages.error(request, "Acceso solo para PM/Staff.")
+        messages.error(request, _("Access restricted to PM/Staff only."))
         return redirect("dashboard_employee")
 
     projects = Project.objects.all().order_by("name")
@@ -6848,7 +6856,7 @@ def pm_select_project(request, action: str):
         except (TypeError, ValueError):
             pid = None
         if not pid:
-            messages.error(request, "Selecciona un proyecto.")
+            messages.error(request, _("Please select a project."))
             return render(
                 request, "core/pm_select_project.html", {"action": action, "projects": projects}
             )
@@ -6867,10 +6875,11 @@ def pm_select_project(request, action: str):
             "chat": "project_chat_index",
             "plans": "floor_plan_list",
             "colors": "color_sample_list",
+            "dailylogs": "daily_log",
         }.get(action)
 
         if not target:
-            messages.error(request, _("Acción no soportada: %(action)s") % {"action": action})
+            messages.error(request, _("Unsupported action: %(action)s") % {"action": action})
             return render(
                 request, "core/pm_select_project.html", {"action": action, "projects": projects}
             )

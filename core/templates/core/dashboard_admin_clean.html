@@ -737,6 +737,40 @@
             </div>
         </div>
 </div>
+
+<!-- Quick Navigation -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
+    <h3 class="text-sm font-semibold text-slate-600 mb-4 flex items-center gap-2">
+        <i class="bi bi-lightning-charge"></i>
+        {% trans "Quick Navigation" %}
+    </h3>
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+        <a href="{% url 'pm_select_project' 'dailylogs' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 transition group">
+            <i class="bi bi-journal-text text-xl text-slate-500 group-hover:text-emerald-600"></i>
+            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Daily Logs" %}</span>
+        </a>
+        <a href="{% url 'pm_select_project' 'tasks' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition group">
+            <i class="bi bi-list-check text-xl text-slate-500 group-hover:text-blue-600"></i>
+            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Tasks" %}</span>
+        </a>
+        <a href="{% url 'pm_select_project' 'schedule' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-purple-400 hover:bg-purple-50 transition group">
+            <i class="bi bi-calendar3 text-xl text-slate-500 group-hover:text-purple-600"></i>
+            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Schedule" %}</span>
+        </a>
+        <a href="{% url 'pm_select_project' 'materials' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition group">
+            <i class="bi bi-box-seam text-xl text-slate-500 group-hover:text-orange-600"></i>
+            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Materials" %}</span>
+        </a>
+        <a href="{% url 'pm_select_project' 'colors' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-pink-400 hover:bg-pink-50 transition group">
+            <i class="bi bi-palette text-xl text-slate-500 group-hover:text-pink-600"></i>
+            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Colors" %}</span>
+        </a>
+        <a href="{% url 'pm_select_project' 'plans' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-cyan-400 hover:bg-cyan-50 transition group">
+            <i class="bi bi-map text-xl text-slate-500 group-hover:text-cyan-600"></i>
+            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Plans" %}</span>
+        </a>
+    </div>
+</div>
 {% endblock %}
 {% block extra_js %}
 <script>
