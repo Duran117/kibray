@@ -5005,7 +5005,6 @@ def estimate_send_email(request, estimate_id):
 
 
 @login_required
-@login_required
 def daily_log_view(request, project_id):
     """
     Vista para gestionar Daily Logs de un proyecto.
