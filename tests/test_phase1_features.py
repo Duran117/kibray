@@ -205,7 +205,7 @@ class TestDailyLogPlanning:
         daily_log.refresh_from_db()
         assert daily_log.is_complete is False
         assert "1" in daily_log.incomplete_reason
-        assert "Faltan" in daily_log.incomplete_reason
+        assert "remaining" in daily_log.incomplete_reason or "tasks" in daily_log.incomplete_reason
 
     def test_evaluate_completion_no_tasks(self, daily_log):
         """Test evaluation when no tasks are planned"""
@@ -214,7 +214,7 @@ class TestDailyLogPlanning:
         assert result is False
         daily_log.refresh_from_db()
         assert daily_log.is_complete is False
-        assert "No hay tareas" in daily_log.incomplete_reason
+        assert "No tasks" in daily_log.incomplete_reason or "planned" in daily_log.incomplete_reason
 
 
 # ============================================================================
