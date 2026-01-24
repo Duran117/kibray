@@ -303,6 +303,11 @@
                     <i class="bi bi-chat-square-text text-slate-400"></i>
                     {% trans "Messages" %}
                 </a>
+                <a href="{% url 'daily_log' data.project.id %}" 
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                    <i class="bi bi-journal-text text-slate-400"></i>
+                    {% trans "Daily Logs" %}
+                </a>
             </div>
         </div>
 
@@ -421,6 +426,42 @@
                         </a>
                     </div>
                     {% endif %}
+
+                    <!-- Daily Logs -->
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase tracking-wide mb-3">{% trans "Daily Progress" %}</p>
+                        {% if data.recent_daily_logs %}
+                        <div class="space-y-2">
+                            {% for log in data.recent_daily_logs %}
+                            <a href="{% url 'daily_log_detail' log.id %}" 
+                               class="block p-3 rounded-xl bg-slate-50 border border-slate-100 elegant-hover group">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-medium text-slate-900">{{ log.date|date:"M d, Y" }}</span>
+                                    {% if log.schedule_progress_percent %}
+                                    <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{{ log.schedule_progress_percent|floatformat:0 }}%</span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center gap-3 text-xs text-slate-500">
+                                    {% if log.weather %}<span><i class="bi bi-cloud-sun me-1"></i>{{ log.weather|truncatewords:2 }}</span>{% endif %}
+                                    {% if log.crew_count %}<span><i class="bi bi-people me-1"></i>{{ log.crew_count }}</span>{% endif %}
+                                </div>
+                                {% if log.accomplishments %}
+                                <p class="text-xs text-slate-500 mt-2 line-clamp-2">{{ log.accomplishments|truncatewords:15 }}</p>
+                                {% endif %}
+                            </a>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'daily_log' data.project.id %}" 
+                           class="block text-center text-sm text-indigo-600 hover:text-indigo-700 mt-3 font-medium">
+                            {% trans "View all daily logs" %} →
+                        </a>
+                        {% else %}
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                            <i class="bi bi-journal-text text-2xl text-slate-300 mb-2"></i>
+                            <p class="text-xs text-slate-500">{% trans "No daily logs published yet" %}</p>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <!-- Column 3: Actions & Requests -->
