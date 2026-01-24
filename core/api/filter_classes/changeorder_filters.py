@@ -13,12 +13,12 @@ class ChangeOrderFilter(django_filters.FilterSet):
     reference_code = django_filters.CharFilter(field_name="reference_code", lookup_expr="icontains")
     status = django_filters.MultipleChoiceFilter(
         choices=[
-            ("draft", "Borrador"),
+            ("draft", "Draft"),
             ("pending", "Pending"),
-            ("approved", "Aprobado"),
-            ("sent", "Enviado"),
-            ("billed", "Facturado"),
-            ("paid", "Pagado"),
+            ("approved", "Approved"),
+            ("sent", "Sent"),
+            ("billed", "Billed"),
+            ("paid", "Paid"),
         ]
     )
     project = django_filters.NumberFilter(field_name="project__id")

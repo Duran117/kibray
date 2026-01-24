@@ -214,8 +214,8 @@ def notify_touchup_completed(task):
         url = reverse("task_detail", args=[task.id])
         PushNotificationService.send_notification(
             user_ids=[task.project.pm.id],
-            heading="✅ Touch-up Completado",
-            content=f"{task.title} completado por {task.assigned_to.username if task.assigned_to else 'Sin asignar'}",
+            heading="✅ Touch-up Completed",
+            content=f"{task.title} completed by {task.assigned_to.username if task.assigned_to else 'Unassigned'}",
             url=url,
             data={"type": "touchup", "task_id": task.id},
         )
@@ -239,8 +239,8 @@ def notify_project_budget_alert(project):
         url = reverse("project_overview", args=[project.id])
         PushNotificationService.send_notification(
             user_ids=users_to_notify,
-            heading="⚠️ Alerta de Presupuesto",
-            content=f"{project.name} ha excedido el presupuesto aprobado",
+            heading="⚠️ Budget Alert",
+            content=f"{project.name} has exceeded the approved budget",
             url=url,
             data={"type": "budget_alert", "project_id": project.id},
         )

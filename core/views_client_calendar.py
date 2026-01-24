@@ -133,16 +133,16 @@ def client_calendar_api_data(request, project_id):
     for item in schedule_items:
         # Color según estado - Premium palette
         if item.status == "done":
-            color = "#10b981"  # Emerald - Completado
+            color = "#10b981"  # Emerald - Completed
             text_color = "white"
         elif item.status == "in_progress":
-            color = "#f59e0b"  # Amber - En progreso
+            color = "#f59e0b"  # Amber - In Progress
             text_color = "#000"
         elif item.status == "blocked":
-            color = "#ef4444"  # Red - Bloqueado
+            color = "#ef4444"  # Red - Blocked
             text_color = "white"
         else:  # planned
-            color = "#64748b"  # Slate - Planificado
+            color = "#64748b"  # Slate - Planned
             text_color = "white"
 
         # Icono según si es milestone
@@ -150,10 +150,10 @@ def client_calendar_api_data(request, project_id):
 
         # Status display
         status_display = {
-            "planned": "Planificado",
+            "planned": "Planned",
             "in_progress": "In Progress",
-            "blocked": "Bloqueado",
-            "done": "Completado",
+            "blocked": "Blocked",
+            "done": "Completed",
         }.get(item.status, item.status)
 
         event = {
@@ -224,10 +224,10 @@ def client_calendar_milestone_detail(request, item_id):
 
     # Status display mapping
     status_display = {
-        "planned": "Planificado",
+        "planned": "Planned",
         "in_progress": "In Progress",
-        "blocked": "Bloqueado",
-        "done": "Completado",
+        "blocked": "Blocked",
+        "done": "Completed",
     }.get(item.status, item.status)
 
     data = {

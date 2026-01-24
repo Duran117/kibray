@@ -2099,7 +2099,7 @@ def color_sample_quick_action(request, sample_id):
                 {
                     "success": True,
                     "status": "approved",
-                    "display": "Aprobado",
+                    "display": "Approved",
                     "sample_number": sample.sample_number,
                     "signature": sample.approval_signature,
                 }
@@ -2107,18 +2107,18 @@ def color_sample_quick_action(request, sample_id):
         elif action == "reject":
             reason = request.POST.get("reason", "").strip()
             if not reason:
-                return JsonResponse({"error": gettext("Razón de rechazo requerida")}, status=400)
+                return JsonResponse({"error": gettext("Rejection reason required")}, status=400)
             sample.reject(request.user, reason)
             return JsonResponse(
                 {
                     "success": True,
                     "status": "rejected",
-                    "display": "Rechazado",
+                    "display": "Rejected",
                     "reason": sample.rejection_reason,
                 }
             )
 
-    return JsonResponse({"error": gettext("Acción inválida")}, status=400)
+    return JsonResponse({"error": gettext("Invalid action")}, status=400)
 
 
 @login_required
@@ -2515,7 +2515,7 @@ def floor_plan_add_pin(request, plan_id):
                     project=plan.project,
                     plan=plan,
                     pin=pin,
-                    title=pin.title or "Daño reportado",
+                    title=pin.title or "Damage reported",
                     description=pin.description,
                     severity="medium",
                     status="open",
@@ -2568,10 +2568,10 @@ def agregar_tarea(request, project_id):
         image = request.FILES.get("image")
 
         if not title:
-            messages.error(request, "El título es requerido.")
+            messages.error(request, "Title is required.")
             return redirect("client_project_view", project_id=project_id)
 
-        # Crear tarea con estado Pendiente y foto si existe
+        # Create task with Pending status and photo if exists
         task = Task.objects.create(
             project=project,
             title=title,

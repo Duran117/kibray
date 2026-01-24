@@ -84,7 +84,8 @@ class TestChangeOrderValidation:
         with pytest.raises(ValidationError) as exc_info:
             co.clean()
         assert 'amount' in exc_info.value.message_dict
-        assert 'Tiempo y Materiales' in str(exc_info.value)
+        # Error message should mention T&M (in English or Spanish)
+        assert 'Time and Materials' in str(exc_info.value) or 'Tiempo y Materiales' in str(exc_info.value)
     
     def test_tm_co_accepts_zero_amount(self, project):
         """T&M COs with amount=0 pass validation."""

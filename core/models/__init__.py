@@ -1728,12 +1728,12 @@ class TaskStatusChange(models.Model):
     new_status = models.CharField(max_length=50)
     changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     changed_at = models.DateTimeField(auto_now_add=True)
-    notes = models.TextField(blank=True, help_text="Notas opcionales sobre el cambio")
+    notes = models.TextField(blank=True, help_text="Optional notes about the change")
 
     class Meta:
         ordering = ["-changed_at"]
-        verbose_name = "Cambio de Estado de Tarea"
-        verbose_name_plural = "Cambios de Estado de Tareas"
+        verbose_name = "Task Status Change"
+        verbose_name_plural = "Task Status Changes"
         indexes = [
             models.Index(fields=["task", "-changed_at"]),
         ]
@@ -2109,7 +2109,7 @@ class ChangeOrder(models.Model):
         errors = {}
         if self.pricing_type == "T_AND_M" and self.amount != Decimal("0.00"):
             errors["amount"] = (
-                "Los Change Orders de Tiempo y Materiales deben tener amount=0. El total se calcula dinámicamente."
+                "Time and Materials Change Orders must have amount=0. The total is calculated dynamically."
             )
         if errors:
             raise ValidationError(errors)
@@ -2705,13 +2705,13 @@ def crear_o_actualizar_payroll_record(employee, week_start, week_end):
 # ---------------------
 class Invoice(models.Model):
     STATUS_CHOICES = [
-        ("DRAFT", "Borrador"),
-        ("SENT", "Enviada"),
-        ("VIEWED", "Vista por Cliente"),
-        ("APPROVED", "Aprobada"),
-        ("PARTIAL", "Pago Parcial"),
-        ("PAID", "Pagada Completa"),
-        ("OVERDUE", "Vencida"),
+        ("DRAFT", "Draft"),
+        ("SENT", "Sent"),
+        ("VIEWED", "Viewed by Client"),
+        ("APPROVED", "Approved"),
+        ("PARTIAL", "Partial Payment"),
+        ("PAID", "Paid Complete"),
+        ("OVERDUE", "Overdue"),
         ("CANCELLED", "Cancelled"),
     ]
 
@@ -3477,22 +3477,22 @@ class BudgetProgress(models.Model):
 class MaterialRequest(models.Model):
     NEEDED_WHEN_CHOICES = [
         ("now", "Ahora (emergencia)"),
-        ("tomorrow", "Mañana"),
-        ("next_week", "Siguiente semana"),
-        ("date", "Fecha específica"),
+        ("tomorrow", "Tomorrow"),
+        ("next_week", "Next Week"),
+        ("date", "Specific Date"),
     ]
 
     # Status choices con transición a nombres normalizados
     STATUS_CHOICES = [
-        ("draft", "Borrador"),  # Q14.4: Estado inicial
-        ("pending", "Pending"),  # Enviada, esperando aprobación
-        ("approved", "Aprobada"),  # Q14.4: Admin aprobó
-        ("submitted", "Enviada"),  # DEPRECATED: bloqueado en clean()
-        ("ordered", "Ordenada"),
-        ("partially_received", "Parcialmente recibida"),  # Q14.10
-        ("fulfilled", "Entregada"),
+        ("draft", "Draft"),  # Q14.4: Initial state
+        ("pending", "Pending"),  # Sent, waiting approval
+        ("approved", "Approved"),  # Q14.4: Admin approved
+        ("submitted", "Submitted"),  # DEPRECATED: blocked in clean()
+        ("ordered", "Ordered"),
+        ("partially_received", "Partially Received"),  # Q14.10
+        ("fulfilled", "Fulfilled"),
         ("cancelled", "Cancelled"),
-        ("purchased_lead", "Compra directa (líder)"),
+        ("purchased_lead", "Direct Purchase (Lead)"),
     ]
 
     # Mapping de compatibilidad (R1): acepta legacy y mapea a valores normalizados
@@ -3535,7 +3535,7 @@ class MaterialRequest(models.Model):
     # ACTIVITY 2: Q14.10 - Partial receipt tracking
     expected_delivery_date = models.DateField(null=True, blank=True)
     partial_receipt_notes = models.TextField(
-        blank=True, help_text="Notas sobre recepciones parciales"
+        blank=True, help_text="Notes about partial receipts"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -4239,11 +4239,11 @@ class SitePhoto(models.Model):
 # ---------------------
 class ColorSample(models.Model):
     STATUS_CHOICES = [
-        ("proposed", "Propuesto"),
+        ("proposed", "Proposed"),
         ("review", "Under Review"),
-        ("approved", "Aprobado"),
-        ("rejected", "Rechazado"),
-        ("archived", "Archivado"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("archived", "Archived"),
     ]
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="color_samples")
     code = models.CharField(max_length=60, blank=True, help_text="SW xxxx, Milesi xxx, etc.")
@@ -4553,11 +4553,11 @@ class FloorPlan(models.Model):
 
 class PlanPin(models.Model):
     PIN_TYPES = [
-        ("note", "Nota"),
+        ("note", "Note"),
         ("touchup", "Touch-up"),
         ("color", "Color"),
-        ("alert", "Alerta"),
-        ("damage", "Daño"),
+        ("alert", "Alert"),
+        ("damage", "Damage"),
     ]
     PIN_COLORS = [
         "#0d6efd",
@@ -5227,15 +5227,15 @@ class FileAttachment(models.Model):
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
         ("task_created", "Tarea creada"),
-        ("task_assigned", "Tarea asignada"),
-        ("task_completed", "Tarea completada"),
-        ("color_review", "Color en revisión"),
-        ("color_approved", "Color aprobado"),
-        ("color_rejected", "Color rechazado"),
-        ("damage_reported", "Daño reportado"),
-        ("chat_message", "Mensaje en chat"),
-        ("comment_added", "Comentario agregado"),
-        ("estimate_approved", "Estimación aprobada"),
+        ("task_assigned", "Task Assigned"),
+        ("task_completed", "Task Completed"),
+        ("color_review", "Color Under Review"),
+        ("color_approved", "Color Approved"),
+        ("color_rejected", "Color Rejected"),
+        ("damage_reported", "Damage Reported"),
+        ("chat_message", "Chat Message"),
+        ("comment_added", "Comment Added"),
+        ("estimate_approved", "Estimate Approved"),
     ]
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
@@ -5383,16 +5383,16 @@ class PermissionMatrix(models.Model):
     ]
 
     ENTITY_TYPE_CHOICES = [
-        ("project", "Proyecto"),
-        ("task", "Tarea"),
-        ("invoice", "Factura"),
-        ("estimate", "Estimación"),
-        ("payment", "Pago"),
-        ("expense", "Gasto"),
-        ("inventory", "Inventario"),
-        ("damage", "Reporte de Daño"),
-        ("color", "Muestra de Color"),
-        ("document", "Documento"),
+        ("project", "Project"),
+        ("task", "Task"),
+        ("invoice", "Invoice"),
+        ("estimate", "Estimate"),
+        ("payment", "Payment"),
+        ("expense", "Expense"),
+        ("inventory", "Inventory"),
+        ("damage", "Damage Report"),
+        ("color", "Color Sample"),
+        ("document", "Document"),
     ]
 
     user = models.ForeignKey(
@@ -5470,19 +5470,19 @@ class AuditLog(models.Model):
     ]
 
     ENTITY_TYPE_CHOICES = [
-        ("project", "Proyecto"),
-        ("task", "Tarea"),
-        ("invoice", "Factura"),
-        ("estimate", "Estimación"),
-        ("payment", "Pago"),
-        ("expense", "Gasto"),
-        ("inventory", "Inventario"),
-        ("damage", "Reporte de Daño"),
-        ("color", "Muestra de Color"),
-        ("user", "Usuario"),
-        ("permission", "Permiso"),
-        ("document", "Documento"),
-        ("system", "Sistema"),
+        ("project", "Project"),
+        ("task", "Task"),
+        ("invoice", "Invoice"),
+        ("estimate", "Estimate"),
+        ("payment", "Payment"),
+        ("expense", "Expense"),
+        ("inventory", "Inventory"),
+        ("damage", "Damage Report"),
+        ("color", "Color Sample"),
+        ("user", "User"),
+        ("permission", "Permission"),
+        ("document", "Document"),
+        ("system", "System"),
     ]
 
     # Who performed the action
@@ -5515,9 +5515,9 @@ class AuditLog(models.Model):
     request_method = models.CharField(max_length=10, blank=True)  # GET, POST, PUT, DELETE
 
     # Additional context
-    notes = models.TextField(blank=True, help_text="Notas adicionales sobre la acción")
-    success = models.BooleanField(default=True, help_text="Si la acción fue exitosa")
-    error_message = models.TextField(blank=True, help_text="Mensaje de error si falló")
+    notes = models.TextField(blank=True, help_text="Additional notes about the action")
+    success = models.BooleanField(default=True, help_text="Whether the action was successful")
+    error_message = models.TextField(blank=True, help_text="Error message if it failed")
 
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
 
@@ -7017,13 +7017,13 @@ class ProjectMinute(models.Model):
     EVENT_TYPE_CHOICES = [
         ("decision", "Decisión"),
         ("call", "Llamada"),
-        ("email", "Correo"),
-        ("meeting", "Reunión"),
-        ("approval", "Aprobación"),
-        ("change", "Cambio/Modificación"),
-        ("issue", "Problema"),
-        ("milestone", "Hito"),
-        ("note", "Nota"),
+        ("email", "Email"),
+        ("meeting", "Meeting"),
+        ("approval", "Approval"),
+        ("change", "Change/Modification"),
+        ("issue", "Issue"),
+        ("milestone", "Milestone"),
+        ("note", "Note"),
     ]
 
     if TYPE_CHECKING:
@@ -8016,15 +8016,15 @@ class PaintLeftover(models.Model):
         help_text="Ubicación donde se almacena",
     )
     location_notes = models.CharField(
-        max_length=255, blank=True, help_text="Notas de ubicación específica"
+        max_length=255, blank=True, help_text="Specific location notes"
     )
     condition = models.CharField(
         max_length=50,
         choices=[
-            ("excellent", "Excelente"),
-            ("good", "Buena"),
-            ("fair", "Regular"),
-            ("poor", "Mala - No usar"),
+            ("excellent", "Excellent"),
+            ("good", "Good"),
+            ("fair", "Fair"),
+            ("poor", "Poor - Do Not Use"),
         ],
         default="good",
     )
@@ -8460,9 +8460,9 @@ class DocumentWorkflow(models.Model):
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("in_progress", "In Progress"),
-        ("approved", "Aprobado"),
-        ("rejected", "Rechazado"),
-        ("cancelled", "Cancelado"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("cancelled", "Cancelled"),
     ]
 
     file = models.ForeignKey(
@@ -8559,12 +8559,12 @@ class WorkflowStepAction(models.Model):
         id: int
 
     ACTION_CHOICES = [
-        ("approved", "Aprobado"),
-        ("rejected", "Rechazado"),
-        ("signed", "Firmado"),
-        ("commented", "Comentado"),
-        ("delegated", "Delegado"),
-        ("reminder_sent", "Recordatorio Enviado"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("signed", "Signed"),
+        ("commented", "Commented"),
+        ("delegated", "Delegated"),
+        ("reminder_sent", "Reminder Sent"),
     ]
 
     workflow = models.ForeignKey(
@@ -8629,14 +8629,14 @@ class TouchUpPin(models.Model):
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("in_progress", "In Progress"),
-        ("completed", "Completado"),
-        ("archived", "Archivado"),
+        ("completed", "Completed"),
+        ("archived", "Archived"),
     ]
 
     APPROVAL_CHOICES = [
-        ("pending_review", "Pendiente de Revisión"),
-        ("approved", "Aprobado"),
-        ("rejected", "Rechazado"),
+        ("pending_review", "Pending Review"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
     ]
 
     # Location
@@ -8660,7 +8660,7 @@ class TouchUpPin(models.Model):
         max_length=100, blank=True, help_text="If not using approved color"
     )
     sheen = models.CharField(
-        max_length=50, blank=True, help_text="Brillo: Matte, Satin, Semi-gloss, Gloss"
+        max_length=50, blank=True, help_text="Sheen: Matte, Satin, Semi-gloss, Gloss"
     )
     details = models.TextField(blank=True, help_text="Additional details about the touch-up")
 

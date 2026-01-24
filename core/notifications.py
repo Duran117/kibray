@@ -117,8 +117,8 @@ def notify_damage_reported(damage_report, reporter):
         Notification.objects.create(
             user=u,
             notification_type="damage_reported",
-            title=f"Daño reportado: {damage_report.title}",
-            message=f"{reporter.username} reportó un daño ({damage_report.get_severity_display()}) en {damage_report.project.name}",
+            title=f"Damage reported: {damage_report.title}",
+            message=f"{reporter.username} reported a damage ({damage_report.get_severity_display()}) in {damage_report.project.name}",
             related_object_type="damage_report",
             related_object_id=damage_report.id,
             link_url=link,
