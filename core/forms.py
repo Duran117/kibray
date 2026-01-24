@@ -1710,28 +1710,28 @@ class TouchUpPinForm(forms.ModelForm):
             "sheen": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "Ej: Matte, Satin, Semi-gloss, Gloss",
+                    "placeholder": "e.g., Matte, Satin, Semi-gloss, Gloss",
                 }
             ),
             "details": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 2,
-                    "placeholder": "Detalles adicionales sobre técnica, herramientas, etc.",
+                    "placeholder": "Additional details about technique, tools, etc.",
                 }
             ),
             "assigned_to": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
-            "task_name": "Nombre de la Tarea",
-            "description": "Descripción",
-            "approved_color": "Color Aprobado",
-            "custom_color_name": "Color Personalizado",
-            "sheen": "Brillo",
-            "details": "Detalles Adicionales",
-            "assigned_to": "Asignar a",
-            "status": "Estado",
+            "task_name": "Task Name",
+            "description": "Description",
+            "approved_color": "Approved Color",
+            "custom_color_name": "Custom Color Name",
+            "sheen": "Sheen",
+            "details": "Additional Details",
+            "assigned_to": "Assign To",
+            "status": "Status",
         }
 
     def __init__(self, *args, **kwargs):
