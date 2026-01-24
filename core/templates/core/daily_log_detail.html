@@ -298,7 +298,7 @@
         <div class="info-card-body">
           <div class="photo-grid">
             {% for photo in log.photos.all %}
-            <div class="photo-item" data-bs-toggle="modal" data-bs-target="#photoModal{{ photo.id }}">
+            <div class="photo-item" data-photo-index="{{ forloop.counter0 }}" style="cursor: pointer;">
               <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}">
               <div class="photo-overlay">
                 <p class="mb-0" style="font-size: 0.75rem;">
@@ -443,21 +443,197 @@
   </div>
 </div>
 
-<!-- Photo Modals (at root level for proper z-index) -->
-{% for photo in log.photos.all %}
-<div class="modal fade" id="photoModal{{ photo.id }}" tabindex="-1" aria-labelledby="photoModalLabel{{ photo.id }}" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content bg-dark">
-      <div class="modal-header border-0 bg-dark">
-        <h5 class="modal-title text-white" id="photoModalLabel{{ photo.id }}">{{ photo.caption|default:"Photo" }}</h5>
+<!-- Premium Photo Gallery Modal -->
+{% if log.photos.count > 0 %}
+<div class="modal fade" id="photoGalleryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content" style="background: rgba(0,0,0,0.95);">
+      
+      <!-- Header -->
+      <div class="modal-header border-0 position-absolute w-100" style="z-index: 10; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);">
+        <div class="d-flex align-items-center gap-3">
+          <span class="text-white fw-medium" id="galleryTitle">Photo</span>
+          <span class="badge bg-white bg-opacity-25 text-white" id="galleryCounter">1 / {{ log.photos.count }}</span>
+        </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-0 bg-dark text-center">
-        <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}" class="img-fluid" style="max-height: 80vh;">
+
+      <!-- Main Image Container -->
+      <div class="modal-body d-flex align-items-center justify-content-center p-0 position-relative">
+        
+        <!-- Previous Button -->
+        <button type="button" class="btn position-absolute start-0 top-50 translate-middle-y ms-3 gallery-nav-btn" id="prevPhoto" style="z-index: 10;">
+          <i class="bi bi-chevron-left text-white" style="font-size: 2rem;"></i>
+        </button>
+
+        <!-- Image -->
+        <div class="text-center" style="max-width: 90vw; max-height: 85vh; overflow: hidden;">
+          <img id="galleryImage" src="" alt="" class="gallery-main-image" style="max-width: 100%; max-height: 85vh; object-fit: contain; transition: transform 0.3s ease;">
+        </div>
+
+        <!-- Next Button -->
+        <button type="button" class="btn position-absolute end-0 top-50 translate-middle-y me-3 gallery-nav-btn" id="nextPhoto" style="z-index: 10;">
+          <i class="bi bi-chevron-right text-white" style="font-size: 2rem;"></i>
+        </button>
+      </div>
+
+      <!-- Bottom Controls -->
+      <div class="modal-footer border-0 position-absolute bottom-0 w-100 justify-content-center gap-3" style="z-index: 10; background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%); padding: 1.5rem;">
+        
+        <!-- Zoom Controls -->
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-light btn-sm" id="zoomOut" title="Zoom Out">
+            <i class="bi bi-zoom-out"></i>
+          </button>
+          <button type="button" class="btn btn-outline-light btn-sm" id="zoomReset" title="Reset Zoom">
+            <span style="font-size: 0.75rem;">100%</span>
+          </button>
+          <button type="button" class="btn btn-outline-light btn-sm" id="zoomIn" title="Zoom In">
+            <i class="bi bi-zoom-in"></i>
+          </button>
+        </div>
+
+        <!-- Thumbnails -->
+        <div class="d-flex gap-2 overflow-auto py-2" id="galleryThumbnails" style="max-width: 60vw;">
+          {% for photo in log.photos.all %}
+          <img src="{{ photo.image.url }}" 
+               class="gallery-thumbnail rounded" 
+               data-index="{{ forloop.counter0 }}"
+               data-src="{{ photo.image.url }}"
+               data-caption="{{ photo.caption|default:'Photo' }}"
+               style="width: 60px; height: 45px; object-fit: cover; cursor: pointer; opacity: 0.5; transition: all 0.2s ease; border: 2px solid transparent;">
+          {% endfor %}
+        </div>
       </div>
     </div>
   </div>
 </div>
-{% endfor %}
+
+<style>
+  .gallery-nav-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.2s ease;
+  }
+  .gallery-nav-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.1);
+  }
+  .gallery-thumbnail:hover {
+    opacity: 1 !important;
+    border-color: white !important;
+  }
+  .gallery-thumbnail.active {
+    opacity: 1 !important;
+    border-color: #6366f1 !important;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const photos = [
+    {% for photo in log.photos.all %}
+    { src: "{{ photo.image.url }}", caption: "{{ photo.caption|default:'Photo'|escapejs }}" }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  
+  let currentIndex = 0;
+  let currentZoom = 1;
+  const zoomStep = 0.25;
+  const maxZoom = 3;
+  const minZoom = 0.5;
+  
+  const modal = document.getElementById('photoGalleryModal');
+  const image = document.getElementById('galleryImage');
+  const title = document.getElementById('galleryTitle');
+  const counter = document.getElementById('galleryCounter');
+  const thumbnails = document.querySelectorAll('.gallery-thumbnail');
+  const zoomResetBtn = document.getElementById('zoomReset');
+  
+  function showPhoto(index) {
+    if (index < 0) index = photos.length - 1;
+    if (index >= photos.length) index = 0;
+    currentIndex = index;
+    
+    image.src = photos[index].src;
+    title.textContent = photos[index].caption;
+    counter.textContent = (index + 1) + ' / ' + photos.length;
+    
+    // Reset zoom
+    currentZoom = 1;
+    updateZoom();
+    
+    // Update thumbnails
+    thumbnails.forEach((thumb, i) => {
+      thumb.classList.toggle('active', i === index);
+    });
+  }
+  
+  function updateZoom() {
+    image.style.transform = 'scale(' + currentZoom + ')';
+    zoomResetBtn.textContent = Math.round(currentZoom * 100) + '%';
+  }
+  
+  // Navigation
+  document.getElementById('prevPhoto').addEventListener('click', () => showPhoto(currentIndex - 1));
+  document.getElementById('nextPhoto').addEventListener('click', () => showPhoto(currentIndex + 1));
+  
+  // Zoom controls
+  document.getElementById('zoomIn').addEventListener('click', () => {
+    if (currentZoom < maxZoom) {
+      currentZoom += zoomStep;
+      updateZoom();
+    }
+  });
+  
+  document.getElementById('zoomOut').addEventListener('click', () => {
+    if (currentZoom > minZoom) {
+      currentZoom -= zoomStep;
+      updateZoom();
+    }
+  });
+  
+  document.getElementById('zoomReset').addEventListener('click', () => {
+    currentZoom = 1;
+    updateZoom();
+  });
+  
+  // Thumbnail clicks
+  thumbnails.forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      showPhoto(parseInt(thumb.dataset.index));
+    });
+  });
+  
+  // Keyboard navigation
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') showPhoto(currentIndex - 1);
+    if (e.key === 'ArrowRight') showPhoto(currentIndex + 1);
+    if (e.key === '+' || e.key === '=') document.getElementById('zoomIn').click();
+    if (e.key === '-') document.getElementById('zoomOut').click();
+  });
+  
+  // Open gallery from photo items
+  document.querySelectorAll('.photo-item').forEach((item, index) => {
+    item.setAttribute('data-bs-toggle', 'modal');
+    item.setAttribute('data-bs-target', '#photoGalleryModal');
+    item.addEventListener('click', () => {
+      setTimeout(() => showPhoto(index), 100);
+    });
+  });
+  
+  // Initialize first photo when modal opens
+  modal.addEventListener('show.bs.modal', () => {
+    if (photos.length > 0 && !image.src) {
+      showPhoto(0);
+    }
+  });
+});
+</script>
+{% endif %}
 
 {% endblock %}
