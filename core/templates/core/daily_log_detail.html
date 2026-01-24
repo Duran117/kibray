@@ -310,23 +310,6 @@
             {% endfor %}
           </div>
 
-          <!-- Photo Modals (outside the grid for proper z-index) -->
-          {% for photo in log.photos.all %}
-          <div class="modal fade" id="photoModal{{ photo.id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-centered">
-              <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none;">
-                <div class="modal-header border-0" style="background: #0f172a;">
-                  <h5 class="modal-title text-white">{{ photo.caption|default:"Photo" }}</h5>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-0 text-center" style="background: #0f172a;">
-                  <img src="{{ photo.image.url }}" class="img-fluid" style="max-height: 85vh; width: auto;">
-                </div>
-              </div>
-            </div>
-          </div>
-          {% endfor %}
-
           <!-- Add More Photos Form -->
           {% if can_edit %}
           <hr class="my-4" style="border-color: #e2e8f0;">
@@ -459,4 +442,22 @@
     </div>
   </div>
 </div>
+
+<!-- Photo Modals (at root level for proper z-index) -->
+{% for photo in log.photos.all %}
+<div class="modal fade" id="photoModal{{ photo.id }}" tabindex="-1" aria-labelledby="photoModalLabel{{ photo.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0 bg-dark">
+        <h5 class="modal-title text-white" id="photoModalLabel{{ photo.id }}">{{ photo.caption|default:"Photo" }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0 bg-dark text-center">
+        <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}" class="img-fluid" style="max-height: 80vh;">
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
 {% endblock %}
