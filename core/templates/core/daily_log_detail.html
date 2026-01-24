@@ -1,30 +1,203 @@
 {% extends "core/base_modern.html" %}
 {% load static i18n %}
 
-{% block content %}
-<div class="container-fluid py-4">
-  <!-- Breadcrumbs -->
-  <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">{% trans "Projects" %}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}">{% trans "Daily Logs" %}</a></li>
-      <li class="breadcrumb-item active">{{ log.date|date:"M d, Y" }}</li>
-    </ol>
-  </nav>
+{% block extra_css %}
+<style>
+  .premium-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .info-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .info-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .info-card-body {
+    padding: 1.5rem;
+  }
+  .stat-box {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  .stat-box:hover {
+    background: #f1f5f9;
+  }
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.25rem;
+  }
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .photo-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .photo-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+  .photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 1rem 0.75rem 0.75rem;
+    color: white;
+  }
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .status-published {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+  .status-draft {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+  }
+  .section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .alert-section {
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .alert-danger-soft {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+  }
+  .alert-warning-soft {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+  }
+  .alert-info-soft {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+  }
+  .btn-back {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-back:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b;
+  }
+  .btn-delete {
+    background: white;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-delete:hover {
+    background: #fef2f2;
+    border-color: #f87171;
+    color: #b91c1c;
+  }
+  .meta-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .meta-item:last-child {
+    border-bottom: none;
+  }
+</style>
+{% endblock %}
 
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h2><i class="bi bi-journal-text"></i> {% trans "Daily Log" %}</h2>
-      <h4 class="text-muted">{{ log.date|date:"l, F j, Y" }}</h4>
-    </div>
-    <div>
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1400px;">
+  
+  <!-- Premium Header -->
+  <div class="premium-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb mb-0" style="font-size: 0.875rem;">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-slate-400 text-decoration-none">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}" class="text-slate-400 text-decoration-none">{{ project.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}" class="text-slate-400 text-decoration-none">{% trans "Daily Logs" %}</a></li>
+            <li class="breadcrumb-item text-white">{{ log.date|date:"M d, Y" }}</li>
+          </ol>
+        </nav>
+        <h1 class="text-white mb-2" style="font-size: 1.75rem; font-weight: 600;">
+          <i class="bi bi-journal-text me-2 opacity-75"></i>{% trans "Daily Log" %}
+        </h1>
+        <p class="text-slate-300 mb-0" style="font-size: 1.125rem;">{{ log.date|date:"l, F j, Y" }}</p>
+      </div>
       {% if log.is_published %}
-      <span class="badge bg-success fs-6"><i class="bi bi-eye"></i> {% trans "Published" %}</span>
+      <span class="status-badge status-published">
+        <i class="bi bi-check-circle-fill"></i> {% trans "Published" %}
+      </span>
       {% else %}
-      <span class="badge bg-warning fs-6"><i class="bi bi-eye-slash"></i> {% trans "Draft" %}</span>
+      <span class="status-badge status-draft">
+        <i class="bi bi-eye-slash-fill"></i> {% trans "Draft" %}
+      </span>
       {% endif %}
     </div>
   </div>
@@ -32,144 +205,119 @@
   <div class="row">
     <!-- Main Content -->
     <div class="col-lg-8">
-      <!-- Basic Info Card -->
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-cloud-sun fs-3 text-primary me-3"></i>
-                <div>
-                  <div class="small text-muted">{% trans "Weather" %}</div>
-                  <div class="fw-bold">{{ log.weather|default:"Not specified" }}</div>
-                </div>
-              </div>
+      
+      <!-- Stats Row -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-icon bg-sky-100 text-sky-600">
+              <i class="bi bi-cloud-sun-fill"></i>
             </div>
-            <div class="col-md-4 mb-3">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-people fs-3 text-info me-3"></i>
-                <div>
-                  <div class="small text-muted">{% trans "Crew" %}</div>
-                  <div class="fw-bold">{{ log.crew_count }} {% trans "person" %}{{ log.crew_count|pluralize }}</div>
-                </div>
-              </div>
+            <p class="text-slate-500 mb-1" style="font-size: 0.75rem;">{% trans "Weather" %}</p>
+            <p class="fw-semibold text-slate-800 mb-0">{{ log.weather|default:"Not specified" }}</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-icon bg-blue-100 text-blue-600">
+              <i class="bi bi-people-fill"></i>
             </div>
-            <div class="col-md-4 mb-3">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-person-circle fs-3 text-success me-3"></i>
-                <div>
-                  <div class="small text-muted">{% trans "Created by" %}</div>
-                  <div class="fw-bold">{{ log.created_by.username }}</div>
-                </div>
-              </div>
+            <p class="text-slate-500 mb-1" style="font-size: 0.75rem;">{% trans "Crew" %}</p>
+            <p class="fw-semibold text-slate-800 mb-0">{{ log.crew_count }} {% trans "person" %}{{ log.crew_count|pluralize }}</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-icon bg-emerald-100 text-emerald-600">
+              <i class="bi bi-person-circle"></i>
             </div>
+            <p class="text-slate-500 mb-1" style="font-size: 0.75rem;">{% trans "Created by" %}</p>
+            <p class="fw-semibold text-slate-800 mb-0">{{ log.created_by.username }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Schedule Progress Card -->
-      {% if log.schedule_item %}
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> {% trans "Schedule Progress" %}</h5>
+      <!-- Progress Notes -->
+      {% if log.progress_notes %}
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-clipboard-check text-slate-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Progress Notes" %}</h3>
         </div>
-        <div class="card-body">
-          <h4 class="mb-3">{{ log.schedule_item.title }}</h4>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span>{% trans "Progress for this activity" %}</span>
-            <span class="fs-4 fw-bold text-success">{{ log.schedule_progress_percent }}%</span>
-          </div>
-          <div class="progress" style="height: 30px;">
-            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
-                 style="width: {{ log.schedule_progress_percent }}%;">
-              {{ log.schedule_progress_percent }}%
-            </div>
-          </div>
-          {% if log.schedule_item.description %}
-          <p class="mt-3 text-muted small">{{ log.schedule_item.description }}</p>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Completed Tasks Card -->
-      {% if log.completed_tasks.count > 0 %}
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-check2-square"></i> {% trans "Completed Tasks" %}</h5>
-          <span class="badge bg-white text-info">{{ log.completed_tasks.count }}</span>
-        </div>
-        <div class="card-body">
-          <div class="list-group list-group-flush">
-            {% for task in log.completed_tasks.all %}
-            <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
-              <div>
-                <i class="bi bi-check-circle text-success me-2"></i>
-                <strong>{{ task.title }}</strong>
-                {% if task.assigned_to %}
-                <div class="small text-muted ms-4">
-                  <i class="bi bi-person"></i> {{ task.assigned_to }}
-                </div>
-                {% endif %}
-              </div>
-              <span class="badge {% if task.status == 'completed' %}bg-success{% elif task.status == 'in_progress' %}bg-warning{% else %}bg-secondary{% endif %}">
-                {{ task.get_status_display }}
-              </span>
-            </div>
-            {% endfor %}
-          </div>
+        <div class="info-card-body">
+          <p style="white-space: pre-wrap; color: #334155; line-height: 1.7;">{{ log.progress_notes }}</p>
         </div>
       </div>
       {% endif %}
 
       <!-- Accomplishments -->
       {% if log.accomplishments %}
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-trophy"></i> {% trans "Today's Accomplishments" %}</h5>
+      <div class="info-card">
+        <div class="info-card-header" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+          <i class="bi bi-trophy-fill text-amber-600"></i>
+          <h3 class="mb-0 text-amber-900" style="font-size: 1rem; font-weight: 600;">{% trans "Today's Accomplishments" %}</h3>
         </div>
-        <div class="card-body">
-          <p class="mb-0" style="white-space: pre-wrap;">{{ log.accomplishments }}</p>
+        <div class="info-card-body">
+          <p style="white-space: pre-wrap; color: #334155; line-height: 1.7;">{{ log.accomplishments }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Schedule Progress -->
+      {% if log.schedule_progress_percent %}
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-graph-up-arrow text-emerald-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Schedule Progress" %}</h3>
+        </div>
+        <div class="info-card-body">
+          {% if log.schedule_item %}
+          <p class="text-slate-600 mb-3">{{ log.schedule_item.title }}</p>
+          {% endif %}
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-slate-600">{% trans "Progress" %}</span>
+            <span class="fw-bold text-emerald-600" style="font-size: 1.5rem;">{{ log.schedule_progress_percent|floatformat:0 }}%</span>
+          </div>
+          <div class="progress" style="height: 10px; border-radius: 5px; background: #e2e8f0;">
+            <div class="progress-bar" role="progressbar" 
+                 style="width: {{ log.schedule_progress_percent }}%; background: linear-gradient(90deg, #10b981 0%, #059669 100%); border-radius: 5px;">
+            </div>
+          </div>
         </div>
       </div>
       {% endif %}
 
       <!-- Photos Gallery -->
       {% if log.photos.count > 0 %}
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-camera"></i> {% trans "Photos" %}</h5>
-          <span class="badge bg-dark">{{ log.photos.count }}</span>
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-camera-fill text-purple-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Photos" %}</h3>
+          <span class="badge bg-purple-100 text-purple-700 ms-auto" style="font-size: 0.75rem;">{{ log.photos.count }}</span>
         </div>
-        <div class="card-body">
-          <div class="row g-3">
+        <div class="info-card-body">
+          <div class="photo-grid">
             {% for photo in log.photos.all %}
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100">
-                <img src="{{ photo.image.url }}" class="card-img-top" style="height: 250px; object-fit: cover; cursor: pointer;" 
-                     data-bs-toggle="modal" data-bs-target="#photoModal{{ photo.id }}">
-                {% if photo.caption %}
-                <div class="card-body p-2">
-                  <small class="text-muted">{{ photo.caption }}</small>
-                </div>
-                {% endif %}
-                <div class="card-footer p-2 small text-muted">
-                  <i class="bi bi-clock"></i> {{ photo.uploaded_at|date:"h:i A" }}
-                  {% if photo.uploaded_by %}· {{ photo.uploaded_by.username }}{% endif %}
-                </div>
+            <div class="photo-item" data-bs-toggle="modal" data-bs-target="#photoModal{{ photo.id }}">
+              <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}">
+              <div class="photo-overlay">
+                <p class="mb-0" style="font-size: 0.75rem;">
+                  <i class="bi bi-clock me-1"></i>{{ photo.uploaded_at|date:"h:i A" }}
+                  {% if photo.uploaded_by %} · {{ photo.uploaded_by.username }}{% endif %}
+                </p>
               </div>
+            </div>
 
-              <!-- Photo Modal -->
-              <div class="modal fade" id="photoModal{{ photo.id }}" tabindex="-1">
-                <div class="modal-dialog modal-lg modal-dialog-centered">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">{{ photo.caption|default:"Photo" }}</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                      <img src="{{ photo.image.url }}" class="img-fluid" style="max-height: 70vh;">
-                    </div>
+            <!-- Photo Modal -->
+            <div class="modal fade" id="photoModal{{ photo.id }}" tabindex="-1">
+              <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                  <div class="modal-header border-0 bg-slate-900">
+                    <h5 class="modal-title text-white">{{ photo.caption|default:"Photo" }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body p-0 bg-slate-900 text-center">
+                    <img src="{{ photo.image.url }}" class="img-fluid" style="max-height: 80vh;">
                   </div>
                 </div>
               </div>
@@ -179,23 +327,58 @@
 
           <!-- Add More Photos Form -->
           {% if can_edit %}
-          <hr class="my-4">
-          <h6><i class="bi bi-camera-fill"></i> {% trans "Add More Photos" %}</h6>
-          <form method="post" enctype="multipart/form-data" class="mt-3">
+          <hr class="my-4" style="border-color: #e2e8f0;">
+          <p class="section-title"><i class="bi bi-plus-circle"></i> {% trans "Add More Photos" %}</p>
+          <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="row">
-              <div class="col-md-8 mb-2">
-                <input type="file" name="photos" class="form-control" accept="image/*" multiple required>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <input type="file" name="photos" class="form-control" accept="image/*" multiple required 
+                       style="border-radius: 8px; border-color: #e2e8f0;">
               </div>
-              <div class="col-md-4 mb-2">
-                <button type="submit" class="btn btn-primary w-100">
-                  <i class="bi bi-upload"></i> {% trans "Upload" %}
+              <div class="col-md-4">
+                <input type="text" name="caption" class="form-control" placeholder="{% trans 'Description...' %}"
+                       style="border-radius: 8px; border-color: #e2e8f0;">
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border-radius: 8px;">
+                  <i class="bi bi-upload"></i>
                 </button>
               </div>
             </div>
-            <input type="text" name="caption" class="form-control" placeholder="{% trans 'Description...' %}">
           </form>
           {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Completed Tasks -->
+      {% if log.completed_tasks.count > 0 %}
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-check2-square text-blue-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Completed Tasks" %}</h3>
+          <span class="badge bg-blue-100 text-blue-700 ms-auto" style="font-size: 0.75rem;">{{ log.completed_tasks.count }}</span>
+        </div>
+        <div class="info-card-body p-0">
+          {% for task in log.completed_tasks.all %}
+          <div class="d-flex justify-content-between align-items-center px-4 py-3 {% if not forloop.last %}border-bottom{% endif %}" style="border-color: #f1f5f9 !important;">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-circle bg-emerald-100 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                <i class="bi bi-check-lg text-emerald-600"></i>
+              </div>
+              <div>
+                <p class="mb-0 fw-medium text-slate-800">{{ task.title }}</p>
+                {% if task.assigned_to %}
+                <p class="mb-0 text-slate-500" style="font-size: 0.8125rem;">{{ task.assigned_to }}</p>
+                {% endif %}
+              </div>
+            </div>
+            <span class="badge {% if task.status == 'completed' %}bg-emerald-100 text-emerald-700{% elif task.status == 'in_progress' %}bg-amber-100 text-amber-700{% else %}bg-slate-100 text-slate-600{% endif %}" style="font-size: 0.75rem;">
+              {{ task.get_status_display }}
+            </span>
+          </div>
+          {% endfor %}
         </div>
       </div>
       {% endif %}
@@ -203,89 +386,71 @@
 
     <!-- Sidebar -->
     <div class="col-lg-4">
-      <!-- Progress Notes -->
-      {% if log.progress_notes %}
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom">
-          <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> {% trans "Progress Notes" %}</h6>
-        </div>
-        <div class="card-body">
-          <p class="mb-0" style="white-space: pre-wrap;">{{ log.progress_notes }}</p>
-        </div>
-      </div>
-      {% endif %}
-
+      
       <!-- Safety Incidents -->
       {% if log.safety_incidents %}
-      <div class="card mb-4 border-danger border-0 shadow-sm">
-        <div class="card-header bg-danger text-white">
-          <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> {% trans "Safety Incidents" %}</h6>
-        </div>
-        <div class="card-body">
-          <p class="mb-0" style="white-space: pre-wrap;">{{ log.safety_incidents }}</p>
-        </div>
+      <div class="alert-section alert-danger-soft mb-4">
+        <p class="section-title text-red-700 mb-2">
+          <i class="bi bi-exclamation-triangle-fill"></i> {% trans "Safety Incidents" %}
+        </p>
+        <p class="mb-0 text-red-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.safety_incidents }}</p>
       </div>
       {% endif %}
 
       <!-- Delays -->
       {% if log.delays %}
-      <div class="card mb-4 border-warning border-0 shadow-sm">
-        <div class="card-header bg-warning text-dark">
-          <h6 class="mb-0"><i class="bi bi-clock-history"></i> {% trans "Delays or Issues" %}</h6>
-        </div>
-        <div class="card-body">
-          <p class="mb-0" style="white-space: pre-wrap;">{{ log.delays }}</p>
-        </div>
+      <div class="alert-section alert-warning-soft mb-4">
+        <p class="section-title text-amber-700 mb-2">
+          <i class="bi bi-clock-history"></i> {% trans "Delays or Issues" %}
+        </p>
+        <p class="mb-0 text-amber-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.delays }}</p>
       </div>
       {% endif %}
 
       <!-- Next Day Plan -->
       {% if log.next_day_plan %}
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <h6 class="mb-0"><i class="bi bi-calendar-plus"></i> {% trans "Plan for Tomorrow" %}</h6>
-        </div>
-        <div class="card-body">
-          <p class="mb-0" style="white-space: pre-wrap;">{{ log.next_day_plan }}</p>
-        </div>
+      <div class="alert-section alert-info-soft mb-4">
+        <p class="section-title text-blue-700 mb-2">
+          <i class="bi bi-calendar-plus"></i> {% trans "Plan for Tomorrow" %}
+        </p>
+        <p class="mb-0 text-blue-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.next_day_plan }}</p>
       </div>
       {% endif %}
 
-      <!-- Metadata -->
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom">
-          <h6 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Information" %}</h6>
+      <!-- Metadata Card -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-info-circle text-slate-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Information" %}</h3>
         </div>
-        <div class="card-body">
-          <div class="mb-2">
-            <small class="text-muted">{% trans "Created" %}:</small>
-            <div>{{ log.created_at|date:"M d, Y h:i A" }}</div>
+        <div class="info-card-body py-2">
+          <div class="meta-item">
+            <span class="text-slate-500">{% trans "Created" %}</span>
+            <span class="text-slate-800">{{ log.created_at|date:"M d, Y h:i A" }}</span>
           </div>
-          <div class="mb-2">
-            <small class="text-muted">{% trans "Last update" %}:</small>
-            <div>{{ log.updated_at|date:"M d, Y h:i A" }}</div>
+          <div class="meta-item">
+            <span class="text-slate-500">{% trans "Last update" %}</span>
+            <span class="text-slate-800">{{ log.updated_at|date:"M d, Y h:i A" }}</span>
           </div>
-          <div>
-            <small class="text-muted">{% trans "Status" %}:</small>
-            <div>
-              {% if log.is_published %}
-              <span class="badge bg-success">{% trans "Visible to Client/Owner" %}</span>
-              {% else %}
-              <span class="badge bg-warning">{% trans "Only visible to PM/Staff" %}</span>
-              {% endif %}
-            </div>
+          <div class="meta-item">
+            <span class="text-slate-500">{% trans "Status" %}</span>
+            {% if log.is_published %}
+            <span class="badge bg-emerald-100 text-emerald-700" style="font-size: 0.75rem;">{% trans "Visible to Client/Owner" %}</span>
+            {% else %}
+            <span class="badge bg-amber-100 text-amber-700" style="font-size: 0.75rem;">{% trans "Only visible to PM/Staff" %}</span>
+            {% endif %}
           </div>
         </div>
       </div>
 
       <!-- Actions -->
-      <div class="d-grid gap-2">
-        <a href="{% url 'daily_log' project.id %}" class="btn btn-outline-secondary">
-          <i class="bi bi-arrow-left"></i> {% trans "Back to List" %}
+      <div class="d-grid gap-2 mt-4">
+        <a href="{% url 'daily_log' project.id %}" class="btn-back">
+          <i class="bi bi-arrow-left"></i> {% trans "Dashboard" %}
         </a>
         {% if can_edit %}
-        <a href="{% url 'daily_log_delete' log.id %}" class="btn btn-outline-danger">
-          <i class="bi bi-trash"></i> {% trans "Delete Daily Log" %}
+        <a href="{% url 'daily_log_delete' log.id %}" class="btn-delete">
+          <i class="bi bi-trash3"></i> {% trans "Delete Daily Log" %}
         </a>
         {% endif %}
       </div>

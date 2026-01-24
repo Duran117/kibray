@@ -1,136 +1,278 @@
 {% extends "core/base_modern.html" %}
 {% load static i18n %}
 
+{% block extra_css %}
+<style>
+  .premium-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .log-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  .log-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -8px rgba(0,0,0,0.15);
+  }
+  .log-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .log-card-body {
+    padding: 1.5rem;
+  }
+  .log-card-footer {
+    padding: 1rem 1.5rem;
+    background: #f8fafc;
+    border-top: 1px solid rgba(0,0,0,0.04);
+  }
+  .status-badge {
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  .status-published {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+  .status-draft {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+  }
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+  }
+  .stat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+  }
+  .btn-premium {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none;
+    color: white;
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  .btn-premium:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+  .btn-view {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+  .btn-view:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1e293b;
+  }
+  .btn-delete {
+    background: white;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  .btn-delete:hover {
+    background: #fef2f2;
+    border-color: #f87171;
+  }
+  .empty-state {
+    background: white;
+    border-radius: 16px;
+    padding: 4rem 2rem;
+    text-align: center;
+    border: 2px dashed #e2e8f0;
+  }
+  .progress-ring {
+    width: 48px;
+    height: 48px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-  <!-- Breadcrumbs -->
-  <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'project_list' %}">{% trans "Projects" %}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item active">{% trans "Daily Logs" %}</li>
-    </ol>
-  </nav>
-
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-journal-text"></i> {% trans "Daily Logs" %} - {{ project.name }}</h2>
-    {% if can_create %}
-    <a href="{% url 'daily_log_create' project.id %}" class="btn btn-primary">
-      <i class="bi bi-plus-circle"></i> {% trans "Create Daily Log" %}
-    </a>
-    {% endif %}
+<div class="container-fluid py-4" style="max-width: 1400px;">
+  
+  <!-- Premium Header -->
+  <div class="premium-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb mb-0" style="font-size: 0.875rem;">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-slate-400 text-decoration-none hover:text-white">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}" class="text-slate-400 text-decoration-none">{{ project.name }}</a></li>
+            <li class="breadcrumb-item text-white">{% trans "Daily Logs" %}</li>
+          </ol>
+        </nav>
+        <h1 class="text-white mb-2" style="font-size: 1.75rem; font-weight: 600;">
+          <i class="bi bi-journal-text me-2 opacity-75"></i>{% trans "Daily Logs" %}
+        </h1>
+        <p class="text-slate-400 mb-0" style="font-size: 0.9375rem;">{{ project.name }}</p>
+      </div>
+      {% if can_create %}
+      <a href="{% url 'daily_log_create' project.id %}" class="btn-premium d-inline-flex align-items-center gap-2">
+        <i class="bi bi-plus-lg"></i> {% trans "Create Daily Log" %}
+      </a>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Alert Info -->
-  <div class="alert alert-info">
-    <i class="bi bi-info-circle"></i>
-    <strong>{% trans "Daily Logs" %}:</strong> {% trans "Daily progress reports for the project. Visible to PM, designers, client and owner. Employees cannot view these reports." %}
-  </div>
-
-  <!-- Logs List -->
-  <div class="row">
+  <!-- Logs Grid -->
+  <div class="row g-4">
     {% for log in logs %}
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="card h-100 border-0 shadow-sm {% if not log.is_published %}border-warning{% endif %}">
-        <div class="card-header bg-white border-bottom">
-          <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-              <i class="bi bi-calendar-date"></i> {{ log.date|date:"M d, Y" }}
-            </h5>
-            {% if not log.is_published %}
-            <span class="badge bg-warning">{% trans "Draft" %}</span>
-            {% else %}
-            <span class="badge bg-success">{% trans "Published" %}</span>
-            {% endif %}
+    <div class="col-md-6 col-xl-4">
+      <div class="log-card h-100">
+        <!-- Card Header -->
+        <div class="log-card-header">
+          <div>
+            <p class="text-slate-500 mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+              {{ log.date|date:"l" }}
+            </p>
+            <h3 class="mb-0" style="font-size: 1.125rem; font-weight: 600; color: #1e293b;">
+              {{ log.date|date:"M d, Y" }}
+            </h3>
           </div>
+          {% if log.is_published %}
+          <span class="status-badge status-published">{% trans "Published" %}</span>
+          {% else %}
+          <span class="status-badge status-draft">{% trans "Draft" %}</span>
+          {% endif %}
         </div>
-        <div class="card-body">
-          <!-- Weather & Crew -->
-          <div class="mb-2">
-            {% if log.weather %}
-            <div class="small text-muted">
-              <i class="bi bi-cloud-sun"></i> {{ log.weather }}
+
+        <!-- Card Body -->
+        <div class="log-card-body">
+          <div class="row g-3 mb-3">
+            <!-- Crew -->
+            <div class="col-6">
+              <div class="stat-item">
+                <div class="stat-icon bg-blue-50 text-blue-600">
+                  <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                  <p class="mb-0 text-slate-500" style="font-size: 0.75rem;">{% trans "Crew" %}</p>
+                  <p class="mb-0 fw-semibold text-slate-800">{{ log.crew_count }} {% trans "person" %}{{ log.crew_count|pluralize }}</p>
+                </div>
+              </div>
             </div>
-            {% endif %}
-            <div class="small text-muted">
-              <i class="bi bi-people"></i> {{ log.crew_count }} {% trans "people working" %}
+            <!-- Photos -->
+            {% with photo_count=log.photos.count %}
+            <div class="col-6">
+              <div class="stat-item">
+                <div class="stat-icon bg-purple-50 text-purple-600">
+                  <i class="bi bi-camera-fill"></i>
+                </div>
+                <div>
+                  <p class="mb-0 text-slate-500" style="font-size: 0.75rem;">{% trans "Photos" %}</p>
+                  <p class="mb-0 fw-semibold text-slate-800">{{ photo_count }}</p>
+                </div>
+              </div>
             </div>
+            {% endwith %}
           </div>
 
-          <!-- Schedule Progress -->
-          {% if log.schedule_item %}
+          <!-- Weather -->
+          {% if log.weather %}
+          <div class="d-flex align-items-center gap-2 mb-3 p-2 rounded-lg" style="background: #f0f9ff;">
+            <i class="bi bi-cloud-sun-fill text-sky-500"></i>
+            <span class="text-slate-600" style="font-size: 0.875rem;">{{ log.weather }}</span>
+          </div>
+          {% endif %}
+
+          <!-- Progress -->
+          {% if log.schedule_progress_percent %}
           <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <small class="fw-bold">{{ log.schedule_item.title }}</small>
-              <small class="text-muted">{{ log.schedule_progress_percent }}%</small>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-slate-600" style="font-size: 0.8125rem;">{% trans "Progress" %}</span>
+              <span class="fw-semibold text-emerald-600">{{ log.schedule_progress_percent|floatformat:0 }}%</span>
             </div>
-            <div class="progress" style="height: 8px;">
-              <div class="progress-bar bg-success" style="width: {{ log.schedule_progress_percent }}%;"></div>
+            <div class="progress" style="height: 6px; border-radius: 3px; background: #e2e8f0;">
+              <div class="progress-bar" role="progressbar" 
+                   style="width: {{ log.schedule_progress_percent }}%; background: linear-gradient(90deg, #10b981 0%, #059669 100%); border-radius: 3px;">
+              </div>
             </div>
           </div>
           {% endif %}
-
-          <!-- Completed Tasks -->
-          {% with task_count=log.completed_tasks.count %}
-          {% if task_count > 0 %}
-          <div class="mb-2">
-            <i class="bi bi-check2-square text-success"></i>
-            <strong>{{ task_count }}</strong> {% trans "task" %}{{ task_count|pluralize }} {% trans "completed" %}
-          </div>
-          {% endif %}
-          {% endwith %}
-
-          <!-- Photos Count -->
-          {% with photo_count=log.photos.count %}
-          {% if photo_count > 0 %}
-          <div class="mb-2">
-            <i class="bi bi-camera text-primary"></i>
-            <strong>{{ photo_count }}</strong> {% trans "photo" %}{{ photo_count|pluralize }}
-          </div>
-          {% endif %}
-          {% endwith %}
 
           <!-- Accomplishments Preview -->
           {% if log.accomplishments %}
-          <div class="mb-2">
-            <small class="text-muted">{{ log.accomplishments|truncatewords:15 }}</small>
-          </div>
+          <p class="text-slate-500 mb-0" style="font-size: 0.875rem; line-height: 1.5;">
+            {{ log.accomplishments|truncatewords:20 }}
+          </p>
           {% endif %}
         </div>
-        <div class="card-footer bg-white border-top">
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted">
-              <i class="bi bi-person"></i> {{ log.created_by.username }}
-            </small>
-            <div class="d-flex gap-2">
-              <a href="{% url 'daily_log_detail' log.id %}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-eye"></i> {% trans "View" %}
-              </a>
-              {% if can_create %}
-              <a href="{% url 'daily_log_delete' log.id %}" class="btn btn-sm btn-outline-danger">
-                <i class="bi bi-trash"></i>
-              </a>
-              {% endif %}
+
+        <!-- Card Footer -->
+        <div class="log-card-footer d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle bg-slate-200 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+              <i class="bi bi-person-fill text-slate-500" style="font-size: 0.75rem;"></i>
             </div>
+            <span class="text-slate-600" style="font-size: 0.8125rem;">{{ log.created_by.username }}</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'daily_log_detail' log.id %}" class="btn-view d-inline-flex align-items-center gap-1">
+              <i class="bi bi-eye"></i> {% trans "View" %}
+            </a>
+            {% if can_create %}
+            <a href="{% url 'daily_log_delete' log.id %}" class="btn-delete" title="{% trans 'Delete' %}">
+              <i class="bi bi-trash3"></i>
+            </a>
+            {% endif %}
           </div>
         </div>
       </div>
     </div>
     {% empty %}
     <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body text-center py-5">
-          <i class="bi bi-journal-x" style="font-size: 3rem; color: #dee2e6;"></i>
-          <h5 class="mt-3 mb-2">{% trans "No Daily Logs yet" %}</h5>
-          <p class="text-muted mb-3">{% trans "Create the first daily report for this project" %}</p>
-          {% if can_create %}
-          <a href="{% url 'daily_log_create' project.id %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> {% trans "Create First Daily Log" %}
-          </a>
-          {% endif %}
+      <div class="empty-state">
+        <div class="mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-slate-100" style="width: 80px; height: 80px;">
+            <i class="bi bi-journal-text text-slate-400" style="font-size: 2rem;"></i>
+          </div>
         </div>
+        <h3 class="text-slate-800 mb-2" style="font-size: 1.25rem; font-weight: 600;">{% trans "No Daily Logs yet" %}</h3>
+        <p class="text-slate-500 mb-4" style="max-width: 400px; margin: 0 auto;">
+          {% trans "Start documenting your project's daily progress with photos and notes." %}
+        </p>
+        {% if can_create %}
+        <a href="{% url 'daily_log_create' project.id %}" class="btn-premium d-inline-flex align-items-center gap-2">
+          <i class="bi bi-plus-lg"></i> {% trans "Create First Daily Log" %}
+        </a>
+        {% endif %}
       </div>
     </div>
     {% endfor %}

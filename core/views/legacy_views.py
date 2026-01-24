@@ -3452,19 +3452,7 @@ def changeorder_create_view(request):
                 project_id=project_id, status="approved"
             ).order_by("code")
 
-    # Use clean Design System template by default
-    # Legacy template available via ?legacy=true
-    use_legacy = request.GET.get("legacy", "false").lower() == "true"
-    use_standalone = request.GET.get("standalone", "false").lower() == "true"
-
-    if use_standalone:
-        template = "core/changeorder_form_standalone.html"
-    elif use_legacy:
-        template = "core/changeorder_form_modern.html"
-    else:
-        template = "core/changeorder_form_clean.html"
-
-    return render(request, template, {"form": form, "approved_colors": approved_colors})
+    return render(request, "core/changeorder_form_clean.html", {"form": form, "approved_colors": approved_colors})
 
 
 @login_required
@@ -3494,21 +3482,9 @@ def changeorder_edit_view(request, co_id):
         project=changeorder.project, status="approved"
     ).order_by("code")
 
-    # Use clean Design System template by default
-    # Legacy template available via ?legacy=true
-    use_legacy = request.GET.get("legacy", "false").lower() == "true"
-    use_standalone = request.GET.get("standalone", "false").lower() == "true"
-
-    if use_standalone:
-        template = "core/changeorder_form_standalone.html"
-    elif use_legacy:
-        template = "core/changeorder_form_modern.html"
-    else:
-        template = "core/changeorder_form_clean.html"
-
     return render(
         request,
-        template,
+        "core/changeorder_form_clean.html",
         {
             "form": form,
             "changeorder": changeorder,
@@ -6833,10 +6809,7 @@ def dashboard_pm(request):
         "badges": {"unread_notifications_count": 0},  # Placeholder
     }
 
-    # Use clean template by default; legacy only when explicitly requested
-    force_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
-    template_name = "core/dashboard_pm.html" if force_legacy else "core/dashboard_pm_clean.html"
-    return render(request, template_name, context)
+    return render(request, "core/dashboard_pm_clean.html", context)
 
 
 # --- PM: seleccionar proyecto por acción ---
@@ -9972,12 +9945,7 @@ def dashboard_designer(request):
         "active_filter": active_filter,
     }
 
-    # Use clean template by default; legacy only when explicitly requested
-    force_legacy = str(request.GET.get("legacy", "")).lower() in {"1", "true", "yes", "on"}
-    template_name = (
-        "core/dashboard_designer.html" if force_legacy else "core/dashboard_designer_clean.html"
-    )
-    return render(request, template_name, context)
+    return render(request, "core/dashboard_designer_clean.html", context)
 
 
 @login_required
