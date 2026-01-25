@@ -466,9 +466,10 @@
           <i class="bi bi-chevron-left text-white" style="font-size: 2rem;"></i>
         </button>
 
-        <!-- Image -->
-        <div class="text-center" style="max-width: 90vw; max-height: 85vh; overflow: hidden;">
-          <img id="galleryImage" src="" alt="" class="gallery-main-image" style="max-width: 100%; max-height: 85vh; object-fit: contain; transition: transform 0.3s ease;">
+        <!-- Image Container with Pan/Drag -->
+        <div id="imageContainer" class="text-center position-relative" style="max-width: 90vw; max-height: 85vh; overflow: hidden; cursor: grab;">
+          <img id="galleryImage" src="" alt="" class="gallery-main-image" 
+               style="max-width: 100%; max-height: 85vh; object-fit: contain; transition: transform 0.15s ease; transform-origin: center center; user-select: none; -webkit-user-drag: none;">
         </div>
 
         <!-- Next Button -->
@@ -547,8 +548,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const maxZoom = 3;
   const minZoom = 0.5;
   
+  // Pan/Drag variables
+  let isPanning = false;
+  let startX = 0, startY = 0;
+  let panX = 0, panY = 0;
+  let lastPanX = 0, lastPanY = 0;
+  
   const modal = document.getElementById('photoGalleryModal');
   const image = document.getElementById('galleryImage');
+  const imageContainer = document.getElementById('imageContainer');
   const title = document.getElementById('galleryTitle');
   const counter = document.getElementById('galleryCounter');
   const thumbnails = document.querySelectorAll('.gallery-thumbnail');
@@ -563,9 +571,13 @@ document.addEventListener('DOMContentLoaded', function() {
     title.textContent = photos[index].caption;
     counter.textContent = (index + 1) + ' / ' + photos.length;
     
-    // Reset zoom
+    // Reset zoom and pan
     currentZoom = 1;
-    updateZoom();
+    panX = 0;
+    panY = 0;
+    lastPanX = 0;
+    lastPanY = 0;
+    updateTransform();
     
     // Update thumbnails
     thumbnails.forEach((thumb, i) => {
@@ -573,10 +585,88 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  function updateZoom() {
-    image.style.transform = 'scale(' + currentZoom + ')';
+  function updateTransform() {
+    image.style.transform = `scale(${currentZoom}) translate(${panX / currentZoom}px, ${panY / currentZoom}px)`;
     zoomResetBtn.textContent = Math.round(currentZoom * 100) + '%';
+    
+    // Update cursor
+    if (currentZoom > 1) {
+      imageContainer.style.cursor = isPanning ? 'grabbing' : 'grab';
+    } else {
+      imageContainer.style.cursor = 'default';
+    }
   }
+  
+  // Mouse Pan/Drag events
+  imageContainer.addEventListener('mousedown', (e) => {
+    if (currentZoom > 1) {
+      isPanning = true;
+      startX = e.clientX - lastPanX;
+      startY = e.clientY - lastPanY;
+      imageContainer.style.cursor = 'grabbing';
+      e.preventDefault();
+    }
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (isPanning && currentZoom > 1) {
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    }
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if (isPanning) {
+      isPanning = false;
+      lastPanX = panX;
+      lastPanY = panY;
+      if (currentZoom > 1) {
+        imageContainer.style.cursor = 'grab';
+      }
+    }
+  });
+  
+  // Touch Pan/Drag events (for mobile)
+  imageContainer.addEventListener('touchstart', (e) => {
+    if (currentZoom > 1 && e.touches.length === 1) {
+      isPanning = true;
+      startX = e.touches[0].clientX - lastPanX;
+      startY = e.touches[0].clientY - lastPanY;
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  imageContainer.addEventListener('touchmove', (e) => {
+    if (isPanning && currentZoom > 1 && e.touches.length === 1) {
+      panX = e.touches[0].clientX - startX;
+      panY = e.touches[0].clientY - startY;
+      updateTransform();
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  imageContainer.addEventListener('touchend', () => {
+    if (isPanning) {
+      isPanning = false;
+      lastPanX = panX;
+      lastPanY = panY;
+    }
+  });
+  
+  // Double-click to zoom
+  imageContainer.addEventListener('dblclick', (e) => {
+    if (currentZoom === 1) {
+      currentZoom = 2;
+    } else {
+      currentZoom = 1;
+      panX = 0;
+      panY = 0;
+      lastPanX = 0;
+      lastPanY = 0;
+    }
+    updateTransform();
+  });
   
   // Navigation
   document.getElementById('prevPhoto').addEventListener('click', () => showPhoto(currentIndex - 1));
@@ -586,20 +676,31 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('zoomIn').addEventListener('click', () => {
     if (currentZoom < maxZoom) {
       currentZoom += zoomStep;
-      updateZoom();
+      updateTransform();
     }
   });
   
   document.getElementById('zoomOut').addEventListener('click', () => {
     if (currentZoom > minZoom) {
       currentZoom -= zoomStep;
-      updateZoom();
+      // Reduce pan if zoom decreased
+      if (currentZoom <= 1) {
+        panX = 0;
+        panY = 0;
+        lastPanX = 0;
+        lastPanY = 0;
+      }
+      updateTransform();
     }
   });
   
   document.getElementById('zoomReset').addEventListener('click', () => {
     currentZoom = 1;
-    updateZoom();
+    panX = 0;
+    panY = 0;
+    lastPanX = 0;
+    lastPanY = 0;
+    updateTransform();
   });
   
   // Thumbnail clicks
@@ -615,6 +716,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.key === 'ArrowRight') showPhoto(currentIndex + 1);
     if (e.key === '+' || e.key === '=') document.getElementById('zoomIn').click();
     if (e.key === '-') document.getElementById('zoomOut').click();
+    if (e.key === '0') document.getElementById('zoomReset').click();
   });
   
   // Open gallery from photo items
@@ -631,6 +733,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (photos.length > 0 && !image.src) {
       showPhoto(0);
     }
+  });
+  
+  // Reset pan when modal closes
+  modal.addEventListener('hidden.bs.modal', () => {
+    currentZoom = 1;
+    panX = 0;
+    panY = 0;
+    lastPanX = 0;
+    lastPanY = 0;
   });
 });
 </script>
