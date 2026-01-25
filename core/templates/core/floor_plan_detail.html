@@ -178,17 +178,17 @@
             <li class="list-group-item">
               <div class="d-flex justify-content-between align-items-start">
                 <div>
-                  <strong>{{ pin.title|default:'(sin título)' }}</strong>
+                  <strong>{{ pin.title|default:'(no title)' }}</strong>
                   <span class="badge" style="background-color: {{ pin.pin_color }}; color: #fff; margin-left:4px;">●</span>
                   <div class="small text-muted">{{ pin.get_pin_type_display }} · {{ pin.created_at|date:'Y-m-d H:i' }}</div>
                   {% if pin.is_multipoint %}
-                    <div class="small"><span class="badge text-bg-success">Línea: {{ pin.path_points|length }} pts</span></div>
+                    <div class="small"><span class="badge text-bg-success">{% trans "Line" %}: {{ pin.path_points|length }} pts</span></div>
                   {% endif %}
                   {% if pin.color_sample %}
-                    <div class="small"><span class="badge text-bg-secondary">Color:</span> {{ pin.color_sample.name|default:pin.color_sample.code }}</div>
+                    <div class="small"><span class="badge text-bg-secondary">{% trans "Color" %}:</span> {{ pin.color_sample.name|default:pin.color_sample.code }}</div>
                   {% endif %}
                   {% if pin.linked_task %}
-                    <div class="small"><span class="badge text-bg-info">Tarea:</span> {{ pin.linked_task.title }}</div>
+                    <div class="small"><span class="badge text-bg-info">{% trans "Task" %}:</span> {{ pin.linked_task.title }}</div>
                   {% endif %}
                   {% if pin.description %}
                     <div class="small mt-1">{{ pin.description }}</div>
