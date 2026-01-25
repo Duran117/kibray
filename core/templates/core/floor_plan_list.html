@@ -1,840 +1,219 @@
-{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
-
-{% load static i18n %}{% load static %}
-
-{% load core_extras %}{% load core_extras %}
-
-
-
-{% block title %}{% trans "Floor Plans" %} - {{ project.name }}{% endblock %}{% block content %}
-
-<div class="container-fluid py-4">
-
-{% block extra_css %}  <!-- Breadcrumb -->
-
-<style>  <nav aria-label="breadcrumb" class="mb-3">
-
-/* Premium Floor Plans Design */    <ol class="breadcrumb">
-
-:root {      {% if request.user.profile.role == 'client' %}
-
-    --fp-primary: #6366f1;      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
-
-    --fp-primary-dark: #4f46e5;      {% else %}
-
-    --fp-success: #10b981;      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-
-    --fp-warning: #f59e0b;      {% endif %}
-
-    --fp-danger: #ef4444;      <li class="breadcrumb-item active">Planos 2D Multi-Nivel</li>
-
-    --fp-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);    </ol>
-
-}  </nav>
-
-
-
-.premium-header {  <!-- Header -->
-
-    background: var(--fp-gradient);  <div class="d-flex justify-content-between align-items-center mb-4">
-
-    border-radius: 16px;    <div>
-
-    padding: 2rem;      <h2><i class="bi bi-building"></i> Planos del Edificio</h2>
-
-    margin-bottom: 1.5rem;      <p class="text-muted mb-0">Sistema multi-nivel con pins responsive</p>
-
-    color: white;    </div>
-
-}    <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-primary btn-lg">
-
-      <i class="bi bi-cloud-upload"></i> Subir Nuevo Plano
-
-.premium-header h1 {    </a>
-
-    font-size: 1.75rem;  </div>
-
-    font-weight: 700;
-
-    margin-bottom: 0.5rem;  {% if plans %}
-
-}  <!-- Multi-Level Building View -->
-
-  <div class="card border-0 shadow-sm mb-4">
-
-.premium-header .subtitle {    <div class="card-body">
-
-    opacity: 0.9;      <div class="building-levels">
-
-    font-size: 0.95rem;        {% for level in sorted_levels %}
-
-}        <div class="level-section mb-4">
-
-          <!-- Level Header -->
-
-.btn-upload {          <div class="level-header bg-gradient p-3 rounded-3 mb-3 
-
-    background: rgba(255,255,255,0.2);                      {% if level >= 0 %}bg-primary{% else %}bg-secondary{% endif %}">
-
-    color: white;            <div class="d-flex justify-content-between align-items-center text-white">
-
-    border: 2px solid rgba(255,255,255,0.3);              <div>
-
-    padding: 0.75rem 1.5rem;                <h4 class="mb-1">
-
-    border-radius: 12px;                  <i class="bi bi-layer-forward"></i>
-
-    font-weight: 600;                  {% if level == 0 %}
-
-    transition: all 0.3s ease;                    Planta Baja / Ground Floor
-
-    text-decoration: none;                  {% elif level > 0 %}
-
-    display: inline-flex;                    Nivel {{ level }}
-
-    align-items: center;                  {% else %}
-
-    gap: 0.5rem;                    Sótano {{ level|add:"-1"|abs_value }}
-
-}                  {% endif %}
-
-                </h4>
-
-.btn-upload:hover {                <small>{{ plans_by_level|get_item:level|length }} plano(s) en este nivel</small>
-
-    background: white;              </div>
-
-    color: var(--fp-primary);              <div class="level-indicator">
-
-    border-color: white;                <span class="badge bg-white text-primary fs-5 px-3 py-2">
-
-    transform: translateY(-2px);                  {% if level >= 0 %}+{{ level }}{% else %}{{ level }}{% endif %}
-
-}                </span>
-
-              </div>
-
-/* Level Section */            </div>
-
-.level-section {          </div>
-
-    margin-bottom: 2rem;
-
-    position: relative;          <!-- Plans in this level -->
-
-}          <div class="row g-3 ms-3">
-
-            {% for plan in plans_by_level|get_item:level %}
-
-.level-header {            <div class="col-md-6 col-lg-4 col-xl-3">
-
-    display: flex;              <div class="card h-100 shadow-sm plan-card">
-
-    align-items: center;                <a href="{% url 'floor_plan_detail' plan.id %}" class="text-decoration-none">
-
-    gap: 1rem;                  <div class="position-relative">
-
-    padding: 1rem 1.25rem;                    <img src="{{ plan.image.url }}" 
-
-    border-radius: 12px;                         class="card-img-top" 
-
-    margin-bottom: 1rem;                         style="height: 200px; object-fit: cover;" 
-
-    color: white;                         alt="{{ plan.name }}">
-
-}                    
-
-                    <!-- Pin Count Badge -->
-
-.level-header.level-above {                    {% if plan.pins.count > 0 %}
-
-    background: linear-gradient(135deg, var(--fp-primary) 0%, var(--fp-primary-dark) 100%);                    <span class="position-absolute top-0 end-0 m-2 badge bg-danger">
-
-}                      <i class="bi bi-pin-angle-fill"></i> {{ plan.pins.count }}
-
-                    </span>
-
-.level-header.level-ground {                    {% endif %}
-
-    background: linear-gradient(135deg, var(--fp-success) 0%, #059669 100%);                    
-
-}                    <!-- Level Badge -->
-
-                    <span class="position-absolute top-0 start-0 m-2 badge 
-
-.level-header.level-below {                                 {% if level >= 0 %}bg-primary{% else %}bg-secondary{% endif %}">
-
-    background: linear-gradient(135deg, #64748b 0%, #475569 100%);                      {% if level >= 0 %}L{{ level }}{% else %}B{{ level|add:"-1"|abs_value }}{% endif %}
-
-}                    </span>
-
-                  </div>
-
-.level-icon {                </a>
-
-    width: 48px;                
-
-    height: 48px;                <div class="card-body">
-
-    background: rgba(255,255,255,0.2);                  <h6 class="card-title mb-2">
-
-    border-radius: 12px;                    <a href="{% url 'floor_plan_detail' plan.id %}" class="text-dark text-decoration-none">
-
-    display: flex;                      {{ plan.name }}
-
-    align-items: center;                    </a>
-
-    justify-content: center;                  </h6>
-
-    font-size: 1.5rem;                  
-
-}                  {% if plan.level_identifier %}
-
-                  <p class="small text-muted mb-2">
-
-.level-info h3 {                    <i class="bi bi-tag"></i> {{ plan.level_identifier }}
-
-    font-size: 1.125rem;                  </p>
-
-    font-weight: 600;                  {% endif %}
-
-    margin: 0;                  
-
-}                  <div class="small text-muted">
-
-                    <div><i class="bi bi-calendar"></i> {{ plan.created_at|date:"d/m/Y" }}</div>
-
-.level-info .count {                    {% if plan.created_by %}
-
-    font-size: 0.85rem;                    <div><i class="bi bi-person"></i> {{ plan.created_by.username }}</div>
-
-    opacity: 0.9;                    {% endif %}
-
-}                  </div>
-
-                </div>
-
-.level-badge {                
-
-    margin-left: auto;                <div class="card-footer bg-transparent">
-
-    background: rgba(255,255,255,0.25);                  <div class="btn-group d-flex" role="group">
-
-    padding: 0.5rem 1rem;                    <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-sm btn-outline-primary flex-fill">
-
-    border-radius: 8px;                      <i class="bi bi-eye"></i> Ver
-
-    font-weight: 700;                    </a>
-
-    font-size: 1.125rem;                    {% if can_edit_pins %}
-
-}                    <a href="{% url 'floor_plan_detail' plan.id %}?mode=edit" class="btn btn-sm btn-success flex-fill" title="Abrir editor de pines">
-
-                      <i class="bi bi-pin-map"></i> Agregar Pin
-
-/* Plan Cards */                    </a>
-
-.plans-grid {                    {% endif %}
-
-    display: grid;                  </div>
-
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));                </div>
-
-    gap: 1.25rem;              </div>
-
-    padding-left: 1rem;            </div>
-
-}            {% endfor %}
-
-          </div>
-
-.plan-card {        </div>
-
-    background: white;        {% endfor %}
-
-    border-radius: 16px;      </div>
-
-    overflow: hidden;    </div>
-
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);  </div>
-
-    transition: all 0.3s ease;
-
-    border: 1px solid #f1f5f9;  <!-- Stats Card -->
-
-}  <div class="row g-3">
-
-    <div class="col-md-4">
-
-.plan-card:hover {      <div class="card border-0 shadow-sm">
-
-    transform: translateY(-4px);        <div class="card-body text-center">
-
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);          <i class="bi bi-layers display-4 text-primary"></i>
-
-}          <h3 class="mt-3">{{ sorted_levels|length }}</h3>
-
-          <p class="text-muted mb-0">Niveles Totales</p>
-
-.plan-image-wrapper {        </div>
-
-    position: relative;      </div>
-
-    height: 180px;    </div>
-
-    overflow: hidden;    <div class="col-md-4">
-
-}      <div class="card border-0 shadow-sm">
-
-        <div class="card-body text-center">
-
-.plan-image-wrapper img {          <i class="bi bi-file-image display-4 text-success"></i>
-
-    width: 100%;          <h3 class="mt-3">{{ plans.count }}</h3>
-
-    height: 100%;          <p class="text-muted mb-0">Planos Subidos</p>
-
-    object-fit: cover;        </div>
-
-    transition: transform 0.3s ease;      </div>
-
-}    </div>
-
-    <div class="col-md-4">
-
-.plan-card:hover .plan-image-wrapper img {      <div class="card border-0 shadow-sm">
-
-    transform: scale(1.05);        <div class="card-body text-center">
-
-}          <i class="bi bi-pin-angle-fill display-4 text-danger"></i>
-
-          <h3 class="mt-3">
-
-.plan-badges {            {% widthratio plans.count 1 1 as total_pins %}
-
-    position: absolute;            {{ plans|length|default:0 }}
-
-    top: 0.75rem;          </h3>
-
-    left: 0.75rem;          <p class="text-muted mb-0">Pins Totales</p>
-
-    right: 0.75rem;        </div>
-
-    display: flex;      </div>
-
-    justify-content: space-between;    </div>
-
-}  </div>
-
-
-
-.badge-level {  {% else %}
-
-    background: var(--fp-primary);  <!-- Empty State -->
-
-    color: white;  <div class="text-center py-5">
-
-    padding: 0.35rem 0.75rem;    <i class="bi bi-building display-1 text-muted"></i>
-
-    border-radius: 6px;    <h3 class="text-muted mt-4">No hay planos todavía</h3>
-
-    font-size: 0.75rem;    <p class="text-muted">Comienza subiendo el primer plano del proyecto</p>
-
-    font-weight: 600;    <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-primary btn-lg mt-3">
-
-}      <i class="bi bi-cloud-upload"></i> Subir Primer Plano
-
-    </a>
-
-.badge-pins {  </div>
-
-    background: var(--fp-danger);  {% endif %}
-
-    color: white;</div>
-
-    padding: 0.35rem 0.75rem;
-
-    border-radius: 6px;<style>
-
-    font-size: 0.75rem;.plan-card {
-
-    font-weight: 600;  transition: transform 0.2s, box-shadow 0.2s;
-
-    display: flex;}
-
-    align-items: center;
-
-    gap: 0.25rem;.plan-card:hover {
-
-}  transform: translateY(-5px);
-
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-
-.plan-content {}
-
-    padding: 1.25rem;
-
-}.level-header {
-
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-.plan-title {}
-
-    font-size: 1rem;
-
-    font-weight: 600;.level-header.bg-primary {
-
-    color: #1e293b;  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)!important;
-
-    margin-bottom: 0.5rem;}
-
-    display: -webkit-box;
-
-    -webkit-line-clamp: 2;.level-header.bg-secondary {
-
-    -webkit-box-orient: vertical;  background: linear-gradient(135deg, #6c757d 0%, #495057 100%)!important;
-
-    overflow: hidden;}
-
-}
-
-.building-levels {
-
-.plan-meta {  position: relative;
-
-    display: flex;}
-
-    flex-wrap: wrap;
-
-    gap: 0.75rem;.level-section {
-
-    font-size: 0.8rem;  position: relative;
-
-    color: #64748b;}
-
-}
-
-.level-section::before {
-
-.plan-meta-item {  content: '';
-
-    display: flex;  position: absolute;
-
-    align-items: center;  left: 0;
-
-    gap: 0.35rem;  top: 0;
-
-}  bottom: 0;
-
-  width: 4px;
-
-.plan-actions {  background: linear-gradient(to bottom, #0d6efd, #6c757d);
-
-    display: flex;  border-radius: 2px;
-
-    gap: 0.5rem;}
-
-    padding: 1rem 1.25rem;</style>
-
-    background: #f8fafc;{% endblock %}
-
-    border-top: 1px solid #f1f5f9;
-}
-
-.btn-action {
-    flex: 1;
-    padding: 0.6rem 0.75rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    transition: all 0.2s ease;
-}
-
-.btn-view {
-    background: #e0e7ff;
-    color: var(--fp-primary);
-}
-
-.btn-view:hover {
-    background: var(--fp-primary);
-    color: white;
-}
-
-.btn-pins {
-    background: #dcfce7;
-    color: var(--fp-success);
-}
-
-.btn-pins:hover {
-    background: var(--fp-success);
-    color: white;
-}
-
-/* Stats Cards */
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-.stat-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    border: 1px solid #f1f5f9;
-}
-
-.stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    margin: 0 auto 1rem;
-}
-
-.stat-icon.levels {
-    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-    color: var(--fp-primary);
-}
-
-.stat-icon.plans {
-    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-    color: var(--fp-success);
-}
-
-.stat-icon.pins {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    color: var(--fp-danger);
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1e293b;
-    line-height: 1;
-}
-
-.stat-label {
-    color: #64748b;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-}
-
-.empty-icon {
-    width: 120px;
-    height: 120px;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    border-radius: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    font-size: 3.5rem;
-    color: #94a3b8;
-}
-
-.empty-state h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-    color: #64748b;
-    margin-bottom: 1.5rem;
-}
-
-.btn-upload-primary {
-    background: var(--fp-gradient);
-    color: white;
-    padding: 0.875rem 2rem;
-    border-radius: 12px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    border: none;
-}
-
-.btn-upload-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
-    color: white;
-}
-
-/* Timeline connector */
-.levels-timeline {
-    position: relative;
-    padding-left: 1.5rem;
-}
-
-.levels-timeline::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 2rem;
-    bottom: 2rem;
-    width: 3px;
-    background: linear-gradient(to bottom, var(--fp-primary), var(--fp-success), #64748b);
-    border-radius: 2px;
-}
-
-.level-section::before {
-    content: '';
-    position: absolute;
-    left: -1.5rem;
-    top: 1.75rem;
-    width: 12px;
-    height: 12px;
-    background: white;
-    border: 3px solid var(--fp-primary);
-    border-radius: 50%;
-    z-index: 1;
-}
-
-.level-section.ground::before {
-    border-color: var(--fp-success);
-}
-
-.level-section.basement::before {
-    border-color: #64748b;
-}
-
-@media (max-width: 768px) {
-    .premium-header {
-        padding: 1.5rem;
-    }
-    
-    .premium-header h1 {
-        font-size: 1.5rem;
-    }
-    
-    .plans-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .stats-row {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .stat-card {
-        padding: 1rem;
-    }
-    
-    .stat-value {
-        font-size: 1.5rem;
-    }
-}
-</style>
-{% endblock %}
+{% extends "core/base_modern.html" %}
+{% load static i18n %}
+{% load core_extras %}
+
+{% block title %}{% trans "Floor Plans" %} - {{ project.name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb" style="font-size: 0.9rem;">
-            {% if request.user.profile.role == 'client' %}
-            <li class="breadcrumb-item">
-                <a href="{% url 'dashboard_client' %}?project_id={{ project.id }}" class="text-decoration-none">
-                    {% trans "My Projects" %}
-                </a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{% url 'client_project_view' project.id %}" class="text-decoration-none">
-                    {{ project.name }}
-                </a>
-            </li>
-            {% else %}
-            <li class="breadcrumb-item">
-                <a href="{% url 'dashboard' %}" class="text-decoration-none">{% trans "Dashboard" %}</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{% url 'project_overview' project.id %}" class="text-decoration-none">
-                    {{ project.name }}
-                </a>
-            </li>
-            {% endif %}
-            <li class="breadcrumb-item active">{% trans "Floor Plans" %}</li>
-        </ol>
-    </nav>
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      {% if request.user.profile.role == 'client' %}
+      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
+      {% else %}
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active">{% trans "Multi-Level 2D Plans" %}</li>
+    </ol>
+  </nav>
 
-    <!-- Premium Header -->
-    <div class="premium-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div>
-                <h1><i class="bi bi-building me-2"></i>{% trans "Floor Plans" %}</h1>
-                <p class="subtitle mb-0">{{ project.name }} — {% trans "Multi-level system with interactive pins" %}</p>
-            </div>
-            {% if not request.user.profile.role == 'client' %}
-            <a href="{% url 'floor_plan_create' project.id %}" class="btn-upload">
-                <i class="bi bi-cloud-upload"></i> {% trans "Upload Plan" %}
-            </a>
-            {% endif %}
-        </div>
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-building"></i> {% trans "Building Plans" %}</h2>
+      <p class="text-muted mb-0">{% trans "Multi-level system with responsive pins" %}</p>
     </div>
+    <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-primary btn-lg">
+      <i class="bi bi-cloud-upload"></i> {% trans "Upload New Plan" %}
+    </a>
+  </div>
 
-    {% if plans %}
-    <!-- Multi-Level Building View -->
-    <div class="levels-timeline">
+  {% if plans %}
+  <!-- Multi-Level Building View -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="building-levels">
         {% for level in sorted_levels %}
-        <div class="level-section {% if level > 0 %}above{% elif level == 0 %}ground{% else %}basement{% endif %}">
-            <!-- Level Header -->
-            <div class="level-header {% if level > 0 %}level-above{% elif level == 0 %}level-ground{% else %}level-below{% endif %}">
-                <div class="level-icon">
-                    {% if level > 0 %}
-                    <i class="bi bi-arrow-up-square"></i>
-                    {% elif level == 0 %}
-                    <i class="bi bi-house-door"></i>
-                    {% else %}
-                    <i class="bi bi-arrow-down-square"></i>
-                    {% endif %}
-                </div>
-                <div class="level-info">
-                    <h3>
-                        {% if level == 0 %}
-                            {% trans "Ground Floor" %}
-                        {% elif level > 0 %}
-                            {% blocktrans with num=level %}Level {{ num }}{% endblocktrans %}
-                        {% else %}
-                            {% with abs_level=level|abs_value %}
-                            {% blocktrans with num=abs_level %}Basement {{ num }}{% endblocktrans %}
-                            {% endwith %}
-                        {% endif %}
-                    </h3>
-                    <span class="count">
-                        {% with plan_count=plans_by_level|get_item:level|length %}
-                        {% blocktrans count counter=plan_count %}{{ counter }} plan{% plural %}{{ counter }} plans{% endblocktrans %}
-                        {% endwith %}
-                    </span>
-                </div>
-                <div class="level-badge">
-                    {% if level >= 0 %}+{{ level }}{% else %}{{ level }}{% endif %}
-                </div>
+        <div class="level-section mb-4">
+          <!-- Level Header -->
+          <div class="level-header bg-gradient p-3 rounded-3 mb-3 
+                      {% if level >= 0 %}bg-primary{% else %}bg-secondary{% endif %}">
+            <div class="d-flex justify-content-between align-items-center text-white">
+              <div>
+                <h4 class="mb-1">
+                  <i class="bi bi-layer-forward"></i>
+                  {% if level == 0 %}
+                    {% trans "Ground Floor" %}
+                  {% elif level > 0 %}
+                    {% trans "Level" %} {{ level }}
+                  {% else %}
+                    {% trans "Basement" %} {{ level|abs_value }}
+                  {% endif %}
+                </h4>
+                <small>{{ plans_by_level|get_item:level|length }} {% trans "plan(s) on this level" %}</small>
+              </div>
+              <div class="level-indicator">
+                <span class="badge bg-white text-primary fs-5 px-3 py-2">
+                  {% if level >= 0 %}+{{ level }}{% else %}{{ level }}{% endif %}
+                </span>
+              </div>
             </div>
+          </div>
 
-            <!-- Plans Grid -->
-            <div class="plans-grid">
-                {% for plan in plans_by_level|get_item:level %}
-                <div class="plan-card">
-                    <a href="{% url 'floor_plan_detail' plan.id %}" class="text-decoration-none">
-                        <div class="plan-image-wrapper">
-                            <img src="{{ plan.image.url }}" alt="{{ plan.name }}">
-                            <div class="plan-badges">
-                                <span class="badge-level">
-                                    {% if level >= 0 %}L{{ level }}{% else %}B{{ level|abs_value }}{% endif %}
-                                </span>
-                                {% if plan.pins.count > 0 %}
-                                <span class="badge-pins">
-                                    <i class="bi bi-pin-angle-fill"></i> {{ plan.pins.count }}
-                                </span>
-                                {% endif %}
-                            </div>
-                        </div>
+          <!-- Plans in this level -->
+          <div class="row g-3 ms-3">
+            {% for plan in plans_by_level|get_item:level %}
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card h-100 shadow-sm plan-card">
+                <a href="{% url 'floor_plan_detail' plan.id %}" class="text-decoration-none">
+                  <div class="position-relative">
+                    <img src="{{ plan.image.url }}" 
+                         class="card-img-top" 
+                         style="height: 200px; object-fit: cover;" 
+                         alt="{{ plan.name }}">
+                    
+                    <!-- Pin Count Badge -->
+                    {% if plan.pins.count > 0 %}
+                    <span class="position-absolute top-0 end-0 m-2 badge bg-danger">
+                      <i class="bi bi-pin-angle-fill"></i> {{ plan.pins.count }}
+                    </span>
+                    {% endif %}
+                    
+                    <!-- Level Badge -->
+                    <span class="position-absolute top-0 start-0 m-2 badge 
+                                 {% if level >= 0 %}bg-primary{% else %}bg-secondary{% endif %}">
+                      {% if level >= 0 %}L{{ level }}{% else %}B{{ level|add:"-1"|abs_value }}{% endif %}
+                    </span>
+                  </div>
+                </a>
+                
+                <div class="card-body">
+                  <h6 class="card-title mb-2">
+                    <a href="{% url 'floor_plan_detail' plan.id %}" class="text-dark text-decoration-none">
+                      {{ plan.name }}
                     </a>
-                    
-                    <div class="plan-content">
-                        <h4 class="plan-title">
-                            <a href="{% url 'floor_plan_detail' plan.id %}" class="text-decoration-none text-dark">
-                                {{ plan.name }}
-                            </a>
-                        </h4>
-                        
-                        <div class="plan-meta">
-                            {% if plan.level_identifier %}
-                            <span class="plan-meta-item">
-                                <i class="bi bi-tag"></i> {{ plan.level_identifier }}
-                            </span>
-                            {% endif %}
-                            <span class="plan-meta-item">
-                                <i class="bi bi-calendar3"></i> {{ plan.created_at|date:"M d, Y" }}
-                            </span>
-                            {% if plan.created_by %}
-                            <span class="plan-meta-item">
-                                <i class="bi bi-person"></i> {{ plan.created_by.get_short_name|default:plan.created_by.username }}
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="plan-actions">
-                        <a href="{% url 'floor_plan_detail' plan.id %}" class="btn-action btn-view">
-                            <i class="bi bi-eye"></i> {% trans "View" %}
-                        </a>
-                        {% if can_edit_pins %}
-                        <a href="{% url 'floor_plan_detail' plan.id %}?mode=edit" class="btn-action btn-pins">
-                            <i class="bi bi-pin-map"></i> {% trans "Pins" %}
-                        </a>
-                        {% endif %}
-                    </div>
+                  </h6>
+                  
+                  {% if plan.level_identifier %}
+                  <p class="small text-muted mb-2">
+                    <i class="bi bi-tag"></i> {{ plan.level_identifier }}
+                  </p>
+                  {% endif %}
+                  
+                  <div class="small text-muted">
+                    <div><i class="bi bi-calendar"></i> {{ plan.created_at|date:"d/m/Y" }}</div>
+                    {% if plan.created_by %}
+                    <div><i class="bi bi-person"></i> {{ plan.created_by.username }}</div>
+                    {% endif %}
+                  </div>
                 </div>
-                {% endfor %}
+                
+                <div class="card-footer bg-transparent">
+                  <div class="btn-group d-flex" role="group">
+                    <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-sm btn-outline-primary flex-fill">
+                      <i class="bi bi-eye"></i> {% trans "View" %}
+                    </a>
+                    {% if can_edit_pins %}
+                    <a href="{% url 'floor_plan_detail' plan.id %}?mode=edit" class="btn btn-sm btn-success flex-fill" title="{% trans "Open pin editor" %}">
+                      <i class="bi bi-pin-map"></i> {% trans "Add Pin" %}
+                    </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
             </div>
+            {% endfor %}
+          </div>
         </div>
         {% endfor %}
+      </div>
     </div>
+  </div>
 
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon levels">
-                <i class="bi bi-layers"></i>
-            </div>
-            <div class="stat-value">{{ sorted_levels|length }}</div>
-            <div class="stat-label">{% trans "Total Levels" %}</div>
+  <!-- Stats Card -->
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <i class="bi bi-layers display-4 text-primary"></i>
+          <h3 class="mt-3">{{ sorted_levels|length }}</h3>
+          <p class="text-muted mb-0">{% trans "Total Levels" %}</p>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon plans">
-                <i class="bi bi-file-earmark-image"></i>
-            </div>
-            <div class="stat-value">{{ plans|length }}</div>
-            <div class="stat-label">{% trans "Uploaded Plans" %}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon pins">
-                <i class="bi bi-pin-angle-fill"></i>
-            </div>
-            <div class="stat-value">{{ total_pins|default:0 }}</div>
-            <div class="stat-label">{% trans "Total Pins" %}</div>
-        </div>
+      </div>
     </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <i class="bi bi-file-image display-4 text-success"></i>
+          <h3 class="mt-3">{{ plans.count }}</h3>
+          <p class="text-muted mb-0">{% trans "Plans Uploaded" %}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <i class="bi bi-pin-angle-fill display-4 text-danger"></i>
+          <h3 class="mt-3">{{ total_pins|default:0 }}</h3>
+          <p class="text-muted mb-0">{% trans "Total Pins" %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    {% else %}
-    <!-- Empty State -->
-    <div class="empty-state">
-        <div class="empty-icon">
-            <i class="bi bi-building"></i>
-        </div>
-        <h3>{% trans "No floor plans yet" %}</h3>
-        <p>{% trans "Start by uploading the first floor plan for this project" %}</p>
-        {% if not request.user.profile.role == 'client' %}
-        <a href="{% url 'floor_plan_create' project.id %}" class="btn-upload-primary">
-            <i class="bi bi-cloud-upload"></i> {% trans "Upload First Plan" %}
-        </a>
-        {% endif %}
-    </div>
-    {% endif %}
+  {% else %}
+  <!-- Empty State -->
+  <div class="text-center py-5">
+    <i class="bi bi-building display-1 text-muted"></i>
+    <h3 class="text-muted mt-4">{% trans "No plans yet" %}</h3>
+    <p class="text-muted">{% trans "Start by uploading the first plan for the project" %}</p>
+    <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-primary btn-lg mt-3">
+      <i class="bi bi-cloud-upload"></i> {% trans "Upload First Plan" %}
+    </a>
+  </div>
+  {% endif %}
 </div>
+
+<style>
+.plan-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.plan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+.level-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.level-header.bg-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)!important;
+}
+
+.level-header.bg-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%)!important;
+}
+
+.building-levels {
+  position: relative;
+}
+
+.level-section {
+  position: relative;
+}
+
+.level-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, #0d6efd, #6c757d);
+  border-radius: 2px;
+}
+</style>
 {% endblock %}
