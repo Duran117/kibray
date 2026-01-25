@@ -1687,6 +1687,21 @@ def client_project_view(request, project_id):
     invoices = project.invoices.all().order_by("-date_issued")[:5]
     total_invoiced = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
     total_paid = invoices.aggregate(paid=Sum("amount_paid"))["paid"] or Decimal("0")
+    
+    # === CHANGE ORDERS (for client summary) ===
+    # Provide approved and pending lists/totals for the client financial summary
+    change_orders_qs = project.change_orders.all()
+    # Reasonable status buckets — adjust if your project uses different status codes
+    approved_cos = change_orders_qs.filter(status__in=["approved", "sent"]).order_by("-date_created")
+    pending_cos = change_orders_qs.filter(status__in=["pending", "awaiting_signature", "draft"]).order_by("-date_created")
+    try:
+        approved_total = sum((co.amount or Decimal("0")) for co in approved_cos)
+    except Exception:
+        approved_total = Decimal("0")
+    try:
+        pending_total = sum((co.amount or Decimal("0")) for co in pending_cos)
+    except Exception:
+        pending_total = Decimal("0")
 
     # === PROGRESO DEL PROYECTO (Gantt V2) ===
     from core.services.schedule_unified import get_project_progress
@@ -1706,6 +1721,30 @@ def client_project_view(request, project_id):
                 elapsed_days = (timezone.localdate() - project.start_date).days
                 progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
 
+    # === ESTIMATE (Base Contract) for "Quoted vs CO vs Billed" panel ===
+    latest_estimate = project.estimates.filter(approved=True).order_by("-version").first()
+    base_contract_total = Decimal("0")
+    if latest_estimate:
+        direct_cost = sum((line.direct_cost() or Decimal("0")) for line in latest_estimate.lines.all())
+        # Apply markups
+        markup_pct = (
+            (latest_estimate.markup_material or Decimal("0"))
+            + (latest_estimate.markup_labor or Decimal("0"))
+            + (latest_estimate.overhead_pct or Decimal("0"))
+            + (latest_estimate.target_profit_pct or Decimal("0"))
+        )
+        base_contract_total = direct_cost * (1 + markup_pct / Decimal("100"))
+
+    # Billed COs (already invoiced)
+    billed_cos = change_orders_qs.filter(status__in=["billed", "paid"]).order_by("-date_created")
+    try:
+        billed_cos_total = sum((co.amount or Decimal("0")) for co in billed_cos)
+    except Exception:
+        billed_cos_total = Decimal("0")
+
+    # Grand total contract value = Base + Approved COs
+    total_contract_value = base_contract_total + approved_total
+
     context = {
         "project": project,
         "pending_requests": pending_requests,
@@ -1720,6 +1759,18 @@ def client_project_view(request, project_id):
         "total_invoiced": total_invoiced,
         "total_paid": total_paid,
         "balance": total_invoiced - total_paid,
+        # Change order context for clearer client financial UX
+        "approved_cos": approved_cos,
+        "pending_cos": pending_cos,
+        "approved_cos_total": approved_total,
+        "pending_cos_total": pending_total,
+        # Billed COs
+        "billed_cos": billed_cos,
+        "billed_cos_total": billed_cos_total,
+        # Estimate / Base Contract
+        "latest_estimate": latest_estimate,
+        "base_contract_total": base_contract_total,
+        "total_contract_value": total_contract_value,
         "progress_pct": int(progress_pct),
         "gantt_progress": gantt_progress,
         "color_samples": color_samples,
