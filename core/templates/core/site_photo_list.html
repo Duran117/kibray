@@ -152,9 +152,15 @@
   <div class="premium-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
       <div>
+        {% if is_client_user %}
+        <a href="{% url 'client_project_view' project.id %}" class="btn-back mb-2 d-inline-block">
+          <i class="fas fa-arrow-left"></i> {% trans "Back to Project" %}
+        </a>
+        {% else %}
         <a href="{% url 'project_overview' project.id %}" class="btn-back mb-2 d-inline-block">
           <i class="fas fa-arrow-left"></i> {% trans "Back to Project" %}
         </a>
+        {% endif %}
         <h1 class="text-white mb-1 h3"><i class="fas fa-camera me-2"></i>{% trans "Project Photos" %}</h1>
         <p class="text-white-50 mb-0">{{ project.name }}</p>
       </div>

@@ -99,7 +99,7 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">{% trans "My Projects" %}</a></li>
             <li class="breadcrumb-item active">{{ project.name }}</li>
         </ol>
     </nav>

@@ -7,7 +7,11 @@
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
+      {% if request.user.profile.role == 'client' %}
+      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
+      {% else %}
       <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      {% endif %}
       <li class="breadcrumb-item active">Planos 2D Multi-Nivel</li>
     </ol>
   </nav>

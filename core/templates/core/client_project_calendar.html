@@ -554,7 +554,7 @@
                     </h1>
                     <p class="project-subtitle">{{ project.name }}</p>
                 </div>
-                <a href="{% url 'client_project_view' project.id %}" class="btn-back">
+                <a href="{% url 'client_project_view' project.id %}" class="btn-back" data-project-id="{{ project.id }}">
                     <i class="bi bi-arrow-left"></i>
                     {% trans "Back to Project" %}
                 </a>

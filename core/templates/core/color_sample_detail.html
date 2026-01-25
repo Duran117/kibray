@@ -3,7 +3,7 @@
 <div class="container py-3">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">Mis Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">Mis Proyectos</a></li>
       <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'color_sample_list' project.id %}">Colores</a></li>
       <li class="breadcrumb-item active">Detalle</li>

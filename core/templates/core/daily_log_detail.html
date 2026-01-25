@@ -179,8 +179,13 @@
         <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb" class="mb-3">
           <ol class="breadcrumb mb-0" style="font-size: 0.875rem;">
+            {% if request.user.profile.role == 'client' %}
+            <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}" class="text-slate-400 text-decoration-none">{% trans "My Projects" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}" class="text-slate-400 text-decoration-none">{{ project.name }}</a></li>
+            {% else %}
             <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-slate-400 text-decoration-none">{% trans "Dashboard" %}</a></li>
             <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}" class="text-slate-400 text-decoration-none">{{ project.name }}</a></li>
+            {% endif %}
             <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}" class="text-slate-400 text-decoration-none">{% trans "Daily Logs" %}</a></li>
             <li class="breadcrumb-item text-white">{{ log.date|date:"M d, Y" }}</li>
           </ol>

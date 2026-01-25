@@ -146,22 +146,25 @@
         <button type="button" class="project-selector-btn" id="projectSelectorBtn">
             <div class="project-indicator active"></div>
             <div class="flex-1 text-left">
-                <p class="text-sm font-medium text-slate-900" id="selectedProjectName">{{ project_data.0.project.name }}</p>
+                {% with active_data=project_data|slice:active_project_index|first %}
+                <p class="text-sm font-medium text-slate-900" id="selectedProjectName">{% for data in project_data %}{% if forloop.counter0 == active_project_index %}{{ data.project.name }}{% endif %}{% endfor %}</p>
+                {% endwith %}
                 <p class="text-xs text-slate-500">{{ project_data|length }} {% trans "projects" %}</p>
             </div>
             <i class="bi bi-chevron-down text-slate-400 transition-transform" id="selectorChevron"></i>
         </button>
         <div class="project-dropdown" id="projectDropdown">
             {% for data in project_data %}
-            <div class="project-option {% if forloop.first %}active{% endif %}" 
+            <div class="project-option {% if forloop.counter0 == active_project_index %}active{% endif %}" 
                  data-project-index="{{ forloop.counter0 }}"
+                 data-project-id="{{ data.project.id }}"
                  data-project-name="{{ data.project.name }}">
                 <div class="project-indicator {% if data.progress_pct == 100 %}completed{% elif data.progress_pct > 0 %}active{% else %}pending{% endif %}"></div>
                 <div class="flex-1">
                     <p class="text-sm font-medium text-slate-900">{{ data.project.name }}</p>
                     <p class="text-xs text-slate-500">{{ data.progress_pct }}% {% trans "complete" %}</p>
                 </div>
-                {% if forloop.first %}
+                {% if forloop.counter0 == active_project_index %}
                 <i class="bi bi-check2 text-indigo-600"></i>
                 {% endif %}
             </div>
@@ -179,8 +182,9 @@
 
 {% block content %}
 {% for data in project_data %}
-<div class="project-panel mb-10 animate-fade-in {% if not forloop.first and project_data|length > 1 %}hidden{% endif %}" 
+<div class="project-panel mb-10 animate-fade-in {% if forloop.counter0 != active_project_index and project_data|length > 1 %}hidden{% endif %}" 
      data-project-index="{{ forloop.counter0 }}"
+     data-project-id="{{ data.project.id }}"
      style="animation-delay: {{ forloop.counter0 }}00ms">
     
     <!-- Urgent Actions Banner (if any) -->
