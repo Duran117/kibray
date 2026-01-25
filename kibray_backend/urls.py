@@ -252,6 +252,9 @@ urlpatterns = [
     path(
         "projects/<int:project_id>/photos/new/", views.site_photo_create, name="site_photo_create"
     ),
+    path("photos/<int:photo_id>/", views.site_photo_detail, name="site_photo_detail"),
+    path("photos/<int:photo_id>/edit/", views.site_photo_edit, name="site_photo_edit"),
+    path("photos/<int:photo_id>/delete/", views.site_photo_delete, name="site_photo_delete"),
     # Color Samples
     path("projects/<int:project_id>/colors/", views.color_sample_list, name="color_sample_list"),
     path(

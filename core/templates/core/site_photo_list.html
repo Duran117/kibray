@@ -1,220 +1,535 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
+{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
 
-{% block title %}{% trans "Project Photos" %} - {{ project.name }}{% endblock %}
+{% load i18n static %}{% load i18n static %}
 
-{% block extra_css %}
-<style>
-    .photo-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        padding: 25px;
-        color: white;
-        margin-bottom: 25px;
-    }
-    .photo-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
-    }
-    .photo-card {
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .photo-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-    .photo-card .photo-image {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        cursor: pointer;
-    }
-    .photo-card .photo-info {
-        padding: 15px;
-    }
-    .photo-card .photo-date {
-        font-size: 0.85rem;
-        color: #7f8c8d;
-    }
-    .photo-card .photo-description {
-        margin-top: 8px;
-        font-size: 0.9rem;
-        color: #2c3e50;
-    }
-    .photo-card .photo-location {
-        margin-top: 5px;
-        font-size: 0.85rem;
-        color: #95a5a6;
-    }
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-    }
-    .empty-state i {
-        font-size: 4rem;
-        color: #bdc3c7;
-        margin-bottom: 20px;
-    }
-    .btn-add {
-        background: white;
-        color: #667eea;
-        border: 2px solid white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-    .btn-add:hover {
-        background: transparent;
-        color: white;
-    }
-    .btn-back {
-        background: rgba(255,255,255,0.2);
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-    }
-    .btn-back:hover {
-        background: rgba(255,255,255,0.3);
-        color: white;
-    }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="photo-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div>
-                <a href="{% url 'client_project_view' project.id %}" class="btn btn-back mb-2">
-                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Project" %}
-                </a>
-                <h2 class="mb-1">{% trans "Project Photos" %}</h2>
-                <p class="mb-0 opacity-75">{{ project.name }}</p>
-            </div>
-            {% if not is_client_user and perms.core.add_sitephoto %}
-                <a href="{% url 'site_photo_create' project.id %}" class="btn btn-add">
-                    <i class="fas fa-plus me-2"></i>{% trans "Add Photo" %}
-                </a>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Photo Count -->
-    <div class="mb-4">
-        <span class="text-muted">
-            <i class="fas fa-images me-2"></i>
-            {{ photos.count }} {% trans "photos" %}
-        </span>
-    </div>
-    
-    {% if photos %}
-        <!-- Photo Grid -->
-        <div class="photo-grid">
-            {% for photo in photos %}
-                <div class="photo-card">
-                    <img src="{{ photo.image.url }}" 
-                         alt="{{ photo.description|default:'Photo' }}" 
-                         class="photo-image"
-                         data-bs-toggle="modal" 
-                         data-bs-target="#photoModal"
-                         data-photo-url="{{ photo.image.url }}"
-                         data-photo-desc="{{ photo.description|default:'' }}"
-                         data-photo-date="{{ photo.created_at|date:'M d, Y' }}"
-                         data-photo-location="{{ photo.location|default:'' }}">
-                    <div class="photo-info">
-                        <div class="photo-date">
-                            <i class="fas fa-calendar-alt me-1"></i>
-                            {{ photo.created_at|date:"M d, Y" }}
-                        </div>
-                        {% if photo.description %}
-                            <div class="photo-description">{{ photo.description|truncatewords:10 }}</div>
-                        {% endif %}
-                        {% if photo.location %}
-                            <div class="photo-location">
-                                <i class="fas fa-map-marker-alt me-1"></i>{{ photo.location }}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <!-- Empty State -->
-        <div class="empty-state">
-            <i class="fas fa-camera"></i>
-            <h4>{% trans "No Photos Yet" %}</h4>
-            <p class="text-muted">{% trans "Photos of this project will appear here." %}</p>
-            {% if not is_client_user and perms.core.add_sitephoto %}
-                <a href="{% url 'site_photo_create' project.id %}" class="btn btn-primary mt-3">
-                    <i class="fas fa-plus me-2"></i>{% trans "Add First Photo" %}
-                </a>
-            {% endif %}
-        </div>
-    {% endif %}
-</div>
 
-<!-- Photo Modal -->
-<div class="modal fade" id="photoModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <div>
-                    <h5 class="modal-title" id="modalPhotoTitle"></h5>
-                    <small class="text-muted" id="modalPhotoDate"></small>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center p-0">
-                <img src="" id="modalPhoto" class="img-fluid" style="max-height: 70vh;" alt="Photo">
-            </div>
-            <div class="modal-footer border-0">
-                <span id="modalPhotoLocation" class="text-muted me-auto"></span>
-                <a href="" id="modalPhotoDownload" class="btn btn-outline-primary" download>
-                    <i class="fas fa-download me-2"></i>{% trans "Download" %}
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+{% block title %}{% trans "Project Photos" %} - {{ project.name }}{% endblock %}{% block title %}{% trans "Project Photos" %} - {{ project.name }}{% endblock %}
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const photoModal = document.getElementById('photoModal');
-    if (photoModal) {
-        photoModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const photoUrl = button.getAttribute('data-photo-url');
-            const photoDesc = button.getAttribute('data-photo-desc');
-            const photoDate = button.getAttribute('data-photo-date');
+
+
+{% block extra_css %}{% block extra_css %}
+
+<style><style>
+
+  .premium-header {    .photo-header {
+
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    border-radius: 16px;        border-radius: 12px;
+
+    padding: 2rem;        padding: 25px;
+
+    margin-bottom: 2rem;        color: white;
+
+  }        margin-bottom: 25px;
+
+  .btn-back {    }
+
+    background: rgba(255,255,255,0.1);    .photo-grid {
+
+    color: white;        display: grid;
+
+    border: 1px solid rgba(255,255,255,0.2);        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+
+    padding: 0.5rem 1rem;        gap: 20px;
+
+    border-radius: 8px;    }
+
+    text-decoration: none;    .photo-card {
+
+    font-size: 0.875rem;        background: white;
+
+    transition: all 0.2s;        border-radius: 12px;
+
+  }        overflow: hidden;
+
+  .btn-back:hover {        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+
+    background: rgba(255,255,255,0.2);        transition: transform 0.2s, box-shadow 0.2s;
+
+    color: white;    }
+
+  }    .photo-card:hover {
+
+  .btn-add {        transform: translateY(-5px);
+
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+
+    color: white;    }
+
+    border: none;    .photo-card .photo-image {
+
+    padding: 0.625rem 1.25rem;        width: 100%;
+
+    border-radius: 10px;        height: 200px;
+
+    font-weight: 500;        object-fit: cover;
+
+    text-decoration: none;        cursor: pointer;
+
+    display: inline-flex;    }
+
+    align-items: center;    .photo-card .photo-info {
+
+    gap: 0.5rem;        padding: 15px;
+
+    transition: all 0.2s;    }
+
+  }    .photo-card .photo-date {
+
+  .btn-add:hover {        font-size: 0.85rem;
+
+    transform: translateY(-2px);        color: #7f8c8d;
+
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);    }
+
+    color: white;    .photo-card .photo-description {
+
+  }        margin-top: 8px;
+
+  .filter-tabs {        font-size: 0.9rem;
+
+    display: flex;        color: #2c3e50;
+
+    gap: 0.5rem;    }
+
+    margin-bottom: 1.5rem;    .photo-card .photo-location {
+
+    flex-wrap: wrap;        margin-top: 5px;
+
+  }        font-size: 0.85rem;
+
+  .filter-tab {        color: #95a5a6;
+
+    padding: 0.5rem 1rem;    }
+
+    border-radius: 9999px;    .empty-state {
+
+    font-size: 0.875rem;        text-align: center;
+
+    font-weight: 500;        padding: 60px 20px;
+
+    background: white;        background: white;
+
+    border: 1px solid #e2e8f0;        border-radius: 12px;
+
+    color: #64748b;        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+
+    cursor: pointer;    }
+
+    transition: all 0.2s;    .empty-state i {
+
+    text-decoration: none;        font-size: 4rem;
+
+  }        color: #bdc3c7;
+
+  .filter-tab:hover, .filter-tab.active {        margin-bottom: 20px;
+
+    background: #6366f1;    }
+
+    border-color: #6366f1;    .btn-add {
+
+    color: white;        background: white;
+
+  }        color: #667eea;
+
+  .photo-grid {        border: 2px solid white;
+
+    display: grid;        padding: 10px 20px;
+
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));        border-radius: 8px;
+
+    gap: 1.5rem;        font-weight: 600;
+
+  }        transition: all 0.2s;
+
+  .photo-card {    }
+
+    background: white;    .btn-add:hover {
+
+    border-radius: 16px;        background: transparent;
+
+    border: 1px solid rgba(0,0,0,0.04);        color: white;
+
+    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08);    }
+
+    overflow: hidden;    .btn-back {
+
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);        background: rgba(255,255,255,0.2);
+
+  }        color: white;
+
+  .photo-card:hover {        border: none;
+
+    transform: translateY(-4px);        padding: 8px 16px;
+
+    box-shadow: 0 20px 40px -8px rgba(0,0,0,0.15);        border-radius: 6px;
+
+  }    }
+
+  .photo-card-image {    .btn-back:hover {
+
+    position: relative;        background: rgba(255,255,255,0.3);
+
+    height: 200px;        color: white;
+
+    overflow: hidden;    }
+
+  }</style>
+
+  .photo-card-image img {{% endblock %}
+
+    width: 100%;
+
+    height: 100%;{% block content %}
+
+    object-fit: cover;<div class="container-fluid py-4">
+
+    transition: transform 0.3s ease;    <!-- Header -->
+
+  }    <div class="photo-header">
+
+  .photo-card:hover .photo-card-image img {        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+    transform: scale(1.05);            <div>
+
+  }                <a href="{% url 'client_project_view' project.id %}" class="btn btn-back mb-2">
+
+  .photo-type-badge {                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Project" %}
+
+    position: absolute;                </a>
+
+    top: 0.75rem;                <h2 class="mb-1">{% trans "Project Photos" %}</h2>
+
+    left: 0.75rem;                <p class="mb-0 opacity-75">{{ project.name }}</p>
+
+    padding: 0.25rem 0.75rem;            </div>
+
+    border-radius: 9999px;            {% if not is_client_user and perms.core.add_sitephoto %}
+
+    font-size: 0.7rem;                <a href="{% url 'site_photo_create' project.id %}" class="btn btn-add">
+
+    font-weight: 600;                    <i class="fas fa-plus me-2"></i>{% trans "Add Photo" %}
+
+    text-transform: uppercase;                </a>
+
+    backdrop-filter: blur(10px);            {% endif %}
+
+  }        </div>
+
+  .badge-before { background: rgba(254, 243, 199, 0.9); color: #92400e; }    </div>
+
+  .badge-progress { background: rgba(219, 234, 254, 0.9); color: #1e40af; }    
+
+  .badge-after { background: rgba(220, 252, 231, 0.9); color: #166534; }    <!-- Photo Count -->
+
+  .badge-defect { background: rgba(254, 226, 226, 0.9); color: #991b1b; }    <div class="mb-4">
+
+  .badge-reference { background: rgba(243, 232, 255, 0.9); color: #6b21a8; }        <span class="text-muted">
+
+  .photo-card-body {            <i class="fas fa-images me-2"></i>
+
+    padding: 1.25rem;            {{ photos.count }} {% trans "photos" %}
+
+  }        </span>
+
+  .photo-card-title {    </div>
+
+    font-weight: 600;    
+
+    color: #1e293b;    {% if photos %}
+
+    margin-bottom: 0.5rem;        <!-- Photo Grid -->
+
+    display: flex;        <div class="photo-grid">
+
+    align-items: center;            {% for photo in photos %}
+
+    gap: 0.5rem;                <div class="photo-card">
+
+  }                    <img src="{{ photo.image.url }}" 
+
+  .photo-card-meta {                         alt="{{ photo.description|default:'Photo' }}" 
+
+    font-size: 0.8rem;                         class="photo-image"
+
+    color: #64748b;                         data-bs-toggle="modal" 
+
+    display: flex;                         data-bs-target="#photoModal"
+
+    flex-wrap: wrap;                         data-photo-url="{{ photo.image.url }}"
+
+    gap: 1rem;                         data-photo-desc="{{ photo.description|default:'' }}"
+
+    margin-bottom: 0.75rem;                         data-photo-date="{{ photo.created_at|date:'M d, Y' }}"
+
+  }                         data-photo-location="{{ photo.location|default:'' }}">
+
+  .photo-card-meta span {                    <div class="photo-info">
+
+    display: flex;                        <div class="photo-date">
+
+    align-items: center;                            <i class="fas fa-calendar-alt me-1"></i>
+
+    gap: 0.25rem;                            {{ photo.created_at|date:"M d, Y" }}
+
+  }                        </div>
+
+  .photo-card-footer {                        {% if photo.description %}
+
+    padding: 0.75rem 1.25rem;                            <div class="photo-description">{{ photo.description|truncatewords:10 }}</div>
+
+    background: #f8fafc;                        {% endif %}
+
+    border-top: 1px solid rgba(0,0,0,0.04);                        {% if photo.location %}
+
+    display: flex;                            <div class="photo-location">
+
+    justify-content: space-between;                                <i class="fas fa-map-marker-alt me-1"></i>{{ photo.location }}
+
+    align-items: center;                            </div>
+
+  }                        {% endif %}
+
+  .btn-view {                    </div>
+
+    background: #f1f5f9;                </div>
+
+    color: #475569;            {% endfor %}
+
+    border: none;        </div>
+
+    padding: 0.375rem 0.875rem;    {% else %}
+
+    border-radius: 8px;        <!-- Empty State -->
+
+    font-size: 0.8rem;        <div class="empty-state">
+
+    font-weight: 500;            <i class="fas fa-camera"></i>
+
+    text-decoration: none;            <h4>{% trans "No Photos Yet" %}</h4>
+
+    transition: all 0.2s;            <p class="text-muted">{% trans "Photos of this project will appear here." %}</p>
+
+  }            {% if not is_client_user and perms.core.add_sitephoto %}
+
+  .btn-view:hover {                <a href="{% url 'site_photo_create' project.id %}" class="btn btn-primary mt-3">
+
+    background: #e2e8f0;                    <i class="fas fa-plus me-2"></i>{% trans "Add First Photo" %}
+
+    color: #334155;                </a>
+
+  }            {% endif %}
+
+  .empty-state {        </div>
+
+    text-align: center;    {% endif %}
+
+    padding: 4rem 2rem;</div>
+
+    background: white;
+
+    border-radius: 16px;<!-- Photo Modal -->
+
+    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08);<div class="modal fade" id="photoModal" tabindex="-1">
+
+  }    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+  .empty-state-icon {        <div class="modal-content">
+
+    width: 80px;            <div class="modal-header border-0">
+
+    height: 80px;                <div>
+
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);                    <h5 class="modal-title" id="modalPhotoTitle"></h5>
+
+    border-radius: 50%;                    <small class="text-muted" id="modalPhotoDate"></small>
+
+    display: flex;                </div>
+
+    align-items: center;                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+    justify-content: center;            </div>
+
+    margin: 0 auto 1.5rem;            <div class="modal-body text-center p-0">
+
+  }                <img src="" id="modalPhoto" class="img-fluid" style="max-height: 70vh;" alt="Photo">
+
+  .empty-state-icon i {            </div>
+
+    font-size: 2rem;            <div class="modal-footer border-0">
+
+    color: #94a3b8;                <span id="modalPhotoLocation" class="text-muted me-auto"></span>
+
+  }                <a href="" id="modalPhotoDownload" class="btn btn-outline-primary" download>
+
+  .stats-bar {                    <i class="fas fa-download me-2"></i>{% trans "Download" %}
+
+    display: flex;                </a>
+
+    gap: 1.5rem;            </div>
+
+    flex-wrap: wrap;        </div>
+
+    margin-bottom: 1rem;    </div>
+
+  }</div>
+
+  .stat-item {{% endblock %}
+
+    display: flex;
+
+    align-items: center;{% block extra_js %}
+
+    gap: 0.5rem;<script>
+
+    color: rgba(255,255,255,0.8);document.addEventListener('DOMContentLoaded', function() {
+
+    font-size: 0.875rem;    const photoModal = document.getElementById('photoModal');
+
+  }    if (photoModal) {
+
+  .stat-item i {        photoModal.addEventListener('show.bs.modal', function(event) {
+
+    color: rgba(255,255,255,0.6);            const button = event.relatedTarget;
+
+  }            const photoUrl = button.getAttribute('data-photo-url');
+
+</style>            const photoDesc = button.getAttribute('data-photo-desc');
+
+{% endblock %}            const photoDate = button.getAttribute('data-photo-date');
+
             const photoLocation = button.getAttribute('data-photo-location');
-            
-            document.getElementById('modalPhoto').src = photoUrl;
-            document.getElementById('modalPhotoTitle').textContent = photoDesc || 'Photo';
-            document.getElementById('modalPhotoDate').textContent = photoDate || '';
-            document.getElementById('modalPhotoDownload').href = photoUrl;
-            
-            const locationEl = document.getElementById('modalPhotoLocation');
-            if (photoLocation) {
-                locationEl.innerHTML = '<i class="fas fa-map-marker-alt me-1"></i>' + photoLocation;
-                locationEl.style.display = 'block';
-            } else {
-                locationEl.style.display = 'none';
-            }
-        });
-    }
-});
-</script>
+
+{% block content %}            
+
+<div class="container-fluid py-4">            document.getElementById('modalPhoto').src = photoUrl;
+
+  <!-- Premium Header -->            document.getElementById('modalPhotoTitle').textContent = photoDesc || 'Photo';
+
+  <div class="premium-header">            document.getElementById('modalPhotoDate').textContent = photoDate || '';
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">            document.getElementById('modalPhotoDownload').href = photoUrl;
+
+      <div>            
+
+        <a href="{% url 'project_overview' project.id %}" class="btn-back mb-3 d-inline-block">            const locationEl = document.getElementById('modalPhotoLocation');
+
+          <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Project" %}            if (photoLocation) {
+
+        </a>                locationEl.innerHTML = '<i class="fas fa-map-marker-alt me-1"></i>' + photoLocation;
+
+        <h2 class="text-white mb-2">                locationEl.style.display = 'block';
+
+          <i class="bi bi-images me-2 opacity-75"></i>{% trans "Project Photos" %}            } else {
+
+        </h2>                locationEl.style.display = 'none';
+
+        <p class="text-white opacity-75 mb-3">{{ project.name }}</p>            }
+
+        <div class="stats-bar">        });
+
+          <span class="stat-item">    }
+
+            <i class="bi bi-image"></i> {{ photos.count }} {% trans "photos" %}});
+
+          </span></script>
+
+          {% if photos %}{% endblock %}
+
+          <span class="stat-item">
+            <i class="bi bi-calendar"></i> {% trans "Latest:" %} {{ photos.first.created_at|date:"M d" }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      {% if not is_client_user %}
+      <a href="{% url 'site_photo_create' project.id %}" class="btn-add">
+        <i class="bi bi-plus-lg"></i> {% trans "Add Photo" %}
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if photos %}
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    <a href="?type=" class="filter-tab {% if not request.GET.type %}active{% endif %}">
+      {% trans "All" %} ({{ photos.count }})
+    </a>
+    <a href="?type=reference" class="filter-tab {% if request.GET.type == 'reference' %}active{% endif %}">
+      <i class="bi bi-bookmark me-1"></i> {% trans "Reference" %}
+    </a>
+    <a href="?type=before" class="filter-tab {% if request.GET.type == 'before' %}active{% endif %}">
+      <i class="bi bi-arrow-left-circle me-1"></i> {% trans "Before" %}
+    </a>
+    <a href="?type=progress" class="filter-tab {% if request.GET.type == 'progress' %}active{% endif %}">
+      <i class="bi bi-clock-history me-1"></i> {% trans "Progress" %}
+    </a>
+    <a href="?type=after" class="filter-tab {% if request.GET.type == 'after' %}active{% endif %}">
+      <i class="bi bi-check-circle me-1"></i> {% trans "After" %}
+    </a>
+    <a href="?type=defect" class="filter-tab {% if request.GET.type == 'defect' %}active{% endif %}">
+      <i class="bi bi-exclamation-triangle me-1"></i> {% trans "Defects" %}
+    </a>
+  </div>
+
+  <!-- Photo Grid -->
+  <div class="photo-grid">
+    {% for photo in photos %}
+    <div class="photo-card">
+      <a href="{% url 'site_photo_detail' photo.id %}" class="text-decoration-none">
+        <div class="photo-card-image">
+          <img src="{{ photo.image.url }}" alt="{{ photo.room|default:'Photo' }}">
+          <span class="photo-type-badge badge-{{ photo.photo_type }}">{{ photo.get_photo_type_display }}</span>
+        </div>
+      </a>
+      <div class="photo-card-body">
+        <h6 class="photo-card-title">
+          {% if photo.room %}{{ photo.room }}{% else %}{% trans "Photo" %}{% endif %}
+          {% if photo.wall_ref %}<span class="text-muted fw-normal">· {{ photo.wall_ref }}</span>{% endif %}
+        </h6>
+        <div class="photo-card-meta">
+          <span><i class="bi bi-calendar3"></i> {{ photo.created_at|date:"M d, Y" }}</span>
+          {% if photo.color_text %}
+          <span><i class="bi bi-palette"></i> {{ photo.color_text|truncatewords:2 }}</span>
+          {% endif %}
+          {% if photo.brand %}
+          <span><i class="bi bi-tag"></i> {{ photo.brand }}</span>
+          {% endif %}
+        </div>
+        {% if photo.notes %}
+        <p class="text-muted small mb-0">{{ photo.notes|truncatewords:10 }}</p>
+        {% endif %}
+      </div>
+      <div class="photo-card-footer">
+        <span class="text-muted small">
+          {% if photo.finish %}{{ photo.finish }}{% endif %}
+          {% if photo.coats > 1 %}· {{ photo.coats }} {% trans "coats" %}{% endif %}
+        </span>
+        <a href="{% url 'site_photo_detail' photo.id %}" class="btn-view">
+          {% trans "View" %} <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <i class="bi bi-camera"></i>
+    </div>
+    <h4 class="mb-2">{% trans "No Photos Yet" %}</h4>
+    <p class="text-muted mb-4">{% trans "Add reference photos to document project details, colors, and requirements." %}</p>
+    {% if not is_client_user %}
+    <a href="{% url 'site_photo_create' project.id %}" class="btn-add">
+      <i class="bi bi-plus-lg"></i> {% trans "Add First Photo" %}
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
 {% endblock %}
