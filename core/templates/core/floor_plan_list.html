@@ -4,216 +4,699 @@
 
 {% block title %}{% trans "Floor Plans" %} - {{ project.name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Premium Floor Plans Design */
+:root {
+  --fp-primary: #6366f1;
+  --fp-primary-dark: #4f46e5;
+  --fp-success: #10b981;
+  --fp-warning: #f59e0b;
+  --fp-danger: #ef4444;
+  --fp-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --fp-gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --fp-gradient-dark: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+/* Premium Header */
+.premium-header {
+  background: var(--fp-gradient);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+
+.premium-header::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+
+.premium-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.premium-header .subtitle {
+  opacity: 0.9;
+  font-size: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-upload-hero {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.3);
+  padding: 0.875rem 1.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-upload-hero:hover {
+  background: rgba(255,255,255,0.3);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* Stats Row */
+.stats-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-pill {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  padding: 0.75rem 1.25rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-pill .stat-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-pill .stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.stat-pill .stat-label {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+/* Building Timeline */
+.building-timeline {
+  position: relative;
+  padding-left: 60px;
+}
+
+.building-timeline::before {
+  content: '';
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, var(--fp-primary), var(--fp-success), #64748b);
+  border-radius: 4px;
+}
+
+.level-node {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.level-marker {
+  position: absolute;
+  left: -60px;
+  top: 0;
+  width: 52px;
+  height: 52px;
+  background: white;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: 3px solid var(--fp-primary);
+  z-index: 2;
+}
+
+.level-marker.ground {
+  border-color: var(--fp-success);
+  color: var(--fp-success);
+}
+
+.level-marker.basement {
+  border-color: #64748b;
+  color: #64748b;
+}
+
+.level-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+}
+
+.level-header-bar {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.level-header-bar h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.level-header-bar .level-tag {
+  background: var(--fp-gradient);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.level-header-bar .level-tag.ground {
+  background: var(--fp-gradient-success);
+}
+
+.level-header-bar .level-tag.basement {
+  background: var(--fp-gradient-dark);
+}
+
+.level-content {
+  padding: 1.5rem;
+}
+
+/* Plan Cards */
+.plan-card-premium {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #e2e8f0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-card-premium:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  border-color: var(--fp-primary);
+}
+
+.plan-thumbnail {
+  height: 180px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.plan-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.plan-card-premium:hover .plan-thumbnail img {
+  transform: scale(1.05);
+}
+
+.plan-thumbnail .no-image {
+  color: #cbd5e1;
+  font-size: 3.5rem;
+}
+
+.pin-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, var(--fp-danger) 0%, #dc2626 100%);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.level-badge-thumb {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  color: white;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.plan-info {
+  padding: 1.25rem;
+  flex: 1;
+}
+
+.plan-name {
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.plan-meta {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.plan-meta i {
+  width: 16px;
+  color: #94a3b8;
+}
+
+.plan-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.btn-plan-action {
+  flex: 1;
+  padding: 0.65rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.btn-view-plan {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-view-plan:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.btn-add-pin {
+  background: var(--fp-gradient-success);
+  color: white;
+  border: none;
+}
+
+.btn-add-pin:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  color: white;
+}
+
+/* Stats Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.stat-card-premium {
+  background: white;
+  border-radius: 16px;
+  padding: 1.75rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+.stat-card-premium:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+
+.stat-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 1.5rem;
+}
+
+.stat-icon-circle.primary {
+  background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.05) 100%);
+  color: var(--fp-primary);
+}
+
+.stat-icon-circle.success {
+  background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%);
+  color: var(--fp-success);
+}
+
+.stat-icon-circle.danger {
+  background: linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%);
+  color: var(--fp-danger);
+}
+
+.stat-card-premium h3 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.stat-card-premium p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Empty State */
+.empty-state-premium {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.empty-icon-circle {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  font-size: 3rem;
+  color: #94a3b8;
+}
+
+.empty-state-premium h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state-premium p {
+  color: #64748b;
+  margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-upload-empty {
+  background: var(--fp-gradient);
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  font-size: 1.05rem;
+}
+
+.btn-upload-empty:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .stats-row {
+    flex-wrap: wrap;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .premium-header {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  .premium-header h1 {
+    font-size: 1.5rem;
+  }
+  .building-timeline {
+    padding-left: 50px;
+  }
+  .level-marker {
+    left: -50px;
+    width: 44px;
+    height: 44px;
+    font-size: 0.95rem;
+  }
+  .building-timeline::before {
+    left: 20px;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
+    <ol class="breadcrumb" style="font-size: 0.9rem;">
       {% if request.user.profile.role == 'client' %}
-      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}" class="text-decoration-none">{{ project.name }}</a></li>
       {% else %}
-      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}" class="text-decoration-none">{{ project.name }}</a></li>
       {% endif %}
-      <li class="breadcrumb-item active">{% trans "Multi-Level 2D Plans" %}</li>
+      <li class="breadcrumb-item active">{% trans "Floor Plans" %}</li>
     </ol>
   </nav>
 
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h2><i class="bi bi-building"></i> {% trans "Building Plans" %}</h2>
-      <p class="text-muted mb-0">{% trans "Multi-level system with responsive pins" %}</p>
+  <!-- Premium Header -->
+  <div class="premium-header">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1><i class="bi bi-building me-2"></i>{% trans "Building Plans" %}</h1>
+        <p class="subtitle mb-0">{% trans "Multi-level floor plan system with interactive pins" %}</p>
+        
+        {% if plans %}
+        <div class="stats-row">
+          <div class="stat-pill">
+            <div class="stat-icon"><i class="bi bi-layers"></i></div>
+            <div>
+              <div class="stat-value">{{ sorted_levels|length }}</div>
+              <div class="stat-label">{% trans "Levels" %}</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-icon"><i class="bi bi-file-earmark-image"></i></div>
+            <div>
+              <div class="stat-value">{{ plans.count }}</div>
+              <div class="stat-label">{% trans "Plans" %}</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-icon"><i class="bi bi-pin-angle-fill"></i></div>
+            <div>
+              <div class="stat-value">{{ total_pins|default:0 }}</div>
+              <div class="stat-label">{% trans "Pins" %}</div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+        <a href="{% url 'floor_plan_create' project.id %}" class="btn-upload-hero">
+          <i class="bi bi-cloud-arrow-up"></i> {% trans "Upload Plan" %}
+        </a>
+      </div>
     </div>
-    <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-primary btn-lg">
-      <i class="bi bi-cloud-upload"></i> {% trans "Upload New Plan" %}
-    </a>
   </div>
 
   {% if plans %}
-  <!-- Multi-Level Building View -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-      <div class="building-levels">
-        {% for level in sorted_levels %}
-        <div class="level-section mb-4">
-          <!-- Level Header -->
-          <div class="level-header bg-gradient p-3 rounded-3 mb-3 
-                      {% if level >= 0 %}bg-primary{% else %}bg-secondary{% endif %}">
-            <div class="d-flex justify-content-between align-items-center text-white">
-              <div>
-                <h4 class="mb-1">
-                  <i class="bi bi-layer-forward"></i>
-                  {% if level == 0 %}
-                    {% trans "Ground Floor" %}
-                  {% elif level > 0 %}
-                    {% trans "Level" %} {{ level }}
-                  {% else %}
-                    {% trans "Basement" %} {{ level|abs_value }}
-                  {% endif %}
-                </h4>
-                <small>{{ plans_by_level|get_item:level|length }} {% trans "plan(s) on this level" %}</small>
-              </div>
-              <div class="level-indicator">
-                <span class="badge bg-white text-primary fs-5 px-3 py-2">
-                  {% if level >= 0 %}+{{ level }}{% else %}{{ level }}{% endif %}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Plans in this level -->
-          <div class="row g-3 ms-3">
+  <!-- Building Timeline -->
+  <div class="building-timeline">
+    {% for level in sorted_levels reversed %}
+    <div class="level-node">
+      <div class="level-marker {% if level == 0 %}ground{% elif level < 0 %}basement{% endif %}">
+        {% if level >= 0 %}L{{ level }}{% else %}B{{ level|abs_value }}{% endif %}
+      </div>
+      
+      <div class="level-card">
+        <div class="level-header-bar">
+          <h4>
+            <i class="bi bi-layers"></i>
+            {% if level == 0 %}
+              {% trans "Ground Floor" %}
+            {% elif level > 0 %}
+              {% trans "Level" %} {{ level }}
+            {% else %}
+              {% trans "Basement" %} {{ level|abs_value }}
+            {% endif %}
+          </h4>
+          <span class="level-tag {% if level == 0 %}ground{% elif level < 0 %}basement{% endif %}">
+            {{ plans_by_level|get_item:level|length }} {% trans "plan(s)" %}
+          </span>
+        </div>
+        
+        <div class="level-content">
+          <div class="row g-3">
             {% for plan in plans_by_level|get_item:level %}
             <div class="col-md-6 col-lg-4 col-xl-3">
-              <div class="card h-100 shadow-sm plan-card">
+              <div class="plan-card-premium">
                 <a href="{% url 'floor_plan_detail' plan.id %}" class="text-decoration-none">
-                  <div class="position-relative">
-                    <img src="{{ plan.image.url }}" 
-                         class="card-img-top" 
-                         style="height: 200px; object-fit: cover;" 
-                         alt="{{ plan.name }}">
+                  <div class="plan-thumbnail">
+                    {% if plan.image %}
+                    <img src="{{ plan.image.url }}" alt="{{ plan.name }}">
+                    {% else %}
+                    <i class="bi bi-image no-image"></i>
+                    {% endif %}
                     
-                    <!-- Pin Count Badge -->
                     {% if plan.pins.count > 0 %}
-                    <span class="position-absolute top-0 end-0 m-2 badge bg-danger">
+                    <span class="pin-badge">
                       <i class="bi bi-pin-angle-fill"></i> {{ plan.pins.count }}
                     </span>
                     {% endif %}
                     
-                    <!-- Level Badge -->
-                    <span class="position-absolute top-0 start-0 m-2 badge 
-                                 {% if level >= 0 %}bg-primary{% else %}bg-secondary{% endif %}">
-                      {% if level >= 0 %}L{{ level }}{% else %}B{{ level|add:"-1"|abs_value }}{% endif %}
+                    <span class="level-badge-thumb">
+                      {% if level >= 0 %}L{{ level }}{% else %}B{{ level|abs_value }}{% endif %}
                     </span>
                   </div>
                 </a>
                 
-                <div class="card-body">
-                  <h6 class="card-title mb-2">
-                    <a href="{% url 'floor_plan_detail' plan.id %}" class="text-dark text-decoration-none">
-                      {{ plan.name }}
-                    </a>
-                  </h6>
+                <div class="plan-info">
+                  <a href="{% url 'floor_plan_detail' plan.id %}" class="text-decoration-none">
+                    <h6 class="plan-name">{{ plan.name }}</h6>
+                  </a>
                   
-                  {% if plan.level_identifier %}
-                  <p class="small text-muted mb-2">
-                    <i class="bi bi-tag"></i> {{ plan.level_identifier }}
-                  </p>
-                  {% endif %}
-                  
-                  <div class="small text-muted">
-                    <div><i class="bi bi-calendar"></i> {{ plan.created_at|date:"d/m/Y" }}</div>
-                    {% if plan.created_by %}
-                    <div><i class="bi bi-person"></i> {{ plan.created_by.username }}</div>
+                  <div class="plan-meta">
+                    {% if plan.level_identifier %}
+                    <div class="mb-1"><i class="bi bi-tag"></i> {{ plan.level_identifier }}</div>
                     {% endif %}
+                    <div><i class="bi bi-calendar3"></i> {{ plan.created_at|date:"M d, Y" }}</div>
                   </div>
                 </div>
                 
-                <div class="card-footer bg-transparent">
-                  <div class="btn-group d-flex" role="group">
-                    <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-sm btn-outline-primary flex-fill">
-                      <i class="bi bi-eye"></i> {% trans "View" %}
-                    </a>
-                    {% if can_edit_pins %}
-                    <a href="{% url 'floor_plan_detail' plan.id %}?mode=edit" class="btn btn-sm btn-success flex-fill" title="{% trans "Open pin editor" %}">
-                      <i class="bi bi-pin-map"></i> {% trans "Add Pin" %}
-                    </a>
-                    {% endif %}
-                  </div>
+                <div class="plan-actions">
+                  <a href="{% url 'floor_plan_detail' plan.id %}" class="btn-plan-action btn-view-plan">
+                    <i class="bi bi-eye"></i> {% trans "View" %}
+                  </a>
+                  {% if can_edit_pins %}
+                  <a href="{% url 'floor_plan_detail' plan.id %}?mode=edit" class="btn-plan-action btn-add-pin">
+                    <i class="bi bi-pin-map"></i> {% trans "Pins" %}
+                  </a>
+                  {% endif %}
                 </div>
               </div>
             </div>
             {% endfor %}
           </div>
         </div>
-        {% endfor %}
       </div>
     </div>
+    {% endfor %}
   </div>
 
-  <!-- Stats Card -->
-  <div class="row g-3">
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body text-center">
-          <i class="bi bi-layers display-4 text-primary"></i>
-          <h3 class="mt-3">{{ sorted_levels|length }}</h3>
-          <p class="text-muted mb-0">{% trans "Total Levels" %}</p>
-        </div>
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card-premium">
+      <div class="stat-icon-circle primary">
+        <i class="bi bi-layers"></i>
       </div>
+      <h3>{{ sorted_levels|length }}</h3>
+      <p>{% trans "Total Levels" %}</p>
     </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body text-center">
-          <i class="bi bi-file-image display-4 text-success"></i>
-          <h3 class="mt-3">{{ plans.count }}</h3>
-          <p class="text-muted mb-0">{% trans "Plans Uploaded" %}</p>
-        </div>
+    <div class="stat-card-premium">
+      <div class="stat-icon-circle success">
+        <i class="bi bi-file-earmark-image"></i>
       </div>
+      <h3>{{ plans.count }}</h3>
+      <p>{% trans "Plans Uploaded" %}</p>
     </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body text-center">
-          <i class="bi bi-pin-angle-fill display-4 text-danger"></i>
-          <h3 class="mt-3">{{ total_pins|default:0 }}</h3>
-          <p class="text-muted mb-0">{% trans "Total Pins" %}</p>
-        </div>
+    <div class="stat-card-premium">
+      <div class="stat-icon-circle danger">
+        <i class="bi bi-pin-angle-fill"></i>
       </div>
+      <h3>{{ total_pins|default:0 }}</h3>
+      <p>{% trans "Total Pins" %}</p>
     </div>
   </div>
 
   {% else %}
   <!-- Empty State -->
-  <div class="text-center py-5">
-    <i class="bi bi-building display-1 text-muted"></i>
-    <h3 class="text-muted mt-4">{% trans "No plans yet" %}</h3>
-    <p class="text-muted">{% trans "Start by uploading the first plan for the project" %}</p>
-    <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-primary btn-lg mt-3">
-      <i class="bi bi-cloud-upload"></i> {% trans "Upload First Plan" %}
+  <div class="empty-state-premium">
+    <div class="empty-icon-circle">
+      <i class="bi bi-building"></i>
+    </div>
+    <h3>{% trans "No Floor Plans Yet" %}</h3>
+    <p>{% trans "Upload your first floor plan to start marking pins and visualizing your building levels." %}</p>
+    <a href="{% url 'floor_plan_create' project.id %}" class="btn-upload-empty">
+      <i class="bi bi-cloud-arrow-up"></i> {% trans "Upload First Plan" %}
     </a>
   </div>
   {% endif %}
 </div>
-
-<style>
-.plan-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.plan-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-}
-
-.level-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.level-header.bg-primary {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)!important;
-}
-
-.level-header.bg-secondary {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%)!important;
-}
-
-.building-levels {
-  position: relative;
-}
-
-.level-section {
-  position: relative;
-}
-
-.level-section::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(to bottom, #0d6efd, #6c757d);
-  border-radius: 2px;
-}
-</style>
 {% endblock %}
