@@ -1033,12 +1033,22 @@ def dashboard_client(request):
     except Exception:
         display_name = request.user.username
 
+    # Determine active project index from GET param or default to first
+    active_project_index = 0
+    active_project_id = request.GET.get("project_id")
+    if active_project_id:
+        for idx, data in enumerate(project_data):
+            if str(data["project"].id) == active_project_id:
+                active_project_index = idx
+                break
+
     context = {
         "project_data": project_data,
         "today": timezone.localdate(),
         "display_name": display_name,
         "morning_briefing": morning_briefing,
         "active_filter": active_filter,
+        "active_project_index": active_project_index,
     }
 
     # Use premium template (unified design)
