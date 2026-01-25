@@ -1,189 +1,696 @@
-{% extends "core/base_modern.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
 
-{% block content %}
+{% load static i18n %}{% load static %}
+
+
+
+{% block title %}{% if is_edit %}{% trans "Edit Plan" %}{% else %}{% trans "Upload Plan" %}{% endif %} - {{ project.name }}{% endblock %}{% block content %}
+
 <div class="container py-4">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">Planos</a></li>
-      <li class="breadcrumb-item active">{% if is_edit %}Editar Plano{% else %}Subir Nuevo Plano{% endif %}</li>
-    </ol>
-  </nav>
 
-  <!-- Header -->
-  <div class="mb-4">
-    {% if is_edit %}
-      <h2><i class="bi bi-pencil-square"></i> Editar Plano 2D</h2>
-      <p class="text-muted">Actualiza el nombre, nivel o imagen del plano</p>
+{% block extra_css %}  <!-- Breadcrumb -->
+
+<style>  <nav aria-label="breadcrumb" class="mb-3">
+
+.upload-container {    <ol class="breadcrumb">
+
+    max-width: 900px;      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+
+    margin: 0 auto;      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">Planos</a></li>
+
+}      <li class="breadcrumb-item active">{% if is_edit %}Editar Plano{% else %}Subir Nuevo Plano{% endif %}</li>
+
+    </ol>
+
+.premium-header {  </nav>
+
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    border-radius: 16px;  <!-- Header -->
+
+    padding: 2rem;  <div class="mb-4">
+
+    margin-bottom: 1.5rem;    {% if is_edit %}
+
+    color: white;      <h2><i class="bi bi-pencil-square"></i> Editar Plano 2D</h2>
+
+}      <p class="text-muted">Actualiza el nombre, nivel o imagen del plano</p>
+
     {% else %}
-      <h2><i class="bi bi-cloud-upload"></i> Subir Plano 2D Multi-Nivel</h2>
-      <p class="text-muted">Agrega un nuevo plano e indica a qué nivel pertenece</p>
-    {% endif %}
-  </div>
+
+.premium-header h1 {      <h2><i class="bi bi-cloud-upload"></i> Subir Plano 2D Multi-Nivel</h2>
+
+    font-size: 1.75rem;      <p class="text-muted">Agrega un nuevo plano e indica a qué nivel pertenece</p>
+
+    font-weight: 700;    {% endif %}
+
+    margin-bottom: 0.5rem;  </div>
+
+}
 
   <!-- Form Card -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-4">
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+
+.premium-header .subtitle {  <div class="card border-0 shadow-sm">
+
+    opacity: 0.9;    <div class="card-body p-4">
+
+    font-size: 0.95rem;      <form method="post" enctype="multipart/form-data">
+
+}        {% csrf_token %}
+
         
-        <div class="row">
-          <!-- Left Column: Plan Details -->
-          <div class="col-md-6">
-            <h5 class="mb-3"><i class="bi bi-info-circle"></i> Información del Plano</h5>
-            
-            <!-- Project (hidden) -->
+
+.form-card {        <div class="row">
+
+    background: white;          <!-- Left Column: Plan Details -->
+
+    border-radius: 16px;          <div class="col-md-6">
+
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);            <h5 class="mb-3"><i class="bi bi-info-circle"></i> Información del Plano</h5>
+
+    overflow: hidden;            
+
+}            <!-- Project (hidden) -->
+
             <input type="hidden" name="project" value="{{ project.id }}">
-            
-            <!-- Name -->
-            <div class="mb-3">
-              <label class="form-label fw-bold">Nombre del Plano *</label>
+
+.form-section {            
+
+    padding: 1.5rem;            <!-- Name -->
+
+    border-bottom: 1px solid #f1f5f9;            <div class="mb-3">
+
+}              <label class="form-label fw-bold">Nombre del Plano *</label>
+
               {{ form.name }}
-              {% if form.name.errors %}
-              <div class="text-danger small">{{ form.name.errors }}</div>
-              {% endif %}
+
+.form-section:last-child {              {% if form.name.errors %}
+
+    border-bottom: none;              <div class="text-danger small">{{ form.name.errors }}</div>
+
+}              {% endif %}
+
             </div>
-            
-            <!-- Image Upload -->
-            <div class="mb-3">
-              <label class="form-label fw-bold">Archivo de Imagen *</label>
-              {{ form.image }}
-              <small class="form-text text-muted d-block mt-1">
-                <i class="bi bi-info-circle"></i> Formatos: JPG, PNG. Recomendado: alta resolución para mejor visualización de pins.
-              </small>
-              {% if form.image.errors %}
+
+.section-title {            
+
+    font-size: 1rem;            <!-- Image Upload -->
+
+    font-weight: 600;            <div class="mb-3">
+
+    color: #1e293b;              <label class="form-label fw-bold">Archivo de Imagen *</label>
+
+    margin-bottom: 1rem;              {{ form.image }}
+
+    display: flex;              <small class="form-text text-muted d-block mt-1">
+
+    align-items: center;                <i class="bi bi-info-circle"></i> Formatos: JPG, PNG. Recomendado: alta resolución para mejor visualización de pins.
+
+    gap: 0.5rem;              </small>
+
+}              {% if form.image.errors %}
+
               <div class="text-danger small">{{ form.image.errors }}</div>
-              {% endif %}
-            </div>
-            
+
+.section-title i {              {% endif %}
+
+    color: #6366f1;            </div>
+
+}            
+
             <!-- Image Preview -->
-            <div id="imagePreview" class="mt-3" style="display: none;">
-              <label class="form-label fw-bold">Preview:</label>
-              <img id="previewImg" class="img-fluid rounded border" style="max-height: 300px;">
-            </div>
-          </div>
+
+.form-label-custom {            <div id="imagePreview" class="mt-3" style="display: none;">
+
+    font-weight: 500;              <label class="form-label fw-bold">Preview:</label>
+
+    color: #475569;              <img id="previewImg" class="img-fluid rounded border" style="max-height: 300px;">
+
+    margin-bottom: 0.5rem;            </div>
+
+}          </div>
+
           
-          <!-- Right Column: Level Details -->
-          <div class="col-md-6">
-            <h5 class="mb-3"><i class="bi bi-layers"></i> Nivel / Floor</h5>
-            
-            <!-- Level Number -->
-            <div class="mb-3">
+
+.form-control, .form-select {          <!-- Right Column: Level Details -->
+
+    border-radius: 10px;          <div class="col-md-6">
+
+    border: 1.5px solid #e2e8f0;            <h5 class="mb-3"><i class="bi bi-layers"></i> Nivel / Floor</h5>
+
+    padding: 0.75rem 1rem;            
+
+    transition: all 0.2s ease;            <!-- Level Number -->
+
+}            <div class="mb-3">
+
               <label class="form-label fw-bold">Número de Nivel *</label>
-              {{ form.level }}
-              <small class="form-text text-muted d-block mt-1">
-                {{ form.level.help_text }}
-              </small>
+
+.form-control:focus, .form-select:focus {              {{ form.level }}
+
+    border-color: #6366f1;              <small class="form-text text-muted d-block mt-1">
+
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);                {{ form.level.help_text }}
+
+}              </small>
+
               {% if form.level.errors %}
-              <div class="text-danger small">{{ form.level.errors }}</div>
-              {% endif %}
-            </div>
-            
-            <!-- Level Identifier -->
-            <div class="mb-3">
-              <label class="form-label fw-bold">Identificador del Nivel (Opcional)</label>
-              {{ form.level_identifier }}
-              <small class="form-text text-muted d-block mt-1">
+
+.upload-zone {              <div class="text-danger small">{{ form.level.errors }}</div>
+
+    border: 2px dashed #cbd5e1;              {% endif %}
+
+    border-radius: 12px;            </div>
+
+    padding: 2rem;            
+
+    text-align: center;            <!-- Level Identifier -->
+
+    background: #f8fafc;            <div class="mb-3">
+
+    transition: all 0.3s ease;              <label class="form-label fw-bold">Identificador del Nivel (Opcional)</label>
+
+    cursor: pointer;              {{ form.level_identifier }}
+
+}              <small class="form-text text-muted d-block mt-1">
+
                 {{ form.level_identifier.help_text }}
-              </small>
-              {% if form.level_identifier.errors %}
-              <div class="text-danger small">{{ form.level_identifier.errors }}</div>
-              {% endif %}
+
+.upload-zone:hover {              </small>
+
+    border-color: #6366f1;              {% if form.level_identifier.errors %}
+
+    background: #f1f5f9;              <div class="text-danger small">{{ form.level_identifier.errors }}</div>
+
+}              {% endif %}
+
             </div>
-            
-            <!-- Level Examples -->
-            <div class="alert alert-info">
-              <h6 class="alert-heading"><i class="bi bi-lightbulb"></i> Ejemplos:</h6>
+
+.upload-zone.dragover {            
+
+    border-color: #6366f1;            <!-- Level Examples -->
+
+    background: #eef2ff;            <div class="alert alert-info">
+
+}              <h6 class="alert-heading"><i class="bi bi-lightbulb"></i> Ejemplos:</h6>
+
               <ul class="mb-0 small">
-                <li><strong>Nivel 0:</strong> "Ground Floor", "Planta Baja"</li>
-                <li><strong>Nivel 1:</strong> "First Floor", "Primer Piso"</li>
-                <li><strong>Nivel 2:</strong> "Second Floor", "Segundo Piso"</li>
-                <li><strong>Nivel -1:</strong> "Basement", "Sótano 1"</li>
-                <li><strong>Nivel -2:</strong> "Sub-Basement", "Sótano 2"</li>
-              </ul>
-            </div>
-            
-            <!-- Level Visualization -->
-            <div class="card bg-light">
-              <div class="card-body">
-                <h6><i class="bi bi-eye"></i> Vista Previa del Nivel:</h6>
+
+.upload-icon {                <li><strong>Nivel 0:</strong> "Ground Floor", "Planta Baja"</li>
+
+    width: 64px;                <li><strong>Nivel 1:</strong> "First Floor", "Primer Piso"</li>
+
+    height: 64px;                <li><strong>Nivel 2:</strong> "Second Floor", "Segundo Piso"</li>
+
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);                <li><strong>Nivel -1:</strong> "Basement", "Sótano 1"</li>
+
+    border-radius: 16px;                <li><strong>Nivel -2:</strong> "Sub-Basement", "Sótano 2"</li>
+
+    display: flex;              </ul>
+
+    align-items: center;            </div>
+
+    justify-content: center;            
+
+    margin: 0 auto 1rem;            <!-- Level Visualization -->
+
+    font-size: 1.75rem;            <div class="card bg-light">
+
+    color: #6366f1;              <div class="card-body">
+
+}                <h6><i class="bi bi-eye"></i> Vista Previa del Nivel:</h6>
+
                 <div id="levelPreview" class="text-center py-3">
-                  <span class="badge bg-primary fs-4">Nivel 0</span>
-                  <p class="small text-muted mt-2 mb-0">Planta Baja / Ground Floor</p>
-                </div>
-              </div>
+
+.upload-text {                  <span class="badge bg-primary fs-4">Nivel 0</span>
+
+    color: #475569;                  <p class="small text-muted mt-2 mb-0">Planta Baja / Ground Floor</p>
+
+    margin-bottom: 0.5rem;                </div>
+
+}              </div>
+
             </div>
-          </div>
-        </div>
-        
-        <!-- Action Buttons -->
+
+.upload-hint {          </div>
+
+    font-size: 0.85rem;        </div>
+
+    color: #94a3b8;        
+
+}        <!-- Action Buttons -->
+
         <div class="border-top pt-4 mt-4">
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success btn-lg">
-              <i class="bi bi-check-circle"></i> {% if is_edit %}Guardar Cambios{% else %}Subir Plano{% endif %}
-            </button>
+
+.preview-container {          <div class="d-flex gap-2">
+
+    margin-top: 1rem;            <button type="submit" class="btn btn-success btn-lg">
+
+    display: none;              <i class="bi bi-check-circle"></i> {% if is_edit %}Guardar Cambios{% else %}Subir Plano{% endif %}
+
+}            </button>
+
             <a href="{% url 'floor_plan_list' project.id %}" class="btn btn-outline-secondary btn-lg">
-              <i class="bi bi-x-circle"></i> Cancelar
-            </a>
-          </div>
+
+.preview-container.show {              <i class="bi bi-x-circle"></i> Cancelar
+
+    display: block;            </a>
+
+}          </div>
+
         </div>
-      </form>
-    </div>
-  </div>
-</div>
+
+.preview-image {      </form>
+
+    max-height: 250px;    </div>
+
+    border-radius: 12px;  </div>
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);</div>
+
+}
 
 <script>
-// Image Preview
-document.querySelector('input[type="file"]')?.addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
+
+.level-examples {// Image Preview
+
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);document.querySelector('input[type="file"]')?.addEventListener('change', function(e) {
+
+    border-radius: 12px;  const file = e.target.files[0];
+
+    padding: 1rem 1.25rem;  if (file) {
+
+    border-left: 4px solid #0ea5e9;    const reader = new FileReader();
+
+}    reader.onload = function(event) {
+
       document.getElementById('previewImg').src = event.target.result;
-      document.getElementById('imagePreview').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  }
-});
 
-// Level Preview
-const levelInput = document.querySelector('input[name="level"]');
-const levelIdInput = document.querySelector('input[name="level_identifier"]');
-const levelPreview = document.getElementById('levelPreview');
+.level-examples h6 {      document.getElementById('imagePreview').style.display = 'block';
 
-function updateLevelPreview() {
-  const level = parseInt(levelInput?.value || 0);
-  const identifier = levelIdInput?.value || '';
-  
-  let badgeClass = 'bg-primary';
+    color: #0369a1;    };
+
+    font-weight: 600;    reader.readAsDataURL(file);
+
+    margin-bottom: 0.75rem;  }
+
+}});
+
+
+
+.level-examples ul {// Level Preview
+
+    margin: 0;const levelInput = document.querySelector('input[name="level"]');
+
+    padding-left: 1.25rem;const levelIdInput = document.querySelector('input[name="level_identifier"]');
+
+}const levelPreview = document.getElementById('levelPreview');
+
+
+
+.level-examples li {function updateLevelPreview() {
+
+    color: #475569;  const level = parseInt(levelInput?.value || 0);
+
+    font-size: 0.9rem;  const identifier = levelIdInput?.value || '';
+
+    margin-bottom: 0.35rem;  
+
+}  let badgeClass = 'bg-primary';
+
   let levelText = '';
-  let description = '';
-  
-  if (level === 0) {
-    levelText = 'Nivel 0';
-    description = identifier || 'Planta Baja / Ground Floor';
-  } else if (level > 0) {
-    badgeClass = 'bg-success';
+
+.level-preview {  let description = '';
+
+    background: #f8fafc;  
+
+    border-radius: 12px;  if (level === 0) {
+
+    padding: 1.25rem;    levelText = 'Nivel 0';
+
+    text-align: center;    description = identifier || 'Planta Baja / Ground Floor';
+
+    border: 1px solid #e2e8f0;  } else if (level > 0) {
+
+}    badgeClass = 'bg-success';
+
     levelText = `Nivel +${level}`;
-    description = identifier || `Piso ${level}`;
-  } else {
-    badgeClass = 'bg-secondary';
-    levelText = `Nivel ${level}`;
-    description = identifier || `Sótano ${Math.abs(level)}`;
-  }
-  
-  levelPreview.innerHTML = `
-    <span class="badge ${badgeClass} fs-4">${levelText}</span>
+
+.level-badge-preview {    description = identifier || `Piso ${level}`;
+
+    display: inline-block;  } else {
+
+    padding: 0.5rem 1.25rem;    badgeClass = 'bg-secondary';
+
+    border-radius: 10px;    levelText = `Nivel ${level}`;
+
+    font-size: 1.25rem;    description = identifier || `Sótano ${Math.abs(level)}`;
+
+    font-weight: 700;  }
+
+    color: white;  
+
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);  levelPreview.innerHTML = `
+
+}    <span class="badge ${badgeClass} fs-4">${levelText}</span>
+
     <p class="small text-muted mt-2 mb-0">${description}</p>
-  `;
+
+.level-badge-preview.ground {  `;
+
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);}
+
 }
 
 levelInput?.addEventListener('input', updateLevelPreview);
-levelIdInput?.addEventListener('input', updateLevelPreview);
 
-// Initialize
+.level-badge-preview.basement {levelIdInput?.addEventListener('input', updateLevelPreview);
+
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+
+}// Initialize
+
 updateLevelPreview();
+
+.level-description {</script>
+
+    margin-top: 0.75rem;{% endblock %}
+
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.form-actions {
+    padding: 1.5rem;
+    background: #f8fafc;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    color: white;
+}
+
+.btn-cancel {
+    background: white;
+    color: #64748b;
+    border: 1.5px solid #e2e8f0;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-cancel:hover {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-submit, .btn-cancel {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="upload-container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb" style="font-size: 0.9rem;">
+                {% if request.user.profile.role == 'client' %}
+                <li class="breadcrumb-item">
+                    <a href="{% url 'client_project_view' project.id %}" class="text-decoration-none">{{ project.name }}</a>
+                </li>
+                {% else %}
+                <li class="breadcrumb-item">
+                    <a href="{% url 'project_overview' project.id %}" class="text-decoration-none">{{ project.name }}</a>
+                </li>
+                {% endif %}
+                <li class="breadcrumb-item">
+                    <a href="{% url 'floor_plan_list' project.id %}" class="text-decoration-none">{% trans "Floor Plans" %}</a>
+                </li>
+                <li class="breadcrumb-item active">
+                    {% if is_edit %}{% trans "Edit" %}{% else %}{% trans "Upload" %}{% endif %}
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Premium Header -->
+        <div class="premium-header">
+            <h1>
+                {% if is_edit %}
+                <i class="bi bi-pencil-square me-2"></i>{% trans "Edit Floor Plan" %}
+                {% else %}
+                <i class="bi bi-cloud-upload me-2"></i>{% trans "Upload Floor Plan" %}
+                {% endif %}
+            </h1>
+            <p class="subtitle mb-0">
+                {% if is_edit %}
+                {% trans "Update the name, level, or image of this plan" %}
+                {% else %}
+                {% trans "Add a new floor plan and specify its level" %}
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="project" value="{{ project.id }}">
+
+                <!-- Plan Details Section -->
+                <div class="form-section">
+                    <h5 class="section-title">
+                        <i class="bi bi-info-circle"></i> {% trans "Plan Details" %}
+                    </h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label-custom">{% trans "Plan Name" %} *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Upload Section -->
+                <div class="form-section">
+                    <h5 class="section-title">
+                        <i class="bi bi-image"></i> {% trans "Plan Image" %}
+                    </h5>
+                    
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imageInput').click()">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                        </div>
+                        <p class="upload-text">
+                            <strong>{% trans "Click to upload" %}</strong> {% trans "or drag and drop" %}
+                        </p>
+                        <p class="upload-hint">
+                            {% trans "JPG, PNG formats. High resolution recommended for better pin visualization." %}
+                        </p>
+                        <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    {% if form.image.errors %}
+                    <div class="text-danger small mt-2">{{ form.image.errors }}</div>
+                    {% endif %}
+                    
+                    <div class="preview-container" id="previewContainer">
+                        <label class="form-label-custom">{% trans "Preview" %}:</label>
+                        <img id="previewImg" class="preview-image" src="" alt="Preview">
+                    </div>
+                    
+                    {% if plan.image %}
+                    <div class="mt-3">
+                        <label class="form-label-custom">{% trans "Current Image" %}:</label>
+                        <img src="{{ plan.image.url }}" class="preview-image" alt="{{ plan.name }}">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Level Section -->
+                <div class="form-section">
+                    <h5 class="section-title">
+                        <i class="bi bi-layers"></i> {% trans "Floor Level" %}
+                    </h5>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label-custom">{% trans "Level Number" %} *</label>
+                                {{ form.level }}
+                                <small class="form-text text-muted d-block mt-1">
+                                    {% trans "0 = Ground Floor, positive = upper floors, negative = basements" %}
+                                </small>
+                                {% if form.level.errors %}
+                                <div class="text-danger small mt-1">{{ form.level.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label-custom">{% trans "Level Identifier" %} ({% trans "Optional" %})</label>
+                                {{ form.level_identifier }}
+                                <small class="form-text text-muted d-block mt-1">
+                                    {% trans "Custom name like 'Lobby', 'Parking', etc." %}
+                                </small>
+                                {% if form.level_identifier.errors %}
+                                <div class="text-danger small mt-1">{{ form.level_identifier.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="level-examples mb-3">
+                                <h6><i class="bi bi-lightbulb"></i> {% trans "Examples" %}:</h6>
+                                <ul>
+                                    <li><strong>{% trans "Level" %} 0:</strong> Ground Floor, Lobby</li>
+                                    <li><strong>{% trans "Level" %} 1:</strong> First Floor</li>
+                                    <li><strong>{% trans "Level" %} 2:</strong> Second Floor</li>
+                                    <li><strong>{% trans "Level" %} -1:</strong> Basement, Parking</li>
+                                    <li><strong>{% trans "Level" %} -2:</strong> Sub-Basement</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="level-preview">
+                                <label class="form-label-custom">{% trans "Level Preview" %}:</label>
+                                <div class="mt-2">
+                                    <span class="level-badge-preview ground" id="levelBadge">L0</span>
+                                </div>
+                                <p class="level-description" id="levelDescription">{% trans "Ground Floor" %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'floor_plan_list' project.id %}" class="btn-cancel">
+                        <i class="bi bi-x-lg"></i> {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-check-lg"></i>
+                        {% if is_edit %}{% trans "Save Changes" %}{% else %}{% trans "Upload Plan" %}{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image preview
+    const imageInput = document.getElementById('imageInput');
+    const uploadZone = document.getElementById('uploadZone');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImg = document.getElementById('previewImg');
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    previewContainer.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Drag and drop
+    if (uploadZone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, () => uploadZone.classList.add('dragover'), false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('dragover'), false);
+        });
+        
+        uploadZone.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) {
+                imageInput.files = files;
+                imageInput.dispatchEvent(new Event('change'));
+            }
+        }, false);
+    }
+    
+    // Level preview
+    const levelInput = document.querySelector('input[name="level"], select[name="level"]');
+    const levelBadge = document.getElementById('levelBadge');
+    const levelDescription = document.getElementById('levelDescription');
+    
+    function updateLevelPreview() {
+        const level = parseInt(levelInput?.value || 0);
+        
+        levelBadge.classList.remove('ground', 'basement');
+        
+        if (level === 0) {
+            levelBadge.textContent = 'L0';
+            levelBadge.classList.add('ground');
+            levelDescription.textContent = '{% trans "Ground Floor" %}';
+        } else if (level > 0) {
+            levelBadge.textContent = 'L' + level;
+            levelDescription.textContent = '{% trans "Level" %} ' + level;
+        } else {
+            levelBadge.textContent = 'B' + Math.abs(level);
+            levelBadge.classList.add('basement');
+            levelDescription.textContent = '{% trans "Basement" %} ' + Math.abs(level);
+        }
+    }
+    
+    if (levelInput) {
+        levelInput.addEventListener('input', updateLevelPreview);
+        levelInput.addEventListener('change', updateLevelPreview);
+        updateLevelPreview();
+    }
+});
 </script>
 {% endblock %}

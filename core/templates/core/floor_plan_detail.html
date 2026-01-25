@@ -69,7 +69,7 @@
       {% else %}
       <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
       {% endif %}
-      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">Planos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">{% trans "Floor Plans" %}</a></li>
       <li class="breadcrumb-item active">{{ plan.name }}</li>
     </ol>
   </nav>
@@ -81,16 +81,16 @@
       <div class="d-flex justify-content-end mb-2 gap-2">
         <!-- Editar pines - todos los que pueden editar -->
         <button type="button" class="btn btn-sm btn-primary" id="topEditPinsBtn">
-          <i class="bi bi-pin-angle"></i> {% trans "Editar Pines" %}
+          <i class="bi bi-pin-angle"></i> {% trans "Edit Pins" %}
         </button>
         
         <!-- Editar plano - solo PM/Admin/Owner -->
         {% if can_delete %}
         <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-pencil-square"></i> {% trans "Editar Plano (imagen/nivel)" %}
+          <i class="bi bi-pencil-square"></i> {% trans "Edit Plan (image/level)" %}
         </a>
         <a href="{% url 'floor_plan_delete' plan.id %}" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i> {% trans "Eliminar Plano" %}
+          <i class="bi bi-trash"></i> {% trans "Delete Plan" %}
         </a>
         {% endif %}
 
@@ -99,9 +99,9 @@
         <span class="badge bg-info align-self-center">
           <i class="bi bi-info-circle"></i> 
           {% if request.user.profile.role == 'designer' %}
-            {% trans "Puedes editar pines y agregar comentarios" %}
+            {% trans "You can edit pins and add comments" %}
           {% else %}
-            {% trans "Vista de colaborador" %}
+            {% trans "Collaborator view" %}
           {% endif %}
         </span>
         {% endif %}
@@ -114,20 +114,20 @@
       <div class="mode-toggle-container">
         <div class="mode-toggle-buttons">
           <button type="button" class="btn btn-primary active" id="viewModeBtn">
-            <i class="bi bi-eye"></i> {% trans "Modo Visualización" %}
+            <i class="bi bi-eye"></i> {% trans "View Mode" %}
           </button>
           {% if can_edit_pins %}
           <button type="button" class="btn btn-success" id="editModeBtn">
-            <i class="bi bi-pencil"></i> {% trans "Modo Edición" %}
+            <i class="bi bi-pencil"></i> {% trans "Edit Mode" %}
           </button>
           <button type="button" class="btn btn-outline-primary" id="addPinBtn">
-            <i class="bi bi-pin-map"></i> {% trans "Nuevo Pin" %}
+            <i class="bi bi-pin-map"></i> {% trans "New Pin" %}
           </button>
           {% endif %}
         </div>
         <div>
           <span class="mode-badge badge bg-primary" id="modeBadge">
-            <i class="bi bi-eye"></i> {% trans "VISUALIZANDO" %}
+            <i class="bi bi-eye"></i> {% trans "VIEWING" %}
           </span>
         </div>
       </div>
@@ -144,14 +144,14 @@
             {% if plan.image %}
             <img id="planImage" src="{{ plan.image.url }}" alt="plan" style="transform-origin: top left;" onerror="console.error('Image load error:', this.src); this.style.display='none'; document.getElementById('imageError').style.display='block';">
             <div id="imageError" style="display:none; padding:20px; background:#f8d7da; color:#721c24; border-radius:5px;">
-              <strong>⚠️ Error cargando imagen del plano</strong><br>
+              <strong>⚠️ {% trans "Error loading plan image" %}</strong><br>
               URL: {{ plan.image.url }}<br>
-              <small>La imagen no se pudo cargar. Verifica que el archivo exista y sea accesible.</small>
+              <small>{% trans "The image could not be loaded. Verify that the file exists and is accessible." %}</small>
             </div>
             {% else %}
             <div style="padding:20px; background:#fff3cd; color:#856404; border-radius:5px;">
-              <strong>⚠️ Este plano no tiene imagen asociada</strong><br>
-              <small>Por favor, edita el plano y sube una imagen.</small>
+              <strong>⚠️ {% trans "This plan has no associated image" %}</strong><br>
+              <small>{% trans "Please edit the plan and upload an image." %}</small>
             </div>
             {% endif %}
             {% for pin in pins %}
@@ -163,15 +163,15 @@
         </div>
       </div>
       <div class="alert alert-secondary mt-2" id="modeHelpText">
-  <i class="bi bi-info-circle"></i> <strong>{% trans "Modo Visualización" %}:</strong> {% trans "Haz clic en los pines para ver su información." %} 
+  <i class="bi bi-info-circle"></i> <strong>{% trans "View Mode" %}:</strong> {% trans "Click on pins to view their information." %} 
         {% if can_edit_pins %}
-  {% trans "Cambia a" %} <strong>{% trans "Modo Edición" %}</strong> {% trans "para agregar o editar pines." %}
+  {% trans "Switch to" %} <strong>{% trans "Edit Mode" %}</strong> {% trans "to add or edit pins." %}
         {% endif %}
       </div>
     </div>
     <div class="col-lg-4">
       <div class="card">
-  <div class="card-header">{% trans "Pines" %}</div>
+  <div class="card-header">{% trans "Pins" %}</div>
         <div class="card-body p-0" style="max-height:300px; overflow-y:auto;">
           <ul class="list-group list-group-flush">
           {% for pin in pins %}
@@ -198,13 +198,13 @@
               </div>
             </li>
           {% empty %}
-            <li class="list-group-item">{% trans "No hay pines en este plano." %}</li>
+            <li class="list-group-item">{% trans "No pins on this plan." %}</li>
           {% endfor %}
           </ul>
         </div>
       </div>
       <div class="card mt-3">
-  <div class="card-header">{% trans "Agregar pin" %}</div>
+  <div class="card-header">{% trans "Add Pin" %}</div>
         <div class="card-body">
           <form id="pinForm" method="post" action="{% url 'floor_plan_add_pin' plan.id %}">
             {% csrf_token %}
@@ -214,9 +214,9 @@
             <input type="hidden" name="path_points" id="pathPoints" value="[]">
             {{ form.as_p|default:'' }}
             <div class="mb-2">
-              <label class="form-label">{% trans "Color aprobado (opcional)" %}</label>
+              <label class="form-label">{% trans "Approved color (optional)" %}</label>
               <select name="color_sample" class="form-select form-select-sm">
-                <option value="">— {% trans "Selecciona" %} —</option>
+                <option value="">— {% trans "Select" %} —</option>
                 {% for c in color_samples %}
                   <option value="{{ c.id }}">{{ c.name|default:c.code }}</option>
                 {% endfor %}
@@ -224,18 +224,18 @@
             </div>
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" name="create_task" id="createTask">
-              <label class="form-check-label" for="createTask">{% trans "Crear tarea touch-up" %}</label>
+              <label class="form-check-label" for="createTask">{% trans "Create touch-up task" %}</label>
             </div>
             <div class="form-check mb-3">
               <input class="form-check-input" type="checkbox" id="multipointCheck">
-              <label class="form-check-label" for="multipointCheck">{% trans "Línea multipunto (A→B→C)" %}</label>
+              <label class="form-check-label" for="multipointCheck">{% trans "Multipoint line (A→B→C)" %}</label>
             </div>
             <div id="multipointControls" style="display:none;">
-              <div class="alert alert-info small">{% trans "Haz clic en múltiples puntos. Presiona" %} <b>Esc</b> {% trans "para finalizar." %}</div>
+              <div class="alert alert-info small">{% trans "Click on multiple points. Press" %} <b>Esc</b> {% trans "to finish." %}</div>
               <div id="pointsList" class="small mb-2"></div>
-              <button type="button" class="btn btn-sm btn-warning" id="clearPoints">{% trans "Limpiar puntos" %}</button>
+              <button type="button" class="btn btn-sm btn-warning" id="clearPoints">{% trans "Clear points" %}</button>
             </div>
-            <button class="btn btn-primary btn-sm" id="saveBtn">{% trans "Guardar pin" %}</button>
+            <button class="btn btn-primary btn-sm" id="saveBtn">{% trans "Save pin" %}</button>
           </form>
         </div>
       </div>
@@ -281,28 +281,28 @@
     }
   }
 
-  // i18n strings injected from template (Spanish msgid -> English translation via locale)
+  // i18n strings injected from template (English msgid -> translation via locale)
   const I18N = {
-    viewingBadge: `{% trans "VISUALIZANDO" %}`,
-    editingBadge: `{% trans "EDITANDO" %}`,
-    viewModeHelpCanEdit: `{% trans "Modo Visualización: Haz clic en los pines para ver su información. Cambia a Modo Edición para agregar o editar pines." %}`,
-    viewModeHelp: `{% trans "Modo Visualización: Haz clic en los pines para ver su información." %}`,
-    editModeHelp: `{% trans "Modo Edición: Haz clic sobre el plano para agregar un pin. Marca \"Línea multipunto\" para conectar puntos A→B→C. Cada pin nuevo tiene un color único. Haz clic en pines existentes para editarlos." %}`,
-    newPinHelp: `{% trans "Nuevo Pin: Haz clic sobre el plano para posicionar el pin. Se abrirá el creador para completar la información." %}`,
-    pointsCaptured: `{% trans "Puntos capturados. Presiona Guardar pin." %}`,
-    errorLoadingPin: `{% trans "Error cargando detalles del pin" %}`,
-    descLabel: `{% trans "Descripción" %}`,
-    approvedColorLabel: `{% trans "Color Aprobado" %}`,
-    photosLabel: `{% trans "Fotos" %}`,
-    noPhotosText: `{% trans "No hay fotos adjuntas" %}`,
-    editPin: `{% trans "Editar Pin" %}`,
-    deletePin: `{% trans "Eliminar Pin" %}`,
-    confirmDeletePin: `{% trans "¿Estás seguro de eliminar este pin? Esta acción no se puede deshacer." %}`,
-    selectPhotos: `{% trans "Seleccionar fotos" %}`,
-    annotatePhotos: `{% trans "Anotar Fotos" %}`,
-    uploadPhotos: `{% trans "Subir Fotos" %}`,
-    errorUploadingPhotos: `{% trans "Error subiendo fotos" %}`,
-    confirmDeletePhoto: `{% trans "¿Eliminar esta foto?" %}`
+    viewingBadge: `{% trans "VIEWING" %}`,
+    editingBadge: `{% trans "EDITING" %}`,
+    viewModeHelpCanEdit: `{% trans "View Mode: Click on pins to view their information. Switch to Edit Mode to add or edit pins." %}`,
+    viewModeHelp: `{% trans "View Mode: Click on pins to view their information." %}`,
+    editModeHelp: `{% trans "Edit Mode: Click on the plan to add a pin. Check \"Multipoint line\" to connect points A→B→C. Each new pin has a unique color. Click on existing pins to edit them." %}`,
+    newPinHelp: `{% trans "New Pin: Click on the plan to position the pin. The creator will open to complete the information." %}`,
+    pointsCaptured: `{% trans "Points captured. Press Save pin." %}`,
+    errorLoadingPin: `{% trans "Error loading pin details" %}`,
+    descLabel: `{% trans "Description" %}`,
+    approvedColorLabel: `{% trans "Approved Color" %}`,
+    photosLabel: `{% trans "Photos" %}`,
+    noPhotosText: `{% trans "No attached photos" %}`,
+    editPin: `{% trans "Edit Pin" %}`,
+    deletePin: `{% trans "Delete Pin" %}`,
+    confirmDeletePin: `{% trans "Are you sure you want to delete this pin? This action cannot be undone." %}`,
+    selectPhotos: `{% trans "Select photos" %}`,
+    annotatePhotos: `{% trans "Annotate Photos" %}`,
+    uploadPhotos: `{% trans "Upload Photos" %}`,
+    errorUploadingPhotos: `{% trans "Error uploading photos" %}`,
+    confirmDeletePhoto: `{% trans "Delete this photo?" %}`
   };
 
   // Permissions from backend
@@ -516,7 +516,7 @@
 
   function updatePointsList(){
     if(tempPoints.length===0){ pointsList.innerHTML=''; return; }
-    pointsList.innerHTML = 'Puntos: ' + tempPoints.map(p=> `<b>${p.label}</b> (${p.x},${p.y})`).join(', ');
+    pointsList.innerHTML = '{% trans "Points" %}: ' + tempPoints.map(p=> `<b>${p.label}</b> (${p.x},${p.y})`).join(', ');
   }
 
   window.addEventListener('resize', ()=>{ updateSvgSize(); renderLines(); });
@@ -531,7 +531,7 @@
     });
     img.addEventListener('error', function() {
       console.error('[Floor Plan] Error loading image:', img.src);
-      alert('Error: No se pudo cargar la imagen del plano. Por favor, recarga la página.');
+      alert('{% trans "Error: Could not load the plan image. Please reload the page." %}');
     });
   }
 
@@ -574,7 +574,7 @@
   function openPinModal(pinId) {
     const modal = new bootstrap.Modal(document.getElementById('pinInfoModal'));
     const modalBody = document.getElementById('pinInfoModalBody');
-    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">Cargando información del pin...</p></div>';
+    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">{% trans "Loading pin information..." %}</p></div>';
     modal.show();
 
     console.log('Loading pin info for ID:', pinId);
@@ -600,8 +600,8 @@
       console.error('Error loading pin:', error);
       modalBody.innerHTML = `
         <div class="alert alert-danger">
-          <h5>Error al cargar la información del pin</h5>
-          <p>${error.message || 'Error desconocido'}</p>
+          <h5>{% trans "Error loading pin information" %}</h5>
+          <p>${error.message || '{% trans "Unknown error" %}'}</p>
           <small class="text-muted">Pin ID: ${pinId}</small>
         </div>
       `;
@@ -617,19 +617,19 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start">
             <div class="flex-grow-1">
-              <h4 class="mb-2 fw-bold">${escapeHtml(pin.title || 'Pin sin título')}</h4>
+              <h4 class="mb-2 fw-bold">${escapeHtml(pin.title || '{% trans "Untitled Pin" %}')}</h4>
               <div class="d-flex gap-2 align-items-center flex-wrap">
                 <span class="badge rounded-pill" style="background: ${pin.pin_color}; color: white; padding: 0.5rem 1rem;">
                   <i class="bi bi-pin-angle-fill me-1"></i>${escapeHtml(pin.pin_type_display || pin.pin_type)}
                 </span>
                 ${pin.color_sample ? `
                   <span class="badge bg-light text-dark border">
-                    <i class="bi bi-palette me-1"></i>Color asignado
+                    <i class="bi bi-palette me-1"></i>{% trans "Color assigned" %}
                   </span>
                 ` : ''}
                 ${pin.linked_task ? `
                   <span class="badge bg-info">
-                    <i class="bi bi-link-45deg me-1"></i>Con tarea
+                    <i class="bi bi-link-45deg me-1"></i>{% trans "With task" %}
                   </span>
                 ` : ''}
               </div>
@@ -644,7 +644,7 @@
         <div class="card border-0 shadow-sm mb-3">
           <div class="card-body">
             <h6 class="text-muted mb-2">
-              <i class="bi bi-text-paragraph me-2"></i>${I18N.descLabel || 'Descripción'}
+              <i class="bi bi-text-paragraph me-2"></i>${I18N.descLabel || '{% trans "Description" %}'}
             </h6>
             <p class="mb-0 text-dark">${escapeHtml(pin.description)}</p>
           </div>
@@ -657,7 +657,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h6 class="text-muted mb-0">
-                <i class="bi bi-palette-fill me-2"></i>${I18N.approvedColorLabel || 'Muestra de Color'}
+                <i class="bi bi-palette-fill me-2"></i>${I18N.approvedColorLabel || '{% trans "Color Sample" %}'}
               </h6>
               <span class="badge bg-${pin.color_sample.status === 'approved' ? 'success' : pin.color_sample.status === 'rejected' ? 'danger' : 'warning'}">
                 ${escapeHtml(pin.color_sample.status_display || pin.color_sample.status)}
@@ -675,7 +675,7 @@
                            style="max-height: 200px; height: auto; object-fit: contain; cursor: pointer; background: #f8f9fa;"
                            onclick="window.open('${pin.color_sample.sample_image}', '_blank')"
                            alt="Color Sample">
-                      <small class="text-muted d-block mt-1"><i class="bi bi-image me-1"></i>Muestra</small>
+                      <small class="text-muted d-block mt-1"><i class="bi bi-image me-1"></i>{% trans "Sample" %}</small>
                     </div>
                   </div>
                 ` : ''}
@@ -687,7 +687,7 @@
                            style="max-height: 200px; height: auto; object-fit: contain; cursor: pointer; background: #f8f9fa;"
                            onclick="window.open('${pin.color_sample.reference_photo}', '_blank')"
                            alt="Reference Photo">
-                      <small class="text-muted d-block mt-1"><i class="bi bi-camera me-1"></i>Referencia</small>
+                      <small class="text-muted d-block mt-1"><i class="bi bi-camera me-1"></i>{% trans "Reference" %}</small>
                     </div>
                   </div>
                 ` : ''}
@@ -706,42 +706,42 @@
               
               ${pin.color_sample.brand ? `
                 <div class="col-md-6">
-                  <small class="text-muted d-block">Marca</small>
+                  <small class="text-muted d-block">{% trans "Brand" %}</small>
                   <strong><i class="bi bi-building me-1"></i>${escapeHtml(pin.color_sample.brand)}</strong>
                 </div>
               ` : ''}
               
               ${pin.color_sample.code ? `
                 <div class="col-md-6">
-                  <small class="text-muted d-block">Código</small>
+                  <small class="text-muted d-block">{% trans "Code" %}</small>
                   <strong><i class="bi bi-upc me-1"></i>${escapeHtml(pin.color_sample.code)}</strong>
                 </div>
               ` : ''}
               
               ${pin.color_sample.finish ? `
                 <div class="col-md-6">
-                  <small class="text-muted d-block">Acabado</small>
+                  <small class="text-muted d-block">{% trans "Finish" %}</small>
                   <strong><i class="bi bi-stars me-1"></i>${escapeHtml(pin.color_sample.finish)}</strong>
                 </div>
               ` : ''}
               
               ${pin.color_sample.gloss ? `
                 <div class="col-md-6">
-                  <small class="text-muted d-block">Brillo</small>
+                  <small class="text-muted d-block">{% trans "Gloss" %}</small>
                   <strong><i class="bi bi-brightness-high me-1"></i>${escapeHtml(pin.color_sample.gloss)}</strong>
                 </div>
               ` : ''}
               
               ${pin.color_sample.room_location ? `
                 <div class="col-md-6">
-                  <small class="text-muted d-block">Ubicación</small>
+                  <small class="text-muted d-block">{% trans "Location" %}</small>
                   <strong><i class="bi bi-geo-alt me-1"></i>${escapeHtml(pin.color_sample.room_location)}</strong>
                 </div>
               ` : ''}
               
               ${pin.color_sample.sample_number ? `
                 <div class="col-md-6">
-                  <small class="text-muted d-block">Número de Muestra</small>
+                  <small class="text-muted d-block">{% trans "Sample Number" %}</small>
                   <span class="badge bg-secondary font-monospace">${escapeHtml(pin.color_sample.sample_number)}</span>
                 </div>
               ` : ''}
@@ -749,7 +749,7 @@
             
             ${pin.color_sample.notes ? `
               <div class="mt-3 p-2 bg-light rounded">
-                <small class="text-muted d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>Notas</small>
+                <small class="text-muted d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>{% trans "Notes" %}</small>
                 <p class="mb-0 small">${escapeHtml(pin.color_sample.notes)}</p>
               </div>
             ` : ''}
@@ -762,7 +762,7 @@
         <div class="card border-0 shadow-sm mb-3">
           <div class="card-body">
             <h6 class="text-muted mb-2">
-              <i class="bi bi-clipboard-check me-2"></i>Tarea Vinculada
+              <i class="bi bi-clipboard-check me-2"></i>{% trans "Linked Task" %}
             </h6>
             <div class="d-flex justify-content-between align-items-center">
               <div>
@@ -782,12 +782,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="text-muted mb-0">
-              <i class="bi bi-images me-2"></i>${I18N.photosLabel || 'Fotos'} 
+              <i class="bi bi-images me-2"></i>${I18N.photosLabel || '{% trans "Photos" %}'} 
               <span class="badge bg-secondary rounded-pill">${pin.attachments.length}</span>
             </h6>
             ${canEdit ? `
               <button class="btn btn-sm btn-primary" onclick="showAddPhotoForm(${pinId})">
-                <i class="bi bi-plus-circle me-1"></i>Agregar
+                <i class="bi bi-plus-circle me-1"></i>{% trans "Add" %}
               </button>
             ` : ''}
           </div>
@@ -804,7 +804,7 @@
                            onmouseover="this.style.transform='scale(1.05)'"
                            onmouseout="this.style.transform='scale(1)'"
                            loading="lazy"
-                           alt="Photo ${idx + 1}">
+                           alt="{% trans "Photo" %} ${idx + 1}">
                     </div>
                     ${canEdit ? `
                       <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
@@ -825,7 +825,7 @@
           ` : `
             <div class="text-center py-4">
               <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-              <p class="text-muted mb-0 mt-2">${I18N.noPhotosText || 'No hay fotos adjuntas'}</p>
+              <p class="text-muted mb-0 mt-2">${I18N.noPhotosText || '{% trans "No attached photos" %}'}</p>
             </div>
           `}
         </div>
@@ -835,11 +835,11 @@
       ${canEdit ? `
         <div class="d-grid d-sm-flex gap-2 justify-content-sm-end">
           <button class="btn btn-outline-primary" onclick="showEditForm(${pinId})">
-            <i class="bi bi-pencil me-1"></i><span class="d-none d-sm-inline">${I18N.editPin || 'Editar'}</span><span class="d-sm-none">Editar</span>
+            <i class="bi bi-pencil me-1"></i><span class="d-none d-sm-inline">${I18N.editPin || '{% trans "Edit" %}'}</span><span class="d-sm-none">{% trans "Edit" %}</span>
           </button>
           ${CAN_DELETE ? `
             <button class="btn btn-outline-danger" onclick="deletePin(${pinId})">
-              <i class="bi bi-trash me-1"></i><span class="d-none d-sm-inline">${I18N.deletePin || 'Eliminar'}</span><span class="d-sm-none">Eliminar</span>
+              <i class="bi bi-trash me-1"></i><span class="d-none d-sm-inline">${I18N.deletePin || '{% trans "Delete" %}'}</span><span class="d-sm-none">{% trans "Delete" %}</span>
             </button>
           ` : ''}
         </div>
@@ -864,7 +864,7 @@
             <div class="modal-content bg-dark">
               <div class="modal-header border-0">
                 <h5 class="modal-title text-white">
-                  <i class="bi bi-image me-2 d-none d-sm-inline"></i>Foto ${photoIndex + 1} de ${pin.attachments.length}
+                  <i class="bi bi-image me-2 d-none d-sm-inline"></i>{% trans "Photo" %} ${photoIndex + 1} {% trans "of" %} ${pin.attachments.length}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
               </div>
@@ -911,8 +911,8 @@
   };
 
   window.showEditForm = function(pinId) {
-    // TODO: Mostrar formulario de edición inline
-    alert('Formulario de edición - próximamente');
+    // TODO: Show inline edit form
+    alert('{% trans "Edit form - coming soon" %}');
   };
 
   window.showAddPhotoForm = function(pinId) {
@@ -930,7 +930,7 @@
           <i class="bi bi-upload"></i> ${I18N.uploadPhotos}
         </button>
         <button type="button" class="btn btn-secondary" onclick="openPinModal(${pinId})">
-          {% trans "Cancelar" %}
+          {% trans "Cancel" %}
         </button>
       </form>
     `;
@@ -996,7 +996,7 @@
           window.pinPhotoAnnotations = {}; // Clear
           openPinModal(pinId); // Reload modal
         } else {
-          alert(`${'{% trans "Error:" %}'} ` + (data.error || `${'{% trans "Error desconocido" %}'}`));
+          alert('{% trans "Error:" %} ' + (data.error || '{% trans "Unknown error" %}'));
         }
       })
       .catch(err => alert(I18N.errorUploadingPhotos));
@@ -1019,7 +1019,7 @@
         
         const editorDiv = document.createElement('div');
         editorDiv.className = 'mb-5';
-        editorDiv.innerHTML = '<h5 class="mb-3">Foto ' + (index + 1) + ': ' + file.name + '</h5>' +
+        editorDiv.innerHTML = '<h5 class="mb-3">{% trans "Photo" %} ' + (index + 1) + ': ' + file.name + '</h5>' +
           '<div class="card">' +
             '<div class="card-body">' +
               '<div class="mb-3">' +
@@ -1054,7 +1054,7 @@
                     '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.pinAnnotator' + index + '.undo()">' +
                       '<i class="bi bi-arrow-counterclockwise"></i>' +
                     '</button>' +
-                    '<button type="button" class="btn btn-outline-danger btn-sm" onclick="if(confirm(\'¿Limpiar?\')) window.pinAnnotator' + index + '.clear()">' +
+                    '<button type="button" class="btn btn-outline-danger btn-sm" onclick="if(confirm(\'{% trans "Clear?" %}\')) window.pinAnnotator' + index + '.clear()">' +
                       '<i class="bi bi-trash"></i>' +
                     '</button>' +
                   '</div>' +
@@ -1139,17 +1139,17 @@
         if (modal) modal.hide();
         
         // Show success message
-        alert('{% trans "Pin eliminado exitosamente" %}');
+        alert('{% trans "Pin deleted successfully" %}');
         
         // Reload page to refresh pins
         window.location.reload();
       } else {
-        alert('{% trans "Error al eliminar el pin" %}');
+        alert('{% trans "Error deleting pin" %}');
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('{% trans "Error al eliminar el pin" %}');
+      alert('{% trans "Error deleting pin" %}');
     });
   };
 
@@ -1302,7 +1302,7 @@ if (typeof PhotoAnnotator === 'undefined') {
       <form method="post" action="{% url 'floor_plan_add_pin' plan.id %}">
         {% csrf_token %}
         <div class="modal-header">
-          <h5 class="modal-title"><i class="bi bi-pin-map"></i> Nuevo Pin</h5>
+          <h5 class="modal-title"><i class="bi bi-pin-map"></i> {% trans "New Pin" %}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -1312,30 +1312,30 @@ if (typeof PhotoAnnotator === 'undefined') {
           <input type="hidden" name="path_points" value="[]">
 
           <div class="mb-3">
-            <label for="id_title" class="form-label">Título del pin <span class="text-danger">*</span></label>
-            <input type="text" name="title" id="id_title" class="form-control" required placeholder="Ej: Reparar grieta, Pintar pared...">
+            <label for="id_title" class="form-label">{% trans "Pin Title" %} <span class="text-danger">*</span></label>
+            <input type="text" name="title" id="id_title" class="form-control" required placeholder="{% trans "E.g.: Repair crack, Paint wall..." %}">
           </div>
           
           <div class="mb-3">
-            <label for="id_description" class="form-label">Descripción</label>
-            <textarea name="description" id="id_description" class="form-control" rows="3" placeholder="Detalles adicionales..."></textarea>
+            <label for="id_description" class="form-label">{% trans "Description" %}</label>
+            <textarea name="description" id="id_description" class="form-control" rows="3" placeholder="{% trans "Additional details..." %}"></textarea>
           </div>
           
           <div class="mb-3">
-            <label for="id_pin_type" class="form-label">Tipo de pin</label>
+            <label for="id_pin_type" class="form-label">{% trans "Pin Type" %}</label>
             <select name="pin_type" id="id_pin_type" class="form-select">
-              <option value="note">Nota</option>
-              <option value="touchup" selected>Touch-up</option>
-              <option value="color">Color</option>
-              <option value="alert">Alerta</option>
-              <option value="damage">Daño</option>
+              <option value="note">{% trans "Note" %}</option>
+              <option value="touchup" selected>{% trans "Touch-up" %}</option>
+              <option value="color">{% trans "Color" %}</option>
+              <option value="alert">{% trans "Alert" %}</option>
+              <option value="damage">{% trans "Damage" %}</option>
             </select>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Color aprobado (opcional)</label>
+            <label class="form-label">{% trans "Approved color (optional)" %}</label>
             <select name="color_sample" class="form-select">
-              <option value="">— Selecciona —</option>
+              <option value="">— {% trans "Select" %} —</option>
               {% for c in color_samples %}
                 <option value="{{ c.id }}">{{ c.name|default:c.code }}</option>
               {% endfor %}
@@ -1345,18 +1345,18 @@ if (typeof PhotoAnnotator === 'undefined') {
           <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" name="create_task" id="createTaskModal">
             <label class="form-check-label" for="createTaskModal">
-              <strong>Crear tarea touch-up</strong>
-              <small class="d-block text-muted">Se notificará al PM para asignar a un empleado</small>
+              <strong>{% trans "Create touch-up task" %}</strong>
+              <small class="d-block text-muted">{% trans "The PM will be notified to assign to an employee" %}</small>
             </label>
           </div>
           
           <div class="alert alert-success py-2 small">
-            <i class="bi bi-check-circle"></i> Pin posicionado. Completa la información y guarda.
+            <i class="bi bi-check-circle"></i> {% trans "Pin positioned. Complete the information and save." %}
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Guardar pin</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="submit" class="btn btn-primary">{% trans "Save pin" %}</button>
         </div>
       </form>
     </div>
@@ -1369,7 +1369,7 @@ if (typeof PhotoAnnotator === 'undefined') {
   <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Información del Pin</h5>
+        <h5 class="modal-title">{% trans "Pin Information" %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" id="pinInfoModalBody">
@@ -1385,7 +1385,7 @@ if (typeof PhotoAnnotator === 'undefined') {
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="bi bi-pencil-square"></i> Anotar Fotos del Pin
+          <i class="bi bi-pencil-square"></i> {% trans "Annotate Pin Photos" %}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -1396,7 +1396,7 @@ if (typeof PhotoAnnotator === 'undefined') {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-          <i class="bi bi-check"></i> Guardar Anotaciones
+          <i class="bi bi-check"></i> {% trans "Save Annotations" %}
         </button>
       </div>
     </div>

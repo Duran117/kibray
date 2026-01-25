@@ -82,7 +82,7 @@
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">{% trans "Planos" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">{% trans "Floor Plans" %}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'floor_plan_detail' plan.id %}">{{ plan.name }}</a></li>
       <li class="breadcrumb-item active">{% trans "Touch-ups" %}</li>
     </ol>
@@ -95,12 +95,12 @@
       <div class="flex-grow-1">
         <h5 class="mb-1">
           <i class="bi bi-filter-circle-fill me-2"></i>
-          {% trans "Vista Filtrada: Touch-ups" %}
+          {% trans "Filtered View: Touch-ups" %}
         </h5>
         <p class="mb-0">
-          {% trans "Mostrando únicamente pines de tipo Touch-up en este plano" %} (<strong>{{ pins|length }}</strong> {% trans "encontrados" %}).
+          {% trans "Showing only Touch-up type pins on this plan" %} (<strong>{{ pins|length }}</strong> {% trans "found" %}).
           <a href="{% url 'floor_plan_detail' plan.id %}" class="alert-link ms-2">
-            <i class="bi bi-eye"></i> {% trans "Ver todos los pines" %}
+            <i class="bi bi-eye"></i> {% trans "View all pins" %}
           </a>
         </p>
       </div>
@@ -111,24 +111,24 @@
   </div>
 
   <div class="row g-3">
-    <!-- Controls disponibles según permisos -->
+    <!-- Controls available based on permissions -->
     {% if can_edit_pins %}
     <div class="col-12">
       <div class="d-flex justify-content-end mb-2 gap-2">
-        <!-- Editar pines - todos los que pueden editar -->
+        <!-- Edit pins - all who can edit -->
         <button type="button" class="btn btn-sm btn-warning" id="topEditPinsBtn">
-          <i class="bi bi-brush-fill"></i> {% trans "Agregar Touch-up" %}
+          <i class="bi bi-brush-fill"></i> {% trans "Add Touch-up" %}
         </button>
         
-        <!-- Ver todos los pines -->
+        <!-- View all pins -->
         <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-eye"></i> {% trans "Ver Todos los Pines" %}
+          <i class="bi bi-eye"></i> {% trans "View All Pins" %}
         </a>
         
-        <!-- Editar plano - solo PM/Admin/Owner -->
+        <!-- Edit plan - PM/Admin/Owner only -->
         {% if can_delete %}
         <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-pencil-square"></i> {% trans "Editar Plano" %}
+          <i class="bi bi-pencil-square"></i> {% trans "Edit Plan" %}
         </a>
         {% endif %}
       </div>
@@ -140,20 +140,20 @@
       <div class="mode-toggle-container">
         <div class="mode-toggle-buttons">
           <button type="button" class="btn btn-warning active" id="viewModeBtn">
-            <i class="bi bi-eye"></i> {% trans "Modo Visualización" %}
+            <i class="bi bi-eye"></i> {% trans "View Mode" %}
           </button>
           {% if can_edit_pins %}
           <button type="button" class="btn btn-success" id="editModeBtn">
-            <i class="bi bi-pencil"></i> {% trans "Modo Edición" %}
+            <i class="bi bi-pencil"></i> {% trans "Edit Mode" %}
           </button>
           <button type="button" class="btn btn-outline-warning" id="addPinBtn">
-            <i class="bi bi-brush-fill"></i> {% trans "Nuevo Touch-up" %}
+            <i class="bi bi-brush-fill"></i> {% trans "New Touch-up" %}
           </button>
           {% endif %}
         </div>
         <div>
           <span class="mode-badge badge bg-warning" id="modeBadge">
-            <i class="bi bi-eye"></i> {% trans "VISUALIZANDO" %}
+            <i class="bi bi-eye"></i> {% trans "VIEWING" %}
           </span>
         </div>
       </div>
@@ -170,14 +170,14 @@
             {% if plan.image %}
             <img id="planImage" src="{{ plan.image.url }}" alt="plan" style="transform-origin: top left;" onerror="console.error('Image load error:', this.src); this.style.display='none'; document.getElementById('imageError').style.display='block';">
             <div id="imageError" style="display:none; padding:20px; background:#f8d7da; color:#721c24; border-radius:5px;">
-              <strong>⚠️ {% trans "Error cargando imagen del plano" %}</strong><br>
+              <strong>⚠️ {% trans "Error loading plan image" %}</strong><br>
               URL: {{ plan.image.url }}<br>
-              <small>{% trans "La imagen no se pudo cargar. Verifica que el archivo exista y sea accesible." %}</small>
+              <small>{% trans "The image could not be loaded. Verify that the file exists and is accessible." %}</small>
             </div>
             {% else %}
             <div style="padding:20px; background:#fff3cd; color:#856404; border-radius:5px;">
-              <strong>⚠️ {% trans "Este plano no tiene imagen asociada" %}</strong><br>
-              <small>{% trans "Por favor, edita el plano y sube una imagen." %}</small>
+              <strong>⚠️ {% trans "This plan has no associated image" %}</strong><br>
+              <small>{% trans "Please edit the plan and upload an image." %}</small>
             </div>
             {% endif %}
             {% for pin in pins %}
@@ -189,9 +189,9 @@
         </div>
       </div>
       <div class="alert alert-secondary mt-2" id="modeHelpText">
-        <i class="bi bi-info-circle"></i> <strong>{% trans "Modo Visualización" %}:</strong> {% trans "Haz clic en los pines touch-up para ver su información." %} 
+        <i class="bi bi-info-circle"></i> <strong>{% trans "View Mode" %}:</strong> {% trans "Click on touch-up pins to view their information." %} 
         {% if can_edit_pins %}
-          {% trans "Cambia a" %} <strong>{% trans "Modo Edición" %}</strong> {% trans "para agregar nuevos touch-ups." %}
+          {% trans "Switch to" %} <strong>{% trans "Edit Mode" %}</strong> {% trans "to add new touch-ups." %}
         {% endif %}
       </div>
     </div>
@@ -199,7 +199,7 @@
     <div class="col-lg-4">
       <div class="card border-warning">
         <div class="card-header bg-warning text-white">
-          <i class="bi bi-brush-fill me-2"></i>{% trans "Touch-ups en este Plano" %}
+          <i class="bi bi-brush-fill me-2"></i>{% trans "Touch-ups on this Plan" %}
           <span class="badge bg-white text-warning float-end">{{ pins|length }}</span>
         </div>
         <div class="card-body p-0" style="max-height:500px; overflow-y:auto;">
@@ -210,7 +210,7 @@
                 <div class="flex-grow-1">
                   <div class="d-flex align-items-center mb-1">
                     <span class="badge rounded-circle me-2" style="width: 12px; height: 12px; background-color: {{ pin.pin_color }}; padding: 0;"></span>
-                    <strong>{{ pin.title|default:'(sin título)' }}</strong>
+                    <strong>{{ pin.title|default:'(untitled)' }}</strong>
                   </div>
                   <div class="small text-muted">
                     <i class="bi bi-calendar3 me-1"></i>{{ pin.created_at|date:'Y-m-d H:i' }}
@@ -218,7 +218,7 @@
                   {% if pin.is_multipoint %}
                     <div class="small mt-1">
                       <span class="badge bg-success">
-                        <i class="bi bi-bezier2 me-1"></i>Línea: {{ pin.path_points|length }} pts
+                        <i class="bi bi-bezier2 me-1"></i>{% trans "Line" %}: {{ pin.path_points|length }} pts
                       </span>
                     </div>
                   {% endif %}
@@ -242,7 +242,7 @@
                     </div>
                   {% endif %}
                   <button class="btn btn-sm btn-outline-warning mt-2" onclick="openPinModal({{ pin.id }})">
-                    <i class="bi bi-info-circle me-1"></i>{% trans "Ver Detalles" %}
+                    <i class="bi bi-info-circle me-1"></i>{% trans "View Details" %}
                   </button>
                 </div>
                 <span class="badge bg-light text-muted" style="font-size: 0.7rem;">({{ pin.x|floatformat:2 }}, {{ pin.y|floatformat:2 }})</span>
@@ -251,10 +251,10 @@
           {% empty %}
             <li class="list-group-item text-center py-4">
               <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-              <p class="mb-0 mt-2 text-muted">{% trans "No hay touch-ups en este plano." %}</p>
+              <p class="mb-0 mt-2 text-muted">{% trans "No touch-ups on this plan." %}</p>
               {% if can_edit_pins %}
                 <button class="btn btn-sm btn-warning mt-2" onclick="window.startAddPin()">
-                  <i class="bi bi-plus-circle me-1"></i>{% trans "Agregar Primer Touch-up" %}
+                  <i class="bi bi-plus-circle me-1"></i>{% trans "Add First Touch-up" %}
                 </button>
               {% endif %}
             </li>
@@ -267,7 +267,7 @@
       {% if can_edit_pins %}
       <div class="card mt-3 border-warning">
         <div class="card-header bg-warning text-white">
-          <i class="bi bi-plus-circle me-2"></i>{% trans "Agregar Touch-up" %}
+          <i class="bi bi-plus-circle me-2"></i>{% trans "Add Touch-up" %}
         </div>
         <div class="card-body">
           <form id="pinForm" method="post" action="{% url 'floor_plan_add_pin' plan.id %}">
@@ -279,19 +279,19 @@
             <input type="hidden" name="pin_type" value="touchup">
             
             <div class="mb-2">
-              <label for="id_title" class="form-label">{% trans "Título" %}</label>
+              <label for="id_title" class="form-label">{% trans "Title" %}</label>
               <input type="text" name="title" id="id_title" class="form-control form-control-sm" required>
             </div>
             
             <div class="mb-2">
-              <label for="id_description" class="form-label">{% trans "Descripción" %}</label>
+              <label for="id_description" class="form-label">{% trans "Description" %}</label>
               <textarea name="description" id="id_description" class="form-control form-control-sm" rows="2"></textarea>
             </div>
             
             <div class="mb-2">
-              <label class="form-label">{% trans "Color aprobado (opcional)" %}</label>
+              <label class="form-label">{% trans "Approved color (optional)" %}</label>
               <select name="color_sample" class="form-select form-select-sm">
-                <option value="">— {% trans "Selecciona" %} —</option>
+                <option value="">— {% trans "Select" %} —</option>
                 {% for c in color_samples %}
                   <option value="{{ c.id }}">{{ c.name|default:c.code }}</option>
                 {% endfor %}
@@ -301,29 +301,29 @@
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" name="create_task" id="createTask">
               <label class="form-check-label" for="createTask">
-                <strong>{% trans "Crear tarea touch-up" %}</strong>
+                <strong>{% trans "Create touch-up task" %}</strong>
               </label>
             </div>
             
             <div class="form-check mb-3">
               <input class="form-check-input" type="checkbox" id="multipointCheck">
               <label class="form-check-label" for="multipointCheck">
-                {% trans "Línea multipunto (A→B→C)" %}
+                {% trans "Multipoint line (A→B→C)" %}
               </label>
             </div>
             
             <div id="multipointControls" style="display:none;">
               <div class="alert alert-info small">
-                {% trans "Haz clic en múltiples puntos. Presiona" %} <b>Esc</b> {% trans "para finalizar." %}
+                {% trans "Click on multiple points. Press" %} <b>Esc</b> {% trans "to finish." %}
               </div>
               <div id="pointsList" class="small mb-2"></div>
               <button type="button" class="btn btn-sm btn-warning" id="clearPoints">
-                {% trans "Limpiar puntos" %}
+                {% trans "Clear points" %}
               </button>
             </div>
             
             <button class="btn btn-warning btn-sm w-100" id="saveBtn">
-              <i class="bi bi-check-circle me-1"></i>{% trans "Guardar Touch-up" %}
+              <i class="bi bi-check-circle me-1"></i>{% trans "Save Touch-up" %}
             </button>
           </form>
         </div>
@@ -355,13 +355,13 @@
   
   // i18n strings
   const I18N = {
-    viewingBadge: `{% trans "VISUALIZANDO" %}`,
-    editingBadge: `{% trans "EDITANDO" %}`,
-    viewModeHelp: `{% trans "Modo Visualización: Haz clic en los pines touch-up para ver su información." %}`,
-    viewModeHelpCanEdit: `{% trans "Modo Visualización: Haz clic en los pines touch-up para ver su información. Cambia a Modo Edición para agregar nuevos touch-ups." %}`,
-    editModeHelp: `{% trans "Modo Edición: Haz clic sobre el plano para agregar un nuevo pin touch-up. Marca 'Línea multipunto' para conectar puntos." %}`,
-    newPinHelp: `{% trans "Nuevo Touch-up: Haz clic sobre el plano para posicionar el pin touch-up." %}`,
-    pointsCaptured: `{% trans "Puntos capturados. Presiona Guardar Touch-up." %}`
+    viewingBadge: `{% trans "VIEWING" %}`,
+    editingBadge: `{% trans "EDITING" %}`,
+    viewModeHelp: `{% trans "View Mode: Click on touch-up pins to view their information." %}`,
+    viewModeHelpCanEdit: `{% trans "View Mode: Click on touch-up pins to view their information. Switch to Edit Mode to add new touch-ups." %}`,
+    editModeHelp: `{% trans "Edit Mode: Click on the plan to add a new touch-up pin. Check 'Multipoint line' to connect points." %}`,
+    newPinHelp: `{% trans "New Touch-up: Click on the plan to position the touch-up pin." %}`,
+    pointsCaptured: `{% trans "Points captured. Press Save Touch-up." %}`
   };
 
   const CAN_EDIT = {{ can_edit_pins|yesno:"true,false" }};
@@ -571,7 +571,7 @@
   function updatePointsList(){
     if (!pointsList) return;
     if(tempPoints.length===0){ pointsList.innerHTML=''; return; }
-    pointsList.innerHTML = 'Puntos: ' + tempPoints.map(p=> `<b>${p.label}</b> (${p.x},${p.y})`).join(', ');
+    pointsList.innerHTML = '{% trans "Points" %}: ' + tempPoints.map(p=> `<b>${p.label}</b> (${p.x},${p.y})`).join(', ');
   }
 
   window.addEventListener('resize', ()=>{ updateSvgSize(); renderLines(); });

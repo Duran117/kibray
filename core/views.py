@@ -1979,7 +1979,7 @@ def floor_plan_list(request, project_id):
         has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
         is_project_client = project.client and hasattr(project.client, 'user') and project.client.user == request.user
         if not (has_access or is_project_client):
-            messages.error(request, "No tienes acceso a este proyecto.")
+            messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
     
     plans = project.floor_plans.all().order_by("level", "name")
@@ -1991,6 +1991,10 @@ def floor_plan_list(request, project_id):
 
     # Sort levels
     sorted_levels = sorted(plans_by_level.keys(), reverse=True)  # Top to bottom
+
+    # Calculate total pins across all plans
+    from core.models import FloorPlanPin
+    total_pins = FloorPlanPin.objects.filter(floor_plan__project=project).count()
 
     # Check if user can edit pins (PM, Admin, Client, Designer, Owner)
     profile = getattr(request.user, "profile", None)
@@ -2008,6 +2012,7 @@ def floor_plan_list(request, project_id):
             "plans_by_level": dict(plans_by_level),
             "sorted_levels": sorted_levels,
             "can_edit_pins": can_edit_pins,
+            "total_pins": total_pins,
         },
     )
 
