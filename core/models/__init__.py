@@ -2035,6 +2035,13 @@ class ChangeOrder(models.Model):
         id: int
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="change_orders")
+    # Title for easy identification (e.g., "Kitchen Cabinet Install", "Bathroom Tile")
+    co_title = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True,
+        help_text="Short title to identify this CO (e.g., 'Kitchen Cabinets', 'Bathroom Tile')"
+    )
     description = models.TextField()
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     # Pricing type expected by tests and APIs: FIXED price or Time & Materials (TM)
@@ -2155,9 +2162,9 @@ class ChangeOrder(models.Model):
 
     @property
     def title(self) -> str:
-        """Synthetic title used by API/tests. Falls back to reference_code, description, or formatted ID."""
-        if self.reference_code:
-            return self.reference_code
+        """Synthetic title used by API/tests. Falls back to co_title, description truncated, or formatted ID."""
+        if self.co_title:
+            return self.co_title
         if self.description:
             # Truncate description to 50 chars for title
             return self.description[:50] + ('...' if len(self.description) > 50 else '')
