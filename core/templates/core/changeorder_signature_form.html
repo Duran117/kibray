@@ -1,801 +1,1599 @@
-{% load static currency_extras i18n %}{% load static currency_extras i18n %}
+{% load static currency_extras i18n %}{% load static currency_extras i18n %}{% load static currency_extras i18n %}
 
-<!DOCTYPE html><!DOCTYPE html>
+<!DOCTYPE html>
 
-<html lang="en"><html lang="en">
+<html lang="en"><!DOCTYPE html><!DOCTYPE html>
 
-<head><head>
+<head>
 
-    <meta charset="UTF-8">    <meta charset="UTF-8">
+    <meta charset="UTF-8"><html lang="en"><html lang="en">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{% trans "Sign Change Order" %} - {{ changeorder.description|truncatewords:5 }}</title>    <title>Sign Change Order - {{ changeorder.title }}</title>
+    <title>{% trans "Sign Change Order" %} - {{ changeorder.project.name }}</title><head><head>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    <meta charset="UTF-8">    <meta charset="UTF-8">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">    <style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>        :root {
+    <style>    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        :root {            --primary-color: #2c3e50;
+        :root {
 
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            --secondary-color: #3498db;
+            --primary: #667eea;    <title>{% trans "Sign Change Order" %} - {{ changeorder.description|truncatewords:5 }}</title>    <title>Sign Change Order - {{ changeorder.title }}</title>
 
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);            --accent-color: #e74c3c;
+            --primary-dark: #5a67d8;
 
-            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);            --success-color: #27ae60;
+            --success: #10b981;    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-            --dark-gradient: linear-gradient(135deg, #232526 0%, #414345 100%);            --warning-color: #f39c12;
+            --warning: #f59e0b;
 
-            --card-shadow: 0 20px 60px rgba(0,0,0,0.12);            --light-bg: #f8f9fa;
+            --danger: #ef4444;    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-            --card-shadow-hover: 0 25px 80px rgba(0,0,0,0.15);            --border-color: #dee2e6;
+            --dark: #1f2937;
 
-        }        }
+            --gray-50: #f9fafb;    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">    <style>
 
-                body {
+            --gray-100: #f3f4f6;
 
-        * { box-sizing: border-box; }            background-color: var(--light-bg);
+            --gray-200: #e5e7eb;    <style>        :root {
 
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --gray-400: #9ca3af;
 
-        body {            min-height: 100vh;
+            --gray-600: #4b5563;        :root {            --primary-color: #2c3e50;
 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;            padding: 20px;
+            --gray-800: #1f2937;
 
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);        }
+        }            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            --secondary-color: #3498db;
 
-            min-height: 100vh;        .signature-container {
+        
 
-            padding: 30px 15px;            max-width: 900px;
+        * {            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);            --accent-color: #e74c3c;
 
-            margin: 0;            margin: 0 auto;
+            box-sizing: border-box;
 
-        }        }
+            margin: 0;            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);            --success-color: #27ae60;
 
-                .card {
+            padding: 0;
 
-        .signature-container {            border: none;
+        }            --dark-gradient: linear-gradient(135deg, #232526 0%, #414345 100%);            --warning-color: #f39c12;
 
-            max-width: 720px;            border-radius: 12px;
+        
 
-            margin: 0 auto;            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        body {            --card-shadow: 0 20px 60px rgba(0,0,0,0.12);            --light-bg: #f8f9fa;
 
-        }            margin-bottom: 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-                }
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eef8 50%, #f5f0ff 100%);            --card-shadow-hover: 0 25px 80px rgba(0,0,0,0.15);            --border-color: #dee2e6;
 
-        /* Header Branding */        .card-header {
+            min-height: 100vh;
 
-        .brand-header {            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 24px 16px;        }        }
 
-            text-align: center;            color: white;
+            color: var(--gray-800);
 
-            margin-bottom: 30px;            border-radius: 12px 12px 0 0 !important;
+        }                body {
 
-        }            padding: 20px 25px;
+        
 
-        .brand-header img {        }
+        .container {        * { box-sizing: border-box; }            background-color: var(--light-bg);
 
-            max-height: 50px;        .card-header h4 { margin: 0; font-weight: 600; }
+            max-width: 640px;
 
-            margin-bottom: 10px;        .card-body { padding: 25px; }
+            margin: 0 auto;                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-        }        .info-section {
+        }
 
-        .brand-header .company-name {            background: var(--light-bg);
+                body {            min-height: 100vh;
 
-            font-size: 0.9rem;            border-radius: 8px;
+        /* Company Logo */
 
-            color: #666;            padding: 20px;
+        .logo-section {            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;            padding: 20px;
 
-            font-weight: 500;            margin-bottom: 20px;
+            text-align: center;
 
-        }        }
+            margin-bottom: 24px;            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);        }
 
-                .info-row {
+        }
 
-        /* Main Card */            display: flex;
+        .logo-section img {            min-height: 100vh;        .signature-container {
 
-        .main-card {            justify-content: space-between;
+            max-height: 48px;
 
-            background: white;            padding: 10px 0;
+        }            padding: 30px 15px;            max-width: 900px;
 
-            border-radius: 24px;            border-bottom: 1px solid var(--border-color);
+        
 
-            box-shadow: var(--card-shadow);        }
+        /* Main Card */            margin: 0;            margin: 0 auto;
 
-            overflow: hidden;        .info-row:last-child { border-bottom: none; }
+        .main-card {
 
-            transition: all 0.3s ease;        .info-label { font-weight: 600; color: var(--primary-color); }
+            background: white;        }        }
 
-        }        .info-value { color: #555; }
+            border-radius: 20px;
 
-                .pricing-highlight {
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.12), 0 2px 10px rgba(0,0,0,0.06);                .card {
 
-        /* Premium Header */            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
 
-        .premium-header {            border-radius: 12px;
+        }        .signature-container {            border: none;
 
-            background: var(--primary-gradient);            padding: 25px;
+        
 
-            padding: 40px 35px;            color: white;
+        /* Header */            max-width: 720px;            border-radius: 12px;
 
-            text-align: center;            text-align: center;
+        .card-header {
 
-            position: relative;            margin-bottom: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            margin: 0 auto;            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 
-            overflow: hidden;        }
+            padding: 32px 28px;
 
-        }        .pricing-highlight h3 { margin: 0 0 10px 0; font-size: 1.5rem; }
+            text-align: center;        }            margin-bottom: 20px;
 
-        .premium-header::before {        .pricing-highlight .pricing-type { font-size: 2rem; font-weight: 700; margin: 15px 0; }
+        }
 
-            content: '';        .pricing-highlight .pricing-description { font-size: 0.95rem; opacity: 0.9; }
+        .header-icon {                }
 
-            position: absolute;        .pricing-highlight.fixed-price { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); }
+            width: 64px;
 
-            top: -50%;        .pricing-highlight.time-materials { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+            height: 64px;        /* Header Branding */        .card-header {
 
-            right: -50%;        .tm-details {
+            background: rgba(255,255,255,0.2);
 
-            width: 100%;            background: #fff8e1;
+            border-radius: 50%;        .brand-header {            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
 
-            height: 200%;            border: 2px solid #f39c12;
+            display: flex;
 
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);            border-radius: 8px;
+            align-items: center;            text-align: center;            color: white;
 
-            pointer-events: none;            padding: 20px;
+            justify-content: center;
 
-        }            margin-bottom: 20px;
+            margin: 0 auto 16px;            margin-bottom: 30px;            border-radius: 12px 12px 0 0 !important;
 
-        .premium-header .icon-circle {        }
+        }
 
-            width: 70px;        .tm-details h5 { color: #e67e22; margin-bottom: 15px; }
+        .header-icon i {        }            padding: 20px 25px;
 
-            height: 70px;        .tm-details .detail-item {
+            font-size: 26px;
 
-            background: rgba(255,255,255,0.2);            display: flex;
+            color: white;        .brand-header img {        }
 
-            border-radius: 50%;            justify-content: space-between;
+        }
 
-            display: flex;            padding: 8px 0;
+        .card-header h1 {            max-height: 50px;        .card-header h4 { margin: 0; font-weight: 600; }
 
-            align-items: center;            border-bottom: 1px dashed #f5c87a;
+            color: white;
 
-            justify-content: center;        }
+            font-size: 1.5rem;            margin-bottom: 10px;        .card-body { padding: 25px; }
 
-            margin: 0 auto 20px;        .tm-details .detail-item:last-child { border-bottom: none; }
+            font-weight: 700;
 
-            backdrop-filter: blur(10px);        .total-box {
+            margin: 0 0 6px;        }        .info-section {
 
-        }            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
 
-        .premium-header .icon-circle i {            color: white;
+        .card-header p {        .brand-header .company-name {            background: var(--light-bg);
 
-            font-size: 28px;            border-radius: 10px;
+            color: rgba(255,255,255,0.85);
 
-            color: white;            padding: 20px;
+            font-size: 0.9rem;            font-size: 0.9rem;            border-radius: 8px;
 
-        }            text-align: center;
+            margin: 0;
 
-        .premium-header h1 {            margin-bottom: 25px;
+        }            color: #666;            padding: 20px;
 
-            color: white;        }
+        
 
-            font-size: 1.6rem;        .total-box .label { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px; }
+        /* Card Body */            font-weight: 500;            margin-bottom: 20px;
 
-            font-weight: 700;        .total-box .amount { font-size: 2rem; font-weight: 700; }
+        .card-body {
 
-            margin: 0 0 8px;        .signature-section {
+            padding: 28px;        }        }
 
-            letter-spacing: -0.5px;            border: 2px dashed var(--border-color);
+        }
 
-        }            border-radius: 12px;
+                        .info-row {
 
-        .premium-header .subtitle {            padding: 25px;
+        /* Project Badge */
 
-            color: rgba(255,255,255,0.85);            background: white;
+        .project-badge {        /* Main Card */            display: flex;
 
-            font-size: 0.95rem;        }
+            display: flex;
 
-            margin: 0;        .signature-section h5 { color: var(--primary-color); margin-bottom: 20px; }
+            align-items: center;        .main-card {            justify-content: space-between;
 
-        }        .signature-pad-container {
+            gap: 12px;
 
-                    position: relative;
+            background: var(--gray-50);            background: white;            padding: 10px 0;
 
-        /* Card Body */            border: 2px solid var(--border-color);
+            border-radius: 12px;
 
-        .card-body-content {            border-radius: 8px;
+            padding: 14px 18px;            border-radius: 24px;            border-bottom: 1px solid var(--border-color);
 
-            padding: 35px;            background: white;
+            margin-bottom: 24px;
 
-        }            margin-bottom: 15px;
+        }            box-shadow: var(--card-shadow);        }
 
-                }
+        .project-badge .icon {
 
-        /* Project Info Badge */        #signature-pad {
+            width: 40px;            overflow: hidden;        .info-row:last-child { border-bottom: none; }
 
-        .project-badge {            width: 100%;
+            height: 40px;
 
-            display: inline-flex;            height: 200px;
+            background: linear-gradient(135deg, #667eea, #764ba2);            transition: all 0.3s ease;        .info-label { font-weight: 600; color: var(--primary-color); }
 
-            align-items: center;            display: block;
+            border-radius: 10px;
 
-            gap: 10px;            border-radius: 6px;
+            display: flex;        }        .info-value { color: #555; }
 
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);        }
+            align-items: center;
 
-            border-radius: 50px;        .clear-btn {
+            justify-content: center;                .pricing-highlight {
 
-            padding: 12px 20px;            position: absolute;
+            flex-shrink: 0;
 
-            margin-bottom: 25px;            top: 10px;
+        }        /* Premium Header */            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 
-        }            right: 10px;
+        .project-badge .icon i {
 
-        .project-badge .project-icon {            background: var(--accent-color);
+            color: white;        .premium-header {            border-radius: 12px;
 
-            width: 36px;            color: white;
+            font-size: 16px;
 
-            height: 36px;            border: none;
+        }            background: var(--primary-gradient);            padding: 25px;
 
-            background: var(--primary-gradient);            border-radius: 5px;
+        .project-badge .info .label {
 
-            border-radius: 50%;            padding: 5px 12px;
+            font-size: 0.7rem;            padding: 40px 35px;            color: white;
 
-            display: flex;            font-size: 0.85rem;
+            text-transform: uppercase;
 
-            align-items: center;            cursor: pointer;
+            letter-spacing: 0.5px;            text-align: center;            text-align: center;
 
-            justify-content: center;        }
+            color: var(--gray-400);
 
-        }        .clear-btn:hover { background: #c0392b; }
+            font-weight: 600;            position: relative;            margin-bottom: 25px;
 
-        .project-badge .project-icon i {        .btn-sign {
+        }
 
-            color: white;            background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+        .project-badge .info .name {            overflow: hidden;        }
 
-            font-size: 14px;            color: white;
+            font-size: 0.95rem;
 
-        }            border: none;
+            font-weight: 600;        }        .pricing-highlight h3 { margin: 0 0 10px 0; font-size: 1.5rem; }
 
-        .project-badge .project-info {            padding: 15px 40px;
+            color: var(--gray-800);
 
-            text-align: left;            font-size: 1.1rem;
+        }        .premium-header::before {        .pricing-highlight .pricing-type { font-size: 2rem; font-weight: 700; margin: 15px 0; }
 
-        }            font-weight: 600;
+        
 
-        .project-badge .project-label {            border-radius: 8px;
+        /* Info Grid */            content: '';        .pricing-highlight .pricing-description { font-size: 0.95rem; opacity: 0.9; }
 
-            font-size: 0.7rem;            width: 100%;
+        .info-grid {
 
-            text-transform: uppercase;            cursor: pointer;
+            display: grid;            position: absolute;        .pricing-highlight.fixed-price { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); }
 
-            letter-spacing: 0.5px;            transition: all 0.3s ease;
+            grid-template-columns: 1fr 1fr;
 
-            color: #888;        }
+            gap: 14px;            top: -50%;        .pricing-highlight.time-materials { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
 
-            font-weight: 600;        .btn-sign:hover {
+            margin-bottom: 24px;
 
-        }            transform: translateY(-2px);
+        }            right: -50%;        .tm-details {
 
-        .project-badge .project-name {            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.4);
+        .info-item {
 
-            font-size: 0.95rem;        }
+            background: var(--gray-50);            width: 100%;            background: #fff8e1;
 
-            font-weight: 600;        .btn-sign:disabled {
+            border-radius: 12px;
 
-            color: #333;            background: #95a5a6;
+            padding: 16px;            height: 200%;            border: 2px solid #f39c12;
 
-        }            cursor: not-allowed;
+        }
 
-                    transform: none;
+        .info-item .label {            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);            border-radius: 8px;
 
-        /* Info Grid */            box-shadow: none;
+            font-size: 0.7rem;
 
-        .info-grid {        }
+            text-transform: uppercase;            pointer-events: none;            padding: 20px;
 
-            display: grid;        .warning-box {
+            letter-spacing: 0.5px;
 
-            grid-template-columns: repeat(2, 1fr);            background: #ffeaa7;
+            color: var(--gray-400);        }            margin-bottom: 20px;
 
-            gap: 20px;            border-left: 4px solid var(--warning-color);
+            font-weight: 600;
 
-            margin-bottom: 30px;            padding: 15px 20px;
+            margin-bottom: 4px;        .premium-header .icon-circle {        }
 
-        }            border-radius: 0 8px 8px 0;
+        }
 
-        @media (max-width: 500px) {            margin-bottom: 20px;
+        .info-item .value {            width: 70px;        .tm-details h5 { color: #e67e22; margin-bottom: 15px; }
 
-            .info-grid { grid-template-columns: 1fr; }        }
+            font-size: 0.95rem;
 
-        }        .warning-box i { color: var(--warning-color); margin-right: 10px; }
+            font-weight: 600;            height: 70px;        .tm-details .detail-item {
 
-        .info-item {        .already-signed {
+            color: var(--gray-800);
 
-            background: #f8f9fb;            background: #d4edda;
+        }            background: rgba(255,255,255,0.2);            display: flex;
 
-            border-radius: 14px;            border: 2px solid var(--success-color);
+        .info-item.full {
 
-            padding: 18px 20px;            border-radius: 12px;
+            grid-column: 1 / -1;            border-radius: 50%;            justify-content: space-between;
 
-            transition: all 0.2s ease;            padding: 30px;
+        }
 
-        }            text-align: center;
+                    display: flex;            padding: 8px 0;
 
-        .info-item:hover {        }
+        /* Pricing Card */
 
-            background: #f0f2f5;        .already-signed i { font-size: 4rem; color: var(--success-color); margin-bottom: 15px; }
+        .pricing-card {            align-items: center;            border-bottom: 1px dashed #f5c87a;
 
-            transform: translateY(-2px);        .already-signed h4 { color: var(--success-color); margin-bottom: 10px; }
+            border-radius: 16px;
 
-        }        .company-logo { text-align: center; margin-bottom: 20px; }
+            padding: 28px;            justify-content: center;        }
 
-        .info-item .label {        .company-logo img { max-height: 60px; }
+            text-align: center;
 
-            font-size: 0.75rem;        @media (max-width: 768px) {
+            margin-bottom: 24px;            margin: 0 auto 20px;        .tm-details .detail-item:last-child { border-bottom: none; }
 
-            text-transform: uppercase;            .pricing-highlight .pricing-type { font-size: 1.5rem; }
+            color: white;
 
-            letter-spacing: 0.5px;            .total-box .amount { font-size: 1.5rem; }
+            position: relative;            backdrop-filter: blur(10px);        .total-box {
 
-            color: #888;            .info-row { flex-direction: column; }
+            overflow: hidden;
 
-            font-weight: 600;            .info-label { margin-bottom: 5px; }
+        }        }            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
 
-            margin-bottom: 6px;        }
+        .pricing-card.fixed {
 
-        }    </style>
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);        .premium-header .icon-circle i {            color: white;
 
-        .info-item .value {</head>
+        }
 
-            font-size: 1rem;<body>
+        .pricing-card.tm {            font-size: 28px;            border-radius: 10px;
 
-            font-weight: 600;    <div class="signature-container">
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 
-            color: #333;        <div class="company-logo">
+        }            color: white;            padding: 20px;
 
-        }            {% if changeorder.project.company.logo %}
+        .pricing-card .badge {
 
-        .info-item.full-width {                <img src="{{ changeorder.project.company.logo.url }}" alt="Company Logo">
+            display: inline-flex;        }            text-align: center;
 
-            grid-column: 1 / -1;            {% endif %}
+            align-items: center;
 
-        }        </div>
+            gap: 8px;        .premium-header h1 {            margin-bottom: 25px;
+
+            background: rgba(255,255,255,0.2);
+
+            border-radius: 50px;            color: white;        }
+
+            padding: 8px 16px;
+
+            margin-bottom: 14px;            font-size: 1.6rem;        .total-box .label { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px; }
+
+            font-size: 0.75rem;
+
+            font-weight: 600;            font-weight: 700;        .total-box .amount { font-size: 2rem; font-weight: 700; }
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;            margin: 0 0 8px;        .signature-section {
+
+        }
+
+        .pricing-card h2 {            letter-spacing: -0.5px;            border: 2px dashed var(--border-color);
+
+            font-size: 1.6rem;
+
+            font-weight: 800;        }            border-radius: 12px;
+
+            margin: 0 0 10px;
+
+        }        .premium-header .subtitle {            padding: 25px;
+
+        .pricing-card .description {
+
+            font-size: 0.85rem;            color: rgba(255,255,255,0.85);            background: white;
+
+            opacity: 0.9;
+
+            line-height: 1.5;            font-size: 0.95rem;        }
+
+            max-width: 360px;
+
+            margin: 0 auto;            margin: 0;        .signature-section h5 { color: var(--primary-color); margin-bottom: 20px; }
+
+        }
+
+                }        .signature-pad-container {
+
+        /* Billing Box */
+
+        .billing-box {                    position: relative;
+
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+
+            border: 2px solid #fbbf24;        /* Card Body */            border: 2px solid var(--border-color);
+
+            border-radius: 14px;
+
+            padding: 20px;        .card-body-content {            border-radius: 8px;
+
+            margin-bottom: 24px;
+
+        }            padding: 35px;            background: white;
+
+        .billing-box .header {
+
+            display: flex;        }            margin-bottom: 15px;
+
+            align-items: center;
+
+            gap: 10px;                }
+
+            margin-bottom: 16px;
+
+        }        /* Project Info Badge */        #signature-pad {
+
+        .billing-box .header .icon {
+
+            width: 36px;        .project-badge {            width: 100%;
+
+            height: 36px;
+
+            background: linear-gradient(135deg, #f59e0b, #d97706);            display: inline-flex;            height: 200px;
+
+            border-radius: 10px;
+
+            display: flex;            align-items: center;            display: block;
+
+            align-items: center;
+
+            justify-content: center;            gap: 10px;            border-radius: 6px;
+
+        }
+
+        .billing-box .header .icon i {            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);        }
+
+            color: white;
+
+            font-size: 14px;            border-radius: 50px;        .clear-btn {
+
+        }
+
+        .billing-box .header h3 {            padding: 12px 20px;            position: absolute;
+
+            font-size: 1rem;
+
+            font-weight: 700;            margin-bottom: 25px;            top: 10px;
+
+            color: #92400e;
+
+            margin: 0;        }            right: 10px;
+
+        }
+
+        .billing-row {        .project-badge .project-icon {            background: var(--accent-color);
+
+            display: flex;
+
+            justify-content: space-between;            width: 36px;            color: white;
+
+            align-items: center;
+
+            padding: 12px 0;            height: 36px;            border: none;
+
+            border-bottom: 1px dashed #fcd34d;
+
+        }            background: var(--primary-gradient);            border-radius: 5px;
+
+        .billing-row:last-child {
+
+            border-bottom: none;            border-radius: 50%;            padding: 5px 12px;
+
+        }
+
+        .billing-row .label {            display: flex;            font-size: 0.85rem;
+
+            display: flex;
+
+            align-items: center;            align-items: center;            cursor: pointer;
+
+            gap: 8px;
+
+            color: #78350f;            justify-content: center;        }
+
+            font-weight: 500;
+
+        }        }        .clear-btn:hover { background: #c0392b; }
+
+        .billing-row .label i {
+
+            color: #d97706;        .project-badge .project-icon i {        .btn-sign {
+
+        }
+
+        .billing-row .value {            color: white;            background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+
+            font-size: 1.1rem;
+
+            font-weight: 700;            font-size: 14px;            color: white;
+
+            color: #92400e;
+
+        }        }            border: none;
+
+        
+
+        /* Warning */        .project-badge .project-info {            padding: 15px 40px;
+
+        .warning-box {
+
+            display: flex;            text-align: left;            font-size: 1.1rem;
+
+            gap: 14px;
+
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);        }            font-weight: 600;
+
+            border-left: 4px solid #f59e0b;
+
+            border-radius: 0 12px 12px 0;        .project-badge .project-label {            border-radius: 8px;
+
+            padding: 16px;
+
+            margin-bottom: 24px;            font-size: 0.7rem;            width: 100%;
+
+        }
+
+        .warning-box .icon {            text-transform: uppercase;            cursor: pointer;
+
+            width: 36px;
+
+            height: 36px;            letter-spacing: 0.5px;            transition: all 0.3s ease;
+
+            background: #f59e0b;
+
+            border-radius: 50%;            color: #888;        }
+
+            display: flex;
+
+            align-items: center;            font-weight: 600;        .btn-sign:hover {
+
+            justify-content: center;
+
+            flex-shrink: 0;        }            transform: translateY(-2px);
+
+        }
+
+        .warning-box .icon i {        .project-badge .project-name {            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.4);
+
+            color: white;
+
+            font-size: 16px;            font-size: 0.95rem;        }
+
+        }
+
+        .warning-box .content strong {            font-weight: 600;        .btn-sign:disabled {
+
+            display: block;
+
+            color: #92400e;            color: #333;            background: #95a5a6;
+
+            margin-bottom: 4px;
+
+        }        }            cursor: not-allowed;
+
+        .warning-box .content p {
+
+            margin: 0;                    transform: none;
+
+            color: #78350f;
+
+            font-size: 0.85rem;        /* Info Grid */            box-shadow: none;
+
+            line-height: 1.5;
+
+        }        .info-grid {        }
+
+        
+
+        /* Total Box */            display: grid;        .warning-box {
+
+        .total-box {
+
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);            grid-template-columns: repeat(2, 1fr);            background: #ffeaa7;
+
+            border-radius: 14px;
+
+            padding: 24px;            gap: 20px;            border-left: 4px solid var(--warning-color);
+
+            text-align: center;
+
+            margin-bottom: 24px;            margin-bottom: 30px;            padding: 15px 20px;
+
+        }
+
+        .total-box .label {        }            border-radius: 0 8px 8px 0;
+
+            font-size: 0.8rem;
+
+            text-transform: uppercase;        @media (max-width: 500px) {            margin-bottom: 20px;
+
+            letter-spacing: 1px;
+
+            color: rgba(255,255,255,0.7);            .info-grid { grid-template-columns: 1fr; }        }
+
+            margin-bottom: 6px;
+
+        }        }        .warning-box i { color: var(--warning-color); margin-right: 10px; }
+
+        .total-box .amount {
+
+            font-size: 2.2rem;        .info-item {        .already-signed {
+
+            font-weight: 800;
+
+            color: white;            background: #f8f9fb;            background: #d4edda;
+
+        }
+
+        .total-box.estimate .label::after {            border-radius: 14px;            border: 2px solid var(--success-color);
+
+            content: ' ({% trans "may vary" %})';
+
+            font-style: italic;            padding: 18px 20px;            border-radius: 12px;
+
+            text-transform: none;
+
+            letter-spacing: 0;            transition: all 0.2s ease;            padding: 30px;
+
+        }
+
+                }            text-align: center;
+
+        /* Signature Section */
+
+        .signature-section {        .info-item:hover {        }
+
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eef8 100%);
+
+            border: 2px dashed #c7d2fe;            background: #f0f2f5;        .already-signed i { font-size: 4rem; color: var(--success-color); margin-bottom: 15px; }
+
+            border-radius: 16px;
+
+            padding: 24px;            transform: translateY(-2px);        .already-signed h4 { color: var(--success-color); margin-bottom: 10px; }
+
+        }
+
+        .signature-section .header {        }        .company-logo { text-align: center; margin-bottom: 20px; }
+
+            display: flex;
+
+            align-items: center;        .info-item .label {        .company-logo img { max-height: 60px; }
+
+            gap: 14px;
+
+            margin-bottom: 20px;            font-size: 0.75rem;        @media (max-width: 768px) {
+
+        }
+
+        .signature-section .header .icon {            text-transform: uppercase;            .pricing-highlight .pricing-type { font-size: 1.5rem; }
+
+            width: 48px;
+
+            height: 48px;            letter-spacing: 0.5px;            .total-box .amount { font-size: 1.5rem; }
+
+            background: linear-gradient(135deg, #667eea, #764ba2);
+
+            border-radius: 12px;            color: #888;            .info-row { flex-direction: column; }
+
+            display: flex;
+
+            align-items: center;            font-weight: 600;            .info-label { margin-bottom: 5px; }
+
+            justify-content: center;
+
+        }            margin-bottom: 6px;        }
+
+        .signature-section .header .icon i {
+
+            color: white;        }    </style>
+
+            font-size: 20px;
+
+        }        .info-item .value {</head>
+
+        .signature-section .header h3 {
+
+            font-size: 1.1rem;            font-size: 1rem;<body>
+
+            font-weight: 700;
+
+            color: var(--gray-800);            font-weight: 600;    <div class="signature-container">
+
+            margin: 0 0 2px;
+
+        }            color: #333;        <div class="company-logo">
+
+        .signature-section .header p {
+
+            font-size: 0.85rem;        }            {% if changeorder.project.company.logo %}
+
+            color: var(--gray-600);
+
+            margin: 0;        .info-item.full-width {                <img src="{{ changeorder.project.company.logo.url }}" alt="Company Logo">
+
+        }
+
+                    grid-column: 1 / -1;            {% endif %}
+
+        /* Signature Pad */
+
+        .signature-wrapper {        }        </div>
+
+            background: white;
+
+            border-radius: 14px;                
+
+            padding: 16px;
+
+            margin-bottom: 16px;        /* Pricing Section */        <div class="card">
+
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+        }        .pricing-card {            <div class="card-header">
+
+        .signature-pad-container {
+
+            position: relative;            border-radius: 20px;                <h4><i class="fas fa-file-signature me-2"></i> Change Order Signature</h4>
+
+            border: 2px solid var(--gray-200);
+
+            border-radius: 10px;            padding: 30px;            </div>
+
+            background: white;
+
+        }            text-align: center;            <div class="card-body">
+
+        #signature-pad {
+
+            width: 100%;            margin-bottom: 25px;                
+
+            height: 160px;
+
+            display: block;            position: relative;                {% if changeorder.status == 'APPROVED' or changeorder.client_signed %}
+
+            border-radius: 8px;
+
+        }            overflow: hidden;                    <div class="already-signed">
+
+        .clear-btn {
+
+            position: absolute;        }                        <i class="fas fa-check-circle"></i>
+
+            top: 10px;
+
+            right: 10px;        .pricing-card.fixed-price {                        <h4>Change Order Already Signed</h4>
+
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+
+            color: white;            background: var(--success-gradient);                        <p>This change order has already been signed and approved.</p>
+
+            border: none;
+
+            border-radius: 8px;        }                        {% if changeorder.approved_date %}
+
+            padding: 6px 14px;
+
+            font-size: 0.75rem;        .pricing-card.time-materials {                            <p><strong>Signed on:</strong> {{ changeorder.approved_date|date:"F d, Y" }}</p>
+
+            font-weight: 600;
+
+            cursor: pointer;            background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%);                        {% endif %}
+
+            display: flex;
+
+            align-items: center;        }                    </div>
+
+            gap: 6px;
+
+            transition: transform 0.2s;        .pricing-card::before {                {% else %}
+
+        }
+
+        .clear-btn:hover {            content: '';                
+
+            transform: scale(1.05);
+
+        }            position: absolute;                    <div class="info-section">
+
+        .signature-hint {
+
+            text-align: center;            top: 0;                        <div class="info-row">
+
+            margin-top: 10px;
+
+            font-size: 0.75rem;            left: 0;                            <span class="info-label">Change Order Number</span>
+
+            color: var(--gray-400);
+
+        }            right: 0;                            <span class="info-value">#{{ changeorder.change_order_number }}</span>
+
+        
+
+        /* Agreement */            bottom: 0;                        </div>
+
+        .agreement {
+
+            display: flex;            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");                        <div class="info-row">
+
+            align-items: flex-start;
+
+            gap: 12px;            opacity: 0.5;                            <span class="info-label">Project</span>
+
+            background: white;
+
+            border-radius: 12px;        }                            <span class="info-value">{{ changeorder.project.name }}</span>
+
+            padding: 16px;
+
+            margin-bottom: 18px;        .pricing-card .pricing-badge {                        </div>
+
+            cursor: pointer;
+
+            border: 2px solid transparent;            display: inline-flex;                        <div class="info-row">
+
+            transition: all 0.2s;
+
+        }            align-items: center;                            <span class="info-label">Title</span>
+
+        .agreement:hover {
+
+            background: var(--gray-50);            gap: 8px;                            <span class="info-value">{{ changeorder.title }}</span>
+
+        }
+
+        .agreement.checked {            background: rgba(255,255,255,0.25);                        </div>
+
+            border-color: var(--primary);
+
+            background: #f0f4ff;            backdrop-filter: blur(10px);                        <div class="info-row">
+
+        }
+
+        .agreement input {            border-radius: 50px;                            <span class="info-label">Date Created</span>
+
+            width: 20px;
+
+            height: 20px;            padding: 10px 20px;                            <span class="info-value">{{ changeorder.created_at|date:"F d, Y" }}</span>
+
+            accent-color: var(--primary);
+
+            cursor: pointer;            margin-bottom: 20px;                        </div>
+
+            margin-top: 2px;
+
+        }            position: relative;                    </div>
+
+        .agreement label {
+
+            font-size: 0.9rem;        }                    
+
+            color: var(--gray-600);
+
+            line-height: 1.5;        .pricing-card .pricing-badge i {                    {% if changeorder.pricing_type == 'FIXED' %}
+
+            cursor: pointer;
+
+        }            color: white;                        <div class="pricing-highlight fixed-price">
+
+        
+
+        /* Submit Button */        }                            <h3><i class="fas fa-tag me-2"></i>Pricing Type</h3>
+
+        .btn-submit {
+
+            width: 100%;        .pricing-card .pricing-badge span {                            <div class="pricing-type">
+
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+
+            color: white;            color: white;                                <i class="fas fa-lock me-2"></i>FIXED PRICE
+
+            border: none;
+
+            border-radius: 12px;            font-size: 0.85rem;                            </div>
+
+            padding: 16px 24px;
+
+            font-size: 1rem;            font-weight: 600;                            <p class="pricing-description">
+
+            font-weight: 700;
+
+            cursor: pointer;            text-transform: uppercase;                                This change order has a fixed agreed-upon price. The total amount below is the final cost regardless of time or materials used.
+
+            display: flex;
+
+            align-items: center;            letter-spacing: 1px;                            </p>
+
+            justify-content: center;
+
+            gap: 10px;        }                        </div>
+
+            transition: all 0.3s;
+
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);        .pricing-card .pricing-type {                        
+
+        }
+
+        .btn-submit:hover:not(:disabled) {            font-size: 1.8rem;                        <div class="total-box">
+
+            transform: translateY(-2px);
+
+            box-shadow: 0 12px 28px rgba(16, 185, 129, 0.4);            font-weight: 800;                            <div class="label">Total Fixed Price</div>
+
+        }
+
+        .btn-submit:disabled {            color: white;                            <div class="amount">{{ changeorder.amount|currency }}</div>
+
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+
+            cursor: not-allowed;            margin: 0 0 12px;                        </div>
+
+            box-shadow: none;
+
+            transform: none;            position: relative;                        
+
+        }
+
+                    text-shadow: 0 2px 10px rgba(0,0,0,0.15);                    {% elif changeorder.pricing_type == 'T_AND_M' %}
+
+        /* Already Signed */
+
+        .already-signed {        }                        <div class="pricing-highlight time-materials">
+
+            text-align: center;
+
+            padding: 40px 24px;        .pricing-card .pricing-description {                            <h3><i class="fas fa-clock me-2"></i>Pricing Type</h3>
+
+        }
+
+        .already-signed .icon {            font-size: 0.9rem;                            <div class="pricing-type">
+
+            width: 80px;
+
+            height: 80px;            color: rgba(255,255,255,0.9);                                <i class="fas fa-tools me-2"></i>TIME & MATERIALS
+
+            background: linear-gradient(135deg, #10b981, #059669);
+
+            border-radius: 50%;            max-width: 400px;                            </div>
+
+            display: flex;
+
+            align-items: center;            margin: 0 auto;                            <p class="pricing-description">
+
+            justify-content: center;
+
+            margin: 0 auto 20px;            line-height: 1.6;                                This change order is billed based on actual time spent and materials used. The final cost may vary from any estimates provided.
+
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.3);
+
+        }            position: relative;                            </p>
+
+        .already-signed .icon i {
+
+            font-size: 36px;        }                        </div>
+
+            color: white;
+
+        }                                
+
+        .already-signed h3 {
+
+            font-size: 1.4rem;        /* Billing Details */                        <div class="tm-details">
+
+            font-weight: 700;
+
+            color: #059669;        .billing-details {                            <h5><i class="fas fa-calculator me-2"></i>Billing Rates</h5>
+
+            margin: 0 0 8px;
+
+        }            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);                            <div class="detail-item">
+
+        .already-signed p {
+
+            color: var(--gray-600);            border: 2px solid #ffc107;                                <span><i class="fas fa-user-clock me-2"></i>Hourly Labor Rate</span>
+
+            margin: 0 0 16px;
+
+        }            border-radius: 16px;                                <span><strong>{{ changeorder.billing_hourly_rate|currency }}/hr</strong></span>
+
+        .already-signed .date {
+
+            display: inline-flex;            padding: 25px;                            </div>
+
+            align-items: center;
+
+            gap: 8px;            margin-bottom: 25px;                            <div class="detail-item">
+
+            background: #d1fae5;
+
+            color: #065f46;        }                                <span><i class="fas fa-box me-2"></i>Material Markup</span>
+
+            padding: 8px 18px;
+
+            border-radius: 50px;        .billing-details .billing-header {                                <span><strong>{{ changeorder.material_markup_pct|default:"0" }}%</strong></span>
+
+            font-weight: 600;
+
+            font-size: 0.85rem;            display: flex;                            </div>
+
+        }
+
+                    align-items: center;                        </div>
+
+        /* Footer */
+
+        .footer {            gap: 12px;                        
+
+            text-align: center;
+
+            padding: 24px 0 8px;            margin-bottom: 20px;                        <div class="warning-box">
+
+            color: var(--gray-400);
+
+            font-size: 0.75rem;        }                            <i class="fas fa-exclamation-triangle"></i>
+
+        }
+
+                .billing-details .billing-header .icon {                            <strong>Important:</strong>
+
+        /* Responsive */
+
+        @media (max-width: 480px) {            width: 44px;                            By signing this Time & Materials change order, you agree to be billed based on actual hours worked at the rates above, plus materials at cost plus the indicated markup.
+
+            .info-grid {
+
+                grid-template-columns: 1fr;            height: 44px;                        </div>
+
+            }
+
+            .pricing-card h2 {            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);                        
+
+                font-size: 1.3rem;
+
+            }            border-radius: 12px;                        {% if changeorder.amount %}
+
+            .total-box .amount {
+
+                font-size: 1.8rem;            display: flex;                            <div class="total-box">
+
+            }
+
+        }            align-items: center;                                <div class="label">Estimated Amount (may vary)</div>
+
+    </style>
+
+</head>            justify-content: center;                                <div class="amount">{{ changeorder.amount|currency }}</div>
+
+<body>
+
+    <div class="container">        }                            </div>
+
+        <!-- Logo -->
+
+        <div class="logo-section">        .billing-details .billing-header .icon i {                        {% endif %}
+
+            {% if changeorder.project.company.logo %}
+
+                <img src="{{ changeorder.project.company.logo.url }}" alt="Logo">            color: white;                        
+
+            {% endif %}
+
+        </div>            font-size: 18px;                    {% else %}
+
+        
+
+        <div class="main-card">        }                        <div class="total-box">
+
+            <!-- Header -->
+
+            <div class="card-header">        .billing-details .billing-header h3 {                            <div class="label">Total Amount</div>
+
+                <div class="header-icon">
+
+                    <i class="fas fa-file-signature"></i>            font-size: 1.1rem;                            <div class="amount">{{ changeorder.amount|currency }}</div>
+
+                </div>
+
+                <h1>{% trans "Change Order Signature" %}</h1>            font-weight: 700;                        </div>
+
+                <p>{% trans "Review and sign to approve" %}</p>
+
+            </div>            color: #856404;                    {% endif %}
+
+            
+
+            <div class="card-body">            margin: 0;                    
+
+                {% if changeorder.signed_at or changeorder.status == 'approved' %}
+
+                    <!-- Already Signed -->        }                    {% if changeorder.description %}
+
+                    <div class="already-signed">
+
+                        <div class="icon">        .billing-row {                        <div class="info-section">
+
+                            <i class="fas fa-check"></i>
+
+                        </div>            display: flex;                            <h5 class="mb-3"><i class="fas fa-align-left me-2"></i>Description</h5>
+
+                        <h3>{% trans "Already Signed" %}</h3>
+
+                        <p>{% trans "This change order has been signed and approved." %}</p>            justify-content: space-between;                            <p>{{ changeorder.description|linebreaks }}</p>
+
+                        {% if changeorder.signed_at %}
+
+                            <div class="date">            align-items: center;                        </div>
+
+                                <i class="fas fa-calendar-check"></i>
+
+                                {{ changeorder.signed_at|date:"F d, Y" }}            padding: 14px 0;                    {% endif %}
+
+                            </div>
+
+                        {% endif %}            border-bottom: 1px dashed rgba(133, 100, 4, 0.2);                    
+
+                    </div>
+
+                {% else %}        }                    {% if changeorder.items.exists %}
+
+                    <!-- Project -->
+
+                    <div class="project-badge">        .billing-row:last-child { border-bottom: none; }                        <div class="info-section">
+
+                        <div class="icon">
+
+                            <i class="fas fa-building"></i>        .billing-row .billing-label {                            <h5 class="mb-3"><i class="fas fa-list me-2"></i>Items Included</h5>
+
+                        </div>
+
+                        <div class="info">            display: flex;                            <div class="items-list">
+
+                            <div class="label">{% trans "Project" %}</div>
+
+                            <div class="name">{{ changeorder.project.name }}</div>            align-items: center;                                {% for item in changeorder.items.all %}
+
+                        </div>
+
+                    </div>            gap: 10px;                                    <div class="item-row">
+
+                    
+
+                    <!-- Info -->            color: #6c5a00;                                        <span>{{ item.description }}</span>
+
+                    <div class="info-grid">
+
+                        <div class="info-item">            font-weight: 500;                                        <span><strong>{{ item.total_price|currency }}</strong></span>
+
+                            <div class="label">{% trans "Reference" %}</div>
+
+                            <div class="value">#{{ changeorder.reference_code|default:changeorder.id }}</div>        }                                    </div>
+
+                        </div>
+
+                        <div class="info-item">        .billing-row .billing-label i {                                {% endfor %}
+
+                            <div class="label">{% trans "Date" %}</div>
+
+                            <div class="value">{{ changeorder.date_created|date:"M d, Y" }}</div>            color: #d4a106;                            </div>
+
+                        </div>
+
+                        {% if changeorder.description %}        }                        </div>
+
+                        <div class="info-item full">
+
+                            <div class="label">{% trans "Description" %}</div>        .billing-row .billing-value {                    {% endif %}
+
+                            <div class="value">{{ changeorder.description|truncatewords:30 }}</div>
+
+                        </div>            font-size: 1.2rem;                    
+
+                        {% endif %}
+
+                    </div>            font-weight: 700;                    <div class="signature-section">
+
+                    
+
+                    <!-- Pricing -->            color: #856404;                        <h5><i class="fas fa-signature me-2"></i>Your Signature</h5>
+
+                    {% if changeorder.pricing_type == 'FIXED' or changeorder.pricing_type == 'fixed' %}
+
+                        <div class="pricing-card fixed">        }                        <p class="text-muted mb-3">Please sign below to approve this change order.</p>
+
+                            <div class="badge">
+
+                                <i class="fas fa-lock"></i>                                
+
+                                <span>{% trans "Pricing" %}</span>
+
+                            </div>        /* Total Amount Box */                        <form method="post" id="signature-form">
+
+                            <h2>{% trans "Fixed Price" %}</h2>
+
+                            <p class="description">{% trans "This is a fixed price agreement. The total shown is final." %}</p>        .total-box {                            {% csrf_token %}
+
+                        </div>
+
+                                    background: var(--dark-gradient);                            <input type="hidden" name="signature_data" id="signature-data">
+
+                        <div class="total-box">
+
+                            <div class="label">{% trans "Total Amount" %}</div>            border-radius: 18px;                            
+
+                            <div class="amount">{{ changeorder.amount|currency }}</div>
+
+                        </div>            padding: 30px;                            <div class="signature-pad-container">
+
+                        
+
+                    {% elif changeorder.pricing_type == 'T_AND_M' or changeorder.pricing_type == 'time_materials' %}            text-align: center;                                <canvas id="signature-pad"></canvas>
+
+                        <div class="pricing-card tm">
+
+                            <div class="badge">            margin-bottom: 30px;                                <button type="button" class="clear-btn" onclick="clearSignature()">
+
+                                <i class="fas fa-clock"></i>
+
+                                <span>{% trans "Pricing" %}</span>            position: relative;                                    <i class="fas fa-eraser me-1"></i>Clear
+
+                            </div>
+
+                            <h2>{% trans "Time & Materials" %}</h2>            overflow: hidden;                                </button>
+
+                            <p class="description">{% trans "Billed based on actual time and materials used." %}</p>
+
+                        </div>        }                            </div>
+
+                        
+
+                        <div class="billing-box">        .total-box::before {                            
+
+                            <div class="header">
+
+                                <div class="icon">            content: '';                            <div class="form-check mb-4">
+
+                                    <i class="fas fa-receipt"></i>
+
+                                </div>            position: absolute;                                <input class="form-check-input" type="checkbox" id="agree-checkbox" required>
+
+                                <h3>{% trans "Billing Rates" %}</h3>
+
+                            </div>            top: -50%;                                <label class="form-check-label" for="agree-checkbox">
+
+                            <div class="billing-row">
+
+                                <span class="label">            left: -50%;                                    {% if changeorder.pricing_type == 'T_AND_M' %}
+
+                                    <i class="fas fa-user-clock"></i>
+
+                                    {% trans "Hourly Labor Rate" %}            width: 200%;                                        I understand this is a TIME & MATERIALS change order and agree to the billing rates shown above.
+
+                                </span>
+
+                                <span class="value">{{ changeorder.labor_rate_override|default:"0"|currency }}/hr</span>            height: 200%;                                    {% else %}
+
+                            </div>
+
+                            <div class="billing-row">            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 50%);                                        I have reviewed and agree to this change order.
+
+                                <span class="label">
+
+                                    <i class="fas fa-box"></i>        }                                    {% endif %}
+
+                                    {% trans "Material Markup" %}
+
+                                </span>        .total-box .total-label {                                </label>
+
+                                <span class="value">{{ changeorder.material_markup_percent|default:"0" }}%</span>
+
+                            </div>            font-size: 0.85rem;                            </div>
+
+                        </div>
+
+                                    text-transform: uppercase;                            
+
+                        <div class="warning-box">
+
+                            <div class="icon">            letter-spacing: 1px;                            <button type="submit" class="btn-sign" id="submit-btn" disabled>
+
+                                <i class="fas fa-exclamation"></i>
+
+                            </div>            color: rgba(255,255,255,0.7);                                <i class="fas fa-check-circle me-2"></i>Sign and Approve Change Order
+
+                            <div class="content">
+
+                                <strong>{% trans "Important" %}</strong>            margin-bottom: 10px;                            </button>
+
+                                <p>{% trans "By signing, you agree to be billed based on actual hours and materials at the rates shown above." %}</p>
+
+                            </div>            position: relative;                        </form>
+
+                        </div>
+
+                                }                    </div>
+
+                        {% if changeorder.amount %}
+
+                            <div class="total-box estimate">        .total-box .total-amount {                    
+
+                                <div class="label">{% trans "Estimated Amount" %}</div>
+
+                                <div class="amount">{{ changeorder.amount|currency }}</div>            font-size: 2.5rem;                {% endif %}
+
+                            </div>
+
+                        {% endif %}            font-weight: 800;            </div>
+
+                        
+
+                    {% else %}            color: white;        </div>
+
+                        {% if changeorder.amount %}
+
+                            <div class="total-box">            position: relative;        
+
+                                <div class="label">{% trans "Total Amount" %}</div>
+
+                                <div class="amount">{{ changeorder.amount|currency }}</div>            letter-spacing: -1px;        <div class="text-center text-muted mt-4">
+
+                            </div>
+
+                        {% endif %}        }            <small>&copy; {{ changeorder.project.company.name|default:"Company" }} - All rights reserved</small>
+
+                    {% endif %}
+
+                            .total-box.estimate-box {        </div>
+
+                    <!-- Signature -->
+
+                    <div class="signature-section">            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);    </div>
+
+                        <div class="header">
+
+                            <div class="icon">        }    
+
+                                <i class="fas fa-pen-fancy"></i>
+
+                            </div>        .total-box.estimate-box .total-label::after {    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+                            <div>
+
+                                <h3>{% trans "Your Signature" %}</h3>            content: ' ({% trans "may vary" %})';    <script>
+
+                                <p>{% trans "Sign below to approve" %}</p>
+
+                            </div>            font-style: italic;        const canvas = document.getElementById('signature-pad');
+
+                        </div>
+
+                                    font-weight: 400;        const signaturePad = new SignaturePad(canvas, {
+
+                        <form method="post" id="signature-form">
+
+                            {% csrf_token %}        }            backgroundColor: 'rgb(255, 255, 255)',
+
+                            <input type="hidden" name="signature_data" id="signature-data">
+
+                                                penColor: 'rgb(0, 0, 0)'
+
+                            <div class="signature-wrapper">
+
+                                <div class="signature-pad-container">        /* Description Section */        });
+
+                                    <canvas id="signature-pad"></canvas>
+
+                                    <button type="button" class="clear-btn" onclick="clearSignature()">        .description-section {        
+
+                                        <i class="fas fa-eraser"></i>
+
+                                        {% trans "Clear" %}            background: #f8f9fb;        function resizeCanvas() {
+
+                                    </button>
+
+                                </div>            border-radius: 16px;            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+                                <p class="signature-hint">
+
+                                    <i class="fas fa-hand-pointer"></i>            padding: 25px;            const container = canvas.parentElement;
+
+                                    {% trans "Draw your signature" %}
+
+                                </p>            margin-bottom: 25px;            canvas.width = container.offsetWidth * ratio;
+
+                            </div>
+
+                                    }            canvas.height = 200 * ratio;
+
+                            <div class="agreement" id="agreement-wrapper">
+
+                                <input type="checkbox" id="agree-checkbox" required>        .description-section h4 {            canvas.getContext('2d').scale(ratio, ratio);
+
+                                <label for="agree-checkbox">
+
+                                    {% if changeorder.pricing_type == 'T_AND_M' or changeorder.pricing_type == 'time_materials' %}            display: flex;            canvas.style.width = container.offsetWidth + 'px';
+
+                                        {% trans "I understand this is a TIME & MATERIALS order and agree to the billing rates." %}
+
+                                    {% else %}            align-items: center;            canvas.style.height = '200px';
+
+                                        {% trans "I have reviewed and agree to this change order." %}
+
+                                    {% endif %}            gap: 10px;            signaturePad.clear();
+
+                                </label>
+
+                            </div>            font-size: 1rem;        }
+
+                            
+
+                            <button type="submit" class="btn-submit" id="submit-btn" disabled>            font-weight: 700;        
+
+                                <i class="fas fa-check-circle"></i>
+
+                                {% trans "Sign & Approve" %}            color: #333;        window.addEventListener('resize', resizeCanvas);
+
+                            </button>
+
+                        </form>            margin: 0 0 15px;        resizeCanvas();
+
+                    </div>
+
+                {% endif %}        }        
+
+            </div>
+
+        </div>        .description-section h4 i {        function clearSignature() {
+
+        
+
+        <div class="footer">            color: #667eea;            signaturePad.clear();
+
+            &copy; {{ changeorder.project.company.name|default:"Kibray" }}
+
+        </div>        }            updateSubmitButton();
+
+    </div>
+
+            .description-section p {        }
+
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+    <script>            color: #555;        
+
+        const canvas = document.getElementById('signature-pad');
+
+        if (canvas) {            line-height: 1.7;        function updateSubmitButton() {
+
+            const signaturePad = new SignaturePad(canvas, {
+
+                backgroundColor: 'rgb(255, 255, 255)',            margin: 0;            const checkbox = document.getElementById('agree-checkbox');
+
+                penColor: 'rgb(30, 30, 30)',
+
+                minWidth: 1,        }            const submitBtn = document.getElementById('submit-btn');
+
+                maxWidth: 2.5
+
+            });                    const hasSignature = !signaturePad.isEmpty();
+
+            
+
+            function resizeCanvas() {        /* Warning Box */            const isChecked = checkbox.checked;
+
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+                const container = canvas.parentElement;        .warning-alert {            submitBtn.disabled = !(hasSignature && isChecked);
+
+                canvas.width = container.offsetWidth * ratio;
+
+                canvas.height = 160 * ratio;            display: flex;        }
+
+                canvas.getContext('2d').scale(ratio, ratio);
+
+                canvas.style.width = container.offsetWidth + 'px';            align-items: flex-start;        
+
+                canvas.style.height = '160px';
+
+                signaturePad.clear();            gap: 15px;        signaturePad.addEventListener('endStroke', updateSubmitButton);
+
+            }
+
+                        background: linear-gradient(135deg, #fef3cd 0%, #fff8e1 100%);        document.getElementById('agree-checkbox').addEventListener('change', updateSubmitButton);
+
+            window.addEventListener('resize', resizeCanvas);
+
+            resizeCanvas();            border-left: 4px solid #ffc107;        
+
+            
+
+            window.clearSignature = function() {            border-radius: 0 14px 14px 0;        document.getElementById('signature-form').addEventListener('submit', function(e) {
+
+                signaturePad.clear();
+
+                updateSubmitButton();            padding: 20px;            if (signaturePad.isEmpty()) {
+
+            };
+
+                        margin-bottom: 25px;                e.preventDefault();
+
+            function updateSubmitButton() {
+
+                const checkbox = document.getElementById('agree-checkbox');        }                alert('Please provide your signature before submitting.');
+
+                const submitBtn = document.getElementById('submit-btn');
+
+                const wrapper = document.getElementById('agreement-wrapper');        .warning-alert .warning-icon {                return;
+
+                const hasSignature = !signaturePad.isEmpty();
+
+                const isChecked = checkbox.checked;            width: 40px;            }
 
                 
 
-        /* Pricing Section */        <div class="card">
+                submitBtn.disabled = !(hasSignature && isChecked);            height: 40px;            document.getElementById('signature-data').value = signaturePad.toDataURL();
 
-        .pricing-card {            <div class="card-header">
+                
 
-            border-radius: 20px;                <h4><i class="fas fa-file-signature me-2"></i> Change Order Signature</h4>
+                if (isChecked) {            background: #ffc107;        });
 
-            padding: 30px;            </div>
+                    wrapper.classList.add('checked');
 
-            text-align: center;            <div class="card-body">
+                } else {            border-radius: 50%;    </script>
 
-            margin-bottom: 25px;                
+                    wrapper.classList.remove('checked');
 
-            position: relative;                {% if changeorder.status == 'APPROVED' or changeorder.client_signed %}
+                }            display: flex;</body>
 
-            overflow: hidden;                    <div class="already-signed">
+            }
 
-        }                        <i class="fas fa-check-circle"></i>
+                        align-items: center;</html>
 
-        .pricing-card.fixed-price {                        <h4>Change Order Already Signed</h4>
+            signaturePad.addEventListener('endStroke', updateSubmitButton);
 
-            background: var(--success-gradient);                        <p>This change order has already been signed and approved.</p>
+            document.getElementById('agree-checkbox').addEventListener('change', updateSubmitButton);            justify-content: center;
 
-        }                        {% if changeorder.approved_date %}
+                        flex-shrink: 0;
 
-        .pricing-card.time-materials {                            <p><strong>Signed on:</strong> {{ changeorder.approved_date|date:"F d, Y" }}</p>
+            document.getElementById('signature-form').addEventListener('submit', function(e) {        }
 
-            background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%);                        {% endif %}
+                if (signaturePad.isEmpty()) {        .warning-alert .warning-icon i {
 
-        }                    </div>
+                    e.preventDefault();            color: white;
 
-        .pricing-card::before {                {% else %}
+                    alert('Please provide your signature.');            font-size: 18px;
 
-            content: '';                
+                    return;        }
 
-            position: absolute;                    <div class="info-section">
+                }        .warning-alert .warning-content strong {
 
-            top: 0;                        <div class="info-row">
+                document.getElementById('signature-data').value = signaturePad.toDataURL();            display: block;
 
-            left: 0;                            <span class="info-label">Change Order Number</span>
+            });            color: #856404;
 
-            right: 0;                            <span class="info-value">#{{ changeorder.change_order_number }}</span>
+        }            margin-bottom: 5px;
 
-            bottom: 0;                        </div>
+    </script>        }
 
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");                        <div class="info-row">
+</body>        .warning-alert .warning-content p {
 
-            opacity: 0.5;                            <span class="info-label">Project</span>
+</html>            margin: 0;
 
-        }                            <span class="info-value">{{ changeorder.project.name }}</span>
-
-        .pricing-card .pricing-badge {                        </div>
-
-            display: inline-flex;                        <div class="info-row">
-
-            align-items: center;                            <span class="info-label">Title</span>
-
-            gap: 8px;                            <span class="info-value">{{ changeorder.title }}</span>
-
-            background: rgba(255,255,255,0.25);                        </div>
-
-            backdrop-filter: blur(10px);                        <div class="info-row">
-
-            border-radius: 50px;                            <span class="info-label">Date Created</span>
-
-            padding: 10px 20px;                            <span class="info-value">{{ changeorder.created_at|date:"F d, Y" }}</span>
-
-            margin-bottom: 20px;                        </div>
-
-            position: relative;                    </div>
-
-        }                    
-
-        .pricing-card .pricing-badge i {                    {% if changeorder.pricing_type == 'FIXED' %}
-
-            color: white;                        <div class="pricing-highlight fixed-price">
-
-        }                            <h3><i class="fas fa-tag me-2"></i>Pricing Type</h3>
-
-        .pricing-card .pricing-badge span {                            <div class="pricing-type">
-
-            color: white;                                <i class="fas fa-lock me-2"></i>FIXED PRICE
-
-            font-size: 0.85rem;                            </div>
-
-            font-weight: 600;                            <p class="pricing-description">
-
-            text-transform: uppercase;                                This change order has a fixed agreed-upon price. The total amount below is the final cost regardless of time or materials used.
-
-            letter-spacing: 1px;                            </p>
-
-        }                        </div>
-
-        .pricing-card .pricing-type {                        
-
-            font-size: 1.8rem;                        <div class="total-box">
-
-            font-weight: 800;                            <div class="label">Total Fixed Price</div>
-
-            color: white;                            <div class="amount">{{ changeorder.amount|currency }}</div>
-
-            margin: 0 0 12px;                        </div>
-
-            position: relative;                        
-
-            text-shadow: 0 2px 10px rgba(0,0,0,0.15);                    {% elif changeorder.pricing_type == 'T_AND_M' %}
-
-        }                        <div class="pricing-highlight time-materials">
-
-        .pricing-card .pricing-description {                            <h3><i class="fas fa-clock me-2"></i>Pricing Type</h3>
-
-            font-size: 0.9rem;                            <div class="pricing-type">
-
-            color: rgba(255,255,255,0.9);                                <i class="fas fa-tools me-2"></i>TIME & MATERIALS
-
-            max-width: 400px;                            </div>
-
-            margin: 0 auto;                            <p class="pricing-description">
-
-            line-height: 1.6;                                This change order is billed based on actual time spent and materials used. The final cost may vary from any estimates provided.
-
-            position: relative;                            </p>
-
-        }                        </div>
-
-                                
-
-        /* Billing Details */                        <div class="tm-details">
-
-        .billing-details {                            <h5><i class="fas fa-calculator me-2"></i>Billing Rates</h5>
-
-            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);                            <div class="detail-item">
-
-            border: 2px solid #ffc107;                                <span><i class="fas fa-user-clock me-2"></i>Hourly Labor Rate</span>
-
-            border-radius: 16px;                                <span><strong>{{ changeorder.billing_hourly_rate|currency }}/hr</strong></span>
-
-            padding: 25px;                            </div>
-
-            margin-bottom: 25px;                            <div class="detail-item">
-
-        }                                <span><i class="fas fa-box me-2"></i>Material Markup</span>
-
-        .billing-details .billing-header {                                <span><strong>{{ changeorder.material_markup_pct|default:"0" }}%</strong></span>
-
-            display: flex;                            </div>
-
-            align-items: center;                        </div>
-
-            gap: 12px;                        
-
-            margin-bottom: 20px;                        <div class="warning-box">
-
-        }                            <i class="fas fa-exclamation-triangle"></i>
-
-        .billing-details .billing-header .icon {                            <strong>Important:</strong>
-
-            width: 44px;                            By signing this Time & Materials change order, you agree to be billed based on actual hours worked at the rates above, plus materials at cost plus the indicated markup.
-
-            height: 44px;                        </div>
-
-            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);                        
-
-            border-radius: 12px;                        {% if changeorder.amount %}
-
-            display: flex;                            <div class="total-box">
-
-            align-items: center;                                <div class="label">Estimated Amount (may vary)</div>
-
-            justify-content: center;                                <div class="amount">{{ changeorder.amount|currency }}</div>
-
-        }                            </div>
-
-        .billing-details .billing-header .icon i {                        {% endif %}
-
-            color: white;                        
-
-            font-size: 18px;                    {% else %}
-
-        }                        <div class="total-box">
-
-        .billing-details .billing-header h3 {                            <div class="label">Total Amount</div>
-
-            font-size: 1.1rem;                            <div class="amount">{{ changeorder.amount|currency }}</div>
-
-            font-weight: 700;                        </div>
-
-            color: #856404;                    {% endif %}
-
-            margin: 0;                    
-
-        }                    {% if changeorder.description %}
-
-        .billing-row {                        <div class="info-section">
-
-            display: flex;                            <h5 class="mb-3"><i class="fas fa-align-left me-2"></i>Description</h5>
-
-            justify-content: space-between;                            <p>{{ changeorder.description|linebreaks }}</p>
-
-            align-items: center;                        </div>
-
-            padding: 14px 0;                    {% endif %}
-
-            border-bottom: 1px dashed rgba(133, 100, 4, 0.2);                    
-
-        }                    {% if changeorder.items.exists %}
-
-        .billing-row:last-child { border-bottom: none; }                        <div class="info-section">
-
-        .billing-row .billing-label {                            <h5 class="mb-3"><i class="fas fa-list me-2"></i>Items Included</h5>
-
-            display: flex;                            <div class="items-list">
-
-            align-items: center;                                {% for item in changeorder.items.all %}
-
-            gap: 10px;                                    <div class="item-row">
-
-            color: #6c5a00;                                        <span>{{ item.description }}</span>
-
-            font-weight: 500;                                        <span><strong>{{ item.total_price|currency }}</strong></span>
-
-        }                                    </div>
-
-        .billing-row .billing-label i {                                {% endfor %}
-
-            color: #d4a106;                            </div>
-
-        }                        </div>
-
-        .billing-row .billing-value {                    {% endif %}
-
-            font-size: 1.2rem;                    
-
-            font-weight: 700;                    <div class="signature-section">
-
-            color: #856404;                        <h5><i class="fas fa-signature me-2"></i>Your Signature</h5>
-
-        }                        <p class="text-muted mb-3">Please sign below to approve this change order.</p>
-
-                                
-
-        /* Total Amount Box */                        <form method="post" id="signature-form">
-
-        .total-box {                            {% csrf_token %}
-
-            background: var(--dark-gradient);                            <input type="hidden" name="signature_data" id="signature-data">
-
-            border-radius: 18px;                            
-
-            padding: 30px;                            <div class="signature-pad-container">
-
-            text-align: center;                                <canvas id="signature-pad"></canvas>
-
-            margin-bottom: 30px;                                <button type="button" class="clear-btn" onclick="clearSignature()">
-
-            position: relative;                                    <i class="fas fa-eraser me-1"></i>Clear
-
-            overflow: hidden;                                </button>
-
-        }                            </div>
-
-        .total-box::before {                            
-
-            content: '';                            <div class="form-check mb-4">
-
-            position: absolute;                                <input class="form-check-input" type="checkbox" id="agree-checkbox" required>
-
-            top: -50%;                                <label class="form-check-label" for="agree-checkbox">
-
-            left: -50%;                                    {% if changeorder.pricing_type == 'T_AND_M' %}
-
-            width: 200%;                                        I understand this is a TIME & MATERIALS change order and agree to the billing rates shown above.
-
-            height: 200%;                                    {% else %}
-
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 50%);                                        I have reviewed and agree to this change order.
-
-        }                                    {% endif %}
-
-        .total-box .total-label {                                </label>
-
-            font-size: 0.85rem;                            </div>
-
-            text-transform: uppercase;                            
-
-            letter-spacing: 1px;                            <button type="submit" class="btn-sign" id="submit-btn" disabled>
-
-            color: rgba(255,255,255,0.7);                                <i class="fas fa-check-circle me-2"></i>Sign and Approve Change Order
-
-            margin-bottom: 10px;                            </button>
-
-            position: relative;                        </form>
-
-        }                    </div>
-
-        .total-box .total-amount {                    
-
-            font-size: 2.5rem;                {% endif %}
-
-            font-weight: 800;            </div>
-
-            color: white;        </div>
-
-            position: relative;        
-
-            letter-spacing: -1px;        <div class="text-center text-muted mt-4">
-
-        }            <small>&copy; {{ changeorder.project.company.name|default:"Company" }} - All rights reserved</small>
-
-        .total-box.estimate-box {        </div>
-
-            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);    </div>
-
-        }    
-
-        .total-box.estimate-box .total-label::after {    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
-            content: ' ({% trans "may vary" %})';    <script>
-
-            font-style: italic;        const canvas = document.getElementById('signature-pad');
-
-            font-weight: 400;        const signaturePad = new SignaturePad(canvas, {
-
-        }            backgroundColor: 'rgb(255, 255, 255)',
-
-                    penColor: 'rgb(0, 0, 0)'
-
-        /* Description Section */        });
-
-        .description-section {        
-
-            background: #f8f9fb;        function resizeCanvas() {
-
-            border-radius: 16px;            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-
-            padding: 25px;            const container = canvas.parentElement;
-
-            margin-bottom: 25px;            canvas.width = container.offsetWidth * ratio;
-
-        }            canvas.height = 200 * ratio;
-
-        .description-section h4 {            canvas.getContext('2d').scale(ratio, ratio);
-
-            display: flex;            canvas.style.width = container.offsetWidth + 'px';
-
-            align-items: center;            canvas.style.height = '200px';
-
-            gap: 10px;            signaturePad.clear();
-
-            font-size: 1rem;        }
-
-            font-weight: 700;        
-
-            color: #333;        window.addEventListener('resize', resizeCanvas);
-
-            margin: 0 0 15px;        resizeCanvas();
-
-        }        
-
-        .description-section h4 i {        function clearSignature() {
-
-            color: #667eea;            signaturePad.clear();
-
-        }            updateSubmitButton();
-
-        .description-section p {        }
-
-            color: #555;        
-
-            line-height: 1.7;        function updateSubmitButton() {
-
-            margin: 0;            const checkbox = document.getElementById('agree-checkbox');
-
-        }            const submitBtn = document.getElementById('submit-btn');
-
-                    const hasSignature = !signaturePad.isEmpty();
-
-        /* Warning Box */            const isChecked = checkbox.checked;
-
-        .warning-alert {            submitBtn.disabled = !(hasSignature && isChecked);
-
-            display: flex;        }
-
-            align-items: flex-start;        
-
-            gap: 15px;        signaturePad.addEventListener('endStroke', updateSubmitButton);
-
-            background: linear-gradient(135deg, #fef3cd 0%, #fff8e1 100%);        document.getElementById('agree-checkbox').addEventListener('change', updateSubmitButton);
-
-            border-left: 4px solid #ffc107;        
-
-            border-radius: 0 14px 14px 0;        document.getElementById('signature-form').addEventListener('submit', function(e) {
-
-            padding: 20px;            if (signaturePad.isEmpty()) {
-
-            margin-bottom: 25px;                e.preventDefault();
-
-        }                alert('Please provide your signature before submitting.');
-
-        .warning-alert .warning-icon {                return;
-
-            width: 40px;            }
-
-            height: 40px;            document.getElementById('signature-data').value = signaturePad.toDataURL();
-
-            background: #ffc107;        });
-
-            border-radius: 50%;    </script>
-
-            display: flex;</body>
-
-            align-items: center;</html>
-
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .warning-alert .warning-icon i {
-            color: white;
-            font-size: 18px;
-        }
-        .warning-alert .warning-content strong {
-            display: block;
-            color: #856404;
-            margin-bottom: 5px;
-        }
-        .warning-alert .warning-content p {
-            margin: 0;
             color: #6d5a00;
             font-size: 0.9rem;
             line-height: 1.5;
