@@ -4,18 +4,16 @@
 {% block extra_css %}
 <style>
 /* ==============================================
-   HORIZONTAL TIMELINE - Premium Design
+   MINUTAS - Clean Modern Design
    ============================================== */
 
-.timeline-wrapper {
-  position: relative;
-  padding: 2rem 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  min-height: 500px;
+.minutes-wrapper {
+  min-height: 100vh;
+  background: #f8fafc;
 }
 
 /* Header */
-.timeline-header {
+.minutes-header {
   background: white;
   border-bottom: 1px solid #e2e8f0;
   padding: 1.5rem 2rem;
@@ -24,26 +22,53 @@
   z-index: 100;
 }
 
-.timeline-header h2 {
+.minutes-header h2 {
   font-weight: 700;
   color: #1e293b;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.timeline-header .project-name {
+.minutes-header .project-name {
   color: #64748b;
   font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* Back Button */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+  margin-bottom: 0.75rem;
+}
+
+.btn-back:hover {
+  color: #1e293b;
 }
 
 /* Filters */
-.timeline-filters {
+.minutes-filters {
   background: white;
   padding: 1rem 2rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.filter-label {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .filter-chip {
@@ -69,162 +94,43 @@
   color: white;
 }
 
-/* Main Timeline Container */
-.timeline-container {
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 3rem 2rem;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+/* Content Area */
+.minutes-content {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-.timeline-container::-webkit-scrollbar {
-  height: 8px;
-}
-
-.timeline-container::-webkit-scrollbar-track {
-  background: #e2e8f0;
-  border-radius: 4px;
-}
-
-.timeline-container::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 4px;
-}
-
-.timeline-container::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
-
-/* Timeline Track */
-.timeline-track {
-  display: flex;
-  align-items: center;
-  position: relative;
-  min-width: max-content;
-  padding: 150px 100px;
-}
-
-/* Central Line */
-.timeline-line {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-  border-radius: 2px;
-  transform: translateY(-50%);
-  z-index: 1;
-}
-
-/* Timeline Nodes */
-.timeline-node {
-  position: relative;
-  z-index: 10;
-  flex-shrink: 0;
-  width: 320px;
-  margin: 0 30px;
-}
-
-/* Alternating positions */
-.timeline-node:nth-child(odd) .node-card {
-  transform: translateY(-100%);
-  margin-bottom: 40px;
-}
-
-.timeline-node:nth-child(even) .node-card {
-  transform: translateY(0);
-  margin-top: 40px;
-}
-
-/* Connector Line */
-.node-connector {
-  position: absolute;
-  left: 50%;
-  width: 3px;
-  background: linear-gradient(to bottom, #6366f1, #a855f7);
-  z-index: 5;
-}
-
-.timeline-node:nth-child(odd) .node-connector {
-  bottom: 0;
-  height: 40px;
-  transform: translateX(-50%) translateY(100%);
-}
-
-.timeline-node:nth-child(even) .node-connector {
-  top: 0;
-  height: 40px;
-  transform: translateX(-50%) translateY(-100%);
-}
-
-/* Central Dot */
-.node-dot {
-  position: absolute;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border: 4px solid #6366f1;
-  border-radius: 50%;
-  z-index: 15;
-  transform: translateX(-50%);
-  transition: all 0.3s ease;
-}
-
-.timeline-node:nth-child(odd) .node-dot {
-  bottom: -10px;
-  transform: translateX(-50%) translateY(100%);
-}
-
-.timeline-node:nth-child(even) .node-dot {
-  top: -10px;
-  transform: translateX(-50%) translateY(-100%);
-}
-
-.timeline-node:hover .node-dot {
-  transform: translateX(-50%) scale(1.3);
-  background: #6366f1;
-  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.2);
-}
-
-.timeline-node:nth-child(odd):hover .node-dot {
-  transform: translateX(-50%) translateY(100%) scale(1.3);
-}
-
-.timeline-node:nth-child(even):hover .node-dot {
-  transform: translateX(-50%) translateY(-100%) scale(1.3);
-}
-
-/* Node Card */
-.node-card {
+/* Minute Card */
+.minute-card {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-.node-card:hover {
-  transform: translateY(-8px) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-  border-color: #6366f1;
+.minute-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #c7d2fe;
 }
 
-.timeline-node:nth-child(odd) .node-card:hover {
-  transform: translateY(calc(-100% - 8px)) !important;
-}
-
-/* Card Header with Type Badge */
-.node-card-header {
+.minute-card-header {
   padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #f1f5f9;
+  gap: 1rem;
+}
+
+.minute-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .event-badge {
@@ -236,7 +142,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .event-badge.decision { background: #dbeafe; color: #1e40af; }
@@ -249,42 +155,66 @@
 .event-badge.milestone { background: #f3e8ff; color: #6b21a8; }
 .event-badge.note { background: #f1f5f9; color: #475569; }
 
-.node-date {
-  font-size: 0.8rem;
+.minute-date {
+  font-size: 0.85rem;
   color: #64748b;
   font-weight: 500;
+  white-space: nowrap;
 }
 
-/* Card Body */
-.node-card-body {
+.private-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.minute-card-body {
   padding: 1.25rem;
 }
 
-.node-title {
-  font-size: 1rem;
+.minute-title {
+  font-size: 1.1rem;
   font-weight: 600;
   color: #1e293b;
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-.node-description {
+.minute-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.minute-title a:hover {
+  color: #6366f1;
+}
+
+.minute-description {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.minute-participants {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
   font-size: 0.85rem;
   color: #64748b;
-  line-height: 1.5;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-/* Card Footer */
-.node-card-footer {
+.minute-participants strong {
+  color: #475569;
+}
+
+.minute-card-footer {
   padding: 0.75rem 1.25rem;
   background: #f8fafc;
   display: flex;
@@ -293,83 +223,66 @@
   border-top: 1px solid #f1f5f9;
 }
 
-.node-author {
-  font-size: 0.75rem;
+.minute-author {
+  font-size: 0.8rem;
   color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.node-comments {
+.minute-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.minute-comments {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #6366f1;
   font-weight: 500;
 }
 
-/* Comment Form in Timeline */
-.quick-comment-form {
-  padding: 1rem 1.25rem;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  display: none;
-}
-
-.node-card:hover .quick-comment-form {
-  display: block;
-}
-
-.quick-comment-input {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  resize: none;
-  transition: border-color 0.2s;
-}
-
-.quick-comment-input:focus {
-  outline: none;
-  border-color: #6366f1;
-}
-
-.quick-comment-submit {
-  margin-top: 0.5rem;
+.btn-view {
   padding: 0.4rem 0.75rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-view:hover {
   background: #6366f1;
   color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: background 0.2s;
 }
 
-.quick-comment-submit:hover {
-  background: #4f46e5;
+.minute-attachment {
+  margin-top: 1rem;
 }
 
-/* Empty State */
-.timeline-empty {
-  text-align: center;
-  padding: 4rem 2rem;
-}
-
-.timeline-empty-icon {
-  font-size: 4rem;
-  color: #cbd5e1;
-  margin-bottom: 1rem;
-}
-
-.timeline-empty h3 {
+.btn-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #f1f5f9;
   color: #475569;
-  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: all 0.2s;
 }
 
-.timeline-empty p {
-  color: #94a3b8;
-  margin-bottom: 1.5rem;
+.btn-attachment:hover {
+  background: #e2e8f0;
+  color: #1e293b;
 }
 
 /* Create Button */
@@ -377,7 +290,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
   border: none;
@@ -386,6 +299,7 @@
   text-decoration: none;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  font-size: 0.9rem;
 }
 
 .btn-create-minute:hover {
@@ -394,231 +308,197 @@
   color: white;
 }
 
-/* Navigation Arrows */
-.timeline-nav {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  display: flex;
-  gap: 0.5rem;
-  z-index: 100;
-}
-
-.timeline-nav-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+/* Empty State */
+.minutes-empty {
+  text-align: center;
+  padding: 4rem 2rem;
   background: white;
+  border-radius: 16px;
   border: 1px solid #e2e8f0;
+}
+
+.minutes-empty-icon {
+  font-size: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.minutes-empty h3 {
   color: #475569;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
-.timeline-nav-btn:hover {
-  background: #6366f1;
-  color: white;
-  border-color: #6366f1;
-}
-
-/* Back Button */
-.btn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  color: #64748b;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.2s;
-}
-
-.btn-back:hover {
-  color: #1e293b;
+.minutes-empty p {
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .timeline-track {
-    padding: 100px 40px;
-  }
-  
-  .timeline-node {
-    width: 280px;
-    margin: 0 20px;
-  }
-  
-  .timeline-header {
+  .minutes-header {
     padding: 1rem;
   }
   
-  .timeline-filters {
+  .minutes-filters {
     padding: 0.75rem 1rem;
   }
-}
-
-/* Private Badge */
-.private-badge {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: #fef3c7;
-  color: #92400e;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.65rem;
-  font-weight: 600;
+  
+  .minutes-content {
+    padding: 1rem;
+  }
+  
+  .minute-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .filter-chip {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="timeline-wrapper">
+<div class="minutes-wrapper">
   <!-- Header -->
-  <div class="timeline-header">
-    <div class="d-flex justify-content-between align-items-center">
+  <div class="minutes-header">
+    <div class="d-flex justify-content-between align-items-start">
       <div>
         <a href="{% url 'project_overview' project.id %}" class="btn-back">
-          <i class="bi bi-arrow-left"></i> Back to Project
+          <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
         </a>
-        <h2 class="mt-2">
-          <i class="bi bi-clock-history me-2"></i>Decision Timeline
+        <h2>
+          <i class="bi bi-journal-text"></i> {% trans "Minutas" %}
         </h2>
         <p class="project-name mb-0">{{ project.name }}</p>
       </div>
       {% if user.is_staff or user.is_superuser %}
       <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
-        <i class="bi bi-plus-lg"></i> New Minute
+        <i class="bi bi-plus-lg"></i> {% trans "Nueva Minuta" %}
       </a>
       {% endif %}
     </div>
   </div>
 
   <!-- Filters -->
-  <div class="timeline-filters">
-    <span class="text-muted small me-2">Filter:</span>
+  <div class="minutes-filters">
+    <span class="filter-label">{% trans "Filter" %}:</span>
     <a href="{% url 'project_minutes_list' project.id %}" 
        class="filter-chip {% if not request.GET.type %}active{% endif %}">
-      Todos
+      {% trans "Todos" %}
     </a>
     {% for value, label in event_types %}
     <a href="{% url 'project_minutes_list' project.id %}?type={{ value }}" 
        class="filter-chip {% if request.GET.type == value %}active{% endif %}">
-      {{ label }}
+      {% if value == 'decision' %}{% trans "Decisión" %}
+      {% elif value == 'call' %}{% trans "Llamada" %}
+      {% elif value == 'email' %}{% trans "Email" %}
+      {% elif value == 'meeting' %}{% trans "Meeting" %}
+      {% elif value == 'approval' %}{% trans "Approval" %}
+      {% elif value == 'change' %}{% trans "Change/Modification" %}
+      {% elif value == 'issue' %}{% trans "Issue" %}
+      {% elif value == 'milestone' %}{% trans "Milestone" %}
+      {% elif value == 'note' %}{% trans "Note" %}
+      {% else %}{{ label }}{% endif %}
     </a>
     {% endfor %}
   </div>
 
-  <!-- Timeline Content -->
-  {% if minutes %}
-  <div class="timeline-container" id="timelineContainer">
-    <div class="timeline-track">
-      <div class="timeline-line"></div>
-      
+  <!-- Content -->
+  <div class="minutes-content">
+    {% if minutes %}
       {% for minute in minutes %}
-      <div class="timeline-node">
-        <div class="node-connector"></div>
-        <div class="node-dot"></div>
-        
-        <a href="{% url 'project_minute_detail' minute.id %}" class="text-decoration-none">
-          <div class="node-card">
-            {% if not minute.visible_to_client %}
-            <span class="private-badge"><i class="bi bi-eye-slash"></i> Private</span>
-            {% endif %}
-            
-            <div class="node-card-header">
-              <span class="event-badge {{ minute.event_type }}">
-                <i class="bi bi-{% if minute.event_type == 'decision' %}lightbulb{% elif minute.event_type == 'call' %}telephone{% elif minute.event_type == 'meeting' %}people{% elif minute.event_type == 'approval' %}check-circle{% elif minute.event_type == 'change' %}pencil{% elif minute.event_type == 'issue' %}exclamation-triangle{% elif minute.event_type == 'milestone' %}flag{% elif minute.event_type == 'email' %}envelope{% else %}chat-left-text{% endif %}"></i>
-                {{ minute.get_event_type_display }}
-              </span>
-              <span class="node-date">{{ minute.event_date|date:"M d, Y" }}</span>
-            </div>
-            
-            <div class="node-card-body">
-              <h4 class="node-title">{{ minute.title }}</h4>
-              <p class="node-description">{{ minute.get_short_description }}</p>
-            </div>
-            
-            <div class="node-card-footer">
-              <span class="node-author">
-                <i class="bi bi-person"></i> {{ minute.created_by.get_full_name|default:minute.created_by.username }}
-              </span>
-              {% if minute.comments.count > 0 %}
-              <span class="node-comments">
-                <i class="bi bi-chat"></i> {{ minute.comments.count }}
-              </span>
-              {% endif %}
-            </div>
+      <div class="minute-card">
+        <div class="minute-card-header">
+          <div class="minute-meta">
+            <span class="event-badge {{ minute.event_type }}">
+              <i class="bi bi-{% if minute.event_type == 'decision' %}lightbulb{% elif minute.event_type == 'call' %}telephone{% elif minute.event_type == 'meeting' %}people{% elif minute.event_type == 'approval' %}check-circle{% elif minute.event_type == 'change' %}pencil{% elif minute.event_type == 'issue' %}exclamation-triangle{% elif minute.event_type == 'milestone' %}flag{% elif minute.event_type == 'email' %}envelope{% else %}chat-left-text{% endif %}"></i>
+              {% if minute.event_type == 'decision' %}{% trans "Decisión" %}
+              {% elif minute.event_type == 'call' %}{% trans "Llamada" %}
+              {% elif minute.event_type == 'email' %}{% trans "Email" %}
+              {% elif minute.event_type == 'meeting' %}{% trans "Reunión" %}
+              {% elif minute.event_type == 'approval' %}{% trans "Aprobación" %}
+              {% elif minute.event_type == 'change' %}{% trans "Cambio" %}
+              {% elif minute.event_type == 'issue' %}{% trans "Issue" %}
+              {% elif minute.event_type == 'milestone' %}{% trans "Milestone" %}
+              {% elif minute.event_type == 'note' %}{% trans "Nota" %}
+              {% else %}{{ minute.get_event_type_display }}{% endif %}
+            </span>
+            <span class="minute-date">
+              <i class="bi bi-calendar3 me-1"></i>
+              {{ minute.event_date|date:"d M, Y" }} - {{ minute.event_date|date:"g:i A" }}
+            </span>
           </div>
-        </a>
+          {% if not minute.visible_to_client %}
+          <span class="private-badge">
+            <i class="bi bi-eye-slash"></i> {% trans "Privado" %}
+          </span>
+          {% endif %}
+        </div>
         
-        <!-- Quick Comment Form -->
-        <form action="{% url 'minute_comment_add' minute.id %}" method="post" class="quick-comment-form" onclick="event.stopPropagation();">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="timeline">
-          <textarea name="content" class="quick-comment-input" rows="2" placeholder="Add quick comment..."></textarea>
-          <button type="submit" class="quick-comment-submit">
-            <i class="bi bi-send"></i> Comentar
-          </button>
-        </form>
+        <div class="minute-card-body">
+          <h3 class="minute-title">
+            <a href="{% url 'project_minute_detail' minute.id %}">{{ minute.title }}</a>
+          </h3>
+          {% if minute.description %}
+          <p class="minute-description">{{ minute.description|truncatewords:50|linebreaksbr }}</p>
+          {% endif %}
+          
+          {% if minute.participants %}
+          <div class="minute-participants">
+            <strong><i class="bi bi-people me-1"></i> {% trans "Participantes" %}:</strong> {{ minute.participants }}
+          </div>
+          {% endif %}
+          
+          {% if minute.attachment %}
+          <div class="minute-attachment">
+            <a href="{{ minute.attachment.url }}" target="_blank" class="btn-attachment">
+              <i class="bi bi-paperclip"></i> {% trans "Ver adjunto" %}
+            </a>
+          </div>
+          {% endif %}
+        </div>
+        
+        <div class="minute-card-footer">
+          <span class="minute-author">
+            <i class="bi bi-person"></i>
+            {{ minute.created_by.get_full_name|default:minute.created_by.username }}
+          </span>
+          <div class="minute-actions">
+            {% if minute.comments.count > 0 %}
+            <span class="minute-comments">
+              <i class="bi bi-chat"></i> {{ minute.comments.count }}
+            </span>
+            {% endif %}
+            <a href="{% url 'project_minute_detail' minute.id %}" class="btn-view">
+              {% trans "Ver detalles" %} <i class="bi bi-chevron-right"></i>
+            </a>
+          </div>
+        </div>
       </div>
       {% endfor %}
-    </div>
-  </div>
-
-  <!-- Navigation -->
-  <div class="timeline-nav">
-    <button class="timeline-nav-btn" onclick="scrollTimeline(-400)" title="Previous">
-      <i class="bi bi-chevron-left"></i>
-    </button>
-    <button class="timeline-nav-btn" onclick="scrollTimeline(400)" title="Next">
-      <i class="bi bi-chevron-right"></i>
-    </button>
-  </div>
-
-  {% else %}
-  <!-- Empty State -->
-  <div class="timeline-empty">
-    <div class="timeline-empty-icon">
-      <i class="bi bi-journal-text"></i>
-    </div>
-    <h3>No minutes recorded</h3>
-    <p>Minutes help you maintain a historical record of project decisions and communications.</p>
-    {% if user.is_staff or user.is_superuser %}
-    <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
-      <i class="bi bi-plus-lg"></i> Create First Minute
-    </a>
+    {% else %}
+      <!-- Empty State -->
+      <div class="minutes-empty">
+        <div class="minutes-empty-icon">
+          <i class="bi bi-journal-text"></i>
+        </div>
+        <h3>{% trans "No hay minutas registradas" %}</h3>
+        <p>{% trans "Las minutas ayudan a mantener un registro histórico de decisiones y comunicaciones del proyecto." %}</p>
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
+          <i class="bi bi-plus-lg"></i> {% trans "Crear Primera Minuta" %}
+        </a>
+        {% endif %}
+      </div>
     {% endif %}
   </div>
-  {% endif %}
 </div>
-
-<script>
-function scrollTimeline(amount) {
-  const container = document.getElementById('timelineContainer');
-  if (container) {
-    container.scrollBy({ left: amount, behavior: 'smooth' });
-  }
-}
-
-// Keyboard navigation
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'ArrowRight') {
-    scrollTimeline(400);
-  } else if (e.key === 'ArrowLeft') {
-    scrollTimeline(-400);
-  }
-});
-
-// Prevent form submission from navigating away on quick comment
-document.querySelectorAll('.quick-comment-form').forEach(form => {
-  form.addEventListener('click', function(e) {
-    e.stopPropagation();
-  });
-});
-</script>
 {% endblock %}
