@@ -1938,7 +1938,7 @@ def client_project_view(request, project_id):
     
     # Base contract (latest approved estimate)
     latest_estimate = Estimate.objects.filter(
-        project=project, status='approved'
+        project=project, approved=True
     ).order_by('-version').first()
     
     base_contract_total = Decimal("0")
@@ -1950,10 +1950,10 @@ def client_project_view(request, project_id):
     # Change Orders
     approved_cos = ChangeOrder.objects.filter(
         project=project, status__in=['approved', 'sent', 'billed', 'paid']
-    ).order_by('-created_at')
+    ).order_by('-date_created')
     pending_cos = ChangeOrder.objects.filter(
         project=project, status='pending'
-    ).order_by('-created_at')
+    ).order_by('-date_created')
     
     approved_cos_total = sum(co.amount or Decimal("0") for co in approved_cos)
     pending_cos_total = sum(co.amount or Decimal("0") for co in pending_cos)
@@ -2035,7 +2035,7 @@ def client_financials_view(request, project_id):
     
     # Base contract (latest approved estimate)
     latest_estimate = Estimate.objects.filter(
-        project=project, status='approved'
+        project=project, approved=True
     ).order_by('-version').first()
     
     base_contract_total = Decimal("0")
@@ -2045,7 +2045,7 @@ def client_financials_view(request, project_id):
         base_contract_total = sum(line.total_price or Decimal("0") for line in estimate_lines)
     
     # Change Orders by status
-    all_change_orders = ChangeOrder.objects.filter(project=project).order_by('-created_at')
+    all_change_orders = ChangeOrder.objects.filter(project=project).order_by('-date_created')
     approved_cos = all_change_orders.filter(status__in=['approved', 'sent', 'billed', 'paid'])
     pending_cos = all_change_orders.filter(status='pending')
     billed_cos = all_change_orders.filter(status__in=['billed', 'paid'])
