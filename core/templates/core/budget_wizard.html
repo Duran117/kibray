@@ -6,521 +6,1178 @@
 {% block extra_head %}
 <style>
 :root {
-    --wizard-primary: #6366f1;
-    --wizard-success: #10b981;
-    --wizard-warning: #f59e0b;
-    --wizard-danger: #ef4444;
+    --bw-primary: #6366f1;
+    --bw-primary-dark: #4f46e5;
+    --bw-success: #10b981;
+    --bw-warning: #f59e0b;
+    --bw-danger: #ef4444;
+    --bw-slate-50: #f8fafc;
+    --bw-slate-100: #f1f5f9;
+    --bw-slate-200: #e2e8f0;
+    --bw-slate-300: #cbd5e1;
+    --bw-slate-400: #94a3b8;
+    --bw-slate-500: #64748b;
+    --bw-slate-600: #475569;
+    --bw-slate-700: #334155;
+    --bw-slate-800: #1e293b;
+    --bw-slate-900: #0f172a;
 }
 
+/* ===== MAIN CONTAINER ===== */
 .budget-wizard {
     min-height: calc(100vh - 80px);
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(180deg, var(--bw-slate-100) 0%, #ffffff 100%);
 }
 
-/* Header */
+/* ===== HEADER ===== */
 .wizard-header {
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 20px 24px;
-    position: sticky;
+    background: linear-gradient(135deg, var(--bw-slate-900) 0%, var(--bw-slate-800) 50%, #312e81 100%);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.wizard-header::before {
+    content: '';
+    position: absolute;
     top: 0;
-    z-index: 100;
-}
-.wizard-header h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
-}
-.wizard-header .project-badge {
-    background: linear-gradient(135deg, var(--wizard-primary), #8b5cf6);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+    pointer-events: none;
 }
 
-/* Stats Bar */
-.stats-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    padding: 20px 24px;
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
-}
-.stat-item {
-    text-align: center;
-    padding: 12px;
-    border-radius: 12px;
-    background: #f8fafc;
-}
-.stat-item.highlight { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #1e293b;
-}
-.stat-label {
-    font-size: 0.75rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.wizard-header-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
 }
 
-/* Main Content */
-.wizard-content {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    min-height: calc(100vh - 200px);
-}
-
-@media (max-width: 1024px) {
-    .wizard-content {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Sidebar - Add Form */
-.wizard-sidebar {
-    background: white;
-    border-right: 1px solid #e2e8f0;
-    padding: 24px;
-    height: fit-content;
-    position: sticky;
-    top: 80px;
-}
-.sidebar-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 20px;
+.header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 1.25rem;
 }
-.sidebar-title i { color: var(--wizard-primary); }
+
+.back-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    transform: translateX(-2px);
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--bw-primary) 0%, #8b5cf6 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.header-titles h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+    letter-spacing: -0.02em;
+}
+
+.header-titles p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.6);
+}
+
+.project-badge {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.project-badge i {
+    color: #a5b4fc;
+}
+
+/* ===== STATS BAR ===== */
+.stats-bar {
+    background: white;
+    border-bottom: 1px solid var(--bw-slate-200);
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--bw-slate-50);
+    border-radius: 14px;
+    border: 1px solid var(--bw-slate-100);
+    min-width: 180px;
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card.highlight {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border-color: #c7d2fe;
+}
+
+.stat-card.success {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-color: #a7f3d0;
+}
+
+.stat-card.warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #fde68a;
+}
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-card.highlight .stat-icon {
+    background: var(--bw-primary);
+    color: white;
+}
+
+.stat-card.success .stat-icon {
+    background: var(--bw-success);
+    color: white;
+}
+
+.stat-card.warning .stat-icon {
+    background: var(--bw-warning);
+    color: white;
+}
+
+.stat-card .stat-icon {
+    background: var(--bw-slate-300);
+    color: var(--bw-slate-600);
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--bw-slate-800);
+    font-family: 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--bw-slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+    margin-top: 0.125rem;
+}
+
+/* ===== MAIN CONTENT ===== */
+.wizard-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 3rem;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* ===== SIDEBAR ===== */
+.wizard-sidebar {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 1rem;
+}
+
+.sidebar-header {
+    background: linear-gradient(135deg, var(--bw-slate-800) 0%, var(--bw-slate-700) 100%);
+    padding: 1.25rem 1.5rem;
+    color: white;
+}
+
+.sidebar-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.sidebar-header-title i {
+    font-size: 1.25rem;
+    color: #a5b4fc;
+}
+
+.sidebar-body {
+    padding: 1.5rem;
+}
+
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--bw-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--bw-slate-200);
+}
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 0.875rem;
 }
+
 .form-group label {
     display: block;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #475569;
-    margin-bottom: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--bw-slate-600);
+    margin-bottom: 0.375rem;
 }
+
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 10px 14px;
-    border: 2px solid #e2e8f0;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid var(--bw-slate-200);
     border-radius: 10px;
-    font-size: 0.95rem;
-    transition: all 0.2s;
+    font-size: 0.875rem;
+    background: var(--bw-slate-50);
+    transition: all 0.2s ease;
+    color: var(--bw-slate-700);
 }
+
 .form-group input:focus,
-.form-group select:focus {
-    border-color: var(--wizard-primary);
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: var(--bw-primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
+
+.form-group input::placeholder {
+    color: var(--bw-slate-400);
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 0.75rem;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    margin-top: 0.25rem;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--bw-warning);
+}
+
+.checkbox-wrapper .checkbox-label {
+    flex: 1;
+}
+
+.checkbox-wrapper .checkbox-label span {
+    font-weight: 500;
+    color: var(--bw-slate-700);
+    font-size: 0.875rem;
+}
+
+.checkbox-wrapper .checkbox-label small {
+    display: block;
+    color: var(--bw-slate-500);
+    font-size: 0.75rem;
+    margin-top: 0.125rem;
 }
 
 .btn-add {
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--wizard-primary), #8b5cf6);
+    padding: 0.875rem 1rem;
+    background: linear-gradient(135deg, var(--bw-primary) 0%, var(--bw-primary-dark) 100%);
     color: white;
     border: none;
     border-radius: 12px;
-    font-size: 1rem;
     font-weight: 600;
+    font-size: 0.9375rem;
     cursor: pointer;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
+
 .btn-add:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
 }
 
-/* Board View */
-.budget-board {
-    padding: 24px;
-    overflow-x: auto;
+.btn-add:active {
+    transform: translateY(0);
 }
 
-.board-controls {
+/* Templates Section */
+.templates-section {
+    background: var(--bw-slate-50);
+    margin: 0 -1.5rem -1.5rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--bw-slate-200);
+}
+
+.templates-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--bw-slate-600);
+    margin-bottom: 0.75rem;
     display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.templates-title i {
+    color: var(--bw-warning);
+}
+
+.template-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 1.5px solid var(--bw-slate-200);
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.template-btn:hover {
+    border-color: var(--bw-primary);
+    background: #eef2ff;
+}
+
+.template-btn:last-child {
+    margin-bottom: 0;
+}
+
+.template-btn .template-icon {
+    font-size: 1.25rem;
+}
+
+.template-btn .template-text {
+    flex: 1;
+}
+
+.template-btn .template-text span {
+    display: block;
+    font-weight: 500;
+    color: var(--bw-slate-700);
+    font-size: 0.875rem;
+}
+
+.template-btn .template-text small {
+    font-size: 0.75rem;
+    color: var(--bw-slate-500);
+}
+
+/* ===== BOARD ===== */
+.budget-board {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.board-header {
+    background: var(--bw-slate-50);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--bw-slate-200);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     flex-wrap: wrap;
 }
-.board-controls input {
-    padding: 10px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    min-width: 250px;
-}
-.view-toggle {
-    display: flex;
-    background: #f1f5f9;
-    border-radius: 10px;
-    padding: 4px;
-}
-.view-toggle button {
-    padding: 8px 16px;
-    border: none;
-    background: transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    color: #64748b;
-}
-.view-toggle button.active {
-    background: white;
-    color: var(--wizard-primary);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+.search-box {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
 }
 
-/* Cards Grid */
+.search-box input {
+    width: 100%;
+    padding: 0.625rem 1rem 0.625rem 2.5rem;
+    border: 1.5px solid var(--bw-slate-200);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.search-box input:focus {
+    border-color: var(--bw-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-box i {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--bw-slate-400);
+}
+
+.view-toggle {
+    display: flex;
+    background: white;
+    border: 1.5px solid var(--bw-slate-200);
+    border-radius: 10px;
+    padding: 3px;
+}
+
+.view-toggle button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--bw-slate-500);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.view-toggle button.active {
+    background: var(--bw-primary);
+    color: white;
+}
+
+.view-toggle button:hover:not(.active) {
+    background: var(--bw-slate-100);
+}
+
+.btn-export {
+    padding: 0.625rem 1.25rem;
+    background: var(--bw-success);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-export:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.board-body {
+    padding: 1.5rem;
+}
+
+/* ===== CARDS GRID ===== */
 .budget-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
+    gap: 1rem;
+}
+
+.budget-cards.hidden {
+    display: none;
 }
 
 .budget-card {
     background: white;
+    border: 1.5px solid var(--bw-slate-200);
     border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     overflow: hidden;
-    transition: all 0.2s;
-    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
 }
+
+.budget-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--bw-primary);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
 .budget-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+    border-color: var(--bw-primary);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.12);
+    transform: translateY(-2px);
+}
+
+.budget-card:hover::before {
+    opacity: 1;
 }
 
 .card-header {
-    padding: 16px;
-    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-    border-bottom: 1px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, var(--bw-slate-50) 0%, white 100%);
+    border-bottom: 1px solid var(--bw-slate-100);
 }
+
 .card-code {
-    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     font-weight: 700;
-    color: var(--wizard-primary);
-    background: rgba(99, 102, 241, 0.1);
-    padding: 4px 10px;
-    border-radius: 6px;
+    color: var(--bw-primary);
+    font-size: 0.9375rem;
+    background: #eef2ff;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
 }
+
 .card-actions {
     display: flex;
-    gap: 4px;
+    gap: 0.25rem;
+    opacity: 0;
+    transform: translateX(8px);
+    transition: all 0.2s ease;
 }
+
+.budget-card:hover .card-actions {
+    opacity: 1;
+    transform: translateX(0);
+}
+
 .card-actions button {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: none;
-    background: transparent;
-    border-radius: 6px;
+    background: white;
+    border-radius: 8px;
     cursor: pointer;
-    color: #94a3b8;
-    transition: all 0.2s;
+    color: var(--bw-slate-400);
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
 .card-actions button:hover {
-    background: #e2e8f0;
-    color: #475569;
+    background: var(--bw-slate-100);
+    color: var(--bw-slate-600);
 }
+
 .card-actions button.delete:hover {
     background: #fee2e2;
     color: #dc2626;
 }
 
 .card-body {
-    padding: 16px;
+    padding: 1.25rem;
 }
+
 .card-title {
-    font-size: 1rem;
     font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 8px;
-    line-height: 1.3;
+    font-size: 1rem;
+    color: var(--bw-slate-800);
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
 }
+
 .card-desc {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 12px;
+    font-size: 0.8125rem;
+    color: var(--bw-slate-500);
+    margin-bottom: 1rem;
+    line-height: 1.5;
 }
 
 .card-amounts {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 0.75rem;
 }
-.amount-item {
-    background: #f8fafc;
-    padding: 10px;
-    border-radius: 8px;
+
+.amount-box {
     text-align: center;
+    padding: 0.875rem;
+    background: var(--bw-slate-50);
+    border-radius: 12px;
+    border: 1px solid var(--bw-slate-100);
 }
+
+.amount-box.primary {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border-color: #c7d2fe;
+}
+
 .amount-value {
-    font-size: 1.1rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--bw-slate-800);
+    font-size: 1.0625rem;
+    font-family: 'Inter', system-ui, sans-serif;
 }
+
+.amount-box.primary .amount-value {
+    color: var(--bw-primary-dark);
+}
+
 .amount-label {
-    font-size: 0.7rem;
-    color: #94a3b8;
+    font-size: 0.6875rem;
+    color: var(--bw-slate-500);
     text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.125rem;
 }
 
-.card-progress {
-    margin-top: 12px;
-}
-.progress-bar {
-    height: 6px;
-    background: #e2e8f0;
-    border-radius: 3px;
-    overflow: hidden;
-}
-.progress-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.3s;
-}
-.progress-fill.good { background: var(--wizard-success); }
-.progress-fill.warning { background: var(--wizard-warning); }
-.progress-fill.danger { background: var(--wizard-danger); }
-.progress-label {
+.card-footer {
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    background: var(--bw-slate-50);
+    border-top: 1px solid var(--bw-slate-100);
     font-size: 0.75rem;
-    color: #64748b;
-    margin-top: 4px;
+    color: var(--bw-slate-500);
 }
 
-/* Table View */
+.card-footer i {
+    margin-right: 0.25rem;
+}
+
+.allowance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: 6px;
+}
+
+/* ===== TABLE VIEW ===== */
 .budget-table {
     display: none;
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow-x: auto;
 }
-.budget-table.active { display: block; }
-.budget-cards.hidden { display: none; }
+
+.budget-table.active {
+    display: block;
+}
 
 .budget-table table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
 }
-.budget-table th {
-    background: #f8fafc;
-    padding: 14px 16px;
-    text-align: left;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #e2e8f0;
-}
-.budget-table th.number { text-align: right; }
-.budget-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    font-size: 0.95rem;
-}
-.budget-table td.number { 
-    text-align: right;
-    font-family: 'SF Mono', monospace;
-    font-weight: 500;
-}
-.budget-table tr:hover { background: #f8fafc; }
 
-/* Empty State */
+.budget-table th {
+    text-align: left;
+    padding: 0.875rem 1rem;
+    background: var(--bw-slate-50);
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--bw-slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--bw-slate-200);
+    position: sticky;
+    top: 0;
+}
+
+.budget-table th.number {
+    text-align: right;
+}
+
+.budget-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--bw-slate-100);
+    vertical-align: middle;
+}
+
+.budget-table td.number {
+    text-align: right;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 0.8125rem;
+}
+
+.budget-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.budget-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.code-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #eef2ff;
+    color: var(--bw-primary-dark);
+    font-weight: 700;
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+}
+
+.table-desc {
+    font-weight: 500;
+    color: var(--bw-slate-700);
+}
+
+.table-subdesc {
+    font-size: 0.75rem;
+    color: var(--bw-slate-500);
+    margin-top: 0.125rem;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: flex-end;
+}
+
+.table-actions button {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--bw-slate-400);
+    transition: all 0.15s ease;
+}
+
+.table-actions button:hover {
+    background: var(--bw-slate-100);
+    color: var(--bw-slate-600);
+}
+
+.table-actions button.delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.budget-table tfoot {
+    background: linear-gradient(135deg, var(--bw-slate-100) 0%, var(--bw-slate-50) 100%);
+}
+
+.budget-table tfoot td {
+    padding: 1rem;
+    font-weight: 700;
+    border-top: 2px solid var(--bw-slate-200);
+    border-bottom: none;
+}
+
+/* ===== EMPTY STATE ===== */
 .empty-state {
     text-align: center;
-    padding: 60px 20px;
-    color: #94a3b8;
+    padding: 4rem 2rem;
+    grid-column: 1 / -1;
 }
-.empty-state i {
-    font-size: 4rem;
-    margin-bottom: 16px;
-    opacity: 0.5;
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--bw-slate-100) 0%, var(--bw-slate-50) 100%);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2.5rem;
+    color: var(--bw-slate-400);
 }
+
 .empty-state h3 {
-    color: #64748b;
-    margin-bottom: 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--bw-slate-700);
+    margin-bottom: 0.5rem;
 }
+
 .empty-state p {
+    color: var(--bw-slate-500);
     max-width: 400px;
     margin: 0 auto;
+    line-height: 1.6;
 }
 
-/* Quick Add Row */
-.quick-add-row {
-    background: #fffbeb;
-    border: 2px dashed #fbbf24;
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 16px;
-}
-.quick-add-row input, .quick-add-row select {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-}
-.quick-add-row button {
-    padding: 10px 20px;
-    background: var(--wizard-warning);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-/* Modal */
+/* ===== MODAL ===== */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
-    display: none;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s ease;
     z-index: 1000;
+    padding: 1rem;
 }
-.modal-overlay.show { display: flex; }
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
 .modal-box {
     background: white;
     border-radius: 20px;
-    max-width: 500px;
-    width: 90%;
+    width: 100%;
+    max-width: 520px;
     max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    overflow: hidden;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.25s ease;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
+
+.modal-overlay.show .modal-box {
+    transform: translateY(0) scale(1);
+}
+
 .modal-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, var(--bw-slate-800) 0%, var(--bw-slate-700) 100%);
+    color: white;
 }
+
 .modal-header h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.125rem;
+    font-weight: 600;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
+
+.modal-header h3 i {
+    color: #a5b4fc;
+}
+
 .modal-close {
     width: 36px;
     height: 36px;
-    border: none;
-    background: #f1f5f9;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.2rem;
-    color: #64748b;
-}
-.modal-body { padding: 24px; }
-.modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid #e2e8f0;
     display: flex;
-    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: white;
+    transition: all 0.15s ease;
+}
+
+.modal-close:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    display: flex;
     justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--bw-slate-200);
+    background: var(--bw-slate-50);
 }
+
 .btn-cancel {
-    padding: 12px 24px;
-    background: #f1f5f9;
-    color: #475569;
-    border: none;
+    padding: 0.625rem 1.25rem;
+    border: 1.5px solid var(--bw-slate-300);
+    background: white;
     border-radius: 10px;
-    font-weight: 600;
     cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--bw-slate-600);
+    transition: all 0.15s ease;
 }
+
+.btn-cancel:hover {
+    background: var(--bw-slate-50);
+    border-color: var(--bw-slate-400);
+}
+
 .btn-save {
-    padding: 12px 24px;
-    background: var(--wizard-primary);
-    color: white;
+    padding: 0.625rem 1.5rem;
     border: none;
+    background: linear-gradient(135deg, var(--bw-primary) 0%, var(--bw-primary-dark) 100%);
+    color: white;
     border-radius: 10px;
-    font-weight: 600;
     cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
+
+.btn-save:hover {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+}
+
 .btn-delete {
-    padding: 12px 24px;
-    background: var(--wizard-danger);
-    color: white;
+    padding: 0.625rem 1.25rem;
     border: none;
+    background: #fee2e2;
+    color: #dc2626;
     border-radius: 10px;
-    font-weight: 600;
     cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
     margin-right: auto;
+    transition: all 0.15s ease;
+}
+
+.btn-delete:hover {
+    background: #fecaca;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .stats-bar {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .stat-card {
+        min-width: 160px;
+        flex: 1;
+    }
+}
+
+@media (max-width: 1024px) {
+    .wizard-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .wizard-sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .wizard-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .stats-bar {
+        padding: 1rem;
+    }
+    
+    .stat-card {
+        min-width: 140px;
+        padding: 0.75rem 1rem;
+    }
+    
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.125rem;
+    }
+    
+    .wizard-content {
+        padding: 1rem;
+    }
+    
+    .board-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .budget-cards {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 {% endblock %}
-
-{% block page_header %}{% endblock %}
 
 {% block content %}
 <div class="budget-wizard">
     <!-- Header -->
     <div class="wizard-header">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-            <div class="flex items-center gap-4">
-                <a href="{% url 'project_overview' project.id %}" class="text-slate-400 hover:text-slate-600 transition">
-                    <i class="bi bi-arrow-left text-xl"></i>
+        <div class="wizard-header-content">
+            <div class="header-left">
+                <a href="{% url 'project_overview' project.id %}" class="back-btn">
+                    <i class="bi bi-arrow-left"></i>
                 </a>
-                <div>
-                    <h1>💰 {% trans "Budget Planner" %}</h1>
-                    <p class="text-sm text-slate-500 mt-1">{% trans "Manage phases and cost codes" %}</p>
+                <div class="header-icon">
+                    <i class="bi bi-calculator"></i>
+                </div>
+                <div class="header-titles">
+                    <h1>{% trans "Budget Planner" %}</h1>
+                    <p>{% trans "Manage phases and cost codes" %}</p>
                 </div>
             </div>
-            <span class="project-badge">{{ project.name }}</span>
+            <div class="project-badge">
+                <i class="bi bi-building"></i>
+                {{ project.name }}
+            </div>
         </div>
     </div>
 
     <!-- Stats Bar -->
     <div class="stats-bar">
-        <div class="stat-item highlight">
-            <div class="stat-value">${{ total_baseline|floatformat:0|default:"0" }}</div>
-            <div class="stat-label">{% trans "Original Budget" %}</div>
+        <div class="stat-card highlight">
+            <div class="stat-icon">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">${{ total_baseline|floatformat:0|default:"0" }}</div>
+                <div class="stat-label">{% trans "Original Budget" %}</div>
+            </div>
         </div>
-        <div class="stat-item">
-            <div class="stat-value">${{ total_revised|floatformat:0|default:"0" }}</div>
-            <div class="stat-label">{% trans "Revised Budget" %}</div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-arrow-repeat"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">${{ total_revised|floatformat:0|default:"0" }}</div>
+                <div class="stat-label">{% trans "Revised Budget" %}</div>
+            </div>
         </div>
-        <div class="stat-item">
-            <div class="stat-value">${{ total_spent|floatformat:0|default:"0" }}</div>
-            <div class="stat-label">{% trans "Spent to Date" %}</div>
+        <div class="stat-card success">
+            <div class="stat-icon">
+                <i class="bi bi-credit-card-2-back"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">${{ total_spent|floatformat:0|default:"0" }}</div>
+                <div class="stat-label">{% trans "Spent to Date" %}</div>
+            </div>
         </div>
-        <div class="stat-item">
-            <div class="stat-value">{{ lines_count }}</div>
-            <div class="stat-label">{% trans "Budget Lines" %}</div>
+        <div class="stat-card warning">
+            <div class="stat-icon">
+                <i class="bi bi-list-ul"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">{{ lines_count }}</div>
+                <div class="stat-label">{% trans "Budget Lines" %}</div>
+            </div>
         </div>
     </div>
 
@@ -528,103 +1185,134 @@
     <div class="wizard-content">
         <!-- Sidebar Form -->
         <div class="wizard-sidebar">
-            <div class="sidebar-title">
-                <i class="bi bi-plus-circle-fill"></i>
-                {% trans "Add Budget Line" %}
+            <div class="sidebar-header">
+                <div class="sidebar-header-title">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    {% trans "Add Budget Line" %}
+                </div>
             </div>
             
-            <form method="post" id="addBudgetForm">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="add">
-                
-                <div class="form-group">
-                    <label>{% trans "Cost Code" %} *</label>
-                    <select name="cost_code" required id="costCodeSelect">
-                        <option value="">{% trans "Select cost code..." %}</option>
-                        {% for cc in cost_codes %}
-                        <option value="{{ cc.id }}" data-name="{{ cc.name }}">{{ cc.code }} - {{ cc.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>{% trans "Description" %}</label>
-                    <input type="text" name="description" placeholder="{% trans 'Phase description...' %}" id="descInput">
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>{% trans "Quantity" %}</label>
-                        <input type="number" name="qty" step="0.01" value="1" min="0">
+            <div class="sidebar-body">
+                <form method="post" id="addBudgetForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add">
+                    
+                    <div class="form-section">
+                        <div class="form-section-title">{% trans "Line Information" %}</div>
+                        
+                        <div class="form-group">
+                            <label>{% trans "Cost Code" %} *</label>
+                            <select name="cost_code" required id="costCodeSelect">
+                                <option value="">{% trans "Select cost code..." %}</option>
+                                {% for cc in cost_codes %}
+                                <option value="{{ cc.id }}" data-name="{{ cc.name }}">{{ cc.code }} - {{ cc.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>{% trans "Description" %}</label>
+                            <input type="text" name="description" placeholder="{% trans 'Phase description...' %}" id="descInput">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>{% trans "Unit" %}</label>
-                        <select name="unit">
-                            <option value="LS">LS (Lump Sum)</option>
-                            <option value="HR">HR (Hours)</option>
-                            <option value="SF">SF (Sq Ft)</option>
-                            <option value="LF">LF (Linear Ft)</option>
-                            <option value="EA">EA (Each)</option>
-                            <option value="GAL">GAL (Gallons)</option>
-                        </select>
+                    
+                    <div class="form-section">
+                        <div class="form-section-title">{% trans "Quantity & Cost" %}</div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>{% trans "Quantity" %}</label>
+                                <input type="number" name="qty" step="0.01" value="1" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Unit" %}</label>
+                                <select name="unit">
+                                    <option value="LS">LS (Lump Sum)</option>
+                                    <option value="HR">HR (Hours)</option>
+                                    <option value="SF">SF (Sq Ft)</option>
+                                    <option value="LF">LF (Linear Ft)</option>
+                                    <option value="EA">EA (Each)</option>
+                                    <option value="GAL">GAL (Gallons)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>{% trans "Unit Cost" %} ($)</label>
+                            <input type="number" name="unit_cost" step="0.01" min="0" placeholder="0.00">
+                        </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>{% trans "Unit Cost" %} ($)</label>
-                    <input type="number" name="unit_cost" step="0.01" min="0" placeholder="0.00">
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>{% trans "Start Date" %}</label>
-                        <input type="date" name="planned_start">
+                    
+                    <div class="form-section">
+                        <div class="form-section-title">{% trans "Schedule" %}</div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>{% trans "Start Date" %}</label>
+                                <input type="date" name="planned_start">
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "End Date" %}</label>
+                                <input type="date" name="planned_finish">
+                            </div>
+                        </div>
                     </div>
+                    
                     <div class="form-group">
-                        <label>{% trans "End Date" %}</label>
-                        <input type="date" name="planned_finish">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" name="allowance" id="allowanceCheck">
+                            <div class="checkbox-label">
+                                <span>{% trans "Mark as Allowance" %}</span>
+                                <small>{% trans "Allowances are estimated amounts subject to change" %}</small>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                    
+                    <button type="submit" class="btn-add">
+                        <i class="bi bi-plus-lg"></i>
+                        {% trans "Add to Budget" %}
+                    </button>
+                </form>
                 
-                <div class="form-group">
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" name="allowance" class="w-4 h-4">
-                        <span>{% trans "Mark as Allowance" %}</span>
-                    </label>
-                    <small class="text-slate-500">{% trans "Allowances are estimated amounts subject to change" %}</small>
+                <!-- Quick Templates -->
+                <div class="templates-section">
+                    <div class="templates-title">
+                        <i class="bi bi-lightning-fill"></i>
+                        {% trans "Quick Templates" %}
+                    </div>
+                    <button type="button" class="template-btn" onclick="loadTemplate('painting')">
+                        <span class="template-icon">🎨</span>
+                        <div class="template-text">
+                            <span>{% trans "Painting Standard Phases" %}</span>
+                            <small>8 {% trans "budget lines" %}</small>
+                        </div>
+                    </button>
+                    <button type="button" class="template-btn" onclick="loadTemplate('drywall')">
+                        <span class="template-icon">🧱</span>
+                        <div class="template-text">
+                            <span>{% trans "Drywall Phases" %}</span>
+                            <small>6 {% trans "budget lines" %}</small>
+                        </div>
+                    </button>
+                    <button type="button" class="template-btn" onclick="loadTemplate('general')">
+                        <span class="template-icon">🏗️</span>
+                        <div class="template-text">
+                            <span>{% trans "General Construction" %}</span>
+                            <small>7 {% trans "budget lines" %}</small>
+                        </div>
+                    </button>
                 </div>
-                
-                <button type="submit" class="btn-add">
-                    <i class="bi bi-plus-lg"></i>
-                    {% trans "Add to Budget" %}
-                </button>
-            </form>
-            
-            <hr class="my-6 border-slate-200">
-            
-            <!-- Quick Templates -->
-            <div class="sidebar-title">
-                <i class="bi bi-lightning-fill"></i>
-                {% trans "Quick Templates" %}
-            </div>
-            <div class="space-y-2">
-                <button type="button" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm transition" onclick="loadTemplate('painting')">
-                    🎨 {% trans "Painting Standard Phases" %}
-                </button>
-                <button type="button" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm transition" onclick="loadTemplate('drywall')">
-                    🧱 {% trans "Drywall Phases" %}
-                </button>
-                <button type="button" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm transition" onclick="loadTemplate('general')">
-                    🏗️ {% trans "General Construction" %}
-                </button>
             </div>
         </div>
 
         <!-- Board -->
         <div class="budget-board">
             <!-- Controls -->
-            <div class="board-controls">
-                <input type="text" placeholder="🔍 {% trans 'Search budget lines...' %}" id="searchInput" onkeyup="filterCards()">
+            <div class="board-header">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="{% trans 'Search budget lines...' %}" id="searchInput" onkeyup="filterCards()">
+                </div>
                 
                 <div class="view-toggle">
                     <button type="button" class="active" onclick="setView('cards')" id="btnCards">
@@ -635,129 +1323,140 @@
                     </button>
                 </div>
                 
-                <button type="button" class="ml-auto px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition" onclick="exportBudget()">
+                <button type="button" class="btn-export" onclick="exportBudget()">
                     <i class="bi bi-download"></i> {% trans "Export" %}
                 </button>
             </div>
 
-            <!-- Cards View -->
-            <div class="budget-cards" id="cardsView">
-                {% if lines %}
-                    {% for line in lines %}
-                    <div class="budget-card" data-id="{{ line.id }}" data-search="{{ line.cost_code.code|lower }} {{ line.cost_code.name|lower }} {{ line.description|lower }}">
-                        <div class="card-header">
-                            <span class="card-code">{{ line.cost_code.code }}</span>
-                            <div class="card-actions">
-                                <button type="button" onclick="editLine({{ line.id }})" title="{% trans 'Edit' %}">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button type="button" class="delete" onclick="deleteLine({{ line.id }})" title="{% trans 'Delete' %}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="card-title">{{ line.cost_code.name }}</div>
-                            {% if line.description %}
-                            <div class="card-desc">{{ line.description|truncatechars:60 }}</div>
-                            {% endif %}
-                            
-                            <div class="card-amounts">
-                                <div class="amount-item">
-                                    <div class="amount-value">${{ line.baseline_amount|floatformat:0 }}</div>
-                                    <div class="amount-label">{% trans "Budget" %}</div>
-                                </div>
-                                <div class="amount-item">
-                                    <div class="amount-value">{{ line.qty|floatformat:1 }} {{ line.unit }}</div>
-                                    <div class="amount-label">{% trans "Quantity" %}</div>
-                                </div>
-                            </div>
-                            
-                            {% if line.planned_start or line.planned_finish %}
-                            <div class="text-xs text-slate-500 flex items-center gap-2">
-                                <i class="bi bi-calendar"></i>
-                                {{ line.planned_start|date:"M d"|default:"?" }} → {{ line.planned_finish|date:"M d"|default:"?" }}
-                            </div>
-                            {% endif %}
-                            
-                            {% if line.allowance %}
-                            <span class="inline-block mt-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
-                                {% trans "Allowance" %}
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state" style="grid-column: 1/-1;">
-                        <i class="bi bi-inbox"></i>
-                        <h3>{% trans "No budget lines yet" %}</h3>
-                        <p>{% trans "Start by adding budget lines using the form on the left, or load a quick template." %}</p>
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Table View -->
-            <div class="budget-table" id="tableView">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>{% trans "Code" %}</th>
-                            <th>{% trans "Description" %}</th>
-                            <th class="number">{% trans "Qty" %}</th>
-                            <th>{% trans "Unit" %}</th>
-                            <th class="number">{% trans "Unit Cost" %}</th>
-                            <th class="number">{% trans "Total" %}</th>
-                            <th class="number">{% trans "Revised" %}</th>
-                            <th>{% trans "Schedule" %}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div class="board-body">
+                <!-- Cards View -->
+                <div class="budget-cards" id="cardsView">
+                    {% if lines %}
                         {% for line in lines %}
-                        <tr data-id="{{ line.id }}">
-                            <td><span class="font-semibold text-indigo-600">{{ line.cost_code.code }}</span></td>
-                            <td>
-                                <div class="font-medium">{{ line.cost_code.name }}</div>
-                                {% if line.description %}<div class="text-sm text-slate-500">{{ line.description }}</div>{% endif %}
-                            </td>
-                            <td class="number">{{ line.qty|floatformat:2 }}</td>
-                            <td>{{ line.unit }}</td>
-                            <td class="number">${{ line.unit_cost|floatformat:2 }}</td>
-                            <td class="number font-semibold">${{ line.baseline_amount|floatformat:2 }}</td>
-                            <td class="number">${{ line.revised_amount|floatformat:2 }}</td>
-                            <td class="text-sm text-slate-500">
-                                {% if line.planned_start %}{{ line.planned_start|date:"m/d" }}{% endif %}
-                                {% if line.planned_finish %} - {{ line.planned_finish|date:"m/d" }}{% endif %}
-                            </td>
-                            <td>
-                                <div class="flex gap-1">
-                                    <button onclick="editLine({{ line.id }})" class="p-1 hover:bg-slate-100 rounded">
-                                        <i class="bi bi-pencil text-slate-400"></i>
+                        <div class="budget-card" data-id="{{ line.id }}" data-search="{{ line.cost_code.code|lower }} {{ line.cost_code.name|lower }} {{ line.description|lower }}">
+                            <div class="card-header">
+                                <span class="card-code">{{ line.cost_code.code }}</span>
+                                <div class="card-actions">
+                                    <button type="button" onclick="editLine({{ line.id }})" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button onclick="deleteLine({{ line.id }})" class="p-1 hover:bg-red-50 rounded">
-                                        <i class="bi bi-trash text-slate-400 hover:text-red-500"></i>
+                                    <button type="button" class="delete" onclick="deleteLine({{ line.id }})" title="{% trans 'Delete' %}">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="9" class="text-center py-8 text-slate-400">
-                                {% trans "No budget lines defined" %}
-                            </td>
-                        </tr>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">{{ line.cost_code.name }}</div>
+                                {% if line.description %}
+                                <div class="card-desc">{{ line.description|truncatechars:60 }}</div>
+                                {% endif %}
+                                
+                                <div class="card-amounts">
+                                    <div class="amount-box primary">
+                                        <div class="amount-value">${{ line.baseline_amount|floatformat:0 }}</div>
+                                        <div class="amount-label">{% trans "Budget" %}</div>
+                                    </div>
+                                    <div class="amount-box">
+                                        <div class="amount-value">{{ line.qty|floatformat:1 }} {{ line.unit }}</div>
+                                        <div class="amount-label">{% trans "Quantity" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if line.planned_start or line.planned_finish or line.allowance %}
+                            <div class="card-footer">
+                                {% if line.planned_start or line.planned_finish %}
+                                <span>
+                                    <i class="bi bi-calendar3"></i>
+                                    {{ line.planned_start|date:"M d"|default:"?" }} → {{ line.planned_finish|date:"M d"|default:"?" }}
+                                </span>
+                                {% else %}
+                                <span></span>
+                                {% endif %}
+                                
+                                {% if line.allowance %}
+                                <span class="allowance-badge">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                    {% trans "Allowance" %}
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
                         {% endfor %}
-                    </tbody>
-                    <tfoot class="bg-slate-50 font-semibold">
-                        <tr>
-                            <td colspan="5" class="text-right">{% trans "TOTAL" %}:</td>
-                            <td class="number">${{ total_baseline|floatformat:2 }}</td>
-                            <td class="number">${{ total_revised|floatformat:2 }}</td>
-                            <td colspan="2"></td>
-                        </tr>
-                    </tfoot>
-                </table>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="bi bi-inbox"></i>
+                            </div>
+                            <h3>{% trans "No budget lines yet" %}</h3>
+                            <p>{% trans "Start by adding budget lines using the form on the left, or load a quick template." %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Table View -->
+                <div class="budget-table" id="tableView">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>{% trans "Code" %}</th>
+                                <th>{% trans "Description" %}</th>
+                                <th class="number">{% trans "Qty" %}</th>
+                                <th>{% trans "Unit" %}</th>
+                                <th class="number">{% trans "Unit Cost" %}</th>
+                                <th class="number">{% trans "Total" %}</th>
+                                <th class="number">{% trans "Revised" %}</th>
+                                <th>{% trans "Schedule" %}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in lines %}
+                            <tr data-id="{{ line.id }}">
+                                <td><span class="code-badge">{{ line.cost_code.code }}</span></td>
+                                <td>
+                                    <div class="table-desc">{{ line.cost_code.name }}</div>
+                                    {% if line.description %}<div class="table-subdesc">{{ line.description }}</div>{% endif %}
+                                </td>
+                                <td class="number">{{ line.qty|floatformat:2 }}</td>
+                                <td>{{ line.unit }}</td>
+                                <td class="number">${{ line.unit_cost|floatformat:2 }}</td>
+                                <td class="number" style="font-weight: 600;">${{ line.baseline_amount|floatformat:2 }}</td>
+                                <td class="number">${{ line.revised_amount|floatformat:2 }}</td>
+                                <td style="font-size: 0.8125rem; color: var(--bw-slate-500);">
+                                    {% if line.planned_start %}{{ line.planned_start|date:"m/d" }}{% endif %}
+                                    {% if line.planned_finish %} - {{ line.planned_finish|date:"m/d" }}{% endif %}
+                                </td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button onclick="editLine({{ line.id }})" title="{% trans 'Edit' %}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="delete" onclick="deleteLine({{ line.id }})" title="{% trans 'Delete' %}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 3rem; color: var(--bw-slate-400);">
+                                    {% trans "No budget lines defined" %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" style="text-align: right;">{% trans "TOTAL" %}:</td>
+                                <td class="number">${{ total_baseline|floatformat:2 }}</td>
+                                <td class="number">${{ total_revised|floatformat:2 }}</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -767,7 +1466,7 @@
 <div class="modal-overlay" id="editModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3>{% trans "Edit Budget Line" %}</h3>
+            <h3><i class="bi bi-pencil-square"></i> {% trans "Edit Budget Line" %}</h3>
             <button class="modal-close" onclick="closeModal()">&times;</button>
         </div>
         <form method="post" id="editForm">
