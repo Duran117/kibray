@@ -347,160 +347,81 @@
                 </div>
             </div>
             
-            <!-- Contract Breakdown: Quoted vs CO vs Billed -->
+            <!-- Financial Summary (Mini) -->
             <div class="section-card" id="financials">
-                <div class="card-header">
-                    <i class="fas fa-file-contract me-2"></i>{% trans "Contract Breakdown" %}
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-chart-pie me-2"></i>{% trans "Financial Summary" %}</span>
+                    <a href="{% url 'client_financials' project.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-1"></i>{% trans "View Details" %}
+                    </a>
                 </div>
-                <div class="card-body p-0">
-                    <!-- Visual Progress Bar -->
-                    <div class="p-3 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="card-body">
+                    <!-- Quick Stats -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #667eea15, #764ba215);">
+                                <div class="fs-5 fw-bold text-primary">{{ total_contract_value|default:0|currency }}</div>
+                                <small class="text-muted">{% trans "Contract Value" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #28a74515, #20c99715);">
+                                <div class="fs-5 fw-bold text-success">{{ total_paid|default:0|currency }}</div>
+                                <small class="text-muted">{% trans "Total Paid" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
                             <small class="text-muted">{% trans "Payment Progress" %}</small>
                             <small class="fw-bold">
                                 {% widthratio total_paid total_contract_value 100 as paid_pct %}
-                                {{ paid_pct|default:0 }}% {% trans "Paid" %}
+                                {{ paid_pct|default:0 }}%
                             </small>
                         </div>
-                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div class="progress" style="height: 8px; border-radius: 4px;">
                             {% if total_contract_value > 0 %}
                             <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: {% widthratio total_paid total_contract_value 100 %}%;" 
-                                 title="{% trans 'Paid' %}"></div>
-                            <div class="progress-bar bg-info" role="progressbar" 
-                                 style="width: {% widthratio total_invoiced|add:total_paid|add:0 total_contract_value 100 %}%;"
-                                 title="{% trans 'Invoiced (Unpaid)' %}"></div>
+                                 style="width: {% widthratio total_paid total_contract_value 100 %}%;"></div>
                             {% else %}
                             <div class="progress-bar bg-secondary" style="width: 100%"></div>
                             {% endif %}
                         </div>
-                        <div class="d-flex justify-content-between mt-1">
-                            <small class="text-success">■ {% trans "Paid" %}</small>
-                            <small class="text-info">■ {% trans "Invoiced" %}</small>
-                            <small class="text-secondary">■ {% trans "Remaining" %}</small>
-                        </div>
                     </div>
                     
-                    <!-- Base Contract -->
-                    <div class="p-3 border-bottom bg-light">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-file-alt text-primary me-2"></i>
-                                <strong>{% trans "Base Contract" %}</strong>
-                                {% if latest_estimate %}
-                                <span class="badge bg-primary ms-2">v{{ latest_estimate.version }}</span>
-                                {% endif %}
-                            </div>
-                            <span class="fw-bold text-primary">{{ base_contract_total|default:0|currency }}</span>
-                        </div>
-                        {% if latest_estimate %}
-                        <small class="text-muted d-block mt-1">
-                            <i class="fas fa-check-circle text-success me-1"></i>{% trans "Approved Estimate" %}
-                        </small>
-                        {% else %}
-                        <small class="text-muted d-block mt-1">
-                            <i class="fas fa-info-circle me-1"></i>{% trans "No approved estimate yet" %}
-                        </small>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Approved Change Orders -->
-                    <div class="p-3 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-plus-circle text-success me-2"></i>
-                                <strong>{% trans "Approved Change Orders" %}</strong>
-                                {% if approved_cos %}
-                                <span class="badge bg-success ms-2">{{ approved_cos|length }}</span>
-                                {% endif %}
-                            </div>
-                            <span class="fw-bold text-success">+{{ approved_cos_total|default:0|currency }}</span>
-                        </div>
+                    <!-- Quick Info -->
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>
+                            <i class="fas fa-file-alt me-1"></i>{% trans "Base" %}: {{ base_contract_total|default:0|currency }}
+                        </span>
                         {% if approved_cos %}
-                        <div class="mt-2">
-                            {% for co in approved_cos|slice:":3" %}
-                            <a href="{% url 'changeorder_detail' co.id %}" class="d-block small text-decoration-none py-1">
-                                <span class="text-muted">#{{ co.id }}</span> {{ co.description|truncatewords:6 }}
-                                <span class="float-end">{{ co.amount|currency }}</span>
-                            </a>
-                            {% endfor %}
-                            {% if approved_cos|length > 3 %}
-                            <small class="text-muted">+{{ approved_cos|length|add:"-3" }} {% trans "more" %}...</small>
-                            {% endif %}
-                        </div>
+                        <span>
+                            <i class="fas fa-plus-circle me-1 text-success"></i>{% trans "COs" %}: +{{ approved_cos_total|default:0|currency }}
+                        </span>
                         {% endif %}
                     </div>
                     
-                    <!-- Pending Change Orders -->
-                    {% if pending_cos %}
-                    <div class="p-3 border-bottom" style="background: #fff9e6;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-clock text-warning me-2"></i>
-                                <strong>{% trans "Pending Approval" %}</strong>
-                                <span class="badge bg-warning text-dark ms-2">{{ pending_cos|length }}</span>
-                            </div>
-                            <span class="fw-bold text-warning">{{ pending_cos_total|default:0|currency }}</span>
-                        </div>
-                        <div class="mt-2">
-                            {% for co in pending_cos|slice:":2" %}
-                            <a href="{% url 'changeorder_detail' co.id %}" class="d-block small text-decoration-none py-1">
-                                <span class="text-muted">#{{ co.id }}</span> {{ co.description|truncatewords:6 }}
-                                <span class="float-end">{{ co.amount|currency }}</span>
-                            </a>
-                            {% endfor %}
-                        </div>
-                        <small class="text-warning d-block mt-1">
-                            <i class="fas fa-pen me-1"></i>{% trans "Awaiting your signature" %}
+                    {% if balance > 0 %}
+                    <div class="mt-3 p-2 bg-warning bg-opacity-10 rounded text-center">
+                        <small class="text-warning fw-bold">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            {% trans "Balance Due" %}: {{ balance|currency }}
                         </small>
                     </div>
                     {% endif %}
                     
-                    <!-- Total Contract Value -->
-                    <div class="p-3 bg-dark text-white">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong>{% trans "Total Contract Value" %}</strong>
-                            <span class="fs-5 fw-bold">{{ total_contract_value|default:0|currency }}</span>
-                        </div>
-                        <small class="text-white-50">{% trans "Base Contract + Approved COs" %}</small>
+                    {% if pending_cos %}
+                    <div class="mt-2 p-2 bg-info bg-opacity-10 rounded text-center">
+                        <small class="text-info">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ pending_cos|length }} {% trans "Change Order(s) pending approval" %}
+                        </small>
                     </div>
+                    {% endif %}
                 </div>
             </div>
-            
-            <!-- Invoice Summary -->
-            {% if invoices %}
-            <div class="section-card">
-                <div class="card-header">
-                    <i class="fas fa-file-invoice-dollar me-2"></i>{% trans "Invoice Summary" %}
-                </div>
-                <div class="card-body">
-                    <div class="financial-row">
-                        <span>{% trans "Total Invoiced" %}</span>
-                        <span>{{ total_invoiced|currency }}</span>
-                    </div>
-                    <div class="financial-row">
-                        <span>{% trans "Total Paid" %}</span>
-                        <span class="text-success">{{ total_paid|currency }}</span>
-                    </div>
-                    <div class="financial-row">
-                        <span>{% trans "Balance Due" %}</span>
-                        <span class="{% if balance > 0 %}text-danger{% else %}text-success{% endif %}">{{ balance|currency }}</span>
-                    </div>
-                    
-                    <hr>
-                    <h6 class="mb-2">{% trans "Recent Invoices" %}</h6>
-                    {% for inv in invoices|slice:":3" %}
-                    <div class="d-flex justify-content-between small py-1">
-                        <span>{{ inv.invoice_number|default:inv.id }}</span>
-                        <span>{{ inv.total_amount|currency }}</span>
-                        <span class="badge {% if inv.status == 'PAID' %}bg-success{% elif inv.status == 'SENT' %}bg-info{% else %}bg-secondary{% endif %}">
-                            {{ inv.get_status_display|default:inv.status }}
-                        </span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
             
             <!-- Color Samples -->
             {% if color_samples %}

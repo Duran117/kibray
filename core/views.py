@@ -1778,6 +1778,182 @@ def client_project_view(request, project_id):
     return render(request, "core/client_project_view.html", context)
 
 
+# --- CLIENT FINANCIALS (Dedicated Financial Dashboard) ---
+def client_financials_view(request, project_id):
+    """
+    Dedicated financial dashboard for clients.
+    Shows detailed breakdown of contract, change orders, invoices, and payments.
+    """
+    project = get_object_or_404(Project, id=project_id)
+
+    # Verificar acceso (same logic as client_project_view)
+    profile = getattr(request.user, "profile", None)
+    from core.models import ClientProjectAccess
+
+    has_explicit_access = ClientProjectAccess.objects.filter(
+        user=request.user, project=project
+    ).exists()
+    
+    is_project_client = False
+    if project.client and hasattr(project.client, 'user'):
+        is_project_client = project.client.user == request.user
+    
+    if profile and profile.role == "client":
+        if not (has_explicit_access or is_project_client):
+            messages.error(request, "No tienes acceso a este proyecto.")
+            return redirect("dashboard_client")
+    else:
+        if not (request.user.is_staff or has_explicit_access):
+            messages.error(request, "Acceso denegado.")
+            return redirect("dashboard")
+
+    # === ESTIMATE (Base Contract) ===
+    latest_estimate = project.estimates.filter(approved=True).order_by("-version").first()
+    base_contract_total = Decimal("0")
+    estimate_lines_data = []
+    
+    if latest_estimate:
+        from core.models import InvoiceLineEstimate
+        from django.db.models import Sum as DJSum
+        
+        # Get already billed percentages per line
+        billed_map = (
+            InvoiceLineEstimate.objects.filter(estimate_line__estimate=latest_estimate)
+            .values("estimate_line_id")
+            .annotate(total_pct=DJSum("percentage_billed"))
+        )
+        billed_lookup = {row["estimate_line_id"]: (row["total_pct"] or 0) for row in billed_map}
+        
+        for line in latest_estimate.lines.select_related("cost_code").all():
+            direct_cost = line.direct_cost() or Decimal("0")
+            already_pct = billed_lookup.get(line.id, 0)
+            remaining_pct = max(0, 100 - float(already_pct or 0))
+            estimate_lines_data.append({
+                "id": line.id,
+                "code": line.cost_code.code,
+                "description": line.description or line.cost_code.name,
+                "direct_cost": direct_cost,
+                "already_pct": float(already_pct or 0),
+                "remaining_pct": remaining_pct,
+            })
+        
+        # Calculate total with markups
+        direct_cost_total = sum((line.direct_cost() or Decimal("0")) for line in latest_estimate.lines.all())
+        markup_pct = (
+            (latest_estimate.markup_material or Decimal("0"))
+            + (latest_estimate.markup_labor or Decimal("0"))
+            + (latest_estimate.overhead_pct or Decimal("0"))
+            + (latest_estimate.target_profit_pct or Decimal("0"))
+        )
+        base_contract_total = direct_cost_total * (1 + markup_pct / Decimal("100"))
+
+    # === CHANGE ORDERS ===
+    change_orders_qs = project.change_orders.all().order_by("-date_created")
+    
+    # Group by status
+    cos_by_status = {
+        "draft": change_orders_qs.filter(status="draft"),
+        "pending": change_orders_qs.filter(status="pending"),
+        "approved": change_orders_qs.filter(status="approved"),
+        "sent": change_orders_qs.filter(status="sent"),
+        "billed": change_orders_qs.filter(status="billed"),
+        "paid": change_orders_qs.filter(status="paid"),
+    }
+    
+    approved_cos = change_orders_qs.filter(status__in=["approved", "sent"])
+    pending_cos = change_orders_qs.filter(status__in=["pending", "draft"])
+    billed_cos = change_orders_qs.filter(status__in=["billed", "paid"])
+    
+    approved_cos_total = sum((co.amount or Decimal("0")) for co in approved_cos)
+    pending_cos_total = sum((co.amount or Decimal("0")) for co in pending_cos)
+    billed_cos_total = sum((co.amount or Decimal("0")) for co in billed_cos)
+    all_cos_total = sum((co.amount or Decimal("0")) for co in change_orders_qs)
+
+    # === INVOICES ===
+    invoices = project.invoices.all().order_by("-date_issued")
+    total_invoiced = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
+    total_paid = invoices.aggregate(paid=Sum("amount_paid"))["paid"] or Decimal("0")
+    balance = total_invoiced - total_paid
+    
+    # Invoice breakdown by status
+    invoices_by_status = {
+        "draft": invoices.filter(status="DRAFT"),
+        "sent": invoices.filter(status="SENT"),
+        "viewed": invoices.filter(status="VIEWED"),
+        "approved": invoices.filter(status="APPROVED"),
+        "partial": invoices.filter(status="PARTIAL"),
+        "paid": invoices.filter(status="PAID"),
+        "overdue": invoices.filter(status="OVERDUE"),
+    }
+
+    # === PAYMENTS ===
+    from core.models import InvoicePayment
+    payments = InvoicePayment.objects.filter(invoice__project=project).order_by("-payment_date")[:10]
+
+    # === TOTALS & CHART DATA ===
+    total_contract_value = base_contract_total + approved_cos_total
+    
+    # Pie chart data: Contract breakdown
+    contract_breakdown_chart = {
+        "labels": ["Base Contract", "Approved COs", "Pending COs"],
+        "data": [
+            float(base_contract_total),
+            float(approved_cos_total),
+            float(pending_cos_total),
+        ],
+        "colors": ["#6366f1", "#22c55e", "#f59e0b"],
+    }
+    
+    # Bar chart data: Payment status
+    payment_status_chart = {
+        "labels": ["Paid", "Invoiced (Unpaid)", "Not Yet Invoiced"],
+        "data": [
+            float(total_paid),
+            float(balance),
+            float(max(Decimal("0"), total_contract_value - total_invoiced)),
+        ],
+        "colors": ["#22c55e", "#3b82f6", "#94a3b8"],
+    }
+    
+    # Calculate percentages for progress display
+    paid_pct = (total_paid / total_contract_value * 100) if total_contract_value > 0 else 0
+    invoiced_pct = (total_invoiced / total_contract_value * 100) if total_contract_value > 0 else 0
+    
+    context = {
+        "project": project,
+        # Estimate
+        "latest_estimate": latest_estimate,
+        "estimate_lines_data": estimate_lines_data,
+        "base_contract_total": base_contract_total,
+        # Change Orders
+        "change_orders": change_orders_qs,
+        "cos_by_status": cos_by_status,
+        "approved_cos": approved_cos,
+        "pending_cos": pending_cos,
+        "billed_cos": billed_cos,
+        "approved_cos_total": approved_cos_total,
+        "pending_cos_total": pending_cos_total,
+        "billed_cos_total": billed_cos_total,
+        "all_cos_total": all_cos_total,
+        # Invoices
+        "invoices": invoices,
+        "invoices_by_status": invoices_by_status,
+        "total_invoiced": total_invoiced,
+        "total_paid": total_paid,
+        "balance": balance,
+        # Payments
+        "recent_payments": payments,
+        # Totals
+        "total_contract_value": total_contract_value,
+        "paid_pct": paid_pct,
+        "invoiced_pct": invoiced_pct,
+        # Chart data (JSON for JavaScript)
+        "contract_breakdown_chart": contract_breakdown_chart,
+        "payment_status_chart": payment_status_chart,
+    }
+    return render(request, "core/client_financials.html", context)
+
+
 # --- COLOR SAMPLES ---
 @login_required
 def color_sample_list(request, project_id):

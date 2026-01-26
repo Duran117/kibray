@@ -1933,6 +1933,32 @@ def client_project_view(request, project_id):
     total_invoiced = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
     total_paid = invoices.aggregate(paid=Sum("amount_paid"))["paid"] or Decimal("0")
 
+    # === CONTRACT & CHANGE ORDERS ===
+    from core.models import ChangeOrder, Estimate
+    
+    # Base contract (latest approved estimate)
+    latest_estimate = Estimate.objects.filter(
+        project=project, status='approved'
+    ).order_by('-version').first()
+    
+    base_contract_total = Decimal("0")
+    if latest_estimate:
+        base_contract_total = latest_estimate.lines.aggregate(
+            total=Sum("total_price")
+        )["total"] or Decimal("0")
+    
+    # Change Orders
+    approved_cos = ChangeOrder.objects.filter(
+        project=project, status__in=['approved', 'sent', 'billed', 'paid']
+    ).order_by('-created_at')
+    pending_cos = ChangeOrder.objects.filter(
+        project=project, status='pending'
+    ).order_by('-created_at')
+    
+    approved_cos_total = sum(co.amount or Decimal("0") for co in approved_cos)
+    pending_cos_total = sum(co.amount or Decimal("0") for co in pending_cos)
+    total_contract_value = base_contract_total + approved_cos_total
+
     # === PROGRESO DEL PROYECTO (usando Gantt V2/V1) ===
     from core.services.schedule_unified import get_project_progress
     gantt_progress = get_project_progress(project)
@@ -1968,8 +1994,130 @@ def client_project_view(request, project_id):
         "progress_pct": int(progress_pct),
         "gantt_progress": gantt_progress,
         "color_samples": color_samples,
+        # Financial summary for mini panel
+        "latest_estimate": latest_estimate,
+        "base_contract_total": base_contract_total,
+        "approved_cos": approved_cos,
+        "pending_cos": pending_cos,
+        "approved_cos_total": approved_cos_total,
+        "pending_cos_total": pending_cos_total,
+        "total_contract_value": total_contract_value,
     }
     return render(request, "core/client_project_view.html", context)
+
+
+@login_required
+def client_financials_view(request, project_id):
+    """
+    Dedicated financial analytics page for clients.
+    Shows: Contract breakdown, Change Orders, Invoices, Payments with charts.
+    """
+    project = get_object_or_404(Project, id=project_id)
+
+    # Access control (same as client_project_view)
+    profile = getattr(request.user, "profile", None)
+    from core.models import ClientProjectAccess
+    has_explicit_access = ClientProjectAccess.objects.filter(
+        user=request.user, project=project
+    ).exists()
+    
+    if profile and profile.role == "client":
+        if not (has_explicit_access or project.client == request.user.username):
+            messages.error(request, "You don't have access to this project.")
+            return redirect("dashboard_client")
+    else:
+        if not (request.user.is_staff or has_explicit_access):
+            messages.error(request, "Access denied.")
+            return redirect("dashboard")
+
+    # === CONTRACT DATA ===
+    from core.models import ChangeOrder, Estimate, Invoice, InvoicePayment
+    
+    # Base contract (latest approved estimate)
+    latest_estimate = Estimate.objects.filter(
+        project=project, status='approved'
+    ).order_by('-version').first()
+    
+    base_contract_total = Decimal("0")
+    estimate_lines = []
+    if latest_estimate:
+        estimate_lines = latest_estimate.lines.select_related('budget_line').all()
+        base_contract_total = sum(line.total_price or Decimal("0") for line in estimate_lines)
+    
+    # Change Orders by status
+    all_change_orders = ChangeOrder.objects.filter(project=project).order_by('-created_at')
+    approved_cos = all_change_orders.filter(status__in=['approved', 'sent', 'billed', 'paid'])
+    pending_cos = all_change_orders.filter(status='pending')
+    billed_cos = all_change_orders.filter(status__in=['billed', 'paid'])
+    
+    approved_cos_total = sum(co.amount or Decimal("0") for co in approved_cos)
+    pending_cos_total = sum(co.amount or Decimal("0") for co in pending_cos)
+    billed_cos_total = sum(co.amount or Decimal("0") for co in billed_cos)
+    total_contract_value = base_contract_total + approved_cos_total
+    
+    # === INVOICES DATA ===
+    invoices = Invoice.objects.filter(project=project).order_by('-date_issued')
+    total_invoiced = sum(inv.total_amount or Decimal("0") for inv in invoices)
+    total_paid = sum(inv.amount_paid or Decimal("0") for inv in invoices)
+    balance = total_invoiced - total_paid
+    
+    # === PAYMENT HISTORY ===
+    payments = InvoicePayment.objects.filter(
+        invoice__project=project
+    ).select_related('invoice').order_by('-payment_date')[:20]
+    
+    # === PROGRESSIVE BILLING DATA ===
+    # Calculate % billed per estimate line (for progressive billing visualization)
+    from core.models import InvoiceLineEstimate
+    lines_billing_data = []
+    for line in estimate_lines:
+        invoiced_for_line = InvoiceLineEstimate.objects.filter(
+            estimate_line=line
+        ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
+        pct_billed = (invoiced_for_line / line.total_price * 100) if line.total_price else 0
+        lines_billing_data.append({
+            'line': line,
+            'invoiced': invoiced_for_line,
+            'remaining': line.total_price - invoiced_for_line,
+            'pct_billed': min(100, float(pct_billed)),
+        })
+    
+    # === CHART DATA (for Chart.js) ===
+    import json
+    contract_breakdown_chart = {
+        'labels': json.dumps(['Base Contract', 'Approved COs', 'Pending COs']),
+        'data': json.dumps([float(base_contract_total), float(approved_cos_total), float(pending_cos_total)]),
+        'colors': json.dumps(['#667eea', '#28a745', '#ffc107']),
+    }
+    payment_status_chart = {
+        'labels': json.dumps(['Contract Value', 'Invoiced', 'Paid']),
+        'data': json.dumps([float(total_contract_value), float(total_invoiced), float(total_paid)]),
+        'colors': json.dumps(['#667eea', '#17a2b8', '#28a745']),
+    }
+    
+    context = {
+        "project": project,
+        "latest_estimate": latest_estimate,
+        "estimate_lines": estimate_lines,
+        "lines_billing_data": lines_billing_data,
+        "base_contract_total": base_contract_total,
+        "all_change_orders": all_change_orders,
+        "approved_cos": approved_cos,
+        "pending_cos": pending_cos,
+        "billed_cos": billed_cos,
+        "approved_cos_total": approved_cos_total,
+        "pending_cos_total": pending_cos_total,
+        "billed_cos_total": billed_cos_total,
+        "total_contract_value": total_contract_value,
+        "invoices": invoices,
+        "total_invoiced": total_invoiced,
+        "total_paid": total_paid,
+        "balance": balance,
+        "payments": payments,
+        "contract_breakdown_chart": contract_breakdown_chart,
+        "payment_status_chart": payment_status_chart,
+    }
+    return render(request, "core/client_financials.html", context)
 
 
 # --- COLOR SAMPLES ---
