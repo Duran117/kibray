@@ -1,392 +1,1288 @@
-{% load static currency_extras i18n %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Change Order - {{ changeorder.title }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #e74c3c;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --light-bg: #f8f9fa;
-            --border-color: #dee2e6;
+{% load static currency_extras i18n %}{% load static currency_extras i18n %}
+
+<!DOCTYPE html><!DOCTYPE html>
+
+<html lang="en"><html lang="en">
+
+<head><head>
+
+    <meta charset="UTF-8">    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% trans "Sign Change Order" %} - {{ changeorder.description|truncatewords:5 }}</title>    <title>Sign Change Order - {{ changeorder.title }}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">    <style>
+
+    <style>        :root {
+
+        :root {            --primary-color: #2c3e50;
+
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            --secondary-color: #3498db;
+
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);            --accent-color: #e74c3c;
+
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);            --success-color: #27ae60;
+
+            --dark-gradient: linear-gradient(135deg, #232526 0%, #414345 100%);            --warning-color: #f39c12;
+
+            --card-shadow: 0 20px 60px rgba(0,0,0,0.12);            --light-bg: #f8f9fa;
+
+            --card-shadow-hover: 0 25px 80px rgba(0,0,0,0.15);            --border-color: #dee2e6;
+
+        }        }
+
+                body {
+
+        * { box-sizing: border-box; }            background-color: var(--light-bg);
+
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+        body {            min-height: 100vh;
+
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;            padding: 20px;
+
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);        }
+
+            min-height: 100vh;        .signature-container {
+
+            padding: 30px 15px;            max-width: 900px;
+
+            margin: 0;            margin: 0 auto;
+
+        }        }
+
+                .card {
+
+        .signature-container {            border: none;
+
+            max-width: 720px;            border-radius: 12px;
+
+            margin: 0 auto;            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+
+        }            margin-bottom: 20px;
+
+                }
+
+        /* Header Branding */        .card-header {
+
+        .brand-header {            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+
+            text-align: center;            color: white;
+
+            margin-bottom: 30px;            border-radius: 12px 12px 0 0 !important;
+
+        }            padding: 20px 25px;
+
+        .brand-header img {        }
+
+            max-height: 50px;        .card-header h4 { margin: 0; font-weight: 600; }
+
+            margin-bottom: 10px;        .card-body { padding: 25px; }
+
+        }        .info-section {
+
+        .brand-header .company-name {            background: var(--light-bg);
+
+            font-size: 0.9rem;            border-radius: 8px;
+
+            color: #666;            padding: 20px;
+
+            font-weight: 500;            margin-bottom: 20px;
+
+        }        }
+
+                .info-row {
+
+        /* Main Card */            display: flex;
+
+        .main-card {            justify-content: space-between;
+
+            background: white;            padding: 10px 0;
+
+            border-radius: 24px;            border-bottom: 1px solid var(--border-color);
+
+            box-shadow: var(--card-shadow);        }
+
+            overflow: hidden;        .info-row:last-child { border-bottom: none; }
+
+            transition: all 0.3s ease;        .info-label { font-weight: 600; color: var(--primary-color); }
+
+        }        .info-value { color: #555; }
+
+                .pricing-highlight {
+
+        /* Premium Header */            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .premium-header {            border-radius: 12px;
+
+            background: var(--primary-gradient);            padding: 25px;
+
+            padding: 40px 35px;            color: white;
+
+            text-align: center;            text-align: center;
+
+            position: relative;            margin-bottom: 25px;
+
+            overflow: hidden;        }
+
+        }        .pricing-highlight h3 { margin: 0 0 10px 0; font-size: 1.5rem; }
+
+        .premium-header::before {        .pricing-highlight .pricing-type { font-size: 2rem; font-weight: 700; margin: 15px 0; }
+
+            content: '';        .pricing-highlight .pricing-description { font-size: 0.95rem; opacity: 0.9; }
+
+            position: absolute;        .pricing-highlight.fixed-price { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); }
+
+            top: -50%;        .pricing-highlight.time-materials { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+
+            right: -50%;        .tm-details {
+
+            width: 100%;            background: #fff8e1;
+
+            height: 200%;            border: 2px solid #f39c12;
+
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);            border-radius: 8px;
+
+            pointer-events: none;            padding: 20px;
+
+        }            margin-bottom: 20px;
+
+        .premium-header .icon-circle {        }
+
+            width: 70px;        .tm-details h5 { color: #e67e22; margin-bottom: 15px; }
+
+            height: 70px;        .tm-details .detail-item {
+
+            background: rgba(255,255,255,0.2);            display: flex;
+
+            border-radius: 50%;            justify-content: space-between;
+
+            display: flex;            padding: 8px 0;
+
+            align-items: center;            border-bottom: 1px dashed #f5c87a;
+
+            justify-content: center;        }
+
+            margin: 0 auto 20px;        .tm-details .detail-item:last-child { border-bottom: none; }
+
+            backdrop-filter: blur(10px);        .total-box {
+
+        }            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+
+        .premium-header .icon-circle i {            color: white;
+
+            font-size: 28px;            border-radius: 10px;
+
+            color: white;            padding: 20px;
+
+        }            text-align: center;
+
+        .premium-header h1 {            margin-bottom: 25px;
+
+            color: white;        }
+
+            font-size: 1.6rem;        .total-box .label { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px; }
+
+            font-weight: 700;        .total-box .amount { font-size: 2rem; font-weight: 700; }
+
+            margin: 0 0 8px;        .signature-section {
+
+            letter-spacing: -0.5px;            border: 2px dashed var(--border-color);
+
+        }            border-radius: 12px;
+
+        .premium-header .subtitle {            padding: 25px;
+
+            color: rgba(255,255,255,0.85);            background: white;
+
+            font-size: 0.95rem;        }
+
+            margin: 0;        .signature-section h5 { color: var(--primary-color); margin-bottom: 20px; }
+
+        }        .signature-pad-container {
+
+                    position: relative;
+
+        /* Card Body */            border: 2px solid var(--border-color);
+
+        .card-body-content {            border-radius: 8px;
+
+            padding: 35px;            background: white;
+
+        }            margin-bottom: 15px;
+
+                }
+
+        /* Project Info Badge */        #signature-pad {
+
+        .project-badge {            width: 100%;
+
+            display: inline-flex;            height: 200px;
+
+            align-items: center;            display: block;
+
+            gap: 10px;            border-radius: 6px;
+
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);        }
+
+            border-radius: 50px;        .clear-btn {
+
+            padding: 12px 20px;            position: absolute;
+
+            margin-bottom: 25px;            top: 10px;
+
+        }            right: 10px;
+
+        .project-badge .project-icon {            background: var(--accent-color);
+
+            width: 36px;            color: white;
+
+            height: 36px;            border: none;
+
+            background: var(--primary-gradient);            border-radius: 5px;
+
+            border-radius: 50%;            padding: 5px 12px;
+
+            display: flex;            font-size: 0.85rem;
+
+            align-items: center;            cursor: pointer;
+
+            justify-content: center;        }
+
+        }        .clear-btn:hover { background: #c0392b; }
+
+        .project-badge .project-icon i {        .btn-sign {
+
+            color: white;            background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+
+            font-size: 14px;            color: white;
+
+        }            border: none;
+
+        .project-badge .project-info {            padding: 15px 40px;
+
+            text-align: left;            font-size: 1.1rem;
+
+        }            font-weight: 600;
+
+        .project-badge .project-label {            border-radius: 8px;
+
+            font-size: 0.7rem;            width: 100%;
+
+            text-transform: uppercase;            cursor: pointer;
+
+            letter-spacing: 0.5px;            transition: all 0.3s ease;
+
+            color: #888;        }
+
+            font-weight: 600;        .btn-sign:hover {
+
+        }            transform: translateY(-2px);
+
+        .project-badge .project-name {            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.4);
+
+            font-size: 0.95rem;        }
+
+            font-weight: 600;        .btn-sign:disabled {
+
+            color: #333;            background: #95a5a6;
+
+        }            cursor: not-allowed;
+
+                    transform: none;
+
+        /* Info Grid */            box-shadow: none;
+
+        .info-grid {        }
+
+            display: grid;        .warning-box {
+
+            grid-template-columns: repeat(2, 1fr);            background: #ffeaa7;
+
+            gap: 20px;            border-left: 4px solid var(--warning-color);
+
+            margin-bottom: 30px;            padding: 15px 20px;
+
+        }            border-radius: 0 8px 8px 0;
+
+        @media (max-width: 500px) {            margin-bottom: 20px;
+
+            .info-grid { grid-template-columns: 1fr; }        }
+
+        }        .warning-box i { color: var(--warning-color); margin-right: 10px; }
+
+        .info-item {        .already-signed {
+
+            background: #f8f9fb;            background: #d4edda;
+
+            border-radius: 14px;            border: 2px solid var(--success-color);
+
+            padding: 18px 20px;            border-radius: 12px;
+
+            transition: all 0.2s ease;            padding: 30px;
+
+        }            text-align: center;
+
+        .info-item:hover {        }
+
+            background: #f0f2f5;        .already-signed i { font-size: 4rem; color: var(--success-color); margin-bottom: 15px; }
+
+            transform: translateY(-2px);        .already-signed h4 { color: var(--success-color); margin-bottom: 10px; }
+
+        }        .company-logo { text-align: center; margin-bottom: 20px; }
+
+        .info-item .label {        .company-logo img { max-height: 60px; }
+
+            font-size: 0.75rem;        @media (max-width: 768px) {
+
+            text-transform: uppercase;            .pricing-highlight .pricing-type { font-size: 1.5rem; }
+
+            letter-spacing: 0.5px;            .total-box .amount { font-size: 1.5rem; }
+
+            color: #888;            .info-row { flex-direction: column; }
+
+            font-weight: 600;            .info-label { margin-bottom: 5px; }
+
+            margin-bottom: 6px;        }
+
+        }    </style>
+
+        .info-item .value {</head>
+
+            font-size: 1rem;<body>
+
+            font-weight: 600;    <div class="signature-container">
+
+            color: #333;        <div class="company-logo">
+
+        }            {% if changeorder.project.company.logo %}
+
+        .info-item.full-width {                <img src="{{ changeorder.project.company.logo.url }}" alt="Company Logo">
+
+            grid-column: 1 / -1;            {% endif %}
+
+        }        </div>
+
+                
+
+        /* Pricing Section */        <div class="card">
+
+        .pricing-card {            <div class="card-header">
+
+            border-radius: 20px;                <h4><i class="fas fa-file-signature me-2"></i> Change Order Signature</h4>
+
+            padding: 30px;            </div>
+
+            text-align: center;            <div class="card-body">
+
+            margin-bottom: 25px;                
+
+            position: relative;                {% if changeorder.status == 'APPROVED' or changeorder.client_signed %}
+
+            overflow: hidden;                    <div class="already-signed">
+
+        }                        <i class="fas fa-check-circle"></i>
+
+        .pricing-card.fixed-price {                        <h4>Change Order Already Signed</h4>
+
+            background: var(--success-gradient);                        <p>This change order has already been signed and approved.</p>
+
+        }                        {% if changeorder.approved_date %}
+
+        .pricing-card.time-materials {                            <p><strong>Signed on:</strong> {{ changeorder.approved_date|date:"F d, Y" }}</p>
+
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%);                        {% endif %}
+
+        }                    </div>
+
+        .pricing-card::before {                {% else %}
+
+            content: '';                
+
+            position: absolute;                    <div class="info-section">
+
+            top: 0;                        <div class="info-row">
+
+            left: 0;                            <span class="info-label">Change Order Number</span>
+
+            right: 0;                            <span class="info-value">#{{ changeorder.change_order_number }}</span>
+
+            bottom: 0;                        </div>
+
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");                        <div class="info-row">
+
+            opacity: 0.5;                            <span class="info-label">Project</span>
+
+        }                            <span class="info-value">{{ changeorder.project.name }}</span>
+
+        .pricing-card .pricing-badge {                        </div>
+
+            display: inline-flex;                        <div class="info-row">
+
+            align-items: center;                            <span class="info-label">Title</span>
+
+            gap: 8px;                            <span class="info-value">{{ changeorder.title }}</span>
+
+            background: rgba(255,255,255,0.25);                        </div>
+
+            backdrop-filter: blur(10px);                        <div class="info-row">
+
+            border-radius: 50px;                            <span class="info-label">Date Created</span>
+
+            padding: 10px 20px;                            <span class="info-value">{{ changeorder.created_at|date:"F d, Y" }}</span>
+
+            margin-bottom: 20px;                        </div>
+
+            position: relative;                    </div>
+
+        }                    
+
+        .pricing-card .pricing-badge i {                    {% if changeorder.pricing_type == 'FIXED' %}
+
+            color: white;                        <div class="pricing-highlight fixed-price">
+
+        }                            <h3><i class="fas fa-tag me-2"></i>Pricing Type</h3>
+
+        .pricing-card .pricing-badge span {                            <div class="pricing-type">
+
+            color: white;                                <i class="fas fa-lock me-2"></i>FIXED PRICE
+
+            font-size: 0.85rem;                            </div>
+
+            font-weight: 600;                            <p class="pricing-description">
+
+            text-transform: uppercase;                                This change order has a fixed agreed-upon price. The total amount below is the final cost regardless of time or materials used.
+
+            letter-spacing: 1px;                            </p>
+
+        }                        </div>
+
+        .pricing-card .pricing-type {                        
+
+            font-size: 1.8rem;                        <div class="total-box">
+
+            font-weight: 800;                            <div class="label">Total Fixed Price</div>
+
+            color: white;                            <div class="amount">{{ changeorder.amount|currency }}</div>
+
+            margin: 0 0 12px;                        </div>
+
+            position: relative;                        
+
+            text-shadow: 0 2px 10px rgba(0,0,0,0.15);                    {% elif changeorder.pricing_type == 'T_AND_M' %}
+
+        }                        <div class="pricing-highlight time-materials">
+
+        .pricing-card .pricing-description {                            <h3><i class="fas fa-clock me-2"></i>Pricing Type</h3>
+
+            font-size: 0.9rem;                            <div class="pricing-type">
+
+            color: rgba(255,255,255,0.9);                                <i class="fas fa-tools me-2"></i>TIME & MATERIALS
+
+            max-width: 400px;                            </div>
+
+            margin: 0 auto;                            <p class="pricing-description">
+
+            line-height: 1.6;                                This change order is billed based on actual time spent and materials used. The final cost may vary from any estimates provided.
+
+            position: relative;                            </p>
+
+        }                        </div>
+
+                                
+
+        /* Billing Details */                        <div class="tm-details">
+
+        .billing-details {                            <h5><i class="fas fa-calculator me-2"></i>Billing Rates</h5>
+
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);                            <div class="detail-item">
+
+            border: 2px solid #ffc107;                                <span><i class="fas fa-user-clock me-2"></i>Hourly Labor Rate</span>
+
+            border-radius: 16px;                                <span><strong>{{ changeorder.billing_hourly_rate|currency }}/hr</strong></span>
+
+            padding: 25px;                            </div>
+
+            margin-bottom: 25px;                            <div class="detail-item">
+
+        }                                <span><i class="fas fa-box me-2"></i>Material Markup</span>
+
+        .billing-details .billing-header {                                <span><strong>{{ changeorder.material_markup_pct|default:"0" }}%</strong></span>
+
+            display: flex;                            </div>
+
+            align-items: center;                        </div>
+
+            gap: 12px;                        
+
+            margin-bottom: 20px;                        <div class="warning-box">
+
+        }                            <i class="fas fa-exclamation-triangle"></i>
+
+        .billing-details .billing-header .icon {                            <strong>Important:</strong>
+
+            width: 44px;                            By signing this Time & Materials change order, you agree to be billed based on actual hours worked at the rates above, plus materials at cost plus the indicated markup.
+
+            height: 44px;                        </div>
+
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);                        
+
+            border-radius: 12px;                        {% if changeorder.amount %}
+
+            display: flex;                            <div class="total-box">
+
+            align-items: center;                                <div class="label">Estimated Amount (may vary)</div>
+
+            justify-content: center;                                <div class="amount">{{ changeorder.amount|currency }}</div>
+
+        }                            </div>
+
+        .billing-details .billing-header .icon i {                        {% endif %}
+
+            color: white;                        
+
+            font-size: 18px;                    {% else %}
+
+        }                        <div class="total-box">
+
+        .billing-details .billing-header h3 {                            <div class="label">Total Amount</div>
+
+            font-size: 1.1rem;                            <div class="amount">{{ changeorder.amount|currency }}</div>
+
+            font-weight: 700;                        </div>
+
+            color: #856404;                    {% endif %}
+
+            margin: 0;                    
+
+        }                    {% if changeorder.description %}
+
+        .billing-row {                        <div class="info-section">
+
+            display: flex;                            <h5 class="mb-3"><i class="fas fa-align-left me-2"></i>Description</h5>
+
+            justify-content: space-between;                            <p>{{ changeorder.description|linebreaks }}</p>
+
+            align-items: center;                        </div>
+
+            padding: 14px 0;                    {% endif %}
+
+            border-bottom: 1px dashed rgba(133, 100, 4, 0.2);                    
+
+        }                    {% if changeorder.items.exists %}
+
+        .billing-row:last-child { border-bottom: none; }                        <div class="info-section">
+
+        .billing-row .billing-label {                            <h5 class="mb-3"><i class="fas fa-list me-2"></i>Items Included</h5>
+
+            display: flex;                            <div class="items-list">
+
+            align-items: center;                                {% for item in changeorder.items.all %}
+
+            gap: 10px;                                    <div class="item-row">
+
+            color: #6c5a00;                                        <span>{{ item.description }}</span>
+
+            font-weight: 500;                                        <span><strong>{{ item.total_price|currency }}</strong></span>
+
+        }                                    </div>
+
+        .billing-row .billing-label i {                                {% endfor %}
+
+            color: #d4a106;                            </div>
+
+        }                        </div>
+
+        .billing-row .billing-value {                    {% endif %}
+
+            font-size: 1.2rem;                    
+
+            font-weight: 700;                    <div class="signature-section">
+
+            color: #856404;                        <h5><i class="fas fa-signature me-2"></i>Your Signature</h5>
+
+        }                        <p class="text-muted mb-3">Please sign below to approve this change order.</p>
+
+                                
+
+        /* Total Amount Box */                        <form method="post" id="signature-form">
+
+        .total-box {                            {% csrf_token %}
+
+            background: var(--dark-gradient);                            <input type="hidden" name="signature_data" id="signature-data">
+
+            border-radius: 18px;                            
+
+            padding: 30px;                            <div class="signature-pad-container">
+
+            text-align: center;                                <canvas id="signature-pad"></canvas>
+
+            margin-bottom: 30px;                                <button type="button" class="clear-btn" onclick="clearSignature()">
+
+            position: relative;                                    <i class="fas fa-eraser me-1"></i>Clear
+
+            overflow: hidden;                                </button>
+
+        }                            </div>
+
+        .total-box::before {                            
+
+            content: '';                            <div class="form-check mb-4">
+
+            position: absolute;                                <input class="form-check-input" type="checkbox" id="agree-checkbox" required>
+
+            top: -50%;                                <label class="form-check-label" for="agree-checkbox">
+
+            left: -50%;                                    {% if changeorder.pricing_type == 'T_AND_M' %}
+
+            width: 200%;                                        I understand this is a TIME & MATERIALS change order and agree to the billing rates shown above.
+
+            height: 200%;                                    {% else %}
+
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 50%);                                        I have reviewed and agree to this change order.
+
+        }                                    {% endif %}
+
+        .total-box .total-label {                                </label>
+
+            font-size: 0.85rem;                            </div>
+
+            text-transform: uppercase;                            
+
+            letter-spacing: 1px;                            <button type="submit" class="btn-sign" id="submit-btn" disabled>
+
+            color: rgba(255,255,255,0.7);                                <i class="fas fa-check-circle me-2"></i>Sign and Approve Change Order
+
+            margin-bottom: 10px;                            </button>
+
+            position: relative;                        </form>
+
+        }                    </div>
+
+        .total-box .total-amount {                    
+
+            font-size: 2.5rem;                {% endif %}
+
+            font-weight: 800;            </div>
+
+            color: white;        </div>
+
+            position: relative;        
+
+            letter-spacing: -1px;        <div class="text-center text-muted mt-4">
+
+        }            <small>&copy; {{ changeorder.project.company.name|default:"Company" }} - All rights reserved</small>
+
+        .total-box.estimate-box {        </div>
+
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);    </div>
+
+        }    
+
+        .total-box.estimate-box .total-label::after {    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+            content: ' ({% trans "may vary" %})';    <script>
+
+            font-style: italic;        const canvas = document.getElementById('signature-pad');
+
+            font-weight: 400;        const signaturePad = new SignaturePad(canvas, {
+
+        }            backgroundColor: 'rgb(255, 255, 255)',
+
+                    penColor: 'rgb(0, 0, 0)'
+
+        /* Description Section */        });
+
+        .description-section {        
+
+            background: #f8f9fb;        function resizeCanvas() {
+
+            border-radius: 16px;            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+            padding: 25px;            const container = canvas.parentElement;
+
+            margin-bottom: 25px;            canvas.width = container.offsetWidth * ratio;
+
+        }            canvas.height = 200 * ratio;
+
+        .description-section h4 {            canvas.getContext('2d').scale(ratio, ratio);
+
+            display: flex;            canvas.style.width = container.offsetWidth + 'px';
+
+            align-items: center;            canvas.style.height = '200px';
+
+            gap: 10px;            signaturePad.clear();
+
+            font-size: 1rem;        }
+
+            font-weight: 700;        
+
+            color: #333;        window.addEventListener('resize', resizeCanvas);
+
+            margin: 0 0 15px;        resizeCanvas();
+
+        }        
+
+        .description-section h4 i {        function clearSignature() {
+
+            color: #667eea;            signaturePad.clear();
+
+        }            updateSubmitButton();
+
+        .description-section p {        }
+
+            color: #555;        
+
+            line-height: 1.7;        function updateSubmitButton() {
+
+            margin: 0;            const checkbox = document.getElementById('agree-checkbox');
+
+        }            const submitBtn = document.getElementById('submit-btn');
+
+                    const hasSignature = !signaturePad.isEmpty();
+
+        /* Warning Box */            const isChecked = checkbox.checked;
+
+        .warning-alert {            submitBtn.disabled = !(hasSignature && isChecked);
+
+            display: flex;        }
+
+            align-items: flex-start;        
+
+            gap: 15px;        signaturePad.addEventListener('endStroke', updateSubmitButton);
+
+            background: linear-gradient(135deg, #fef3cd 0%, #fff8e1 100%);        document.getElementById('agree-checkbox').addEventListener('change', updateSubmitButton);
+
+            border-left: 4px solid #ffc107;        
+
+            border-radius: 0 14px 14px 0;        document.getElementById('signature-form').addEventListener('submit', function(e) {
+
+            padding: 20px;            if (signaturePad.isEmpty()) {
+
+            margin-bottom: 25px;                e.preventDefault();
+
+        }                alert('Please provide your signature before submitting.');
+
+        .warning-alert .warning-icon {                return;
+
+            width: 40px;            }
+
+            height: 40px;            document.getElementById('signature-data').value = signaturePad.toDataURL();
+
+            background: #ffc107;        });
+
+            border-radius: 50%;    </script>
+
+            display: flex;</body>
+
+            align-items: center;</html>
+
+            justify-content: center;
+            flex-shrink: 0;
         }
-        body {
-            background-color: var(--light-bg);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .signature-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        .warning-alert .warning-icon i {
             color: white;
-            border-radius: 12px 12px 0 0 !important;
-            padding: 20px 25px;
+            font-size: 18px;
         }
-        .card-header h4 { margin: 0; font-weight: 600; }
-        .card-body { padding: 25px; }
-        .info-section {
-            background: var(--light-bg);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+        .warning-alert .warning-content strong {
+            display: block;
+            color: #856404;
+            margin-bottom: 5px;
         }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
+        .warning-alert .warning-content p {
+            margin: 0;
+            color: #6d5a00;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
-        .info-row:last-child { border-bottom: none; }
-        .info-label { font-weight: 600; color: var(--primary-color); }
-        .info-value { color: #555; }
-        .pricing-highlight {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            padding: 25px;
-            color: white;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .pricing-highlight h3 { margin: 0 0 10px 0; font-size: 1.5rem; }
-        .pricing-highlight .pricing-type { font-size: 2rem; font-weight: 700; margin: 15px 0; }
-        .pricing-highlight .pricing-description { font-size: 0.95rem; opacity: 0.9; }
-        .pricing-highlight.fixed-price { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); }
-        .pricing-highlight.time-materials { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
-        .tm-details {
-            background: #fff8e1;
-            border: 2px solid #f39c12;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .tm-details h5 { color: #e67e22; margin-bottom: 15px; }
-        .tm-details .detail-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed #f5c87a;
-        }
-        .tm-details .detail-item:last-child { border-bottom: none; }
-        .total-box {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .total-box .label { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px; }
-        .total-box .amount { font-size: 2rem; font-weight: 700; }
+        
+        /* Signature Section */
         .signature-section {
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            background: white;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8ecf4 100%);
+            border: 2px dashed #c5d0e6;
+            border-radius: 20px;
+            padding: 30px;
         }
-        .signature-section h5 { color: var(--primary-color); margin-bottom: 20px; }
+        .signature-section .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .signature-section .section-header .icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-gradient);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .signature-section .section-header .icon i {
+            color: white;
+            font-size: 20px;
+        }
+        .signature-section .section-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+        .signature-section .section-header p {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 3px 0 0;
+        }
+        
+        /* Signature Pad */
+        .signature-pad-wrapper {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
         .signature-pad-container {
             position: relative;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
+            border: 2px solid #e0e5ec;
+            border-radius: 12px;
             background: white;
-            margin-bottom: 15px;
+            overflow: hidden;
         }
         #signature-pad {
             width: 100%;
-            height: 200px;
+            height: 180px;
             display: block;
-            border-radius: 6px;
         }
         .clear-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--accent-color);
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
             color: white;
             border: none;
-            border-radius: 5px;
-            padding: 5px 12px;
-            font-size: 0.85rem;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .clear-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(238, 90, 90, 0.4);
+        }
+        .signature-hint {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        /* Checkbox */
+        .agreement-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .agreement-check:hover {
+            background: #f8f9fb;
+        }
+        .agreement-check.checked {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .agreement-check input {
+            width: 22px;
+            height: 22px;
+            margin-top: 2px;
+            accent-color: #667eea;
             cursor: pointer;
         }
-        .clear-btn:hover { background: #c0392b; }
+        .agreement-check label {
+            color: #444;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            cursor: pointer;
+            margin: 0;
+        }
+        
+        /* Submit Button */
         .btn-sign {
-            background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+            width: 100%;
+            background: var(--success-gradient);
             color: white;
             border: none;
-            padding: 15px 40px;
+            border-radius: 14px;
+            padding: 18px 30px;
             font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 8px;
-            width: 100%;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 8px 25px rgba(17, 153, 142, 0.35);
         }
-        .btn-sign:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.4);
+        .btn-sign:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(17, 153, 142, 0.45);
+        }
+        .btn-sign:active:not(:disabled) {
+            transform: translateY(-1px);
         }
         .btn-sign:disabled {
-            background: #95a5a6;
+            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
             cursor: not-allowed;
-            transform: none;
             box-shadow: none;
+            transform: none;
         }
-        .warning-box {
-            background: #ffeaa7;
-            border-left: 4px solid var(--warning-color);
-            padding: 15px 20px;
-            border-radius: 0 8px 8px 0;
-            margin-bottom: 20px;
+        .btn-sign i {
+            font-size: 1.2rem;
         }
-        .warning-box i { color: var(--warning-color); margin-right: 10px; }
+        
+        /* Already Signed */
         .already-signed {
-            background: #d4edda;
-            border: 2px solid var(--success-color);
-            border-radius: 12px;
-            padding: 30px;
             text-align: center;
+            padding: 50px 30px;
         }
-        .already-signed i { font-size: 4rem; color: var(--success-color); margin-bottom: 15px; }
-        .already-signed h4 { color: var(--success-color); margin-bottom: 10px; }
-        .company-logo { text-align: center; margin-bottom: 20px; }
-        .company-logo img { max-height: 60px; }
-        @media (max-width: 768px) {
-            .pricing-highlight .pricing-type { font-size: 1.5rem; }
-            .total-box .amount { font-size: 1.5rem; }
-            .info-row { flex-direction: column; }
-            .info-label { margin-bottom: 5px; }
+        .already-signed .success-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--success-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            box-shadow: 0 15px 40px rgba(17, 153, 142, 0.3);
+        }
+        .already-signed .success-icon i {
+            font-size: 45px;
+            color: white;
+        }
+        .already-signed h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #11998e;
+            margin: 0 0 10px;
+        }
+        .already-signed p {
+            color: #666;
+            margin: 0 0 20px;
+        }
+        .already-signed .signed-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        /* Footer */
+        .footer-text {
+            text-align: center;
+            padding: 25px 0 10px;
+            color: #999;
+            font-size: 0.8rem;
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .main-card {
+            animation: fadeInUp 0.5s ease-out;
         }
     </style>
 </head>
 <body>
     <div class="signature-container">
-        <div class="company-logo">
+        <!-- Brand Header -->
+        <div class="brand-header">
             {% if changeorder.project.company.logo %}
                 <img src="{{ changeorder.project.company.logo.url }}" alt="Company Logo">
             {% endif %}
+            <div class="company-name">{{ changeorder.project.company.name|default:"" }}</div>
         </div>
         
-        <div class="card">
-            <div class="card-header">
-                <h4><i class="fas fa-file-signature me-2"></i> Change Order Signature</h4>
+        <div class="main-card">
+            <!-- Premium Header -->
+            <div class="premium-header">
+                <div class="icon-circle">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <h1>{% trans "Change Order Signature" %}</h1>
+                <p class="subtitle">{% trans "Review and sign to approve" %}</p>
             </div>
-            <div class="card-body">
-                
-                {% if changeorder.status == 'APPROVED' or changeorder.client_signed %}
+            
+            <div class="card-body-content">
+                {% if changeorder.signed_at or changeorder.status == 'approved' %}
+                    <!-- Already Signed State -->
                     <div class="already-signed">
-                        <i class="fas fa-check-circle"></i>
-                        <h4>Change Order Already Signed</h4>
-                        <p>This change order has already been signed and approved.</p>
-                        {% if changeorder.approved_date %}
-                            <p><strong>Signed on:</strong> {{ changeorder.approved_date|date:"F d, Y" }}</p>
+                        <div class="success-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h3>{% trans "Already Signed" %}</h3>
+                        <p>{% trans "This change order has been signed and approved." %}</p>
+                        {% if changeorder.signed_at %}
+                            <div class="signed-date">
+                                <i class="fas fa-calendar-check"></i>
+                                {{ changeorder.signed_at|date:"F d, Y" }}
+                            </div>
                         {% endif %}
                     </div>
                 {% else %}
-                
-                    <div class="info-section">
-                        <div class="info-row">
-                            <span class="info-label">Change Order Number</span>
-                            <span class="info-value">#{{ changeorder.change_order_number }}</span>
+                    <!-- Project Badge -->
+                    <div class="project-badge">
+                        <div class="project-icon">
+                            <i class="fas fa-building"></i>
                         </div>
-                        <div class="info-row">
-                            <span class="info-label">Project</span>
-                            <span class="info-value">{{ changeorder.project.name }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Title</span>
-                            <span class="info-value">{{ changeorder.title }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Date Created</span>
-                            <span class="info-value">{{ changeorder.created_at|date:"F d, Y" }}</span>
+                        <div class="project-info">
+                            <div class="project-label">{% trans "Project" %}</div>
+                            <div class="project-name">{{ changeorder.project.name }}</div>
                         </div>
                     </div>
                     
-                    {% if changeorder.pricing_type == 'FIXED' %}
-                        <div class="pricing-highlight fixed-price">
-                            <h3><i class="fas fa-tag me-2"></i>Pricing Type</h3>
-                            <div class="pricing-type">
-                                <i class="fas fa-lock me-2"></i>FIXED PRICE
+                    <!-- Info Grid -->
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">{% trans "Reference" %}</div>
+                            <div class="value">#{{ changeorder.reference_code|default:changeorder.id }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">{% trans "Date" %}</div>
+                            <div class="value">{{ changeorder.date_created|date:"M d, Y" }}</div>
+                        </div>
+                        {% if changeorder.description %}
+                        <div class="info-item full-width">
+                            <div class="label">{% trans "Description" %}</div>
+                            <div class="value">{{ changeorder.description|truncatewords:25 }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Pricing Type Card -->
+                    {% if changeorder.pricing_type == 'FIXED' or changeorder.pricing_type == 'fixed' %}
+                        <div class="pricing-card fixed-price">
+                            <div class="pricing-badge">
+                                <i class="fas fa-lock"></i>
+                                <span>{% trans "Pricing Type" %}</span>
                             </div>
+                            <h2 class="pricing-type">{% trans "Fixed Price" %}</h2>
                             <p class="pricing-description">
-                                This change order has a fixed agreed-upon price. The total amount below is the final cost regardless of time or materials used.
+                                {% trans "This change order has a fixed agreed-upon price. The total amount is final regardless of time or materials used." %}
                             </p>
                         </div>
                         
                         <div class="total-box">
-                            <div class="label">Total Fixed Price</div>
-                            <div class="amount">{{ changeorder.amount|currency }}</div>
+                            <div class="total-label">{% trans "Total Amount" %}</div>
+                            <div class="total-amount">{{ changeorder.amount|currency }}</div>
                         </div>
                         
-                    {% elif changeorder.pricing_type == 'T_AND_M' %}
-                        <div class="pricing-highlight time-materials">
-                            <h3><i class="fas fa-clock me-2"></i>Pricing Type</h3>
-                            <div class="pricing-type">
-                                <i class="fas fa-tools me-2"></i>TIME & MATERIALS
+                    {% elif changeorder.pricing_type == 'T_AND_M' or changeorder.pricing_type == 'time_materials' %}
+                        <div class="pricing-card time-materials">
+                            <div class="pricing-badge">
+                                <i class="fas fa-clock"></i>
+                                <span>{% trans "Pricing Type" %}</span>
                             </div>
+                            <h2 class="pricing-type">{% trans "Time & Materials" %}</h2>
                             <p class="pricing-description">
-                                This change order is billed based on actual time spent and materials used. The final cost may vary from any estimates provided.
+                                {% trans "This change order is billed based on actual time spent and materials used. Final cost may vary from estimates." %}
                             </p>
                         </div>
                         
-                        <div class="tm-details">
-                            <h5><i class="fas fa-calculator me-2"></i>Billing Rates</h5>
-                            <div class="detail-item">
-                                <span><i class="fas fa-user-clock me-2"></i>Hourly Labor Rate</span>
-                                <span><strong>{{ changeorder.billing_hourly_rate|currency }}/hr</strong></span>
+                        <div class="billing-details">
+                            <div class="billing-header">
+                                <div class="icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <h3>{% trans "Billing Rates" %}</h3>
                             </div>
-                            <div class="detail-item">
-                                <span><i class="fas fa-box me-2"></i>Material Markup</span>
-                                <span><strong>{{ changeorder.material_markup_pct|default:"0" }}%</strong></span>
+                            <div class="billing-row">
+                                <span class="billing-label">
+                                    <i class="fas fa-user-clock"></i>
+                                    {% trans "Hourly Labor Rate" %}
+                                </span>
+                                <span class="billing-value">{{ changeorder.labor_rate_override|default:"0"|currency }}/hr</span>
+                            </div>
+                            <div class="billing-row">
+                                <span class="billing-label">
+                                    <i class="fas fa-box"></i>
+                                    {% trans "Material Markup" %}
+                                </span>
+                                <span class="billing-value">{{ changeorder.material_markup_percent|default:"0" }}%</span>
                             </div>
                         </div>
                         
-                        <div class="warning-box">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Important:</strong>
-                            By signing this Time & Materials change order, you agree to be billed based on actual hours worked at the rates above, plus materials at cost plus the indicated markup.
+                        <div class="warning-alert">
+                            <div class="warning-icon">
+                                <i class="fas fa-exclamation"></i>
+                            </div>
+                            <div class="warning-content">
+                                <strong>{% trans "Important Notice" %}</strong>
+                                <p>{% trans "By signing this Time & Materials change order, you agree to be billed based on actual hours worked at the rates above, plus materials at cost plus the indicated markup." %}</p>
+                            </div>
                         </div>
                         
                         {% if changeorder.amount %}
-                            <div class="total-box">
-                                <div class="label">Estimated Amount (may vary)</div>
-                                <div class="amount">{{ changeorder.amount|currency }}</div>
+                            <div class="total-box estimate-box">
+                                <div class="total-label">{% trans "Estimated Amount" %}</div>
+                                <div class="total-amount">{{ changeorder.amount|currency }}</div>
                             </div>
                         {% endif %}
                         
                     {% else %}
-                        <div class="total-box">
-                            <div class="label">Total Amount</div>
-                            <div class="amount">{{ changeorder.amount|currency }}</div>
-                        </div>
+                        <!-- Default - show amount if exists -->
+                        {% if changeorder.amount %}
+                            <div class="total-box">
+                                <div class="total-label">{% trans "Total Amount" %}</div>
+                                <div class="total-amount">{{ changeorder.amount|currency }}</div>
+                            </div>
+                        {% endif %}
                     {% endif %}
                     
-                    {% if changeorder.description %}
-                        <div class="info-section">
-                            <h5 class="mb-3"><i class="fas fa-align-left me-2"></i>Description</h5>
-                            <p>{{ changeorder.description|linebreaks }}</p>
-                        </div>
-                    {% endif %}
-                    
-                    {% if changeorder.items.exists %}
-                        <div class="info-section">
-                            <h5 class="mb-3"><i class="fas fa-list me-2"></i>Items Included</h5>
-                            <div class="items-list">
-                                {% for item in changeorder.items.all %}
-                                    <div class="item-row">
-                                        <span>{{ item.description }}</span>
-                                        <span><strong>{{ item.total_price|currency }}</strong></span>
-                                    </div>
-                                {% endfor %}
+                    <!-- Signature Section -->
+                    <div class="signature-section">
+                        <div class="section-header">
+                            <div class="icon">
+                                <i class="fas fa-pen-fancy"></i>
+                            </div>
+                            <div>
+                                <h3>{% trans "Your Signature" %}</h3>
+                                <p>{% trans "Sign below to approve this change order" %}</p>
                             </div>
                         </div>
-                    {% endif %}
-                    
-                    <div class="signature-section">
-                        <h5><i class="fas fa-signature me-2"></i>Your Signature</h5>
-                        <p class="text-muted mb-3">Please sign below to approve this change order.</p>
                         
                         <form method="post" id="signature-form">
                             {% csrf_token %}
                             <input type="hidden" name="signature_data" id="signature-data">
                             
-                            <div class="signature-pad-container">
-                                <canvas id="signature-pad"></canvas>
-                                <button type="button" class="clear-btn" onclick="clearSignature()">
-                                    <i class="fas fa-eraser me-1"></i>Clear
-                                </button>
+                            <div class="signature-pad-wrapper">
+                                <div class="signature-pad-container">
+                                    <canvas id="signature-pad"></canvas>
+                                    <button type="button" class="clear-btn" onclick="clearSignature()">
+                                        <i class="fas fa-eraser"></i>
+                                        {% trans "Clear" %}
+                                    </button>
+                                </div>
+                                <p class="signature-hint">
+                                    <i class="fas fa-hand-pointer me-1"></i>
+                                    {% trans "Draw your signature using mouse or touch" %}
+                                </p>
                             </div>
                             
-                            <div class="form-check mb-4">
-                                <input class="form-check-input" type="checkbox" id="agree-checkbox" required>
-                                <label class="form-check-label" for="agree-checkbox">
-                                    {% if changeorder.pricing_type == 'T_AND_M' %}
-                                        I understand this is a TIME & MATERIALS change order and agree to the billing rates shown above.
+                            <div class="agreement-check" id="agreement-wrapper">
+                                <input type="checkbox" id="agree-checkbox" required>
+                                <label for="agree-checkbox">
+                                    {% if changeorder.pricing_type == 'T_AND_M' or changeorder.pricing_type == 'time_materials' %}
+                                        {% trans "I understand this is a TIME & MATERIALS change order and agree to the billing rates shown above." %}
                                     {% else %}
-                                        I have reviewed and agree to this change order.
+                                        {% trans "I have reviewed and agree to this change order." %}
                                     {% endif %}
                                 </label>
                             </div>
                             
                             <button type="submit" class="btn-sign" id="submit-btn" disabled>
-                                <i class="fas fa-check-circle me-2"></i>Sign and Approve Change Order
+                                <i class="fas fa-check-circle"></i>
+                                {% trans "Sign & Approve Change Order" %}
                             </button>
                         </form>
                     </div>
-                    
                 {% endif %}
             </div>
         </div>
         
-        <div class="text-center text-muted mt-4">
-            <small>&copy; {{ changeorder.project.company.name|default:"Company" }} - All rights reserved</small>
+        <div class="footer-text">
+            &copy; {{ changeorder.project.company.name|default:"Kibray" }} · {% trans "All rights reserved" %}
         </div>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script>
         const canvas = document.getElementById('signature-pad');
-        const signaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 0)'
-        });
-        
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            const container = canvas.parentElement;
-            canvas.width = container.offsetWidth * ratio;
-            canvas.height = 200 * ratio;
-            canvas.getContext('2d').scale(ratio, ratio);
-            canvas.style.width = container.offsetWidth + 'px';
-            canvas.style.height = '200px';
-            signaturePad.clear();
-        }
-        
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        
-        function clearSignature() {
-            signaturePad.clear();
-            updateSubmitButton();
-        }
-        
-        function updateSubmitButton() {
-            const checkbox = document.getElementById('agree-checkbox');
-            const submitBtn = document.getElementById('submit-btn');
-            const hasSignature = !signaturePad.isEmpty();
-            const isChecked = checkbox.checked;
-            submitBtn.disabled = !(hasSignature && isChecked);
-        }
-        
-        signaturePad.addEventListener('endStroke', updateSubmitButton);
-        document.getElementById('agree-checkbox').addEventListener('change', updateSubmitButton);
-        
-        document.getElementById('signature-form').addEventListener('submit', function(e) {
-            if (signaturePad.isEmpty()) {
-                e.preventDefault();
-                alert('Please provide your signature before submitting.');
-                return;
+        if (canvas) {
+            const signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgb(255, 255, 255)',
+                penColor: 'rgb(30, 30, 30)',
+                minWidth: 1,
+                maxWidth: 3
+            });
+            
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const container = canvas.parentElement;
+                canvas.width = container.offsetWidth * ratio;
+                canvas.height = 180 * ratio;
+                canvas.getContext('2d').scale(ratio, ratio);
+                canvas.style.width = container.offsetWidth + 'px';
+                canvas.style.height = '180px';
+                signaturePad.clear();
             }
-            document.getElementById('signature-data').value = signaturePad.toDataURL();
-        });
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            window.clearSignature = function() {
+                signaturePad.clear();
+                updateSubmitButton();
+            };
+            
+            function updateSubmitButton() {
+                const checkbox = document.getElementById('agree-checkbox');
+                const submitBtn = document.getElementById('submit-btn');
+                const wrapper = document.getElementById('agreement-wrapper');
+                const hasSignature = !signaturePad.isEmpty();
+                const isChecked = checkbox.checked;
+                
+                submitBtn.disabled = !(hasSignature && isChecked);
+                
+                if (isChecked) {
+                    wrapper.classList.add('checked');
+                } else {
+                    wrapper.classList.remove('checked');
+                }
+            }
+            
+            signaturePad.addEventListener('endStroke', updateSubmitButton);
+            document.getElementById('agree-checkbox').addEventListener('change', updateSubmitButton);
+            
+            document.getElementById('signature-form').addEventListener('submit', function(e) {
+                if (signaturePad.isEmpty()) {
+                    e.preventDefault();
+                    alert('{% trans "Please provide your signature before submitting." %}');
+                    return;
+                }
+                document.getElementById('signature-data').value = signaturePad.toDataURL();
+            });
+        }
     </script>
 </body>
 </html>
