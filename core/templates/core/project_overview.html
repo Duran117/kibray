@@ -73,6 +73,13 @@
   
   /* Nav sections */
   .nav-section { padding: 0.5rem 0; }
+  
+  /* Navigation container - flex grow to fill space */
+  .project-sidebar > nav {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 0.5rem;
+  }
   .section-title {
     font-size: 11px;
     font-weight: 600;
@@ -123,6 +130,22 @@
     margin-top: auto;
     padding: 1rem;
     border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  /* Collapse toggle button - sticky at bottom */
+  .sidebar-collapse-toggle {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem 1rem;
+    background: #1e1f21;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: auto;
+  }
+  
+  .project-sidebar.collapsed .sidebar-collapse-toggle {
+    padding: 0.75rem 0.5rem;
   }
   
   /* ===== MOBILE: Bottom Nav + Hamburger ===== */
@@ -637,8 +660,8 @@
       </a>
     </nav>
     
-    <!-- Collapse Toggle -->
-    <div class="absolute bottom-4 left-0 right-0 px-4">
+    <!-- Collapse Toggle - sticky at bottom -->
+    <div class="sidebar-collapse-toggle">
       <button onclick="toggleSidebar()" class="nav-item w-full justify-center" title="{% trans 'Colapsar menú' %}">
         <i class="bi bi-chevron-double-left" id="collapseIcon"></i>
         <span class="nav-text">{% trans "Colapsar" %}</span>
