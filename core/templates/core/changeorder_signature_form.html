@@ -327,7 +327,8 @@
             <div class="card-body">
                 <div class="co-badge">
                     <i class="fas fa-hashtag"></i>
-                    {% if changeorder.reference_code %}{{ changeorder.reference_code }}{% else %}CO-{{ changeorder.id }}{% endif %}
+                    CO-{{ changeorder.id }}
+                    {% if changeorder.reference_code %}<span class="ms-2 opacity-75">({{ changeorder.reference_code }})</span>{% endif %}
                 </div>
                 
                 <div class="info-grid">
