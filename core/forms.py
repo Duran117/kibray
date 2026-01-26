@@ -663,7 +663,7 @@ class TaskForm(forms.ModelForm):
 class ChangeOrderForm(forms.ModelForm):
     PRICING_TYPE_CHOICES = [
         ('FIXED', 'Fixed Price'),
-        ('TM', 'Time & Materials'),
+        ('T_AND_M', 'Time & Materials'),
     ]
     
     pricing_type = forms.ChoiceField(
@@ -671,7 +671,7 @@ class ChangeOrderForm(forms.ModelForm):
         initial='FIXED',
         widget=forms.Select(attrs={
             "class": "form-control",
-            "id": "pricing_type"
+            "id": "id_pricing_type"
         }),
         label="Pricing Type"
     )
