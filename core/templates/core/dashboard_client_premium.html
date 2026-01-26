@@ -277,6 +277,11 @@
                     <i class="bi bi-eye text-slate-400"></i>
                     {% trans "Overview" %}
                 </a>
+                <a href="{% url 'client_project_view' data.project.id %}#financials" 
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg text-sm font-medium text-white shadow-sm hover:shadow-md transition-shadow">
+                    <i class="bi bi-currency-dollar"></i>
+                    {% trans "Financials" %}
+                </a>
                 <a href="{% url 'client_project_calendar' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
                     <i class="bi bi-calendar3 text-slate-400"></i>
