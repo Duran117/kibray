@@ -1,22 +1,464 @@
-{% extends "core/base_modern.html" %}
-{% block content %}
+{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
+
+{% load i18n %}{% block content %}
+
 <div class="container py-3">
-  <nav aria-label="breadcrumb">
+
+{% block title %}{% if sample %}{% trans "Edit Color Sample" %}{% else %}{% trans "New Color Sample" %}{% endif %} - {{ project.name }}{% endblock %}  <nav aria-label="breadcrumb">
+
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">Mis Proyectos</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'color_sample_list' project.id %}">Colores</a></li>
-      <li class="breadcrumb-item active">Nueva muestra</li>
-    </ol>
-  </nav>
-  <h3>Nueva muestra de color</h3>
-  <form method="post" enctype="multipart/form-data" class="mt-3">
-    {% csrf_token %}
-    <div class="row g-3">
-      {{ form.as_p }}
+
+{% block extra_css %}      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">Mis Proyectos</a></li>
+
+<style>      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
+
+:root {      <li class="breadcrumb-item"><a href="{% url 'color_sample_list' project.id %}">Colores</a></li>
+
+    --cs-primary: #6366f1;      <li class="breadcrumb-item active">Nueva muestra</li>
+
+    --cs-primary-dark: #4f46e5;    </ol>
+
+    --cs-success: #10b981;  </nav>
+
+    --cs-warning: #f59e0b;  <h3>Nueva muestra de color</h3>
+
+    --cs-slate-50: #f8fafc;  <form method="post" enctype="multipart/form-data" class="mt-3">
+
+    --cs-slate-100: #f1f5f9;    {% csrf_token %}
+
+    --cs-slate-200: #e2e8f0;    <div class="row g-3">
+
+    --cs-slate-300: #cbd5e1;      {{ form.as_p }}
+
+    --cs-slate-400: #94a3b8;    </div>
+
+    --cs-slate-500: #64748b;    <button class="btn btn-success">Guardar</button>
+
+    --cs-slate-600: #475569;    <a href="{% url 'color_sample_list' project.id %}" class="btn btn-outline-secondary">Cancelar</a>
+
+    --cs-slate-700: #334155;  </form>
+
+    --cs-slate-800: #1e293b;</div>
+
+}{% endblock %}
+
+
+.color-form-container {
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(180deg, var(--cs-slate-100) 0%, #ffffff 100%);
+    padding: 2rem;
+}
+
+.form-header {
+    background: linear-gradient(135deg, var(--cs-slate-900) 0%, var(--cs-slate-800) 50%, #312e81 100%);
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.form-header-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--cs-primary) 0%, #8b5cf6 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.form-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.form-header p {
+    margin: 0.25rem 0 0 0;
+    opacity: 0.7;
+    font-size: 0.875rem;
+}
+
+.form-card {
+    background: white;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    max-width: 800px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.form-body {
+    padding: 2rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cs-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--cs-slate-200);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--cs-slate-700);
+    margin-bottom: 0.5rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="file"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--cs-slate-200);
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    background: var(--cs-slate-50);
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--cs-primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-group .helptext {
+    font-size: 0.8125rem;
+    color: var(--cs-slate-500);
+    margin-top: 0.375rem;
+}
+
+/* Client Approval Checkbox */
+.client-approval-box {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.client-approval-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.client-approval-checkbox {
+    width: 24px;
+    height: 24px;
+    accent-color: #f59e0b;
+    margin-top: 2px;
+}
+
+.client-approval-content {
+    flex: 1;
+}
+
+.client-approval-title {
+    font-weight: 600;
+    color: #92400e;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.client-approval-desc {
+    font-size: 0.875rem;
+    color: #a16207;
+    line-height: 1.5;
+}
+
+.client-approval-features {
+    margin-top: 0.75rem;
+    padding-left: 0;
+    list-style: none;
+}
+
+.client-approval-features li {
+    font-size: 0.8125rem;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.client-approval-features li i {
+    color: #059669;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    background: var(--cs-slate-50);
+    border-top: 1px solid var(--cs-slate-200);
+    justify-content: flex-end;
+}
+
+.btn-cancel {
+    padding: 0.75rem 1.5rem;
+    border: 1.5px solid var(--cs-slate-300);
+    background: white;
+    border-radius: 10px;
+    font-weight: 500;
+    color: var(--cs-slate-600);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: var(--cs-slate-50);
+    border-color: var(--cs-slate-400);
+    color: var(--cs-slate-700);
+}
+
+.btn-save {
+    padding: 0.75rem 2rem;
+    border: none;
+    background: linear-gradient(135deg, var(--cs-primary) 0%, var(--cs-primary-dark) 100%);
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* Breadcrumb */
+.breadcrumb-modern {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.breadcrumb-modern a {
+    color: var(--cs-slate-500);
+    text-decoration: none;
+}
+
+.breadcrumb-modern a:hover {
+    color: var(--cs-primary);
+}
+
+.breadcrumb-modern .separator {
+    color: var(--cs-slate-400);
+}
+
+.breadcrumb-modern .current {
+    color: var(--cs-slate-700);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .color-form-container {
+        padding: 1rem;
+    }
+    
+    .form-body {
+        padding: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="color-form-container">
+    <div class="form-card">
+        <!-- Breadcrumb -->
+        <div style="padding: 1rem 2rem; background: var(--cs-slate-50); border-bottom: 1px solid var(--cs-slate-200);">
+            <nav class="breadcrumb-modern">
+                <a href="{% url 'project_overview' project.id %}">{{ project.name }}</a>
+                <span class="separator"><i class="bi bi-chevron-right"></i></span>
+                <a href="{% url 'color_sample_list' project.id %}">{% trans "Colors" %}</a>
+                <span class="separator"><i class="bi bi-chevron-right"></i></span>
+                <span class="current">{% if sample %}{% trans "Edit" %}{% else %}{% trans "New Sample" %}{% endif %}</span>
+            </nav>
+        </div>
+        
+        <!-- Header -->
+        <div class="form-header">
+            <div class="form-header-icon">
+                <i class="bi bi-palette-fill"></i>
+            </div>
+            <div>
+                <h1>{% if sample %}{% trans "Edit Color Sample" %}{% else %}{% trans "New Color Sample" %}{% endif %}</h1>
+                <p>{{ project.name }}</p>
+            </div>
+        </div>
+        
+        <!-- Form Body -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.project.as_hidden }}
+            
+            <div class="form-body">
+                <!-- Color Information -->
+                <div class="form-section">
+                    <div class="form-section-title">{% trans "Color Information" %}</div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_code">{% trans "Code" %} *</label>
+                            {{ form.code }}
+                            <span class="helptext">{% trans "E.g., SW 7015, BM OC-17" %}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_name">{% trans "Name" %}</label>
+                            {{ form.name }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_brand">{% trans "Brand" %}</label>
+                            {{ form.brand }}
+                            <span class="helptext">{% trans "Sherwin Williams, Benjamin Moore, etc." %}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_finish">{% trans "Finish" %}</label>
+                            {{ form.finish }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_gloss">{% trans "Gloss Level" %}</label>
+                        {{ form.gloss }}
+                        <span class="helptext">{% trans "Matte, Eggshell, Satin, Semi-Gloss, Gloss" %}</span>
+                    </div>
+                </div>
+                
+                <!-- Location -->
+                <div class="form-section">
+                    <div class="form-section-title">{% trans "Location" %}</div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_room_location">{% trans "Room/Location" %}</label>
+                            {{ form.room_location }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_room_group">{% trans "Room Group" %}</label>
+                            {{ form.room_group }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Images -->
+                <div class="form-section">
+                    <div class="form-section-title">{% trans "Images" %}</div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_sample_image">{% trans "Sample Image" %}</label>
+                            {{ form.sample_image }}
+                            <span class="helptext">{% trans "Photo of the color sample" %}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_reference_photo">{% trans "Reference Photo" %}</label>
+                            {{ form.reference_photo }}
+                            <span class="helptext">{% trans "Photo showing where the color will be applied" %}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notes -->
+                <div class="form-section">
+                    <div class="form-section-title">{% trans "Notes" %}</div>
+                    
+                    <div class="form-group">
+                        <label for="id_notes">{% trans "Notes" %}</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+                
+                <!-- Client Approval Section -->
+                <div class="client-approval-box">
+                    <div class="client-approval-header">
+                        <input type="checkbox" name="requires_client_signature" id="id_requires_client_signature" class="client-approval-checkbox" {% if form.instance.requires_client_signature %}checked{% endif %}>
+                        <div class="client-approval-content">
+                            <div class="client-approval-title">
+                                <i class="bi bi-pen-fill"></i>
+                                {% trans "Send to Client for Approval" %}
+                            </div>
+                            <div class="client-approval-desc">
+                                {% trans "If checked, this sample will appear in the client's dashboard for digital signature approval." %}
+                            </div>
+                            <ul class="client-approval-features">
+                                <li><i class="bi bi-check-circle-fill"></i> {% trans "Client can view the sample details" %}</li>
+                                <li><i class="bi bi-check-circle-fill"></i> {% trans "Client signs digitally to approve" %}</li>
+                                <li><i class="bi bi-check-circle-fill"></i> {% trans "A confirmation document is automatically generated" %}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="{% url 'color_sample_list' project.id %}" class="btn-cancel">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-check-lg"></i>
+                    {% if sample %}{% trans "Save Changes" %}{% else %}{% trans "Create Sample" %}{% endif %}
+                </button>
+            </div>
+        </form>
     </div>
-    <button class="btn btn-success">Guardar</button>
-    <a href="{% url 'color_sample_list' project.id %}" class="btn btn-outline-secondary">Cancelar</a>
-  </form>
 </div>
 {% endblock %}

@@ -916,10 +916,13 @@ def dashboard_client(request):
             Q(signature_image__isnull=True) | Q(signature_image='')
         ).order_by('-signed_at')[:3]
         
-        # Color Samples pendientes de aprobación
+        # Color Samples pendientes de firma del cliente
+        # Solo muestras que requieren firma Y no han sido firmadas aún
         from core.models import ColorSample
         pending_color_samples = ColorSample.objects.filter(
             project=project,
+            requires_client_signature=True,
+            client_signature__isnull=True,
             status__in=['proposed', 'review']
         ).order_by('-created_at')[:5]
 
@@ -3442,19 +3445,24 @@ def color_sample_client_signature_view(request, sample_id, token=None):
     """
     color_sample = get_object_or_404(ColorSample, id=sample_id)
 
-    # --- Token validation (solo si se proporciona en la URL) ---
+    # --- Token validation (si se proporciona) ---
     if token is not None:
-        try:
-            payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 días
-            if payload.get("sample_id") != color_sample.id:
-                return HttpResponseForbidden("Token no coincide con esta muestra de color.")
-        except signing.SignatureExpired:
-            return HttpResponseForbidden("El enlace de firma ha expirado. Solicite uno nuevo.")
-        except signing.BadSignature:
-            return HttpResponseForbidden("Token inválido o manipulado.")
+        # Verificar token simple (signature_token del modelo)
+        if color_sample.signature_token and token != color_sample.signature_token:
+            return HttpResponseForbidden("Token inválido para esta muestra de color.")
+        # También soportar token firmado HMAC
+        if not color_sample.signature_token:
+            try:
+                payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 días
+                if payload.get("sample_id") != color_sample.id:
+                    return HttpResponseForbidden("Token no coincide con esta muestra de color.")
+            except signing.SignatureExpired:
+                return HttpResponseForbidden("El enlace de firma ha expirado. Solicite uno nuevo.")
+            except signing.BadSignature:
+                return HttpResponseForbidden("Token inválido o manipulado.")
 
     # Si ya está firmado mostrar pantalla correspondiente
-    if color_sample.approval_signature:
+    if color_sample.client_signature:
         return render(
             request,
             "core/color_sample_signature_already_signed.html",
@@ -3510,34 +3518,31 @@ def color_sample_client_signature_view(request, sample_id, token=None):
                 else request.META.get("REMOTE_ADDR", "")
             )
 
-            # --- Guardar firma en ColorSample ---
-            color_sample.approval_signature = signature_file
-            color_sample.approval_ip = client_ip
-            color_sample.approval_date = timezone.now()
-            color_sample.status = "approved"  # Marcar como aprobada
-            color_sample.save(
-                update_fields=["approval_signature", "approval_ip", "approval_date", "status"]
+            # --- Guardar firma usando el nuevo método del modelo ---
+            color_sample.sign_by_client(
+                signature_image=signature_file,
+                signed_name=signer_name,
+                ip_address=client_ip
             )
 
-            # --- Crear/actualizar registro de aprobación en ColorApproval ---
+            # --- Crear/actualizar registro de aprobación en ColorApproval (legacy compatibility) ---
             color_approval, created = ColorApproval.objects.get_or_create(
-                color_sample=color_sample,
+                project=color_sample.project,
+                color_name=color_sample.name or color_sample.code,
                 defaults={
-                    "client_name": signer_name,
-                    "client_email": signer_email,
+                    "requested_by": color_sample.created_by,
+                    "status": "APPROVED",
+                    "color_code": color_sample.code,
+                    "brand": color_sample.brand,
+                    "location": color_sample.room_location,
                     "client_signature": signature_file,
                     "signed_at": timezone.now(),
-                    "status": "approved",
-                    "ip_address": client_ip,
                 },
             )
             if not created:
-                color_approval.client_name = signer_name
-                color_approval.client_email = signer_email
+                color_approval.status = "APPROVED"
                 color_approval.client_signature = signature_file
                 color_approval.signed_at = timezone.now()
-                color_approval.status = "approved"
-                color_approval.ip_address = client_ip
                 color_approval.save()
 
             # --- Notificar al PM del proyecto ---

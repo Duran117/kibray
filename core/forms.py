@@ -1153,6 +1153,7 @@ class ColorSampleForm(forms.ModelForm):
             "sample_image",
             "reference_photo",
             "notes",
+            "requires_client_signature",
         ]
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 3}),
@@ -1163,6 +1164,15 @@ class ColorSampleForm(forms.ModelForm):
             "room_group": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Grupo de habitación"}
             ),
+            "requires_client_signature": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+        }
+        labels = {
+            "requires_client_signature": "Enviar a cliente para aprobación",
+        }
+        help_texts = {
+            "requires_client_signature": "Si marca esta opción, la muestra aparecerá en el dashboard del cliente para que la firme y apruebe.",
         }
 
 
