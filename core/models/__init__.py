@@ -4330,6 +4330,24 @@ class ColorSample(models.Model):
     approval_ip = models.GenericIPAddressField(
         null=True, blank=True, help_text="IP address of approver for legal purposes"
     )
+    # Client signature fields
+    requires_client_signature = models.BooleanField(
+        default=False, help_text="If True, this sample will appear in client dashboard for signature"
+    )
+    client_signature = models.ImageField(
+        upload_to="color_samples/signatures/", null=True, blank=True,
+        help_text="Client's digital signature image"
+    )
+    client_signed_at = models.DateTimeField(
+        null=True, blank=True, help_text="When client signed"
+    )
+    client_signed_name = models.CharField(
+        max_length=200, blank=True, help_text="Name entered by client when signing"
+    )
+    signature_token = models.CharField(
+        max_length=64, blank=True, null=True, unique=True,
+        help_text="Unique token for public signature URL"
+    )
     # Q19.7 Linked tasks
     linked_tasks = models.ManyToManyField(
         "Task", blank=True, related_name="color_samples", help_text="Tasks that use this color"
@@ -4475,6 +4493,47 @@ class ColorSample(models.Model):
         # Format: KPISM10001
         self.sample_number = f"{client_prefix}M{count:05d}"
         return self.sample_number
+
+    # Client signature methods
+    def generate_signature_token(self):
+        """Generate a unique token for public signature URL"""
+        import secrets
+        if not self.signature_token:
+            self.signature_token = secrets.token_urlsafe(32)
+            self.save(update_fields=['signature_token'])
+        return self.signature_token
+
+    def get_signature_url(self):
+        """Get the public URL for client to sign this sample"""
+        from django.urls import reverse
+        if not self.signature_token:
+            self.generate_signature_token()
+        return reverse('color_sample_client_signature_token', args=[self.id, self.signature_token])
+
+    def sign_by_client(self, signature_image, signed_name, ip_address=None):
+        """Record client's digital signature"""
+        import hashlib
+        from django.utils import timezone
+        
+        self.client_signature = signature_image
+        self.client_signed_name = signed_name
+        self.client_signed_at = timezone.now()
+        self.status = 'approved'
+        
+        # Generate cryptographic hash for legal purposes
+        signature_data = f"{self.id}|{self.project_id}|{signed_name}|{self.client_signed_at.isoformat()}|{self.code}|{self.name}"
+        self.approval_signature = hashlib.sha256(signature_data.encode()).hexdigest()
+        self.approval_ip = ip_address
+        
+        self.save()
+        
+        # Notify team about approval
+        self._notify_status_change('approved_by_client', None)
+
+    @property
+    def needs_client_signature(self):
+        """Check if this sample is waiting for client signature"""
+        return self.requires_client_signature and not self.client_signature
 
 
 # ---------------------

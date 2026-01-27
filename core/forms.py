@@ -1139,6 +1139,14 @@ class InventoryMovementForm(forms.Form):
 
 # ---- Color Samples ----
 class ColorSampleForm(forms.ModelForm):
+    # Field added dynamically to avoid import errors before migration
+    requires_client_signature = forms.BooleanField(
+        required=False,
+        label="Enviar a cliente para aprobación",
+        help_text="Si marca esta opción, la muestra aparecerá en el dashboard del cliente para que la firme y apruebe.",
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"})
+    )
+
     class Meta:
         model = ColorSample
         fields = [
@@ -1153,7 +1161,6 @@ class ColorSampleForm(forms.ModelForm):
             "sample_image",
             "reference_photo",
             "notes",
-            "requires_client_signature",
         ]
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 3}),
@@ -1164,16 +1171,21 @@ class ColorSampleForm(forms.ModelForm):
             "room_group": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Grupo de habitación"}
             ),
-            "requires_client_signature": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
-            ),
         }
-        labels = {
-            "requires_client_signature": "Enviar a cliente para aprobación",
-        }
-        help_texts = {
-            "requires_client_signature": "Si marca esta opción, la muestra aparecerá en el dashboard del cliente para que la firme y apruebe.",
-        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Initialize requires_client_signature with instance value if editing
+        if self.instance and self.instance.pk:
+            self.fields['requires_client_signature'].initial = getattr(self.instance, 'requires_client_signature', False)
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Set the requires_client_signature field
+        instance.requires_client_signature = self.cleaned_data.get('requires_client_signature', False)
+        if commit:
+            instance.save()
+        return instance
 
 
 class ColorSampleReviewForm(forms.ModelForm):
