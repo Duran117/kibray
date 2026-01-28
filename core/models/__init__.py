@@ -2582,7 +2582,18 @@ class PayrollPayment(models.Model):
     payroll_record = models.ForeignKey(
         PayrollRecord, related_name="payments", on_delete=models.CASCADE
     )
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        help_text="Total amount from payroll (amount_taken + amount_saved)"
+    )
+    amount_taken = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0"),
+        help_text="Amount employee actually took (cash/check)"
+    )
+    amount_saved = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0"),
+        help_text="Amount employee saved/retained with company"
+    )
     payment_date = models.DateField()
     payment_method = models.CharField(
         max_length=20,
@@ -2604,7 +2615,126 @@ class PayrollPayment(models.Model):
 
     def __str__(self):
         ref = f"#{self.check_number}" if self.check_number else self.reference
-        return f"${self.amount} - {self.payroll_record.employee} - {ref}"
+        saved_str = f" (saved ${self.amount_saved})" if self.amount_saved > 0 else ""
+        return f"${self.amount_taken}{saved_str} - {self.payroll_record.employee} - {ref}"
+
+    def save(self, *args, **kwargs):
+        # Ensure amount_taken + amount_saved = amount (for backwards compatibility)
+        if self.amount_taken == 0 and self.amount_saved == 0 and self.amount > 0:
+            self.amount_taken = self.amount
+        super().save(*args, **kwargs)
+        
+        # Create savings record if employee saved money
+        if self.amount_saved > 0:
+            EmployeeSavings.objects.update_or_create(
+                payroll_payment=self,
+                defaults={
+                    'employee': self.payroll_record.employee,
+                    'amount': self.amount_saved,
+                    'transaction_type': 'deposit',
+                    'date': self.payment_date,
+                    'notes': f"Savings from payroll week {self.payroll_record.week_start}",
+                    'recorded_by': self.recorded_by,
+                }
+            )
+
+
+class EmployeeSavings(models.Model):
+    """Registro de ahorros/retenciones de empleados
+    
+    Tracks cuando un empleado no se lleva todo su pago y deja parte con la compañía.
+    Permite depósitos (savings from payroll) y retiros (withdrawals).
+    """
+    
+    TRANSACTION_TYPES = [
+        ('deposit', 'Depósito (Ahorro)'),
+        ('withdrawal', 'Retiro'),
+        ('adjustment', 'Ajuste Manual'),
+    ]
+    
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name='savings_records'
+    )
+    payroll_payment = models.ForeignKey(
+        PayrollPayment, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='savings_record',
+        help_text="Linked payroll payment (for automatic deposits)"
+    )
+    amount = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        help_text="Amount saved or withdrawn"
+    )
+    transaction_type = models.CharField(
+        max_length=20, choices=TRANSACTION_TYPES, default='deposit'
+    )
+    date = models.DateField()
+    notes = models.TextField(blank=True)
+    recorded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True,
+        related_name='employee_savings_recorded'
+    )
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-date', '-recorded_at']
+        verbose_name = 'Employee Savings'
+        verbose_name_plural = 'Employee Savings'
+    
+    def __str__(self):
+        sign = '+' if self.transaction_type == 'deposit' else '-'
+        return f"{self.employee} | {sign}${self.amount} | {self.date}"
+    
+    @classmethod
+    def get_employee_balance(cls, employee):
+        """Get current savings balance for an employee"""
+        from django.db.models import Sum
+        
+        deposits = cls.objects.filter(
+            employee=employee,
+            transaction_type='deposit'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        
+        withdrawals = cls.objects.filter(
+            employee=employee,
+            transaction_type='withdrawal'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        
+        adjustments = cls.objects.filter(
+            employee=employee,
+            transaction_type='adjustment'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        
+        return deposits - withdrawals + adjustments
+    
+    @classmethod
+    def get_employee_ledger(cls, employee):
+        """Get full transaction history with running balance"""
+        transactions = cls.objects.filter(employee=employee).order_by('date', 'recorded_at')
+        
+        ledger = []
+        running_balance = Decimal('0')
+        
+        for txn in transactions:
+            if txn.transaction_type == 'deposit':
+                running_balance += txn.amount
+            elif txn.transaction_type == 'withdrawal':
+                running_balance -= txn.amount
+            else:  # adjustment
+                running_balance += txn.amount
+            
+            ledger.append({
+                'id': txn.id,
+                'date': txn.date,
+                'type': txn.transaction_type,
+                'type_display': txn.get_transaction_type_display(),
+                'amount': txn.amount,
+                'balance': running_balance,
+                'notes': txn.notes,
+                'recorded_by': txn.recorded_by,
+                'recorded_at': txn.recorded_at,
+            })
+        
+        return ledger
 
 
 # ---------------------

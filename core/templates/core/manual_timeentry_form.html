@@ -1,0 +1,434 @@
+{% extends 'core/base_modern.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Create Manual Time Entry" %} | Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== MANUAL TIME ENTRY STYLES ===== */
+:root {
+    --te-primary: #6366f1;
+    --te-primary-dark: #4f46e5;
+    --te-success: #10b981;
+    --te-warning: #f59e0b;
+    --te-danger: #ef4444;
+    --te-gray-50: #f9fafb;
+    --te-gray-100: #f3f4f6;
+    --te-gray-200: #e5e7eb;
+    --te-gray-300: #d1d5db;
+    --te-gray-600: #4b5563;
+    --te-gray-700: #374151;
+    --te-gray-800: #1f2937;
+    --te-gray-900: #111827;
+}
+
+.te-container {
+    padding: 24px;
+    background: var(--te-gray-50);
+    min-height: calc(100vh - 64px);
+}
+
+.te-header {
+    margin-bottom: 24px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--te-gray-600);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.back-link:hover {
+    color: var(--te-primary);
+}
+
+.te-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    max-width: 600px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.te-card-header {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    padding: 24px;
+    color: white;
+}
+
+.te-card-header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.te-card-header p {
+    margin: 8px 0 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.te-card-body {
+    padding: 32px;
+}
+
+.form-section {
+    margin-bottom: 28px;
+}
+
+.form-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--te-gray-800);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-section-title i {
+    color: var(--te-primary);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--te-gray-700);
+    margin-bottom: 8px;
+}
+
+.form-label small {
+    font-weight: normal;
+    color: var(--te-gray-500);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--te-gray-200);
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.2s;
+    background: white;
+    color: var(--te-gray-900);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--te-primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.form-control:disabled {
+    background: var(--te-gray-100);
+    color: var(--te-gray-600);
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 20px;
+    padding-right: 44px;
+}
+
+.time-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.hours-display {
+    background: var(--te-gray-100);
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 12px;
+}
+
+.hours-display .label {
+    font-size: 12px;
+    color: var(--te-gray-600);
+    text-transform: uppercase;
+}
+
+.hours-display .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--te-primary);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.btn {
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: none;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--te-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--te-primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--te-gray-200);
+    color: var(--te-gray-700);
+}
+
+.btn-secondary:hover {
+    background: var(--te-gray-300);
+}
+
+.form-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--te-gray-200);
+}
+
+.form-actions .btn {
+    flex: 1;
+}
+
+/* Hint box */
+.hint-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.hint-box i {
+    color: #3b82f6;
+    margin-right: 8px;
+}
+
+.hint-box p {
+    margin: 0;
+    color: #1e40af;
+    font-size: 13px;
+}
+
+/* Required indicator */
+.required {
+    color: var(--te-danger);
+}
+
+@media (max-width: 576px) {
+    .te-container {
+        padding: 16px;
+    }
+    
+    .te-card-body {
+        padding: 24px 20px;
+    }
+    
+    .time-inputs {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="te-container">
+    <div class="te-header">
+        <a href="{% url 'payroll_weekly_review' %}" class="back-link">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Payroll" %}
+        </a>
+    </div>
+    
+    <div class="te-card">
+        <div class="te-card-header">
+            <h1><i class="bi bi-clock-history"></i> {% trans "Create Manual Time Entry" %}</h1>
+            <p>{% trans "Register hours for an employee who forgot to check in" %}</p>
+        </div>
+        
+        <div class="te-card-body">
+            <div class="hint-box">
+                <i class="bi bi-info-circle"></i>
+                <p>{% trans "Use this form to manually register hours when an employee forgot to use the check-in system. Hours will appear in the payroll for the corresponding week." %}</p>
+            </div>
+            
+            <form method="post" id="manualTimeEntryForm">
+                {% csrf_token %}
+                
+                <!-- Employee Selection -->
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="bi bi-person"></i> {% trans "Employee" %}</h3>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Select Employee" %} <span class="required">*</span></label>
+                        <select name="employee_id" class="form-control" required id="employeeSelect">
+                            <option value="">{% trans "Choose an employee..." %}</option>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}" {% if default_employee == emp.id|stringformat:'i' %}selected{% endif %}>
+                                {{ emp.first_name }} {{ emp.last_name }} ({{ emp.employee_key|default:emp.id }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Date and Time -->
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="bi bi-calendar3"></i> {% trans "Date & Time" %}</h3>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Date" %} <span class="required">*</span></label>
+                        <input type="date" name="date" class="form-control" required id="entryDate" value="{{ default_date }}">
+                    </div>
+                    <div class="time-inputs">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "Start Time" %} <span class="required">*</span></label>
+                            <input type="time" name="start_time" class="form-control" required id="startTime" value="07:00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "End Time" %} <span class="required">*</span></label>
+                            <input type="time" name="end_time" class="form-control" required id="endTime" value="15:30">
+                        </div>
+                    </div>
+                    <div class="hours-display">
+                        <div class="label">{% trans "Calculated Hours" %}</div>
+                        <div class="value" id="calculatedHours">8.5</div>
+                    </div>
+                </div>
+                
+                <!-- Project Assignment (Optional) -->
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="bi bi-folder"></i> {% trans "Assignment" %} <small>({% trans "optional" %})</small></h3>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Project" %}</label>
+                        <select name="project_id" class="form-control" id="projectSelect">
+                            <option value="">{% trans "No specific project" %}</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}">{{ project.code|default:project.id }} - {{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Change Order" %}</label>
+                        <select name="change_order_id" class="form-control" id="changeOrderSelect">
+                            <option value="">{% trans "No change order" %}</option>
+                            {% for co in change_orders %}
+                            <option value="{{ co.id }}" data-project="{{ co.project_id }}">
+                                CO-{{ co.id }} - {{ co.title|truncatewords:8 }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Notes -->
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="bi bi-chat-left-text"></i> {% trans "Notes" %}</h3>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Description" %} <small>({% trans "optional" %})</small></label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="{% trans 'Reason for manual entry, work description, etc.' %}"></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'payroll_weekly_review' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> {% trans "Create Time Entry" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Calculate hours when times change
+function calculateHours() {
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+    
+    if (startTime && endTime) {
+        const start = startTime.split(':').map(Number);
+        const end = endTime.split(':').map(Number);
+        
+        let startMins = start[0] * 60 + start[1];
+        let endMins = end[0] * 60 + end[1];
+        
+        // Handle overnight shifts
+        if (endMins < startMins) {
+            endMins += 24 * 60;
+        }
+        
+        const hours = (endMins - startMins) / 60;
+        document.getElementById('calculatedHours').textContent = hours.toFixed(1);
+    }
+}
+
+document.getElementById('startTime').addEventListener('change', calculateHours);
+document.getElementById('endTime').addEventListener('change', calculateHours);
+
+// Filter change orders by project
+document.getElementById('projectSelect').addEventListener('change', function() {
+    const projectId = this.value;
+    const coSelect = document.getElementById('changeOrderSelect');
+    const options = coSelect.querySelectorAll('option[data-project]');
+    
+    options.forEach(opt => {
+        if (!projectId || opt.dataset.project === projectId) {
+            opt.style.display = '';
+        } else {
+            opt.style.display = 'none';
+        }
+    });
+    
+    // Reset CO selection if current selection is hidden
+    if (coSelect.selectedOptions[0] && coSelect.selectedOptions[0].style.display === 'none') {
+        coSelect.value = '';
+    }
+});
+
+// Initialize
+calculateHours();
+</script>
+{% endblock %}

@@ -1,0 +1,678 @@
+{% extends 'core/base_modern.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Employee Savings Ledger" %} | Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== SAVINGS LEDGER STYLES ===== */
+:root {
+    --savings-primary: #10b981;
+    --savings-primary-dark: #059669;
+    --savings-danger: #ef4444;
+    --savings-warning: #f59e0b;
+    --savings-blue: #3b82f6;
+    --savings-purple: #8b5cf6;
+    --savings-gray-50: #f9fafb;
+    --savings-gray-100: #f3f4f6;
+    --savings-gray-200: #e5e7eb;
+    --savings-gray-300: #d1d5db;
+    --savings-gray-600: #4b5563;
+    --savings-gray-700: #374151;
+    --savings-gray-800: #1f2937;
+    --savings-gray-900: #111827;
+}
+
+.savings-container {
+    padding: 24px;
+    background: var(--savings-gray-50);
+    min-height: calc(100vh - 64px);
+}
+
+/* Header Section */
+.savings-header {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.savings-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.savings-title i {
+    font-size: 28px;
+    color: var(--savings-primary);
+}
+
+.savings-title h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--savings-gray-900);
+    margin: 0;
+}
+
+.savings-title h1 small {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--savings-gray-600);
+    margin-top: 4px;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--savings-primary); }
+.stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: var(--savings-blue); }
+.stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: var(--savings-purple); }
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--savings-gray-900);
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--savings-gray-600);
+    text-transform: uppercase;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--savings-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--savings-primary-dark);
+}
+
+.btn-danger {
+    background: var(--savings-danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-secondary {
+    background: var(--savings-gray-200);
+    color: var(--savings-gray-700);
+}
+
+.btn-secondary:hover {
+    background: var(--savings-gray-300);
+}
+
+/* Employee Cards */
+.employee-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.employee-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.employee-card-header {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.employee-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.employee-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.employee-name {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.employee-role {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.balance-display {
+    text-align: right;
+}
+
+.balance-label {
+    font-size: 12px;
+    opacity: 0.9;
+    text-transform: uppercase;
+}
+
+.balance-amount {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+/* Ledger Table */
+.ledger-table-container {
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ledger-table th {
+    background: var(--savings-gray-100);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--savings-gray-600);
+    position: sticky;
+    top: 0;
+}
+
+.ledger-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--savings-gray-200);
+    font-size: 14px;
+}
+
+.ledger-table tbody tr:hover {
+    background: var(--savings-gray-50);
+}
+
+.txn-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.txn-type.deposit {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--savings-primary);
+}
+
+.txn-type.withdrawal {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--savings-danger);
+}
+
+.txn-type.adjustment {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--savings-purple);
+}
+
+.amount-positive {
+    color: var(--savings-primary);
+    font-weight: 600;
+}
+
+.amount-negative {
+    color: var(--savings-danger);
+    font-weight: 600;
+}
+
+.running-balance {
+    font-weight: 700;
+    color: var(--savings-gray-900);
+}
+
+/* Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--savings-gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--savings-gray-600);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--savings-gray-700);
+    margin-bottom: 8px;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--savings-gray-300);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--savings-primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--savings-gray-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--savings-gray-600);
+}
+
+.empty-state i {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--savings-gray-800);
+}
+
+/* Back Link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--savings-gray-600);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.back-link:hover {
+    color: var(--savings-primary);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="savings-container">
+    <a href="{% url 'payroll_weekly_review' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Payroll" %}
+    </a>
+    
+    <!-- Header -->
+    <div class="savings-header">
+        <div class="savings-title">
+            <i class="bi bi-piggy-bank"></i>
+            <h1>
+                {% trans "Employee Savings Ledger" %}
+                <small>{% trans "Track employee savings and withdrawals" %}</small>
+            </h1>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-danger" onclick="openModal('withdrawalModal')">
+                <i class="bi bi-cash-stack"></i> {% trans "Record Withdrawal" %}
+            </button>
+            <button class="btn btn-secondary" onclick="openModal('adjustmentModal')">
+                <i class="bi bi-sliders"></i> {% trans "Adjustment" %}
+            </button>
+        </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-piggy-bank-fill"></i></div>
+            <div>
+                <div class="stat-value">${{ total_balance|floatformat:2 }}</div>
+                <div class="stat-label">{% trans "Total Savings" %}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="stat-value">{{ total_employees_with_savings }}</div>
+                <div class="stat-label">{% trans "Employees with Savings" %}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-list-check"></i></div>
+            <div>
+                <div class="stat-value">{{ employees_data|length }}</div>
+                <div class="stat-label">{% trans "Total Records" %}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Employee Cards -->
+    <div class="employee-cards">
+        {% for data in employees_data %}
+        <div class="employee-card">
+            <div class="employee-card-header">
+                <div class="employee-info">
+                    <div class="employee-avatar">
+                        {{ data.employee.first_name|slice:":1" }}{{ data.employee.last_name|slice:":1" }}
+                    </div>
+                    <div>
+                        <div class="employee-name">{{ data.employee.first_name }} {{ data.employee.last_name }}</div>
+                        <div class="employee-role">${{ data.employee.hourly_rate }}/hr • ID: {{ data.employee.id }}</div>
+                    </div>
+                </div>
+                <div class="balance-display">
+                    <div class="balance-label">{% trans "Current Balance" %}</div>
+                    <div class="balance-amount">${{ data.balance|floatformat:2 }}</div>
+                </div>
+            </div>
+            
+            <div class="ledger-table-container">
+                {% if data.ledger %}
+                <table class="ledger-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Balance" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                            <th>{% trans "Recorded By" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in data.ledger %}
+                        <tr>
+                            <td>{{ txn.date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="txn-type {{ txn.type }}">
+                                    {% if txn.type == 'deposit' %}
+                                    <i class="bi bi-arrow-down-circle"></i>
+                                    {% elif txn.type == 'withdrawal' %}
+                                    <i class="bi bi-arrow-up-circle"></i>
+                                    {% else %}
+                                    <i class="bi bi-sliders"></i>
+                                    {% endif %}
+                                    {{ txn.type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if txn.type == 'deposit' or txn.type == 'adjustment' and txn.amount > 0 %}
+                                <span class="amount-positive">+${{ txn.amount|floatformat:2 }}</span>
+                                {% else %}
+                                <span class="amount-negative">-${{ txn.amount|floatformat:2 }}</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="running-balance">${{ txn.balance|floatformat:2 }}</span></td>
+                            <td>{{ txn.notes|default:"-"|truncatewords:10 }}</td>
+                            <td>{{ txn.recorded_by.username|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h3>{% trans "No transactions yet" %}</h3>
+                    <p>{% trans "This employee has no savings history." %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="employee-card">
+            <div class="empty-state">
+                <i class="bi bi-piggy-bank"></i>
+                <h3>{% trans "No Employee Savings" %}</h3>
+                <p>{% trans "No employees have savings recorded yet. When employees save part of their paycheck, it will appear here." %}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Withdrawal Modal -->
+<div class="modal-overlay" id="withdrawalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-cash-stack"></i> {% trans "Record Withdrawal" %}</h3>
+            <button class="modal-close" onclick="closeModal('withdrawalModal')">&times;</button>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="withdrawal">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="withdrawal_employee">{% trans "Employee" %}</label>
+                    <select name="employee_id" id="withdrawal_employee" required>
+                        <option value="">{% trans "Select employee..." %}</option>
+                        {% for emp in all_employees %}
+                        <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawal_amount">{% trans "Amount" %}</label>
+                    <input type="number" name="amount" id="withdrawal_amount" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="withdrawal_date">{% trans "Date" %}</label>
+                    <input type="date" name="date" id="withdrawal_date" required value="{{ today|date:'Y-m-d' }}">
+                </div>
+                <div class="form-group">
+                    <label for="withdrawal_notes">{% trans "Notes" %}</label>
+                    <textarea name="notes" id="withdrawal_notes" rows="2" placeholder="{% trans 'Reason for withdrawal...' %}"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('withdrawalModal')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-danger">{% trans "Record Withdrawal" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Adjustment Modal -->
+<div class="modal-overlay" id="adjustmentModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-sliders"></i> {% trans "Manual Adjustment" %}</h3>
+            <button class="modal-close" onclick="closeModal('adjustmentModal')">&times;</button>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="adjustment">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="adjustment_employee">{% trans "Employee" %}</label>
+                    <select name="employee_id" id="adjustment_employee" required>
+                        <option value="">{% trans "Select employee..." %}</option>
+                        {% for emp in all_employees %}
+                        <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="adjustment_amount">{% trans "Amount" %} <small>({% trans "use negative for reduction" %})</small></label>
+                    <input type="number" name="amount" id="adjustment_amount" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="adjustment_date">{% trans "Date" %}</label>
+                    <input type="date" name="date" id="adjustment_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="adjustment_notes">{% trans "Notes" %} <small>({% trans "required" %})</small></label>
+                    <textarea name="notes" id="adjustment_notes" rows="2" required placeholder="{% trans 'Reason for adjustment...' %}"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('adjustmentModal')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary">{% trans "Save Adjustment" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+    // Set default date to today
+    const dateInputs = document.querySelectorAll('#' + modalId + ' input[type="date"]');
+    dateInputs.forEach(input => {
+        if (!input.value) {
+            input.value = new Date().toISOString().split('T')[0];
+        }
+    });
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+
+// Close modal on outside click
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+        }
+    });
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+            modal.classList.remove('active');
+        });
+    }
+});
+</script>
+{% endblock %}

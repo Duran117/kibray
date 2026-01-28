@@ -450,6 +450,15 @@ urlpatterns = [
         views.payroll_payment_history,
         name="payroll_payment_history_employee",
     ),
+    # Employee Savings Ledger
+    path("payroll/savings/", views.employee_savings_ledger, name="employee_savings_ledger"),
+    path(
+        "payroll/savings/employee/<int:employee_id>/",
+        views.employee_savings_ledger,
+        name="employee_savings_ledger_employee",
+    ),
+    # Manual Time Entry Creation
+    path("payroll/timeentry/manual/", views.manual_timeentry_create, name="manual_timeentry_create"),
     # Invoices
     path("invoices/", views.invoice_list, name="invoice_list"),
     # path("invoices/new/", views.invoice_create_view, name="invoice_create"),  # DEPRECATED: Use invoice_builder instead

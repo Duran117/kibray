@@ -563,6 +563,16 @@
                 {% trans "Next" %} <i class="bi bi-chevron-right"></i>
             </a>
         </div>
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px;">
+            <a href="{% url 'manual_timeentry_create' %}?date={{ week_start|date:'Y-m-d' }}" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; text-decoration: none; background: #6366f1; color: white; font-weight: 600; font-size: 13px;">
+                <i class="bi bi-plus-circle"></i> {% trans "Add Hours" %}
+            </a>
+            <a href="{% url 'employee_savings_ledger' %}" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; text-decoration: none; background: #10b981; color: white; font-weight: 600; font-size: 13px;">
+                <i class="bi bi-piggy-bank"></i> {% trans "Savings Ledger" %}
+            </a>
+        </div>
     </div>
     
     <!-- Stats -->

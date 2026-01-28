@@ -1775,6 +1775,7 @@ def payroll_weekly_review(request):
 def payroll_record_payment(request, record_id):
     """
     Registrar un pago (parcial o completo) para un PayrollRecord.
+    Soporta pagos con ahorro - el empleado puede llevarse menos y dejar el resto.
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
     # Solo admin/superuser puede acceder
@@ -1786,6 +1787,8 @@ def payroll_record_payment(request, record_id):
 
     if request.method == "POST":
         amount = request.POST.get("amount")
+        amount_taken = request.POST.get("amount_taken")
+        amount_saved = request.POST.get("amount_saved", "0")
         payment_date = request.POST.get("payment_date")
         payment_method = request.POST.get("payment_method", "check")
         check_number = request.POST.get("check_number", "")
@@ -1793,22 +1796,48 @@ def payroll_record_payment(request, record_id):
         notes = request.POST.get("notes", "")
 
         if amount and payment_date:
-            PayrollPayment.objects.create(
-                payroll_record=record,
-                amount=Decimal(amount),
-                payment_date=payment_date,
-                payment_method=payment_method,
-                check_number=check_number,
-                reference=reference,
-                notes=notes,
-                recorded_by=request.user,
-            )
+            try:
+                total_amount = Decimal(amount)
+                taken = Decimal(amount_taken) if amount_taken else total_amount
+                saved = Decimal(amount_saved) if amount_saved else Decimal("0")
+                
+                # Validate: amount_taken + amount_saved should equal total amount
+                if taken + saved != total_amount:
+                    messages.error(
+                        request,
+                        _("Amount taken ($%(taken)s) + Amount saved ($%(saved)s) must equal Total ($%(total)s)")
+                        % {"taken": taken, "saved": saved, "total": total_amount}
+                    )
+                    return redirect(request.path)
+                
+                PayrollPayment.objects.create(
+                    payroll_record=record,
+                    amount=total_amount,
+                    amount_taken=taken,
+                    amount_saved=saved,
+                    payment_date=payment_date,
+                    payment_method=payment_method,
+                    check_number=check_number,
+                    reference=reference,
+                    notes=notes,
+                    recorded_by=request.user,
+                )
 
-            messages.success(
-                request,
-                _("Pago de $%(amount)s registrado para %(employee)s.")
-                % {"amount": amount, "employee": record.employee},
-            )
+                if saved > 0:
+                    messages.success(
+                        request,
+                        _("Payment recorded: $%(taken)s paid to %(employee)s, $%(saved)s saved.")
+                        % {"taken": taken, "employee": record.employee, "saved": saved},
+                    )
+                else:
+                    messages.success(
+                        request,
+                        _("Payment of $%(amount)s recorded for %(employee)s.")
+                        % {"amount": total_amount, "employee": record.employee},
+                    )
+            except Exception as e:
+                messages.error(request, f"Error processing payment: {str(e)}")
+                return redirect(request.path)
 
             # Redirigir de vuelta a la revisión semanal
             return redirect("payroll_weekly_review")
@@ -1861,6 +1890,242 @@ def payroll_payment_history(request, employee_id=None):
     }
 
     return render(request, "core/payroll_payment_history.html", context)
+
+
+@login_required
+def employee_savings_ledger(request, employee_id=None):
+    """
+    Vista del ledger de ahorros de empleados.
+    Muestra el balance actual y historial de transacciones para cada empleado.
+    Permite registrar retiros.
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
+    """
+    from core.models import EmployeeSavings
+    from decimal import Decimal
+    
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
+    
+    # Si se especifica employee_id, mostrar solo ese empleado
+    if employee_id:
+        employee = get_object_or_404(Employee, id=employee_id)
+        employees_data = [{
+            'employee': employee,
+            'balance': EmployeeSavings.get_employee_balance(employee),
+            'ledger': EmployeeSavings.get_employee_ledger(employee),
+        }]
+    else:
+        # Mostrar todos los empleados activos con ahorros
+        employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+        employees_data = []
+        
+        for emp in employees:
+            balance = EmployeeSavings.get_employee_balance(emp)
+            # Solo mostrar empleados con historial de ahorros
+            has_savings = EmployeeSavings.objects.filter(employee=emp).exists()
+            if has_savings or balance > 0:
+                employees_data.append({
+                    'employee': emp,
+                    'balance': balance,
+                    'ledger': EmployeeSavings.get_employee_ledger(emp),
+                })
+    
+    # Calcular totales
+    total_balance = sum(data['balance'] for data in employees_data)
+    total_employees_with_savings = len([d for d in employees_data if d['balance'] > 0])
+    
+    # Handle POST: registrar retiro
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "withdrawal":
+            emp_id = request.POST.get("employee_id")
+            amount = request.POST.get("amount")
+            notes = request.POST.get("notes", "")
+            withdrawal_date = request.POST.get("date")
+            
+            if emp_id and amount and withdrawal_date:
+                try:
+                    emp = Employee.objects.get(id=emp_id)
+                    withdrawal_amount = Decimal(amount)
+                    current_balance = EmployeeSavings.get_employee_balance(emp)
+                    
+                    if withdrawal_amount > current_balance:
+                        messages.error(
+                            request,
+                            _("Cannot withdraw $%(amount)s. Employee only has $%(balance)s saved.")
+                            % {"amount": withdrawal_amount, "balance": current_balance}
+                        )
+                    else:
+                        EmployeeSavings.objects.create(
+                            employee=emp,
+                            amount=withdrawal_amount,
+                            transaction_type='withdrawal',
+                            date=withdrawal_date,
+                            notes=notes or "Cash withdrawal",
+                            recorded_by=request.user,
+                        )
+                        messages.success(
+                            request,
+                            _("Withdrawal of $%(amount)s recorded for %(employee)s.")
+                            % {"amount": withdrawal_amount, "employee": f"{emp.first_name} {emp.last_name}"}
+                        )
+                except Employee.DoesNotExist:
+                    messages.error(request, "Employee not found.")
+                except Exception as e:
+                    messages.error(request, f"Error: {str(e)}")
+                
+                return redirect("employee_savings_ledger")
+        
+        elif action == "adjustment":
+            emp_id = request.POST.get("employee_id")
+            amount = request.POST.get("amount")
+            notes = request.POST.get("notes", "")
+            adjustment_date = request.POST.get("date")
+            
+            if emp_id and amount and adjustment_date:
+                try:
+                    emp = Employee.objects.get(id=emp_id)
+                    EmployeeSavings.objects.create(
+                        employee=emp,
+                        amount=Decimal(amount),  # Can be positive or negative
+                        transaction_type='adjustment',
+                        date=adjustment_date,
+                        notes=notes or "Manual adjustment",
+                        recorded_by=request.user,
+                    )
+                    messages.success(
+                        request,
+                        _("Adjustment recorded for %(employee)s.")
+                        % {"employee": f"{emp.first_name} {emp.last_name}"}
+                    )
+                except Exception as e:
+                    messages.error(request, f"Error: {str(e)}")
+                
+                return redirect("employee_savings_ledger")
+    
+    # Get all active employees for dropdown
+    all_employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    
+    context = {
+        "employees_data": employees_data,
+        "total_balance": total_balance,
+        "total_employees_with_savings": total_employees_with_savings,
+        "all_employees": all_employees,
+        "selected_employee": employee if employee_id else None,
+    }
+    
+    return render(request, "core/employee_savings_ledger.html", context)
+
+
+@login_required
+def manual_timeentry_create(request):
+    """
+    Admin view to manually create TimeEntry for any employee.
+    Used when employee forgot to check in/out.
+    SOLO ACCESIBLE POR ADMIN/SUPERUSER
+    """
+    from core.models import Employee, Project, ChangeOrder, TimeEntry
+    from decimal import Decimal
+    from datetime import datetime
+    
+    # Solo admin/superuser puede acceder
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
+    
+    employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    projects = Project.objects.filter(is_archived=False).order_by('name')
+    change_orders = ChangeOrder.objects.filter(status='approved').order_by('-created_at')[:100]
+    
+    if request.method == "POST":
+        employee_id = request.POST.get("employee_id")
+        project_id = request.POST.get("project_id")
+        change_order_id = request.POST.get("change_order_id")
+        entry_date = request.POST.get("date")
+        start_time = request.POST.get("start_time")
+        end_time = request.POST.get("end_time")
+        notes = request.POST.get("notes", "")
+        
+        if employee_id and entry_date and start_time and end_time:
+            try:
+                emp = Employee.objects.get(id=employee_id)
+                
+                # Parse times
+                start_t = datetime.strptime(start_time, "%H:%M").time()
+                end_t = datetime.strptime(end_time, "%H:%M").time()
+                
+                # Calculate hours
+                start_mins = start_t.hour * 60 + start_t.minute
+                end_mins = end_t.hour * 60 + end_t.minute
+                if end_mins < start_mins:  # Overnight shift
+                    end_mins += 24 * 60
+                hours_worked = Decimal(str((end_mins - start_mins) / 60.0))
+                
+                # Create entry
+                entry = TimeEntry(
+                    employee=emp,
+                    date=entry_date,
+                    start_time=start_t,
+                    end_time=end_t,
+                    hours_worked=hours_worked,
+                    notes=f"[Manual entry by {request.user.username}] {notes}".strip(),
+                )
+                
+                # Assign project if provided
+                if project_id:
+                    entry.project = Project.objects.get(id=project_id)
+                
+                # Assign CO if provided
+                if change_order_id:
+                    entry.change_order = ChangeOrder.objects.get(id=change_order_id)
+                
+                entry.save()
+                
+                messages.success(
+                    request,
+                    _("Time entry created: %(employee)s - %(hours)s hours on %(date)s")
+                    % {
+                        "employee": f"{emp.first_name} {emp.last_name}",
+                        "hours": hours_worked,
+                        "date": entry_date,
+                    }
+                )
+                
+                # Redirect back with week_start to stay on same week
+                # Calculate week start from entry date
+                from datetime import datetime, timedelta
+                entry_date_obj = datetime.strptime(entry_date, "%Y-%m-%d").date()
+                week_start = entry_date_obj - timedelta(days=entry_date_obj.weekday())
+                
+                return redirect(f"/payroll/week/?week_start={week_start.isoformat()}")
+                
+            except Employee.DoesNotExist:
+                messages.error(request, "Employee not found.")
+            except Project.DoesNotExist:
+                messages.error(request, "Project not found.")
+            except ChangeOrder.DoesNotExist:
+                messages.error(request, "Change Order not found.")
+            except Exception as e:
+                messages.error(request, f"Error creating time entry: {str(e)}")
+        else:
+            messages.error(request, _("Employee, date, start time, and end time are required."))
+    
+    # Get default date from query param or today
+    default_date = request.GET.get("date", datetime.now().strftime("%Y-%m-%d"))
+    default_employee = request.GET.get("employee_id", "")
+    
+    context = {
+        "employees": employees,
+        "projects": projects,
+        "change_orders": change_orders,
+        "default_date": default_date,
+        "default_employee": default_employee,
+    }
+    
+    return render(request, "core/manual_timeentry_form.html", context)
 
 
 # --- CLIENTE: Vista de proyecto y formularios ---
