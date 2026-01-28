@@ -3,184 +3,725 @@
 
 {% block title %}{% trans "Create Estimate" %} - {{ project.name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ===== PREMIUM ESTIMATE CREATOR STYLES ===== */
+.estimate-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+/* Header Card */
+.estimate-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+}
+
+.estimate-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.estimate-header .subtitle {
+    margin-top: 0.5rem;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.version-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Form Cards */
+.form-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.form-card-header {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-card-header i {
+    color: #6366f1;
+    font-size: 1.25rem;
+}
+
+.form-card-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.form-card-body {
+    padding: 1.5rem;
+}
+
+/* Input Styling */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.375rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.form-input:hover {
+    border-color: #cbd5e1;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Percentage inputs */
+.percentage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .percentage-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.percentage-input-wrapper {
+    position: relative;
+}
+
+.percentage-input-wrapper input {
+    padding-right: 2.5rem;
+    text-align: right;
+}
+
+.percentage-input-wrapper::after {
+    content: '%';
+    position: absolute;
+    right: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Line Items Table */
+.line-items-wrapper {
+    overflow-x: auto;
+    margin: -1.5rem;
+    padding: 1.5rem;
+}
+
+.line-items-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.line-items-table thead {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+}
+
+.line-items-table thead th {
+    padding: 0.875rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.line-items-table thead th:first-child {
+    border-radius: 8px 0 0 0;
+    padding-left: 1rem;
+}
+
+.line-items-table thead th:last-child {
+    border-radius: 0 8px 0 0;
+    text-align: center;
+}
+
+.line-items-table thead th.text-right {
+    text-align: right;
+}
+
+.line-items-table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.15s;
+}
+
+.line-items-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.line-items-table tbody td {
+    padding: 0.5rem 0.35rem;
+    vertical-align: middle;
+}
+
+.line-items-table tbody td:first-child {
+    padding-left: 0.75rem;
+}
+
+.line-items-table tbody td input,
+.line-items-table tbody td select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    transition: all 0.15s;
+    background: white;
+}
+
+.line-items-table tbody td input:focus,
+.line-items-table tbody td select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.line-items-table tbody td input[type="number"] {
+    text-align: right;
+    font-family: 'SF Mono', monospace;
+}
+
+.cost-code-select { min-width: 160px; }
+.description-input { min-width: 150px; }
+.qty-input { width: 70px; }
+.unit-input { width: 60px; }
+.cost-input { width: 85px; }
+
+/* Delete checkbox */
+.delete-checkbox {
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer;
+    accent-color: #ef4444;
+}
+
+/* Add Line Button */
+.add-line-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+}
+
+.add-line-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Summary Card */
+.summary-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+}
+
+.summary-item {
+    text-align: center;
+}
+
+.summary-item .label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.summary-item .value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+    font-family: 'SF Mono', monospace;
+}
+
+.summary-item.total .value {
+    color: #059669;
+    font-size: 1.375rem;
+}
+
+/* Actions */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 16px;
+    margin-top: 1.5rem;
+}
+
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    color: #64748b;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+/* Row number */
+.row-number {
+    width: 26px;
+    height: 26px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.breadcrumbs a {
+    color: #64748b;
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    color: #6366f1;
+}
+
+.breadcrumbs .separator {
+    color: #cbd5e1;
+}
+
+.breadcrumbs .current {
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.line-total-display {
+    font-family: 'SF Mono', monospace;
+    color: #059669;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 py-6">
+<div class="estimate-container">
     <!-- Breadcrumbs -->
-    <nav class="flex items-center gap-2 text-sm text-slate-500 mb-4">
-        <a href="{% url 'project_list' %}" class="hover:text-slate-700">{% trans "Projects" %}</a>
-        <i class="bi bi-chevron-right text-xs"></i>
-        <a href="{% url 'project_overview' project.id %}" class="hover:text-slate-700">{{ project.name }}</a>
-        <i class="bi bi-chevron-right text-xs"></i>
-        <span class="text-slate-700">{% trans "Estimate" %} v{{ version }}</span>
+    <nav class="breadcrumbs">
+        <a href="{% url 'project_list' %}">{% trans "Projects" %}</a>
+        <span class="separator"><i class="bi bi-chevron-right"></i></span>
+        <a href="{% url 'project_overview' project.id %}">{{ project.name|truncatechars:25 }}</a>
+        <span class="separator"><i class="bi bi-chevron-right"></i></span>
+        <a href="{% url 'project_estimates' project.id %}">{% trans "Estimates" %}</a>
+        <span class="separator"><i class="bi bi-chevron-right"></i></span>
+        <span class="current">{% trans "New" %}</span>
     </nav>
 
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <i class="bi bi-calculator text-indigo-500"></i>
-                {% trans "Create Estimate" %}
-            </h1>
-            <p class="text-slate-500 mt-1">{% trans "Version" %} {{ version }} - {{ project.name }}</p>
+    <div class="estimate-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1>
+                    <i class="bi bi-calculator-fill"></i>
+                    {% trans "Create Estimate" %}
+                </h1>
+                <p class="subtitle">{{ project.name }}{% if project.client %} • {{ project.client }}{% endif %}</p>
+            </div>
+            <span class="version-badge">
+                <i class="bi bi-hash"></i> v{{ version }}
+            </span>
         </div>
-        <a href="{% url 'project_overview' project.id %}" class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition">
-            <i class="bi bi-arrow-left mr-2"></i>
-            {% trans "Back to Project" %}
-        </a>
     </div>
 
-    <!-- Form -->
-    <form method="post" class="space-y-6">
+    <form method="post" id="estimateForm">
         {% csrf_token %}
         
-        <!-- Estimate Details -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 class="text-lg font-semibold text-slate-900 mb-4">
-                <i class="bi bi-file-earmark-text text-indigo-500 mr-2"></i>
-                {% trans "Estimate Details" %}
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Name" %}</label>
-                    {{ form.name }}
+        <!-- Markup Settings -->
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi bi-gear-fill"></i>
+                <h2>{% trans "Markup & Overhead" %}</h2>
+            </div>
+            <div class="form-card-body">
+                <div class="percentage-grid">
+                    <div class="form-group">
+                        <label>{% trans "Material Markup" %}</label>
+                        <div class="percentage-input-wrapper">
+                            <input type="number" name="markup_material" id="id_markup_material"
+                                   class="form-input" value="{{ form.markup_material.value|default:'0' }}"
+                                   step="0.01" min="0" max="100" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "Labor Markup" %}</label>
+                        <div class="percentage-input-wrapper">
+                            <input type="number" name="markup_labor" id="id_markup_labor"
+                                   class="form-input" value="{{ form.markup_labor.value|default:'0' }}"
+                                   step="0.01" min="0" max="100" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "Overhead" %}</label>
+                        <div class="percentage-input-wrapper">
+                            <input type="number" name="overhead_pct" id="id_overhead_pct"
+                                   class="form-input" value="{{ form.overhead_pct.value|default:'0' }}"
+                                   step="0.01" min="0" max="100" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "Target Profit" %}</label>
+                        <div class="percentage-input-wrapper">
+                            <input type="number" name="target_profit_pct" id="id_target_profit_pct"
+                                   class="form-input" value="{{ form.target_profit_pct.value|default:'0' }}"
+                                   step="0.01" min="0" max="100" placeholder="0">
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Material Markup %" %}</label>
-                    {{ form.markup_material }}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Labor Markup %" %}</label>
-                    {{ form.markup_labor }}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Overhead %" %}</label>
-                    {{ form.overhead_pct }}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Target Profit %" %}</label>
-                    {{ form.target_profit_pct }}
+                
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>{% trans "Notes" %}</label>
+                    <textarea name="notes" id="id_notes" class="form-input" rows="2"
+                              placeholder="{% trans 'Optional notes...' %}">{{ form.notes.value|default:'' }}</textarea>
                 </div>
             </div>
         </div>
 
         <!-- Line Items -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 class="text-lg font-semibold text-slate-900 mb-4">
-                <i class="bi bi-list-ul text-indigo-500 mr-2"></i>
-                {% trans "Line Items" %}
-            </h2>
-            
-            {{ formset.management_form }}
-            
-            <div class="overflow-x-auto">
-                <table class="w-full" id="lineItemsTable">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">{% trans "Cost Code" %}</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">{% trans "Description" %}</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">{% trans "Quantity" %}</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">{% trans "Unit" %}</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">{% trans "Material $" %}</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">{% trans "Labor $" %}</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">{% trans "Delete" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200" id="formsetBody">
-                        {% for line_form in formset %}
-                        <tr class="line-item-row">
-                            <td class="px-4 py-2">{{ line_form.cost_code }}</td>
-                            <td class="px-4 py-2">{{ line_form.description }}</td>
-                            <td class="px-4 py-2">{{ line_form.quantity }}</td>
-                            <td class="px-4 py-2">{{ line_form.unit }}</td>
-                            <td class="px-4 py-2">{{ line_form.unit_material_cost }}</td>
-                            <td class="px-4 py-2">{{ line_form.unit_labor_cost }}</td>
-                            <td class="px-4 py-2 text-center">{{ line_form.DELETE }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi bi-list-check"></i>
+                <h2>{% trans "Line Items" %}</h2>
             </div>
-            
-            <div class="mt-4">
-                <button type="button" id="addLineBtn" class="inline-flex items-center px-3 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">
-                    <i class="bi bi-plus-lg mr-2"></i>
-                    {% trans "Add Line Item" %}
+            <div class="form-card-body">
+                {{ formset.management_form }}
+                
+                <div class="line-items-wrapper">
+                    <table class="line-items-table" id="lineItemsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th>{% trans "Cost Code" %}</th>
+                                <th>{% trans "Description" %}</th>
+                                <th class="text-right">{% trans "Qty" %}</th>
+                                <th>{% trans "Unit" %}</th>
+                                <th class="text-right">{% trans "Material" %}</th>
+                                <th class="text-right">{% trans "Labor" %}</th>
+                                <th class="text-right">{% trans "Other" %}</th>
+                                <th class="text-right">{% trans "Total" %}</th>
+                                <th>{% trans "Del" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="formsetBody">
+                            {% for line_form in formset %}
+                            <tr class="line-item-row">
+                                <td>
+                                    <span class="row-number">{{ forloop.counter }}</span>
+                                    {{ line_form.id }}
+                                    {{ line_form.estimate }}
+                                </td>
+                                <td>
+                                    <select name="{{ line_form.cost_code.html_name }}" 
+                                            id="{{ line_form.cost_code.id_for_label }}" class="cost-code-select">
+                                        <option value="">-</option>
+                                        {% for code in cost_codes %}
+                                        <option value="{{ code.id }}" {% if line_form.cost_code.value|stringformat:"s" == code.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ code.code }} - {{ code.name|truncatechars:20 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="{{ line_form.description.html_name }}" 
+                                           id="{{ line_form.description.id_for_label }}" class="description-input"
+                                           value="{{ line_form.description.value|default:'' }}" placeholder="{% trans 'Description' %}">
+                                </td>
+                                <td>
+                                    <input type="number" name="{{ line_form.qty.html_name }}" 
+                                           id="{{ line_form.qty.id_for_label }}" class="qty-input"
+                                           value="{{ line_form.qty.value|default:'' }}" step="0.01" min="0"
+                                           placeholder="0" onchange="calcLine(this)">
+                                </td>
+                                <td>
+                                    <input type="text" name="{{ line_form.unit.html_name }}" 
+                                           id="{{ line_form.unit.id_for_label }}" class="unit-input"
+                                           value="{{ line_form.unit.value|default:'' }}" placeholder="ea">
+                                </td>
+                                <td>
+                                    <input type="number" name="{{ line_form.material_unit_cost.html_name }}" 
+                                           id="{{ line_form.material_unit_cost.id_for_label }}" class="cost-input"
+                                           value="{{ line_form.material_unit_cost.value|default:'0' }}" 
+                                           step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="{{ line_form.labor_unit_cost.html_name }}" 
+                                           id="{{ line_form.labor_unit_cost.id_for_label }}" class="cost-input"
+                                           value="{{ line_form.labor_unit_cost.value|default:'0' }}" 
+                                           step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="{{ line_form.other_unit_cost.html_name }}" 
+                                           id="{{ line_form.other_unit_cost.id_for_label }}" class="cost-input"
+                                           value="{{ line_form.other_unit_cost.value|default:'0' }}" 
+                                           step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
+                                </td>
+                                <td>
+                                    <span class="line-total-display">$0.00</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="checkbox" name="{{ line_form.DELETE.html_name }}" 
+                                           id="{{ line_form.DELETE.id_for_label }}" class="delete-checkbox"
+                                           {% if line_form.DELETE.value %}checked{% endif %} onchange="updateSummary()">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <button type="button" id="addLineBtn" class="add-line-btn">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    {% trans "Add Line" %}
                 </button>
+                
+                <!-- Summary -->
+                <div class="summary-card" style="margin-top: 1.5rem;">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="label">{% trans "Direct Cost" %}</div>
+                            <div class="value" id="sumDirect">$0.00</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">{% trans "Mat. Markup" %}</div>
+                            <div class="value" id="sumMatMarkup">$0.00</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">{% trans "Lab. Markup" %}</div>
+                            <div class="value" id="sumLabMarkup">$0.00</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">{% trans "Overhead" %}</div>
+                            <div class="value" id="sumOverhead">$0.00</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">{% trans "Profit" %}</div>
+                            <div class="value" id="sumProfit">$0.00</div>
+                        </div>
+                        <div class="summary-item total">
+                            <div class="label">{% trans "Proposed Price" %}</div>
+                            <div class="value" id="sumTotal">$0.00</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Actions -->
-        <div class="flex justify-end gap-3">
-            <a href="{% url 'project_overview' project.id %}" class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition">
+        <div class="form-actions">
+            <a href="{% url 'project_estimates' project.id %}" class="btn-cancel">
+                <i class="bi bi-x-lg"></i>
                 {% trans "Cancel" %}
             </a>
-            <button type="submit" class="inline-flex items-center px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
-                <i class="bi bi-check-lg mr-2"></i>
+            <button type="submit" class="btn-submit">
+                <i class="bi bi-check-lg"></i>
                 {% trans "Create Estimate" %}
             </button>
         </div>
     </form>
 </div>
 
-<style>
-/* Form styling */
-.line-item-row input,
-.line-item-row select,
-#id_name, #id_markup_material, #id_markup_labor, #id_overhead_pct, #id_target_profit_pct {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.line-item-row input:focus,
-.line-item-row select:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.line-item-row input[type="number"] {
-    text-align: right;
-}
-
-.line-item-row input[type="checkbox"] {
-    width: auto;
-}
-</style>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const formsetBody = document.getElementById('formsetBody');
+    const body = document.getElementById('formsetBody');
     const totalForms = document.getElementById('id_lines-TOTAL_FORMS');
     const addBtn = document.getElementById('addLineBtn');
     
-    addBtn.addEventListener('click', function() {
-        const currentCount = parseInt(totalForms.value);
-        const templateRow = formsetBody.querySelector('tr').cloneNode(true);
-        
-        // Update all input/select names and ids
-        templateRow.querySelectorAll('input, select, textarea').forEach(function(el) {
-            if (el.name) {
-                el.name = el.name.replace(/-\d+-/, '-' + currentCount + '-');
-            }
-            if (el.id) {
-                el.id = el.id.replace(/-\d+-/, '-' + currentCount + '-');
-            }
-            if (el.type !== 'hidden' && el.type !== 'checkbox') {
-                el.value = '';
-            }
-            if (el.type === 'checkbox') {
-                el.checked = false;
-            }
-        });
-        
-        formsetBody.appendChild(templateRow);
-        totalForms.value = currentCount + 1;
+    const costCodeOpts = `<option value="">-</option>{% for c in cost_codes %}<option value="{{ c.id }}">{{ c.code }} - {{ c.name|truncatechars:20|escapejs }}</option>{% endfor %}`;
+    
+    addBtn.onclick = function() {
+        const n = parseInt(totalForms.value);
+        const tr = document.createElement('tr');
+        tr.className = 'line-item-row';
+        tr.innerHTML = `
+            <td><span class="row-number">${n+1}</span>
+                <input type="hidden" name="lines-${n}-id"><input type="hidden" name="lines-${n}-estimate"></td>
+            <td><select name="lines-${n}-cost_code" class="cost-code-select">${costCodeOpts}</select></td>
+            <td><input type="text" name="lines-${n}-description" class="description-input" placeholder="Description"></td>
+            <td><input type="number" name="lines-${n}-qty" class="qty-input" step="0.01" min="0" placeholder="0" onchange="calcLine(this)"></td>
+            <td><input type="text" name="lines-${n}-unit" class="unit-input" placeholder="ea"></td>
+            <td><input type="number" name="lines-${n}-material_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><input type="number" name="lines-${n}-labor_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><input type="number" name="lines-${n}-other_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><span class="line-total-display">$0.00</span></td>
+            <td style="text-align:center;"><input type="checkbox" name="lines-${n}-DELETE" class="delete-checkbox" onchange="updateSummary()"></td>
+        `;
+        body.appendChild(tr);
+        totalForms.value = n + 1;
+        updateRowNums();
+    };
+    
+    // Listen markup changes
+    ['markup_material','markup_labor','overhead_pct','target_profit_pct'].forEach(f => {
+        const el = document.getElementById('id_'+f);
+        if(el) { el.oninput = updateSummary; }
+    });
+    
+    // Initial calc
+    body.querySelectorAll('.line-item-row').forEach(r => {
+        const q = r.querySelector('[name$="-qty"]');
+        if(q) calcLine(q);
     });
 });
+
+function calcLine(el) {
+    const row = el.closest('tr');
+    const q = parseFloat(row.querySelector('[name$="-qty"]')?.value) || 0;
+    const m = parseFloat(row.querySelector('[name$="-material_unit_cost"]')?.value) || 0;
+    const l = parseFloat(row.querySelector('[name$="-labor_unit_cost"]')?.value) || 0;
+    const o = parseFloat(row.querySelector('[name$="-other_unit_cost"]')?.value) || 0;
+    const t = q * (m + l + o);
+    row.querySelector('.line-total-display').textContent = '$' + t.toFixed(2);
+    updateSummary();
+}
+
+function updateSummary() {
+    let totMat=0, totLab=0, totOther=0;
+    document.querySelectorAll('.line-item-row').forEach(r => {
+        if(r.querySelector('[name$="-DELETE"]')?.checked) return;
+        const q = parseFloat(r.querySelector('[name$="-qty"]')?.value) || 0;
+        totMat += q * (parseFloat(r.querySelector('[name$="-material_unit_cost"]')?.value) || 0);
+        totLab += q * (parseFloat(r.querySelector('[name$="-labor_unit_cost"]')?.value) || 0);
+        totOther += q * (parseFloat(r.querySelector('[name$="-other_unit_cost"]')?.value) || 0);
+    });
+    const direct = totMat + totLab + totOther;
+    const mmPct = parseFloat(document.getElementById('id_markup_material')?.value) || 0;
+    const lmPct = parseFloat(document.getElementById('id_markup_labor')?.value) || 0;
+    const ohPct = parseFloat(document.getElementById('id_overhead_pct')?.value) || 0;
+    const prPct = parseFloat(document.getElementById('id_target_profit_pct')?.value) || 0;
+    
+    const matMk = totMat * mmPct / 100;
+    const labMk = totLab * lmPct / 100;
+    const oh = direct * ohPct / 100;
+    const pr = direct * prPct / 100;
+    const total = direct + matMk + labMk + oh + pr;
+    
+    const f = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('sumDirect').textContent = f(direct);
+    document.getElementById('sumMatMarkup').textContent = f(matMk);
+    document.getElementById('sumLabMarkup').textContent = f(labMk);
+    document.getElementById('sumOverhead').textContent = f(oh);
+    document.getElementById('sumProfit').textContent = f(pr);
+    document.getElementById('sumTotal').textContent = f(total);
+}
+
+function updateRowNums() {
+    let i=1;
+    document.querySelectorAll('.line-item-row .row-number').forEach(s => s.textContent = i++);
+}
 </script>
 {% endblock %}

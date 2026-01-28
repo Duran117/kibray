@@ -4948,6 +4948,8 @@ def budget_lines_view(request, project_id):
 def estimate_create_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     version = (project.estimates.aggregate(m=Max("version"))["m"] or 0) + 1
+    cost_codes = CostCode.objects.all().order_by("code")
+    
     if request.method == "POST":
         form = EstimateForm(request.POST)
         formset = EstimateLineFormSet(request.POST)
@@ -4958,14 +4960,22 @@ def estimate_create_view(request, project_id):
             est.save()
             formset.instance = est
             formset.save()
+            messages.success(request, _("Estimate created successfully!"))
             return redirect("estimate_detail", estimate_id=est.id)
     else:
         form = EstimateForm()
         formset = EstimateLineFormSet()
+    
     return render(
         request,
         "core/estimate_form.html",
-        {"project": project, "form": form, "formset": formset, "version": version},
+        {
+            "project": project,
+            "form": form,
+            "formset": formset,
+            "version": version,
+            "cost_codes": cost_codes,
+        },
     )
 
 
