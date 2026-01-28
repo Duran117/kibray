@@ -2009,12 +2009,17 @@ def employee_savings_ledger(request, employee_id=None):
     # Get all active employees for dropdown
     all_employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
     
+    # Determine selected employee for context
+    selected_employee = None
+    if employee_id:
+        selected_employee = get_object_or_404(Employee, id=employee_id)
+    
     context = {
         "employees_data": employees_data,
         "total_balance": total_balance,
         "total_employees_with_savings": total_employees_with_savings,
         "all_employees": all_employees,
-        "selected_employee": employee if employee_id else None,
+        "selected_employee": selected_employee,
     }
     
     return render(request, "core/employee_savings_ledger.html", context)
@@ -2096,7 +2101,7 @@ def manual_timeentry_create(request):
                 
                 # Redirect back with week_start to stay on same week
                 # Calculate week start from entry date
-                from datetime import datetime, timedelta
+                from datetime import timedelta
                 entry_date_obj = datetime.strptime(entry_date, "%Y-%m-%d").date()
                 week_start = entry_date_obj - timedelta(days=entry_date_obj.weekday())
                 
