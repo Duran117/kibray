@@ -450,7 +450,9 @@ urlpatterns = [
         views.payroll_payment_history,
         name="payroll_payment_history_employee",
     ),
-    # Employee Savings Ledger
+    # Employee Self-Service: My Payroll
+    path("payroll/my/", views.my_payroll, name="my_payroll"),
+    # Employee Savings Ledger (Admin)
     path("payroll/savings/", views.employee_savings_ledger, name="employee_savings_ledger"),
     path(
         "payroll/savings/employee/<int:employee_id>/",

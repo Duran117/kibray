@@ -13773,3 +13773,130 @@ def estimate_pdf_view(request, estimate_id):
         messages.error(request, f"Error generating PDF: {str(e)}")
         return redirect('estimate_list')
 
+
+# =============================================================================
+# EMPLOYEE SELF-SERVICE: Mi Nómina (My Payroll)
+# =============================================================================
+
+@login_required
+def my_payroll(request):
+    """
+    Employee self-service page to view their own payroll information:
+    - Recent payments (what they've received)
+    - Savings balance (money held by company)
+    - Work hours this week/month
+    
+    Accessible by ANY logged-in employee (who is linked to an Employee record).
+    """
+    from core.models import (
+        Employee, PayrollPayment, PayrollRecord, EmployeeSavings, TimeEntry
+    )
+    from datetime import timedelta
+    from decimal import Decimal
+    
+    # Get the employee record linked to this user
+    employee = Employee.objects.filter(user=request.user).first()
+    
+    if not employee:
+        messages.error(
+            request, 
+            _("Your user account is not linked to an employee record. Please contact your administrator.")
+        )
+        return redirect("dashboard")
+    
+    today = timezone.localdate()
+    
+    # === SAVINGS BALANCE ===
+    savings_balance = EmployeeSavings.get_employee_balance(employee)
+    savings_ledger = EmployeeSavings.get_employee_ledger(employee)[:20]  # Last 20 transactions
+    
+    # === RECENT PAYMENTS ===
+    # Get PayrollRecords for this employee
+    recent_payments = PayrollPayment.objects.filter(
+        payroll_record__employee=employee
+    ).select_related(
+        'payroll_record', 'payroll_record__period'
+    ).order_by('-payment_date')[:20]
+    
+    # Calculate payment stats
+    # This month's payments
+    month_start = today.replace(day=1)
+    month_payments = PayrollPayment.objects.filter(
+        payroll_record__employee=employee,
+        payment_date__gte=month_start,
+    )
+    month_total_taken = sum(p.amount_taken for p in month_payments)
+    month_total_saved = sum(p.amount_saved for p in month_payments)
+    
+    # === WORK HOURS ===
+    # This week
+    week_start = today - timedelta(days=today.weekday())  # Monday
+    week_entries = TimeEntry.objects.filter(
+        employee=employee,
+        date__gte=week_start,
+        date__lte=today,
+    ).order_by('date', 'start_time')
+    week_hours = sum(entry.hours_worked or 0 for entry in week_entries)
+    
+    # This month
+    month_entries = TimeEntry.objects.filter(
+        employee=employee,
+        date__gte=month_start,
+        date__lte=today,
+    )
+    month_hours = sum(entry.hours_worked or 0 for entry in month_entries)
+    
+    # === YEAR-TO-DATE ===
+    year_start = today.replace(month=1, day=1)
+    ytd_payments = PayrollPayment.objects.filter(
+        payroll_record__employee=employee,
+        payment_date__gte=year_start,
+    )
+    ytd_total_received = sum(p.amount_taken for p in ytd_payments)
+    ytd_total_saved = sum(p.amount_saved for p in ytd_payments)
+    
+    ytd_entries = TimeEntry.objects.filter(
+        employee=employee,
+        date__gte=year_start,
+    )
+    ytd_hours = sum(entry.hours_worked or 0 for entry in ytd_entries)
+    
+    # Get employee's hourly rate (from PayrollRecord if available)
+    hourly_rate = Decimal('0')
+    latest_record = PayrollRecord.objects.filter(
+        employee=employee,
+        hourly_rate__gt=0
+    ).order_by('-week_start').first()
+    if latest_record:
+        hourly_rate = latest_record.hourly_rate
+    else:
+        # Fallback to employee default
+        hourly_rate = getattr(employee, 'hourly_rate', Decimal('0')) or Decimal('0')
+    
+    context = {
+        "employee": employee,
+        "hourly_rate": hourly_rate,
+        # Savings
+        "savings_balance": savings_balance,
+        "savings_ledger": savings_ledger,
+        # Payments
+        "recent_payments": recent_payments,
+        "month_total_taken": month_total_taken,
+        "month_total_saved": month_total_saved,
+        # Hours
+        "week_entries": week_entries,
+        "week_hours": week_hours,
+        "month_hours": month_hours,
+        # YTD
+        "ytd_total_received": ytd_total_received,
+        "ytd_total_saved": ytd_total_saved,
+        "ytd_hours": ytd_hours,
+        # Dates for context
+        "today": today,
+        "week_start": week_start,
+        "month_start": month_start,
+        "year_start": year_start,
+    }
+    
+    return render(request, "core/my_payroll.html", context)
+

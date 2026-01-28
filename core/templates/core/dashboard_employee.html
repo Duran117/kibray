@@ -1170,6 +1170,14 @@
         </div>
     </div>
     
+    <!-- Quick Actions -->
+    <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+        <a href="{% url 'my_payroll' %}" style="display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 12px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16, 185, 129, 0.4)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 14px rgba(16, 185, 129, 0.3)';">
+            <i class="bi bi-piggy-bank" style="font-size: 20px;"></i>
+            {% trans "My Payroll & Savings" %}
+        </a>
+    </div>
+    
     <!-- Main Grid -->
     <div class="emp-grid">
         <!-- Today's Activities -->
