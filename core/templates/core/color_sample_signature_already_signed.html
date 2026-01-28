@@ -1,102 +1,96 @@
 {% extends "core/base_modern.html" %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Muestra Firmada - {% endblock %}
+{% block title %}{% trans "Already Signed" %} - {{ color_sample.name|default:color_sample.code }}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <!-- Already Signed Card -->
-            <div class="card border-0 shadow-lg">
-                <div class="card-body text-center py-5">
-                    <!-- Info Icon -->
-                    <div class="mb-4">
-                        <div class="display-1 text-info mb-3">
-                            <i class="fas fa-info-circle"></i>
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+    <div class="max-w-lg mx-auto">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-500 p-8 text-white text-center">
+                <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+                    <i class="bi bi-info-circle-fill text-5xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold mb-2">{% trans "Already Signed" %}</h1>
+                <p class="text-white/80">{% trans "This color sample has already been approved" %}</p>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6 space-y-6">
+                <!-- Sample Info -->
+                <div class="bg-slate-50 rounded-xl p-4">
+                    <div class="flex items-center gap-4">
+                        {% if color_sample.sample_image %}
+                        <img src="{{ color_sample.sample_image.url }}" alt="{{ color_sample.name }}" 
+                             class="w-16 h-16 rounded-lg object-cover shadow">
+                        {% else %}
+                        <div class="w-16 h-16 rounded-lg bg-violet-100 flex items-center justify-center">
+                            <i class="bi bi-palette text-2xl text-violet-500"></i>
                         </div>
-                        <h1 class="h2 mb-2">Muestra Firmada Anteriormente</h1>
-                        <p class="text-muted lead">Esta muestra de color ya ha sido aprobada</p>
-                    </div>
-
-                    <!-- Approval Details -->
-                    <div class="bg-light rounded p-4 mb-4">
-                        <h5 class="mb-4">Información de la Aprobación</h5>
-                        
-                        <div class="row text-start">
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><small class="text-muted d-block">MUESTRA DE COLOR</small></p>
-                                <p class="h6 mb-2">{{ color_sample.name }}</p>
-                                <p class="mb-0"><small class="text-muted">Código: {{ color_sample.code }}</small></p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><small class="text-muted d-block">PROYECTO</small></p>
-                                <p class="h6 mb-0">{{ color_sample.project.name }}</p>
-                            </div>
-                        </div>
-
-                        <hr class="my-3">
-
-                        <div class="row text-start">
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><small class="text-muted d-block">FECHA FIRMADA</small></p>
-                                <p class="h6 mb-0">{{ color_sample.approval_date|date:"d/m/Y H:i" }}</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><small class="text-muted d-block">ESTADO</small></p>
-                                <span class="badge bg-success p-2">APROBADO</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Signature Preview -->
-                    {% if color_sample.approval_signature %}
-                    <div class="mb-4">
-                        <p class="text-muted mb-2"><small>Firma Registrada</small></p>
-                        <div class="border rounded p-3 bg-white">
-                            <img src="{{ color_sample.approval_signature.url }}" 
-                                 alt="Firma" 
-                                 class="img-fluid"
-                                 style="max-height: 150px;">
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Message -->
-                    <div class="alert alert-info mb-4">
-                        <i class="fas fa-check-circle me-2"></i>
-                        Esta muestra fue aprobada anteriormente. No es necesario firmar nuevamente.
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <a href="{% url 'project_detail' color_sample.project.id %}" 
-                           class="btn btn-primary btn-lg">
-                            <i class="fas fa-arrow-left me-2"></i>Volver al Proyecto
-                        </a>
-                        {% if user.is_authenticated and user.profile.role == 'admin' or user.profile.role == 'project_manager' %}
-                        <a href="{% url 'color_sample_list' color_sample.project.id %}" 
-                           class="btn btn-outline-secondary btn-lg">
-                            <i class="fas fa-list me-2"></i>Ver Todas las Muestras
-                        </a>
                         {% endif %}
+                        <div>
+                            <p class="font-semibold text-slate-900">{{ color_sample.name|default:"Color Sample" }}</p>
+                            {% if color_sample.code %}
+                            <p class="text-sm text-slate-500 font-mono">{{ color_sample.code }}</p>
+                            {% endif %}
+                            <p class="text-sm text-slate-500">{{ color_sample.project.name }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Divider -->
-            <div class="mt-4 p-3 bg-light rounded text-muted text-center" style="font-size: 0.9rem;">
-                <i class="fas fa-shield-alt me-2"></i>
-                Información protegida - Solo acceso autorizado
+                
+                <!-- Signature Details -->
+                <div class="space-y-3">
+                    {% if color_sample.client_signed_name %}
+                    <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                        <span class="text-slate-500">{% trans "Signed By" %}</span>
+                        <span class="font-semibold text-slate-900">{{ color_sample.client_signed_name }}</span>
+                    </div>
+                    {% endif %}
+                    {% if color_sample.client_signed_at %}
+                    <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                        <span class="text-slate-500">{% trans "Signed On" %}</span>
+                        <span class="font-semibold text-slate-900">{{ color_sample.client_signed_at|date:"F d, Y - H:i" }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-slate-500">{% trans "Status" %}</span>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                            <i class="bi bi-check-circle-fill"></i> {% trans "Approved" %}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Signature Preview -->
+                {% if color_sample.client_signature %}
+                <div class="text-center">
+                    <p class="text-xs text-slate-500 mb-2">{% trans "Recorded Signature" %}</p>
+                    <div class="inline-block bg-slate-50 border border-slate-200 rounded-lg p-3">
+                        <img src="{{ color_sample.client_signature.url }}" alt="Signature" class="max-h-24">
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Info -->
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <i class="bi bi-info-circle-fill text-blue-500 text-xl flex-shrink-0"></i>
+                        <p class="text-sm text-blue-700">
+                            {% trans "This sample was already approved. No further action is required. If you have questions, please contact the project manager." %}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Action -->
+                <div class="text-center pt-4">
+                    <a href="{% url 'client_project_view' color_sample.project.id %}" 
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg transition font-medium">
+                        <i class="bi bi-arrow-left"></i>
+                        {% trans "Back to Project" %}
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    .display-1 {
-        font-size: 4rem;
-        line-height: 1;
-    }
-</style>
 {% endblock %}

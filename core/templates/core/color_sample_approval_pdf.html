@@ -1,258 +1,145 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprobación de Muestra de Color #{{ color_sample.id }}</title>
+    <title>{% trans "Color Sample Approval" %} #{{ color_sample.id }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; padding: 40px; }
         
-        body {
-            font-family: Arial, sans-serif;
-            color: #333;
-            line-height: 1.6;
-        }
+        .header { border-bottom: 3px solid #7c3aed; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { font-size: 24px; color: #7c3aed; margin-bottom: 5px; }
+        .header p { color: #666; font-size: 12px; }
         
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .badge { display: inline-block; background: #10b981; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold; margin-bottom: 20px; }
         
-        header {
-            border-bottom: 3px solid #0d6efd;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-        }
+        .section { margin-bottom: 25px; }
+        .section-title { font-size: 14px; font-weight: bold; color: #7c3aed; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 15px; }
         
-        header h1 {
-            font-size: 28px;
-            color: #0d6efd;
-            margin-bottom: 5px;
-        }
+        .info-grid { display: table; width: 100%; }
+        .info-row { display: table-row; }
+        .info-item { display: table-cell; padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed; margin-bottom: 10px; width: 50%; }
+        .info-item label { display: block; font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+        .info-item .value { font-size: 14px; font-weight: bold; color: #333; }
         
-        header p {
-            color: #666;
-            font-size: 14px;
-        }
+        .signature-box { text-align: center; margin: 30px 0; padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; }
+        .signature-box img { max-width: 300px; max-height: 100px; }
         
-        .approval-badge {
-            display: inline-block;
-            background-color: #28a745;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
+        .timestamp { background: #fef3c7; border: 1px solid #fbbf24; padding: 15px; border-radius: 4px; margin: 20px 0; font-size: 12px; }
         
-        .section {
-            margin-bottom: 30px;
-        }
-        
-        .section h2 {
-            font-size: 16px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #0d6efd;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .info-item {
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-left: 4px solid #0d6efd;
-        }
-        
-        .info-item label {
-            display: block;
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-        
-        .info-item value {
-            display: block;
-            font-size: 14px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .signature-section {
-            text-align: center;
-            margin: 40px 0;
-            padding: 30px;
-            border: 2px solid #e9ecef;
-            border-radius: 4px;
-        }
-        
-        .signature-image {
-            max-width: 300px;
-            margin: 20px auto;
-            text-align: center;
-        }
-        
-        .signature-image img {
-            max-width: 100%;
-            height: auto;
-        }
-        
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-        }
-        
-        .color-preview {
-            display: inline-block;
-            width: 80px;
-            height: 80px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-right: 15px;
-            vertical-align: middle;
-        }
-        
-        .sample-info {
-            display: inline-block;
-            vertical-align: middle;
-        }
-        
-        .sample-info p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-        
-        .timestamp {
-            background-color: #fff3cd;
-            border: 1px solid #ffc107;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-        
-        .timestamp strong {
-            color: #856404;
-        }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #666; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header>
-            <h1>Aprobación de Muestra de Color</h1>
-            <p>Documento de Registro Digital - #{{ color_sample.id }}</p>
-        </header>
+    <!-- Header -->
+    <div class="header">
+        <h1>{% trans "Color Sample Approval" %}</h1>
+        <p>{% trans "Digital Record Document" %} - #{{ color_sample.id }}</p>
+    </div>
 
-        <!-- Approval Badge -->
-        <div class="approval-badge">✓ APROBADO</div>
+    <!-- Approval Badge -->
+    <div class="badge">✓ {% trans "APPROVED" %}</div>
 
-        <!-- Color Sample Information -->
-        <div class="section">
-            <h2>Muestra de Color</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <label>Nombre</label>
-                    <value>{{ color_sample.name }}</value>
-                </div>
-                <div class="info-item">
-                    <label>Código</label>
-                    <value>{{ color_sample.code }}</value>
-                </div>
-                <div class="info-item">
-                    <label>Marca</label>
-                    <value>{{ color_sample.brand }}</value>
-                </div>
-                <div class="info-item">
-                    <label>Acabado</label>
-                    <value>{{ color_sample.finish }}</value>
-                </div>
-            </div>
-        </div>
+    <!-- Color Sample Information -->
+    <div class="section">
+        <div class="section-title">{% trans "Color Sample" %}</div>
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
+            <tr>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed; width: 50%;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Name" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.name|default:"-" }}</div>
+                </td>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed; width: 50%;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Code" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.code|default:"-" }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Brand" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.brand|default:"-" }}</div>
+                </td>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Finish" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.finish|default:"-" }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-        <!-- Project Information -->
-        <div class="section">
-            <h2>Proyecto</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <label>Proyecto</label>
-                    <value>{{ color_sample.project.name }}</value>
-                </div>
-                <div class="info-item">
-                    <label>Ubicación</label>
-                    <value>{{ color_sample.room_location|default:"No especificada" }}</value>
-                </div>
-            </div>
-        </div>
+    <!-- Project Information -->
+    <div class="section">
+        <div class="section-title">{% trans "Project" %}</div>
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
+            <tr>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed; width: 50%;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Project" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.project.name }}</div>
+                </td>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed; width: 50%;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Location" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.room_location|default:"-" }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-        <!-- Approval Information -->
-        <div class="section">
-            <h2>Información de Aprobación</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <label>Nombre del Firmante</label>
-                    <value>{{ color_approval.client_name }}</value>
-                </div>
-                <div class="info-item">
-                    <label>Email</label>
-                    <value>{{ color_approval.client_email|default:"No proporcionado" }}</value>
-                </div>
-                <div class="info-item">
-                    <label>Fecha y Hora</label>
-                    <value>{{ color_approval.signed_at|date:"d/m/Y H:i:s" }}</value>
-                </div>
-                <div class="info-item">
-                    <label>ID de Aprobación</label>
-                    <value>#{{ color_approval.id }}</value>
-                </div>
-            </div>
-        </div>
+    <!-- Approval Information -->
+    <div class="section">
+        <div class="section-title">{% trans "Approval Information" %}</div>
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
+            <tr>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed; width: 50%;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Signed By" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.client_signed_name|default:"-" }}</div>
+                </td>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed; width: 50%;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Date & Time" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.client_signed_at|date:"m/d/Y H:i:s" }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Approval ID" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">#{{ color_sample.id }}</div>
+                </td>
+                <td style="padding: 10px; background: #f8fafc; border-left: 4px solid #7c3aed;">
+                    <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 4px;">{% trans "Sample Number" %}</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ color_sample.sample_number|default:"-" }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-        <!-- Timestamp & Security -->
-        <div class="timestamp">
-            <strong>🔒 Registro de Seguridad:</strong><br>
-            Firma registrada el {{ color_approval.signed_at|date:"d \d\e F \d\e Y" }} a las {{ color_approval.signed_at|date:"H:i:s" }}
-            {% if color_approval.ip_address %}
-            <br>Dirección IP: {{ color_approval.ip_address }}
-            {% endif %}
-        </div>
-
-        <!-- Signature Section -->
-        {% if color_approval.client_signature %}
-        <div class="signature-section">
-            <h2 style="border: none; text-align: center; margin-bottom: 20px;">Firma Registrada</h2>
-            <div class="signature-image">
-                <img src="{{ color_approval.client_signature.url }}" alt="Firma de {{ color_approval.client_name }}">
-            </div>
-        </div>
+    <!-- Timestamp & Security -->
+    <div class="timestamp">
+        <strong>🔒 {% trans "Security Record" %}:</strong><br>
+        {% trans "Signature recorded on" %} {{ color_sample.client_signed_at|date:"F d, Y" }} {% trans "at" %} {{ color_sample.client_signed_at|date:"H:i:s" }}
+        {% if color_sample.approval_ip %}
+        <br>{% trans "IP Address" %}: {{ color_sample.approval_ip }}
         {% endif %}
+        {% if color_sample.approval_signature %}
+        <br>{% trans "Digital Hash" %}: {{ color_sample.approval_signature|truncatechars:32 }}...
+        {% endif %}
+    </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>
-                <strong>Este documento es un registro oficial de aprobación generado automáticamente.</strong><br>
-                La firma digital registrada tiene validez legal y vincula al firmante a esta aprobación.<br>
-                Generado automáticamente por el sistema Kibray - {{ "now"|date:"d/m/Y H:i" }}
-            </p>
-        </div>
+    <!-- Signature -->
+    {% if color_sample.client_signature %}
+    <div class="signature-box">
+        <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px;">{% trans "Recorded Signature" %}</div>
+        <img src="{{ color_sample.client_signature.url }}" alt="{% trans 'Signature' %}">
+        <div style="margin-top: 10px; font-size: 12px; color: #666;">{{ color_sample.client_signed_name }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>
+            <strong>{% trans "This document is an official approval record generated automatically." %}</strong><br>
+            {% trans "The registered digital signature is legally binding." %}<br>
+            {% trans "Generated by Kibray" %} - {% now "m/d/Y H:i" %}
+        </p>
     </div>
 </body>
 </html>

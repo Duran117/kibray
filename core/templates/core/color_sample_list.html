@@ -1,78 +1,291 @@
 {% extends "core/base_modern.html" %}
-{% load static %}
+{% load i18n static %}
+
+{% block title %}{% trans "Color Samples" %} - {{ project.name }}{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-palette-fill text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">{% trans "Color Samples" %}</h1>
+            <p class="text-slate-600 mt-1">{{ project.name }}</p>
+        </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+        <a href="{% url 'project_overview' project.id %}" 
+           class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition font-medium">
+            <i class="bi bi-arrow-left"></i>
+            <span class="hidden sm:inline">{% trans "Back to Project" %}</span>
+        </a>
+        <a href="{% url 'color_sample_create' project.id %}" 
+           class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition font-medium">
+            <i class="bi bi-plus-lg"></i>
+            {% trans "New Sample" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="container py-3">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">Mis Proyectos</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item active">Colores</li>
-    </ol>
-  </nav>
-
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Colores / Samples</h3>
-    <a href="{% url 'color_sample_create' project.id %}" class="btn btn-primary">Nueva muestra</a>
-  </div>
-
-  <div class="row g-3">
-    {% for s in samples %}
-    <div class="col-md-4">
-      <div class="card h-100">
-        {% if s.sample_image %}
-        <img src="{{ s.sample_image.url }}" class="card-img-top" alt="sample" style="height: 200px; object-fit: cover;">
-        {% else %}
-        <!-- Placeholder with brand/code info -->
-        <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
-          <div class="text-center p-3">
-            <i class="bi bi-palette" style="font-size: 3rem; color: #6c757d;"></i>
-            <div class="mt-2">
-              <strong>{{ s.brand|default:"Color" }}</strong><br>
-              <small>{{ s.code|default:"" }}</small>
+<!-- Stats Cards -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-content text-slate-600">
+                <i class="bi bi-collection text-xl mx-auto"></i>
             </div>
-          </div>
+            <div>
+                <p class="text-2xl font-bold text-slate-900">{{ samples|length }}</p>
+                <p class="text-xs text-slate-500">{% trans "Total" %}</p>
+            </div>
         </div>
-        {% endif %}
-        <div class="card-body">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            {% if s.code %}
-            <div style="width: 30px; height: 30px; border-radius: 5px; border: 2px solid #dee2e6; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);" 
-                 title="Color code: {{ s.code }}">
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-content text-amber-600">
+                <i class="bi bi-hourglass-split text-xl mx-auto"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-amber-600">{{ proposed_count|default:0 }}</p>
+                <p class="text-xs text-slate-500">{% trans "Proposed" %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-content text-blue-600">
+                <i class="bi bi-eye text-xl mx-auto"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-blue-600">{{ review_count|default:0 }}</p>
+                <p class="text-xs text-slate-500">{% trans "In Review" %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-content text-emerald-600">
+                <i class="bi bi-check-circle text-xl mx-auto"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-emerald-600">{{ approved_count|default:0 }}</p>
+                <p class="text-xs text-slate-500">{% trans "Approved" %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-content text-rose-600">
+                <i class="bi bi-x-circle text-xl mx-auto"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-rose-600">{{ rejected_count|default:0 }}</p>
+                <p class="text-xs text-slate-500">{% trans "Rejected" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+    <div class="flex flex-col lg:flex-row gap-4">
+        <div class="flex-1">
+            <div class="relative">
+                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="searchSamples" placeholder="{% trans 'Search by name, code, brand...' %}"
+                       class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <button data-filter="all" class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium bg-violet-100 text-violet-700">
+                {% trans "All" %}
+            </button>
+            <button data-filter="proposed" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">
+                {% trans "Proposed" %}
+            </button>
+            <button data-filter="review" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">
+                {% trans "In Review" %}
+            </button>
+            <button data-filter="approved" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">
+                {% trans "Approved" %}
+            </button>
+            <button data-filter="rejected" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">
+                {% trans "Rejected" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Samples Grid -->
+<div id="samplesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for sample in samples %}
+    <div class="sample-card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300 group"
+         data-status="{{ sample.status }}"
+         data-name="{{ sample.name|lower }}"
+         data-code="{{ sample.code|lower }}"
+         data-brand="{{ sample.brand|lower }}">
+        
+        <!-- Image/Preview -->
+        <div class="relative aspect-square bg-gradient-to-br from-slate-100 to-slate-50">
+            {% if sample.sample_image %}
+            <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            {% else %}
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                <i class="bi bi-palette text-5xl mb-2"></i>
+                <span class="text-sm font-medium">{{ sample.brand|default:"Color" }}</span>
+                <span class="text-xs">{{ sample.code|default:"No code" }}</span>
             </div>
             {% endif %}
-            <h5 class="card-title mb-0">{{ s.name|default:s.code|default:'Muestra' }}</h5>
-          </div>
-          <p class="mb-1">
-            <span class="badge {% if s.status == 'approved' %}bg-success{% elif s.status == 'rejected' %}bg-danger{% elif s.status == 'review' %}bg-warning{% else %}bg-secondary{% endif %}">
-              {{ s.get_status_display }}
-            </span> 
-            <span class="badge bg-info">v{{ s.version }}</span>
-          </p>
-          <p class="card-text small text-muted">
-            {% if s.brand %}<i class="bi bi-tag"></i> {{ s.brand }}<br>{% endif %}
-            {% if s.code %}<i class="bi bi-upc"></i> {{ s.code }}<br>{% endif %}
-            {% if s.finish or s.gloss %}
-              <i class="bi bi-droplet"></i> {{ s.finish }} {{ s.gloss }}
+            
+            <!-- Status Badge -->
+            <div class="absolute top-3 right-3">
+                {% if sample.status == 'approved' %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white shadow-lg">
+                    <i class="bi bi-check-circle-fill"></i> {% trans "Approved" %}
+                </span>
+                {% elif sample.status == 'rejected' %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-lg">
+                    <i class="bi bi-x-circle-fill"></i> {% trans "Rejected" %}
+                </span>
+                {% elif sample.status == 'review' %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500 text-white shadow-lg">
+                    <i class="bi bi-eye-fill"></i> {% trans "In Review" %}
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500 text-white shadow-lg">
+                    <i class="bi bi-hourglass-split"></i> {% trans "Proposed" %}
+                </span>
+                {% endif %}
+            </div>
+            
+            <!-- Client Signature Badge -->
+            {% if sample.requires_client_signature and not sample.client_signature %}
+            <div class="absolute top-3 left-3">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-500 text-white shadow-lg">
+                    <i class="bi bi-pen"></i> {% trans "Awaiting Signature" %}
+                </span>
+            </div>
+            {% elif sample.client_signature %}
+            <div class="absolute top-3 left-3">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-600 text-white shadow-lg">
+                    <i class="bi bi-check2-all"></i> {% trans "Signed" %}
+                </span>
+            </div>
             {% endif %}
-          </p>
-          <a class="btn btn-sm btn-outline-primary" href="{% url 'color_sample_detail' s.id %}">
-            <i class="bi bi-eye"></i> Ver detalle
-          </a>
+            
+            <!-- Version Badge -->
+            {% if sample.version > 1 %}
+            <div class="absolute bottom-3 left-3">
+                <span class="px-2 py-0.5 rounded-md text-xs font-medium bg-black/60 text-white">
+                    v{{ sample.version }}
+                </span>
+            </div>
+            {% endif %}
         </div>
-        <div class="card-footer small text-muted">
-          <i class="bi bi-clock"></i> {{ s.created_at|date:'Y-m-d H:i' }}
-          {% if s.created_by %}· {{ s.created_by.username }}{% endif %}
+        
+        <!-- Content -->
+        <div class="p-4">
+            <h3 class="font-semibold text-slate-900 truncate mb-1">
+                {{ sample.name|default:sample.code|default:"Unnamed Sample" }}
+            </h3>
+            <div class="flex items-center gap-2 text-sm text-slate-500 mb-3">
+                {% if sample.brand %}
+                <span class="inline-flex items-center gap-1">
+                    <i class="bi bi-tag"></i> {{ sample.brand }}
+                </span>
+                {% endif %}
+                {% if sample.code %}
+                <span class="inline-flex items-center gap-1 font-mono text-xs bg-slate-100 px-2 py-0.5 rounded">
+                    {{ sample.code }}
+                </span>
+                {% endif %}
+            </div>
+            
+            {% if sample.room_location %}
+            <p class="text-xs text-slate-500 mb-3 truncate">
+                <i class="bi bi-geo-alt"></i> {{ sample.room_location }}
+            </p>
+            {% endif %}
+            
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                <span class="text-xs text-slate-400">
+                    {{ sample.created_at|date:"M d, Y" }}
+                </span>
+                <a href="{% url 'color_sample_detail' sample.id %}" 
+                   class="inline-flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-800">
+                    {% trans "View" %} <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
         </div>
-      </div>
     </div>
     {% empty %}
-    <div class="col-12">
-      <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> No hay muestras de color aún. 
-        <a href="{% url 'color_sample_create' project.id %}" class="alert-link">Crear la primera muestra</a>
-      </div>
+    <div class="col-span-full">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+            <div class="w-20 h-20 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-4">
+                <i class="bi bi-palette text-4xl text-violet-500"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-slate-900 mb-2">{% trans "No color samples yet" %}</h3>
+            <p class="text-slate-500 mb-6 max-w-md mx-auto">
+                {% trans "Start by creating your first color sample for this project. You can upload photos, add color codes, and request client approval." %}
+            </p>
+            <a href="{% url 'color_sample_create' project.id %}" 
+               class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg shadow-lg hover:shadow-xl transition font-medium">
+                <i class="bi bi-plus-lg"></i>
+                {% trans "Create First Sample" %}
+            </a>
+        </div>
     </div>
     {% endfor %}
-  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchSamples');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.sample-card');
+    
+    let currentFilter = 'all';
+    let searchTerm = '';
+    
+    function filterCards() {
+        cards.forEach(card => {
+            const status = card.dataset.status;
+            const name = card.dataset.name || '';
+            const code = card.dataset.code || '';
+            const brand = card.dataset.brand || '';
+            
+            const matchesFilter = currentFilter === 'all' || status === currentFilter;
+            const matchesSearch = !searchTerm || 
+                name.includes(searchTerm) || 
+                code.includes(searchTerm) || 
+                brand.includes(searchTerm);
+            
+            card.style.display = matchesFilter && matchesSearch ? '' : 'none';
+        });
+    }
+    
+    searchInput?.addEventListener('input', function() {
+        searchTerm = this.value.toLowerCase();
+        filterCards();
+    });
+    
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            filterBtns.forEach(b => {
+                b.classList.remove('active', 'bg-violet-100', 'text-violet-700');
+                b.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            this.classList.add('active', 'bg-violet-100', 'text-violet-700');
+            this.classList.remove('bg-slate-100', 'text-slate-600');
+            
+            currentFilter = this.dataset.filter;
+            filterCards();
+        });
+    });
+});
+</script>
 {% endblock %}

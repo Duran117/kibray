@@ -1142,8 +1142,8 @@ class ColorSampleForm(forms.ModelForm):
     # Field added dynamically to avoid import errors before migration
     requires_client_signature = forms.BooleanField(
         required=False,
-        label="Enviar a cliente para aprobación",
-        help_text="Si marca esta opción, la muestra aparecerá en el dashboard del cliente para que la firme y apruebe.",
+        label="Send to client for approval",
+        help_text="If checked, this sample will appear on the client dashboard for signature and approval.",
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"})
     )
 
@@ -1166,10 +1166,10 @@ class ColorSampleForm(forms.ModelForm):
             "notes": forms.Textarea(attrs={"rows": 3}),
             "project": forms.Select(attrs={"class": "form-control"}),
             "room_location": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: Cocina, Dormitorio Principal"}
+                attrs={"class": "form-control", "placeholder": "e.g., Kitchen, Master Bedroom"}
             ),
             "room_group": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Grupo de habitación"}
+                attrs={"class": "form-control", "placeholder": "Room group"}
             ),
         }
 
@@ -1200,7 +1200,7 @@ class ColorSampleReviewForm(forms.ModelForm):
     def clean_status(self):
         st = self.cleaned_data.get("status")
         if st not in ["proposed", "review", "approved", "rejected", "archived"]:
-            raise forms.ValidationError("Estado inválido.")
+            raise forms.ValidationError("Invalid status.")
         return st
 
 

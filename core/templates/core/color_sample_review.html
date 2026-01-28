@@ -1,20 +1,158 @@
 {% extends "core/base_modern.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Review Color Sample" %} - {{ sample.name|default:sample.code }}{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center gap-4">
+    <a href="{% url 'color_sample_detail' sample.id %}" 
+       class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">{% trans "Review Color Sample" %}</h1>
+        <p class="text-slate-600">{{ project.name }}</p>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="container py-3">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">Mis Proyectos</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'color_sample_detail' sample.id %}">Detalle muestra</a></li>
-      <li class="breadcrumb-item active">Revisión</li>
-    </ol>
-  </nav>
-  <h3>Revisión / Estado de muestra</h3>
-  <form method="post" class="mt-3">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-primary">Actualizar</button>
-    <a href="{% url 'color_sample_detail' sample.id %}" class="btn btn-outline-secondary">Cancelar</a>
-  </form>
+<div class="max-w-3xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Sample Preview -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            {% if sample.sample_image %}
+            <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}" 
+                 class="w-full aspect-square object-cover">
+            {% else %}
+            <div class="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 flex flex-col items-center justify-center">
+                <i class="bi bi-palette text-6xl text-slate-300 mb-3"></i>
+                <p class="text-slate-400">{% trans "No image" %}</p>
+            </div>
+            {% endif %}
+            <div class="p-4 border-t border-slate-200">
+                <h3 class="font-semibold text-slate-900">{{ sample.name|default:"Unnamed" }}</h3>
+                <p class="text-sm text-slate-500">
+                    {% if sample.brand %}{{ sample.brand }} · {% endif %}
+                    {{ sample.code|default:"No code" }}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Review Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-gradient-to-r from-violet-50 to-purple-50">
+                <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-pencil-square text-violet-500"></i>
+                    {% trans "Update Status" %}
+                </h2>
+            </div>
+            
+            <form method="post" class="p-6 space-y-6">
+                {% csrf_token %}
+                
+                <!-- Current Status -->
+                <div class="bg-slate-50 rounded-lg p-4">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{% trans "Current Status" %}</p>
+                    <div class="flex items-center gap-2">
+                        {% if sample.status == 'approved' %}
+                        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
+                            <i class="bi bi-check-circle-fill"></i> {% trans "Approved" %}
+                        </span>
+                        {% elif sample.status == 'rejected' %}
+                        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-rose-100 text-rose-700">
+                            <i class="bi bi-x-circle-fill"></i> {% trans "Rejected" %}
+                        </span>
+                        {% elif sample.status == 'review' %}
+                        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-700">
+                            <i class="bi bi-eye-fill"></i> {% trans "In Review" %}
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-amber-100 text-amber-700">
+                            <i class="bi bi-hourglass-split"></i> {% trans "Proposed" %}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- New Status -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-3">{% trans "Change Status To" %}</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" value="proposed" class="peer sr-only" 
+                                   {% if sample.status == 'proposed' %}checked{% endif %}>
+                            <div class="p-3 rounded-lg border-2 border-slate-200 peer-checked:border-amber-500 peer-checked:bg-amber-50 transition">
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-hourglass-split text-amber-500"></i>
+                                    <span class="font-medium text-slate-700">{% trans "Proposed" %}</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" value="review" class="peer sr-only"
+                                   {% if sample.status == 'review' %}checked{% endif %}>
+                            <div class="p-3 rounded-lg border-2 border-slate-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition">
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-eye text-blue-500"></i>
+                                    <span class="font-medium text-slate-700">{% trans "In Review" %}</span>
+                                </div>
+                            </div>
+                        </label>
+                        {% if user.is_staff %}
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" value="approved" class="peer sr-only"
+                                   {% if sample.status == 'approved' %}checked{% endif %}>
+                            <div class="p-3 rounded-lg border-2 border-slate-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition">
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-check-circle text-emerald-500"></i>
+                                    <span class="font-medium text-slate-700">{% trans "Approved" %}</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" value="rejected" class="peer sr-only"
+                                   {% if sample.status == 'rejected' %}checked{% endif %}>
+                            <div class="p-3 rounded-lg border-2 border-slate-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 transition">
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-x-circle text-rose-500"></i>
+                                    <span class="font-medium text-slate-700">{% trans "Rejected" %}</span>
+                                </div>
+                            </div>
+                        </label>
+                        {% endif %}
+                    </div>
+                    {% if not user.is_staff %}
+                    <p class="mt-2 text-xs text-slate-500">
+                        <i class="bi bi-info-circle"></i>
+                        {% trans "Only staff members can approve or reject samples" %}
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Client Notes -->
+                <div>
+                    <label for="client_notes" class="block text-sm font-medium text-slate-700 mb-2">
+                        {% trans "Client Notes" %}
+                    </label>
+                    <textarea name="client_notes" id="client_notes" rows="3"
+                              class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                              placeholder="{% trans 'Add any feedback or comments...' %}">{{ sample.client_notes }}</textarea>
+                </div>
+                
+                <!-- Submit -->
+                <div class="flex gap-3">
+                    <a href="{% url 'color_sample_detail' sample.id %}" 
+                       class="flex-1 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition font-medium text-center">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" 
+                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-lg shadow-lg transition font-medium">
+                        {% trans "Update Status" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

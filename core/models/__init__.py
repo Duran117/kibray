@@ -4242,7 +4242,7 @@ class SitePhoto(models.Model):
 
 
 # ---------------------
-# Sistema de muestras / aprobación de colores
+# Color Samples / Approval System
 # ---------------------
 class ColorSample(models.Model):
     STATUS_CHOICES = [
@@ -4259,7 +4259,7 @@ class ColorSample(models.Model):
     finish = models.CharField(max_length=120, blank=True)
     gloss = models.CharField(max_length=50, blank=True)
     version = models.PositiveIntegerField(
-        default=1, help_text="Incrementa cuando se sube una variante"
+        default=1, help_text="Increments when a variant is uploaded"
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="proposed")
     sample_image = models.ImageField(upload_to="color_samples/", null=True, blank=True)

@@ -75,8 +75,8 @@ def notify_color_review(color_sample, reviewer):
         Notification.objects.create(
             user=pm,
             notification_type="color_review",
-            title=f"Color en revisión: {color_sample.name or color_sample.code}",
-            message=f"{reviewer.username} cambió estado a {color_sample.get_status_display()}",
+            title=f"Color under review: {color_sample.name or color_sample.code}",
+            message=f"{reviewer.username} changed status to {color_sample.get_status_display()}",
             related_object_type="color_sample",
             related_object_id=color_sample.id,
             link_url=link,
@@ -98,8 +98,8 @@ def notify_color_approved(color_sample, approver):
             Notification.objects.create(
                 user=u,
                 notification_type="color_approved",
-                title=f"Color aprobado: {color_sample.name or color_sample.code}",
-                message=f"{approver.username} aprobó el color para {color_sample.project.name}",
+                title=f"Color approved: {color_sample.name or color_sample.code}",
+                message=f"{approver.username} approved the color for {color_sample.project.name}",
                 related_object_type="color_sample",
                 related_object_id=color_sample.id,
                 link_url=link,

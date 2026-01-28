@@ -1,59 +1,436 @@
 {% extends "core/base_modern.html" %}
-{% block content %}
-<div class="container py-3">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">Mis Proyectos</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'color_sample_list' project.id %}">Colores</a></li>
-      <li class="breadcrumb-item active">Detalle</li>
-    </ol>
-  </nav>
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h3>{{ sample.name|default:sample.code|default:'Muestra' }} <span class="badge text-bg-secondary">{{ sample.get_status_display }}</span></h3>
-    <div class="btn-group">
-      <a class="btn btn-sm btn-outline-primary" href="{% url 'color_sample_review' sample.id %}">Revisar / Cambiar estado</a>
-      {% if user.is_staff or user.profile.role in 'client,project_manager' %}
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'color_sample_edit' sample.id %}">
-        <i class="bi bi-pencil"></i> Editar
-      </a>
-      {% endif %}
-      {% if user.is_staff or user.profile.role == 'project_manager' %}
-      <a class="btn btn-sm btn-outline-danger" href="{% url 'color_sample_delete' sample.id %}">
-        <i class="bi bi-trash"></i> Eliminar
-      </a>
-      {% endif %}
-    </div>
-  </div>
-  <div class="row g-3">
-    <div class="col-md-6">
-      <div class="card">
-        {% if sample.sample_image %}<img src="{{ sample.sample_image.url }}" class="card-img-top" alt="sample">{% endif %}
-        <div class="card-body">
-          <p><strong>Marca:</strong> {{ sample.brand }}</p>
-          <p><strong>Código:</strong> {{ sample.code }}</p>
-          <p><strong>Acabado:</strong> {{ sample.finish }} {{ sample.gloss }}</p>
-          <p><strong>Versión:</strong> v{{ sample.version }}</p>
-          {% if sample.approved_at %}
-          <p class="text-success"><strong>Aprobado:</strong> {{ sample.approved_at|date:'Y-m-d H:i' }} por {{ sample.approved_by }}</p>
-          {% endif %}
-          <p><strong>Notas internas:</strong><br>{{ sample.notes|default:'—' }}</p>
-          <p><strong>Notas cliente:</strong><br>{{ sample.client_notes|default:'—' }}</p>
+{% load i18n static %}
+
+{% block title %}{{ sample.name|default:sample.code }} - {% trans "Color Sample" %}{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div class="flex items-center gap-4">
+        <a href="{% url 'color_sample_list' project.id %}" 
+           class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <div class="flex items-center gap-3 mb-1">
+                <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">
+                    {{ sample.name|default:sample.code|default:"Color Sample" }}
+                </h1>
+                {% if sample.status == 'approved' %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
+                    <i class="bi bi-check-circle-fill"></i> {% trans "Approved" %}
+                </span>
+                {% elif sample.status == 'rejected' %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-rose-100 text-rose-700">
+                    <i class="bi bi-x-circle-fill"></i> {% trans "Rejected" %}
+                </span>
+                {% elif sample.status == 'review' %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700">
+                    <i class="bi bi-eye-fill"></i> {% trans "In Review" %}
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-amber-100 text-amber-700">
+                    <i class="bi bi-hourglass-split"></i> {% trans "Proposed" %}
+                </span>
+                {% endif %}
+            </div>
+            <p class="text-slate-600">{{ project.name }} · v{{ sample.version }}</p>
         </div>
-      </div>
     </div>
-    <div class="col-md-6">
-      <div class="card h-100">
-        <div class="card-header">Anotaciones (JSON)</div>
-        <div class="card-body">
-          {% if sample.annotations %}
-            <pre class="small bg-light p-2">{{ sample.annotations|safe }}</pre>
-          {% else %}
-            <div class="text-muted small">Sin anotaciones aún.</div>
-          {% endif %}
-        </div>
-      </div>
+    <div class="flex flex-wrap items-center gap-2">
+        <a href="{% url 'color_sample_review' sample.id %}" 
+           class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium">
+            <i class="bi bi-pencil-square"></i>
+            {% trans "Review" %}
+        </a>
+        {% if user.is_staff or user.profile.role == 'project_manager' %}
+        <a href="{% url 'color_sample_edit' sample.id %}" 
+           class="inline-flex items-center gap-2 px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition font-medium">
+            <i class="bi bi-pencil"></i>
+            {% trans "Edit" %}
+        </a>
+        <a href="{% url 'color_sample_delete' sample.id %}" 
+           class="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition font-medium">
+            <i class="bi bi-trash"></i>
+            {% trans "Delete" %}
+        </a>
+        {% endif %}
     </div>
-  </div>
 </div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Sample Image -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            {% if sample.sample_image %}
+            <div class="aspect-video bg-slate-100 flex items-center justify-center">
+                <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}" 
+                     class="max-w-full max-h-full object-contain">
+            </div>
+            {% else %}
+            <div class="aspect-video bg-gradient-to-br from-slate-100 to-slate-50 flex flex-col items-center justify-center">
+                <i class="bi bi-palette text-6xl text-slate-300 mb-3"></i>
+                <p class="text-slate-400">{% trans "No sample image uploaded" %}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Reference Photo -->
+        {% if sample.reference_photo %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-image text-violet-500"></i>
+                    {% trans "Reference Photo" %}
+                </h3>
+            </div>
+            <div class="p-4">
+                <img src="{{ sample.reference_photo.url }}" alt="Reference" 
+                     class="w-full rounded-lg">
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Notes -->
+        {% if sample.notes or sample.client_notes %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-chat-left-text text-violet-500"></i>
+                    {% trans "Notes" %}
+                </h3>
+            </div>
+            <div class="p-4 space-y-4">
+                {% if sample.notes %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{% trans "Internal Notes" %}</p>
+                    <p class="text-slate-700 whitespace-pre-wrap">{{ sample.notes }}</p>
+                </div>
+                {% endif %}
+                {% if sample.client_notes %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{% trans "Client Notes" %}</p>
+                    <p class="text-slate-700 whitespace-pre-wrap">{{ sample.client_notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Client Signature Section -->
+        {% if sample.client_signature %}
+        <div class="bg-emerald-50 rounded-xl border border-emerald-200 overflow-hidden">
+            <div class="p-4 border-b border-emerald-200 bg-emerald-100">
+                <h3 class="font-semibold text-emerald-800 flex items-center gap-2">
+                    <i class="bi bi-check2-all"></i>
+                    {% trans "Client Signature" %}
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="bg-white rounded-lg border border-emerald-200 p-4">
+                        <img src="{{ sample.client_signature.url }}" alt="Client Signature" class="max-h-32">
+                    </div>
+                    <div>
+                        <p class="text-sm text-emerald-700 mb-1">
+                            <strong>{% trans "Signed by" %}:</strong> {{ sample.client_signed_name }}
+                        </p>
+                        <p class="text-sm text-emerald-700 mb-1">
+                            <strong>{% trans "Date" %}:</strong> {{ sample.client_signed_at|date:"F d, Y - H:i" }}
+                        </p>
+                        {% if sample.approval_ip %}
+                        <p class="text-xs text-emerald-600">
+                            <strong>IP:</strong> {{ sample.approval_ip }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elif sample.requires_client_signature %}
+        <div class="bg-orange-50 rounded-xl border border-orange-200 overflow-hidden">
+            <div class="p-4 border-b border-orange-200 bg-orange-100">
+                <h3 class="font-semibold text-orange-800 flex items-center gap-2">
+                    <i class="bi bi-pen"></i>
+                    {% trans "Awaiting Client Signature" %}
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-orange-700 mb-4">
+                    {% trans "This sample requires client signature. Share the link below with your client." %}
+                </p>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="signatureUrl" readonly 
+                           value="{{ request.scheme }}://{{ request.get_host }}{% url 'color_sample_client_signature' sample.id %}"
+                           class="flex-1 px-3 py-2 bg-white border border-orange-200 rounded-lg text-sm font-mono">
+                    <button onclick="copySignatureUrl()" 
+                            class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition font-medium">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-orange-600 mt-2">
+                    <i class="bi bi-info-circle"></i>
+                    {% trans "Link is secure and unique to this sample" %}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Color Details Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-gradient-to-r from-violet-50 to-purple-50">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-info-circle text-violet-500"></i>
+                    {% trans "Color Details" %}
+                </h3>
+            </div>
+            <div class="p-4 space-y-4">
+                {% if sample.code %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Code" %}</p>
+                    <p class="font-mono text-lg font-semibold text-slate-900 bg-slate-100 px-3 py-2 rounded-lg">{{ sample.code }}</p>
+                </div>
+                {% endif %}
+                
+                {% if sample.brand %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Brand" %}</p>
+                    <p class="text-slate-900">{{ sample.brand }}</p>
+                </div>
+                {% endif %}
+                
+                {% if sample.finish %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Finish" %}</p>
+                    <p class="text-slate-900">{{ sample.finish }}</p>
+                </div>
+                {% endif %}
+                
+                {% if sample.gloss %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Gloss" %}</p>
+                    <p class="text-slate-900">{{ sample.gloss }}</p>
+                </div>
+                {% endif %}
+                
+                {% if sample.sample_number %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Sample Number" %}</p>
+                    <p class="font-mono text-sm text-slate-700">{{ sample.sample_number }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Location Card -->
+        {% if sample.room_location or sample.room_group %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-geo-alt text-violet-500"></i>
+                    {% trans "Location" %}
+                </h3>
+            </div>
+            <div class="p-4 space-y-3">
+                {% if sample.room_location %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Room/Area" %}</p>
+                    <p class="text-slate-900">{{ sample.room_location }}</p>
+                </div>
+                {% endif %}
+                {% if sample.room_group %}
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Group" %}</p>
+                    <p class="text-slate-900">{{ sample.room_group }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Approval Info Card -->
+        {% if sample.status == 'approved' %}
+        <div class="bg-emerald-50 rounded-xl border border-emerald-200 overflow-hidden">
+            <div class="p-4 border-b border-emerald-200">
+                <h3 class="font-semibold text-emerald-800 flex items-center gap-2">
+                    <i class="bi bi-shield-check"></i>
+                    {% trans "Approval Details" %}
+                </h3>
+            </div>
+            <div class="p-4 space-y-3">
+                {% if sample.approved_by %}
+                <div>
+                    <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">{% trans "Approved By" %}</p>
+                    <p class="text-emerald-900">{{ sample.approved_by.get_full_name|default:sample.approved_by.username }}</p>
+                </div>
+                {% endif %}
+                {% if sample.approved_at %}
+                <div>
+                    <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">{% trans "Approved At" %}</p>
+                    <p class="text-emerald-900">{{ sample.approved_at|date:"F d, Y - H:i" }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% elif sample.status == 'rejected' %}
+        <div class="bg-rose-50 rounded-xl border border-rose-200 overflow-hidden">
+            <div class="p-4 border-b border-rose-200">
+                <h3 class="font-semibold text-rose-800 flex items-center gap-2">
+                    <i class="bi bi-x-octagon"></i>
+                    {% trans "Rejection Details" %}
+                </h3>
+            </div>
+            <div class="p-4 space-y-3">
+                {% if sample.rejected_by %}
+                <div>
+                    <p class="text-xs font-semibold text-rose-600 uppercase tracking-wide mb-1">{% trans "Rejected By" %}</p>
+                    <p class="text-rose-900">{{ sample.rejected_by.get_full_name|default:sample.rejected_by.username }}</p>
+                </div>
+                {% endif %}
+                {% if sample.rejected_at %}
+                <div>
+                    <p class="text-xs font-semibold text-rose-600 uppercase tracking-wide mb-1">{% trans "Rejected At" %}</p>
+                    <p class="text-rose-900">{{ sample.rejected_at|date:"F d, Y - H:i" }}</p>
+                </div>
+                {% endif %}
+                {% if sample.rejection_reason %}
+                <div>
+                    <p class="text-xs font-semibold text-rose-600 uppercase tracking-wide mb-1">{% trans "Reason" %}</p>
+                    <p class="text-rose-900">{{ sample.rejection_reason }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Quick Actions Card -->
+        {% if user.is_staff or user.profile.role == 'project_manager' %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-lightning text-violet-500"></i>
+                    {% trans "Quick Actions" %}
+                </h3>
+            </div>
+            <div class="p-4 space-y-2">
+                {% if sample.status != 'approved' %}
+                <form method="post" action="{% url 'color_sample_quick_action' sample.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" 
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition font-medium">
+                        <i class="bi bi-check-lg"></i>
+                        {% trans "Quick Approve" %}
+                    </button>
+                </form>
+                {% endif %}
+                
+                {% if sample.status != 'rejected' %}
+                <button onclick="showRejectModal()" 
+                        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition font-medium">
+                    <i class="bi bi-x-lg"></i>
+                    {% trans "Quick Reject" %}
+                </button>
+                {% endif %}
+                
+                {% if not sample.requires_client_signature %}
+                <form method="post" action="{% url 'color_sample_edit' sample.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="requires_client_signature" value="true">
+                    <button type="submit" 
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition font-medium">
+                        <i class="bi bi-pen"></i>
+                        {% trans "Request Client Signature" %}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Metadata Card -->
+        <div class="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+            <div class="p-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">{% trans "Created" %}</span>
+                    <span class="text-slate-700">{{ sample.created_at|date:"M d, Y" }}</span>
+                </div>
+                {% if sample.created_by %}
+                <div class="flex justify-between">
+                    <span class="text-slate-500">{% trans "Created By" %}</span>
+                    <span class="text-slate-700">{{ sample.created_by.username }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <span class="text-slate-500">{% trans "Last Updated" %}</span>
+                    <span class="text-slate-700">{{ sample.updated_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50" onclick="hideRejectModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6">
+        <h3 class="text-lg font-semibold text-slate-900 mb-4">{% trans "Reject Color Sample" %}</h3>
+        <form method="post" action="{% url 'color_sample_quick_action' sample.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-700 mb-2">{% trans "Reason for rejection" %} *</label>
+                <textarea name="reason" required rows="3" 
+                          class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                          placeholder="{% trans 'Please explain why this sample is being rejected...' %}"></textarea>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="hideRejectModal()" 
+                        class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition font-medium">
+                    {% trans "Cancel" %}
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition font-medium">
+                    {% trans "Reject Sample" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showRejectModal() {
+    document.getElementById('rejectModal').classList.remove('hidden');
+}
+
+function hideRejectModal() {
+    document.getElementById('rejectModal').classList.add('hidden');
+}
+
+function copySignatureUrl() {
+    const input = document.getElementById('signatureUrl');
+    input.select();
+    document.execCommand('copy');
+    
+    // Show feedback
+    const btn = event.target.closest('button');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => {
+        btn.innerHTML = originalContent;
+    }, 2000);
+}
+
+// Close modal on escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideRejectModal();
+    }
+});
+</script>
 {% endblock %}

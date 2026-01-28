@@ -2152,7 +2152,7 @@ def color_sample_create(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     profile = getattr(request.user, "profile", None)
     if not (request.user.is_staff or (profile and profile.role in ["client", "project_manager"])):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, "Access denied.")
         return redirect("dashboard")
 
     if request.method == "POST":
@@ -2162,7 +2162,7 @@ def color_sample_create(request, project_id):
             inst.project = project
             inst.created_by = request.user
             inst.save()
-            messages.success(request, "Muestra creada.")
+            messages.success(request, "Color sample created.")
             return redirect("color_sample_list", project_id=project_id)
     else:
         form = ColorSampleForm(initial={"project": project})
@@ -2199,12 +2199,12 @@ def color_sample_review(request, sample_id):
     sample = get_object_or_404(ColorSample, id=sample_id)
     project = sample.project
     profile = getattr(request.user, "profile", None)
-    # Permisos: clientes, PM y diseñadores pueden dejar notas y mover a 'review'; solo staff puede aprobar/rechazar
+    # Permissions: clients, PM and designers can leave notes and move to 'review'; only staff can approve/reject
     if not (
         request.user.is_staff
         or (profile and profile.role in ["client", "project_manager", "designer"])
     ):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, "Access denied.")
         return redirect("dashboard")
 
     if request.method == "POST":
@@ -2212,15 +2212,15 @@ def color_sample_review(request, sample_id):
         if form.is_valid():
             old_status = sample.status
             inst = form.save(commit=False)
-            # Validar transición de estado
+            # Validate status transition
             requested_status = inst.status
             if requested_status in ["approved", "rejected"] and not request.user.is_staff:
-                messages.error(request, "Solo el staff puede aprobar o rechazar colores.")
+                messages.error(request, "Only staff can approve or reject colors.")
             else:
                 if requested_status == "approved" and not inst.approved_by:
                     inst.approved_by = request.user
                 inst.save()
-                # Notificar cambios
+                # Notify changes
                 from core.notifications import notify_color_approved, notify_color_review
 
                 if requested_status == "approved":
@@ -2229,7 +2229,7 @@ def color_sample_review(request, sample_id):
                     notify_color_review(inst, request.user)
                 messages.success(
                     request,
-                    _("Estado actualizado a %(status)s") % {"status": inst.get_status_display()},
+                    f"Status updated to {inst.get_status_display()}"
                 )
             return redirect("color_sample_detail", sample_id=sample.id)
     else:
@@ -2249,7 +2249,7 @@ def color_sample_review(request, sample_id):
 def color_sample_quick_action(request, sample_id):
     """Quick approve/reject color sample (staff only, AJAX)."""
     if not request.user.is_staff:
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": "Permission denied"}, status=403)
 
     sample = get_object_or_404(ColorSample, id=sample_id)
 
@@ -2273,7 +2273,7 @@ def color_sample_quick_action(request, sample_id):
         elif action == "reject":
             reason = request.POST.get("reason", "").strip()
             if not reason:
-                return JsonResponse({"error": gettext("Rejection reason required")}, status=400)
+                return JsonResponse({"error": "Rejection reason required"}, status=400)
             sample.reject(request.user, reason)
             return JsonResponse(
                 {
@@ -2284,7 +2284,7 @@ def color_sample_quick_action(request, sample_id):
                 }
             )
 
-    return JsonResponse({"error": gettext("Invalid action")}, status=400)
+    return JsonResponse({"error": "Invalid action"}, status=400)
 
 
 @login_required
@@ -2295,14 +2295,14 @@ def color_sample_edit(request, sample_id):
     profile = getattr(request.user, "profile", None)
 
     if not (request.user.is_staff or (profile and profile.role in ["client", "project_manager"])):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, "Access denied.")
         return redirect("color_sample_detail", sample_id=sample_id)
 
     if request.method == "POST":
         form = ColorSampleForm(request.POST, request.FILES, instance=sample)
         if form.is_valid():
             form.save()
-            messages.success(request, "Muestra actualizada.")
+            messages.success(request, "Color sample updated.")
             return redirect("color_sample_detail", sample_id=sample_id)
     else:
         form = ColorSampleForm(instance=sample)
@@ -2327,13 +2327,13 @@ def color_sample_delete(request, sample_id):
     profile = getattr(request.user, "profile", None)
 
     if not (request.user.is_staff or (profile and profile.role == "project_manager")):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, "Access denied.")
         return redirect("color_sample_detail", sample_id=sample_id)
 
     if request.method == "POST":
         project_id = sample.project.id
         sample.delete()
-        messages.success(request, "Muestra eliminada.")
+        messages.success(request, "Color sample deleted.")
         return redirect("color_sample_list", project_id=project_id)
 
     return render(
@@ -3683,27 +3683,26 @@ def get_approved_colors(request, project_id):
 
 
 def color_sample_client_signature_view(request, sample_id, token=None):
-    """Vista pública para capturar firma de cliente en muestras de color.
+    """Public view to capture client signature on color samples.
 
-    Basada en: changeorder_customer_signature_view
-    Validación de token firmado (HMAC) con expiración de 7 días.
-    Captura la firma en base64, nombre del cliente, y genera PDF.
+    Token validation (HMAC) with 7-day expiration.
+    Captures base64 signature, client name, and generates PDF.
     """
     color_sample = get_object_or_404(ColorSample, id=sample_id)
 
-    # --- Token validation (solo si se proporciona en la URL) ---
+    # --- Token validation (only if provided in URL) ---
     if token is not None:
         try:
-            payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 días
+            payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 days
             if payload.get("sample_id") != color_sample.id:
-                return HttpResponseForbidden("Token no coincide con esta muestra de color.")
+                return HttpResponseForbidden("Token does not match this color sample.")
         except signing.SignatureExpired:
-            return HttpResponseForbidden("El enlace de firma ha expirado. Solicite uno nuevo.")
+            return HttpResponseForbidden("The signature link has expired. Please request a new one.")
         except signing.BadSignature:
-            return HttpResponseForbidden("Token inválido o manipulado.")
+            return HttpResponseForbidden("Invalid or tampered token.")
 
-    # Si ya está firmado mostrar pantalla correspondiente
-    if color_sample.approval_signature:
+    # If already signed, show corresponding screen
+    if color_sample.client_signature:
         return render(
             request,
             "core/color_sample_signature_already_signed.html",
@@ -3718,8 +3717,7 @@ def color_sample_client_signature_view(request, sample_id, token=None):
         from django.utils import timezone
 
         signature_data = request.POST.get("signature_data")
-        signer_name = request.POST.get("signer_name", "").strip()
-        signer_email = request.POST.get("signer_email", "").strip()
+        signed_name = request.POST.get("signed_name", "").strip()
 
         if not signature_data:
             return render(
@@ -3727,31 +3725,31 @@ def color_sample_client_signature_view(request, sample_id, token=None):
                 "core/color_sample_signature_form.html",
                 {
                     "color_sample": color_sample,
-                    "error": "Por favor, dibuje su firma antes de continuar.",
+                    "error": "Please draw your signature before continuing.",
                 },
             )
-        if not signer_name:
+        if not signed_name:
             return render(
                 request,
                 "core/color_sample_signature_form.html",
-                {"color_sample": color_sample, "error": "Por favor, ingrese su nombre completo."},
+                {"color_sample": color_sample, "error": "Please enter your full name."},
             )
 
         try:
-            # --- Procesar firma base64 ---
+            # --- Process base64 signature ---
             format_str, imgstr = signature_data.split(";base64,")
             ext = format_str.split("/")[-1]
             if ext not in ["png", "jpeg", "jpg"]:
                 ext = "png"
 
-            # Decodificar base64
+            # Decode base64
             decoded_image = base64.b64decode(imgstr)
 
-            # Crear nombre único para archivo
+            # Create unique filename
             file_name = f"color_sample_{color_sample.id}_signature_{uuid.uuid4().hex}.{ext}"
             signature_file = ContentFile(decoded_image, name=file_name)
 
-            # Obtener IP del cliente
+            # Get client IP
             x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
             client_ip = (
                 x_forwarded_for.split(",")[0]
@@ -3759,37 +3757,10 @@ def color_sample_client_signature_view(request, sample_id, token=None):
                 else request.META.get("REMOTE_ADDR", "")
             )
 
-            # --- Guardar firma en ColorSample ---
-            color_sample.approval_signature = signature_file
-            color_sample.approval_ip = client_ip
-            color_sample.approval_date = timezone.now()
-            color_sample.status = "approved"  # Marcar como aprobada
-            color_sample.save(
-                update_fields=["approval_signature", "approval_ip", "approval_date", "status"]
-            )
+            # --- Save signature using the new model fields ---
+            color_sample.sign_by_client(signature_file, signed_name, client_ip)
 
-            # --- Crear/actualizar registro de aprobación en ColorApproval ---
-            color_approval, created = ColorApproval.objects.get_or_create(
-                color_sample=color_sample,
-                defaults={
-                    "client_name": signer_name,
-                    "client_email": signer_email,
-                    "client_signature": signature_file,
-                    "signed_at": timezone.now(),
-                    "status": "approved",
-                    "ip_address": client_ip,
-                },
-            )
-            if not created:
-                color_approval.client_name = signer_name
-                color_approval.client_email = signer_email
-                color_approval.client_signature = signature_file
-                color_approval.signed_at = timezone.now()
-                color_approval.status = "approved"
-                color_approval.ip_address = client_ip
-                color_approval.save()
-
-            # --- Notificar al PM del proyecto ---
+            # --- Notify project PM ---
             try:
                 project = color_sample.project
                 if project:
@@ -3797,17 +3768,16 @@ def color_sample_client_signature_view(request, sample_id, token=None):
                         project=project, role="project_manager"
                     ).first()
                     if pm_profile and pm_profile.user.email:
-                        subject = f"Muestra de color #{color_sample.id} firmada por cliente"
+                        subject = f"Color Sample #{color_sample.id} signed by client"
                         message_body = (
-                            f"La muestra de color '{color_sample.name}' (Código: {color_sample.code}) "
-                            f"ha sido firmada por:\n\n"
-                            f"Nombre: {signer_name}\n"
-                            f"Email: {signer_email}\n"
-                            f"Fecha: {color_approval.signed_at.strftime('%d/%m/%Y %H:%M')}\n"
+                            f"Color sample '{color_sample.name}' (Code: {color_sample.code}) "
+                            f"has been signed by:\n\n"
+                            f"Name: {signed_name}\n"
+                            f"Date: {color_sample.client_signed_at.strftime('%m/%d/%Y %H:%M')}\n"
                             f"IP: {client_ip}\n\n"
-                            f"Proyecto: {project.name}\n"
-                            f"Ubicación: {color_sample.room_location or 'N/A'}\n\n"
-                            f"Este correo es automático. No responder."
+                            f"Project: {project.name}\n"
+                            f"Location: {color_sample.room_location or 'N/A'}\n\n"
+                            f"This is an automated message. Do not reply."
                         )
                         with contextlib.suppress(Exception):
                             send_mail(
@@ -3820,12 +3790,10 @@ def color_sample_client_signature_view(request, sample_id, token=None):
             except Exception:
                 pass
 
-            # --- Generar PDF (opcional, similar a Change Order) ---
+            # --- Generate PDF (optional) ---
             try:
                 pdf_template = get_template("core/color_sample_approval_pdf.html")
-                html = pdf_template.render(
-                    {"color_sample": color_sample, "color_approval": color_approval}
-                )
+                html = pdf_template.render({"color_sample": color_sample})
                 if pisa:
                     pdf_io = BytesIO()
                     try:
@@ -3835,23 +3803,20 @@ def color_sample_client_signature_view(request, sample_id, token=None):
                         pass
                 else:
                     _generate_basic_pdf_from_html(html)
-                # Opcional: guardar PDF en ColorApproval si tiene campo para ello
-                # color_approval.signed_pdf = ContentFile(pdf_bytes, name=f"sample_{sample_id}_approval.pdf")
-                # color_approval.save(update_fields=["signed_pdf"])
             except Exception:
-                # No bloquear flujo por fallo de PDF
+                # Don't block flow due to PDF failure
                 pass
 
             return render(
                 request,
                 "core/color_sample_signature_success.html",
-                {"color_sample": color_sample, "color_approval": color_approval},
+                {"color_sample": color_sample},
             )
         except Exception as e:
             return render(
                 request,
                 "core/color_sample_signature_form.html",
-                {"color_sample": color_sample, "error": f"Error al procesar la firma: {e}"},
+                {"color_sample": color_sample, "error": f"Error processing the signature: {e}"},
             )
 
     return render(request, "core/color_sample_signature_form.html", {"color_sample": color_sample})
