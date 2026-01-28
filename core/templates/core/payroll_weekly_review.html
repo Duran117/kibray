@@ -311,6 +311,26 @@
     color: var(--payroll-success);
 }
 
+/* Paid Input - Special styling */
+.paid-input {
+    border: 2px solid var(--payroll-primary);
+    background: #f0f9ff;
+    font-weight: 600;
+    color: var(--payroll-gray-900);
+}
+
+.paid-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    background: white;
+}
+
+.paid-input.has-savings {
+    border-color: #10b981;
+    background: #ecfdf5;
+}
+
 /* Payment Fields */
 .check-input {
     width: 100px;
@@ -628,6 +648,7 @@
                             <th>{% trans "Total Hrs" %}</th>
                             <th>{% trans "Rate" %}</th>
                             <th>{% trans "Total Pay" %}</th>
+                            <th>{% trans "Paid" %}</th>
                             <th>{% trans "Check #" %}</th>
                             <th>{% trans "Pay Date" %}</th>
                             <th>{% trans "Status" %}</th>
@@ -708,6 +729,25 @@
                             </td>
                             
                             <td class="total-pay-cell">${{ data.record.total_pay|floatformat:2 }}</td>
+                            
+                            <td>
+                                <input type="number" 
+                                       name="paid_{{ data.employee.id }}" 
+                                       value="{{ data.last_payment.amount_taken|default:'' }}"
+                                       placeholder="{{ data.record.balance_due|floatformat:2 }}"
+                                       step="0.01"
+                                       min="0"
+                                       max="{{ data.record.balance_due|floatformat:2 }}"
+                                       class="amount-input paid-input"
+                                       data-total="{{ data.record.balance_due|floatformat:2 }}"
+                                       data-employee="{{ data.employee.id }}"
+                                       style="width: 90px;">
+                                {% if data.savings_balance > 0 %}
+                                <div style="font-size: 10px; color: #10b981; margin-top: 2px;">
+                                    💰 ${{ data.savings_balance|floatformat:2 }}
+                                </div>
+                                {% endif %}
+                            </td>
                             
                             <td>
                                 <input type="text" 
@@ -809,6 +849,38 @@ document.querySelectorAll('.time-input').forEach(input => {
             hoursSpan.textContent = hours.toFixed(1);
         } else {
             hoursSpan.textContent = '-';
+        }
+    });
+});
+
+// Calculate savings when paid amount changes
+document.querySelectorAll('.paid-input').forEach(input => {
+    input.addEventListener('input', function() {
+        const total = parseFloat(this.dataset.total) || 0;
+        const paid = parseFloat(this.value) || 0;
+        const savings = total - paid;
+        
+        // Visual feedback
+        if (paid > 0 && savings > 0) {
+            this.classList.add('has-savings');
+            this.title = `💰 Savings: $${savings.toFixed(2)}`;
+        } else {
+            this.classList.remove('has-savings');
+            this.title = '';
+        }
+        
+        // Update or create savings indicator
+        let savingsDiv = this.parentElement.querySelector('.savings-indicator');
+        if (savings > 0 && paid > 0) {
+            if (!savingsDiv) {
+                savingsDiv = document.createElement('div');
+                savingsDiv.className = 'savings-indicator';
+                savingsDiv.style.cssText = 'font-size: 10px; color: #10b981; font-weight: 600; margin-top: 2px;';
+                this.parentElement.appendChild(savingsDiv);
+            }
+            savingsDiv.textContent = `→ Saves $${savings.toFixed(2)}`;
+        } else if (savingsDiv) {
+            savingsDiv.textContent = '';
         }
     });
 });

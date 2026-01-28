@@ -1511,7 +1511,8 @@ def payroll_weekly_review(request):
         return redirect("dashboard")
 
     from datetime import datetime, timedelta
-    from decimal import Decimal
+    from decimal import Decimal, InvalidOperation
+    from core.models import EmployeeSavings
 
     # Obtener parámetros de fecha (por defecto: semana actual)
     week_start_str = request.GET.get("week_start")
@@ -1626,26 +1627,52 @@ def payroll_weekly_review(request):
                 record.reviewed = True
                 record.save()
                 
-                # Procesar pago con cheque si se proporcionó
+                # Procesar pago si se proporcionó cantidad pagada, cheque y fecha
+                paid_amount_str = request.POST.get(f"paid_{emp_id}")
                 check_number = request.POST.get(f"check_{emp_id}")
                 pay_date = request.POST.get(f"pay_date_{emp_id}")
                 
-                if check_number and pay_date and record.total_pay > 0:
-                    # Verificar si ya existe un pago con este cheque
-                    existing_payment = PayrollPayment.objects.filter(
-                        payroll_record=record,
-                        check_number=check_number
-                    ).first()
-                    
-                    if not existing_payment:
-                        PayrollPayment.objects.create(
-                            payroll_record=record,
-                            amount=record.balance_due(),
-                            payment_date=pay_date,
-                            payment_method="check",
-                            check_number=check_number,
-                            recorded_by=request.user,
-                        )
+                if paid_amount_str and pay_date and record.total_pay > 0:
+                    try:
+                        paid_amount = Decimal(paid_amount_str)
+                        balance = record.balance_due()
+                        
+                        # Solo procesar si hay algo que pagar y el monto es válido
+                        if paid_amount > 0 and balance > 0:
+                            # Calcular savings: diferencia entre balance y lo que se paga
+                            savings_amount = balance - paid_amount
+                            if savings_amount < 0:
+                                savings_amount = Decimal("0")
+                                paid_amount = balance  # No pagar más del balance
+                            
+                            # Verificar si ya existe un pago con este cheque para este record
+                            existing_payment = None
+                            if check_number:
+                                existing_payment = PayrollPayment.objects.filter(
+                                    payroll_record=record,
+                                    check_number=check_number
+                                ).first()
+                            
+                            if not existing_payment:
+                                PayrollPayment.objects.create(
+                                    payroll_record=record,
+                                    amount=paid_amount + savings_amount,  # Total amount (paid + saved)
+                                    amount_taken=paid_amount,  # What employee takes
+                                    amount_saved=savings_amount,  # What goes to savings
+                                    payment_date=pay_date,
+                                    payment_method="check" if check_number else "cash",
+                                    check_number=check_number or "",
+                                    notes=f"Savings: ${savings_amount}" if savings_amount > 0 else "",
+                                    recorded_by=request.user,
+                                )
+                                
+                                if savings_amount > 0:
+                                    messages.info(
+                                        request,
+                                        f"{emp.first_name} {emp.last_name}: Pagado ${paid_amount}, Ahorro ${savings_amount}"
+                                    )
+                    except (ValueError, InvalidOperation) as e:
+                        messages.warning(request, f"Error procesando pago para {emp.first_name}: {str(e)}")
 
             messages.success(request, "Nómina actualizada correctamente.")
             return redirect(f"{request.path}?week_start={week_start.isoformat()}")
@@ -1737,6 +1764,9 @@ def payroll_weekly_review(request):
         
         # Obtener último pago
         last_payment = record.payments.order_by('-payment_date').first()
+        
+        # Obtener balance de ahorros del empleado
+        savings_balance = EmployeeSavings.get_employee_balance(emp)
 
         employee_data.append({
             "employee": emp,
@@ -1746,6 +1776,7 @@ def payroll_weekly_review(request):
             "co_hours": co_hours,
             "day_entries": day_entries,
             "last_payment": last_payment,
+            "savings_balance": savings_balance,
         })
 
     # Calcular totales
