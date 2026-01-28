@@ -19,7 +19,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Max, Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import (
     Http404,
@@ -4947,7 +4947,7 @@ def budget_lines_view(request, project_id):
 @login_required
 def estimate_create_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
-    version = (project.estimates.aggregate(m=models.Max("version"))["m"] or 0) + 1
+    version = (project.estimates.aggregate(m=Max("version"))["m"] or 0) + 1
     if request.method == "POST":
         form = EstimateForm(request.POST)
         formset = EstimateLineFormSet(request.POST)
