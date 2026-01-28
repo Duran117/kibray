@@ -733,15 +733,14 @@
                             <td>
                                 <input type="number" 
                                        name="paid_{{ data.employee.id }}" 
-                                       value="{{ data.last_payment.amount_taken|default:'' }}"
-                                       placeholder="{{ data.record.balance_due|floatformat:2 }}"
+                                       value="{% if data.record.balance_due > 0 %}{{ data.record.balance_due|floatformat:2 }}{% endif %}"
                                        step="0.01"
                                        min="0"
-                                       max="{{ data.record.balance_due|floatformat:2 }}"
                                        class="amount-input paid-input"
                                        data-total="{{ data.record.balance_due|floatformat:2 }}"
                                        data-employee="{{ data.employee.id }}"
-                                       style="width: 90px;">
+                                       style="width: 90px;"
+                                       {% if data.record.balance_due <= 0 %}disabled{% endif %}>
                                 {% if data.savings_balance > 0 %}
                                 <div style="font-size: 10px; color: #10b981; margin-top: 2px;">
                                     💰 ${{ data.savings_balance|floatformat:2 }}

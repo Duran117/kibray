@@ -1627,33 +1627,62 @@ def payroll_weekly_review(request):
                 record.reviewed = True
                 record.save()
                 
-                # Procesar pago si se proporcionó cantidad pagada, cheque y fecha
+                # Procesar pago si se proporcionó cantidad pagada y fecha
                 paid_amount_str = request.POST.get(f"paid_{emp_id}")
-                check_number = request.POST.get(f"check_{emp_id}")
+                check_number = request.POST.get(f"check_{emp_id}", "").strip()
                 pay_date = request.POST.get(f"pay_date_{emp_id}")
                 
-                if paid_amount_str and pay_date and record.total_pay > 0:
+                # Solo procesar si hay monto pagado y fecha
+                if paid_amount_str and paid_amount_str.strip():
                     try:
-                        paid_amount = Decimal(paid_amount_str)
+                        paid_amount = Decimal(paid_amount_str.strip())
                         balance = record.balance_due()
                         
                         # Solo procesar si hay algo que pagar y el monto es válido
                         if paid_amount > 0 and balance > 0:
+                            # Verificar que haya fecha
+                            if not pay_date:
+                                messages.warning(
+                                    request, 
+                                    f"{emp.first_name} {emp.last_name}: Falta la fecha de pago"
+                                )
+                                continue
+                            
                             # Calcular savings: diferencia entre balance y lo que se paga
                             savings_amount = balance - paid_amount
                             if savings_amount < 0:
                                 savings_amount = Decimal("0")
                                 paid_amount = balance  # No pagar más del balance
                             
-                            # Verificar si ya existe un pago con este cheque para este record
-                            existing_payment = None
-                            if check_number:
+                            # Verificar si ya existe un pago para esta semana y empleado
+                            # para evitar duplicados
+                            existing_payment = PayrollPayment.objects.filter(
+                                payroll_record=record,
+                                payment_date=pay_date,
+                            ).first()
+                            
+                            # Si hay check_number, también verificar por ese
+                            if check_number and not existing_payment:
                                 existing_payment = PayrollPayment.objects.filter(
                                     payroll_record=record,
                                     check_number=check_number
                                 ).first()
                             
-                            if not existing_payment:
+                            if existing_payment:
+                                # Ya existe un pago, actualizarlo si los montos son diferentes
+                                if existing_payment.amount_taken != paid_amount:
+                                    existing_payment.amount = paid_amount + savings_amount
+                                    existing_payment.amount_taken = paid_amount
+                                    existing_payment.amount_saved = savings_amount
+                                    existing_payment.check_number = check_number
+                                    existing_payment.save()
+                                    messages.info(
+                                        request,
+                                        f"{emp.first_name}: Pago actualizado - ${paid_amount}" + 
+                                        (f", Ahorro ${savings_amount}" if savings_amount > 0 else "")
+                                    )
+                            else:
+                                # Crear nuevo pago
                                 PayrollPayment.objects.create(
                                     payroll_record=record,
                                     amount=paid_amount + savings_amount,  # Total amount (paid + saved)
@@ -1661,7 +1690,7 @@ def payroll_weekly_review(request):
                                     amount_saved=savings_amount,  # What goes to savings
                                     payment_date=pay_date,
                                     payment_method="check" if check_number else "cash",
-                                    check_number=check_number or "",
+                                    check_number=check_number,
                                     notes=f"Savings: ${savings_amount}" if savings_amount > 0 else "",
                                     recorded_by=request.user,
                                 )
@@ -1670,6 +1699,11 @@ def payroll_weekly_review(request):
                                     messages.info(
                                         request,
                                         f"{emp.first_name} {emp.last_name}: Pagado ${paid_amount}, Ahorro ${savings_amount}"
+                                    )
+                                else:
+                                    messages.success(
+                                        request,
+                                        f"{emp.first_name} {emp.last_name}: Pagado ${paid_amount}"
                                     )
                     except (ValueError, InvalidOperation) as e:
                         messages.warning(request, f"Error procesando pago para {emp.first_name}: {str(e)}")
