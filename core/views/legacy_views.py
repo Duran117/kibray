@@ -2126,6 +2126,13 @@ def color_sample_list(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     samples = project.color_samples.select_related("created_by").all().order_by("-created_at")
 
+    # Calculate status counts before filtering
+    all_samples = project.color_samples.all()
+    proposed_count = all_samples.filter(status="proposed").count()
+    review_count = all_samples.filter(status="review").count()
+    approved_count = all_samples.filter(status="approved").count()
+    rejected_count = all_samples.filter(status="rejected").count()
+
     # Filters
     brand = request.GET.get("brand")
     if brand:
@@ -2143,6 +2150,10 @@ def color_sample_list(request, project_id):
             "samples": samples,
             "filter_brand": brand,
             "filter_status": status,
+            "proposed_count": proposed_count,
+            "review_count": review_count,
+            "approved_count": approved_count,
+            "rejected_count": rejected_count,
         },
     )
 
