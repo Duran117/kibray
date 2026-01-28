@@ -16661,3 +16661,40 @@ msgstr ""
 
 #~ msgid "Touch‑ups"
 #~ msgstr "Touch‑ups"
+
+# Minutas / Project Minutes translations
+msgid "Ver adjunto"
+msgstr "View attachment"
+
+msgid "Participantes"
+msgstr "Participants"
+
+msgid "Privado"
+msgstr "Private"
+
+msgid "Nueva Minuta"
+msgstr "New Minute"
+
+msgid "No hay minutas registradas"
+msgstr "No minutes recorded"
+
+msgid "Las minutas ayudan a mantener un registro histórico de decisiones y comunicaciones del proyecto."
+msgstr "Minutes help maintain a historical record of project decisions and communications."
+
+msgid "Crear Primera Minuta"
+msgstr "Create First Minute"
+
+msgid "Decisión"
+msgstr "Decision"
+
+msgid "Llamada"
+msgstr "Call"
+
+msgid "Reunión"
+msgstr "Meeting"
+
+msgid "Aprobación"
+msgstr "Approval"
+
+msgid "Cambio"
+msgstr "Change"
