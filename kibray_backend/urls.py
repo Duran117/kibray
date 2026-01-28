@@ -543,6 +543,37 @@ urlpatterns = [
         views.estimate_send_email,
         name="estimate_send_email",
     ),
+    # PDF Downloads - Professional Documents
+    path(
+        "estimates/<int:estimate_id>/pdf/",
+        views.estimate_pdf_view,
+        name="estimate_pdf_view",
+    ),
+    path(
+        "estimates/<int:estimate_id>/pdf/download/",
+        views.estimate_pdf_download,
+        name="estimate_pdf_download",
+    ),
+    path(
+        "changeorders/<int:changeorder_id>/pdf/",
+        views.changeorder_pdf_view,
+        name="changeorder_pdf_view",
+    ),
+    path(
+        "changeorders/<int:changeorder_id>/pdf/download/",
+        views.changeorder_pdf_download,
+        name="changeorder_pdf_download",
+    ),
+    path(
+        "colorsamples/<int:colorsample_id>/pdf/",
+        views.colorsample_pdf_view,
+        name="colorsample_pdf_view",
+    ),
+    path(
+        "colorsamples/<int:colorsample_id>/pdf/download/",
+        views.colorsample_pdf_download,
+        name="colorsample_pdf_download",
+    ),
     # Project Activation
     path(
         "projects/<int:project_id>/activate/",

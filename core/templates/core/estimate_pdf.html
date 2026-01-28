@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Estimate - {{ estimate.code }} - {{ project.name }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.5in 0.5in 0.75in 0.5in;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9px;
+                color: #666;
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 9pt;
+            line-height: 1.4;
+            color: #1a1a1a;
+            background: #fff;
+        }
+        
+        /* Header / Letterhead */
+        .letterhead {
+            display: table;
+            width: 100%;
+            border-bottom: 3px solid #059669;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .letterhead-left {
+            display: table-cell;
+            width: 50%;
+            vertical-align: middle;
+        }
+        
+        .letterhead-right {
+            display: table-cell;
+            width: 50%;
+            text-align: right;
+            vertical-align: middle;
+        }
+        
+        .company-name {
+            font-size: 22pt;
+            font-weight: 700;
+            color: #059669;
+            letter-spacing: 1px;
+        }
+        
+        .company-tagline {
+            font-size: 8pt;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .company-contact {
+            font-size: 8pt;
+            color: #555;
+            line-height: 1.4;
+        }
+        
+        /* Document Title */
+        .document-header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .document-title {
+            font-size: 18pt;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        
+        .document-number {
+            font-size: 10pt;
+            opacity: 0.9;
+            margin-top: 3px;
+        }
+        
+        /* Info Grid */
+        .info-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .info-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            padding-right: 10px;
+        }
+        
+        .info-col:last-child {
+            padding-right: 0;
+            padding-left: 10px;
+        }
+        
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 10px;
+            height: 100%;
+        }
+        
+        .info-box-title {
+            font-size: 8pt;
+            font-weight: 600;
+            color: #059669;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+        
+        .info-row {
+            margin-bottom: 5px;
+        }
+        
+        .info-label {
+            font-size: 7pt;
+            color: #64748b;
+            display: block;
+        }
+        
+        .info-value {
+            font-size: 9pt;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        
+        /* Line Items Table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 8pt;
+        }
+        
+        .items-table th {
+            background: #059669;
+            color: white;
+            padding: 6px 8px;
+            text-align: left;
+            font-size: 7pt;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .items-table th.text-right {
+            text-align: right;
+        }
+        
+        .items-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+        
+        .items-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        
+        .items-table .text-right {
+            text-align: right;
+        }
+        
+        .items-table .cost-code {
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        /* Summary Table */
+        .summary-section {
+            margin-bottom: 15px;
+        }
+        
+        .summary-table {
+            width: 300px;
+            margin-left: auto;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+        
+        .summary-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .summary-table .label {
+            color: #64748b;
+        }
+        
+        .summary-table .value {
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .summary-table .total-row {
+            background: #f0fdf4;
+            font-weight: 700;
+        }
+        
+        .summary-table .total-row td {
+            border-top: 2px solid #059669;
+            padding: 8px 10px;
+            font-size: 11pt;
+        }
+        
+        .summary-table .total-row .value {
+            color: #059669;
+        }
+        
+        /* Section Title */
+        .section-title {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #059669;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        /* Notes */
+        .notes-box {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-left: 3px solid #059669;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 8pt;
+            line-height: 1.5;
+        }
+        
+        /* Validity Notice */
+        .validity-notice {
+            background: #fefce8;
+            border: 1px solid #fcd34d;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 9pt;
+            text-align: center;
+        }
+        
+        /* Acceptance Section */
+        .acceptance-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
+        }
+        
+        .signature-grid {
+            display: table;
+            width: 100%;
+        }
+        
+        .signature-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            padding: 0 8px;
+        }
+        
+        .signature-box {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 12px;
+            background: #fefefe;
+        }
+        
+        .signature-label {
+            font-size: 7pt;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .signature-line {
+            height: 50px;
+            border-bottom: 1px solid #1a1a1a;
+            margin-bottom: 5px;
+        }
+        
+        .signature-name {
+            font-size: 9pt;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .signature-date {
+            font-size: 8pt;
+            color: #64748b;
+        }
+        
+        /* Footer */
+        .document-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .security-info {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 7pt;
+            color: #64748b;
+        }
+        
+        .security-hash {
+            font-family: 'Courier New', monospace;
+            background: #e2e8f0;
+            padding: 1px 4px;
+            border-radius: 2px;
+        }
+        
+        .legal-notice {
+            margin-top: 10px;
+            font-size: 7pt;
+            color: #9ca3af;
+            text-align: center;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <!-- Letterhead -->
+    <div class="letterhead">
+        <div class="letterhead-left">
+            <div class="company-name">{{ company.name|default:"KIBRAY PAINTING" }}</div>
+            <div class="company-tagline">{{ company.license|default:"Licensed & Insured" }}</div>
+        </div>
+        <div class="letterhead-right">
+            <div class="company-contact">
+                {{ company.address|default:"North Carolina, USA" }}<br>
+                {{ company.email|default:"info@kibray.com" }}<br>
+                {{ company.website|default:"www.kibray.com" }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Document Header -->
+    <div class="document-header">
+        <div class="document-title">ESTIMATE</div>
+        <div class="document-number">
+            #{{ estimate.code }}
+            &nbsp;|&nbsp;
+            Version {{ estimate.version }}
+        </div>
+    </div>
+    
+    <!-- Validity Notice -->
+    <div class="validity-notice">
+        <strong>⏱ This estimate is valid for 30 days from {{ generation_date|date:"F d, Y" }}</strong>
+    </div>
+    
+    <!-- Info Grid -->
+    <div class="info-grid">
+        <div class="info-col">
+            <div class="info-box">
+                <div class="info-box-title">From</div>
+                <div class="info-row">
+                    <span class="info-value" style="font-size: 11pt; font-weight: 600;">{{ company.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-value">{{ company.address }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-value">{{ company.email }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="info-col">
+            <div class="info-box">
+                <div class="info-box-title">To</div>
+                <div class="info-row">
+                    <span class="info-label">Client</span>
+                    <span class="info-value" style="font-size: 11pt; font-weight: 600;">{{ project.client|default:"Client Name" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Project</span>
+                    <span class="info-value">{{ project.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Location</span>
+                    <span class="info-value">{{ project.address|default:"Project Address" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Line Items -->
+    <div class="section">
+        <div class="section-title">Detailed Breakdown</div>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 12%;">Code</th>
+                    <th style="width: 38%;">Description</th>
+                    <th style="width: 8%;" class="text-right">Qty</th>
+                    <th style="width: 8%;">Unit</th>
+                    <th style="width: 10%;" class="text-right">Labor</th>
+                    <th style="width: 12%;" class="text-right">Material</th>
+                    <th style="width: 12%;" class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in lines %}
+                <tr>
+                    <td class="cost-code">{{ line.cost_code }}</td>
+                    <td>{{ line.description|default:"-" }}</td>
+                    <td class="text-right">{{ line.qty|floatformat:1 }}</td>
+                    <td>{{ line.unit|default:"EA" }}</td>
+                    <td class="text-right">${{ line.labor|floatformat:2 }}</td>
+                    <td class="text-right">${{ line.material|floatformat:2 }}</td>
+                    <td class="text-right"><strong>${{ line.total|floatformat:2 }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #9ca3af;">No line items</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Summary -->
+    <div class="summary-section">
+        <table class="summary-table">
+            <tr>
+                <td class="label">Subtotal (Labor)</td>
+                <td class="value">${{ totals.labor|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="label">Subtotal (Materials)</td>
+                <td class="value">${{ totals.material|floatformat:2 }}</td>
+            </tr>
+            {% if totals.other > 0 %}
+            <tr>
+                <td class="label">Subtotal (Other)</td>
+                <td class="value">${{ totals.other|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td class="label"><strong>Direct Costs</strong></td>
+                <td class="value"><strong>${{ totals.subtotal|floatformat:2 }}</strong></td>
+            </tr>
+            {% if totals.labor_markup > 0 %}
+            <tr>
+                <td class="label">Labor Markup ({{ estimate.markup_labor }}%)</td>
+                <td class="value">${{ totals.labor_markup|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            {% if totals.material_markup > 0 %}
+            <tr>
+                <td class="label">Material Markup ({{ estimate.markup_material }}%)</td>
+                <td class="value">${{ totals.material_markup|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            {% if totals.overhead > 0 %}
+            <tr>
+                <td class="label">Overhead ({{ estimate.overhead_pct }}%)</td>
+                <td class="value">${{ totals.overhead|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            {% if totals.profit > 0 %}
+            <tr>
+                <td class="label">Profit ({{ estimate.target_profit_pct }}%)</td>
+                <td class="value">${{ totals.profit|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            <tr class="total-row">
+                <td class="label">ESTIMATED TOTAL</td>
+                <td class="value">${{ totals.grand_total|floatformat:2 }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Notes -->
+    {% if estimate.notes %}
+    <div class="section">
+        <div class="section-title">Notes & Exclusions</div>
+        <div class="notes-box">{{ estimate.notes|linebreaksbr }}</div>
+    </div>
+    {% endif %}
+    
+    {% if estimate.takeoff_link %}
+    <div style="font-size: 8pt; color: #64748b; margin-bottom: 15px;">
+        <strong>Supporting Documents:</strong> {{ estimate.takeoff_link }}
+    </div>
+    {% endif %}
+    
+    <!-- Acceptance Section -->
+    <div class="acceptance-section">
+        <div class="section-title">Acceptance</div>
+        
+        <p style="font-size: 9pt; margin-bottom: 15px; color: #374151;">
+            To accept this estimate and authorize work to proceed, please sign below.
+            Upon acceptance, this estimate becomes a binding agreement between the parties.
+        </p>
+        
+        <div class="signature-grid">
+            <div class="signature-col">
+                <div class="signature-box">
+                    <div class="signature-label">Client Acceptance</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-name">Print Name: _______________________</div>
+                    <div class="signature-date">Date: _______________</div>
+                </div>
+            </div>
+            <div class="signature-col">
+                <div class="signature-box">
+                    <div class="signature-label">Contractor</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-name">{{ company.name }}</div>
+                    <div class="signature-date">Date: _______________</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="document-footer">
+        <div class="security-info">
+            <strong>Document Reference</strong><br>
+            Hash: <span class="security-hash">{{ document_hash }}</span>
+            &nbsp;|&nbsp;
+            Generated: {{ generation_date|date:"Y-m-d H:i:s T" }}
+            &nbsp;|&nbsp;
+            Code: {{ estimate.code }}
+        </div>
+        <div class="legal-notice">
+            This estimate was prepared by {{ company.name }}.<br>
+            Prices subject to change after validity period. Additional work requires written authorization.<br>
+            For questions, contact {{ company.email }}.
+        </div>
+    </div>
+</body>
+</html>

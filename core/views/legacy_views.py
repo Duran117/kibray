@@ -13344,3 +13344,162 @@ def project_invoices(request, project_id):
     
     return render(request, 'core/project_invoices_list.html', context)
 
+
+# =============================================================================
+# PROFESSIONAL PDF GENERATION VIEWS
+# =============================================================================
+
+@login_required
+def changeorder_pdf_download(request, changeorder_id):
+    """
+    Generate and download a professional PDF for a signed Change Order.
+    """
+    from core.services.pdf_service import generate_signed_changeorder_pdf
+    
+    changeorder = get_object_or_404(ChangeOrder, pk=changeorder_id)
+    
+    # Security check - only staff or project participants
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(_('Access denied'))
+    
+    try:
+        pdf_bytes = generate_signed_changeorder_pdf(changeorder)
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        filename = f"ChangeOrder_{changeorder.id}_{changeorder.project.project_code}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        return redirect('changeorder_list')
+
+
+@login_required  
+def changeorder_pdf_view(request, changeorder_id):
+    """
+    View the Change Order PDF inline in browser.
+    """
+    from core.services.pdf_service import generate_signed_changeorder_pdf
+    
+    changeorder = get_object_or_404(ChangeOrder, pk=changeorder_id)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(_('Access denied'))
+    
+    try:
+        pdf_bytes = generate_signed_changeorder_pdf(changeorder)
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        filename = f"ChangeOrder_{changeorder.id}.pdf"
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        return redirect('changeorder_list')
+
+
+@login_required
+def colorsample_pdf_download(request, colorsample_id):
+    """
+    Generate and download a professional PDF for a signed Color Sample.
+    """
+    from core.services.pdf_service import generate_signed_colorsample_pdf
+    
+    colorsample = get_object_or_404(ColorSample, pk=colorsample_id)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(_('Access denied'))
+    
+    try:
+        pdf_bytes = generate_signed_colorsample_pdf(colorsample)
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        filename = f"ColorSample_{colorsample.sample_number or colorsample.id}_{colorsample.code}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        return redirect('colorsample_list')
+
+
+@login_required
+def colorsample_pdf_view(request, colorsample_id):
+    """
+    View the Color Sample PDF inline in browser.
+    """
+    from core.services.pdf_service import generate_signed_colorsample_pdf
+    
+    colorsample = get_object_or_404(ColorSample, pk=colorsample_id)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(_('Access denied'))
+    
+    try:
+        pdf_bytes = generate_signed_colorsample_pdf(colorsample)
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        filename = f"ColorSample_{colorsample.id}.pdf"
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        return redirect('colorsample_list')
+
+
+@login_required
+def estimate_pdf_download(request, estimate_id):
+    """
+    Generate and download a professional PDF for an Estimate.
+    Query param: ?contract=1 to generate as contract format.
+    """
+    from core.services.pdf_service import generate_estimate_pdf
+    
+    estimate = get_object_or_404(Estimate, pk=estimate_id)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(_('Access denied'))
+    
+    as_contract = request.GET.get('contract', '0') == '1'
+    
+    try:
+        pdf_bytes = generate_estimate_pdf(estimate, as_contract=as_contract)
+        
+        doc_type = "Contract" if as_contract else "Estimate"
+        filename = f"{doc_type}_{estimate.code}_{estimate.project.project_code}.pdf"
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        return redirect('estimate_list')
+
+
+@login_required
+def estimate_pdf_view(request, estimate_id):
+    """
+    View the Estimate/Contract PDF inline in browser.
+    Query param: ?contract=1 to generate as contract format.
+    """
+    from core.services.pdf_service import generate_estimate_pdf
+    
+    estimate = get_object_or_404(Estimate, pk=estimate_id)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(_('Access denied'))
+    
+    as_contract = request.GET.get('contract', '0') == '1'
+    
+    try:
+        pdf_bytes = generate_estimate_pdf(estimate, as_contract=as_contract)
+        
+        doc_type = "Contract" if as_contract else "Estimate"
+        filename = f"{doc_type}_{estimate.code}.pdf"
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        return redirect('estimate_list')
+

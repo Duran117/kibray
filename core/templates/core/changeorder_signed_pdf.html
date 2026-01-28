@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Change Order #{{ changeorder.id }} - {{ project.name }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.5in 0.6in;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9px;
+                color: #666;
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #1a1a1a;
+            background: #fff;
+        }
+        
+        /* Header / Letterhead */
+        .letterhead {
+            display: table;
+            width: 100%;
+            border-bottom: 3px solid #1e3a5f;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .letterhead-left {
+            display: table-cell;
+            width: 50%;
+            vertical-align: middle;
+        }
+        
+        .letterhead-right {
+            display: table-cell;
+            width: 50%;
+            text-align: right;
+            vertical-align: middle;
+        }
+        
+        .company-name {
+            font-size: 24pt;
+            font-weight: 700;
+            color: #1e3a5f;
+            letter-spacing: 1px;
+        }
+        
+        .company-tagline {
+            font-size: 9pt;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .company-contact {
+            font-size: 8pt;
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        /* Document Title Section */
+        .document-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .document-title {
+            font-size: 16pt;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .document-number {
+            font-size: 11pt;
+            opacity: 0.9;
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 10pt;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-approved {
+            background: #059669;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .status-draft {
+            background: #6b7280;
+            color: white;
+        }
+        
+        /* Info Grid */
+        .info-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .info-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            padding-right: 15px;
+        }
+        
+        .info-col:last-child {
+            padding-right: 0;
+            padding-left: 15px;
+        }
+        
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .info-box-title {
+            font-size: 8pt;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        
+        .info-row {
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-size: 8pt;
+            color: #64748b;
+            display: block;
+        }
+        
+        .info-value {
+            font-size: 10pt;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        
+        .info-value.highlight {
+            font-size: 14pt;
+            color: #059669;
+            font-weight: 700;
+        }
+        
+        /* Description Section */
+        .section {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .description-box {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-left: 4px solid #1e3a5f;
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .description-text {
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #374151;
+            white-space: pre-wrap;
+        }
+        
+        /* Pricing Section */
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .pricing-table th {
+            background: #1e3a5f;
+            color: white;
+            padding: 10px 15px;
+            text-align: left;
+            font-size: 9pt;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .pricing-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 10pt;
+        }
+        
+        .pricing-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        
+        .pricing-table .total-row {
+            background: #f0fdf4;
+            font-weight: 700;
+        }
+        
+        .pricing-table .total-row td {
+            border-top: 2px solid #059669;
+            color: #059669;
+            font-size: 12pt;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        /* Signature Section */
+        .signature-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+        
+        .signature-grid {
+            display: table;
+            width: 100%;
+        }
+        
+        .signature-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+        
+        .signature-box {
+            background: #fefefe;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 0 10px;
+        }
+        
+        .signature-box.signed {
+            border-color: #059669;
+            background: #f0fdf4;
+        }
+        
+        .signature-label {
+            font-size: 8pt;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .signature-image {
+            max-height: 80px;
+            max-width: 200px;
+        }
+        
+        .signature-name {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1e293b;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #d1d5db;
+        }
+        
+        .signature-date {
+            font-size: 9pt;
+            color: #64748b;
+        }
+        
+        /* Footer / Security */
+        .document-footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .security-info {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-size: 8pt;
+            color: #64748b;
+        }
+        
+        .security-hash {
+            font-family: 'Courier New', monospace;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+        }
+        
+        .legal-notice {
+            margin-top: 15px;
+            font-size: 8pt;
+            color: #9ca3af;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        /* Watermark for unsigned */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80pt;
+            color: rgba(0,0,0,0.05);
+            font-weight: bold;
+            text-transform: uppercase;
+            z-index: -1;
+            white-space: nowrap;
+        }
+        
+        /* Approved stamp */
+        .approved-stamp {
+            position: absolute;
+            top: 200px;
+            right: 50px;
+            transform: rotate(-15deg);
+            border: 4px solid #059669;
+            color: #059669;
+            padding: 10px 20px;
+            font-size: 24pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            opacity: 0.3;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    {% if not is_signed %}
+    <div class="watermark">DRAFT</div>
+    {% endif %}
+    
+    <!-- Letterhead -->
+    <div class="letterhead">
+        <div class="letterhead-left">
+            <div class="company-name">{{ company.name|default:"KIBRAY PAINTING" }}</div>
+            <div class="company-tagline">{{ company.license|default:"Licensed & Insured" }}</div>
+        </div>
+        <div class="letterhead-right">
+            <div class="company-contact">
+                {{ company.address|default:"North Carolina, USA" }}<br>
+                {% if company.phone %}{{ company.phone }}<br>{% endif %}
+                {{ company.email|default:"info@kibray.com" }}<br>
+                {{ company.website|default:"www.kibray.com" }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Document Header -->
+    <div class="document-header">
+        <div class="document-title">CHANGE ORDER</div>
+        <div class="document-number">
+            Document #CO-{{ changeorder.id|stringformat:"05d" }} 
+            &nbsp;|&nbsp; 
+            {% if changeorder.reference_code %}Ref: {{ changeorder.reference_code }}{% endif %}
+        </div>
+    </div>
+    
+    <!-- Info Grid -->
+    <div class="info-grid">
+        <div class="info-col">
+            <div class="info-box">
+                <div class="info-box-title">Project Information</div>
+                <div class="info-row">
+                    <span class="info-label">Project Name</span>
+                    <span class="info-value">{{ project.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Project Code</span>
+                    <span class="info-value">{{ project.project_code }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Location</span>
+                    <span class="info-value">{{ project.address|default:"Not specified" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Client</span>
+                    <span class="info-value">{{ project.client|default:"Not specified" }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="info-col">
+            <div class="info-box">
+                <div class="info-box-title">Change Order Details</div>
+                <div class="info-row">
+                    <span class="info-label">Date Created</span>
+                    <span class="info-value">{{ changeorder.date_created|date:"F d, Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Pricing Type</span>
+                    <span class="info-value">{{ pricing_display }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status</span>
+                    <span class="status-badge {% if changeorder.status == 'approved' %}status-approved{% elif changeorder.status == 'pending' %}status-pending{% else %}status-draft{% endif %}">
+                        {{ changeorder.status|upper }}
+                    </span>
+                </div>
+                {% if changeorder.pricing_type == 'FIXED' %}
+                <div class="info-row">
+                    <span class="info-label">Approved Amount</span>
+                    <span class="info-value highlight">${{ changeorder.amount|floatformat:2 }}</span>
+                </div>
+                {% else %}
+                <div class="info-row">
+                    <span class="info-label">Labor Rate</span>
+                    <span class="info-value">${{ changeorder.labor_rate_override|default:"0"|floatformat:2 }}/hr</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Material Markup</span>
+                    <span class="info-value">{{ changeorder.material_markup_percent|default:"0" }}%</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Description -->
+    <div class="section">
+        <div class="section-title">Scope of Work</div>
+        <div class="description-box">
+            <div class="description-text">{{ changeorder.description|linebreaksbr }}</div>
+        </div>
+    </div>
+    
+    {% if changeorder.notes %}
+    <div class="section">
+        <div class="section-title">Additional Notes</div>
+        <div class="description-box">
+            <div class="description-text">{{ changeorder.notes|linebreaksbr }}</div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Signature Section -->
+    <div class="signature-section">
+        <div class="section-title">Authorization & Signatures</div>
+        <div class="signature-grid">
+            <div class="signature-col">
+                <div class="signature-box {% if is_signed %}signed{% endif %}">
+                    <div class="signature-label">Client Signature</div>
+                    {% if signature_base64 %}
+                    <img src="data:image/png;base64,{{ signature_base64 }}" alt="Client Signature" class="signature-image">
+                    {% elif changeorder.signature_image %}
+                    <img src="{{ changeorder.signature_image.url }}" alt="Client Signature" class="signature-image">
+                    {% else %}
+                    <div style="height: 60px; border-bottom: 1px solid #9ca3af;"></div>
+                    {% endif %}
+                    <div class="signature-name">{{ changeorder.signed_by|default:"_____________________________" }}</div>
+                    <div class="signature-date">
+                        {% if changeorder.signed_at %}
+                        Date: {{ changeorder.signed_at|date:"F d, Y" }} at {{ changeorder.signed_at|time:"g:i A" }}
+                        {% else %}
+                        Date: _______________
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="signature-col">
+                <div class="signature-box">
+                    <div class="signature-label">Contractor Signature</div>
+                    <div style="height: 60px; border-bottom: 1px solid #9ca3af;"></div>
+                    <div class="signature-name">{{ company.name }}</div>
+                    <div class="signature-date">Date: _______________</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Terms & Conditions -->
+    <div class="section" style="margin-top: 25px;">
+        <div class="section-title" style="font-size: 9pt;">Terms & Conditions</div>
+        <div style="font-size: 8pt; color: #64748b; line-height: 1.5;">
+            <p style="margin-bottom: 5px;">1. This Change Order becomes effective upon signature by both parties.</p>
+            <p style="margin-bottom: 5px;">2. Work described herein is in addition to the original contract scope.</p>
+            <p style="margin-bottom: 5px;">3. Payment terms follow the original contract unless otherwise specified.</p>
+            <p style="margin-bottom: 5px;">4. Any additional changes require a new Change Order.</p>
+            <p>5. This Change Order is subject to the terms of the original contract agreement.</p>
+        </div>
+    </div>
+    
+    <!-- Security Footer -->
+    <div class="document-footer">
+        <div class="security-info">
+            <strong>Document Verification</strong><br>
+            Hash: <span class="security-hash">{{ document_hash }}</span>
+            &nbsp;|&nbsp;
+            Generated: {{ generation_date|date:"Y-m-d H:i:s T" }}
+            {% if changeorder.signed_ip %}
+            &nbsp;|&nbsp;
+            Signing IP: {{ changeorder.signed_ip }}
+            {% endif %}
+        </div>
+        <div class="legal-notice">
+            This document was electronically generated by {{ company.name }}.<br>
+            The digital signature above constitutes legal acceptance of this Change Order.<br>
+            For questions, contact {{ company.email }}.
+        </div>
+    </div>
+</body>
+</html>
