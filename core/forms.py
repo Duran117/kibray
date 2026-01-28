@@ -1150,7 +1150,6 @@ class ColorSampleForm(forms.ModelForm):
     class Meta:
         model = ColorSample
         fields = [
-            "project",
             "code",
             "name",
             "brand",
@@ -1164,7 +1163,6 @@ class ColorSampleForm(forms.ModelForm):
         ]
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 3}),
-            "project": forms.Select(attrs={"class": "form-control"}),
             "room_location": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "e.g., Kitchen, Master Bedroom"}
             ),
