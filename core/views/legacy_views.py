@@ -4380,7 +4380,7 @@ def invoice_list(request):
     Invoice list view with filtering by status and project.
     """
     invoices = (
-        Invoice.objects.select_related("project", "project__client")
+        Invoice.objects.select_related("project")
         .prefetch_related("lines", "payments")
         .order_by("-date_issued", "-id")
     )
