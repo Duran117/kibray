@@ -180,20 +180,32 @@
                         <label class="block text-sm font-medium text-slate-700 mb-2">
                             {% trans "Sample Image" %}
                         </label>
-                        <div class="relative border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-violet-400 transition-colors cursor-pointer">
-                            {% if sample and sample.sample_image %}
-                            <div class="mb-4">
-                                <img src="{{ sample.sample_image.url }}" alt="Current" class="max-h-32 mx-auto rounded-lg">
+                        <div id="sample_image_dropzone" 
+                             class="relative border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-violet-400 transition-colors cursor-pointer"
+                             onclick="document.getElementById('id_sample_image').click()">
+                            
+                            <!-- Preview container -->
+                            <div id="sample_image_preview" class="{% if not sample or not sample.sample_image %}hidden{% endif %} mb-4">
+                                {% if sample and sample.sample_image %}
+                                <img src="{{ sample.sample_image.url }}" alt="Current" class="max-h-32 mx-auto rounded-lg" id="sample_image_img">
+                                {% else %}
+                                <img src="" alt="Preview" class="max-h-32 mx-auto rounded-lg" id="sample_image_img">
+                                {% endif %}
                             </div>
-                            {% endif %}
-                            <div class="space-y-2">
+                            
+                            <!-- Upload prompt -->
+                            <div id="sample_image_prompt" class="space-y-2 {% if sample and sample.sample_image %}hidden{% endif %}">
                                 <i class="bi bi-cloud-upload text-3xl text-slate-400"></i>
-                                <p class="text-sm text-slate-500">{% trans "Drag and drop or click to upload" %}</p>
+                                <p class="text-sm text-slate-500">{% trans "Click to select image" %}</p>
                             </div>
-                            <input type="file" name="sample_image" id="id_sample_image" 
-                                   accept="image/*"
-                                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            
+                            <!-- File name display -->
+                            <p id="sample_image_filename" class="text-xs text-violet-600 font-medium mt-2 hidden"></p>
                         </div>
+                        <input type="file" name="sample_image" id="id_sample_image" 
+                               accept="image/*"
+                               class="hidden"
+                               onchange="previewImage(this, 'sample_image')">
                         <p class="mt-1 text-xs text-slate-500">{% trans "Photo of the color sample" %}</p>
                     </div>
                     
@@ -202,20 +214,32 @@
                         <label class="block text-sm font-medium text-slate-700 mb-2">
                             {% trans "Reference Photo" %}
                         </label>
-                        <div class="relative border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-violet-400 transition-colors cursor-pointer">
-                            {% if sample and sample.reference_photo %}
-                            <div class="mb-4">
-                                <img src="{{ sample.reference_photo.url }}" alt="Reference" class="max-h-32 mx-auto rounded-lg">
+                        <div id="reference_photo_dropzone" 
+                             class="relative border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-violet-400 transition-colors cursor-pointer"
+                             onclick="document.getElementById('id_reference_photo').click()">
+                            
+                            <!-- Preview container -->
+                            <div id="reference_photo_preview" class="{% if not sample or not sample.reference_photo %}hidden{% endif %} mb-4">
+                                {% if sample and sample.reference_photo %}
+                                <img src="{{ sample.reference_photo.url }}" alt="Reference" class="max-h-32 mx-auto rounded-lg" id="reference_photo_img">
+                                {% else %}
+                                <img src="" alt="Preview" class="max-h-32 mx-auto rounded-lg" id="reference_photo_img">
+                                {% endif %}
                             </div>
-                            {% endif %}
-                            <div class="space-y-2">
+                            
+                            <!-- Upload prompt -->
+                            <div id="reference_photo_prompt" class="space-y-2 {% if sample and sample.reference_photo %}hidden{% endif %}">
                                 <i class="bi bi-image text-3xl text-slate-400"></i>
-                                <p class="text-sm text-slate-500">{% trans "Drag and drop or click to upload" %}</p>
+                                <p class="text-sm text-slate-500">{% trans "Click to select image" %}</p>
                             </div>
-                            <input type="file" name="reference_photo" id="id_reference_photo" 
-                                   accept="image/*"
-                                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            
+                            <!-- File name display -->
+                            <p id="reference_photo_filename" class="text-xs text-violet-600 font-medium mt-2 hidden"></p>
                         </div>
+                        <input type="file" name="reference_photo" id="id_reference_photo" 
+                               accept="image/*"
+                               class="hidden"
+                               onchange="previewImage(this, 'reference_photo')">
                         <p class="mt-1 text-xs text-slate-500">{% trans "Photo showing where this color will be applied" %}</p>
                     </div>
                 </div>
@@ -295,4 +319,83 @@
         </div>
     </form>
 </div>
+
+<script>
+function previewImage(input, prefix) {
+    const preview = document.getElementById(prefix + '_preview');
+    const prompt = document.getElementById(prefix + '_prompt');
+    const filename = document.getElementById(prefix + '_filename');
+    const img = document.getElementById(prefix + '_img');
+    const dropzone = document.getElementById(prefix + '_dropzone');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            // Show preview
+            img.src = e.target.result;
+            preview.classList.remove('hidden');
+            prompt.classList.add('hidden');
+            
+            // Show filename
+            filename.textContent = '✓ ' + file.name;
+            filename.classList.remove('hidden');
+            
+            // Change border to success color
+            dropzone.classList.remove('border-slate-300', 'border-violet-400');
+            dropzone.classList.add('border-emerald-400', 'bg-emerald-50');
+        };
+        
+        reader.readAsDataURL(file);
+    }
+}
+
+// Drag and drop support
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzones = ['sample_image_dropzone', 'reference_photo_dropzone'];
+    
+    dropzones.forEach(function(id) {
+        const dropzone = document.getElementById(id);
+        if (!dropzone) return;
+        
+        const inputId = id.replace('_dropzone', '');
+        const input = document.getElementById('id_' + inputId);
+        
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Highlight drop area
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => {
+                dropzone.classList.add('border-violet-500', 'bg-violet-50');
+            }, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => {
+                dropzone.classList.remove('border-violet-500', 'bg-violet-50');
+            }, false);
+        });
+        
+        // Handle dropped files
+        dropzone.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                input.files = files;
+                previewImage(input, inputId);
+            }
+        }, false);
+    });
+});
+</script>
 {% endblock %}
