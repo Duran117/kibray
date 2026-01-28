@@ -13080,3 +13080,257 @@ def daily_plan_timeline(request, plan_id):
             "timeline_config": json.dumps(timeline_config),
         },
     )
+
+
+# =============================================================================
+# FINANCIAL SYSTEM - Reorganized Views
+# =============================================================================
+
+@login_required
+def project_financials_hub(request, project_id):
+    """
+    Hub financiero principal del proyecto.
+    Muestra resumen de budget, spent, remaining y breakdown por cost code.
+    
+    Para PM (no admin): muestra Working Budget (-30%) 
+    Para Admin/Superuser: muestra Budget real completo
+    """
+    project = get_object_or_404(Project, pk=project_id)
+    
+    # Determinar si es PM (no admin)
+    profile = getattr(request.user, 'profile', None)
+    is_pm = profile and profile.role == 'pm' if profile else False
+    
+    # Calcular totales
+    budget_lines = project.budget_lines.select_related('cost_code').all()
+    
+    # Total budget = suma de revised_amount de todas las líneas
+    total_budget = sum(line.revised_amount or line.baseline_amount for line in budget_lines)
+    
+    # Working budget para PM = total - 30%
+    working_budget = total_budget * Decimal('0.70') if total_budget else Decimal('0')
+    
+    # TODO: Calcular spent desde expenses/invoices reales
+    total_spent = Decimal('0')
+    
+    # Remaining
+    if is_pm and not request.user.is_superuser:
+        remaining = working_budget - total_spent
+        display_budget = working_budget
+    else:
+        remaining = total_budget - total_spent
+        display_budget = total_budget
+    
+    # Porcentajes
+    spent_percentage = int((total_spent / display_budget * 100) if display_budget else 0)
+    margin_percentage = 30 if is_pm else (int((remaining / total_budget * 100)) if total_budget else 0)
+    
+    # Preparar datos de líneas para display
+    lines_data = []
+    for line in budget_lines:
+        line_budget = line.revised_amount or line.baseline_amount
+        # Para PM mostrar budget reducido
+        if is_pm and not request.user.is_superuser:
+            line_display_budget = line_budget * Decimal('0.70')
+        else:
+            line_display_budget = line_budget
+        
+        line_spent = Decimal('0')  # TODO: calcular desde expenses
+        line_remaining = line_display_budget - line_spent
+        line_spent_pct = (line_spent / line_display_budget * 100) if line_display_budget else 0
+        line_remaining_pct = 100 - line_spent_pct
+        
+        lines_data.append({
+            'cost_code': line.cost_code,
+            'description': line.description,
+            'display_budget': line_display_budget,
+            'spent': line_spent,
+            'remaining': line_remaining,
+            'spent_pct': line_spent_pct,
+            'remaining_pct': line_remaining_pct,
+        })
+    
+    context = {
+        'project': project,
+        'is_pm': is_pm,
+        'total_budget': total_budget,
+        'working_budget': working_budget,
+        'total_spent': total_spent,
+        'remaining': remaining,
+        'spent_percentage': spent_percentage,
+        'margin_percentage': margin_percentage,
+        'budget_lines': lines_data,
+        'active_tab': 'overview',
+    }
+    
+    return render(request, 'core/project_financials_hub.html', context)
+
+
+@login_required
+def project_budget_detail(request, project_id):
+    """
+    Vista de detalle del budget con capacidad de agregar/editar líneas.
+    Solo staff/admin puede editar.
+    """
+    project = get_object_or_404(Project, pk=project_id)
+    
+    # Verificar permisos de edición
+    can_edit = request.user.is_staff or request.user.is_superuser
+    
+    if request.method == 'POST' and can_edit:
+        # Procesar nueva línea de budget
+        cost_code_id = request.POST.get('cost_code')
+        description = request.POST.get('description', '')
+        qty = request.POST.get('qty', 0)
+        unit = request.POST.get('unit', '')
+        unit_cost = request.POST.get('unit_cost', 0)
+        
+        if cost_code_id:
+            try:
+                cost_code = CostCode.objects.get(pk=cost_code_id)
+                BudgetLine.objects.create(
+                    project=project,
+                    cost_code=cost_code,
+                    description=description,
+                    qty=Decimal(str(qty)) if qty else Decimal('0'),
+                    unit=unit,
+                    unit_cost=Decimal(str(unit_cost)) if unit_cost else Decimal('0'),
+                )
+                messages.success(request, _('Budget line added successfully.'))
+            except (CostCode.DoesNotExist, InvalidOperation) as e:
+                messages.error(request, _('Error adding budget line.'))
+        
+        return redirect('project_budget_detail', project_id=project.id)
+    
+    budget_lines = project.budget_lines.select_related('cost_code').order_by('cost_code__code')
+    cost_codes = CostCode.objects.filter(active=True).order_by('code')
+    
+    # Calcular totales
+    total_baseline = sum(line.baseline_amount for line in budget_lines)
+    total_revised = sum(line.revised_amount for line in budget_lines)
+    
+    context = {
+        'project': project,
+        'budget_lines': budget_lines,
+        'cost_codes': cost_codes,
+        'can_edit': can_edit,
+        'total_baseline': total_baseline,
+        'total_revised': total_revised,
+        'active_tab': 'budget',
+    }
+    
+    return render(request, 'core/project_budget_detail.html', context)
+
+
+@login_required  
+def project_cost_codes(request, project_id):
+    """
+    Gestión de Cost Codes - códigos para categorizar costos.
+    Solo admin puede crear/editar.
+    """
+    project = get_object_or_404(Project, pk=project_id)
+    
+    can_edit = request.user.is_staff or request.user.is_superuser
+    
+    if request.method == 'POST' and can_edit:
+        code = request.POST.get('code', '').strip().upper()
+        name = request.POST.get('name', '').strip()
+        category = request.POST.get('category', '').strip()
+        
+        if code and name:
+            try:
+                CostCode.objects.create(
+                    code=code,
+                    name=name,
+                    category=category,
+                    active=True,
+                )
+                messages.success(request, _('Cost code created successfully.'))
+            except IntegrityError:
+                messages.error(request, _('A cost code with that code already exists.'))
+        else:
+            messages.error(request, _('Code and name are required.'))
+        
+        return redirect('project_cost_codes', project_id=project.id)
+    
+    cost_codes = CostCode.objects.all().order_by('category', 'code')
+    
+    # Agrupar por categoría
+    codes_by_category = defaultdict(list)
+    for cc in cost_codes:
+        cat = cc.category or _('Uncategorized')
+        codes_by_category[cat].append(cc)
+    
+    context = {
+        'project': project,
+        'cost_codes': cost_codes,
+        'codes_by_category': dict(codes_by_category),
+        'can_edit': can_edit,
+        'active_tab': 'costcodes',
+        'categories': ['labor', 'material', 'equipment', 'subcontractor', 'other'],
+    }
+    
+    return render(request, 'core/project_cost_codes.html', context)
+
+
+@login_required
+def project_estimates(request, project_id):
+    """
+    Lista de estimados del proyecto.
+    """
+    project = get_object_or_404(Project, pk=project_id)
+    
+    estimates = project.estimates.all().order_by('-version')
+    
+    # Calcular totales para cada estimado
+    estimates_data = []
+    for est in estimates:
+        lines = est.lines.select_related('cost_code')
+        direct_cost = sum(line.direct_cost() for line in lines)
+        
+        # Calcular precio propuesto con markups
+        material_markup = direct_cost * (est.markup_material / 100)
+        labor_markup = direct_cost * (est.markup_labor / 100)
+        overhead = direct_cost * (est.overhead_pct / 100)
+        profit = direct_cost * (est.target_profit_pct / 100)
+        proposed_price = direct_cost + material_markup + labor_markup + overhead + profit
+        
+        estimates_data.append({
+            'estimate': est,
+            'direct_cost': direct_cost,
+            'proposed_price': proposed_price,
+            'lines_count': lines.count(),
+        })
+    
+    context = {
+        'project': project,
+        'estimates': estimates_data,
+        'can_create': request.user.is_staff or request.user.is_superuser,
+        'active_tab': 'estimates',
+    }
+    
+    return render(request, 'core/project_estimates_list.html', context)
+
+
+@login_required
+def project_invoices(request, project_id):
+    """
+    Lista de facturas del proyecto.
+    Solo visible para staff/admin.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(_('Access denied'))
+    
+    project = get_object_or_404(Project, pk=project_id)
+    
+    # TODO: Implementar modelo Invoice si no existe
+    invoices = []  # project.invoices.all().order_by('-created_at')
+    
+    context = {
+        'project': project,
+        'invoices': invoices,
+        'active_tab': 'invoices',
+    }
+    
+    return render(request, 'core/project_invoices_list.html', context)
+

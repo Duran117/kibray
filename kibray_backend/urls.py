@@ -489,7 +489,40 @@ urlpatterns = [
         views.get_approved_colors,
         name="get_approved_colors",
     ),
-    # Cost codes / presupuesto
+    # ========================================
+    # FINANCIAL SYSTEM - Reorganized URLs
+    # ========================================
+    # Financial Hub (main entry point)
+    path(
+        "projects/<int:project_id>/financials/",
+        views.project_financials_hub,
+        name="project_financials_hub",
+    ),
+    # Budget Detail
+    path(
+        "projects/<int:project_id>/financials/budget/",
+        views.project_budget_detail,
+        name="project_budget_detail",
+    ),
+    # Cost Codes Management
+    path(
+        "projects/<int:project_id>/financials/cost-codes/",
+        views.project_cost_codes,
+        name="project_cost_codes",
+    ),
+    # Estimates List
+    path(
+        "projects/<int:project_id>/financials/estimates/",
+        views.project_estimates,
+        name="project_estimates",
+    ),
+    # Invoices List
+    path(
+        "projects/<int:project_id>/financials/invoices/",
+        views.project_invoices,
+        name="project_invoices",
+    ),
+    # Legacy URLs (keep for backwards compatibility)
     path("cost-codes/", views.costcode_list_view, name="costcode_list"),
     path("projects/<int:project_id>/budget/", views.budget_lines_view, name="budget_lines"),
     path(

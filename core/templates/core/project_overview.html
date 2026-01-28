@@ -539,13 +539,21 @@
       
       <!-- Financiero -->
       <div class="section-title">{% trans "Financiero" %}</div>
-      <a href="{% url 'budget_wizard' project.id %}" class="nav-item">
+      <a href="{% url 'project_financials_hub' project.id %}" class="nav-item">
+        <i class="bi bi-currency-dollar"></i>
+        <span class="nav-text">{% trans "Financials Hub" %}</span>
+      </a>
+      <a href="{% url 'project_budget_detail' project.id %}" class="nav-item">
         <i class="bi bi-wallet2"></i>
         <span class="nav-text">{% trans "Budget" %}</span>
       </a>
-      <a href="{% url 'budget_lines' project.id %}" class="nav-item">
-        <i class="bi bi-list-columns"></i>
-        <span class="nav-text">{% trans "Budget Lines" %}</span>
+      <a href="{% url 'project_cost_codes' project.id %}" class="nav-item">
+        <i class="bi bi-tags"></i>
+        <span class="nav-text">{% trans "Cost Codes" %}</span>
+      </a>
+      <a href="{% url 'project_estimates' project.id %}" class="nav-item">
+        <i class="bi bi-calculator"></i>
+        <span class="nav-text">{% trans "Estimates" %}</span>
       </a>
       <a href="{% url 'expense_list' %}?project={{ project.id }}" class="nav-item">
         <i class="bi bi-cash-stack"></i>

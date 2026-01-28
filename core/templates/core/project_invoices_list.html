@@ -1,0 +1,132 @@
+{% extends "core/base_modern.html" %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Invoices" %} - {{ project.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.invoices-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 2rem;
+}
+
+.invoices-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.invoices-header .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.invoices-header .btn-back:hover { color: white; }
+
+.invoices-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.financial-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.nav-tab:hover {
+    background: #f8fafc;
+    color: #334155;
+}
+
+.nav-tab.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 16px;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #64748b;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="invoices-wrapper">
+    <div class="invoices-header">
+        <a href="{% url 'project_financials_hub' project.id %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Financials" %}
+        </a>
+        <h1><i class="bi bi-receipt"></i> {% trans "Invoices" %}</h1>
+        <p style="color: rgba(255,255,255,0.7);">{{ project.name }}</p>
+    </div>
+
+    <div class="financial-nav">
+        <a href="{% url 'project_financials_hub' project.id %}" class="nav-tab">
+            <i class="bi bi-grid"></i> {% trans "Overview" %}
+        </a>
+        <a href="{% url 'project_budget_detail' project.id %}" class="nav-tab">
+            <i class="bi bi-wallet2"></i> {% trans "Budget" %}
+        </a>
+        <a href="{% url 'project_cost_codes' project.id %}" class="nav-tab">
+            <i class="bi bi-tags"></i> {% trans "Cost Codes" %}
+        </a>
+        <a href="{% url 'project_estimates' project.id %}" class="nav-tab">
+            <i class="bi bi-calculator"></i> {% trans "Estimates" %}
+        </a>
+        <a href="{% url 'project_invoices' project.id %}" class="nav-tab active">
+            <i class="bi bi-receipt"></i> {% trans "Invoices" %}
+        </a>
+    </div>
+
+    <div class="empty-state">
+        <i class="bi bi-receipt"></i>
+        <h3>{% trans "Coming Soon" %}</h3>
+        <p>{% trans "Invoice management feature is being developed. Check back soon!" %}</p>
+    </div>
+</div>
+{% endblock %}

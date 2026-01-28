@@ -16698,3 +16698,121 @@ msgstr "Approval"
 
 msgid "Cambio"
 msgstr "Change"
+
+# Financial System translations
+msgid "Financials Hub"
+msgstr "Financials Hub"
+
+msgid "Financial Overview"
+msgstr "Financial Overview"
+
+msgid "Total Budget"
+msgstr "Total Budget"
+
+msgid "Approved estimate + COs"
+msgstr "Approved estimate + COs"
+
+msgid "Working Budget"
+msgstr "Working Budget"
+
+msgid "Your target (-30%)"
+msgstr "Your target (-30%)"
+
+msgid "of budget"
+msgstr "of budget"
+
+msgid "Available to spend"
+msgstr "Available to spend"
+
+msgid "Projected profit"
+msgstr "Projected profit"
+
+msgid "Working Budget Mode"
+msgstr "Working Budget Mode"
+
+msgid "You're seeing a reduced budget (-30%) to maintain project margin. Stay within this target for optimal results."
+msgstr "You're seeing a reduced budget (-30%) to maintain project margin. Stay within this target for optimal results."
+
+msgid "Budget Breakdown by Cost Code"
+msgstr "Budget Breakdown by Cost Code"
+
+msgid "Edit Budget"
+msgstr "Edit Budget"
+
+msgid "No Budget Lines Yet"
+msgstr "No Budget Lines Yet"
+
+msgid "Start by creating an estimate or adding budget lines to track costs."
+msgstr "Start by creating an estimate or adding budget lines to track costs."
+
+msgid "Add Budget Lines"
+msgstr "Add Budget Lines"
+
+msgid "Project Budget"
+msgstr "Project Budget"
+
+msgid "Budget line added successfully."
+msgstr "Budget line added successfully."
+
+msgid "Error adding budget line."
+msgstr "Error adding budget line."
+
+msgid "What are Cost Codes?"
+msgstr "What are Cost Codes?"
+
+msgid "Cost codes are standardized identifiers that help track and categorize expenses. Examples: Windows, Doors, Flooring, Electrical, etc. Use them to measure actual costs against estimates and improve future project planning."
+msgstr "Cost codes are standardized identifiers that help track and categorize expenses. Examples: Windows, Doors, Flooring, Electrical, etc. Use them to measure actual costs against estimates and improve future project planning."
+
+msgid "Add Cost Code"
+msgstr "Add Cost Code"
+
+msgid "Short identifier (e.g., WIN for Windows)"
+msgstr "Short identifier (e.g., WIN for Windows)"
+
+msgid "Windows and Glazing"
+msgstr "Windows and Glazing"
+
+msgid "Create Cost Code"
+msgstr "Create Cost Code"
+
+msgid "Suggested Codes"
+msgstr "Suggested Codes"
+
+msgid "Common cost codes for construction projects:"
+msgstr "Common cost codes for construction projects:"
+
+msgid "Cost code created successfully."
+msgstr "Cost code created successfully."
+
+msgid "A cost code with that code already exists."
+msgstr "A cost code with that code already exists."
+
+msgid "Code and name are required."
+msgstr "Code and name are required."
+
+msgid "Project Estimates"
+msgstr "Project Estimates"
+
+msgid "Create and manage cost estimates for client proposals"
+msgstr "Create and manage cost estimates for client proposals"
+
+msgid "Create New Estimate"
+msgstr "Create New Estimate"
+
+msgid "No Estimates Yet"
+msgstr "No Estimates Yet"
+
+msgid "Create your first estimate to start building proposals for this project. Estimates help you calculate costs and present professional proposals to clients."
+msgstr "Create your first estimate to start building proposals for this project. Estimates help you calculate costs and present professional proposals to clients."
+
+msgid "Create First Estimate"
+msgstr "Create First Estimate"
+
+msgid "No cost codes created yet. Add your first cost code using the form."
+msgstr "No cost codes created yet. Add your first cost code using the form."
+
+msgid "Create cost codes first"
+msgstr "Create cost codes first"
+
+msgid "No cost codes available."
+msgstr "No cost codes available."
