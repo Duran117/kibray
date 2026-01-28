@@ -1604,6 +1604,9 @@ def payroll_weekly_review(request):
                     },
                 )
                 
+                # IMPORTANTE: Guardar total_pay ANTES de recalcular (para pagos)
+                original_total_pay = record.total_pay
+                
                 # Recalcular horas totales
                 time_entries = TimeEntry.objects.filter(
                     employee=emp, date__range=(week_start, week_end)
@@ -1636,11 +1639,9 @@ def payroll_weekly_review(request):
                 if paid_amount_str and paid_amount_str.strip():
                     try:
                         paid_amount = Decimal(paid_amount_str.strip())
-                        balance = record.balance_due()
                         
-                        # Solo procesar si hay algo que pagar y el monto es válido
-                        if paid_amount > 0 and balance > 0:
-                            # Verificar que haya fecha
+                        # Solo procesar si el monto es > 0 y hay fecha
+                        if paid_amount > 0:
                             if not pay_date:
                                 messages.warning(
                                     request, 
@@ -1648,14 +1649,18 @@ def payroll_weekly_review(request):
                                 )
                                 continue
                             
-                            # Calcular savings: diferencia entre balance y lo que se paga
-                            savings_amount = balance - paid_amount
-                            if savings_amount < 0:
+                            # Usar el total_pay original (antes de recalcular) para calcular savings
+                            # Esto permite registrar pagos parciales incluso si no hay TimeEntries
+                            total_to_pay = original_total_pay if original_total_pay > 0 else paid_amount
+                            
+                            # Calcular savings: diferencia entre total y lo pagado
+                            # Si paid_amount >= total_to_pay, no hay savings
+                            if paid_amount >= total_to_pay:
                                 savings_amount = Decimal("0")
-                                paid_amount = balance  # No pagar más del balance
+                            else:
+                                savings_amount = total_to_pay - paid_amount
                             
                             # Verificar si ya existe un pago para esta semana y empleado
-                            # para evitar duplicados
                             existing_payment = PayrollPayment.objects.filter(
                                 payroll_record=record,
                                 payment_date=pay_date,

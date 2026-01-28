@@ -764,7 +764,7 @@
                             </td>
                             
                             <td>
-                                {% if data.record.is_paid %}
+                                {% if data.record.balance_due <= 0 and data.record.total_pay > 0 %}
                                 <span class="status-badge paid"><i class="bi bi-check-circle"></i> {% trans "Paid" %}</span>
                                 {% elif data.record.amount_paid > 0 %}
                                 <span class="status-badge partial"><i class="bi bi-clock"></i> {% trans "Partial" %}</span>
@@ -775,7 +775,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="13" style="text-align: center; padding: 40px; color: var(--payroll-gray-600);">
+                            <td colspan="14" style="text-align: center; padding: 40px; color: var(--payroll-gray-600);">
                                 <i class="bi bi-inbox" style="font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5;"></i>
                                 {% trans "No employees found for this period" %}
                             </td>
