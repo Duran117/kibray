@@ -894,6 +894,13 @@
         <span class="doc-folder-count">{{ favorites_count }}</span>
       </div>
       
+      <!-- Shared with Client -->
+      <div class="doc-folder-item" data-category="public" onclick="selectFolder('public')">
+        <span class="doc-folder-icon"><i class="bi bi-people" style="color: #10b981;"></i></span>
+        <span class="doc-folder-name">{% trans "Compartido con Cliente" %}</span>
+        <span class="doc-folder-count">{{ public_count }}</span>
+      </div>
+      
       <hr style="margin: 12px 16px; border: none; border-top: 1px solid var(--doc-border);">
       
       <!-- Folder Categories -->
@@ -1044,6 +1051,9 @@
             </button>
             <button class="doc-btn-icon" onclick="event.stopPropagation(); toggleFavorite({{ file.id }})" title="{% trans 'Favorito' %}">
               <i class="bi bi-star{% if file.is_favorited %}-fill{% endif %}"></i>
+            </button>
+            <button class="doc-btn-icon" onclick="event.stopPropagation(); togglePublic({{ file.id }})" title="{% trans 'Compartir con Cliente' %}">
+              <i class="bi bi-people{% if file.is_public %}-fill{% endif %}" style="{% if file.is_public %}color: #10b981;{% endif %}"></i>
             </button>
           </div>
         </div>
@@ -1247,12 +1257,20 @@ function selectFolder(categoryId) {
   const url = new URL(window.location);
   if (categoryId === null) {
     url.searchParams.delete('category');
+    url.searchParams.delete('favorites');
+    url.searchParams.delete('public');
   } else if (categoryId === 'favorites') {
     url.searchParams.set('favorites', '1');
     url.searchParams.delete('category');
+    url.searchParams.delete('public');
+  } else if (categoryId === 'public') {
+    url.searchParams.set('public', '1');
+    url.searchParams.delete('category');
+    url.searchParams.delete('favorites');
   } else {
     url.searchParams.set('category', categoryId);
     url.searchParams.delete('favorites');
+    url.searchParams.delete('public');
   }
   window.location = url;
 }
@@ -1627,6 +1645,39 @@ function toggleFavorite(fileId) {
       }
     });
   });
+}
+
+// Toggle Public (Visible to Client)
+function togglePublic(fileId) {
+  fetch(`/api/files/${fileId}/toggle-public/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const icons = document.querySelectorAll(`[data-file-id="${fileId}"] .doc-file-row-actions .bi-people, [data-file-id="${fileId}"] .doc-file-row-actions .bi-people-fill`);
+    icons.forEach(icon => {
+      if (data.is_public) {
+        icon.classList.remove('bi-people');
+        icon.classList.add('bi-people-fill');
+        icon.style.color = '#10b981';
+        showToast('{% trans "Archivo ahora visible para el cliente" %}', 'success');
+      } else {
+        icon.classList.remove('bi-people-fill');
+        icon.classList.add('bi-people');
+        icon.style.color = '';
+        showToast('{% trans "Archivo ocultado del cliente" %}', 'warning');
+      }
+    });
+    // Update public count in sidebar
+    const publicCountEl = document.querySelector('[data-category="public"] .doc-folder-count');
+    if (publicCountEl) {
+      publicCountEl.textContent = data.public_count || parseInt(publicCountEl.textContent) + (data.is_public ? 1 : -1);
+    }
+  })
+  .catch(() => showToast('{% trans "Error al cambiar visibilidad" %}', 'error'));
 }
 
 // Download File

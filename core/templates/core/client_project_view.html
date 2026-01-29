@@ -296,6 +296,58 @@
                     {% endif %}
                 </div>
             </div>
+            
+            <!-- Project Documents (Public Files) -->
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-folder-open me-2"></i>{% trans "Project Documents" %}</span>
+                    {% if public_files %}
+                    <span class="badge bg-primary">{{ public_files|length }}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if public_files %}
+                        {% regroup public_files by category as files_by_category %}
+                        {% for category_group in files_by_category %}
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-2">
+                                    <i class="bi {{ category_group.grouper.icon|default:'bi-folder' }} me-1"></i>
+                                    {{ category_group.grouper.name }}
+                                </h6>
+                                {% for file in category_group.list|slice:":5" %}
+                                    <div class="list-item d-flex align-items-center justify-content-between py-2">
+                                        <div class="d-flex align-items-center">
+                                            {% if file.file_type == 'pdf' %}
+                                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                            {% elif file.file_type == 'image' %}
+                                                <i class="fas fa-file-image text-primary me-2"></i>
+                                            {% elif file.file_type == 'spreadsheet' %}
+                                                <i class="fas fa-file-excel text-success me-2"></i>
+                                            {% elif file.file_type == 'word' %}
+                                                <i class="fas fa-file-word text-info me-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-file me-2"></i>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold small">{{ file.name|truncatechars:40 }}</div>
+                                                <small class="text-muted">{{ file.uploaded_at|date:"M d, Y" }} • {{ file.file_size|filesizeformat }}</small>
+                                            </div>
+                                        </div>
+                                        <a href="{{ file.file.url }}" class="btn btn-sm btn-outline-primary" download title="{% trans 'Download' %}">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>{% trans "No documents available yet" %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         
         <!-- Sidebar -->

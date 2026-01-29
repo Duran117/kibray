@@ -11188,12 +11188,17 @@ def project_files_view(request, project_id):
             | Q(tags__icontains=search_query)
         )
 
+    # Filter by public files (shared with client)
+    if request.GET.get("public"):
+        files = files.filter(is_public=True)
+
     # Get all tags for the project
     all_tags = DocumentTag.objects.filter(project=project)
     
     # Stats
     total_files = ProjectFile.objects.filter(project=project).count()
     favorites_count = ProjectFile.objects.filter(project=project, is_favorited=True).count()
+    public_count = ProjectFile.objects.filter(project=project, is_public=True).count()
 
     return render(
         request,
@@ -11208,6 +11213,7 @@ def project_files_view(request, project_id):
             "all_tags": all_tags,
             "total_files": total_files,
             "favorites_count": favorites_count,
+            "public_count": public_count,
             "category_form": FileCategoryForm(),
             "file_form": ProjectFileForm(),
         },
@@ -11414,6 +11420,29 @@ def file_toggle_favorite(request, file_id):
     return JsonResponse({
         "success": True,
         "favorited": file_obj.is_favorited,
+    })
+
+
+@login_required
+@require_POST
+def file_toggle_public(request, file_id):
+    """Toggle file public status (visible to client)"""
+    from core.models import ProjectFile
+
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    file_obj.is_public = not file_obj.is_public
+    file_obj.save(update_fields=["is_public"])
+    
+    # Count public files for the project
+    public_count = ProjectFile.objects.filter(
+        project=file_obj.project,
+        is_public=True
+    ).count()
+    
+    return JsonResponse({
+        "success": True,
+        "is_public": file_obj.is_public,
+        "public_count": public_count,
     })
 
 
