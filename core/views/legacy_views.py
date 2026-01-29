@@ -2347,6 +2347,67 @@ def client_project_view(request, project_id):
 
 
 @login_required
+def client_documents_view(request, project_id):
+    """
+    Dedicated documents view for clients.
+    Shows all public files shared with the client for a specific project.
+    """
+    from core.models import ClientProjectAccess, ProjectFile, FileCategory
+    from django.db.models import Prefetch
+    
+    project = get_object_or_404(Project, id=project_id)
+
+    # Access control (same as client_project_view)
+    profile = getattr(request.user, "profile", None)
+    has_explicit_access = ClientProjectAccess.objects.filter(
+        user=request.user, project=project
+    ).exists()
+    
+    is_project_client = False
+    if project.client and hasattr(project.client, 'user'):
+        is_project_client = project.client.user == request.user
+    
+    if profile and profile.role == "client":
+        if not (has_explicit_access or is_project_client):
+            messages.error(request, _("You don't have access to this project."))
+            return redirect("dashboard_client")
+    elif not (request.user.is_staff or has_explicit_access):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
+
+    # Get public files for this project
+    public_files = ProjectFile.objects.filter(
+        project=project,
+        is_public=True
+    ).select_related("category", "uploaded_by").order_by("-uploaded_at")
+    
+    # Group by category
+    categories_with_files = FileCategory.objects.filter(
+        project=project,
+        files__is_public=True
+    ).distinct().prefetch_related(
+        Prefetch(
+            "files",
+            queryset=ProjectFile.objects.filter(is_public=True).order_by("-uploaded_at"),
+            to_attr="public_files"
+        )
+    )
+    
+    # Stats
+    total_files = public_files.count()
+    total_size = sum(f.file_size for f in public_files)
+    
+    context = {
+        "project": project,
+        "public_files": public_files,
+        "categories_with_files": categories_with_files,
+        "total_files": total_files,
+        "total_size": total_size,
+    }
+    return render(request, "core/client_documents.html", context)
+
+
+@login_required
 def client_financials_view(request, project_id):
     """
     Dedicated financial analytics page for clients.

@@ -358,6 +358,7 @@ urlpatterns = [
     # Vista cliente
     path("proyecto/<int:project_id>/", views.client_project_view, name="client_project_view"),
     path("proyecto/<int:project_id>/financials/", views.client_financials_view, name="client_financials"),
+    path("proyecto/<int:project_id>/documents/", views.client_documents_view, name="client_documents"),
     path("proyecto/<int:project_id>/agregar_tarea/", views.agregar_tarea, name="agregar_tarea"),  # type: ignore[arg-type]
     path(
         "proyecto/<int:project_id>/agregar_comentario/",

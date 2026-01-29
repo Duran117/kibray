@@ -1,0 +1,345 @@
+{% extends "core/base_modern.html" %}
+{% load static i18n humanize %}
+
+{% block title %}{% trans "Documents" %} - {{ project.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .docs-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 32px;
+        color: white;
+        margin-bottom: 24px;
+    }
+    .docs-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+    .docs-header .breadcrumb {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+    }
+    .docs-header .breadcrumb a {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+    }
+    .docs-header .breadcrumb a:hover {
+        color: white;
+    }
+    
+    .stats-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-box {
+        background: white;
+        border-radius: 12px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .stat-box .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    .stat-box .icon.files { background: #e0e7ff; color: #4f46e5; }
+    .stat-box .icon.size { background: #d1fae5; color: #059669; }
+    .stat-box .value { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
+    .stat-box .label { font-size: 0.875rem; color: #6b7280; }
+    
+    .category-section {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .category-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .category-header i {
+        font-size: 1.25rem;
+        color: #6366f1;
+    }
+    .category-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+    .category-header .count {
+        background: #f3f4f6;
+        color: #6b7280;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .file-list {
+        padding: 8px;
+    }
+    .file-item {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        border-radius: 12px;
+        transition: background 0.2s;
+    }
+    .file-item:hover {
+        background: #f9fafb;
+    }
+    .file-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-right: 16px;
+        flex-shrink: 0;
+    }
+    .file-icon.pdf { background: #fee2e2; color: #dc2626; }
+    .file-icon.image { background: #dbeafe; color: #2563eb; }
+    .file-icon.spreadsheet { background: #d1fae5; color: #059669; }
+    .file-icon.word { background: #e0e7ff; color: #4f46e5; }
+    .file-icon.other { background: #f3f4f6; color: #6b7280; }
+    
+    .file-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .file-name {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .file-meta {
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+    .file-meta span {
+        margin-right: 12px;
+    }
+    
+    .file-actions {
+        display: flex;
+        gap: 8px;
+    }
+    .btn-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .btn-download:hover {
+        background: #4f46e5;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+    .empty-state h3 {
+        color: #6b7280;
+        margin-bottom: 8px;
+    }
+    .empty-state p {
+        margin: 0;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-row {
+            flex-direction: column;
+        }
+        .file-item {
+            flex-wrap: wrap;
+        }
+        .file-actions {
+            width: 100%;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="docs-header">
+        <nav class="breadcrumb mb-2" style="font-size: 0.875rem;">
+            <a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a>
+            <span class="mx-2">›</span>
+            <a href="{% url 'client_project_view' project.id %}">{{ project.name|truncatechars:30 }}</a>
+            <span class="mx-2">›</span>
+            <span style="color: white;">{% trans "Documents" %}</span>
+        </nav>
+        <h1><i class="bi bi-folder2-open me-2"></i>{% trans "Project Documents" %}</h1>
+        <p style="margin: 0; opacity: 0.9;">{% trans "Files shared with you for this project" %}</p>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-box">
+            <div class="icon files">
+                <i class="bi bi-files"></i>
+            </div>
+            <div>
+                <div class="value">{{ total_files }}</div>
+                <div class="label">{% trans "Total Files" %}</div>
+            </div>
+        </div>
+        <div class="stat-box">
+            <div class="icon size">
+                <i class="bi bi-hdd"></i>
+            </div>
+            <div>
+                <div class="value">{{ total_size|filesizeformat }}</div>
+                <div class="label">{% trans "Total Size" %}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Files by Category -->
+    {% if categories_with_files %}
+        {% for category in categories_with_files %}
+        <div class="category-section">
+            <div class="category-header">
+                <i class="{{ category.icon|default:'bi bi-folder' }}"></i>
+                <h3>{{ category.name }}</h3>
+                <span class="count">{{ category.public_files|length }} {% trans "files" %}</span>
+            </div>
+            <div class="file-list">
+                {% for file in category.public_files %}
+                <div class="file-item">
+                    <div class="file-icon {% if file.file_type == 'pdf' %}pdf{% elif file.file_type == 'image' %}image{% elif file.file_type == 'spreadsheet' %}spreadsheet{% elif file.file_type == 'word' %}word{% else %}other{% endif %}">
+                        {% if file.file_type == 'pdf' %}
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        {% elif file.file_type == 'image' %}
+                            <i class="bi bi-file-earmark-image"></i>
+                        {% elif file.file_type == 'spreadsheet' %}
+                            <i class="bi bi-file-earmark-spreadsheet"></i>
+                        {% elif file.file_type == 'word' %}
+                            <i class="bi bi-file-earmark-word"></i>
+                        {% else %}
+                            <i class="bi bi-file-earmark"></i>
+                        {% endif %}
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name">{{ file.name }}</div>
+                        <div class="file-meta">
+                            <span><i class="bi bi-calendar3 me-1"></i>{{ file.uploaded_at|date:"M d, Y" }}</span>
+                            <span><i class="bi bi-hdd me-1"></i>{{ file.file_size|filesizeformat }}</span>
+                            {% if file.version %}
+                            <span><i class="bi bi-tag me-1"></i>{{ file.version }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="{{ file.file.url }}" class="btn-download" download>
+                            <i class="bi bi-download"></i>
+                            {% trans "Download" %}
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% elif public_files %}
+        <!-- Files without category grouping -->
+        <div class="category-section">
+            <div class="category-header">
+                <i class="bi bi-files"></i>
+                <h3>{% trans "All Documents" %}</h3>
+                <span class="count">{{ public_files|length }} {% trans "files" %}</span>
+            </div>
+            <div class="file-list">
+                {% for file in public_files %}
+                <div class="file-item">
+                    <div class="file-icon {% if file.file_type == 'pdf' %}pdf{% elif file.file_type == 'image' %}image{% elif file.file_type == 'spreadsheet' %}spreadsheet{% elif file.file_type == 'word' %}word{% else %}other{% endif %}">
+                        {% if file.file_type == 'pdf' %}
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        {% elif file.file_type == 'image' %}
+                            <i class="bi bi-file-earmark-image"></i>
+                        {% elif file.file_type == 'spreadsheet' %}
+                            <i class="bi bi-file-earmark-spreadsheet"></i>
+                        {% elif file.file_type == 'word' %}
+                            <i class="bi bi-file-earmark-word"></i>
+                        {% else %}
+                            <i class="bi bi-file-earmark"></i>
+                        {% endif %}
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name">{{ file.name }}</div>
+                        <div class="file-meta">
+                            <span><i class="bi bi-calendar3 me-1"></i>{{ file.uploaded_at|date:"M d, Y" }}</span>
+                            <span><i class="bi bi-hdd me-1"></i>{{ file.file_size|filesizeformat }}</span>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="{{ file.file.url }}" class="btn-download" download>
+                            <i class="bi bi-download"></i>
+                            {% trans "Download" %}
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="category-section">
+            <div class="empty-state">
+                <i class="bi bi-folder2-open"></i>
+                <h3>{% trans "No documents yet" %}</h3>
+                <p>{% trans "Documents shared with you will appear here." %}</p>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'client_project_view' project.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back to Project" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
