@@ -3922,6 +3922,15 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 # No bloquear flujo por fallo de PDF
                 pass
 
+            # --- Auto-save PDF to Project Files (Paso 4) ---
+            try:
+                from core.services.document_storage_service import auto_save_changeorder_pdf
+                auto_save_changeorder_pdf(changeorder, user=None, overwrite=True)
+            except Exception as e:
+                # Log but don't block flow
+                import logging
+                logging.getLogger(__name__).warning(f"Failed to auto-save CO PDF: {e}")
+
             return render(
                 request, "core/changeorder_signature_success.html", {"changeorder": changeorder}
             )
@@ -4157,6 +4166,15 @@ def color_sample_client_signature_view(request, sample_id, token=None):
             except Exception:
                 # Don't block flow due to PDF failure
                 pass
+
+            # --- Auto-save PDF to Project Files ---
+            try:
+                from core.services.document_storage_service import auto_save_colorsample_pdf
+                auto_save_colorsample_pdf(color_sample, user=None, overwrite=True)
+            except Exception as e:
+                # Log but don't block flow
+                import logging
+                logging.getLogger(__name__).warning(f"Failed to auto-save ColorSample PDF: {e}")
 
             return render(
                 request,
@@ -5010,6 +5028,15 @@ def invoice_mark_sent(request, invoice_id):
         invoice.sent_date = timezone.now()
         invoice.sent_by = request.user
         invoice.save()
+        
+        # --- Auto-save PDF to Project Files ---
+        try:
+            from core.services.document_storage_service import auto_save_invoice_pdf
+            auto_save_invoice_pdf(invoice, user=request.user, overwrite=True)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to auto-save Invoice PDF: {e}")
+        
         messages.success(
             request,
             _("✅ Factura %(invoice_number)s marcada como ENVIADA.")
@@ -13337,6 +13364,16 @@ def proposal_public_view(request, token):
             estimate.approved = True
             proposal.save(update_fields=["accepted", "accepted_at"])
             estimate.save(update_fields=["approved"])
+            
+            # --- Auto-save Estimate/Contract PDF to Project Files ---
+            try:
+                from core.services.document_storage_service import auto_save_estimate_pdf
+                # Save as contract since it's been approved
+                auto_save_estimate_pdf(estimate, user=None, as_contract=True, overwrite=True)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Failed to auto-save Estimate PDF: {e}")
+            
             messages.success(
                 request,
                 "¡Gracias! Hemos recibido tu aprobación. Comenzaremos a trabajar en tu proyecto.",
