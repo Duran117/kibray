@@ -1,325 +1,78 @@
-{% extends "core/base_modern.html" %}{% extends "core/base_modern.html" %}
-
-{% load i18n %}{% load i18n %}
-
-{% load static %}{% load static %}
-
-
-
-{% block title %}{% trans "Record Payment" %} - {{ invoice.invoice_number }}{% endblock %}{% block title %}Registrar Pago - {{ invoice.invoice_number }}{% endblock %}
-
-
-
-{% block extra_css %}{% block content %}
-
-<style><div class="container py-4">
-
-.payment-hero {    <div class="row justify-content-center">
-
-    background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);        <div class="col-md-8">
-
-    padding: 1.5rem;            <div class="card">
-
-    border-radius: 1rem;                <div class="card-header bg-success text-white">
-
-    margin-bottom: 1.5rem;                    <h4 class="mb-0">💵 Registrar Pago</h4>
-
-    color: white;                </div>
-
-}                <div class="card-body">
-
-.payment-hero h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }                    <div class="mb-4">
-
-                        <h5>Factura: <strong>{{ invoice.invoice_number }}</strong></h5>
-
-.payment-card {                        <p class="mb-1"><strong>Proyecto:</strong> {{ invoice.project.name }}</p>
-
-    background: white;                        <p class="mb-1"><strong>Cliente:</strong> {{ invoice.project.client }}</p>
-
-    border-radius: 1rem;                        <hr>
-
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);                        <p class="mb-1"><strong>Total Factura:</strong> ${{ invoice.total_amount|floatformat:2 }}</p>
-
-    overflow: hidden;                        <p class="mb-1"><strong>Ya Pagado:</strong> <span class="text-success">${{ invoice.amount_paid|floatformat:2 }}</span></p>
-
-}                        <p class="mb-0"><strong>Saldo Pendiente:</strong> <span class="text-danger">${{ invoice.balance_due|floatformat:2 }}</span></p>
-
-.card-header-section {                    </div>
-
-    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-
-    padding: 1.25rem;                    <form method="post">
-
-    border-bottom: 1px solid #a7f3d0;                        {% csrf_token %}
-
-}                        
-
-.card-header-section h4 { margin: 0; color: #065f46; font-weight: 600; }                        <div class="mb-3">
-
-                            <label class="form-label">Monto Recibido *</label>
-
-.invoice-summary {                            <div class="input-group">
-
-    background: #f9fafb;                                <span class="input-group-text">$</span>
-
-    border-radius: 0.75rem;                                <input type="number" step="0.01" name="amount" class="form-control" value="{{ invoice.balance_due }}" required>
-
-    padding: 1.25rem;                            </div>
-
-    margin-bottom: 1.5rem;                            <small class="text-muted">Ingresa el monto completo o parcial recibido</small>
-
-}                        </div>
-
-.invoice-summary h5 { 
-
-    margin: 0 0 1rem;                        <div class="mb-3">
-
-    font-size: 1.1rem;                            <label class="form-label">Fecha de Pago *</label>
-
-    color: #374151;                            <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
-
-}                        </div>
-
-.summary-row {
-
-    display: flex;                        <div class="mb-3">
-
-    justify-content: space-between;                            <label class="form-label">Método de Pago *</label>
-
-    padding: 0.5rem 0;                            <select name="payment_method" class="form-select" required>
-
-    border-bottom: 1px dashed #e5e7eb;                                <option value="CHECK" selected>Cheque</option>
-
-}                                <option value="TRANSFER">Transferencia Bancaria</option>
-
-.summary-row:last-child { border-bottom: none; }                                <option value="CASH">Efectivo</option>
-
-.summary-row .label { color: #6b7280; }                                <option value="CARD">Tarjeta</option>
-
-.summary-row .value { font-weight: 600; color: #111827; }                                <option value="OTHER">Otro</option>
-
-.summary-row .value.success { color: #059669; }                            </select>
-
-.summary-row .value.danger { color: #dc2626; }                        </div>
-
-.summary-row.highlight {
-
-    background: #fef3c7;                        <div class="mb-3">
-
-    margin: 0 -1.25rem;                            <label class="form-label">Referencia (Check #, Transfer ID, etc.)</label>
-
-    padding: 0.75rem 1.25rem;                            <input type="text" name="reference" class="form-control" placeholder="Ej: Check #12345 o Ref: TRX98765">
-
-    margin-top: 0.5rem;                        </div>
-
-    border-radius: 0 0 0.75rem 0.75rem;
-
-}                        <div class="mb-3">
-
-                            <label class="form-label">Notas</label>
-
-.form-section {                            <textarea name="notes" class="form-control" rows="3" placeholder="Notas adicionales sobre el pago..."></textarea>
-
-    padding: 1.5rem;                        </div>
-
-}
-
-.form-group {                        <div class="alert alert-info">
-
-    margin-bottom: 1.25rem;                            <strong>ℹ️ Nota:</strong> Al registrar este pago:
-
-}                            <ul class="mb-0">
-
-.form-group label {                                <li>Se actualizará el balance de la factura</li>
-
-    display: block;                                <li>Se creará automáticamente un registro de Income</li>
-
-    font-weight: 600;                                <li>El status de la factura se actualizará (PARTIAL o PAID)</li>
-
-    color: #374151;                            </ul>
-
-    margin-bottom: 0.5rem;                        </div>
-
-    font-size: 0.9rem;
-
-}                        <div class="d-flex gap-2">
-
-.form-group .help-text {                            <button type="submit" class="btn btn-success">✅ Registrar Pago</button>
-
-    font-size: 0.8rem;                            <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-secondary">Cancelar</a>
-
-    color: #6b7280;                        </div>
-
-    margin-top: 0.35rem;                    </form>
-
-}                </div>
-
-            </div>
-
-.info-alert {        </div>
-
-    background: #eff6ff;    </div>
-
-    border: 1px solid #bfdbfe;</div>
-
-    border-radius: 0.75rem;{% endblock %}
-
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-}
-.info-alert h6 {
-    color: #1d4ed8;
-    margin: 0 0 0.5rem;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.info-alert ul {
-    margin: 0;
-    padding-left: 1.25rem;
-    font-size: 0.85rem;
-    color: #3b82f6;
-}
-
-.btn-group-actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-.btn-success-custom {
-    background: #059669;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-}
-.btn-success-custom:hover { background: #047857; }
-.btn-secondary-custom {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-}
-.btn-secondary-custom:hover { background: #e5e7eb; color: #111827; }
-
-@media (max-width: 768px) {
-    .btn-group-actions { flex-direction: column; }
-    .btn-group-actions a, .btn-group-actions button { width: 100%; justify-content: center; }
-}
-</style>
-{% endblock %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Registrar Pago - {{ invoice.invoice_number }}{% endblock %}
 
 {% block content %}
-<div class="container py-3 py-md-4">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
-            <!-- Hero -->
-            <div class="payment-hero">
-                <h2><i class="bi bi-currency-dollar me-2"></i>{% trans "Record Payment" %}</h2>
-            </div>
-
-            <!-- Payment Card -->
-            <div class="payment-card">
-                <div class="card-header-section">
-                    <h4><i class="bi bi-receipt me-2"></i>{{ invoice.invoice_number }}</h4>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">💵 Registrar Pago</h4>
                 </div>
-                
-                <div class="form-section">
-                    <!-- Invoice Summary -->
-                    <div class="invoice-summary">
-                        <h5>{% trans "Invoice Details" %}</h5>
-                        <div class="summary-row">
-                            <span class="label">{% trans "Project" %}</span>
-                            <span class="value">{{ invoice.project.name }}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="label">{% trans "Client" %}</span>
-                            <span class="value">{{ invoice.project.client }}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="label">{% trans "Invoice Total" %}</span>
-                            <span class="value">${{ invoice.total_amount|floatformat:2 }}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="label">{% trans "Already Paid" %}</span>
-                            <span class="value success">${{ invoice.amount_paid|floatformat:2 }}</span>
-                        </div>
-                        <div class="summary-row highlight">
-                            <span class="label"><strong>{% trans "Balance Due" %}</strong></span>
-                            <span class="value danger"><strong>${{ invoice.balance_due|floatformat:2 }}</strong></span>
-                        </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Factura: <strong>{{ invoice.invoice_number }}</strong></h5>
+                        <p class="mb-1"><strong>Proyecto:</strong> {{ invoice.project.name }}</p>
+                        <p class="mb-1"><strong>Cliente:</strong> {{ invoice.project.client }}</p>
+                        <hr>
+                        <p class="mb-1"><strong>Total Factura:</strong> ${{ invoice.total_amount|floatformat:2 }}</p>
+                        <p class="mb-1"><strong>Ya Pagado:</strong> <span class="text-success">${{ invoice.amount_paid|floatformat:2 }}</span></p>
+                        <p class="mb-0"><strong>Saldo Pendiente:</strong> <span class="text-danger">${{ invoice.balance_due|floatformat:2 }}</span></p>
                     </div>
 
-                    <!-- Payment Form -->
                     <form method="post">
                         {% csrf_token %}
                         
-                        <div class="form-group">
-                            <label>{% trans "Amount Received" %} *</label>
+                        <div class="mb-3">
+                            <label class="form-label">Monto Recibido *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" step="0.01" name="amount" class="form-control" value="{{ invoice.balance_due }}" required>
                             </div>
-                            <div class="help-text">{% trans "Enter full or partial amount received" %}</div>
+                            <small class="text-muted">Ingresa el monto completo o parcial recibido</small>
                         </div>
 
-                        <div class="form-group">
-                            <label>{% trans "Payment Date" %} *</label>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Pago *</label>
                             <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
                         </div>
 
-                        <div class="form-group">
-                            <label>{% trans "Payment Method" %} *</label>
+                        <div class="mb-3">
+                            <label class="form-label">Método de Pago *</label>
                             <select name="payment_method" class="form-select" required>
-                                <option value="CHECK" selected>{% trans "Check" %}</option>
-                                <option value="TRANSFER">{% trans "Wire Transfer" %}</option>
-                                <option value="CASH">{% trans "Cash" %}</option>
-                                <option value="CARD">{% trans "Credit Card" %}</option>
-                                <option value="OTHER">{% trans "Other" %}</option>
+                                <option value="CHECK" selected>Cheque</option>
+                                <option value="TRANSFER">Transferencia Bancaria</option>
+                                <option value="CASH">Efectivo</option>
+                                <option value="CARD">Tarjeta</option>
+                                <option value="OTHER">Otro</option>
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label>{% trans "Reference" %} ({% trans "Check #, Transfer ID, etc." %})</label>
-                            <input type="text" name="reference" class="form-control" placeholder="{% trans "e.g. Check #12345 or Ref: TRX98765" %}">
+                        <div class="mb-3">
+                            <label class="form-label">Referencia (Check #, Transfer ID, etc.)</label>
+                            <input type="text" name="reference" class="form-control" placeholder="Ej: Check #12345 o Ref: TRX98765">
                         </div>
 
-                        <div class="form-group">
-                            <label>{% trans "Notes" %}</label>
-                            <textarea name="notes" class="form-control" rows="3" placeholder="{% trans "Additional notes about this payment..." %}"></textarea>
+                        <div class="mb-3">
+                            <label class="form-label">Notas</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Notas adicionales sobre el pago..."></textarea>
                         </div>
 
-                        <!-- Info Alert -->
-                        <div class="info-alert">
-                            <h6><i class="bi bi-info-circle"></i> {% trans "Note" %}</h6>
-                            <ul>
-                                <li>{% trans "The invoice balance will be updated" %}</li>
-                                <li>{% trans "An Income record will be created automatically" %}</li>
-                                <li>{% trans "The invoice status will change to PARTIAL or PAID" %}</li>
+                        <div class="alert alert-info">
+                            <strong>ℹ️ Nota:</strong> Al registrar este pago:
+                            <ul class="mb-0">
+                                <li>Se actualizará el balance de la factura</li>
+                                <li>Se creará automáticamente un registro de Income</li>
+                                <li>El status de la factura se actualizará (PARTIAL o PAID)</li>
                             </ul>
                         </div>
 
-                        <div class="btn-group-actions">
-                            <button type="submit" class="btn-success-custom">
-                                <i class="bi bi-check-lg"></i> {% trans "Record Payment" %}
-                            </button>
-                            <a href="{% url 'invoice_detail' invoice.id %}" class="btn-secondary-custom">
-                                <i class="bi bi-x-lg"></i> {% trans "Cancel" %}
-                            </a>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">✅ Registrar Pago</button>
+                            <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-secondary">Cancelar</a>
                         </div>
                     </form>
                 </div>
