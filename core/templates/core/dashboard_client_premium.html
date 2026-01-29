@@ -289,52 +289,52 @@
             <div class="flex flex-wrap gap-2">
                 <a href="{% url 'client_project_view' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-eye text-slate-400"></i>
+                    <i class="bi bi-eye text-indigo-500"></i>
                     {% trans "Overview" %}
                 </a>
                 <a href="{% url 'client_financials' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg text-sm font-medium text-white shadow-sm hover:shadow-md transition-shadow">
-                    <i class="bi bi-currency-dollar"></i>
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                    <i class="bi bi-currency-dollar text-emerald-500"></i>
                     {% trans "Financials" %}
                 </a>
                 <a href="{% url 'client_project_calendar' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-calendar3 text-slate-400"></i>
+                    <i class="bi bi-calendar3 text-blue-500"></i>
                     {% trans "Schedule" %}
                 </a>
                 <a href="{% url 'site_photo_list' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-images text-slate-400"></i>
+                    <i class="bi bi-images text-pink-500"></i>
                     {% trans "Photos" %}
                 </a>
                 <a href="{% url 'floor_plan_list' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-map text-slate-400"></i>
+                    <i class="bi bi-map text-cyan-500"></i>
                     {% trans "Floor Plans" %}
                 </a>
                 <a href="{% url 'color_sample_list' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-palette text-slate-400"></i>
+                    <i class="bi bi-palette text-purple-500"></i>
                     {% trans "Colors" %}
                 </a>
                 <a href="{% url 'client_documents' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-folder text-slate-400"></i>
+                    <i class="bi bi-folder text-amber-500"></i>
                     {% trans "Documents" %}
                 </a>
                 <a href="{% url 'project_minutes_list' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-file-text text-slate-400"></i>
+                    <i class="bi bi-file-text text-orange-500"></i>
                     {% trans "Minutes" %}
                 </a>
                 <a href="{% url 'client_requests_list' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-chat-square-text text-slate-400"></i>
+                    <i class="bi bi-chat-square-text text-teal-500"></i>
                     {% trans "Messages" %}
                 </a>
                 <a href="{% url 'daily_log' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
-                    <i class="bi bi-journal-text text-slate-400"></i>
+                    <i class="bi bi-journal-text text-slate-500"></i>
                     {% trans "Daily Logs" %}
                 </a>
             </div>
