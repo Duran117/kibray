@@ -185,16 +185,47 @@
     }
     
     @media (max-width: 768px) {
+        .docs-header {
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .docs-header h1 {
+            font-size: 1.25rem;
+        }
         .stats-row {
             flex-direction: column;
         }
+        .stat-box {
+            padding: 16px;
+        }
+        .stat-box .value {
+            font-size: 1.25rem;
+        }
         .file-item {
             flex-wrap: wrap;
+        }
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
         }
         .file-actions {
             width: 100%;
             margin-top: 12px;
             justify-content: flex-end;
+        }
+        .btn-download {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        .category-header {
+            padding: 16px;
+        }
+        .file-list {
+            padding: 4px;
+        }
+        .file-item {
+            padding: 12px;
         }
     }
 </style>

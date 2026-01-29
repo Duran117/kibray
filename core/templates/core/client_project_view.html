@@ -91,6 +91,52 @@
     .empty-state i { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
     .financial-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
     .financial-row:last-child { border-bottom: none; font-weight: 700; }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .project-header {
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .project-header h1 {
+            font-size: 1.5rem;
+        }
+        .stat-card {
+            padding: 15px;
+        }
+        .stat-card .stat-value {
+            font-size: 1.4rem;
+        }
+        .stat-card .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+        .section-card .card-header,
+        .section-card .card-body {
+            padding: 15px;
+        }
+        .photo-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+        }
+        .schedule-item {
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .schedule-date {
+            min-width: 100%;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .stat-card .stat-value {
+            font-size: 1.2rem;
+        }
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+        }
+    }
 </style>
 {% endblock %}
 

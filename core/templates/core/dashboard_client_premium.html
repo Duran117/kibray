@@ -57,6 +57,27 @@
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         letter-spacing: -0.02em;
     }
+    
+    /* Mobile Responsive Improvements */
+    @media (max-width: 640px) {
+        .project-selector-btn {
+            min-width: 100%;
+        }
+        .nav-buttons-mobile {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .nav-buttons-mobile::-webkit-scrollbar {
+            display: none;
+        }
+        .mobile-px {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+    
     /* Project Selector */
     .project-selector {
         position: relative;
@@ -226,8 +247,8 @@
     <div class="premium-card rounded-2xl premium-shadow-lg overflow-hidden">
         
         <!-- Project Header -->
-        <div class="p-8 border-b border-slate-100">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div class="p-4 sm:p-8 border-b border-slate-100">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
                 <!-- Project Info -->
                 <div class="flex-1">
                     <div class="flex items-center gap-3 mb-3">
@@ -284,64 +305,67 @@
             </div>
         </div>
 
-        <!-- Quick Actions Row -->
-        <div class="px-8 py-4 bg-slate-50/50 border-b border-slate-100">
-            <div class="flex flex-wrap gap-2">
+        <!-- Quick Actions Row - Mobile Scrollable -->
+        <div class="px-4 sm:px-8 py-4 bg-slate-50/50 border-b border-slate-100">
+            <div class="flex flex-nowrap sm:flex-wrap gap-2 overflow-x-auto pb-2 sm:pb-0 nav-buttons-mobile">
                 <a href="{% url 'client_project_view' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-eye text-indigo-500"></i>
-                    {% trans "Overview" %}
+                    <span class="hidden sm:inline">{% trans "Overview" %}</span>
+                    <span class="sm:hidden">{% trans "Overview" %}</span>
                 </a>
                 <a href="{% url 'client_financials' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-currency-dollar text-emerald-500"></i>
-                    {% trans "Financials" %}
+                    <span>{% trans "Financials" %}</span>
                 </a>
                 <a href="{% url 'client_project_calendar' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-calendar3 text-blue-500"></i>
-                    {% trans "Schedule" %}
+                    <span>{% trans "Schedule" %}</span>
                 </a>
                 <a href="{% url 'site_photo_list' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-images text-pink-500"></i>
-                    {% trans "Photos" %}
+                    <span>{% trans "Photos" %}</span>
                 </a>
                 <a href="{% url 'floor_plan_list' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-map text-cyan-500"></i>
-                    {% trans "Floor Plans" %}
+                    <span class="hidden sm:inline">{% trans "Floor Plans" %}</span>
+                    <span class="sm:hidden">{% trans "Plans" %}</span>
                 </a>
                 <a href="{% url 'color_sample_list' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-palette text-purple-500"></i>
-                    {% trans "Colors" %}
+                    <span>{% trans "Colors" %}</span>
                 </a>
                 <a href="{% url 'client_documents' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-folder text-amber-500"></i>
-                    {% trans "Documents" %}
+                    <span>{% trans "Documents" %}</span>
                 </a>
                 <a href="{% url 'project_minutes_list' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-file-text text-orange-500"></i>
-                    {% trans "Minutes" %}
+                    <span>{% trans "Minutes" %}</span>
                 </a>
                 <a href="{% url 'client_requests_list' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-chat-square-text text-teal-500"></i>
-                    {% trans "Messages" %}
+                    <span>{% trans "Messages" %}</span>
                 </a>
                 <a href="{% url 'daily_log' data.project.id %}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
                     <i class="bi bi-journal-text text-slate-500"></i>
-                    {% trans "Daily Logs" %}
+                    <span class="hidden sm:inline">{% trans "Daily Logs" %}</span>
+                    <span class="sm:hidden">{% trans "Logs" %}</span>
                 </a>
             </div>
         </div>
 
         <!-- Main Content Grid -->
-        <div class="p-8">
+        <div class="p-4 sm:p-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 <!-- Column 1: Financial Summary -->

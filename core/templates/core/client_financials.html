@@ -157,6 +157,53 @@
         color: #22c55e;
         display: flex; align-items: center; justify-content: center;
     }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .financials-header {
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .financials-header h1 {
+            font-size: 1.25rem;
+        }
+        .kpi-card {
+            padding: 16px;
+        }
+        .kpi-value {
+            font-size: 1.25rem;
+        }
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        .section-card .card-header,
+        .section-card .card-body {
+            padding: 16px;
+        }
+        .chart-container {
+            height: 220px;
+        }
+        .estimate-line {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .estimate-line .code {
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .kpi-value {
+            font-size: 1.1rem;
+        }
+        .kpi-label {
+            font-size: 0.75rem;
+        }
+    }
 </style>
 {% endblock %}
 
