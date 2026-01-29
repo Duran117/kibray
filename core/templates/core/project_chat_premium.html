@@ -1,0 +1,1231 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Chat" %} - {{ project.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ═══════════════════════════════════════════════════════════════
+       PREMIUM CHAT SYSTEM - Modern Minimalist Design
+       ═══════════════════════════════════════════════════════════════ */
+    
+    :root {
+        --chat-bg: #f8fafc;
+        --chat-sidebar: #ffffff;
+        --chat-main: #ffffff;
+        --chat-input-bg: #f1f5f9;
+        --chat-bubble-own: #3b82f6;
+        --chat-bubble-other: #ffffff;
+        --chat-text: #1e293b;
+        --chat-text-muted: #64748b;
+        --chat-border: #e2e8f0;
+        --chat-accent: #3b82f6;
+        --chat-online: #22c55e;
+    }
+    
+    .chat-container {
+        display: flex;
+        height: calc(100vh - 140px);
+        min-height: 500px;
+        background: var(--chat-bg);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    
+    /* Sidebar - Channels */
+    .chat-sidebar {
+        width: 280px;
+        background: var(--chat-sidebar);
+        border-right: 1px solid var(--chat-border);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+    }
+    
+    .chat-sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--chat-border);
+    }
+    
+    .chat-sidebar-header h2 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--chat-text);
+        margin: 0 0 4px 0;
+    }
+    
+    .chat-sidebar-header p {
+        font-size: 0.8rem;
+        color: var(--chat-text-muted);
+        margin: 0;
+    }
+    
+    .channels-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+    }
+    
+    .channel-section-title {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--chat-text-muted);
+        padding: 8px 12px;
+        margin-top: 8px;
+    }
+    
+    .channel-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        color: var(--chat-text);
+    }
+    
+    .channel-item:hover {
+        background: #f1f5f9;
+        color: var(--chat-text);
+    }
+    
+    .channel-item.active {
+        background: #eff6ff;
+        color: var(--chat-accent);
+    }
+    
+    .channel-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .channel-icon.group {
+        background: #dbeafe;
+        color: #3b82f6;
+    }
+    
+    .channel-icon.direct {
+        background: #dcfce7;
+        color: #22c55e;
+    }
+    
+    .channel-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .channel-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .channel-preview {
+        font-size: 0.75rem;
+        color: var(--chat-text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .channel-badge {
+        background: var(--chat-accent);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 10px;
+        min-width: 20px;
+        text-align: center;
+    }
+    
+    /* Main Chat Area */
+    .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--chat-main);
+        min-width: 0;
+    }
+    
+    .chat-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--chat-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+    }
+    
+    .chat-header-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .chat-header-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    
+    .chat-header h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--chat-text);
+        margin: 0;
+    }
+    
+    .chat-header-subtitle {
+        font-size: 0.8rem;
+        color: var(--chat-text-muted);
+    }
+    
+    .chat-header-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .chat-header-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--chat-border);
+        background: white;
+        color: var(--chat-text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    
+    .chat-header-btn:hover {
+        background: #f8fafc;
+        color: var(--chat-accent);
+        border-color: var(--chat-accent);
+    }
+    
+    /* Messages Area */
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .message-group {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .message-group.own {
+        flex-direction: row-reverse;
+    }
+    
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    
+    .message-content {
+        max-width: 65%;
+    }
+    
+    .message-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    
+    .message-group.own .message-header {
+        flex-direction: row-reverse;
+    }
+    
+    .message-author {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--chat-text);
+    }
+    
+    .message-time {
+        font-size: 0.7rem;
+        color: var(--chat-text-muted);
+    }
+    
+    .message-bubble {
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+    
+    .message-group:not(.own) .message-bubble {
+        background: var(--chat-bubble-other);
+        border: 1px solid var(--chat-border);
+        color: var(--chat-text);
+        border-top-left-radius: 4px;
+    }
+    
+    .message-group.own .message-bubble {
+        background: var(--chat-bubble-own);
+        color: white;
+        border-top-right-radius: 4px;
+    }
+    
+    .message-image {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 12px;
+        margin-top: 8px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .message-image:hover {
+        transform: scale(1.02);
+    }
+    
+    .message-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: inherit;
+        text-decoration: underline;
+        opacity: 0.9;
+    }
+    
+    .message-link:hover {
+        opacity: 1;
+    }
+    
+    .message-read-status {
+        font-size: 0.7rem;
+        color: var(--chat-text-muted);
+        margin-top: 4px;
+        text-align: right;
+    }
+    
+    .message-group.own .message-read-status {
+        color: rgba(255,255,255,0.7);
+    }
+    
+    /* Typing Indicator */
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        font-size: 0.8rem;
+        color: var(--chat-text-muted);
+    }
+    
+    .typing-indicator.visible {
+        display: flex;
+    }
+    
+    .typing-dots {
+        display: flex;
+        gap: 3px;
+    }
+    
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        background: var(--chat-text-muted);
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite;
+    }
+    
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typingBounce {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-4px); }
+    }
+    
+    /* Input Area */
+    .chat-input-area {
+        padding: 16px 24px;
+        border-top: 1px solid var(--chat-border);
+        background: white;
+    }
+    
+    .chat-input-wrapper {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        background: var(--chat-input-bg);
+        border-radius: 16px;
+        padding: 8px 8px 8px 16px;
+    }
+    
+    .chat-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        resize: none;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        max-height: 120px;
+        min-height: 24px;
+        padding: 8px 0;
+        color: var(--chat-text);
+    }
+    
+    .chat-input:focus {
+        outline: none;
+    }
+    
+    .chat-input::placeholder {
+        color: var(--chat-text-muted);
+    }
+    
+    .chat-input-actions {
+        display: flex;
+        gap: 4px;
+    }
+    
+    .chat-input-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        color: var(--chat-text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    
+    .chat-input-btn:hover {
+        background: white;
+        color: var(--chat-accent);
+    }
+    
+    .chat-input-btn.send {
+        background: var(--chat-accent);
+        color: white;
+    }
+    
+    .chat-input-btn.send:hover {
+        background: #2563eb;
+    }
+    
+    .chat-input-btn.send:disabled {
+        background: #cbd5e1;
+        cursor: not-allowed;
+    }
+    
+    /* Connection Status */
+    .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+    
+    .connection-status.connected {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .connection-status.disconnected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .connection-status.connecting {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+    
+    /* Date Separator */
+    .date-separator {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 8px 0;
+    }
+    
+    .date-separator::before,
+    .date-separator::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--chat-border);
+    }
+    
+    .date-separator span {
+        font-size: 0.75rem;
+        color: var(--chat-text-muted);
+        font-weight: 500;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .chat-container {
+            height: calc(100vh - 100px);
+            border-radius: 0;
+        }
+        
+        .chat-sidebar {
+            position: fixed;
+            left: -100%;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+            width: 85%;
+            max-width: 320px;
+            transition: left 0.3s ease;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+        }
+        
+        .chat-sidebar.open {
+            left: 0;
+        }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+        }
+        
+        .sidebar-overlay.visible {
+            display: block;
+        }
+        
+        .mobile-menu-btn {
+            display: flex !important;
+        }
+        
+        .chat-messages {
+            padding: 16px;
+        }
+        
+        .message-content {
+            max-width: 80%;
+        }
+        
+        .chat-input-area {
+            padding: 12px 16px;
+        }
+    }
+    
+    @media (min-width: 769px) {
+        .mobile-menu-btn {
+            display: none !important;
+        }
+    }
+    
+    /* Empty State */
+    .chat-empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
+        color: var(--chat-text-muted);
+    }
+    
+    .chat-empty i {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+    
+    .chat-empty h4 {
+        font-weight: 600;
+        color: var(--chat-text);
+        margin-bottom: 8px;
+    }
+    
+    /* Invite Modal */
+    .invite-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .invite-modal.visible {
+        display: flex;
+    }
+    
+    .invite-modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    
+    .invite-modal h4 {
+        margin: 0 0 16px 0;
+        font-weight: 600;
+    }
+    
+    .invite-modal input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--chat-border);
+        border-radius: 10px;
+        font-size: 0.95rem;
+        margin-bottom: 16px;
+    }
+    
+    .invite-modal input:focus {
+        outline: none;
+        border-color: var(--chat-accent);
+    }
+    
+    .invite-modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+            <li class="breadcrumb-item active">{% trans "Chat" %}</li>
+        </ol>
+    </nav>
+    
+    <!-- Main Chat Container -->
+    <div class="chat-container" id="chatContainer">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
+        <!-- Sidebar - Channels -->
+        <aside class="chat-sidebar" id="chatSidebar">
+            <div class="chat-sidebar-header">
+                <h2><i class="bi bi-chat-dots me-2"></i>{{ project.name|truncatechars:20 }}</h2>
+                <p>{% trans "Project Chat" %}</p>
+            </div>
+            
+            <div class="channels-list">
+                <div class="channel-section-title">{% trans "Channels" %}</div>
+                
+                {% for ch in channels %}
+                <a href="{% url 'project_chat_premium_channel' project.id ch.id %}" 
+                   class="channel-item {% if ch.id == channel.id %}active{% endif %}"
+                   data-channel-id="{{ ch.id }}">
+                    <div class="channel-icon {% if ch.channel_type == 'group' %}group{% else %}direct{% endif %}">
+                        <i class="bi bi-{% if ch.channel_type == 'group' %}people{% else %}person{% endif %}"></i>
+                    </div>
+                    <div class="channel-info">
+                        <div class="channel-name">{{ ch.name }}</div>
+                        <div class="channel-preview">{{ ch.participants.count }} {% trans "members" %}</div>
+                    </div>
+                    {% if ch.unread_count %}
+                    <span class="channel-badge">{{ ch.unread_count }}</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+                
+                <!-- Create Channel Button -->
+                <button class="channel-item" style="border: 2px dashed var(--chat-border); background: transparent; width: 100%; margin-top: 12px;" 
+                        onclick="showCreateChannelModal()">
+                    <div class="channel-icon" style="background: #f1f5f9; color: var(--chat-text-muted);">
+                        <i class="bi bi-plus-lg"></i>
+                    </div>
+                    <div class="channel-info">
+                        <div class="channel-name">{% trans "New Channel" %}</div>
+                    </div>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="chat-header-info">
+                    <button class="chat-header-btn mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div class="chat-header-icon {% if channel.channel_type == 'group' %}group{% else %}direct{% endif %}" 
+                         style="background: {% if channel.channel_type == 'group' %}#dbeafe{% else %}#dcfce7{% endif %}; color: {% if channel.channel_type == 'group' %}#3b82f6{% else %}#22c55e{% endif %};">
+                        <i class="bi bi-{% if channel.channel_type == 'group' %}people{% else %}person{% endif %}"></i>
+                    </div>
+                    <div>
+                        <h3>{{ channel.name }}</h3>
+                        <span class="chat-header-subtitle">
+                            {{ channel.participants.count }} {% trans "members" %}
+                            <span class="connection-status connected ms-2" id="connectionStatus">
+                                <span class="status-dot"></span>
+                                <span>{% trans "Connected" %}</span>
+                            </span>
+                        </span>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="chat-header-btn" onclick="showInviteModal()" title="{% trans 'Invite' %}">
+                        <i class="bi bi-person-plus"></i>
+                    </button>
+                    <button class="chat-header-btn" onclick="toggleSearch()" title="{% trans 'Search' %}">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <button class="chat-header-btn" title="{% trans 'Settings' %}">
+                        <i class="bi bi-gear"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Messages Area -->
+            <div class="chat-messages" id="chatMessages">
+                {% if messages %}
+                    {% regroup messages by created_at.date as messages_by_date %}
+                    {% for date_group in messages_by_date %}
+                    <div class="date-separator">
+                        <span>{{ date_group.grouper|date:"F j, Y" }}</span>
+                    </div>
+                    {% for m in date_group.list %}
+                    <div class="message-group {% if m.user.id == request.user.id %}own{% endif %}" 
+                         data-message-id="{{ m.id }}"
+                         data-user-id="{{ m.user.id }}">
+                        <div class="message-avatar">
+                            {{ m.user.first_name|default:m.user.username|slice:":1"|upper }}
+                        </div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-author">{{ m.user.get_full_name|default:m.user.username }}</span>
+                                <span class="message-time">{{ m.created_at|date:"H:i" }}</span>
+                            </div>
+                            <div class="message-bubble">
+                                {% if m.message %}{{ m.message|linebreaksbr }}{% endif %}
+                                {% if m.link_url %}
+                                <a href="{{ m.link_url }}" target="_blank" rel="noopener" class="message-link">
+                                    <i class="bi bi-link-45deg"></i> {{ m.link_url|truncatechars:40 }}
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% if m.image %}
+                            <img src="{{ m.image.url }}" class="message-image" alt="Image" 
+                                 onclick="openImageModal('{{ m.image.url }}')">
+                            {% endif %}
+                            {% if m.user.id == request.user.id and m.read_by.count > 0 %}
+                            <div class="message-read-status">
+                                <i class="bi bi-check2-all"></i> {% trans "Read by" %} {{ m.read_by.count }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endfor %}
+                {% else %}
+                <div class="chat-empty">
+                    <i class="bi bi-chat-square-text"></i>
+                    <h4>{% trans "No messages yet" %}</h4>
+                    <p>{% trans "Start the conversation by sending a message" %}</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <span id="typingText">{% trans "Someone is typing..." %}</span>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="chat-input-area">
+                <form id="chatForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="send">
+                    <div class="chat-input-wrapper">
+                        <textarea name="message" 
+                                  id="messageInput" 
+                                  class="chat-input" 
+                                  placeholder="{% trans 'Type a message...' %}"
+                                  rows="1"></textarea>
+                        <div class="chat-input-actions">
+                            <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;">
+                            <input type="url" name="link_url" id="linkInput" style="display: none;">
+                            
+                            <button type="button" class="chat-input-btn" onclick="document.getElementById('imageInput').click()" title="{% trans 'Attach image' %}">
+                                <i class="bi bi-image"></i>
+                            </button>
+                            <button type="button" class="chat-input-btn" id="voiceBtn" title="{% trans 'Voice input' %}">
+                                <i class="bi bi-mic"></i>
+                            </button>
+                            <button type="submit" class="chat-input-btn send" id="sendBtn" disabled>
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Invite Modal -->
+    <div class="invite-modal" id="inviteModal">
+        <div class="invite-modal-content">
+            <h4><i class="bi bi-person-plus me-2"></i>{% trans "Invite to Channel" %}</h4>
+            <form method="post" id="inviteForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="invite">
+                <input type="text" name="username" placeholder="{% trans 'Enter username' %}" required>
+                <div class="invite-modal-actions">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideInviteModal()">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Invite" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    
+    // ═══════════════════════════════════════════════════════════════
+    // CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════
+    const CONFIG = {
+        projectId: {{ project.id }},
+        channelId: {{ channel.id }},
+        userId: {{ request.user.id }},
+        username: '{{ request.user.username }}',
+        wsUrl: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/chat/project/{{ project.id }}/?lang={{ request.LANGUAGE_CODE }}`,
+        reconnectDelay: 3000,
+        maxReconnectAttempts: 5,
+        typingTimeout: 2000,
+    };
+    
+    // ═══════════════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════════════
+    let ws = null;
+    let reconnectAttempts = 0;
+    let typingTimer = null;
+    let isTyping = false;
+    
+    // ═══════════════════════════════════════════════════════════════
+    // DOM ELEMENTS
+    // ═══════════════════════════════════════════════════════════════
+    const elements = {
+        chatMessages: document.getElementById('chatMessages'),
+        messageInput: document.getElementById('messageInput'),
+        sendBtn: document.getElementById('sendBtn'),
+        chatForm: document.getElementById('chatForm'),
+        connectionStatus: document.getElementById('connectionStatus'),
+        typingIndicator: document.getElementById('typingIndicator'),
+        typingText: document.getElementById('typingText'),
+        voiceBtn: document.getElementById('voiceBtn'),
+        imageInput: document.getElementById('imageInput'),
+        mobileMenuBtn: document.getElementById('mobileMenuBtn'),
+        chatSidebar: document.getElementById('chatSidebar'),
+        sidebarOverlay: document.getElementById('sidebarOverlay'),
+        inviteModal: document.getElementById('inviteModal'),
+    };
+    
+    // ═══════════════════════════════════════════════════════════════
+    // WEBSOCKET CONNECTION
+    // ═══════════════════════════════════════════════════════════════
+    function connect() {
+        updateConnectionStatus('connecting');
+        
+        try {
+            ws = new WebSocket(CONFIG.wsUrl);
+            
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                reconnectAttempts = 0;
+                updateConnectionStatus('connected');
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+            
+            ws.onclose = function(event) {
+                console.log('WebSocket closed:', event.code);
+                updateConnectionStatus('disconnected');
+                attemptReconnect();
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('disconnected');
+            };
+        } catch (error) {
+            console.error('WebSocket connection failed:', error);
+            updateConnectionStatus('disconnected');
+            attemptReconnect();
+        }
+    }
+    
+    function attemptReconnect() {
+        if (reconnectAttempts < CONFIG.maxReconnectAttempts) {
+            reconnectAttempts++;
+            console.log(`Reconnecting... (attempt ${reconnectAttempts})`);
+            setTimeout(connect, CONFIG.reconnectDelay);
+        }
+    }
+    
+    function updateConnectionStatus(status) {
+        const statusEl = elements.connectionStatus;
+        statusEl.className = 'connection-status ' + status;
+        
+        const statusText = {
+            'connected': '{% trans "Connected" %}',
+            'disconnected': '{% trans "Disconnected" %}',
+            'connecting': '{% trans "Connecting..." %}',
+        };
+        
+        statusEl.innerHTML = `
+            <span class="status-dot"></span>
+            <span>${statusText[status]}</span>
+        `;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // MESSAGE HANDLING
+    // ═══════════════════════════════════════════════════════════════
+    function handleMessage(data) {
+        switch (data.type) {
+            case 'message':
+                appendMessage(data);
+                markAsRead(data.message_id);
+                break;
+            case 'typing':
+                showTypingIndicator(data);
+                break;
+            case 'read_receipt':
+                updateReadReceipt(data);
+                break;
+            case 'user_joined':
+                showSystemMessage(`${data.username} {% trans "joined the chat" %}`);
+                break;
+            case 'user_left':
+                showSystemMessage(`${data.username} {% trans "left the chat" %}`);
+                break;
+            case 'error':
+                showError(data.message);
+                break;
+        }
+    }
+    
+    function appendMessage(data) {
+        const isOwn = data.user_id === CONFIG.userId;
+        const html = `
+            <div class="message-group ${isOwn ? 'own' : ''}" 
+                 data-message-id="${data.message_id}"
+                 data-user-id="${data.user_id}">
+                <div class="message-avatar">
+                    ${data.username.charAt(0).toUpperCase()}
+                </div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">${data.username}</span>
+                        <span class="message-time">${new Date(data.timestamp).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</span>
+                    </div>
+                    <div class="message-bubble">
+                        ${escapeHtml(data.message).replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove empty state if exists
+        const emptyState = elements.chatMessages.querySelector('.chat-empty');
+        if (emptyState) emptyState.remove();
+        
+        elements.chatMessages.insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
+        
+        // Hide typing indicator
+        hideTypingIndicator();
+    }
+    
+    function showTypingIndicator(data) {
+        if (data.user_id !== CONFIG.userId && data.is_typing) {
+            elements.typingText.textContent = `${data.username} {% trans "is typing..." %}`;
+            elements.typingIndicator.classList.add('visible');
+        } else {
+            hideTypingIndicator();
+        }
+    }
+    
+    function hideTypingIndicator() {
+        elements.typingIndicator.classList.remove('visible');
+    }
+    
+    function updateReadReceipt(data) {
+        const messageEl = document.querySelector(`[data-message-id="${data.message_id}"]`);
+        if (messageEl && messageEl.classList.contains('own')) {
+            let readStatus = messageEl.querySelector('.message-read-status');
+            if (!readStatus) {
+                const bubble = messageEl.querySelector('.message-bubble');
+                bubble.insertAdjacentHTML('afterend', `
+                    <div class="message-read-status">
+                        <i class="bi bi-check2-all"></i> {% trans "Read" %}
+                    </div>
+                `);
+            }
+        }
+    }
+    
+    function showSystemMessage(text) {
+        const html = `
+            <div class="date-separator">
+                <span>${text}</span>
+            </div>
+        `;
+        elements.chatMessages.insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
+    }
+    
+    function showError(message) {
+        // TODO: Implement toast notification
+        console.error('Chat error:', message);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // SEND MESSAGE
+    // ═══════════════════════════════════════════════════════════════
+    function sendMessage() {
+        const message = elements.messageInput.value.trim();
+        if (!message) return;
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'message',
+                message: message,
+            }));
+            
+            elements.messageInput.value = '';
+            elements.sendBtn.disabled = true;
+            autoResizeTextarea();
+            
+            // Stop typing indicator
+            sendTypingIndicator(false);
+        } else {
+            // Fallback: submit form via HTTP
+            elements.chatForm.submit();
+        }
+    }
+    
+    function sendTypingIndicator(isTyping) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'typing',
+                is_typing: isTyping,
+            }));
+        }
+    }
+    
+    function markAsRead(messageId) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'read_receipt',
+                message_id: messageId,
+            }));
+        }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // UI HELPERS
+    // ═══════════════════════════════════════════════════════════════
+    function scrollToBottom() {
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    }
+    
+    function autoResizeTextarea() {
+        const textarea = elements.messageInput;
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // EVENT LISTENERS
+    // ═══════════════════════════════════════════════════════════════
+    // Message input
+    elements.messageInput.addEventListener('input', function() {
+        elements.sendBtn.disabled = !this.value.trim();
+        autoResizeTextarea();
+        
+        // Typing indicator
+        if (!isTyping) {
+            isTyping = true;
+            sendTypingIndicator(true);
+        }
+        
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(function() {
+            isTyping = false;
+            sendTypingIndicator(false);
+        }, CONFIG.typingTimeout);
+    });
+    
+    // Submit on Enter (Shift+Enter for new line)
+    elements.messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    // Form submit
+    elements.chatForm.addEventListener('submit', function(e) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            e.preventDefault();
+            sendMessage();
+        }
+        // Otherwise let form submit normally
+    });
+    
+    // Mobile sidebar toggle
+    elements.mobileMenuBtn?.addEventListener('click', function() {
+        elements.chatSidebar.classList.add('open');
+        elements.sidebarOverlay.classList.add('visible');
+    });
+    
+    elements.sidebarOverlay?.addEventListener('click', function() {
+        elements.chatSidebar.classList.remove('open');
+        elements.sidebarOverlay.classList.remove('visible');
+    });
+    
+    // Voice input
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = '{{ request.LANGUAGE_CODE|default:"en" }}';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onresult = function(e) {
+            const text = e.results[0][0].transcript;
+            elements.messageInput.value += (elements.messageInput.value ? ' ' : '') + text;
+            elements.sendBtn.disabled = false;
+            autoResizeTextarea();
+        };
+        
+        recognition.onend = function() {
+            elements.voiceBtn.classList.remove('recording');
+        };
+        
+        elements.voiceBtn.addEventListener('click', function() {
+            try {
+                recognition.start();
+                this.classList.add('recording');
+            } catch (e) {}
+        });
+    } else {
+        elements.voiceBtn.disabled = true;
+        elements.voiceBtn.title = '{% trans "Voice input not supported" %}';
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // MODAL FUNCTIONS
+    // ═══════════════════════════════════════════════════════════════
+    window.showInviteModal = function() {
+        elements.inviteModal.classList.add('visible');
+    };
+    
+    window.hideInviteModal = function() {
+        elements.inviteModal.classList.remove('visible');
+    };
+    
+    window.openImageModal = function(url) {
+        window.open(url, '_blank');
+    };
+    
+    window.showCreateChannelModal = function() {
+        // TODO: Implement create channel modal
+        alert('{% trans "Create channel feature coming soon" %}');
+    };
+    
+    window.toggleSearch = function() {
+        // TODO: Implement search
+        alert('{% trans "Search feature coming soon" %}');
+    };
+    
+    // Close modal on outside click
+    elements.inviteModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideInviteModal();
+        }
+    });
+    
+    // ═══════════════════════════════════════════════════════════════
+    // INITIALIZATION
+    // ═══════════════════════════════════════════════════════════════
+    scrollToBottom();
+    connect();
+    
+})();
+</script>
+{% endblock %}

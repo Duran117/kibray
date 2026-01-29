@@ -332,12 +332,19 @@ urlpatterns = [
     ),
     # Design chat (legacy simple); new channel-based chat below
     path("projects/<int:project_id>/design-chat/", views.design_chat, name="design_chat"),
-    # Channel-based project chat
+    # Channel-based project chat (legacy)
     path("projects/<int:project_id>/chat/", views.project_chat_index, name="project_chat_index"),
     path(
         "projects/<int:project_id>/chat/<int:channel_id>/",
         views.project_chat_room,
         name="project_chat_room",
+    ),
+    # Premium Chat (new)
+    path("projects/<int:project_id>/messages/", views.project_chat_premium, name="project_chat_premium"),
+    path(
+        "projects/<int:project_id>/messages/<int:channel_id>/",
+        views.project_chat_premium,
+        name="project_chat_premium_channel",
     ),
     # PDF resumen de proyecto
     path("project/<int:project_id>/pdf/", views.project_pdf_view, name="project_pdf"),

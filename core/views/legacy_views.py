@@ -3623,6 +3623,117 @@ def project_chat_room(request, project_id, channel_id):
 
 
 @login_required
+def project_chat_premium(request, project_id, channel_id=None):
+    """
+    Premium chat view with WebSocket support.
+    """
+    project = get_object_or_404(Project, id=project_id)
+    
+    # Ensure default channels exist
+    group, direct = _ensure_default_channels(project, request.user)
+    
+    # Get all channels for this project that user can access
+    if request.user.is_staff:
+        channels = project.chat_channels.all().order_by("name")
+    else:
+        channels = project.chat_channels.filter(
+            participants=request.user
+        ).order_by("name")
+    
+    # Select active channel
+    if channel_id:
+        channel = get_object_or_404(ChatChannel, id=channel_id, project=project)
+        # Access control
+        if not (request.user.is_staff or channel.participants.filter(id=request.user.id).exists()):
+            messages.error(request, "No tienes acceso a este canal.")
+            return redirect("project_chat_premium", project_id=project.id)
+    else:
+        # Default to group channel
+        channel = group
+    
+    # Handle channel creation
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "create_channel":
+            channel_name = (request.POST.get("channel_name") or "").strip()
+            channel_type = request.POST.get("channel_type", "group")
+            if channel_name:
+                new_channel = ChatChannel.objects.create(
+                    project=project,
+                    name=channel_name,
+                    channel_type=channel_type
+                )
+                new_channel.participants.add(request.user)
+                messages.success(request, f"Canal '{channel_name}' creado.")
+                return redirect("project_chat_premium_channel", project_id=project.id, channel_id=new_channel.id)
+            else:
+                messages.error(request, "El nombre del canal es requerido.")
+        
+        elif action == "invite":
+            username = (request.POST.get("username") or "").strip()
+            from django.contrib.auth.models import User as DjangoUser
+            try:
+                u = DjangoUser.objects.get(username=username)
+                channel.participants.add(u)
+                messages.success(request, _("%(username)s invitado al canal.") % {"username": username})
+            except DjangoUser.DoesNotExist:
+                messages.error(request, "Usuario no encontrado.")
+            return redirect("project_chat_premium_channel", project_id=project.id, channel_id=channel.id)
+        
+        elif action == "delete_channel":
+            if channel.is_default:
+                messages.error(request, "No puedes eliminar el canal por defecto.")
+            else:
+                channel_name = channel.name
+                channel.delete()
+                messages.success(request, f"Canal '{channel_name}' eliminado.")
+            return redirect("project_chat_premium", project_id=project.id)
+    
+    # Get messages for the active channel (for initial load)
+    messages_list = channel.messages.select_related("user").order_by("-created_at")[:50]
+    messages_list = list(reversed(messages_list))  # Show oldest first
+    
+    # Get team members for invite functionality
+    team_members = []
+    if request.user.is_staff:
+        from django.contrib.auth.models import User as DjangoUser
+        team_members = DjangoUser.objects.filter(is_active=True).exclude(
+            id__in=channel.participants.values_list('id', flat=True)
+        )
+    
+    # Prepare channel data for JavaScript
+    channels_data = []
+    for ch in channels:
+        unread_count = ch.messages.exclude(read_by=request.user).count()
+        last_msg = ch.messages.order_by("-created_at").first()
+        channels_data.append({
+            'id': ch.id,
+            'name': ch.name,
+            'type': ch.channel_type,
+            'is_default': ch.is_default,
+            'unread': unread_count,
+            'last_message': last_msg.message[:50] if last_msg else '',
+            'last_time': last_msg.created_at.isoformat() if last_msg else '',
+        })
+    
+    import json
+    return render(
+        request,
+        "core/project_chat_premium.html",
+        {
+            "project": project,
+            "channel": channel,
+            "channels": channels,
+            "channels_json": json.dumps(channels_data),
+            "messages": messages_list,
+            "team_members": team_members,
+            "current_user_id": request.user.id,
+        },
+    )
+
+
+@login_required
 def agregar_comentario(request, project_id):
     """
     Permite a clientes y staff agregar comentarios con imágenes.
