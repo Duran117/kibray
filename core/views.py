@@ -1051,10 +1051,10 @@ def dashboard_client(request):
         "selected_project_id": selected_project_id,
     }
 
-    # Use clean template by default, legacy with ?legacy=true
+    # Use premium template by default, legacy with ?legacy=true
     use_legacy = request.GET.get("legacy")
     template_name = (
-        "core/dashboard_client.html" if use_legacy else "core/dashboard_client_clean.html"
+        "core/dashboard_client.html" if use_legacy else "core/dashboard_client_premium.html"
     )
     return render(request, template_name, context)
 

@@ -302,10 +302,15 @@
                     <i class="bi bi-palette text-slate-400"></i>
                     {% trans "Colors" %}
                 </a>
+                <a href="{% url 'client_project_view' data.project.id %}#documents" 
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
+                    <i class="bi bi-folder text-slate-400"></i>
+                    {% trans "Documents" %}
+                </a>
                 <a href="{% url 'project_minutes_list' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
                     <i class="bi bi-file-text text-slate-400"></i>
-                    {% trans "Documents" %}
+                    {% trans "Minutes" %}
                 </a>
                 <a href="{% url 'client_requests_list' data.project.id %}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover">
