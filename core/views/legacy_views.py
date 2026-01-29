@@ -11245,7 +11245,25 @@ def file_upload(request, project_id, category_id):
     from core.models import FileCategory
 
     project = get_object_or_404(Project, id=project_id)
-    category = get_object_or_404(FileCategory, id=category_id, project=project)
+    
+    # Si category_id es 0, usar la categoría "Documents" por defecto
+    if category_id == 0:
+        category = FileCategory.objects.filter(
+            project=project, 
+            category_type="documents"
+        ).first()
+        if not category:
+            # Crear categoría Documents si no existe
+            category = FileCategory.objects.create(
+                project=project,
+                name="Documents",
+                category_type="documents",
+                icon="bi-file-earmark-text",
+                color="info",
+                created_by=request.user,
+            )
+    else:
+        category = get_object_or_404(FileCategory, id=category_id, project=project)
 
     form = ProjectFileForm(request.POST, request.FILES)
     if form.is_valid():
@@ -11253,6 +11271,11 @@ def file_upload(request, project_id, category_id):
         file_obj.project = project
         file_obj.category = category
         file_obj.uploaded_by = request.user
+        
+        # Si el nombre está vacío, usar el nombre del archivo
+        if not file_obj.name and request.FILES.get('file'):
+            file_obj.name = request.FILES['file'].name
+        
         file_obj.save()
         messages.success(request, f'Archivo "{file_obj.name}" subido correctamente')
     else:

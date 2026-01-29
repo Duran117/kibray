@@ -1106,22 +1106,34 @@
     <form method="post" action="{% url 'file_upload' project.id selected_category.id|default:0 %}" enctype="multipart/form-data" id="uploadForm">
       {% csrf_token %}
       <div class="doc-modal-body">
+        {% if not selected_category %}
+        <div class="doc-form-group" style="margin-bottom: 16px;">
+          <label class="doc-form-label">{% trans "Carpeta destino" %}</label>
+          <select name="category_override" class="doc-form-input" id="categorySelect" onchange="updateUploadAction()">
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        
+        <div class="doc-form-group" style="margin-bottom: 16px;">
+          <label class="doc-form-label">{% trans "Nombre del archivo" %}</label>
+          <input type="text" name="name" class="doc-form-input" id="fileName" placeholder="{% trans 'Se usará el nombre del archivo si se deja vacío' %}">
+        </div>
+        
         <div class="doc-upload-zone" id="modalDropZone">
           <i class="bi bi-cloud-arrow-up"></i>
           <h4>{% trans "Arrastra archivos aquí" %}</h4>
           <p>{% trans "o haz clic para seleccionar" %}</p>
-          <input type="file" name="file" id="fileInput" multiple style="display: none;">
+          <input type="file" name="file" id="fileInput" style="display: none;" required>
         </div>
         
         <div id="filesList" style="margin-top: 16px;"></div>
         
         <div class="doc-form-group" style="margin-top: 20px;">
-          <label class="doc-form-label">{% trans "Tags" %}</label>
-          <select name="tags" class="doc-form-input" multiple id="tagSelect">
-            {% for tag in all_tags %}
-            <option value="{{ tag.id }}">{{ tag.name }}</option>
-            {% endfor %}
-          </select>
+          <label class="doc-form-label">{% trans "Descripción" %} <span style="color: var(--doc-text-secondary);">({% trans "opcional" %})</span></label>
+          <textarea name="description" class="doc-form-input" rows="2" placeholder="{% trans 'Descripción del archivo...' %}"></textarea>
         </div>
       </div>
       <div class="doc-modal-footer">
@@ -1196,6 +1208,17 @@
 // State
 let currentView = 'grid';
 let selectedFileId = null;
+const projectId = {{ project.id }};
+
+// Update upload form action when category is selected
+function updateUploadAction() {
+  const select = document.getElementById('categorySelect');
+  if (select) {
+    const categoryId = select.value;
+    const form = document.getElementById('uploadForm');
+    form.action = `/projects/${projectId}/files/${categoryId}/upload/`;
+  }
+}
 
 // View Toggle
 function setView(view) {
@@ -1665,6 +1688,13 @@ modalDropZone.addEventListener('drop', e => {
 
 fileInput.addEventListener('change', e => {
   showSelectedFiles(e.target.files);
+  // Auto-fill name field with filename (without extension) if empty
+  const nameField = document.getElementById('fileName');
+  if (nameField && !nameField.value && e.target.files.length > 0) {
+    const filename = e.target.files[0].name;
+    // Remove extension for cleaner name
+    nameField.value = filename.replace(/\.[^/.]+$/, "");
+  }
 });
 
 function showSelectedFiles(files) {

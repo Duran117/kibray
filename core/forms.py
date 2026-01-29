@@ -1678,6 +1678,7 @@ class ProjectFileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["name"].required = False  # Se usará nombre de archivo si vacío
         self.fields["description"].required = False
         self.fields["tags"].required = False
         self.fields["version"].required = False
