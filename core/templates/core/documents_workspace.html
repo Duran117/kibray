@@ -1645,8 +1645,8 @@ function shareFile(fileId) {
   .then(r => r.json())
   .then(data => {
     if (data.share_url) {
-      // Show share modal with URL
-      const shareUrl = window.location.origin + data.share_url;
+      // share_url already includes full domain from build_absolute_uri
+      const shareUrl = data.share_url;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrl);
         showToast('{% trans "Enlace copiado al portapapeles" %}', 'success');

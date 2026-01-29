@@ -11322,6 +11322,9 @@ def file_download(request, file_id):
 
     # Serve file
     if file_obj.file:
+        # Increment download counter
+        file_obj.increment_download()
+        
         response = HttpResponse(file_obj.file, content_type="application/octet-stream")
         response["Content-Disposition"] = f'attachment; filename="{file_obj.name}"'
         return response

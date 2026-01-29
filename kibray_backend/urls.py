@@ -633,6 +633,7 @@ urlpatterns = [
     path("api/folders/<int:category_id>/share/", views.folder_generate_share_link, name="folder_generate_share_link"),
     # Public share links (no login required)
     path("shared/file/<str:token>/", views.file_public_view, name="file_public_view"),
+    path("shared/file/<str:token>/download/", views.file_public_download, name="file_public_download"),
     path("shared/folder/<str:token>/", views.folder_public_view, name="folder_public_view"),
     # Document Workflow API (Odoo-style)
     path("api/projects/<int:project_id>/workflows/", views.workflow_templates_list, name="workflow_templates_list"),
