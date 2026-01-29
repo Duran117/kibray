@@ -1309,6 +1309,24 @@ function loadFileDetails(fileId) {
         
         <div class="doc-panel-filename">${data.name}</div>
         
+        <!-- Action Buttons -->
+        <div class="doc-panel-actions" style="display: flex; gap: 8px; margin: 16px 0;">
+          <a href="/files/${fileId}/download/" class="doc-btn doc-btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
+            <i class="bi bi-download"></i> {% trans "Descargar" %}
+          </a>
+          <button class="doc-btn doc-btn-secondary" onclick="toggleFavorite(${fileId})" style="flex: 1;">
+            <i class="bi bi-star${data.is_favorited ? '-fill' : ''}"></i> {% trans "Favorito" %}
+          </button>
+        </div>
+        <div class="doc-panel-actions" style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button class="doc-btn doc-btn-secondary" onclick="shareFile(${fileId})" style="flex: 1;">
+            <i class="bi bi-share"></i> {% trans "Compartir" %}
+          </button>
+          <button class="doc-btn doc-btn-secondary" onclick="deleteFile(${fileId})" style="flex: 1; color: #ef4444; border-color: #ef4444;">
+            <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+          </button>
+        </div>
+        
         <div class="doc-panel-section">
           <div class="doc-panel-section-title">{% trans "Información" %}</div>
           <div class="doc-panel-row">
@@ -1614,6 +1632,51 @@ function toggleFavorite(fileId) {
 // Download File
 function downloadFile(fileId) {
   window.location = `/files/${fileId}/download/`;
+}
+
+// Share File
+function shareFile(fileId) {
+  fetch(`/api/files/${fileId}/share/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.share_url) {
+      // Show share modal with URL
+      const shareUrl = window.location.origin + data.share_url;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl);
+        showToast('{% trans "Enlace copiado al portapapeles" %}', 'success');
+      } else {
+        prompt('{% trans "Copiar enlace:" %}', shareUrl);
+      }
+    } else if (data.error) {
+      showToast(data.error, 'error');
+    }
+  })
+  .catch(() => showToast('{% trans "Error al generar enlace" %}', 'error'));
+}
+
+// Delete File
+function deleteFile(fileId) {
+  if (confirm('{% trans "¿Estás seguro de eliminar este archivo? Esta acción no se puede deshacer." %}')) {
+    // Create form and submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/files/${fileId}/delete/`;
+    
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = 'csrfmiddlewaretoken';
+    csrf.value = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    form.appendChild(csrf);
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
 }
 
 // Modal Functions
