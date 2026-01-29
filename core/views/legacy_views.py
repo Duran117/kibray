@@ -7527,7 +7527,7 @@ def pm_select_project(request, action: str):
             "overview": "project_overview",
             "direct_purchase": "materials_direct_purchase",
             "touchups": "touchup_board",
-            "chat": "project_chat_index",
+            "chat": "project_chat_premium",
             "plans": "floor_plan_list",
             "colors": "color_sample_list",
             "dailylogs": "daily_log",
