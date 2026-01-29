@@ -646,6 +646,10 @@
       
       <!-- Exports & Tools -->
       <div class="section-title">{% trans "Tools" %}</div>
+      <a href="{% url 'project_files' project.id %}" class="nav-item">
+        <i class="bi bi-folder2-open"></i>
+        <span class="nav-text">{% trans "Documentos" %}</span>
+      </a>
       <a href="{% url 'estimate_create' project.id %}" class="nav-item">
         <i class="bi bi-calculator"></i>
         <span class="nav-text">{% trans "Estimates" %}</span>
